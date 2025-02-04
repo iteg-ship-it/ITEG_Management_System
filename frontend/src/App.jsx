@@ -1,9 +1,11 @@
-import Sidebar from "./components/sidebar/Sidebar";
+import Dashboard from "./components/deshboard/Dashboard";
+// import Sidebar from "./components/sidebar/Sidebar";
 
 function App() {
   return (
     <>
-      <Sidebar />
+      {/* <Sidebar /> */}
+<Dashboard />
     </>
   );
 }
