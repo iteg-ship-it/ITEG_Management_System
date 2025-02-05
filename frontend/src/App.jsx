@@ -1,4 +1,5 @@
 import LoginPage from "./components/login/LoginPage";
+import Dashboard from "./components/deshboard/Dashboard";
 // import Sidebar from "./components/sidebar/Sidebar";
 
 function App() {
@@ -6,6 +7,7 @@ function App() {
     <>
       {/* <Sidebar /> */}
       <LoginPage />
+<Dashboard />
     </>
   );
 }
