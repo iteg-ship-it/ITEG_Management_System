@@ -2,7 +2,3 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  font-family: poppins;
-  --primary-color: #f2722b;
-}
