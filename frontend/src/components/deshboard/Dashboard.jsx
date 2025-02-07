@@ -1,6 +1,7 @@
 import React, { useState } from "react";
+import logo from "../../assets/images/logo-ssism.png";
 import { FaUserGraduate, FaBook, FaInfoCircle } from "react-icons/fa";
-import "tailwindcss/tailwind.css";
+// import "tailwindcss/tailwind.css";
 
 const roles = {
   admin: ["Admission Process", "Student Record", "Placement Information"],
@@ -10,11 +11,19 @@ const roles = {
 
 const Sidebar = ({ role }) => {
   return (
-    <div className="w-64 min-h-screen bg-gray-100 p-4 shadow-lg">
-      <h2 className="text-xl font-bold mb-4">Sant Singaji Educational Society</h2>
+    <div className="bg-white w-64 min-h-screen  p-4 shadow-lg">
+      <div className="flex items-center mb-4">
+        <img src={logo} alt="Logo" className="h-24 w-24 rounded-full" />
+        <div>
+          <h2 className="text-lg font-bold">SANT SINGAJI EDUCATION SOCIETY</h2>
+        </div>
+      </div>
       <ul>
         {roles[role].map((item, index) => (
-          <li key={index} className="p-2 text-gray-700 hover:bg-gray-200 rounded-md cursor-pointer">
+          <li
+            key={index}
+            className="p-2 text-gray-700 hover:bg-gray-200 rounded-md cursor-pointer"
+          >
             {item}
           </li>
         ))}
@@ -37,9 +46,9 @@ const DashboardCard = ({ title }) => {
 };
 
 const Dashboard = () => {
-  const [role, setRole] = useState("admin");
+  const [role, setRole] = useState("teacher");
   return (
-    <div className="flex">
+    <div className="flex bg-gray-100">
       <Sidebar role={role} />
       <div className="flex-1 p-6">
         <h1 className="text-2xl font-bold mb-4">Admission Dashboard</h1>
