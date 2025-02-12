@@ -1,38 +1,60 @@
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { Menu } from "lucide-react";
 import logo from "../../assets/images/logo.png";
-const Sidebar = () => {
+
+const roles = {
+  admin: [
+    { name: "Admission Process", path: "/admission" },
+    { name: "Student Record", path: "/student-record" },
+    { name: "Placement Information", path: "/placement" },
+  ],
+  teacher: [
+    { name: "Student Record", path: "/student-record" },
+    { name: "Placement Information", path: "/placement" },
+  ],
+  student: [{ name: "Placement Information", path: "/placement" }],
+};
+
+const Sidebar = ({ role }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  if (!roles[role]) {
+    return <p className="text-red-600">Invalid Role</p>;
+  }
+
   return (
-    <>
-      <div className="w-64 h-screen bg-white shadow-lg flex flex-col">
-        <div className="flex items-center p-4">
-          <img src={logo} alt="Logo" className="w-full  rounded-full" />
-          <span className="ml-2 text-xl font-bold">
-            SANT SINGAJI EDUCATIONAL SOCIETY
-          </span>
+    <div>
+      {/* Toggle Button for Mobile View */}
+      <button
+        className="md:hidden p-2 m-2 bg-gray-200 rounded"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <Menu />
+      </button>
+      {/* Sidebar */}
+      <div
+        className={`bg-white w-64 min-h-screen p-4 shadow-lg fixed md:relative transition-transform transform ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0`}
+      >
+        <div className="flex items-center mb-4">
+          <img src={logo} alt="Logo" className="h-16 w-16 p-2 rounded-full" />
+          <h2 className="mx-2 text-lg font-bold">
+            Sant Singaji Education Society
+          </h2>
         </div>
-        <div className="flex-grow mt-4">
-          <ul className="space-y-2">
-            <li>
-              <button className="flex items-center w-full px-4 py-2 text-left hover:bg-gray-100">
-                <span className="material-icons text-lg mr-4">description</span>
-                Admission Process
-              </button>
+        <ul>
+          {roles[role].map((item, index) => (
+            <li key={index} className="p-2 hover:bg-gray-200 rounded-md">
+              <Link to={item.path} className="text-gray-700">
+                {item.name}
+              </Link>
             </li>
-            <li>
-              <button className="flex items-center w-full px-4 py-2 text-left hover:bg-gray-100">
-                <span className="material-icons text-lg mr-4">school</span>
-                Student Record
-              </button>
-            </li>
-            <li>
-              <button className="flex items-center w-full px-4 py-2 text-left hover:bg-gray-100">
-                <span className="material-icons text-lg mr-4">info</span>
-                Placement Information
-              </button>
-            </li>
-          </ul>
-        </div>
+          ))}
+        </ul>
       </div>
-    </>
+    </div>
   );
 };
 
