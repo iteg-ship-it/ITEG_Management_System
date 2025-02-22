@@ -3,6 +3,6 @@ const { createStudent_Admission_process } = require('../modules/student/controll
 const router = express.Router();
 
 
-router.post('/', createStudent_Admission_process);
+router.post('/admission-process', createStudent_Admission_process);
 
 module.exports = router;

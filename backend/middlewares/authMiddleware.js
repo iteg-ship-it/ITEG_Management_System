@@ -7,6 +7,12 @@ const verifyToken = (req, res, next) => {
     if (!token) {
         return res.status(403).json({ message: "Access Denied. No token provided." });
     }
+    const authHeader= authHeader.split(" ")[1]; // Assumes "Bearer <token>"
+
+    if (!authHeader) {
+        return res.status(403).json({ message: "Access Denied. No token provided." });
+    }
+
 
     try {
         const decoded = jwt.verify(token.replace("Bearer ", ""), process.env.JWT_SECRET);
