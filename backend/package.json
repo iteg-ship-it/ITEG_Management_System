@@ -4,12 +4,7 @@
   "description": "a backend at iteg management system",
   "main": "server.js",
   "scripts": {
-<<<<<<< HEAD
-    "start": "node index.js",
-    "dev": "nodemon server.js"
-=======
     "start": "nodemon server.js"
->>>>>>> 5e32d87dd5a15d759e2a1b4ad351244cccfb0b70
   },
   "keywords": [
     "javascript",
@@ -18,23 +13,16 @@
   "author": "Anees khan",
   "license": "ISC",
   "dependencies": {
-<<<<<<< HEAD
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
-=======
-    "bcryptjs": "^2.4.3",
->>>>>>> 5e32d87dd5a15d759e2a1b4ad351244cccfb0b70
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
     "nodemon": "^3.1.9"
-<<<<<<< HEAD
 
     
-=======
->>>>>>> 5e32d87dd5a15d759e2a1b4ad351244cccfb0b70
   }
   
 }
