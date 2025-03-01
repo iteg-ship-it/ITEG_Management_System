@@ -15,7 +15,13 @@ const Student_Admission_process_Schema = new mongoose.Schema({
   track: { type: String, required: true },
   address: { type: String, required: true },
   status: { type: String, required: true },
+  interviewAttempts: { type: String, required: true },
+  feeStatus: { type: String, required: true },
   // flag: { type: String, required: true }, // Uncomment if needed
 }, { timestamps: true });
 
 module.exports = mongoose.model('Student_Admission_process', Student_Admission_process_Schema);
+
+
+
+
