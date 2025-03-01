@@ -5,9 +5,9 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, default: "user" },
-  role: { type: String, enum: ["admin", "user"], default: "user" },
-  role: { type: String, enum: ["admin", "user", "super-admin"], default: "user" },
-  role: { type: String, enum: ["admin", "user", "super-admin", "faculty"], default: "user" },
+  role: { type: String, enum: ["Admin", "user"], default: "user" },
+  role: { type: String, enum: ["Admin", "user", "Super-admin"], default: "user" },
+  role: { type: String, enum: ["Admin", "user", "Super-admin", "Faculty"], default: "user" },
 });
 
 module.exports = mongoose.model("User", UserSchema);
