@@ -32,7 +32,6 @@ const userRoutes = require("./routes/userRoutes");
 const protectedRoutes = require("./routes/protectedRoutes");
 const studentRoutes = require("./routes/studentRoutes");
 const { connectMongoDB } = require("./config/db");
-const interviewRoutes = require("./routes/interviewRoutes");
 
 
 
@@ -46,10 +45,8 @@ connectMongoDB();
 app.use("/api/auth", authRoutes);
 app.use("/api/protected", protectedRoutes);
 app.use("/api/students", studentRoutes);
-app.use("/api/interviews", interviewRoutes);
 //Routes
 app.use("/api/students", require("./routes/studentRoutes"));
-app.use("/api/interviews", require("./routes/interviewRoutes"));
 app.use("/api/users", require("./routes/userRoutes"));
 
 mongoose.connect(process.env.MONGO_URI, { 
