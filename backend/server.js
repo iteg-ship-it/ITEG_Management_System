@@ -58,9 +58,30 @@ mongoose
   // .then(() => console.log("Connected to MongoDB"))
   // .catch((err) => console.log("DB Connection Error: ", err));/
   .connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ Connected to MongoDB"))
-  .catch((err) => console.error("❌ DB Connection Error:", err));
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.error("DB Connection Error:", err));
 
 // Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
+
+
+
+require('dotenv').config();
+
+
+const mongoURI = process.env.MONGO_URI; // Ensure this is not undefined
+
+if (!mongoURI) {
+    console.error("Database connection string is missing in .env file");
+    process.exit(1); // Stop the server if no DB connection string is provided
+}
+
+mongoose.connect(mongoURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+})
+    .then(() => console.log("Connected to MongoDB"))
+    .catch((err) => console.error("DB Connection Error:", err));
