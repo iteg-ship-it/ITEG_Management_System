@@ -38,23 +38,7 @@ exports.createStudent_Admission_process = async (req, res) => {
 
 
 
-// const express = require('express');
-// const mongoose = require('mongoose');
-// const router = express.Router();
 
-// Mongoose models
-// const Student = mongoose.model('Student', new mongoose.Schema({
-//     name: String,
-//     email: String,
-//     phone: String,
-//     interviewAttempts: Number,
-//     interviewRound: String,
-//     status: String, // 'Rejected', 'Attempted', 'Round Attempt'
-//     track: String, // For track-wise grouping
-//     feeStatus: String // 'Full', 'Partial', 'Not Paid'
-// }));
-
-// GET: Admission Dashboard Stats
 // router.get('/admission-dashboard', async (req, res) => {
   exports.getAdmissionDashboard = async (req, res) => {
     try {
