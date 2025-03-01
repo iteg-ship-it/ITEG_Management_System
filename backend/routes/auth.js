@@ -1,7 +1,10 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+// const Admin = require("../modules/Admin");
+const Admin = require("../modules/Admin/models/Adminmodels");
+const faculty = require("../modules/Faculty/models/facultymodels");
+
 
 const router = express.Router();
 
@@ -14,8 +17,8 @@ router.post("/register", async (req, res) => {
         const userRole = role || "Faculty";
 
         // Check if user already exists
-        let user = await User.findOne({ email });
-        if (user) {
+        let Admin = await Admin.findOne({ email });
+        if (Admin) {
             return res.status(400).json({ message: "User already exists" });
         }
 
@@ -24,7 +27,7 @@ router.post("/register", async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         // Save user to database
-        user = new User({ name, email, password: hashedPassword, role: userRole });
+        Admin = new Admin({ name, email, password: hashedPassword, role: userRole });
         await user.save();
 
         res.status(201).json({ message: "User registered successfully!" });
