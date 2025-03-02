@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import Sidebar from "../sidebar/Sidebar";
+import AdmitionProcess from "../addmitionProcess/AdmitionProcess";
+import AdmissionDashboard from "../addmitionProcess/AdmissionDashboard";
 
 const DashboardCard = ({ title }) => {
   return (
@@ -20,7 +22,10 @@ const Dashboard = () => {
   return (
     <div className="flex bg-gray-100 min-h-screen">
       <Sidebar role={role} />
-      <div className="flex-1 p-6 md:ml-64">
+      {/* <AdmitionProcess /> */}
+      <AdmissionDashboard />
+
+      {/* <div className="flex-1 p-6 md:ml-64">
         <h1 className="text-2xl font-bold mb-4">Admission Dashboard</h1>
         <div className="flex gap-4 flex-wrap">
           <DashboardCard title="Selected" />
@@ -28,7 +33,7 @@ const Dashboard = () => {
           <DashboardCard title="Total Registration" />
           <DashboardCard title="Total Student" />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

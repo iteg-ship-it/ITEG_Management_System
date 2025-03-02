@@ -1,6 +1,8 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Dashboard from "./components/deshboard/Dashboard";
+import AdmissionDashboard from "./components/addmitionProcess/AdmissionDashboard";
+import { LogIn } from "lucide-react";
 // import Sidebar from "./components/sidebar/Sidebar";
 
 const Admission = () => (
@@ -20,8 +22,9 @@ function App() {
         {/* <Sidebar role="teacher" /> */}
         <div className="flex-1">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/admission" element={<Admission />} />
+          {/* <Route path="/" element={<LogIn />} /> */}
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/admission" element={<AdmissionDashboard />} />
             <Route path="/student-record" element={<StudentRecord />} />
             <Route path="/placement" element={<Placement />} />
           </Routes>
