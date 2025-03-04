@@ -87,3 +87,61 @@ exports.createStudent_Admission_process = async (req, res) => {
     }
 };
 
+
+
+// Update Specific Fields (course, status, interviewAttempts, feeStatus)
+exports.updateStudent = async (req, res) => {
+  try {
+      const { id } = req.params;
+      const { course, status, interviewAttempts, feeStatus } = req.body;
+
+      const updatedStudent = await Student_Admission_process.findByIdAndUpdate(id, 
+          { course, status, interviewAttempts, feeStatus },
+          { new: true, runValidators: true }
+      );
+
+      if (!updatedStudent) {
+          return res.status(404).json({ message: 'Student not found' });
+      }
+
+      res.status(200).json({ message: 'Student fields updated successfully', student: updatedStudent });
+  } catch (error) {
+      res.status(500).json({ message: 'Internal Server Error', error: error.message });
+  }
+};
+
+
+// Delete Student
+exports.deleteStudent = async (req, res) => {
+  try {
+      const { id } = req.params;
+      const deletedStudent = await Student_Admission_process.findByIdAndDelete(id);
+
+      if (!deletedStudent) {
+          return res.status(404).json({ message: 'Student not found' });
+      }
+
+      res.status(200).json({ message: 'Student deleted successfully' });
+  } catch (error) {
+      res.status(500).json({ message: 'Internal Server Error', error: error.message });
+  }
+};
+
+
+// Get Students by Track
+exports.getStudentsByTrack = async (req, res) => {
+  try {
+      const { track } = req.params;
+      const students = await Student_Admission_process.find({ track });
+
+      if (students.length === 0) {
+          return res.status(404).json({ message: 'No students found for this track' });
+      }
+
+      res.status(200).json({ students });
+  } catch (error) {
+      res.status(500).json({ message: 'Internal Server Error', error: error.message });
+  }
+};
+
+
