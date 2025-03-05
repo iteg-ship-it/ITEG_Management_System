@@ -18,7 +18,7 @@ router.get("/", verifyToken, checkRole(["Admin"]), getAllAdmins);
 router.get("/:id", verifyToken, checkRole(["Admin"]), getAdminById);
 
 // Create new admin (Only Super Admin)
-router.post("/register", verifyToken, checkRole(["Admin"]), createAdmin);
+router.post("/register", createAdmin);
 
 // Update admin by ID (Only Super Admin)
 router.put("/:id", verifyToken, checkRole(["Admin"]), updateAdmin);
