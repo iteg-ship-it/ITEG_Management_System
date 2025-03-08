@@ -11,6 +11,7 @@
 // app.use(cors());
 // app.use(bodyParser.json());
 
+
 // mongoose.connect(process.env.MONGO_URI, {
 //   useNewUrlParser: true,
 //   useUnifiedTopology: true,
@@ -21,11 +22,8 @@
 // app.use('/api/superadmin', superAdminRoutes);
 
 // const PORT = process.env.PORT || 5000;
-//app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-
-
-const express = require("express");
+// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+require("dotenv").config();origin/Dev-aneesonst express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 require("dotenv").config();
@@ -35,6 +33,8 @@ const adminRoutes = require("./routes/AdminRoutes");
 const facultyRoutes = require("./routes/facultyRoutes");
 const studentAdmissionRoutes = require('./routes/student_admissionProcessRoutes');
 const protectedRoutes = require("./routes/protectedRoutes");
+const studentRoutes = require("./routes/studentRoutes");
+const { connectMongoDB } = require("./config/db");
 
 const app = express();
 
@@ -42,15 +42,19 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Routes
+
+connectMongoDB();
+
+
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/protected", protectedRoutes);
+
 app.use('/api/students', studentAdmissionRoutes);
 
 // MongoDB Connection
-mongoose
+
   // .connect(process.env.MONGO_URI, {
   //   useNewUrlParser: true,
   //   useUnifiedTopology: true
@@ -65,23 +69,29 @@ mongoose
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
+app.use("/api/students", studentRoutes);
+//Routes
+app.use("/api/students", require("./routes/studentRoutes"));
 
-
-
-
-require('dotenv').config();
-
-
-const mongoURI = process.env.MONGO_URI; // Ensure this is not undefined
-
-if (!mongoURI) {
-    console.error("Database connection string is missing in .env file");
-    process.exit(1); // Stop the server if no DB connection string is provided
-}
-
-mongoose.connect(mongoURI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+mongoose.connect(process.env.MONGO_URI, { 
+  // useNewUrlParser: true, 
+  // useUnifiedTopology: true 
 })
-    .then(() => console.log("Connected to MongoDB"))
-    .catch((err) => console.error("DB Connection Error:", err));
+  .catch((err) => console.log("MongoDB Connection Error:", err));
+  const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
+app.get("/", (req, res) => {
+  res.send("JWT Authentication API Running...");
+});
+
+
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log("MongoDB Connected Successfully"))
+    .catch(err => console.error("MongoDB Connection Error:", err));
+
+
+app.use(express.json()); // JSON Parsing
+app.use("/api/users", userRoutes); // Use Routes
+

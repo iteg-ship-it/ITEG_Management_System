@@ -1,5 +1,5 @@
 const express = require("express");
-const { verifyToken, checkRole } = require("../middlewares/authMiddleware"); // ✅ Ensure proper import
+const { verifyToken, checkRole } = require("../middlewares/authMiddleware"); 
 
 const router = express.Router();
 
