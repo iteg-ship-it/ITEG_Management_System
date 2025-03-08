@@ -50,6 +50,8 @@ const facultyRoutes = require("./routes/facultyRoutes");
 const studentAdmissionRoutes = require('./routes/student_admissionProcessRoutes');
 const protectedRoutes = require("./routes/protectedRoutes");
 const studentRoutes = require("./routes/studentRoutes");
+// const studentRoutes = require("./routes/studentRoutes");
+
 const { connectMongoDB } = require("./config/db");
 
 const app = express();
