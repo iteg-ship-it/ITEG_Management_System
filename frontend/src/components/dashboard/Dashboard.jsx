@@ -1,19 +1,19 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Sidebar from "../common-components/sidebar/Sidebar";
 import AdmissionDashboard from "../admitionProcess/AdmissionDashboard";
 // import AdmitionProcess from '../admitionProcess/AdmitionProcess';
-const DashboardCard = ({ title }) => {
-  return (
-    <div className="bg-white shadow-lg rounded-lg p-4 text-center w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      <div className="flex justify-around text-blue-600">
-        <p className="font-bold">40</p>
-        <p className="text-green-600">40</p>
-        <p className="text-red-600">40</p>
-      </div>
-    </div>
-  );
-};
+// const DashboardCard = ({ title }) => {
+//   return (
+//     <div className="bg-white shadow-lg rounded-lg p-4 text-center w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
+//       <h3 className="text-lg font-semibold mb-2">{title}</h3>
+//       <div className="flex justify-around text-blue-600">
+//         <p className="font-bold">40</p>
+//         <p className="text-green-600">40</p>
+//         <p className="text-red-600">40</p>
+//       </div>
+//     </div>
+//   );
+// };
 
 const Dashboard = () => {
   const [role] = useState("admin");
