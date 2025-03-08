@@ -32,6 +32,7 @@ require("dotenv").config();
 
 const authRoutes = require("./routes/auth");
 const adminRoutes = require("./routes/AdminRoutes");
+const superAdminRoutes = require("./routes/SuperAdminRoutes");
 const facultyRoutes = require("./routes/facultyRoutes");
 const studentAdmissionRoutes = require('./routes/student_admissionProcessRoutes');
 const protectedRoutes = require("./routes/protectedRoutes");
@@ -45,6 +46,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/superAdmin", superAdminRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/protected", protectedRoutes);
 app.use('/api/students', studentAdmissionRoutes);
