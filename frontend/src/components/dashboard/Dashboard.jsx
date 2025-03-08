@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import Sidebar from "../sidebar/Sidebar";
-import AdmitionProcess from "../addmitionProcess/AdmitionProcess";
-import AdmissionDashboard from "../addmitionProcess/AdmissionDashboard";
-
+import Sidebar from "../common-components/sidebar/Sidebar";
+import AdmissionDashboard from "../admitionProcess/AdmissionDashboard";
+// import AdmitionProcess from '../admitionProcess/AdmitionProcess';
 const DashboardCard = ({ title }) => {
   return (
     <div className="bg-white shadow-lg rounded-lg p-4 text-center w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
@@ -17,7 +16,7 @@ const DashboardCard = ({ title }) => {
 };
 
 const Dashboard = () => {
-  const [role] = useState("teacher");
+  const [role] = useState("admin");
 
   return (
     <div className="flex bg-gray-100 min-h-screen">
