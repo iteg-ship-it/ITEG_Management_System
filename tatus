@@ -1,0 +1,37 @@
+[33m4fff448[m[33m ([m[1;36mHEAD -> [m[1;32mdev-shivalika[m[33m, [m[1;31morigin/dev-shivalika[m[33m)[m db
+[33m3062bd0[m Merge remote-tracking branch 'origin/Dev-anees' into dev-shivalika
+[33m61763fd[m update , delete , get by track
+[33ma8ea74a[m[33m ([m[1;31morigin/Dev-anees[m[33m)[m Student Data fetch from central and store in mongodb database
+[33mac4b333[m Admission task complete
+[33mb4f91c9[m admission-dashbord
+[33mf4448b6[m Student Data fetch from central and save into database
+[33m352536a[m Admission Crude operation
+[33m9b61769[m marge code
+[33mc0b5e37[m[33m ([m[1;31morigin/dev_anees[m[33m)[m Merge branch 'dev_anees' of https://github.com/keshavSvishwakarma/ITEG_Management_System into dev-shivalika
+[33m48186d3[m schema design
+[33m5e32d87[m Merge branch 'dev_tanu' of https://github.com/keshavSvishwakarma/ITEG_Management_System into dev_anees
+[33md79e1e2[m Authentication
+[33ma0eb1c9[m add login and sign up
+[33mb63673f[m Login form partially complete
+[33mf714e0f[m Merge branch 'dev_keshav' of https://github.com/keshavSvishwakarma/ITEG_Management_System into dev_tanu
+[33m0d78340[m side bar logos
+[33mf64c97b[m Initial login
+[33m952c24b[m create side bar
+[33m2493d53[m node_modules
+[33m75cf12f[m[33m ([m[1;31morigin/dev_azhar[m[33m, [m[1;31morigin/dev[m[33m, [m[1;32mmain[m[33m)[m configure the files
+[33mc0cb9f2[m remove node_modules
+[33m4b0c571[m add gitignore file
+[33mafa8aa6[m backend setup
+[33m4cfb314[m node_modules
+[33mfe77794[m Add initial files for backend
+[33ma09c945[m Header and sidebar components
+[33mf36504b[m Merge branch 'main' of https://github.com/keshavSvishwakarma/ITEG_Management_System
+[33m1ae4d9d[m tailwind css setup done
+[33m993c26f[m Delete README.md
+[33m2214174[m initial commit
+[33m72ad839[m Update README.md
+[33m4c89450[m Delete Frontend directory
+[33mbc420a5[m Delete Backend directory
+[33mfb37e9f[m Create index.js
+[33mce0c76f[m Create index.html
+[33mc16ee79[m Initial commit
