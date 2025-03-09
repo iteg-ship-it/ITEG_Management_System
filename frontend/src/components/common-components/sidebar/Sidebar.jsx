@@ -1,19 +1,32 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { Menu } from "lucide-react";
-import logo from "../../../assets/images/logo.png";
+import logo from "../../../assets/images/SSISM LOGO updated.png";
+import admissionIcon from "../../../assets/icons/vac1.png";
+import studentRecordIcon from "../../../assets/icons/vac2.png";
+import placementIcon from "../../../assets/icons/vac3.png";
 
 const roles = {
   admin: [
-    { name: "Admission Process", path: "/admission" },
-    { name: "Student Record", path: "/student-record" },
-    { name: "Placement Information", path: "/placement" },
+    { name: "Admission Process", path: "/admission", icon: admissionIcon },
+    {
+      name: "Student Record",
+      path: "/student-record",
+      icon: studentRecordIcon,
+    },
+    { name: "Placement Information", path: "/placement", icon: placementIcon },
   ],
   teacher: [
-    { name: "Student Record", path: "/student-record" },
-    { name: "Placement Information", path: "/placement" },
+    {
+      name: "Student Record",
+      path: "/student-record",
+      icon: studentRecordIcon,
+    },
+    { name: "Placement Information", path: "/placement", icon: placementIcon },
   ],
-  student: [{ name: "Placement Information", path: "/placement" }],
+  student: [
+    { name: "Placement Information", path: "/placement", icon: placementIcon },
+  ],
 };
 
 const Sidebar = ({ role }) => {
@@ -32,26 +45,32 @@ const Sidebar = ({ role }) => {
             isOpen ? "translate-x-0" : "-translate-x-full"
           } md:translate-x-0 z-50 flex flex-col`}
         >
-          <div className="flex items-center mb-4">
-            <img src={logo} alt="Logo" className="h-16 w-16 p-2 rounded-full" />
-            <div className="flex justify-end px-5">
-              <h2 className="text-lg font-bold uppercase">
-                Sant Singaji Educational Society
-              </h2>
-            </div>
+          {/* Logo */}
+          <div className="flex items-center mb-6">
+            <img src={logo} alt="Logo" className="" />
           </div>
-          <ul className="flex-1">
+
+          {/* Sidebar Menu */}
+          <ul className="flex-1 space-y-4">
             {roles[role].map((item, index) => (
-              <li key={index} className="p-2 hover:bg-gray-200 rounded-md">
-                <Link to={item.path} className="text-gray-700">
+              <li key={index}>
+                <NavLink
+                  to={item.path}
+                  className={({ isActive }) =>
+                    `flex items-center px-3 text-gray-700 hover:bg-gray-200 rounded-md ${
+                      isActive ? "font-bold " : ""
+                    }`
+                  }
+                >
+                  <img src={item.icon} alt={item.name} className="h-4 mr-2" />
                   {item.name}
-                </Link>
+                </NavLink>
               </li>
             ))}
           </ul>
         </div>
 
-        {/* Mobile Menu Button (Floats with Sidebar) */}
+        {/* Mobile Menu Button */}
         <button
           className={`md:hidden fixed top-4 left-4 p-2 bg-gray-200 rounded z-50 transition-transform transform ${
             isOpen ? "translate-x-64" : "translate-x-0"
@@ -63,7 +82,7 @@ const Sidebar = ({ role }) => {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 md:ml-64 p-4 overflow-y-auto h-screen">
+      <div className="flex-1 md:ml-56 p-4 overflow-y-auto h-screen">
         {/* Content goes here */}
       </div>
     </div>
