@@ -3,12 +3,12 @@ const bcrypt = require('bcrypt');
 console.log(__dirname);
 
 
-// const bcrypt = require('bcryptjs');
+
 const jwt = require('jsonwebtoken');
-// const SuperAdmin = require('../models/SuperAdmin');
+
 require('dotenv').config();
 
-// Generate JWT Token
+
 const generateToken = (admin) => {
   return jwt.sign({ id: admin._id, role: admin.positionRole }, process.env.JWT_SECRET, { expiresIn: '1h' });
 };
@@ -65,51 +65,15 @@ exports.loginSuperAdmin = async (req, res) => {
   }
 };
 
-// // Get Super Admin Profile
-// exports.getSuperAdminProfile = async function (req, res){
-//   try {
-//     const admin = await SuperAdmin.findById(req.user.id).select('-password');
-//     if (!admin) {
-//       return res.status(404).json({ message: 'Super Admin not found' });
-//     }
-//     res.json(admin);
-//   } catch (error) {
-//     res.status(500).json({ message: 'Server error', error: error.message });
-//   }
-// };
-
-
-
-// // Get All Admins
-// exports.getAllSuperAdmins = async (req, res) => {
-//   try {
-//     const Superadmins = await SuperAdmin.find().select("-password");
-//     res.status(200).json(Superadmins);
-//   } catch (error) {
-//     res.status(500).json({ message: "Server Error", error });
-//   }
-// };
-
-
-
-// GET SuperAdmin Profile
-// const getSuperAdmin = (req, res) => {
-//   try {
-//       res.json({ message: "Welcome, SuperAdmin!", user: req.user });
-//   } catch (err) {
-//       res.status(500).json({ message: "Server Error" });
-//   }
-// };
 
 
 
 
-// Get Single Admin by ID
-exports.getSuperAdminById = async (req, res) => {
+// // Get All SuperAdmins
+exports.getAllSuperAdmins = async (req, res) => {
   try {
-    const Superadmin = await SuperAdmin.findById(req.params.id).select("-password");
-    if (!Superadmin) return res.status(404).json({ message: "Admin not found" });
-    res.status(200).json(Superadmin);
+    const Superadmins = await SuperAdmin.find().select("-password");
+    res.status(200).json(Superadmins);
   } catch (error) {
     res.status(500).json({ message: "Server Error", error });
   }
@@ -117,4 +81,43 @@ exports.getSuperAdminById = async (req, res) => {
 
 
 
-// module.exports = { getSuperAdmin }; 
+
+
+
+
+
+// // Get Single Admin by ID
+// exports.getSuperAdminById = async (req, res) => {
+//   try {
+//     const Superadmin = await SuperAdmin.findById(req.params.id).select("-password");
+//     if (!Superadmin) return res.status(404).json({ message: "Admin not found" });
+//     res.status(200).json(Superadmin);
+//   } catch (error) {
+//     res.status(500).json({ message: "Server Error", error });
+//   }
+// };
+
+
+// const SuperAdmin = require("../models/SuperAdmin"); // Adjust path as needed
+
+// Get Single SuperAdmin by ID
+exports.getSuperAdminById = async (req, res) => {
+  try {
+    console.log("Incoming Request from:", req.user); // Debugging
+
+    const superAdmin = await SuperAdmin.findById(req.params.id).select("-password");
+
+    if (!superAdmin) {
+      return res.status(404).json({ message: "SuperAdmin not found" });
+    }
+
+    res.status(200).json(superAdmin);
+  } catch (error) {
+    console.error("Error in getSuperAdminById:", error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+
+
+
+
