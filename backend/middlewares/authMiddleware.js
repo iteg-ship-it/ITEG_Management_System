@@ -2,17 +2,17 @@ const jwt = require("jsonwebtoken");
 
 // Middleware to verify JWT and check roles
 const verifyToken = (req, res, next) => {
-    const authHeader = req.header("Authorization");
+    const authHeader = req.header("Authorization"); // ✅ Define authHeader properly
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return res.status(403).json({ message: "Access Denied. No token provided." });
     }
 
-    const token = authHeader.split(" ")[1]; // Extract token after "Bearer"
+    const token = authHeader.split(" ")[1]; // ✅ Now it's safe to split
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded; // Attach user details (id, role) to request object
+        req.user = decoded; // Attach user details (userId, role) to request object
         next();
     } catch (err) {
         return res.status(401).json({ message: "Invalid Token" });
@@ -21,8 +21,9 @@ const verifyToken = (req, res, next) => {
 
 // Middleware to check required role
 const checkRole = (roles) => {
+    
     return (req, res, next) => {
-        if (!req.user || !roles.includes(req.user.role)) {
+        if (!req.user || !roles.includes(req.user.positionRole)) {
             return res.status(403).json({ message: "Access Denied. Unauthorized Role." });
         }
         next();
@@ -30,3 +31,4 @@ const checkRole = (roles) => {
 };
 
 module.exports = { verifyToken, checkRole };
+

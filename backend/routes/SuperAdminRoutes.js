@@ -13,7 +13,8 @@ const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
 const {
 registerSuperAdmin,
   loginSuperAdmin,
-  getSuperAdmin,
+  // getSuperAdmin,
+  getAllSuperAdmins,
   getSuperAdminById
 } = require('../modules/SuperAdmin/controllers/SuperAdminController');
 
@@ -33,7 +34,7 @@ router.post('/login', loginSuperAdmin);
 // router.get("/superadmin", verifyToken, checkRole(["superadmin"]), getSuperAdmin);
 //  router.get('/profile', getAllSuperAdmins);
 
-router.get("/api/v1/super-admin", verifyToken, checkRole(["Super Admin"]), getSuperAdmin);
-
+// router.get("/superadmin/:id", verifyToken, checkRole(["Super Admin"]), getSuperAdminById);
+router.get("/:id", verifyToken, checkRole(["Super Admin"]), getSuperAdminById);
 module.exports = router;
 

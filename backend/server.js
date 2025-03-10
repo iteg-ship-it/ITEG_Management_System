@@ -25,18 +25,32 @@
 
 
 
+
+// mongoose.connect(process.env.MONGO_URI, {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true,
+// })
+//   .then(() => console.log('MongoDB connected'))
+//   .catch(err => console.error(err));
+
+// app.use('/api/superadmin', superAdminRoutes);
+
+// const PORT = process.env.PORT || 5000;
+// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
-require("dotenv").config();
-
-const authRoutes = require("./routes/auth");
-const adminRoutes = require("./routes/AdminRoutes");
-const superAdminRoutes = require("./routes/SuperAdminRoutes");
-const facultyRoutes = require("./routes/facultyRoutes");
-const studentAdmissionRoutes = require('./routes/student_admissionProcessRoutes');
+const { connectMongoDB } = require("./config/db");
+const userRoutes = require("./routes/userRoutes");
 const protectedRoutes = require("./routes/protectedRoutes");
-
+const studentRoutes = require("./routes/studentRoutes");
+const interviewRoutes = require("./routes/interviewRoutes");
+const levelRoutes = require("./routes/levelRoutes");
+const auth = require("./routes/auth");
+const AdminRoutes = require("./routes/AdminRoutes");
+const superAdminRoutes = require("./routes/SuperAdminRoutes");
+const facultyRoutes= require("./routes/facultyRoutes");
 const app = express();
 
 // Middleware
@@ -44,12 +58,20 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/admin", adminRoutes);
+connectMongoDB();
+
+app.use("/api/auth", auth);
+app.use("/api/admin", AdminRoutes);
 app.use("/api/superAdmin", superAdminRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/protected", protectedRoutes);
-app.use('/api/students', studentAdmissionRoutes);
+// app.use("/api/students", studentRoutes);
+//Routes
+app.use("/api/students", require("./routes/studentRoutes"));
+app.use("/api/interview", interviewRoutes);
+app.use("/api/level", levelRoutes);
+app.use("/api/user", userRoutes);
+
 
 // MongoDB Connection
 mongoose
@@ -66,3 +88,20 @@ mongoose
 // Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
+app.get("/", (req, res) => {
+  res.send("JWT Authentication API Running...");
+});
+
+
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log("MongoDB Connected Successfully"))
+    .catch(err => console.error("MongoDB Connection Error:", err));
+
+
+app.use(express.json()); // JSON Parsing
+app.use("/api/users", userRoutes); // Use Routes
+app.use("/api/students", studentRoutes); // Use Routes
+app.use("/api/interviews", interviewRoutes); // Use Routes
+
