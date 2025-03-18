@@ -127,7 +127,7 @@ const AdmissionDashboard = () => {
                   <p
                     className={`text-md font-medium ${
                       item.title === locationData.location
-                        ? "cursor-pointer text-blue-600 hover:underline"
+                        ? "cursor-pointer text-black hover:underline"
                         : ""
                     }`}
                     onClick={

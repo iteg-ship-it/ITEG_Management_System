@@ -1,4 +1,6 @@
 import React, { useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
+
 import {
   FaUserGraduate,
   FaBars,
@@ -10,22 +12,25 @@ import {
 //import uploadImageToCloudinary from './helper/uploadImage'
 
 const StudentProfile = () => {
+  const location = useLocation();
+  const studentData = location.state?.student || {}; // Default empty object to prevent errors
+
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    contactNumber: "",
-    fatherName: "",
-    gender: "",
-    track: "",
-    address: "",
+    firstName: studentData.name || "",
+    lastName: "", // Assuming last name is not provided in studentData
+    contactNumber: studentData.mobile || "",
+    fatherName: studentData.fatherName || "",
+    gender: "", // Default as gender is not provided in studentData
+    track: studentData.course || "",
+    address: studentData.village || "",
     "12th subject": "",
     "12th % ": "",
     "10th %": "",
     passoutYear: "",
     courseType: "Course",
-    imageSrc: "",
+    imageSrc:
+      "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg", // Default image
   });
-
   const [errors, setErrors] = useState({});
   const fileInputRef = useRef(null);
   const [imageSrc, setImageSrc] = useState(
@@ -85,10 +90,24 @@ const StudentProfile = () => {
   };
 
   return (
-    <div className="w-[80vw]">
-      <button className="absolute top-4 right-4 border-orange-500 text-orange-500 border hover:bg-orange-500 hover:text-white  px-6 py-2 rounded-lg">
+    <div className="w-[85vw] p-6 bg-gray-100 min-h-screen">
+      {/* <button className="absolute top-4 right-4 border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white px-6 py-2 rounded-lg"> */}
+      <button
+        type="button"
+        className="absolute top-4 right-8 border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white px-6 py-2 rounded-lg"
+      >
+        {" "}
         Save
       </button>
+      {/* <div className="flex justify-end space-x-4">
+          <button
+            type="button"
+            className="border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white px-6 py-2 rounded-lg"
+          >
+            Save
+          </button>
+         
+        </div> */}
       <div className="flex items-center space-x-4 mt-4">
         <div
           className="relative w-32 h-32 rounded-full border-3 border-dotted border-orange-500 cursor-pointer"

@@ -47,7 +47,7 @@ const Sidebar = ({ role }) => {
         >
           {/* Logo */}
           <div className="flex items-center mb-6">
-            <img src={logo} alt="Logo" className="" />
+            <img src={logo} alt="Logo" className="h-18" />
           </div>
 
           {/* Sidebar Menu */}
