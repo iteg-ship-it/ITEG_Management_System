@@ -32,10 +32,11 @@
 
 // export default App;
 
-import React from "react";
+ 
 import { BrowserRouter as Router } from "react-router-dom";
 import Sidebar from "./components/common-components/sidebar/Sidebar";
 import Dashboard from "./components/dashboard/Dashboard";
+import StudentDashboard from "./components/student-records/student-record/StudentDashboard";
 
 function App() {
   return (
@@ -43,8 +44,11 @@ function App() {
       <div className="flex bg-gray-100">
         {/* Sidebar remains fixed */}
         <Sidebar role="admin" />
+        <StudentDashboard/>
+
 
         {/* Dashboard contains routes and changes content */}
+
         <Dashboard />
       </div>
     </Router>
