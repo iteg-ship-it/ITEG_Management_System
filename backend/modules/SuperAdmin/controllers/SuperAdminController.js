@@ -32,8 +32,7 @@ exports.registerSuperAdmin = async function (req, res){
       email,
       aadharCard,
       password: hashedPassword,
-    });
-
+    }); 
     res.status(201).json({ message: 'Super Admin created successfully', adminId: newAdmin._id });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
