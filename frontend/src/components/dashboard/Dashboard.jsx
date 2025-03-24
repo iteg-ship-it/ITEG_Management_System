@@ -1,7 +1,7 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import AdmissionDashboard from "../admitionProcess/admition-dashboard/AdmissionDashboard";
-import StudentRecord from "../student-records/student-record/StudentRecord";
+import StudentRecord from "../student-records/student-dashboard/StudentRecord";
 import StudentProfile from "../student-records/studentProfile/StudentProfile";
 import PlacementRecords from "../placement/placement-records/PlacementRecords";
 import AdminDashboard from "./../admin-dashboard/AdminDashboard";
