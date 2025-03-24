@@ -17,19 +17,25 @@ const StudentProfile = () => {
 
   const [formData, setFormData] = useState({
     firstName: studentData.name || "",
-    lastName: "", // Assuming last name is not provided in studentData
+    lastName: "",
     contactNumber: studentData.mobile || "",
     fatherName: studentData.fatherName || "",
-    gender: "", // Default as gender is not provided in studentData
+    gender: "",
     track: studentData.course || "",
     address: studentData.village || "",
-    "12th subject": "",
-    "12th % ": "",
-    "10th %": "",
+    "12th Subject": "",
+    "12th Percentage": "",
+    "10th Percentage": "",
     passoutYear: "",
     courseType: "Course",
+    itegLevels: [],
+    permission: false,
+    permissionReason: "",
+    placed: false,
+    companyName: "",
+    placementDate: "",
     imageSrc:
-      "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg", // Default image
+      "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg",
   });
   const [errors, setErrors] = useState({});
   const fileInputRef = useRef(null);
@@ -37,14 +43,32 @@ const StudentProfile = () => {
     "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg"
   );
 
+  // const handleFileChange = (event) => {
+  //   const file = event.target.files[0];
+  //   if (file) {
+  //     // const uploadedImage= uploadImageToCloudinary(file)
+  //     setImageSrc(uploadedImage);
+  //     const reader = new FileReader();
+  //     reader.onload = (e) => {
+  //       setImageSrc(e.target.result);
+  //     };
+  //     reader.readAsDataURL(file);
+  //   }
+  // };
+
+  // const handleImageClick = () => {
+  //   fileInputRef.current.click();
+  // };
+
+  // const handleChange = (e) => {
+  //   setFormData({ ...formData, [e.target.name]: e.target.value });
+  // };
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      // const uploadedImage= uploadImageToCloudinary(file)
-      setImageSrc(uploadedImage);
       const reader = new FileReader();
       reader.onload = (e) => {
-        setImageSrc(e.target.result);
+        setFormData((prevData) => ({ ...prevData, imageSrc: e.target.result }));
       };
       reader.readAsDataURL(file);
     }
@@ -55,9 +79,20 @@ const StudentProfile = () => {
   };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, type, checked } = e.target;
+    if (type === "checkbox" && name === "itegLevels") {
+      setFormData((prevData) => ({
+        ...prevData,
+        itegLevels: checked
+          ? [...prevData.itegLevels, value]
+          : prevData.itegLevels.filter((level) => level !== value),
+      }));
+    } else if (type === "checkbox" || type === "radio") {
+      setFormData((prevData) => ({ ...prevData, [name]: checked }));
+    } else {
+      setFormData((prevData) => ({ ...prevData, [name]: value }));
+    }
   };
-
   const validateForm = () => {
     let newErrors = {};
     if (!formData.firstName) newErrors.firstName = "First name is required";
@@ -229,6 +264,87 @@ const StudentProfile = () => {
             </label>
           </div>
         </div>
+        <h3 className="mt-6 text-2xl font-semibold">Iteg Levels</h3>
+        <div className="grid grid-cols-3 gap-4 mt-4">
+          {[
+            "1A Level",
+            "1B Level",
+            "1C Level",
+            "2A Level",
+            "2B Level",
+            "2C Level",
+          ].map((level) => (
+            <label key={level} className="inline-flex items-center">
+              <input
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-xl focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                type="checkbox"
+                name="itegLevels"
+                value={level}
+                className=""
+                checked={formData.itegLevels.includes(level)}
+                onChange={handleChange}
+              />
+              <span className="ml-2">{level}</span>
+            </label>
+          ))}
+        </div>
+
+        <h3 className="mt-6 text-2xl font-semibold">Permission</h3>
+        <div className="flex items-center mt-4">
+          <label className="inline-flex items-center">
+            <input
+              class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-xl focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              type="checkbox"
+              name="permission"
+              checked={formData.permission}
+              onChange={handleChange}
+            />
+            <span className="ml-2">Permission</span>
+          </label>
+          {formData.permission && (
+            <input
+              type="text"
+              name="permissionReason"
+              value={formData.permissionReason}
+              onChange={handleChange}
+              placeholder="Reason..."
+              className="ml-4 p-2 border rounded-lg"
+            />
+          )}
+        </div>
+
+        <h3 className="mt-6 text-2xl font-semibold">Placed</h3>
+        <div className="flex items-center mt-4">
+          <label className="inline-flex items-center">
+            <input
+              class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-xl focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              type="checkbox"
+              name="placed"
+              checked={formData.placed}
+              onChange={handleChange}
+            />
+            <span className="ml-2">Placed</span>
+          </label>
+        </div>
+        {formData.placed && (
+          <div className="mt-4 grid grid-cols-2 gap-4">
+            <input
+              type="text"
+              name="companyName"
+              value={formData.companyName}
+              onChange={handleChange}
+              placeholder="Company Name"
+              className="p-2 border rounded-lg"
+            />
+            <input
+              type="date"
+              name="placementDate"
+              value={formData.placementDate}
+              onChange={handleChange}
+              className="p-2 border rounded-lg"
+            />
+          </div>
+        )}
 
         {/* Buttons */}
         <div className="mt-6 flex justify-end space-x-4">
