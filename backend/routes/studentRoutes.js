@@ -1,135 +1,39 @@
-// // const express = require("express");
-// // const router = express.Router();
-// // const Student = require("../models/Student.js");
-// // const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
-// // const { migrateStudents } = require("../controllers/studentController");
-
-// // // Register Student
-// // router.post("/register", async (req, res) => {
-// //     try {
-// //         const { name, email, course, age } = req.body;
-// //         if (!name || !email || !course || !age) {
-// //             return res.status(400).json({ message: "All fields are required" });
-// //         }
-        
-// //         const newStudent = new Student({ name, email, course, age });
-// //         await newStudent.save();
-// //         res.status(201).json({ message: "Student registered successfully", student: newStudent });
-
-// //     } catch (error) {
-// //         res.status(500).json({ message: "Server Error", error });
-// //     }
-// // });
-
-// // // Get All Students
-// // router.get("/", async (req, res) => {
-// //     try {
-// //         const students = await Student.find();
-// //         res.status(200).json(students);
-// //     } catch (error) {
-// //         res.status(500).json({ message: "Server Error", error });
-// //     }
-// // });
-
-// // // Get Single Student by ID
-// // router.get("/:id", async (req, res) => {
-// //     try {
-// //         const student = await Student.findById(req.params.id);
-// //         if (!student) return res.status(404).json({ message: "Student not found" });
-// //         res.status(200).json(student);
-// //     } catch (error) {
-// //         res.status(500).json({ message: "Server Error", error });
-// //     }
-// // });
-
-// // // Update Student Data
-// // router.put("/:id", async (req, res) => {
-// //     try {
-// //         const updatedStudent = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true });
-// //         if (!updatedStudent) return res.status(404).json({ message: "Student not found" });
-// //         res.status(200).json({ message: "Student updated successfully", student: updatedStudent });
-// //     } catch (error) {
-// //         res.status(500).json({ message: "Server Error", error });
-// //     }
-// // });
-
-// // // Delete Student
-// // router.delete("/:id", async (req, res) => {
-// //     try {
-// //         const deletedStudent = await Student.findByIdAndDelete(req.params.id);
-// //         if (!deletedStudent) return res.status(404).json({ message: "Student not found" });
-// //         res.status(200).json({ message: "Student deleted successfully" });
-// //     } catch (error) {
-// //         res.status(500).json({ message: "Server Error", error });
-// //     }
-// // });
-
-// // //Faculty, Admin, & Super Admin Can Migrate Data
-// // router.post("/migrate", verifyToken, checkRole(["Faculty", "Admin", "Super Admin"]), migrateStudents);
-
-// // module.exports = router;
-
-
-
-
-
-// const express = require("express");
-// const router = express.Router();
-// const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
-// const { migrateStudents } = require("../controllers/studentController");
-
-// const {
-//     registerStudent,
-//     getAllStudents,
-//     getStudentById,
-//     updateStudent,
-//     deleteStudent,
-//     migrateStudents
-// } = require("../controllers/studentController");
-
-// // Register Student
-// router.post("/register", registerStudent);
-
-// // Get All Students
-// router.get("/", getAllStudents);
-
-// // Get Single Student by ID
-// router.get("/:id", getStudentById);
-
-// // Update Student Data
-// router.put("/:id", updateStudent);
-
-// // Delete Student
-// router.delete("/:id", deleteStudent);
-
-// // Faculty, Admin, & Super Admin Can Migrate Data
-// router.post("/migrate", verifyToken, checkRole(["Faculty", "Admin", "Super Admin"]), migrateStudents);
-
-// module.exports = router;
-
-
 
 const express = require("express");
 const router = express.Router();
 const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
-const studentController= require("../controllers/studentController");
+const studentController= require("../modules/student/controllers/AdmittedStudentController");
 
+const allowedRoles = ["Super Admin", "Faculty", "Admin"];
 // Register Student
-router.post("/register", studentController.registerStudent);
 
-// Get All Students
-router.get("/", studentController.getAllStudents);
+router.post("/admitted", verifyToken, checkRole(["Super Admin", "Admin"]), studentController.createStudent);
 
-// Get Single Student by ID
-router.get("/:id", studentController.getStudentById);
 
-// Update Student Data
-router.put("/:id", studentController.updateStudent);
+// // Get All Students
+router.get("/getall", verifyToken, checkRole(allowedRoles), studentController.getAllStudents);
 
-// Delete Student
-router.delete("/:id", studentController.deleteStudent);
+// // Get Single Student by ID
+router.get("/:id", verifyToken, checkRole(allowedRoles), studentController.getStudentById);
 
-// Faculty, Admin, & Super Admin Can Migrate Data
-router.post("/migrate", verifyToken, checkRole(["Faculty", "Admin", "Super Admin"]), studentController.migrateStudents);
+
+// // Update Student Data
+router.put("/update/:id", verifyToken, checkRole(["Super Admin", "Admin"]), studentController.updateStudent);
+
+// // Delete Student
+// router.delete("/:id", studentController.deleteStudent);
+
+// // Faculty, Admin, & Super Admin Can Migrate Data
+// // router.post("/migrate", verifyToken, checkRole(["Faculty", "Admin", "Super Admin"]), studentController.migrateStudents);
+
+
+// // router.get("/",studentController. getInterviews);
+
+// // // Add Interview Record
+// // router.post("/", studentController.addInterview);
+
+// // // Update Interview Record
+// // router.put("/:interviewId",studentController. updateInterview);
+
 
 module.exports = router;

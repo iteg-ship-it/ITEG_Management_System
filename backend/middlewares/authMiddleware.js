@@ -9,7 +9,7 @@ const verifyToken = (req, res, next) => {
     }
 
     const token = authHeader.split(" ")[1]; // ✅ Now it's safe to split
-
+console.log("Received Token:", token); 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded; // Attach user details (userId, role) to request object
@@ -23,7 +23,8 @@ const verifyToken = (req, res, next) => {
 const checkRole = (roles) => {
     
     return (req, res, next) => {
-        if (!req.user || !roles.includes(req.user.positionRole)) {
+        console.log("User Role:", req.user.role); 
+        if (!req.user || !roles.includes(req.user.role)) {
             return res.status(403).json({ message: "Access Denied. Unauthorized Role." });
         }
         next();
