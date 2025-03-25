@@ -111,7 +111,7 @@ const Sidebar = ({ role }) => {
           <Menu />
         </button>
       </div>
-      <div className="flex-1 md:ml-64 p-4 overflow-y-auto h-screen">
+      <div className="flex-1 md:ml-64 p-4  overflow-y-auto h-screen">
         {/* Main Content */}
       </div>
     </div>
