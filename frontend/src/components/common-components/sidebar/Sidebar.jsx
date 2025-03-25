@@ -209,10 +209,10 @@ const Sidebar = ({ role }) => {
             {menuItems
               .filter((item) => item.roles.includes(role))
               .map((item, index) => (
-                <li key={index} className="mb-2 hover:bg-gray-200 rounded-md ">
+                <li key={index} className="mb-2 hover:bg-gray-100 rounded-md ">
                   <button
                     onClick={() => toggleMenu(index)}
-                    className="flex items-center justify-between p-2 w-full text-gray-700 hover:bg-gray-300 rounded-md"
+                    className="flex items-center justify-between p-2 w-full text-gray-700 hover:bg-gray-300 rounded-md border-l-4 bg-gray-100 border-orange-500"
                   >
                     <div className="flex items-center font-bold ">
                       <img
@@ -233,7 +233,7 @@ const Sidebar = ({ role }) => {
                         <li key={subIndex} className="p-2">
                           <Link
                             to={subItem.path}
-                            className={`text-gray-700  hover:text-orange-400 `}
+                            className="text-gray-700  hover:text-orange-400 "
                           >
                             {subItem.name}
                           </Link>
@@ -262,3 +262,4 @@ const Sidebar = ({ role }) => {
 };
 
 export default Sidebar;
+
