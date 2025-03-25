@@ -44,7 +44,7 @@ function App() {
       <div className="flex bg-gray-100">
         {/* Sidebar remains fixed */}
         <Sidebar role="admin" />
-        <StudentDashboard/>
+        {/* <StudentDashboard/> */}
 
 
         {/* Dashboard contains routes and changes content */}

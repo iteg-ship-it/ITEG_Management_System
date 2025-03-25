@@ -43,6 +43,7 @@ const menuItems = [
   },
 ];
 
+// eslint-disable-next-line react/prop-types
 const Sidebar = ({ role }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [openMenus, setOpenMenus] = useState(["Add Process"]);
