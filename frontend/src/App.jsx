@@ -1,9 +1,15 @@
-import Sidebar from "./components/sidebar/Sidebar";
+import LoginPage from "./components/login/LoginPage";
+import Dashboard from "./components/deshboard/Dashboard";
+import SignupPage from "./components/signup/SignupPage";
+// import Sidebar from "./components/sidebar/Sidebar";
 
 function App() {
   return (
     <>
-      <Sidebar />
+      {/* <Sidebar /> */}
+      <LoginPage />
+      <SignupPage />
+      <Dashboard />
     </>
   );
 }
