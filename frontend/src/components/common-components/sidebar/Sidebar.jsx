@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
 import logo from "../../../assets/images/logo.png";
 import admissionIcon from "../../../assets/icons/fluent_desktop-cursor-20-filled.png";
 import studentRecordIcon from "../../../assets/icons/fa6-solid_clipboard-list.png";
 import placementIcon from "../../../assets/icons/vaadin_academy-cap.png";
-import up from "../../../assets/icons/weui_arrow-filled.png";
+import up from "../../../assets/icons/up_weui_arrow-filled.png";
 import down from "../../../assets/icons/weui_arrow-filled.png";
 
 const menuItems = [
@@ -23,7 +23,7 @@ const menuItems = [
     icon: studentRecordIcon,
     roles: ["admin", "teacher"],
     subMenu: [
-      { name: "Student Profiles", path: "/student-profiles" },
+      { name: "Student Profiles", path: "/student-profile" },
       { name: "Permission Students", path: "/permission-students" },
       { name: "Attendance info", path: "/attendance-info" },
       { name: "Level Info", path: "/level-info" },
@@ -45,10 +45,15 @@ const menuItems = [
 
 const Sidebar = ({ role }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [openMenu, setOpenMenu] = useState(null);
+  const [openMenus, setOpenMenus] = useState([]); 
+  const location = useLocation();
 
   const toggleMenu = (index) => {
-    setOpenMenu(openMenu === index ? null : index);
+    if (openMenus.includes(index)) {
+      setOpenMenus(openMenus.filter((item) => item !== index));
+    } else {
+     setOpenMenus([...openMenus, index]);
+    }
   };
 
   return (
@@ -62,44 +67,44 @@ const Sidebar = ({ role }) => {
           <div className="flex items-center mb-4">
             <img src={logo} alt="Logo" />
           </div>
-          <ul className="flex-1 ">
+          <ul className="flex-1">
             {menuItems
               .filter((item) => item.roles.includes(role))
-              .map((item, index) => (
-                <li key={index} className="mb-2 hover:bg-gray-100 rounded-md ">
-                  <button
-                    onClick={() => toggleMenu(index)}
-                    className="flex items-center justify-between p-2 w-full text-gray-700 hover:bg-gray-300 rounded-md border-l-4 bg-gray-100 border-orange-500"
-                  >
-                    <div className="flex items-center font-bold ">
-                      <img
-                        src={item.icon}
-                        alt="icon"
-                        className="w-5 h-5 mr-3"
-                      />
-                      {item.name}
-                    </div>
-                    <img
-                      src={openMenu === index ? up : down}
-                      alt="toggle icon"
-                    />
-                  </button>
-                  {openMenu === index && (
-                    <ul className="ml-4 mt-2 ">
-                      {item.subMenu.map((subItem, subIndex) => (
-                        <li key={subIndex} className="p-2">
-                          <Link
-                            to={subItem.path}
-                            className="text-gray-700  hover:text-orange-400 "
-                          >
-                            {subItem.name}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              ))}
+              .map((item, index) => {
+                const isActive = openMenus.includes(index);
+                return (
+                  <li key={index} className="mb-2 bg-gray-100">
+                    <button
+                      onClick={() => toggleMenu(index)}
+                      className={`flex items-center justify-between p-2 w-full font-bold text-gray-700 bg-gray-100 rounded-md border-l-4 ${
+                        isActive ? "bg-gray-300 border-orange-500" : "bg-white border-orange-500"
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <img src={item.icon} alt="icon" className="w-5 h-5 mr-3" />
+                        {item.name}
+                      </div>
+                      <img src={isActive ? up : down} alt="toggle icon" />
+                    </button>
+                    {isActive && (
+                      <ul className="ml-4 mt-2">
+                        {item.subMenu.map((subItem, subIndex) => (
+                          <li key={subIndex} className="p-2">
+                            <Link
+                              to={subItem.path}
+                              className={`text-gray-700 hover:text-orange-400 ${
+                                location.pathname === subItem.path ? "font-bold text-orange-500" : ""
+                              }`}
+                            >
+                              {subItem.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
           </ul>
         </div>
         <button
@@ -111,7 +116,7 @@ const Sidebar = ({ role }) => {
           <Menu />
         </button>
       </div>
-      <div className="flex-1 md:ml-64 p-4  overflow-y-auto h-screen">
+      <div className="flex-1 md:ml-64 overflow-y-auto h-screen">
         {/* Main Content */}
       </div>
     </div>
@@ -119,4 +124,3 @@ const Sidebar = ({ role }) => {
 };
 
 export default Sidebar;
-

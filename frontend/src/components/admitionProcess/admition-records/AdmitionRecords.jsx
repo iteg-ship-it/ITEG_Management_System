@@ -110,7 +110,7 @@ const AdmitionRecords = () => {
 
   return (
     <>
-      <div className="py-7 w-[82vw] ">
+      <div className="p-6 w-[85vw] ">
         <div className="bg-white h-50 p-9 rounded-lg">
           <div className=" ">
             <div className="flex items-center mb-6">
