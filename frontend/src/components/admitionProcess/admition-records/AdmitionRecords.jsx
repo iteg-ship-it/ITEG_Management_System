@@ -181,7 +181,7 @@ const AdmitionRecords = () => {
                             src={edit}
                             alt="edit"
                             onClick={() =>
-                              navigate("/student-profile", {
+                              navigate("/student-edit-profile", {
                                 state: { student },
                               })
                             }

@@ -6,6 +6,7 @@ import StudentProfile from "../student-records/studentProfile/StudentProfile";
 import PlacementRecords from "../placement/placement-records/PlacementRecords";
 import AdminDashboard from "./../admin-dashboard/AdminDashboard";
 import AdmitionRecords from "../admitionProcess/admition-records/AdmitionRecords";
+import StudentEditPage from "../student-records/student-edit-page/StudentEditPage";
 
 const Dashboard = () => {
   return (
@@ -15,6 +16,7 @@ const Dashboard = () => {
         <Route path="/admission" element={<AdmissionDashboard />} />
         <Route path="/admition-record" element={<AdmitionRecords />} />
         <Route path="/student-record" element={<StudentRecord />} />
+        <Route path="/student-edit-profile" element={<StudentEditPage />} />
         <Route path="/student-profile" element={<StudentProfile />} />
         <Route path="/placement" element={<PlacementRecords />} />
       </Routes>
