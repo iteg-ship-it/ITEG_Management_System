@@ -2,12 +2,12 @@ import React, { useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 
 import {
-  FaUserGraduate,
-  FaBars,
-  FaTimes,
+  // FaUserGraduate,
+  // FaBars,
+  // FaTimes,
   FaCamera,
-  FaClipboardList,
-  FaBriefcase,
+  // FaClipboardList,
+  // FaBriefcase,
 } from "react-icons/fa";
 //import uploadImageToCloudinary from './helper/uploadImage'
 
@@ -125,7 +125,7 @@ const StudentEditPage = () => {
   };
 
   return (
-    <div className="w-[85vw] p-6 bg-gray-100 min-h-screen">
+    <div className="w-[85vw] px-8 bg-gray-100 min-h-screen">
       {/* <button className="absolute top-4 right-4 border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white px-6 py-2 rounded-lg"> */}
       <button
         type="button"
@@ -145,11 +145,11 @@ const StudentEditPage = () => {
         </div> */}
       <div className="flex items-center space-x-4 mt-4">
         <div
-          className="relative w-32 h-32 rounded-full border-3 border-dotted border-orange-500 cursor-pointer"
+          className="relative w-40 h-40 rounded-full border-3 border-dotted border-orange-500 cursor-pointer"
           onClick={handleImageClick}
         >
           <img
-            className="w-full h-full rounded-full object-cover"
+            className="w-full h-full rounded-full object-cover border border-dashed border-orange-500 p-3"
             src={imageSrc}
             alt="Profile"
           />
@@ -276,11 +276,10 @@ const StudentEditPage = () => {
           ].map((level) => (
             <label key={level} className="inline-flex items-center">
               <input
-                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-xl focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-xl focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                 type="checkbox"
                 name="itegLevels"
                 value={level}
-                className=""
                 checked={formData.itegLevels.includes(level)}
                 onChange={handleChange}
               />
@@ -293,7 +292,7 @@ const StudentEditPage = () => {
         <div className="flex items-center mt-4">
           <label className="inline-flex items-center">
             <input
-              class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-xl focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-xl focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
               type="checkbox"
               name="permission"
               checked={formData.permission}
@@ -317,7 +316,7 @@ const StudentEditPage = () => {
         <div className="flex items-center mt-4">
           <label className="inline-flex items-center">
             <input
-              class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-xl focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-xl focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
               type="checkbox"
               name="placed"
               checked={formData.placed}

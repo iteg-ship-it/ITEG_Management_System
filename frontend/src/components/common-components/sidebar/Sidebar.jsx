@@ -5,7 +5,7 @@ import logo from "../../../assets/images/logo.png";
 import admissionIcon from "../../../assets/icons/fluent_desktop-cursor-20-filled.png";
 import studentRecordIcon from "../../../assets/icons/fa6-solid_clipboard-list.png";
 import placementIcon from "../../../assets/icons/vaadin_academy-cap.png";
-import up from "../../../assets/icons/weui_arrow-filled.png";
+import up from "../../../assets/icons/up_weui_arrow-filled.png";
 import down from "../../../assets/icons/weui_arrow-filled.png";
 
 const menuItems = [
@@ -23,7 +23,7 @@ const menuItems = [
     icon: studentRecordIcon,
     roles: ["admin", "teacher"],
     subMenu: [
-      { name: "Student Profiles", path: "/student-profiles" },
+      { name: "Student Profiles", path: "/student-profile" },
       { name: "Permission Students", path: "/permission-students" },
       { name: "Attendance info", path: "/attendance-info" },
       { name: "Level Info", path: "/level-info" },
@@ -116,7 +116,7 @@ const Sidebar = ({ role }) => {
           <Menu />
         </button>
       </div>
-      <div className="flex-1 md:ml-64 p-4  overflow-y-auto h-screen">
+      <div className="flex-1 md:ml-64 overflow-y-auto h-screen">
         {/* Main Content */}
       </div>
     </div>
