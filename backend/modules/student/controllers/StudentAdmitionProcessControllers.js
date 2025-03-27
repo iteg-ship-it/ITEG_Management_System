@@ -166,12 +166,12 @@ exports.downloadStudentExcel = async (req, res) => {
             { header: 'Father Name', key: 'Father_name', width: 20 },
             { header: 'Email', key: 'email', width: 25 },
             { header: 'Aadhar Card', key: 'aadharCard', width: 20 },
-            { header: 'Student Mobile', key: 'student_Mb_no', width: 15 },
-            { header: 'Father Mobile', key: 'father_Mb_no', width: 15 },
+            { header: 'Student Mobile', key: 'student_Mb_no', width: 15, type:'number'},
+            { header: 'Father Mobile', key: 'father_Mb_no', width: 15, type:'number'},
             { header: 'Course', key: 'course', width: 20 },
             { header: 'Track', key: 'track', width: 20 },
             { header: 'Status', key: 'status', width: 15 },
-            { header: 'Interview Attempts', key: 'interviewAttempts', width: 20 },
+            { header: 'Interview Attempts', key: 'interviewAttempts', width: 20, type:'number'},
             { header: 'Fee Status', key: 'feeStatus', width: 15 }
         ];
 
@@ -182,14 +182,17 @@ exports.downloadStudentExcel = async (req, res) => {
 
         await workbook.xlsx.writeFile(filePath);
 
-        res.download(filePath, 'StudentData.xlsx', (err) => {
-            if (err) {
-                console.error("File download error:", err);
-                res.status(500).json({ message: "Error downloading file" });
-            } else {
-                console.log("File downloaded successfully");
-                // fs.unlinkSync(filePath); // Delete file after sending
-            }
+        // Set headers for file download
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename=StudentData.xlsx`);
+
+        // Stream the file directly
+        const fileStream = fs.createReadStream(filePath);
+        fileStream.pipe(res);
+
+        fileStream.on('end', () => {
+            console.log("File sent successfully. Deleting local file...");
+            fs.unlinkSync(filePath); // Delete after sending
         });
 
     } catch (error) {
