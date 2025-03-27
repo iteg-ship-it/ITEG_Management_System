@@ -6,6 +6,8 @@ const bodyParser = require("body-parser");
 // const userRoutes = require("./routes/userRoutes");
 const protectedRoutes = require("./routes/protectedRoutes");
 const studentRoutes = require("./routes/studentRoutes");
+const student_admissionProcessRoutes = require("./routes/student_admissionProcessRoutes.js");
+
 // const interviewRoutes = require("./routes/interviewRoutes");
 // const levelRoutes = require("./routes/levelRoutes");
 const auth = require("./routes/auth");
@@ -19,7 +21,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Routes
+
 // connectMongoDB();
 
 app.use("/api/auth", auth);
@@ -28,7 +30,7 @@ app.use("/api/superAdmin", superAdminRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/protected", protectedRoutes);
 app.use("/api/students", studentRoutes);
-
+app.use("/api/studentAdmission",student_admissionProcessRoutes);
 // MongoDB Connection
 mongoose
   .connect(process.env.MONGO_URI)

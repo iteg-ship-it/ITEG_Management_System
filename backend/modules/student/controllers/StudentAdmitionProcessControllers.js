@@ -1,6 +1,10 @@
 const Student_Admission_process = require('../models/StudentAdmissionProcess');
 const bcrypt = require('bcrypt');
-// Create Super Admin
+const os = require('os'); // Get user home directory
+const path = require('path');
+const fs = require('fs');
+
+const ExcelJS = require("exceljs");
 exports.createStudent_Admission_process = async (req, res) => {
   try {
     const { First_name, Last_name, Father_name,
@@ -145,3 +149,51 @@ exports.getStudentsByTrack = async (req, res) => {
 };
 
 
+
+exports.downloadStudentExcel = async (req, res) => {
+    try {
+        const students = await Student_Admission_process.find();
+        if (students.length === 0) {
+            return res.status(404).json({ message: "No student data available." });
+        }
+
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Student Data');
+
+        worksheet.columns = [
+            { header: 'First Name', key: 'First_name', width: 15 },
+            { header: 'Last Name', key: 'Last_name', width: 15 },
+            { header: 'Father Name', key: 'Father_name', width: 20 },
+            { header: 'Email', key: 'email', width: 25 },
+            { header: 'Aadhar Card', key: 'aadharCard', width: 20 },
+            { header: 'Student Mobile', key: 'student_Mb_no', width: 15 },
+            { header: 'Father Mobile', key: 'father_Mb_no', width: 15 },
+            { header: 'Course', key: 'course', width: 20 },
+            { header: 'Track', key: 'track', width: 20 },
+            { header: 'Status', key: 'status', width: 15 },
+            { header: 'Interview Attempts', key: 'interviewAttempts', width: 20 },
+            { header: 'Fee Status', key: 'feeStatus', width: 15 }
+        ];
+
+        students.forEach(student => worksheet.addRow(student));
+
+        const downloadsFolder = path.join(os.homedir(), 'Downloads');
+        const filePath = path.join(downloadsFolder, 'StudentData.xlsx');
+
+        await workbook.xlsx.writeFile(filePath);
+
+        res.download(filePath, 'StudentData.xlsx', (err) => {
+            if (err) {
+                console.error("File download error:", err);
+                res.status(500).json({ message: "Error downloading file" });
+            } else {
+                console.log("File downloaded successfully");
+                // fs.unlinkSync(filePath); // Delete file after sending
+            }
+        });
+
+    } catch (error) {
+        console.error("Error generating Excel file:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
