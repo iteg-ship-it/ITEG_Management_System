@@ -18,22 +18,24 @@ router.get("/:id", verifyToken, checkRole(allowedRoles), studentController.getSt
 
 
 // // Update Student Data
-router.put("/update/:id", verifyToken, checkRole(["Super Admin", "Admin"]), studentController.updateStudent);
+router.put("/update/:id", verifyToken, checkRole(["Super Admin", "Admin","faculty"]), studentController.updateStudent);
 
 // // Delete Student
-// router.delete("/:id", studentController.deleteStudent);
+router.delete("/:id", verifyToken, checkRole(["Super Admin","admin"]), studentController.deleteStudent);
+
 
 // // Faculty, Admin, & Super Admin Can Migrate Data
 // // router.post("/migrate", verifyToken, checkRole(["Faculty", "Admin", "Super Admin"]), studentController.migrateStudents);
 
+router.post("/create/interviews/:id", verifyToken,  checkRole(["Faculty", "Admin", "Super Admin"]),studentController. addInterviewRecord);
 
-// // router.get("/",studentController. getInterviews);
+router.get("/interviews/:id", verifyToken, checkRole(["Faculty", "Admin", "Super Admin"]),studentController. getStudentInterview );
 
+// Update Interview Record
+router.put("/up/interviews/:id", verifyToken, checkRole(["Faculty", "Admin", "Super Admin"]),studentController. updateInterviewResult);
 // // // Add Interview Record
-// // router.post("/", studentController.addInterview);
 
-// // // Update Interview Record
 // // router.put("/:interviewId",studentController. updateInterview);
-
+router.post("/create/level/:id",studentController. updateInterviewResult);
 
 module.exports = router;

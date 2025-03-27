@@ -51,16 +51,16 @@ exports.updateStudent = async (req, res) => {
 };
 
 
-// // Delete Student
-// exports.deleteStudent = async (req, res) => {
-//     try {
-//         const deletedStudent = await Student.findByIdAndDelete(req.params.id);
-//         if (!deletedStudent) return res.status(404).json({ message: "Student not found" });
-//         res.status(200).json({ message: "Student deleted successfully" });
-//     } catch (error) {
-//         res.status(500).json({ message: "Server Error", error });
-//     }
-// };
+exports.deleteStudent = async (req, res) => {
+    try {
+        const student = await Student.findByIdAndDelete(req.params.id);
+        if (!student) return res.status(404).json({ message: "Student not found" });
+        res.status(200).json({ message: "Student deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 
 // // Migrate Students
 // exports.migrateStudents = async (req, res) => {
@@ -94,7 +94,7 @@ exports.updateStudent = async (req, res) => {
 
 
 
-// //const Student = require("../models/Student");
+
 
 
 
@@ -128,71 +128,6 @@ exports.updateStudent = async (req, res) => {
 // }
 
 
-// // const Student = require("../models/Student");
-
-// // const Student = require("../models/Student");
-
-// // // Register Student
-// // exports.registerStudent = async (req, res) => {
-// //     try {
-// //         const { name, email, course, age } = req.body;
-// //         if (!name || !email || !course || !age) {
-// //             return res.status(400).json({ message: "All fields are required" });
-// //         }
-        
-// //         const newStudent = new Student({ name, email, course, age });
-// //         await newStudent.save();
-// //         res.status(201).json({ message: "Student registered successfully", student: newStudent });
-
-// //     } catch (error) {
-// //         res.status(500).json({ message: "Server Error", error });
-// //     }
-// // };
- 
-
-// // // Get All Students
-// // exports.getAllStudents = async (req, res) => {
-// //     try {
-// //         const students = await Student.find();
-// //         res.status(200).json(students);
-// //     } catch (error) {
-// //         res.status(500).json({ message: "Server Error", error });
-// //     }
-// // };
-
-// // // Get Single Student by ID
-// // exports.getStudentById = async (req, res) => {
-// //     try {
-// //         const student = await Student.findById(req.params.id);
-// //         if (!student) return res.status(404).json({ message: "Student not found" });
-// //         res.status(200).json(student);
-// //     } catch (error) {
-// //         res.status(500).json({ message: "Server Error", error });
-// //     }
-// // };
-
-// // // Update Student Data
-// // exports.updateStudent = async (req, res) => {
-// //     try {
-// //         const updatedStudent = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true });
-// //         if (!updatedStudent) return res.status(404).json({ message: "Student not found" });
-// //         res.status(200).json({ message: "Student updated successfully", student: updatedStudent });
-// //     } catch (error) {
-// //         res.status(500).json({ message: "Server Error", error });
-// //     }
-// // };
-
-// // // Delete Student
-// // exports.deleteStudent = async (req, res) => {
-// //     try {
-// //         const deletedStudent = await Student.findByIdAndDelete(req.params.id);
-// //         if (!deletedStudent) return res.status(404).json({ message: "Student not found" });
-// //         res.status(200).json({ message: "Student deleted successfully" });
-// //     } catch (error) {
-// //         res.status(500).json({ message: "Server Error", error });
-// //     }
-// // };
-
 // // // Faculty, Admin, & Super Admin Can Migrate Data
 // // exports.migrateStudents = async (req, res) => {
 // //     try {
@@ -204,75 +139,108 @@ exports.updateStudent = async (req, res) => {
 // // };
 
 
-// // // Fetch All Interviews or by Query Params
-// // exports.getInterviews = async (req, res) => {
-// //     try {
-// //         const { studentId, interviewLevel, result } = req.query;
-// //         let query = {};
+// company interviewRecord
+exports.addInterviewRecord = async (req, res) => {
+    try {
+        const studentId = req.params.id; // Get student ID from URL parameter
+        const { companyName, interviewDate, remark, result, location, jobProfile } = req.body;
 
-// //         if (studentId) query.studentId = studentId;
-// //         if (interviewLevel) query.interviewLevel = interviewLevel;
-// //         if (result) query.result = result;
+        if (!studentId || !companyName || !interviewDate || !result || !location || !jobProfile) {
+            return res.status(400).json({ success: false, message: "All fields are required" });
+        }
 
-// //         const interviews = await Interview.find(query).populate("studentId", "name email");
-// //         res.status(200).json({ success: true, interviews });
-// //     } catch (error) {
-// //         console.error("Error fetching interviews:", error);
-// //         res.status(500).json({ message: "Server Error", error });
-// //     }
-// // };
+        // Validate result value against the allowed enum
+        const validResults = ["Selected", "Rejected", "Pending"];
+        if (!validResults.includes(result)) {
+            return res.status(400).json({ success: false, message: `Invalid result value. Allowed values: ${validResults.join(", ")}` });
+        }
 
-// // // Add New Interview Record
-// // exports.addInterview = async (req, res) => {
-// //     try {
-// //         const { studentId, date, remarks, result } = req.body;
+        // Find the student by ID
+        const student = await Student.findById(studentId);
+        if (!student) {
+            return res.status(404).json({ success: false, message: "Student not found" });
+        }
 
-// //         const student = await Student.findById(studentId);
-// //         if (!student) {
-// //             return res.status(404).json({ message: "Student not found" });
-// //         }
+        // Create new interview record
+        const newInterview = {
+            companyName,
+            interviewDate,
+            remark,
+            result,
+            location,
+            jobProfile
+        };
 
-// //         // Student Profile se Interview Level fetch karna
-// //         const interviewLevel = student.course || "General";
+        // Push the new interview record into the student's interviewRecord array
+        student.interviewRecord.push(newInterview);
 
-// //         const newInterview = new Interview({
-// //             studentId,
-// //             interviewLevel,
-// //             date,
-// //             remarks,
-// //             result
-// //         });
+        // Save the updated student document
+        await student.save();
 
-// //         await newInterview.save();
-// //         res.status(201).json({ success: true, message: "Interview record added", interview: newInterview });
-// //     } catch (error) {
-// //         console.error("Error adding interview record:", error);
-// //         res.status(500).json({ message: "Server Error", error });
-// //     }
-// // };
+        res.status(201).json({ success: true, message: "Interview record added successfully", interviewRecord: newInterview });
+    } catch (error) {
+        console.error("Error adding interview record:", error);
+        res.status(500).json({ success: false, message: "Server Error", error });
+    }
+};
 
-// // // Update Interview Record
-// // exports.updateInterview = async (req, res) => {
-// //     try {
-// //         const { interviewId } = req.params;
-// //         const { date, remarks, result } = req.body;
 
-// //         const updatedInterview = await Interview.findByIdAndUpdate(
-// //             interviewId,
-// //             { date, remarks, result },
-// //             { new: true }
-// //         );
+exports.getStudentInterview = async (req, res) => {
+    try {
+        const studentId = req.params.id; // Get student ID from URL params
 
-// //         if (!updatedInterview) {
-// //             return res.status(404).json({ message: "Interview record not found" });
-// //         }
+        if (!studentId) {
+            return res.status(400).json({ success: false, message: "studentId is required" });
+        }
 
-// //         res.status(200).json({ success: true, message: "Interview updated", interview: updatedInterview });
-// //     } catch (error) {
-// //         console.error("Error updating interview:", error);
-// //         res.status(500).json({ message: "Server Error", error });
-// //     }
-// // };
+        // Fetch the student record along with all interview records
+        const student = await Student.findById(studentId).select("fullName email interviewRecord");
+
+        if (!student) {
+            return res.status(404).json({ success: false, message: "Student not found" });
+        }
+
+        res.status(200).json({ success: true, interviewRecords: student.interviewRecord });
+    } catch (error) {
+        console.error("Error fetching student interview records:", error);
+        res.status(500).json({ success: false, message: "Server Error", error });
+    }
+};
+
+// update interview result
+exports.updateInterviewResult = async (req, res) => {
+    try {
+        const studentId = req.params.id; // Get student ID from URL parameter
+        const { interviewId, result } = req.body; // Get interview ID and new result from request body
+
+        if (!studentId || !interviewId || !result) {
+            return res.status(400).json({ success: false, message: "studentId, interviewId, and result are required" });
+        }
+
+        // Find student by ID
+        const student = await Student.findById(studentId);
+        if (!student) {
+            return res.status(404).json({ success: false, message: "Student not found" });
+        }
+
+        // Find the specific interview record inside the array
+        const interview = student.interviewRecord.id(interviewId);
+        if (!interview) {
+            return res.status(404).json({ success: false, message: "Interview record not found" });
+        }
+
+        // Update the interview result
+        interview.result = result;
+
+        // Save the updated student document
+        await student.save();
+
+        res.status(200).json({ success: true, message: "Interview result updated successfully", updatedInterview: interview });
+    } catch (error) {
+        console.error("Error updating interview result:", error);
+        res.status(500).json({ success: false, message: "Server Error", error });
+    }
+};
 
 
 // // Fetch Levels - No Authentication Required
@@ -319,6 +287,52 @@ exports.updateStudent = async (req, res) => {
 //         res.status(500).json({ message: "Server Error", error });
 //     }
 // };
+
+exports.addlevel = async (req, res) => {
+    try {
+        const studentId = req.params.id; // Get student ID from URL parameter
+        const { companyName, interviewDate, remark, result, location, jobProfile } = req.body;
+
+        if (!studentId || !companyName || !interviewDate || !result || !location || !jobProfile) {
+            return res.status(400).json({ success: false, message: "All fields are required" });
+        }
+
+        // Validate result value against the allowed enum
+        const validResults = ["Selected", "Rejected", "Pending"];
+        if (!validResults.includes(result)) {
+            return res.status(400).json({ success: false, message: `Invalid result value. Allowed values: ${validResults.join(", ")}` });
+        }
+
+        // Find the student by ID
+        const student = await Student.findById(studentId);
+        if (!student) {
+            return res.status(404).json({ success: false, message: "Student not found" });
+        }
+
+        // Create new interview record
+        const newInterview = {
+            companyName,
+            interviewDate,
+            remark,
+            result,
+            location,
+            jobProfile
+        };
+
+        // Push the new interview record into the student's interviewRecord array
+        student.interviewRecord.push(newInterview);
+
+        // Save the updated student document
+        await student.save();
+
+        res.status(201).json({ success: true, message: "Interview record added successfully", interviewRecord: newInterview });
+    } catch (error) {
+        console.error("Error adding interview record:", error);
+        res.status(500).json({ success: false, message: "Server Error", error });
+    }
+};
+
+
 
 // // Update Level Information - No Authentication Required
 // exports.updateLevel = async (req, res) => {
