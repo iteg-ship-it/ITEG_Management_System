@@ -54,4 +54,8 @@ router.post("/create/level/:id", verifyToken, checkRole(allowedRoles),studentCon
 router.get("/student/level/:levelNo", verifyToken, checkRole(allowedRoles),studentController. getStudentsByLevel );
 
 router.get("/total/student/:levelNo", verifyToken, checkRole(allowedRoles),studentController. getStudentCountBySpecificLevel );
+
+
+router.get("/getlevels/:id", verifyToken, checkRole(allowedRoles),studentController. getStudentLevels );
+
 module.exports = router;
