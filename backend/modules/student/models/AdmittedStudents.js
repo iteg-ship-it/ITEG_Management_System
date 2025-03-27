@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const levelSchema = new mongoose.Schema({
-  levelNo: { type: Number, required: true },
+  levelNo: { type: String, required: true },
   noOfAttempts: { type: Number, default: 0 },
   marks: { type: Number, default: 0 },
   remark: { type: String },

@@ -1,71 +1,441 @@
-const Student = require("../models/Student.js");
+const Student = require("../models/AdmittedStudents");
 
-// Register Student
-exports.registerStudent = async (req, res) => {
+// Create a new student
+exports.createStudent = async (req, res) => {
     try {
-        const { name, email, course, age } = req.body;
-        if (!name || !email || !course || !age) {
-            return res.status(400).json({ message: "All fields are required" });
-        }
-
-        const newStudent = new Student({ name, email, course, age });
-        await newStudent.save();
-        res.status(201).json({ message: "Student registered successfully", student: newStudent });
-
+        const student = new Student(req.body);
+        await student.save();
+        res.status(201).json(student);
     } catch (error) {
-        res.status(500).json({ message: "Server Error", error });
+        res.status(400).json({ message: error.message });
     }
 };
 
-// Get All Students
+// Get all students
 exports.getAllStudents = async (req, res) => {
     try {
         const students = await Student.find();
         res.status(200).json(students);
     } catch (error) {
-        res.status(500).json({ message: "Server Error", error });
+        res.status(500).json({ message: error.message });
     }
 };
 
-// Get Single Student by ID
+// Get a single student by ID
 exports.getStudentById = async (req, res) => {
     try {
         const student = await Student.findById(req.params.id);
         if (!student) return res.status(404).json({ message: "Student not found" });
         res.status(200).json(student);
     } catch (error) {
-        res.status(500).json({ message: "Server Error", error });
+        res.status(500).json({ message: error.message });
     }
 };
 
-// Update Student
+
+// Update student by ID
 exports.updateStudent = async (req, res) => {
     try {
-        const updatedStudent = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!updatedStudent) return res.status(404).json({ message: "Student not found" });
-        res.status(200).json({ message: "Student updated successfully", student: updatedStudent });
+        const { id } = req.params;
+        const updatedStudent = await Student.findByIdAndUpdate(id, req.body, { new: true });
+
+        if (!updatedStudent) {
+            return res.status(404).json({ message: "Student not found" });
+        }
+
+        res.status(200).json(updatedStudent);
     } catch (error) {
-        res.status(500).json({ message: "Server Error", error });
+        console.error("Update Error:", error);
+        res.status(500).json({ message: "Server error while updating student" });
     }
 };
 
-// Delete Student
+
 exports.deleteStudent = async (req, res) => {
     try {
-        const deletedStudent = await Student.findByIdAndDelete(req.params.id);
-        if (!deletedStudent) return res.status(404).json({ message: "Student not found" });
+        const student = await Student.findByIdAndDelete(req.params.id);
+        if (!student) return res.status(404).json({ message: "Student not found" });
         res.status(200).json({ message: "Student deleted successfully" });
     } catch (error) {
-        res.status(500).json({ message: "Server Error", error });
+        res.status(500).json({ message: error.message });
     }
 };
 
-// Migrate Students
-exports.migrateStudents = async (req, res) => {
+
+// // Migrate Students
+// exports.migrateStudents = async (req, res) => {
+//     try {
+//         // Migration logic here
+//         res.status(200).json({ message: "Students migrated successfully" });
+//     } catch (error) {
+//         res.status(500).json({ message: "Server Error", error });
+//     }
+// };
+
+// // // Migrate Student Data from SQL to MongoDB
+// // exports.migrateStudents = async (req, res) => {
+// //     try {
+// //         // Fetch Data from MySQL
+// //         const [students] = await sqlPool.query("SELECT studentId, name, course, email FROM students");
+
+// //         if (students.length === 0) {
+// //             return res.status(404).json({ message: "No student data found in SQL database" });
+// //         }
+
+// //         // Insert Data into MongoDB
+// //         await Student.insertMany(students);
+
+// //         res.status(200).json({ message: "Student data migrated successfully!", migratedCount: students.length });
+// //     } catch (error) {
+// //         console.error("Error in migrating student data:", error);
+// //         res.status(500).json({ message: "Server Error", error: error.message });
+// //     }
+// // };
+
+
+
+
+
+
+
+// // // Migrate Students (Without SQL)
+// // exports.migrateStudents = async (req, res) => {
+// //     try {
+// //         const students = mockStudents; // SQL ke bina dummy data use karenge
+
+// //         // MongoDB me data insert karo
+// //         const savedStudents = await Student.insertMany(students);
+
+// //         res.status(201).json({ message: "Student data migrated successfully!", data: savedStudents });
+// //     } catch (error) {
+// //         res.status(500).json({ message: "Server Error", error: error.message });
+// //     }
+// // };
+// async (req, res) => {
+//     try {
+//         const { name, email, course, age } = req.body;
+//         if (!name || !email || !course || !age) {
+//             return res.status(400).json({ message: "All fields are required" });
+//         }
+        
+//         const newStudent = new Student({ name, email, course, age });
+//         await newStudent.save();
+//         res.status(201).json({ message: "Student registered successfully", student: newStudent });
+
+//     } catch (error) {
+//         res.status(500).json({ message: "Server Error", error });
+//     }
+// }
+
+
+// // // Faculty, Admin, & Super Admin Can Migrate Data
+// // exports.migrateStudents = async (req, res) => {
+// //     try {
+// //         // Migration logic yahan likho
+// //         res.status(200).json({ message: "Student data migrated successfully" });
+// //     } catch (error) {
+// //         res.status(500).json({ message: "Server Error", error });
+// //     }
+// // };
+
+
+// company interviewRecord
+exports.addInterviewRecord = async (req, res) => {
     try {
-        // Migration logic here
-        res.status(200).json({ message: "Students migrated successfully" });
+        const studentId = req.params.id; // Get student ID from URL parameter
+        const { companyName, interviewDate, remark, result, location, jobProfile } = req.body;
+
+        if (!studentId || !companyName || !interviewDate || !result || !location || !jobProfile) {
+            return res.status(400).json({ success: false, message: "All fields are required" });
+        }
+
+        // Validate result value against the allowed enum
+        const validResults = ["Selected", "Rejected", "Pending"];
+        if (!validResults.includes(result)) {
+            return res.status(400).json({ success: false, message: `Invalid result value. Allowed values: ${validResults.join(", ")}` });
+        }
+
+        // Find the student by ID
+        const student = await Student.findById(studentId);
+        if (!student) {
+            return res.status(404).json({ success: false, message: "Student not found" });
+        }
+
+        // Create new interview record
+        const newInterview = {
+            companyName,
+            interviewDate,
+            remark,
+            result,
+            location,
+            jobProfile
+        };
+
+        // Push the new interview record into the student's interviewRecord array
+        student.interviewRecord.push(newInterview);
+
+        // Save the updated student document
+        await student.save();
+
+        res.status(201).json({ success: true, message: "Interview record added successfully", interviewRecord: newInterview });
     } catch (error) {
-        res.status(500).json({ message: "Server Error", error });
+        console.error("Error adding interview record:", error);
+        res.status(500).json({ success: false, message: "Server Error", error });
     }
 };
+
+
+exports.getStudentInterview = async (req, res) => {
+    try {
+        const studentId = req.params.id; // Get student ID from URL params
+
+        if (!studentId) {
+            return res.status(400).json({ success: false, message: "studentId is required" });
+        }
+
+        // Fetch the student record along with all interview records
+        const student = await Student.findById(studentId).select("fullName email interviewRecord");
+
+        if (!student) {
+            return res.status(404).json({ success: false, message: "Student not found" });
+        }
+
+        res.status(200).json({ success: true, interviewRecords: student.interviewRecord });
+    } catch (error) {
+        console.error("Error fetching student interview records:", error);
+        res.status(500).json({ success: false, message: "Server Error", error });
+    }
+};
+
+// update interview result
+exports.updateInterviewResult = async (req, res) => {
+    try {
+        const studentId = req.params.id; // Get student ID from URL parameter
+        const { interviewId, result } = req.body; // Get interview ID and new result from request body
+
+        if (!studentId || !interviewId || !result) {
+            return res.status(400).json({ success: false, message: "studentId, interviewId, and result are required" });
+        }
+
+        // Find student by ID
+        const student = await Student.findById(studentId);
+        if (!student) {
+            return res.status(404).json({ success: false, message: "Student not found" });
+        }
+
+        // Find the specific interview record inside the array
+        const interview = student.interviewRecord.id(interviewId);
+        if (!interview) {
+            return res.status(404).json({ success: false, message: "Interview record not found" });
+        }
+
+        // Update the interview result
+        interview.result = result;
+
+        // Save the updated student document
+        await student.save();
+
+        res.status(200).json({ success: true, message: "Interview result updated successfully", updatedInterview: interview });
+    } catch (error) {
+        console.error("Error updating interview result:", error);
+        res.status(500).json({ success: false, message: "Server Error", error });
+    }
+};
+
+
+// // Fetch Levels - No Authentication Required
+// exports.getLevels = async (req, res) => {
+//     try {
+//         const { studentId, levelName, className } = req.query;
+//         let query = {};
+
+//         if (studentId) query.studentId = studentId;
+//         if (levelName) query.levelName = levelName;
+//         if (className) query.className = className;
+
+//         const levels = await Level.find(query).populate("studentId", "name email");
+//         res.status(200).json({ success: true, levels });
+//     } catch (error) {
+//         console.error("Error fetching levels:", error);
+//         res.status(500).json({ message: "Server Error", error });
+//     }
+// };
+
+// // Add New Level Information - No Authentication Required
+// exports.addLevel = async (req, res) => {
+//     try {
+//         const { studentId, levelName, className, marks, remarks, date } = req.body;
+
+//         const student = await Student.findById(studentId);
+//         if (!student) {
+//             return res.status(404).json({ message: "Student not found" });
+//         }
+
+//         const newLevel = new Level({
+//             studentId,
+//             levelName,
+//             className,
+//             marks,
+//             remarks,
+//             date
+//         });
+
+//         await newLevel.save();
+//         res.status(201).json({ success: true, message: "Level information added", level: newLevel });
+//     } catch (error) {
+//         console.error("Error adding level information:", error);
+//         res.status(500).json({ message: "Server Error", error });
+//     }
+// };
+
+exports.addlevel = async (req, res) => {
+    try {
+        const studentId = req.params.id; // Get student ID from URL parameter
+        const { companyName, interviewDate, remark, result, location, jobProfile } = req.body;
+
+        if (!studentId || !companyName || !interviewDate || !result || !location || !jobProfile) {
+            return res.status(400).json({ success: false, message: "All fields are required" });
+        }
+
+        // Validate result value against the allowed enum
+        const validResults = ["Selected", "Rejected", "Pending"];
+        if (!validResults.includes(result)) {
+            return res.status(400).json({ success: false, message: `Invalid result value. Allowed values: ${validResults.join(", ")}` });
+        }
+
+        // Find the student by ID
+        const student = await Student.findById(studentId);
+        if (!student) {
+            return res.status(404).json({ success: false, message: "Student not found" });
+        }
+
+        // Create new interview record
+        const newInterview = {
+            companyName,
+            interviewDate,
+            remark,
+            result,
+            location,
+            jobProfile
+        };
+
+        // Push the new interview record into the student's interviewRecord array
+        student.interviewRecord.push(newInterview);
+
+        // Save the updated student document
+        await student.save();
+
+        res.status(201).json({ success: true, message: "Interview record added successfully", interviewRecord: newInterview });
+    } catch (error) {
+        console.error("Error adding interview record:", error);
+        res.status(500).json({ success: false, message: "Server Error", error });
+    }
+};
+
+
+
+// // Update Level Information - No Authentication Required
+// exports.updateLevel = async (req, res) => {
+//     try {
+//         const { levelId } = req.params;
+//         const { levelName, className, marks, remarks, date } = req.body;
+
+//         const updatedLevel = await Level.findByIdAndUpdate(
+//             levelId,
+//             { levelName, className, marks, remarks, date, updatedAt: Date.now() },
+//             { new: true }
+//         );
+
+//         if (!updatedLevel) {
+//             return res.status(404).json({ message: "Level information not found" });
+//         }
+
+//         res.status(200).json({ success: true, message: "Level updated", level: updatedLevel });
+//     } catch (error) {
+//         console.error("Error updating level information:", error);
+//         res.status(500).json({ message: "Server Error", error });
+//     }
+// };
+
+// // Function to generate a certificate (Mock function)
+// const generateCertificate = (studentName, levelName) => {
+//     return `https://certificates.example.com/${studentName}_${levelName}_certificate.pdf`; // Fake URL
+// };
+
+// // Add Level Information - No Authentication Required
+// exports.addLevel = async (req, res) => {
+//     try {
+//         const { studentId, levelName, className, marks, remarks, date, result } = req.body;
+
+//         const student = await Student.findById(studentId);
+//         if (!student) {
+//             return res.status(404).json({ message: "Student not found" });
+//         }
+
+//         let certificateUrl = null;
+//         let message = "";
+
+//         // If student clears Level 1C, generate a certificate or failure message
+//         if (levelName === "1C") {
+//             if (result === "Pass") {
+//                 certificateUrl = generateCertificate(student.name, levelName);
+//                 message = "Congratulations! Your certificate has been generated.";
+//             } else {
+//                 message = "You should try again.";
+//             }
+//         }
+
+//         const newLevel = new Level({
+//             studentId,
+//             levelName,
+//             className,
+//             marks,
+//             remarks,
+//             date,
+//             result,
+//             certificateUrl
+//         });
+
+//         await newLevel.save();
+//         res.status(201).json({ success: true, message, level: newLevel });
+//     } catch (error) {
+//         console.error("Error adding level information:", error);
+//         res.status(500).json({ message: "Server Error", error });
+//     }
+// };
+
+// // Update Level Information - No Authentication Required
+// exports.updateLevel = async (req, res) => {
+//     try {
+//         const { levelId } = req.params;
+//         const { levelName, className, marks, remarks, date, result } = req.body;
+
+//         let certificateUrl = null;
+//         let message = "";
+
+//         if (levelName === "1C") {
+//             if (result === "Pass") {
+//                 const level = await Level.findById(levelId).populate("studentId", "name");
+//                 certificateUrl = generateCertificate(level.studentId.name, levelName);
+//                 message = "Congratulations! Your certificate has been generated.";
+//             } else {
+//                 message = "You should try again.";
+//             }
+//         }
+
+//         const updatedLevel = await Level.findByIdAndUpdate(
+//             levelId,
+//             { levelName, className, marks, remarks, date, result, certificateUrl, updatedAt: Date.now() },
+//             { new: true }
+//         );
+
+//         if (!updatedLevel) {
+//             return res.status(404).json({ message: "Level information not found" });
+//         }
+
+//         res.status(200).json({ success: true, message, level: updatedLevel });
+//     } catch (error) {
+//         console.error("Error updating level information:", error);
+//         res.status(500).json({ message: "Server Error", error });
+//     }
+// };
