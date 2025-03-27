@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 // const userRoutes = require("./routes/userRoutes");
 const protectedRoutes = require("./routes/protectedRoutes");
 const studentRoutes = require("./routes/studentRoutes");
+const studentAdmission= require("./routes/student_admissionProcessRoutes");
 // const interviewRoutes = require("./routes/interviewRoutes");
 // const levelRoutes = require("./routes/levelRoutes");
 const auth = require("./routes/auth");
@@ -28,6 +29,7 @@ app.use("/api/superAdmin", superAdminRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/protected", protectedRoutes);
 app.use("/api/students", studentRoutes);
+app.use("/api/", studentAdmission);
 
 // MongoDB Connection
 mongoose
