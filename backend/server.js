@@ -30,6 +30,7 @@ app.use("/api/superAdmin", superAdminRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/protected", protectedRoutes);
 app.use("/api/students", studentRoutes);
+app.use("/api/", studentAdmission);
 app.use("/api/studentAdmission",student_admissionProcessRoutes);
 // MongoDB Connection
 mongoose

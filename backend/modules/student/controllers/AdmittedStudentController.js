@@ -243,6 +243,173 @@ exports.updateInterviewResult = async (req, res) => {
 };
 
 
+
+// Create Permission Student API
+exports.createPermissionStudent = async (req, res) => {
+    try {
+      const { 
+        fullName, stream, course, fatherName, motherName, mobileNo, 
+        fatherNo, email, track, address, level, techno, attendancePercentage, 
+        placedInfo, interviewRecord, readinessStatus, permission 
+      } = req.body;
+  
+      // Validate Base64 Image (optional check)
+      if (permission?.reason && !/^data:image\/(png|jpeg|jpg);base64,/.test(permission.reason)) {
+        return res.status(400).json({ message: "Invalid image format. Must be Base64." });
+      }
+  
+      // Check if student already exists
+      const existingStudent = await Student.findOne({ email });
+      if (existingStudent) {
+        return res.status(400).json({ message: "Student already exists" });
+      }
+  
+      // Create new student with permission
+      const newStudent = new Student({
+        fullName,
+        stream,
+        course,
+        fatherName,
+        motherName,
+        mobileNo,
+        fatherNo,
+        email,
+        track,
+        address,
+        level,
+        techno,
+        attendancePercentage,
+        placedInfo,
+        interviewRecord,
+        readinessStatus,
+        permission: permission ? {
+          reason: permission.reason,
+          approvedBy: permission.approvedBy
+        } : undefined
+      });
+  
+      await newStudent.save();
+      res.status(201).json({ message: "Permission Student Created Successfully", student: newStudent });
+  
+    } catch (error) {
+      console.error("Create Permission Student Error:", error);
+      res.status(500).json({ message: "Server Error", error });
+    }
+  };
+
+//All Permission Student list show
+exports.getAllPermissionStudents = async (req, res) => {
+    try {
+    //   Fetch students with permissionGranted = true
+      const students = await Student.find({ permission: true }).select('-password');
+  
+      res.status(200).json({
+        success: true,
+        count: students.length,
+        data: students,
+      });
+    } catch (error) {
+      console.error("Get Permission Students Error:", error);
+      res.status(500).json({ message: "Server Error", error });
+    }
+    // try {
+    //     const students = await Student.find({ "permission.approvedBy": { $exists: true } });
+    
+    //     if (students.length === 0) {
+    //       return res.status(404).json({ message: "No permission students found" });
+    //     }
+    
+    //     res.status(200).json(students);
+    //   } catch (error) {
+    //     res.status(500).json({ message: "Server Error", error });
+    //   }
+  };
+  
+
+// Get All Permission Students API
+exports.getAllPermissionStudents = async (req, res) => {
+    try {
+      // Fetch students where permission is granted (approvedBy exists)
+      const students = await Student.find({ "permission.approvedBy": { $exists: true } }).select('-password');
+  
+      res.status(200).json({
+        success: true,
+        count: students.length,
+        data: students
+      });
+    } catch (error) {
+      console.error("Get Permission Students Error:", error);
+      res.status(500).json({ message: "Server Error", error });
+    }
+  };
+
+
+
+
+  // update Permission Student API
+// exports.updatePermissionStudent = async (req, res) => {
+//     try {
+//       const { studentId, reason, approvedBy } = req.body;
+  
+//       // Validate required fields
+//       if (!studentId || !reason || !approvedBy) {
+//         return res.status(400).json({ message: "All fields are required" });
+//       }
+  
+//       // Find student by ID
+//       const student = await Student.findById(studentId);
+//       if (!student) {
+//         return res.status(404).json({ message: "Student not found" });
+//       }
+  
+//       // Update permission
+//       student.permission = { reason, approvedBy };
+//       await student.save();
+  
+//       res.status(200).json({ message: "Permission granted successfully", student });
+//     } catch (error) {
+//       console.error("Create Permission Error:", error);
+//       res.status(500).json({ message: "Server Error", error });
+//     }
+//   };
+
+
+
+
+
+// Update Permission Student API
+exports.updatePermissionStudent = async (req, res) => {
+    try {
+      const { studentId } = req.params;
+      const { reason, approvedBy } = req.body;
+  
+      // Validate Base64 Image (optional check)
+      if (reason && !/^data:image\/(png|jpeg|jpg);base64,/.test(reason)) {
+        return res.status(400).json({ message: "Invalid image format. Must be Base64." });
+      }
+  
+      // Check if student exists
+      const student = await Student.findById(studentId);
+      if (!student) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+  
+      // Update permission field
+      student.permission = {
+        reason: reason || student.permission?.reason,
+        approvedBy: approvedBy || student.permission?.approvedBy
+      };
+  
+      await student.save();
+      res.status(200).json({ message: "Permission updated successfully", student });
+  
+    } catch (error) {
+      console.error("Update Permission Error:", error);
+      res.status(500).json({ message: "Server Error", error });
+    }
+  };
+
+
 // // Fetch Levels - No Authentication Required
 // exports.getLevels = async (req, res) => {
 //     try {
@@ -261,181 +428,115 @@ exports.updateInterviewResult = async (req, res) => {
 //     }
 // };
 
-// // Add New Level Information - No Authentication Required
-// exports.addLevel = async (req, res) => {
-//     try {
-//         const { studentId, levelName, className, marks, remarks, date } = req.body;
-
-//         const student = await Student.findById(studentId);
-//         if (!student) {
-//             return res.status(404).json({ message: "Student not found" });
-//         }
-
-//         const newLevel = new Level({
-//             studentId,
-//             levelName,
-//             className,
-//             marks,
-//             remarks,
-//             date
-//         });
-
-//         await newLevel.save();
-//         res.status(201).json({ success: true, message: "Level information added", level: newLevel });
-//     } catch (error) {
-//         console.error("Error adding level information:", error);
-//         res.status(500).json({ message: "Server Error", error });
-//     }
-// };
-
-exports.addlevel = async (req, res) => {
+exports.createLevel = async (req, res) => {
     try {
-        const studentId = req.params.id; // Get student ID from URL parameter
-        const { companyName, interviewDate, remark, result, location, jobProfile } = req.body;
+        const { id } = req.params;  // Get student ID from URL
+        const { levelNo, noOfAttempts, marks, remark, date, result } = req.body;  // Extract data from request body
 
-        if (!studentId || !companyName || !interviewDate || !result || !location || !jobProfile) {
-            return res.status(400).json({ success: false, message: "All fields are required" });
+        // Validate required fields
+        if (!levelNo) {
+            return res.status(400).json({ success: false, message: "Level number is required" });
         }
 
-        // Validate result value against the allowed enum
-        const validResults = ["Selected", "Rejected", "Pending"];
-        if (!validResults.includes(result)) {
-            return res.status(400).json({ success: false, message: `Invalid result value. Allowed values: ${validResults.join(", ")}` });
-        }
-
-        // Find the student by ID
-        const student = await Student.findById(studentId);
+        // Find student by ID
+        const student = await Student.findById(id);
         if (!student) {
             return res.status(404).json({ success: false, message: "Student not found" });
         }
 
-        // Create new interview record
-        const newInterview = {
-            companyName,
-            interviewDate,
-            remark,
-            result,
-            location,
-            jobProfile
+        // Add new level to student's level array
+        const newLevel = {
+            levelNo,
+            noOfAttempts: noOfAttempts || 0,
+            marks: marks || 0,
+            remark: remark || "",
+            date: date || new Date(),
+            result: result || "Pending"
         };
 
-        // Push the new interview record into the student's interviewRecord array
-        student.interviewRecord.push(newInterview);
+        student.level.push(newLevel);
+        await student.save();  // Save changes to database
 
-        // Save the updated student document
-        await student.save();
-
-        res.status(201).json({ success: true, message: "Interview record added successfully", interviewRecord: newInterview });
+        res.status(201).json({
+            success: true,
+            message: "Level added successfully",
+            student
+        });
     } catch (error) {
-        console.error("Error adding interview record:", error);
+        console.error("Error adding level:", error);
         res.status(500).json({ success: false, message: "Server Error", error });
     }
 };
 
 
+exports.getStudentsByLevel = async (req, res) => {
+    try {
+        const { levelNo } = req.params; // Get levelNo from URL params
 
-// // Update Level Information - No Authentication Required
-// exports.updateLevel = async (req, res) => {
-//     try {
-//         const { levelId } = req.params;
-//         const { levelName, className, marks, remarks, date } = req.body;
+        if (!levelNo) {
+            return res.status(400).json({ success: false, message: "Level number is required" });
+        }
 
-//         const updatedLevel = await Level.findByIdAndUpdate(
-//             levelId,
-//             { levelName, className, marks, remarks, date, updatedAt: Date.now() },
-//             { new: true }
-//         );
+        // Find students whose last level in the level array matches levelNo
+        const students = await Student.find({
+            $expr: { $eq: [{ $arrayElemAt: ["$level.levelNo", -1] }, levelNo] }
+        });
 
-//         if (!updatedLevel) {
-//             return res.status(404).json({ message: "Level information not found" });
-//         }
+        if (students.length === 0) {
+            return res.status(404).json({ success: false, message: "No students found with the last level matching " + levelNo });
+        }
 
-//         res.status(200).json({ success: true, message: "Level updated", level: updatedLevel });
-//     } catch (error) {
-//         console.error("Error updating level information:", error);
-//         res.status(500).json({ message: "Server Error", error });
-//     }
-// };
+        res.status(200).json({ success: true, students });
+    } catch (error) {
+        console.error("Error fetching students by last level:", error);
+        res.status(500).json({ success: false, message: "Server Error", error });
+    }
+};
+
+
+exports.getStudentCountBySpecificLevel = async (req, res) => {
+    try {
+        const { levelNo } = req.params; // Get levelNo from URL params
+
+        if (!levelNo) {
+            return res.status(400).json({ success: false, message: "Level number is required" });
+        }
+
+        // Count students where the last level in the array matches levelNo
+        const studentCount = await Student.countDocuments({
+            $expr: { $eq: [{ $arrayElemAt: ["$level.levelNo", -1] }, levelNo] }
+        });
+
+        res.status(200).json({ success: true, levelNo, count: studentCount });
+    } catch (error) {
+        console.error("Error fetching student count by last level:", error);
+        res.status(500).json({ success: false, message: "Server Error", error });
+    }
+};
+
+
+exports.getStudentLevels = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find student by ID
+    const student = await Student.findById(id).select("level fullName email");
+
+    if (!student) {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
+
+    res.status(200).json({ success: true, levels: student.level, student });
+  } catch (error) {
+    console.error("Error fetching student levels:", error);
+    res.status(500).json({ success: false, message: "Server Error", error });
+  }
+};
+
+
 
 // // Function to generate a certificate (Mock function)
 // const generateCertificate = (studentName, levelName) => {
 //     return `https://certificates.example.com/${studentName}_${levelName}_certificate.pdf`; // Fake URL
 // };
 
-// // Add Level Information - No Authentication Required
-// exports.addLevel = async (req, res) => {
-//     try {
-//         const { studentId, levelName, className, marks, remarks, date, result } = req.body;
-
-//         const student = await Student.findById(studentId);
-//         if (!student) {
-//             return res.status(404).json({ message: "Student not found" });
-//         }
-
-//         let certificateUrl = null;
-//         let message = "";
-
-//         // If student clears Level 1C, generate a certificate or failure message
-//         if (levelName === "1C") {
-//             if (result === "Pass") {
-//                 certificateUrl = generateCertificate(student.name, levelName);
-//                 message = "Congratulations! Your certificate has been generated.";
-//             } else {
-//                 message = "You should try again.";
-//             }
-//         }
-
-//         const newLevel = new Level({
-//             studentId,
-//             levelName,
-//             className,
-//             marks,
-//             remarks,
-//             date,
-//             result,
-//             certificateUrl
-//         });
-
-//         await newLevel.save();
-//         res.status(201).json({ success: true, message, level: newLevel });
-//     } catch (error) {
-//         console.error("Error adding level information:", error);
-//         res.status(500).json({ message: "Server Error", error });
-//     }
-// };
-
-// // Update Level Information - No Authentication Required
-// exports.updateLevel = async (req, res) => {
-//     try {
-//         const { levelId } = req.params;
-//         const { levelName, className, marks, remarks, date, result } = req.body;
-
-//         let certificateUrl = null;
-//         let message = "";
-
-//         if (levelName === "1C") {
-//             if (result === "Pass") {
-//                 const level = await Level.findById(levelId).populate("studentId", "name");
-//                 certificateUrl = generateCertificate(level.studentId.name, levelName);
-//                 message = "Congratulations! Your certificate has been generated.";
-//             } else {
-//                 message = "You should try again.";
-//             }
-//         }
-
-//         const updatedLevel = await Level.findByIdAndUpdate(
-//             levelId,
-//             { levelName, className, marks, remarks, date, result, certificateUrl, updatedAt: Date.now() },
-//             { new: true }
-//         );
-
-//         if (!updatedLevel) {
-//             return res.status(404).json({ message: "Level information not found" });
-//         }
-
-//         res.status(200).json({ success: true, message, level: updatedLevel });
-//     } catch (error) {
-//         console.error("Error updating level information:", error);
-//         res.status(500).json({ message: "Server Error", error });
-//     }
-// };
