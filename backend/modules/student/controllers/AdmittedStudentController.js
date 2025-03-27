@@ -243,6 +243,173 @@ exports.updateInterviewResult = async (req, res) => {
 };
 
 
+
+// Create Permission Student API
+exports.createPermissionStudent = async (req, res) => {
+    try {
+      const { 
+        fullName, stream, course, fatherName, motherName, mobileNo, 
+        fatherNo, email, track, address, level, techno, attendancePercentage, 
+        placedInfo, interviewRecord, readinessStatus, permission 
+      } = req.body;
+  
+      // Validate Base64 Image (optional check)
+      if (permission?.reason && !/^data:image\/(png|jpeg|jpg);base64,/.test(permission.reason)) {
+        return res.status(400).json({ message: "Invalid image format. Must be Base64." });
+      }
+  
+      // Check if student already exists
+      const existingStudent = await Student.findOne({ email });
+      if (existingStudent) {
+        return res.status(400).json({ message: "Student already exists" });
+      }
+  
+      // Create new student with permission
+      const newStudent = new Student({
+        fullName,
+        stream,
+        course,
+        fatherName,
+        motherName,
+        mobileNo,
+        fatherNo,
+        email,
+        track,
+        address,
+        level,
+        techno,
+        attendancePercentage,
+        placedInfo,
+        interviewRecord,
+        readinessStatus,
+        permission: permission ? {
+          reason: permission.reason,
+          approvedBy: permission.approvedBy
+        } : undefined
+      });
+  
+      await newStudent.save();
+      res.status(201).json({ message: "Permission Student Created Successfully", student: newStudent });
+  
+    } catch (error) {
+      console.error("Create Permission Student Error:", error);
+      res.status(500).json({ message: "Server Error", error });
+    }
+  };
+
+//All Permission Student list show
+exports.getAllPermissionStudents = async (req, res) => {
+    try {
+    //   Fetch students with permissionGranted = true
+      const students = await Student.find({ permission: true }).select('-password');
+  
+      res.status(200).json({
+        success: true,
+        count: students.length,
+        data: students,
+      });
+    } catch (error) {
+      console.error("Get Permission Students Error:", error);
+      res.status(500).json({ message: "Server Error", error });
+    }
+    // try {
+    //     const students = await Student.find({ "permission.approvedBy": { $exists: true } });
+    
+    //     if (students.length === 0) {
+    //       return res.status(404).json({ message: "No permission students found" });
+    //     }
+    
+    //     res.status(200).json(students);
+    //   } catch (error) {
+    //     res.status(500).json({ message: "Server Error", error });
+    //   }
+  };
+  
+
+// Get All Permission Students API
+exports.getAllPermissionStudents = async (req, res) => {
+    try {
+      // Fetch students where permission is granted (approvedBy exists)
+      const students = await Student.find({ "permission.approvedBy": { $exists: true } }).select('-password');
+  
+      res.status(200).json({
+        success: true,
+        count: students.length,
+        data: students
+      });
+    } catch (error) {
+      console.error("Get Permission Students Error:", error);
+      res.status(500).json({ message: "Server Error", error });
+    }
+  };
+
+
+
+
+  // update Permission Student API
+// exports.updatePermissionStudent = async (req, res) => {
+//     try {
+//       const { studentId, reason, approvedBy } = req.body;
+  
+//       // Validate required fields
+//       if (!studentId || !reason || !approvedBy) {
+//         return res.status(400).json({ message: "All fields are required" });
+//       }
+  
+//       // Find student by ID
+//       const student = await Student.findById(studentId);
+//       if (!student) {
+//         return res.status(404).json({ message: "Student not found" });
+//       }
+  
+//       // Update permission
+//       student.permission = { reason, approvedBy };
+//       await student.save();
+  
+//       res.status(200).json({ message: "Permission granted successfully", student });
+//     } catch (error) {
+//       console.error("Create Permission Error:", error);
+//       res.status(500).json({ message: "Server Error", error });
+//     }
+//   };
+
+
+
+
+
+// Update Permission Student API
+exports.updatePermissionStudent = async (req, res) => {
+    try {
+      const { studentId } = req.params;
+      const { reason, approvedBy } = req.body;
+  
+      // Validate Base64 Image (optional check)
+      if (reason && !/^data:image\/(png|jpeg|jpg);base64,/.test(reason)) {
+        return res.status(400).json({ message: "Invalid image format. Must be Base64." });
+      }
+  
+      // Check if student exists
+      const student = await Student.findById(studentId);
+      if (!student) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+  
+      // Update permission field
+      student.permission = {
+        reason: reason || student.permission?.reason,
+        approvedBy: approvedBy || student.permission?.approvedBy
+      };
+  
+      await student.save();
+      res.status(200).json({ message: "Permission updated successfully", student });
+  
+    } catch (error) {
+      console.error("Update Permission Error:", error);
+      res.status(500).json({ message: "Server Error", error });
+    }
+  };
+
+
 // // Fetch Levels - No Authentication Required
 // exports.getLevels = async (req, res) => {
 //     try {
