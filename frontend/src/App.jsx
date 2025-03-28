@@ -32,26 +32,29 @@
 
 // export default App;
 
- 
 import { BrowserRouter as Router } from "react-router-dom";
 import Sidebar from "./components/common-components/sidebar/Sidebar";
 import Dashboard from "./components/dashboard/Dashboard";
-import StudentDashboard from "./components/student-records/student-record/StudentDashboard";
+// import  { useSelector, useDispatch } from "react-redux";
+// import { increment, decrement, incrementByAmount } from "./features/counterSlice";
 
 function App() {
   return (
-    <Router>
-      <div className="flex bg-gray-100">
-        {/* Sidebar remains fixed */}
-        <Sidebar role="admin" />
-        {/* <StudentDashboard/> */}
+    <>
+      <Router>
+        <div className="flex bg-gray-100">
+          <Sidebar role="admin" />
 
-
-        {/* Dashboard contains routes and changes content */}
-
-        <Dashboard />
-      </div>
-    </Router>
+          <Dashboard />
+        </div>
+      </Router>
+      {/* <div>
+      <h1>Counter: {count}</h1>
+      <button onClick={() => dispatch(increment())}>+</button>
+      <button onClick={() => dispatch(decrement())}>-</button>
+      <button onClick={() => dispatch(incrementByAmount(5))}>+5</button>
+    </div> */}
+    </>
   );
 }
 
