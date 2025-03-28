@@ -7,7 +7,11 @@ const studentController= require("../modules/student/controllers/AdmittedStudent
 const allowedRoles = ["Super Admin", "Faculty", "Admin"];
 // Register Student
 
-router.post("/admitted", verifyToken, checkRole(["Super Admin", "Admin"]), studentController.createStudent);
+router.post("/admitted", verifyToken, checkRole(allowedRoles), studentController.createStudent);
+
+
+// Get All Permission Students
+router.get("/permission-students", verifyToken, checkRole(['Super Admin', 'Admin', 'Faculty']), studentController.getAllPermissionStudents);
 
 
 // // Get All Students
@@ -17,25 +21,41 @@ router.get("/getall", verifyToken, checkRole(allowedRoles), studentController.ge
 router.get("/:id", verifyToken, checkRole(allowedRoles), studentController.getStudentById);
 
 
+
+// Create Permission Student API (Only authorized roles)
+router.post('/create-permission-student', verifyToken, checkRole(['Super Admin', 'Admin', 'Faculty']), studentController.createPermissionStudent);
+
+
+// Update Permission Student API (Only authorized roles)
+router.put('/update-permission-student/:studentId', verifyToken, checkRole(['Super Admin', 'Admin', 'Faculty']), studentController.updatePermissionStudent);
+
+
 // // Update Student Data
-router.put("/update/:id", verifyToken, checkRole(["Super Admin", "Admin","faculty"]), studentController.updateStudent);
+router.put("/update/:id", verifyToken, checkRole(allowedRoles), studentController.updateStudent);
 
 // // Delete Student
-router.delete("/:id", verifyToken, checkRole(["Super Admin","admin"]), studentController.deleteStudent);
+router.delete("/:id", verifyToken, checkRole(allowedRoles), studentController.deleteStudent);
 
 
 // // Faculty, Admin, & Super Admin Can Migrate Data
 // // router.post("/migrate", verifyToken, checkRole(["Faculty", "Admin", "Super Admin"]), studentController.migrateStudents);
 
-router.post("/create/interviews/:id", verifyToken,  checkRole(["Faculty", "Admin", "Super Admin"]),studentController. addInterviewRecord);
+router.post("/create/interviews/:id", verifyToken,  checkRole(allowedRoles),studentController. addInterviewRecord);
 
-router.get("/interviews/:id", verifyToken, checkRole(["Faculty", "Admin", "Super Admin"]),studentController. getStudentInterview );
+router.get("/interviews/:id", verifyToken, checkRole(allowedRoles),studentController. getStudentInterview );
 
 // Update Interview Record
-router.put("/up/interviews/:id", verifyToken, checkRole(["Faculty", "Admin", "Super Admin"]),studentController. updateInterviewResult);
+router.put("/up/interviews/:id", verifyToken, checkRole(allowedRoles),studentController. updateInterviewResult);
 // // // Add Interview Record
 
 // // router.put("/:interviewId",studentController. updateInterview);
-router.post("/create/level/:id",studentController. updateInterviewResult);
+router.post("/create/level/:id", verifyToken, checkRole(allowedRoles),studentController. createLevel);
+
+router.get("/student/level/:levelNo", verifyToken, checkRole(allowedRoles),studentController. getStudentsByLevel );
+
+router.get("/total/student/:levelNo", verifyToken, checkRole(allowedRoles),studentController. getStudentCountBySpecificLevel );
+
+
+router.get("/getlevels/:id", verifyToken, checkRole(allowedRoles),studentController. getStudentLevels );
 
 module.exports = router;

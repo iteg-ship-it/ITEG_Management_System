@@ -3,7 +3,8 @@ const { createStudent_Admission_process,
     getAdmissionDashboard,
     updateStudent,
     deleteStudent,
-    getStudentsByTrack
+    getStudentsByTrack,
+    downloadStudentExcel
 } = require('../modules/student/controllers/StudentAdmitionProcessControllers');
 const StudentAdmissionProcess = require('../modules/student/models/StudentAdmissionProcess');
 const router = express.Router();
@@ -14,5 +15,13 @@ router.get('/admission-dashboard',getAdmissionDashboard);
 router.put('/update/:id', updateStudent);
 router.delete('/delete/:id', deleteStudent);
 router.get('/track/:track', getStudentsByTrack);
+
+const allowedRoles = ["Super Admin", "Faculty", "Admin"];
+
+// Download Student Data as Excel
+router.get("/download/excel",downloadStudentExcel);
+
+
+
 
 module.exports = router;
