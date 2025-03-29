@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation , useNavigate} from "react-router-dom";
+import back from "../../../assets/icons/back-icon.png";
 
 import {
   // FaUserGraduate,
@@ -13,6 +14,7 @@ import {
 
 const StudentEditPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const studentData = location.state?.student || {}; // Default empty object to prevent errors
 
   const [formData, setFormData] = useState({
@@ -43,26 +45,6 @@ const StudentEditPage = () => {
     "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg"
   );
 
-  // const handleFileChange = (event) => {
-  //   const file = event.target.files[0];
-  //   if (file) {
-  //     // const uploadedImage= uploadImageToCloudinary(file)
-  //     setImageSrc(uploadedImage);
-  //     const reader = new FileReader();
-  //     reader.onload = (e) => {
-  //       setImageSrc(e.target.result);
-  //     };
-  //     reader.readAsDataURL(file);
-  //   }
-  // };
-
-  // const handleImageClick = () => {
-  //   fileInputRef.current.click();
-  // };
-
-  // const handleChange = (e) => {
-  //   setFormData({ ...formData, [e.target.name]: e.target.value });
-  // };
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -126,6 +108,12 @@ const StudentEditPage = () => {
 
   return (
     <div className="w-[85vw] px-8 py-5 bg-gray-100 min-h-screen">
+        <img
+                className="w-5 cursor-pointer"
+                src={back}
+                alt="back"
+                onClick={() => navigate(-1)}
+              />
       {/* <button className="absolute top-4 right-4 border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white px-6 py-2 rounded-lg"> */}
       <button
         type="button"

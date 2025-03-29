@@ -14,7 +14,7 @@ const menuItems = [
     icon: admissionIcon,
     roles: ["admin"],
     subMenu: [
-      { name: "Dashboard", path: "/dashboard" },
+      { name: "Dashboard", path: "/" },
       { name: "Admission Process", path: "/admission" },
     ],
   },
@@ -23,7 +23,7 @@ const menuItems = [
     icon: studentRecordIcon,
     roles: ["admin", "teacher"],
     subMenu: [
-      { name: "Student Profiles", path: "/student-profile" },
+      { name: "Student Profiles", path: "/student-dashboard" },
       { name: "Permission Students", path: "/permission-students" },
       { name: "Attendance info", path: "/attendance-info" },
       { name: "Level Info", path: "/level-info" },
@@ -45,14 +45,14 @@ const menuItems = [
 
 const Sidebar = ({ role }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [openMenus, setOpenMenus] = useState([]); 
+  const [openMenus, setOpenMenus] = useState([0]);
   const location = useLocation();
 
   const toggleMenu = (index) => {
     if (openMenus.includes(index)) {
       setOpenMenus(openMenus.filter((item) => item !== index));
     } else {
-     setOpenMenus([...openMenus, index]);
+      setOpenMenus([...openMenus, index]);
     }
   };
 
@@ -77,29 +77,42 @@ const Sidebar = ({ role }) => {
                     <button
                       onClick={() => toggleMenu(index)}
                       className={`flex items-center justify-between p-2 w-full font-bold text-gray-700 bg-gray-100 rounded-md border-l-4 ${
-                        isActive ? "bg-gray-300 border-orange-500" : "bg-white border-orange-500"
+                        isActive
+                          ? "bg-gray-300 border-orange-500"
+                          : "bg-white border-white"
                       }`}
                     >
                       <div className="flex items-center">
-                        <img src={item.icon} alt="icon" className="w-5 h-5 mr-3" />
+                        <img
+                          src={item.icon}
+                          alt="icon"
+                          className="w-5 h-5 mr-3"
+                        />
                         {item.name}
                       </div>
                       <img src={isActive ? up : down} alt="toggle icon" />
                     </button>
                     {isActive && (
                       <ul className="ml-4 mt-2">
-                        {item.subMenu.map((subItem, subIndex) => (
-                          <li key={subIndex} className="p-2">
-                            <Link
-                              to={subItem.path}
-                              className={`text-gray-700 hover:text-orange-400 ${
-                                location.pathname === subItem.path ? "font-bold text-orange-500" : ""
-                              }`}
-                            >
-                              {subItem.name}
-                            </Link>
-                          </li>
-                        ))}
+                        {item.subMenu.map((subItem, subIndex) => {
+                          const isActiveLink =
+                            location.pathname === subItem.path; // Check active state
+
+                          return (
+                            <li key={subIndex} className="p-2">
+                              <Link
+                                to={subItem.path}
+                                className={`text-gray-700 hover:text-orange-400 ${
+                                  isActiveLink
+                                    ? "font-bold text-orange-500"
+                                    : ""
+                                }`}
+                              >
+                                {subItem.name}
+                              </Link>
+                            </li>
+                          );
+                        })}
                       </ul>
                     )}
                   </li>

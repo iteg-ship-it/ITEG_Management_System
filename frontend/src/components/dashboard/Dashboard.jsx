@@ -1,21 +1,23 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import AdmissionDashboard from "../admitionProcess/admition-dashboard/AdmissionDashboard";
-import StudentRecord from "../student-records/student-dashboard/StudentRecord";
+import AdmissionProcess from "../admitionProcess/admition-process-page/AdmissionProcess";
+// import StudentRecord from "../student-records/student-dashboard/StudentRecord";
 import StudentProfile from "../student-records/studentProfile/StudentProfile";
 import PlacementRecords from "../placement/placement-records/PlacementRecords";
-import AdminDashboard from "./../admin-dashboard/AdminDashboard";
+import AdmissionDashboard from "../admitionProcess/admission-dashboard/AdmissionDashboard";
 import AdmitionRecords from "../admitionProcess/admition-records/AdmitionRecords";
 import StudentEditPage from "../student-records/student-edit-page/StudentEditPage";
+import StudentDashboard from "../student-records/student-dashboard/StudentDashboard";
 
 const Dashboard = () => {
   return (
     <>
       <Routes>
-        <Route path="/" element={<AdminDashboard />} />
-        <Route path="/admission" element={<AdmissionDashboard />} />
+        <Route path="/" element={<AdmissionDashboard />} />
+        <Route path="/admission" element={<AdmissionProcess />} />
         <Route path="/admition-record" element={<AdmitionRecords />} />
-        <Route path="/student-record" element={<StudentRecord />} />
+        <Route path="/student-dashboard" element={<StudentDashboard />} />
+        {/* <Route path="/student-record" element={<StudentRecord />} /> */}
         <Route path="/student-edit-profile" element={<StudentEditPage />} />
         <Route path="/student-profile" element={<StudentProfile />} />
         <Route path="/placement" element={<PlacementRecords />} />

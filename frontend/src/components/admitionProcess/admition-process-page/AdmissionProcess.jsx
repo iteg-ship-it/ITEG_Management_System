@@ -58,7 +58,7 @@ const data = [
   },
 ];
 
-const AdmissionDashboard = () => {
+const AdmissionProcess = () => {
   const navigate = useNavigate();
 
   const handleLocationClick = (location) => {
@@ -167,4 +167,4 @@ const AdmissionDashboard = () => {
   );
 };
 
-export default AdmissionDashboard;
+export default AdmissionProcess;
