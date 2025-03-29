@@ -30,11 +30,8 @@ router.post('/register', registerSuperAdmin);
 // Super Admin Login
 router.post('/login', loginSuperAdmin);
 
-// Get Super Admin Profile (Protected)
-// router.get("/superadmin", verifyToken, checkRole(["superadmin"]), getSuperAdmin);
-//  router.get('/profile', getAllSuperAdmins);
 
-// router.get("/superadmin/:id", verifyToken, checkRole(["Super Admin"]), getSuperAdminById);
+router.get("/superAdminList",verifyToken, checkRole(["Super Admin"]),getAllSuperAdmins)
+
 router.get("/:id", verifyToken, checkRole(["Super Admin"]), getSuperAdminById);
 module.exports = router;
-
