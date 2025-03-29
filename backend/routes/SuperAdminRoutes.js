@@ -1,28 +1,14 @@
 const express = require('express');
-// const { createSuperAdmin } = require('../modules/SuperAdmin/controllers/superAdminController');
+const { 
+  registerSuperAdmin, 
+  loginSuperAdmin, 
+  getAllSuperAdmins, 
+  getSuperAdminById 
+} = require('../modules/SuperAdmin/controllers/SuperAdminController');
 
 const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
 
-
-
-// router.post('/register', createSuperAdmin);
-
-// module.exports = router;
-
-// const express = require('express');
-const {
-registerSuperAdmin,
-  loginSuperAdmin,
-  // getSuperAdmin,
-  getAllSuperAdmins,
-  getSuperAdminById
-} = require('../modules/SuperAdmin/controllers/SuperAdminController');
-
-
 const router = express.Router();
-// const authMiddleware = require('../middlewares/authMiddleware');
-
-// const router = express.Router();
 
 // Super Admin Registration
 router.post('/register', registerSuperAdmin);
@@ -30,11 +16,10 @@ router.post('/register', registerSuperAdmin);
 // Super Admin Login
 router.post('/login', loginSuperAdmin);
 
-// Get Super Admin Profile (Protected)
-// router.get("/superadmin", verifyToken, checkRole(["superadmin"]), getSuperAdmin);
-//  router.get('/profile', getAllSuperAdmins);
+// ✅ Route to get all Super Admins
+router.get("/", verifyToken, checkRole(["Super Admin"]), getAllSuperAdmins);
 
-// router.get("/superadmin/:id", verifyToken, checkRole(["Super Admin"]), getSuperAdminById);
+// ✅ Route to get a Super Admin by ID
 router.get("/:id", verifyToken, checkRole(["Super Admin"]), getSuperAdminById);
-module.exports = router;
 
+module.exports = router;
