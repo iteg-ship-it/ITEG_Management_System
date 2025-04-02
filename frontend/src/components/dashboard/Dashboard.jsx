@@ -1,13 +1,13 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import AdmissionProcess from "../admitionProcess/admition-process-page/AdmissionProcess";
-// import StudentRecord from "../student-records/student-dashboard/StudentRecord";
 import StudentProfile from "../student-records/studentProfile/StudentProfile";
 import PlacementRecords from "../placement/placement-records/PlacementRecords";
 import AdmissionDashboard from "../admitionProcess/admission-dashboard/AdmissionDashboard";
 import AdmitionRecords from "../admitionProcess/admition-records/AdmitionRecords";
 import StudentEditPage from "../student-records/student-edit-page/StudentEditPage";
 import StudentDashboard from "../student-records/student-dashboard/StudentDashboard";
+import StudentDetailTable from "../student-records/student-detail-table/StudentDetailTable";
 
 const Dashboard = () => {
   return (
@@ -17,7 +17,7 @@ const Dashboard = () => {
         <Route path="/admission" element={<AdmissionProcess />} />
         <Route path="/admition-record" element={<AdmitionRecords />} />
         <Route path="/student-dashboard" element={<StudentDashboard />} />
-        {/* <Route path="/student-record" element={<StudentRecord />} /> */}
+        <Route path="/student-detail-table" element={<StudentDetailTable />} />
         <Route path="/student-edit-profile" element={<StudentEditPage />} />
         <Route path="/student-profile" element={<StudentProfile />} />
         <Route path="/placement" element={<PlacementRecords />} />
