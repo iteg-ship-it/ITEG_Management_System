@@ -31,7 +31,7 @@ router.post('/register', registerSuperAdmin);
 router.post('/login', loginSuperAdmin);
 
 // Get Super Admin Profile (Protected)
-// router.get("/superadmin", verifyToken, checkRole(["superadmin"]), getSuperAdmin);
+router.get("/superadmin", verifyToken, checkRole(["superadmin"]),getAllSuperAdmins);
 //  router.get('/profile', getAllSuperAdmins);
 
 // router.get("/superadmin/:id", verifyToken, checkRole(["Super Admin"]), getSuperAdminById);

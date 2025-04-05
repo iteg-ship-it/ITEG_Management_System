@@ -81,24 +81,6 @@ exports.getAllSuperAdmins = async (req, res) => {
 
 
 
-
-
-
-
-// // Get Single Admin by ID
-// exports.getSuperAdminById = async (req, res) => {
-//   try {
-//     const Superadmin = await SuperAdmin.findById(req.params.id).select("-password");
-//     if (!Superadmin) return res.status(404).json({ message: "Admin not found" });
-//     res.status(200).json(Superadmin);
-//   } catch (error) {
-//     res.status(500).json({ message: "Server Error", error });
-//   }
-// };
-
-
-// const SuperAdmin = require("../models/SuperAdmin"); // Adjust path as needed
-
 // Get Single SuperAdmin by ID
 exports.getSuperAdminById = async (req, res) => {
   try {
