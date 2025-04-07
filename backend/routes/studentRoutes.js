@@ -23,7 +23,7 @@ router.get("/:id", verifyToken, checkRole(allowedRoles), studentController.getSt
 
 
 // Create Permission Student API (Only authorized roles)
-router.post('/create-permission-student', verifyToken, checkRole(['Super Admin', 'Admin', 'Faculty']), studentController.createPermissionStudent);
+router.post('/create-permission-student/:id', verifyToken, checkRole(['Super Admin', 'Admin', 'Faculty']), studentController.addPermissionToStudent);
 
 
 // Update Permission Student API (Only authorized roles)
