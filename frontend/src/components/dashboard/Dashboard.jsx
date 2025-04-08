@@ -13,6 +13,7 @@ const Dashboard = () => {
   return (
     <>
       <Routes>
+        
         <Route path="/" element={<AdmissionDashboard />} />
         <Route path="/admission" element={<AdmissionProcess />} />
         <Route path="/admition-record" element={<AdmitionRecords />} />
