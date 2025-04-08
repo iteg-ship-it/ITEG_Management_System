@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+
 const levelSchema = new mongoose.Schema({
   levelNo: { type: String, required: true },
   noOfAttempts: { type: Number, default: 0 },
@@ -41,6 +42,7 @@ const studentSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   track: { type: String, required: true },
   address: { type: String, required: true },
+  year: { type: String, required: true },
   level: [levelSchema],
   techno: { type: String },
   attendancePercentage: { type: Number, min: 0, max: 100 },

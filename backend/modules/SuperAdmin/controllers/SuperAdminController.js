@@ -9,8 +9,8 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 
-const generateToken = (admin) => {
-  return jwt.sign({ id: admin._id, role: admin.positionRole }, process.env.JWT_SECRET, { expiresIn: '1h' });
+const generateToken = (Superadmin) => {
+  return jwt.sign({ id: Superadmin._id, role: Superadmin.positionRole }, process.env.JWT_SECRET, { expiresIn: '1h' });
 };
 
 // Register Super Admin
@@ -77,6 +77,9 @@ exports.getAllSuperAdmins = async (req, res) => {
     res.status(500).json({ message: "Server Error", error });
   }
 };
+
+
+
 
 // Get Single SuperAdmin by ID
 exports.getSuperAdminById = async (req, res) => {

@@ -1,5 +1,6 @@
 const Faculty = require('../models/facultymodels');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 // Get All Faculties
 exports.getAllFaculties = async (req, res) => {
@@ -86,3 +87,53 @@ exports.deleteFaculty = async (req, res) => {
     res.status(500).json({ message: 'Server Error', error });
   }
 };
+
+
+exports.createFacultyLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Check if faculty exists
+    const faculty = await Faculty.findOne({ email });
+    if (!faculty) {
+      return res.status(401).json({ message: 'Invalid credentials (email not found)' });
+    }
+
+    // Compare password
+    const isMatch = await bcrypt.compare(password, faculty.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials (wrong password)' });
+    }
+
+    // Create token
+    const token = jwt.sign(
+      {
+        id: faculty._id,
+        role: faculty.role,
+        positionRole: faculty.positionRole,
+        email: faculty.email
+      },
+      process.env.JWT_SECRET, // keep your secret in .env
+      { expiresIn: '1d' }
+    );
+
+    // Success response
+    res.status(200).json({
+      message: 'Login successful',
+      token,
+      faculty: {
+        id: faculty._id,
+        name: faculty.name,
+        email: faculty.email,
+        role: faculty.role,
+        department: faculty.department,
+        positionRole: faculty.positionRole
+      }
+    });
+
+  } catch (error) {
+    console.error("Login Error:", error);
+    res.status(500).json({ message: 'Server Error', error });
+  }
+};
+
