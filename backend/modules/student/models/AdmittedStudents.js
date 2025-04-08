@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+
 const levelSchema = new mongoose.Schema({
   levelNo: { type: String, required: true },
   noOfAttempts: { type: Number, default: 0 },

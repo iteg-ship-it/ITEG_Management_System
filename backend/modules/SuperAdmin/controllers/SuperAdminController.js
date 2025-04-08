@@ -9,8 +9,8 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 
-const generateToken = (admin) => {
-  return jwt.sign({ id: admin._id, role: admin.positionRole }, process.env.JWT_SECRET, { expiresIn: '1h' });
+const generateToken = (Superadmin) => {
+  return jwt.sign({ id: Superadmin._id, role: Superadmin.positionRole }, process.env.JWT_SECRET, { expiresIn: '1h' });
 };
 
 // Register Super Admin
