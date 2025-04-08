@@ -1,10 +1,10 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import AdmissionProcess from "../admitionProcess/admition-process-page/AdmissionProcess";
+import AdmissionProcess from "../admition-process/admition-process-page/AdmissionProcess";
 import StudentProfile from "../student-records/studentProfile/StudentProfile";
 import PlacementRecords from "../placement/placement-records/PlacementRecords";
-import AdmissionDashboard from "../admitionProcess/admission-dashboard/AdmissionDashboard";
-import AdmitionRecords from "../admitionProcess/admition-records/AdmitionRecords";
+import AdmissionDashboard from "../admition-process/admission-dashboard/AdmissionDashboard";
+import AdmitionRecords from "../admition-process/admition-records/AdmitionRecords";
 import StudentEditPage from "../student-records/student-edit-page/StudentEditPage";
 import StudentDashboard from "../student-records/student-dashboard/StudentDashboard";
 import StudentDetailTable from "../student-records/student-detail-table/StudentDetailTable";
@@ -21,8 +21,9 @@ const Dashboard = () => {
         <Route path="/student-dashboard" element={<StudentDashboard />} />
         <Route path="/student-detail-table" element={<StudentDetailTable />} />
         <Route path="/student-edit-profile" element={<StudentEditPage />} />
-        <Route path="/student-profile" element={<StudentProfile />} />
+        {/* <Route path="/student-profile" element={<StudentProfile />} /> */}
         <Route path="/placement" element={<PlacementRecords />} />
+        <Route path="/student-profile/:studentId" element={<StudentProfile />} /> {/* Define the new route with a parameter */}
         <Route path="/login" element={<Login />} />
         <Route path="/registration" element={<SignupPage />} />
       </Routes>
