@@ -60,7 +60,7 @@ const Sidebar = ({ role }) => {
   const handleLogout = () => {
     localStorage.removeItem("isAuthenticated");
     localStorage.removeItem("user");
-    navigate("/login");
+    navigate("/login"); // Assuming "/login" is your login route
   };
 
   return (
@@ -134,7 +134,7 @@ const Sidebar = ({ role }) => {
           <div className="mt-4">
             <button
               onClick={handleLogout}
-              className="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition"
+              className="w-full bg-orange-500 text-white py-2 rounded-md hover:bg-orange-600 transition"
             >
               Logout
             </button>
