@@ -33,6 +33,7 @@ app.use("/api/students", studentRoutes);
 
 
 
+// app.use("/api/", studentAdmission);
 app.use("/api/studentAdmission",student_admissionProcessRoutes);
 
 // expressOasGenerator.init(app, {});
