@@ -8,18 +8,20 @@ const {
 
 const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
 
+
+const SuperAdminController= require("../modules/SuperAdmin/controllers/SuperAdminController");
+
+
 const router = express.Router();
 
 // Super Admin Registration
-router.post('/register', registerSuperAdmin);
+router.post('/register',SuperAdminController.registerSuperAdmin);
 
 // Super Admin Login
-router.post('/login', loginSuperAdmin);
+router.post('/login', SuperAdminController.loginSuperAdmin);
 
-// ✅ Route to get all Super Admins
-router.get("/", verifyToken, checkRole(["Super Admin"]), getAllSuperAdmins);
 
-// ✅ Route to get a Super Admin by ID
-router.get("/:id", verifyToken, checkRole(["Super Admin"]), getSuperAdminById);
+router.get("/superAdminList",verifyToken, checkRole(['Super Admin']),SuperAdminController.getAllSuperAdmins)
 
+router.get("/:id", verifyToken, checkRole(["Super Admin"]), SuperAdminController.getSuperAdminById);
 module.exports = router;

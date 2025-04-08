@@ -1,8 +1,17 @@
 const Admin = require("../models/Adminmodels");
-const bcrypt = require("bcryptjs");
+// const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken"); // Import JWT
+const bcrypt = require('bcrypt');
 
 console.log(__dirname);
+
+
+require('dotenv').config();
+
+
+const generateToken = (admin) => {
+  return jwt.sign({ id: admin._id, role: admin.positionRole }, process.env.JWT_SECRET, { expiresIn: '1h' });
+};
 
 // Get All Admins
 exports.getAllAdmins = async (req, res) => {
@@ -28,7 +37,7 @@ exports.getAdminById = async (req, res) => {
 // Create New Adminconst jwt = require("jsonwebtoken"); // Import JWT
 exports.createAdmin = async (req, res) => {
   try {
-    const { name, email, password, role, aadharCard, department } = req.body;
+    const { name, email, password, role, adharCard, department } = req.body;
 
     // Check if admin already exists
     const existingAdmin = await Admin.findOne({ email });
@@ -46,7 +55,7 @@ exports.createAdmin = async (req, res) => {
       email,
       password: hashedPassword,
       role,
-      aadharCard,
+      adharCard,
       department,
     });
 
@@ -62,6 +71,34 @@ exports.createAdmin = async (req, res) => {
     res.status(500).json({ message: "Server Error", error });
   }
 };
+
+
+exports.loginAdmin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const admin = await Admin.findOne({ email });
+    if (!admin) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    // Check password
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    // Generate JWT token
+    const token = generateToken(admin);
+
+    res.json({ message: 'Login successful', token });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+
+
 // Update Admin
 exports.updateAdmin = async (req, res) => {
   try {
