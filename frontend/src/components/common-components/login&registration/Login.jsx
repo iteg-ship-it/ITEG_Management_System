@@ -2,6 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
+import logo from "../../../assets/images/logo-ssism.png";
+import googleLogo from "../../../assets/images/Google.png";
+import linkedinLogo from "../../../assets/images/linkedin.png";
+import facebookLogo from "../../../assets/images/FB.png";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -56,9 +60,9 @@ const Login = () => {
       >
         <div className="flex flex-col items-center">
           <img
-            src="./src/assets/images/logo.png"
+            src={logo} // Use the imported variable
             alt="SSISM Logo"
-            className="w-16 h-16 mb-4"
+            className="h-20"
           />
           <h2 className="text-2xl font-bold">Login</h2>
         </div>
@@ -127,31 +131,19 @@ const Login = () => {
             type="button"
             className="p-2 border rounded-full hover:bg-gray-200"
           >
-            <img
-              src="./src/assets/images/Google.png"
-              alt="Google"
-              className="w-6 h-6"
-            />
+            <img src={googleLogo} alt="Google" className="h-10" />
           </button>
           <button
             type="button"
             className="p-2 border rounded-full hover:bg-gray-200"
           >
-            <img
-              src="./src/assets/images/linkedin.png"
-              alt="LinkedIn"
-              className="w-6 h-6"
-            />
+            <img src={linkedinLogo} alt="LinkedIn" className="  h-10" />
           </button>
           <button
             type="button"
             className="p-2 border rounded-full hover:bg-gray-300"
           >
-            <img
-              src="./src/assets/images/FB.png"
-              alt="Facebook"
-              className="w-6 h-6"
-            />
+            <img src={facebookLogo} alt="Facebook" className="  h-10" />
           </button>
         </div>
 
@@ -165,9 +157,6 @@ const Login = () => {
 };
 
 export default Login;
-
-
-
 
 // // import React from "react";
 
@@ -183,7 +172,7 @@ export default Login;
 //           />
 //           <h2 className="text-2xl font-bold">Login</h2>
 //         </div>
-        
+
 //         <div className="mt-6">
 //           <input
 //             type="email"

@@ -8,12 +8,13 @@ import AdmitionRecords from "../admitionProcess/admition-records/AdmitionRecords
 import StudentEditPage from "../student-records/student-edit-page/StudentEditPage";
 import StudentDashboard from "../student-records/student-dashboard/StudentDashboard";
 import StudentDetailTable from "../student-records/student-detail-table/StudentDetailTable";
+import Login from "../common-components/login&registration/Login";
+import SignupPage from "./../common-components/signup/SignupPage";
 
 const Dashboard = () => {
   return (
     <>
       <Routes>
-        
         <Route path="/" element={<AdmissionDashboard />} />
         <Route path="/admission" element={<AdmissionProcess />} />
         <Route path="/admition-record" element={<AdmitionRecords />} />
@@ -22,6 +23,8 @@ const Dashboard = () => {
         <Route path="/student-edit-profile" element={<StudentEditPage />} />
         <Route path="/student-profile" element={<StudentProfile />} />
         <Route path="/placement" element={<PlacementRecords />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/registration" element={<SignupPage />} />
       </Routes>
     </>
   );
