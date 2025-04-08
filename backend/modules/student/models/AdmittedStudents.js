@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 
+
 const levelSchema = new mongoose.Schema({
-  levelNo: { type: Number, required: true },
+  levelNo: { type: String, required: true },
   noOfAttempts: { type: Number, default: 0 },
   marks: { type: Number, default: 0 },
   remark: { type: String },
@@ -17,7 +18,8 @@ const placedInfoSchema = new mongoose.Schema({
 
 const permissionSchema = new mongoose.Schema({
   reason: { type: String },
-  approvedBy: { type: String }
+  approvedBy: { type: String, enum: ['Super Admin', 'Admin', 'Faculty'], 
+    required: true  }
 });
 
 const interviewRecordSchema = new mongoose.Schema({
@@ -40,11 +42,13 @@ const studentSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   track: { type: String, required: true },
   address: { type: String, required: true },
+  year: { type: String, required: true },
   level: [levelSchema],
   techno: { type: String },
   attendancePercentage: { type: Number, min: 0, max: 100 },
   placedInfo: placedInfoSchema,
   permission: permissionSchema,
+  permission: { type: Boolean, default: false },
   interviewRecord: [interviewRecordSchema],
   readinessStatus: { type: String, enum: ['Ready', 'Not Ready'], default: 'Not Ready' }
 });
