@@ -14,7 +14,13 @@ const superAdminRoutes = require("./routes/SuperAdminRoutes")
 //expres object 
 const app = express();
 // cors for frontend and backend communication
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000', // or '*' to allow all
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true // only if you're using cookies or sessions
+}));
+
+app.options('*', cors());
 
 // Middleware
 app.use(bodyParser.json());
