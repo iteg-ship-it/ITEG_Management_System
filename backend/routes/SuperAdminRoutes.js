@@ -16,7 +16,7 @@ router.post('/register',SuperAdminController.registerSuperAdmin);
 router.post('/login', SuperAdminController.loginSuperAdmin);
 
 // Get Super Admin Profile (Protected)
-router.get("/superadmin", verifyToken, checkRole(["superadmin"]),SuperAdminController.getAllSuperAdmins);
+router.get("/superadmin", verifyToken, checkRole(["Super Admin"]),SuperAdminController.getAllSuperAdmins);
 
 router.get("/:id", verifyToken, checkRole(["Super Admin"]), SuperAdminController.getSuperAdminById);
 module.exports = router;
