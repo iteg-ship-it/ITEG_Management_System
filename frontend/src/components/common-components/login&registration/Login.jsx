@@ -41,10 +41,10 @@ const Login = () => {
         const data = await response.json();
         const token = data.token;
 
-        // Save token (for this example, using localStorage)
+         
         localStorage.setItem("token", token);
 
-        // Redirect to dashboard/home
+         
         navigate("/");
       } catch (error) {
         setLoginError("Invalid email or password.");
