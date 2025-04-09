@@ -10,10 +10,10 @@ const student_admissionProcessRoutes = require("./routes/student_admissionProces
 
 // const interviewRoutes = require("./routes/interviewRoutes");
 // const levelRoutes = require("./routes/levelRoutes");
-const auth = require("./routes/auth");
 const AdminRoutes = require("./routes/AdminRoutes");
 const superAdminRoutes = require("./routes/SuperAdminRoutes");
 const facultyRoutes= require("./routes/facultyRoutes");
+// const studentAdmission = require("./modules/Admin/routes/studentAdmissionRoutes"); // Correct path set karo
 const app = express();
 
 // Middleware
@@ -30,7 +30,7 @@ app.use("/api/superAdmin", superAdminRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/protected", protectedRoutes);
 app.use("/api/students", studentRoutes);
-app.use("/api/", studentAdmission);
+// app.use("/api/", studentAdmission);
 app.use("/api/studentAdmission",student_admissionProcessRoutes);
 // MongoDB Connection
 mongoose
