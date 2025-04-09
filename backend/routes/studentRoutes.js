@@ -6,7 +6,7 @@ const studentController= require("../modules/student/controllers/AdmittedStudent
 
 const allowedRoles = ["Super Admin", "Faculty", "Admin"];
 // Register Student
-
+//Swagger
 router.post("/admitted", verifyToken, checkRole(allowedRoles), studentController.createStudent);
 
 
@@ -23,7 +23,7 @@ router.get("/:id", verifyToken, checkRole(allowedRoles), studentController.getSt
 
 
 // Create Permission Student API (Only authorized roles)
-router.post('/create-permission-student', verifyToken, checkRole(['Super Admin', 'Admin', 'Faculty']), studentController.createPermissionStudent);
+router.post('/create-permission-student/:id', verifyToken, checkRole(['Super Admin', 'Admin', 'Faculty']), studentController.createPermissionStudent);
 
 
 // Update Permission Student API (Only authorized roles)
@@ -31,24 +31,22 @@ router.put('/update-permission-student/:studentId', verifyToken, checkRole(['Sup
 
 
 // // Update Student Data
+//Swagger
 router.put("/update/:id", verifyToken, checkRole(allowedRoles), studentController.updateStudent);
 
 // // Delete Student
 router.delete("/:id", verifyToken, checkRole(allowedRoles), studentController.deleteStudent);
-
-
-// // Faculty, Admin, & Super Admin Can Migrate Data
-// // router.post("/migrate", verifyToken, checkRole(["Faculty", "Admin", "Super Admin"]), studentController.migrateStudents);
-
+//swagger
 router.post("/create/interviews/:id", verifyToken,  checkRole(allowedRoles),studentController. addInterviewRecord);
 
 router.get("/interviews/:id", verifyToken, checkRole(allowedRoles),studentController. getStudentInterview );
-
+//Swagger
 // Update Interview Record
-router.put("/up/interviews/:id", verifyToken, checkRole(allowedRoles),studentController. updateInterviewResult);
+router.patch("/up/interviews/:id", verifyToken, checkRole(allowedRoles),studentController. updateInterviewResult);
 // // // Add Interview Record
 
 // // router.put("/:interviewId",studentController. updateInterview);
+// Swagger
 router.post("/create/level/:id", verifyToken, checkRole(allowedRoles),studentController. createLevel);
 
 router.get("/student/level/:levelNo", verifyToken, checkRole(allowedRoles),studentController. getStudentsByLevel );

@@ -34,21 +34,53 @@ exports.getStudentById = async (req, res) => {
 
 
 // Update student by ID
+// exports.updateStudent = async (req, res) => {
+//     try {
+//         const { id } = req.params;
+//         const updatedStudent = await Student.findByIdAndUpdate(id, req.body, { new: true });
+
+//         if (!updatedStudent) {
+//             return res.status(404).json({ message: "Student not found" });
+//         }
+
+//         res.status(200).json(updatedStudent);
+//     } catch (error) {
+//         console.error("Update Error:", error);
+//         res.status(500).json({ message: "Server error while updating student" });
+//     }
+// };
+
 exports.updateStudent = async (req, res) => {
     try {
         const { id } = req.params;
-        const updatedStudent = await Student.findByIdAndUpdate(id, req.body, { new: true });
 
-        if (!updatedStudent) {
-            return res.status(404).json({ message: "Student not found" });
+        // Validate MongoDB ObjectId
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, message: "Invalid student ID" });
         }
 
-        res.status(200).json(updatedStudent);
+        // Ensure `_id` is not being updated
+        if (req.body._id) {
+            delete req.body._id;
+        }
+
+        // Find and update the student
+        const updatedStudent = await Student.findByIdAndUpdate(id, req.body, { 
+            new: true, 
+            runValidators: true // Ensures validation rules are checked
+        });
+
+        if (!updatedStudent) {
+            return res.status(404).json({ success: false, message: "Student not found" });
+        }
+
+        res.status(200).json({ success: true, data: updatedStudent });
     } catch (error) {
         console.error("Update Error:", error);
-        res.status(500).json({ message: "Server error while updating student" });
+        res.status(500).json({ success: false, message: "Server error while updating student", error: error.message });
     }
 };
+
 
 
 exports.deleteStudent = async (req, res) => {
