@@ -15,6 +15,7 @@ const Dashboard = () => {
   return (
     <>
       <Routes>
+        +
         <Route path="/" element={<AdmissionDashboard />} />
         <Route path="/admission" element={<AdmissionProcess />} />
         <Route path="/admition-record" element={<AdmitionRecords />} />
@@ -23,9 +24,13 @@ const Dashboard = () => {
         <Route path="/student-edit-profile" element={<StudentEditPage />} />
         {/* <Route path="/student-profile" element={<StudentProfile />} /> */}
         <Route path="/placement" element={<PlacementRecords />} />
-        <Route path="/student-profile/:studentId" element={<StudentProfile />} /> {/* Define the new route with a parameter */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/registration" element={<SignupPage />} />
+        <Route
+          path="/student-profile/:studentId"
+          element={<StudentProfile />}
+        />{" "}
+        {/* Define the new route with a parameter */}
+        {/* <Route path="/login" element={<LoginPage />} />
+        <Route path="/registration" element={<SignupPage />} /> */}
       </Routes>
     </>
   );

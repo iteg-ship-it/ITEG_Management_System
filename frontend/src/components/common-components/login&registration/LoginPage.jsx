@@ -3,7 +3,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
 import { useLoginMutation } from "../../../redux/auth/authApiSlice"; // adjust the path as needed
-
+import { Link } from "react-router-dom";
 import logo from "../../../assets/images/logo-ssism.png";
 import googleLogo from "../../../assets/images/Google.png";
 import linkedinLogo from "../../../assets/images/linkedin.png";
@@ -33,7 +33,7 @@ const LoginPage = () => {
         console.log("Login Success:", response);
 
         // Example: store token in localStorage if returned
-        // localStorage.setItem("token", response.token);
+        localStorage.setItem("token", response.token);
 
         navigate("/"); // redirect to dashboard/home
       } catch (error) {
@@ -86,7 +86,9 @@ const LoginPage = () => {
             }`}
           />
           {formik.touched.password && formik.errors.password && (
-            <p className="text-red-500 text-sm mb-2">{formik.errors.password}</p>
+            <p className="text-red-500 text-sm mb-2">
+              {formik.errors.password}
+            </p>
           )}
 
           {loginError && (
@@ -126,7 +128,12 @@ const LoginPage = () => {
 
         <p className="text-center mt-4 text-gray-600">
           Don't have an account?{" "}
-          <span className="text-orange-500 cursor-pointer">Sign Up</span>
+          <Link
+            to="/signup"
+            className="text-orange-500 cursor-pointer hover:text-orange-800 transition"
+          >
+            Sign Up
+          </Link>
         </p>
       </form>
     </div>
@@ -134,9 +141,6 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-
-
-
 
 // import React, { useEffect, useState } from "react";
 // import { useFormik } from "formik";

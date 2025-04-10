@@ -1,29 +1,55 @@
-import { BrowserRouter as Router } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import Sidebar from "./components/common-components/sidebar/Sidebar";
 import Dashboard from "./components/dashboard/Dashboard";
-// import Login from "./components/common-components/login&registration/Login"
-// import  { useSelector, useDispatch } from "react-redux";
-// import { increment, decrement, incrementByAmount } from "./features/counterSlice";
+import LoginPage from "./components/common-components/login&registration/LoginPage";
 
 function App() {
+  const token = localStorage.getItem("token");
+
   return (
-    <>
-      <Router>
-        {/* <Login /> */}
+    <Router>
+      {token ? (
         <div className="flex bg-gray-100">
           <Sidebar role="admin" />
-
-          <Dashboard />
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
         </div>
-      </Router>
-      {/* <div>
-      <h1>Counter: {count}</h1>
-      <button onClick={() => dispatch(increment())}>+</button>
-      <button onClick={() => dispatch(decrement())}>-</button>
-      <button onClick={() => dispatch(incrementByAmount(5))}>+5</button>
-    </div> */}
-    </>
+      ) : (
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="*" element={<Navigate to="/login" />} />
+        </Routes>
+      )}
+    </Router>
   );
 }
 
 export default App;
+
+// import { BrowserRouter as Router } from "react-router-dom";
+// import Sidebar from "./components/common-components/sidebar/Sidebar";
+// import Dashboard from "./components/dashboard/Dashboard";
+
+// function App() {
+//   return (
+//     <>
+//       <Router>
+//         {/* <Login /> */}
+//         <div className="flex bg-gray-100">
+//           <Sidebar role="admin" />
+
+//           <Dashboard />
+//         </div>
+//       </Router>
+//     </>
+//   );
+// }
+
+// export default App;
