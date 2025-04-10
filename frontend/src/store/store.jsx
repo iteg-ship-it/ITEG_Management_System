@@ -1,8 +1,13 @@
-import { configureStore } from "@reduxjs/toolkit";
-import counterReducer from "../features/counterSlice"; // Example reducer
+// store.js
+import { configureStore } from "@reduxjs/toolkit"; // ✅ Correct import
+import { apiPro } from "../services/apiSlice"; // ✅ Adjust path as needed
 
-export const store = configureStore({
+const store = configureStore({
   reducer: {
-    counter: counterReducer,
+    [apiPro.reducerPath]: apiPro.reducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(apiPro.middleware),
 });
+
+export default store;

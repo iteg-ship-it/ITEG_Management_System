@@ -1,5 +1,5 @@
 import React from "react";
-import logo from "../../assets/images/logo.png"; // Make sure path is correct
+import logo from "../../../assets/images/logo.png"; // Make sure path is correct
 
 const SignupPage = () => {
   return (
