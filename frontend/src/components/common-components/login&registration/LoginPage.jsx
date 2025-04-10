@@ -1,18 +1,18 @@
-// pages/Login.jsx
 import React, { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
-import { useLoginAdminMutation } from "../../../services/apiSlice";
-import logos from "../../../assets/images/logo-ssism.png";
+import { useLoginMutation } from "../../../redux/auth/authApiSlice"; // adjust the path as needed
+
+import logo from "../../../assets/images/logo-ssism.png";
 import googleLogo from "../../../assets/images/Google.png";
 import linkedinLogo from "../../../assets/images/linkedin.png";
 import facebookLogo from "../../../assets/images/FB.png";
 
-const Login = () => {
+const LoginPage = () => {
   const navigate = useNavigate();
-  const [loginAdmin, { isLoading }] = useLoginAdminMutation();
   const [loginError, setLoginError] = useState("");
+  const [login, { isLoading }] = useLoginMutation();
 
   const formik = useFormik({
     initialValues: {
@@ -29,13 +29,17 @@ const Login = () => {
     }),
     onSubmit: async (values) => {
       try {
-        console.log("Sending credentials:", values);
-        const res = await loginAdmin(values).unwrap();
-        console.log("Login success:", res);
-      } catch (err) {
-        console.log("Login failed:", err);
+        const response = await login(values).unwrap();
+        console.log("Login Success:", response);
+
+        // Example: store token in localStorage if returned
+        // localStorage.setItem("token", response.token);
+
+        navigate("/"); // redirect to dashboard/home
+      } catch (error) {
+        console.error("Login failed:", error);
+        setLoginError(error?.data?.message || "Invalid email or password.");
       }
-      // navigate("/");
     },
   });
 
@@ -46,7 +50,7 @@ const Login = () => {
         className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm"
       >
         <div className="flex flex-col items-center">
-          <img src={logos} alt="SSISM Logo" className="h-20" />
+          <img src={logo} alt="SSISM Logo" className="h-20" />
           <h2 className="text-2xl font-bold">Login</h2>
         </div>
 
@@ -82,16 +86,11 @@ const Login = () => {
             }`}
           />
           {formik.touched.password && formik.errors.password && (
-            <p className="text-red-500 text-sm mb-2">
-              {formik.errors.password}
-            </p>
+            <p className="text-red-500 text-sm mb-2">{formik.errors.password}</p>
           )}
 
           {loginError && (
             <p className="text-red-600 text-sm mb-2">{loginError}</p>
-          )}
-          {isLoading && (
-            <p className="text-orange-600 text-sm mb-2">Logging in...</p>
           )}
 
           <p className="text-right text-sm text-gray-500">
@@ -102,8 +101,9 @@ const Login = () => {
         <button
           type="submit"
           className="w-full bg-orange-500 text-white py-3 rounded-lg mt-4 hover:bg-orange-600 transition"
+          disabled={isLoading}
         >
-          Sign in
+          {isLoading ? "Logging in..." : "Sign in"}
         </button>
 
         <div className="flex items-center my-4">
@@ -113,23 +113,14 @@ const Login = () => {
         </div>
 
         <div className="flex justify-center gap-4">
-          <button
-            type="button"
-            className="p-2 border rounded-full hover:bg-gray-200"
-          >
-            <img src={googleLogo} alt="Google" className="h-10" />
+          <button type="button">
+            <img src={googleLogo} alt="Google" className="h-12" />
           </button>
-          <button
-            type="button"
-            className="p-2 border rounded-full hover:bg-gray-200"
-          >
-            <img src={linkedinLogo} alt="LinkedIn" className="h-10" />
+          <button type="button">
+            <img src={linkedinLogo} alt="LinkedIn" className="h-12" />
           </button>
-          <button
-            type="button"
-            className="p-2 border rounded-full hover:bg-gray-300"
-          >
-            <img src={facebookLogo} alt="Facebook" className="h-10" />
+          <button type="button">
+            <img src={facebookLogo} alt="Facebook" className="h-12" />
           </button>
         </div>
 
@@ -142,7 +133,10 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginPage;
+
+
+
 
 // import React, { useEffect, useState } from "react";
 // import { useFormik } from "formik";
@@ -156,17 +150,6 @@ export default Login;
 // const Login = () => {
 //   const navigate = useNavigate();
 //   const [loginError, setLoginError] = useState("");
-
-//   // Initialize a sample user in localStorage (run once)
-//   useEffect(() => {
-//     const existingUsers = localStorage.getItem("users");
-//     if (!existingUsers) {
-//       localStorage.setItem(
-//         "users",
-//         JSON.stringify([{ email: "user@example.com", password: "123456" }])
-//       );
-//     }
-//   }, []);
 
 //   const formik = useFormik({
 //     initialValues: {
@@ -275,21 +258,21 @@ export default Login;
 //         <div className="flex justify-center gap-4">
 //           <button
 //             type="button"
-//             className="p-2 border rounded-full hover:bg-gray-200"
+//             // className="p-2 border rounded-full hover:bg-gray-200"
 //           >
-//             <img src={googleLogo} alt="Google" className="h-10" />
+//             <img src={googleLogo} alt="Google" className="h-12" />
 //           </button>
 //           <button
 //             type="button"
-//             className="p-2 border rounded-full hover:bg-gray-200"
+//             // className="p-2 border rounded-full hover:bg-gray-200"
 //           >
-//             <img src={linkedinLogo} alt="LinkedIn" className="  h-10" />
+//             <img src={linkedinLogo} alt="LinkedIn" className="  h-12" />
 //           </button>
 //           <button
 //             type="button"
-//             className="p-2 border rounded-full hover:bg-gray-300"
+//             // className="p-2 border rounded-full hover:bg-gray-300"
 //           >
-//             <img src={facebookLogo} alt="Facebook" className="  h-10" />
+//             <img src={facebookLogo} alt="Facebook" className="  h-12" />
 //           </button>
 //         </div>
 
