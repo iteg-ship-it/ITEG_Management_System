@@ -7,14 +7,12 @@ const setupSwagger = require('./swagger/swagger');
 const protectedRoutes = require("./routes/protectedRoutes");
 const studentRoutes = require("./routes/studentRoutes");
 const student_admissionProcessRoutes = require("./routes/student_admissionProcessRoutes.js");
-
-const auth = require("./routes/auth");
 const AdminRoutes = require("./routes/AdminRoutes");
 const superAdminRoutes = require("./routes/SuperAdminRoutes");
 const facultyRoutes= require("./routes/facultyRoutes");
-const swaggerUi = require('swagger-ui-express');
-const YAML = require('yamljs');
-const path = require('path');
+// const swaggerUi = require('swagger-ui-express');
+// const YAML = require('yamljs');
+// const path = require('path');
 
 
 const app = express();
@@ -24,7 +22,7 @@ setupSwagger(app);
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use("/api/auth", auth);
+
 app.use("/api/admin", AdminRoutes);
 app.use("/api/superAdmin", superAdminRoutes);
 app.use("/api/faculty", facultyRoutes);

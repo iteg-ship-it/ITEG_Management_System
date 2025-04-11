@@ -126,10 +126,6 @@ exports.deleteStudent = async (req, res) => {
 
 
 
-
-
-
-
 // // // Migrate Students (Without SQL)
 // // exports.migrateStudents = async (req, res) => {
 // //     try {

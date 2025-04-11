@@ -32,7 +32,7 @@ router.put('/update-permission-student/:studentId', verifyToken, checkRole(['Sup
 
 // // Update Student Data
 //Swagger
-router.put("/update/:id", verifyToken, checkRole(allowedRoles), studentController.updateStudent);
+router.patch("/update/:id", verifyToken, checkRole(allowedRoles), studentController.updateStudent);
 
 // // Delete Student
 router.delete("/:id", verifyToken, checkRole(allowedRoles), studentController.deleteStudent);
