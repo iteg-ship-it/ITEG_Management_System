@@ -4,7 +4,7 @@ import Dashboard from "./components/dashboard/Dashboard";
 // import Login from "./components/common-components/login&registration/Login"
 // import  { useSelector, useDispatch } from "react-redux";
 // import { increment, decrement, incrementByAmount } from "./features/counterSlice";
-import Table from "./components/tables/Table";
+import StudentList from "./pages/StudentList"; 
 
 function App() {
   return (
@@ -14,13 +14,7 @@ function App() {
         <div className="flex bg-gray-100">
           <Sidebar role="admin" />
 
-          {/* <Table
-            columns={columns}
-            data={studentData}
-            searchable={true}
-            selectable={true}
-            editable={true}
-          /> */}
+           <StudentList />
 
           <Dashboard />
         </div>
