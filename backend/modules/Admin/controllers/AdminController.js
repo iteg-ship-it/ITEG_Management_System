@@ -1,9 +1,7 @@
-const Admin = require("../models/Adminmodels");
-// const bcrypt = require("bcryptjs");
+const Admin = require("../models/adminModels");
 const jwt = require("jsonwebtoken"); // Import JWT
 const bcrypt = require('bcrypt');
 
-console.log(__dirname);
 
 
 require('dotenv').config();
@@ -62,11 +60,11 @@ exports.createAdmin = async (req, res) => {
     await newAdmin.save();
 
     // Generate JWT Token
-    const token = jwt.sign({ id: newAdmin._id, role: newAdmin.role }, process.env.JWT_SECRET, {
-      expiresIn: "1h", // Token valid for 1 hour
-    });
+    // const token = jwt.sign({ id: newAdmin._id, role: newAdmin.role }, process.env.JWT_SECRET, {
+    //   expiresIn: "1h", // Token valid for 1 hour
+    // });
 
-    res.status(201).json({ message: "Admin created successfully!", token });
+    res.status(201).json({ message: "Admin created successfully!",newAdmin });
   } catch (error) {
     res.status(500).json({ message: "Server Error", error });
   }

@@ -16,17 +16,64 @@ components:
       bearerFormat: JWT
 
   schemas:
-    Admin:
+    SuperAdmin:
       type: object
+      required:
+        - positionRole
+        - name
+        - email
+        - aadharCard
+        - password
       properties:
+        positionRole:
+          type: string
+          default: Super Admin
         name:
           type: string
+          example: Alice Smith
         email:
           type: string
+          format: email
+          example: alice@example.com
+        aadharCard:
+          type: string
+          example: "987654321098"
+        password:
+          type: string
+          format: password
+    Admin:
+      type: object
+      required:
+        - name
+        - email
+        - adharCard
+        - password
+        - role
+        - department
+      properties:
+        positionRole:
+          type: string
+          default: Admin
+        name:
+          type: string
+          example: John Doe
+        email:
+          type: string
+          format: email
+          example: john@example.com
+        adharCard:
+          type: string
+          example: "123456789012"
+        password:
+          type: string
+          format: password
         role:
           type: string
-
-    Level:
+          example: Admin
+        department:
+          type: string
+          example: Computer Science
+  Level:
       type: object
       required:
         - levelNo
@@ -52,7 +99,7 @@ components:
           enum: [Pass, Fail, Pending]
           example: "Pending"
 
-    PlacedInfo:
+  PlacedInfo:
       type: object
       properties:
         companyName:
@@ -65,7 +112,7 @@ components:
           type: string
           example: "Bangalore"
 
-    Permission:
+  Permission:
       type: object
       properties:
         reason:
@@ -76,7 +123,7 @@ components:
           enum: [Super Admin, Admin, Faculty]
           example: "Admin"
 
-    InterviewRecord:
+  InterviewRecord:
       type: object
       properties:
         companyName:
@@ -99,108 +146,175 @@ components:
         jobProfile:
           type: string
           example: "Software Engineer"
-
-    Student:
+  StudentAdmissionProcess:
       type: object
       required:
-        - fullName
+        - prkey
+        - lastName
+        - fatherName
+        - studentMobile
+        - parentMobile
+        - gender
+        - dob
+        - aadharCard
+        - address
         - stream
         - course
-        - fatherName
-        - motherName
-        - mobileNo
-        - email
-        - track
-        - address
-        - year
+        - category
+        - subject12
+        - year12
       properties:
-        fullName:
+        prkey:
           type: string
-          example: "John Doe"
+          example: PRK123456
+        lastName:
+          type: string
+          example: Khan
+        fatherName:
+          type: string
+          example: Abdul Khan
+        studentMobile:
+          type: string
+          example: "9876543210"
+        parentMobile:
+          type: string
+          example: "9876543211"
+        gender:
+          type: string
+          example: Male
+        dob:
+          type: string
+          format: date
+          example: 2003-08-15
+        aadharCard:
+          type: string
+          example: "123456789012"
+        address:
+          type: string
+          example: "123 Main Street, Mumbai"
         stream:
           type: string
           example: "Science"
         course:
           type: string
           example: "BSc IT"
-        fatherName:
+        category:
           type: string
-          example: "Mr. Doe"
-        motherName:
+          example: "General"
+        subject12:
           type: string
-          example: "Mrs. Doe"
-        mobileNo:
+          example: "Physics, Chemistry, Math"
+        year12:
           type: string
-          example: "9876543210"
-        fatherNo:
+          example: "2022"
+        percent12:
           type: string
-          example: "9876540000"
+          example: "85"
+
+        onlineTest:
+          type: object
+          properties:
+            date:
+              type: string
+              format: date
+              example: 2024-05-10
+            testLink:
+              type: string
+              example: "https://testlink.com/student/123"
+            result:
+              type: string
+              enum: [Pass, Fail, Pending]
+              default: Pending
+              example: Pending
+
+        interviews:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+                example: 2024-06-15
+              remark:
+                type: string
+                example: "Good communication skills"
+              result:
+                type: string
+                enum: [Pass, Fail, Pending]
+                default: Pending
+                example: Pending
+
+        admissionFlag:
+          type: boolean
+          default: false
+          example: false
+
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+  FacultyCreateRequest:
+      type: object
+      required:
+        - name
+        - email
+        - aadharCard
+        - password
+        - role
+        - department
+      properties:
+        name:
+          type: string
         email:
           type: string
-          example: "john@example.com"
-        track:
+        aadharCard:
           type: string
-          example: "Frontend"
-        address:
+        password:
           type: string
-          example: "123 Main Street"
-        year:
+        role:
           type: string
-          example: "2025"
-        level:
-          type: array
-          items:
-            $ref: '#/components/schemas/Level'
-        techno:
+        department:
           type: string
-          example: "JavaScript"
-        attendancePercentage:
-          type: number
-          example: 85
-        placedInfo:
-          $ref: '#/components/schemas/PlacedInfo'
-        permission:
-          type: boolean
-          example: false
-        interviewRecord:
-          type: array
-          items:
-            $ref: '#/components/schemas/InterviewRecord'
-        readinessStatus:
-          type: string
-          enum: [Ready, Not Ready]
-          example: "Ready"
 
-
-    Faculty:
+  FacultyUpdateRequest:
       type: object
       properties:
         name:
           type: string
-        subject:
+        email:
+          type: string
+        aadharCard:
+          type: string
+        role:
+          type: string
+        department:
           type: string
 
-    components:
+    # components:
   
-    Level:
-      type: object
-      properties:
-        levelNo:
-          type: string
-        noOfAttempts:
-          type: integer
-        marks:
-          type: number
-        remark:
-          type: string
-        date:
-          type: string
-          format: date-time
-        result:
-          type: string
-          enum: [Pass, Fail, Pending]
-      required:
-        - levelNo
+    # Level:
+    #   type: object
+    #   properties:
+    #     levelNo:
+    #       type: string
+    #     noOfAttempts:
+    #       type: integer
+    #     marks:
+    #       type: number
+    #     remark:
+    #       type: string
+    #     date:
+    #       type: string
+    #       format: date-time
+    #     result:
+    #       type: string
+    #       enum: [Pass, Fail, Pending]
+    #   required:
+    #     - levelNo
 
 security:
   - bearerAuth: []
@@ -208,28 +322,53 @@ security:
 paths:
   /superadmin/register:
     post:
-      summary: Register a new Super Admin
-      tags: [Super Admin]
+      tags:
+        - Super Admin
+      summary: Create a new Super Admin
+      description: Register a new Super admin user with the required details.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                email:
-                  type: string
-                password:
-                  type: string
-              required:
-                - name
-                - email
-                - password
+              $ref: '#/components/schemas/SuperAdmin'
       responses:
         '201':
-          description: Super Admin registered
+          description: Super Admin created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Super Admin created successfully!
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6...
+        '400':
+          description: Super Admin already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Super Admin already exists
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server Error
+                  error:
+                    type: string
+                    example: An error message
 
   /superadmin/login:
     post:
@@ -288,14 +427,81 @@ paths:
       responses:
         '200':
           description: List of admins
+  
+
+  /admin/register:
     post:
-      summary: Create an admin
-      tags: [Admin]
-      security:
-        - bearerAuth: []
+      tags:
+        - Admin
+      summary: Create a new Admin
+      description: Register a new admin user with the required details.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Admin'
       responses:
         '201':
-          description: Admin created
+          description: Admin created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Admin created successfully!
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6...
+        '400':
+          description: Admin already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Admin already exists
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server Error
+                  error:
+                    type: string
+                    example: An error message
+
+
+  /admin/login:
+    post:
+      summary: Login as Admin
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Login successful (returns JWT token)
+
 
   /admin/{id}:
     get:
@@ -342,14 +548,43 @@ paths:
           description: Admin deleted
 
   /students/admitted:
+   paths:
+  /studentAdmissionProcess/admission-process:
     post:
-      summary: Admit a new student
-      tags: [Student]
-      security:
-        - bearerAuth: []
+      summary: Add a new student admission
+      tags:
+        - Admissions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentAdmissionProcess'
       responses:
         '201':
-          description: Student admitted
+          description: Student admission initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student admission initiated
+                  data:
+                    $ref: '#/components/schemas/StudentAdmissionProcess'
+        '400':
+          description: Error adding admission
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Error adding admission
+                  error:
+                    type: object
 
 
   /students/getall:
@@ -392,21 +627,37 @@ paths:
         '200':
           description: Student deleted
 
-  /students/update/{id}:
-    put:
-      summary: Update student details
-      tags: [Student]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Student updated
+  # /students/update/{id}:
+  #   patch:
+  #     summary: Update a student by ID
+  #     tags:
+  #       - Student
+  #     parameters:
+  #       - name: id
+  #         in: path
+  #         required: true
+  #         description: The ID of the student to update
+  #         schema:
+  #           type: string
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/Student'
+  #     responses:
+  #       '200':
+  #         description: Student updated successfully
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/Student'
+  #       '400':
+  #         description: Invalid ID or bad request
+  #       '404':
+  #         description: Student not found
+  #       '500':
+  #         description: Server error
 
   /students/create/level/{id}:
     post:
@@ -550,21 +801,56 @@ paths:
         '200':
           description: Interview records
 
-  /students/up/interviews/{id}:
-    put:
-      summary: Update interview result
-      tags: [Student]
-      security:
-        - bearerAuth: []
+  /students/{id}/interview-result:
+    patch:
+      summary: Update interview result for a specific student
+      tags:
+        - Student
       parameters:
         - name: id
           in: path
           required: true
+          description: ID of the student
           schema:
             type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - interviewId
+                - result
+              properties:
+                interviewId:
+                  type: string
+                  example: "64234abc1234def56789ghij"
+                result:
+                  type: string
+                  example: "Passed"
       responses:
         '200':
-          description: Interview result updated
+          description: Interview result updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Interview result updated successfully
+                  updatedInterview:
+                    $ref: '#/components/schemas/InterviewRecord'
+        '400':
+          description: Missing required fields
+        '404':
+          description: Student or interview not found
+        '500':
+          description: Server error
 
   /faculty:
     get:
@@ -575,15 +861,26 @@ paths:
       responses:
         '200':
           description: Faculty list
+
+  /faculty/create:
     post:
-      summary: Create faculty
-      tags: [Faculty]
-      security:
-        - bearerAuth: []
+      summary: Create a new faculty
+      tags:
+        - Faculty
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FacultyCreateRequest'
       responses:
         '201':
-          description: Faculty created
-
+          description: Faculty created successfully
+        '400':
+          description: Faculty already exists
+        '500':
+          description: Server error
+          
   /faculty/{id}:
     get:
       summary: Get faculty by ID
