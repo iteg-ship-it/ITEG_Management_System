@@ -146,78 +146,116 @@ components:
         jobProfile:
           type: string
           example: "Software Engineer"
-
-  Student:
+  StudentAdmissionProcess:
       type: object
       required:
-        - fullName
+        - prkey
+        - lastName
+        - fatherName
+        - studentMobile
+        - parentMobile
+        - gender
+        - dob
+        - aadharCard
+        - address
         - stream
         - course
-        - fatherName
-        - motherName
-        - mobileNo
-        - email
-        - track
-        - address
-        - year
+        - category
+        - subject12
+        - year12
       properties:
-        fullName:
+        prkey:
           type: string
-          example: "John Doe"
+          example: PRK123456
+        lastName:
+          type: string
+          example: Khan
+        fatherName:
+          type: string
+          example: Abdul Khan
+        studentMobile:
+          type: string
+          example: "9876543210"
+        parentMobile:
+          type: string
+          example: "9876543211"
+        gender:
+          type: string
+          example: Male
+        dob:
+          type: string
+          format: date
+          example: 2003-08-15
+        aadharCard:
+          type: string
+          example: "123456789012"
+        address:
+          type: string
+          example: "123 Main Street, Mumbai"
         stream:
           type: string
           example: "Science"
         course:
           type: string
           example: "BSc IT"
-        fatherName:
+        category:
           type: string
-          example: "Mr. Doe"
-        motherName:
+          example: "General"
+        subject12:
           type: string
-          example: "Mrs. Doe"
-        mobileNo:
+          example: "Physics, Chemistry, Math"
+        year12:
           type: string
-          example: "9876543210"
-        fatherNo:
+          example: "2022"
+        percent12:
           type: string
-          example: "9876540000"
-        email:
-          type: string
-          example: "john@example.com"
-        track:
-          type: string
-          example: "Frontend"
-        address:
-          type: string
-          example: "123 Main Street"
-        year:
-          type: string
-          example: "2025"
-        level:
-          type: array
-          items:
-            $ref: '#/components/schemas/Level'
-        techno:
-          type: string
-          example: "JavaScript"
-        attendancePercentage:
-          type: number
-          example: 85
-        placedInfo:
-          $ref: '#/components/schemas/PlacedInfo'
-        permission:
-          type: boolean
-          example: false
-        interviewRecord:
-          type: array
-          items:
-            $ref: '#/components/schemas/InterviewRecord'
-        readinessStatus:
-          type: string
-          enum: [Ready, Not Ready]
-          example: "Ready"
+          example: "85"
 
+        onlineTest:
+          type: object
+          properties:
+            date:
+              type: string
+              format: date
+              example: 2024-05-10
+            testLink:
+              type: string
+              example: "https://testlink.com/student/123"
+            result:
+              type: string
+              enum: [Pass, Fail, Pending]
+              default: Pending
+              example: Pending
+
+        interviews:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+                example: 2024-06-15
+              remark:
+                type: string
+                example: "Good communication skills"
+              result:
+                type: string
+                enum: [Pass, Fail, Pending]
+                default: Pending
+                example: Pending
+
+        admissionFlag:
+          type: boolean
+          default: false
+          example: false
+
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
 
   FacultyCreateRequest:
       type: object
@@ -510,25 +548,43 @@ paths:
           description: Admin deleted
 
   /students/admitted:
-     post:
-      summary: Create a new student
+   paths:
+  /studentAdmissionProcess/admission-process:
+    post:
+      summary: Add a new student admission
       tags:
-        - Student
+        - Admissions
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Student'
+              $ref: '#/components/schemas/StudentAdmissionProcess'
       responses:
         '201':
-          description: Student created successfully
+          description: Student admission initiated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Student'
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student admission initiated
+                  data:
+                    $ref: '#/components/schemas/StudentAdmissionProcess'
         '400':
-          description: Bad Request
+          description: Error adding admission
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Error adding admission
+                  error:
+                    type: object
 
 
   /students/getall:
@@ -806,7 +862,7 @@ paths:
         '200':
           description: Faculty list
 
-  /faculty:
+  /faculty/create:
     post:
       summary: Create a new faculty
       tags:
@@ -824,7 +880,7 @@ paths:
           description: Faculty already exists
         '500':
           description: Server error
-
+          
   /faculty/{id}:
     get:
       summary: Get faculty by ID

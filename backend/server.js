@@ -1,5 +1,7 @@
 require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
+
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const setupSwagger = require('./swagger/swagger');
@@ -17,6 +19,17 @@ const app = express();
 
 setupSwagger(app); 
 // Middleware
+
+app.use(
+  cors({
+    origin: "http://localhost:5173", // or '*' to allow all
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    credentials: true, // only if you're using cookies or sessions
+  })
+);
+
+app.options("*", cors());
+
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

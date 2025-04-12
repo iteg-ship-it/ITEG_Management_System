@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const StudentAdmissionProcessSchema = new mongoose.Schema({
   // Central datafirstName: { type: String, required: true },
   prkey: { type: String, required: true, unique: true },
+  firstName: { type: String, required: true }, 
   lastName: { type: String, required: true },
   fatherName: { type: String, required: true },
   studentMobile: { type: String, required: true },
