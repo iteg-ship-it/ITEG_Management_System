@@ -1,4 +1,4 @@
-const SuperAdmin = require('../models/SuperAdmin');
+const SuperAdmin = require('../models/superAdmin');
 const bcrypt = require('bcrypt');
 console.log(__dirname);
 

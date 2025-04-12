@@ -1,4 +1,4 @@
-const Student_Admission_process = require('../models/StudentAdmissionProcess');
+const Student_Admission_process = require('../models/admissionProcessStudent');
 const bcrypt = require('bcrypt');
 const os = require('os'); // Get user home directory
 const path = require('path');
