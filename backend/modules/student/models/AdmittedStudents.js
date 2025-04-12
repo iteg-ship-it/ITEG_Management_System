@@ -48,10 +48,6 @@ const studentSchema = new mongoose.Schema({
   attendancePercentage: { type: Number, min: 0, max: 100 },
   placedInfo: placedInfoSchema,
   permission: permissionSchema,
-<<<<<<< HEAD
-  // permission: { type: Boolean, default: false },
-=======
->>>>>>> c59b9c583479925373cd521105cc74d857a6cdf2
   interviewRecord: [interviewRecordSchema],
   readinessStatus: { type: String, enum: ['Ready', 'Not Ready'], default: 'Not Ready' }
 });
