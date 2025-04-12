@@ -6,7 +6,7 @@ const setupSwagger = require('./swagger/swagger');
 
 const protectedRoutes = require("./routes/protectedRoutes");
 const studentRoutes = require("./routes/studentRoutes");
-const student_admissionProcessRoutes = require("./routes/student_admissionProcessRoutes.js");
+const student_admissionProcessRoutes = require("./routes/student_admissionProcessRoutes");
 const AdminRoutes = require("./routes/AdminRoutes");
 const superAdminRoutes = require("./routes/SuperAdminRoutes");
 const facultyRoutes= require("./routes/facultyRoutes");
@@ -28,6 +28,7 @@ app.use("/api/superAdmin", superAdminRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/protected", protectedRoutes);
 app.use("/api/students", studentRoutes);
+app.use("/api/studentAdmissionProcess", student_admissionProcessRoutes);
 
 
 
