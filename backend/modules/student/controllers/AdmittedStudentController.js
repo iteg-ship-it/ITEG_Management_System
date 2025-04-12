@@ -1,8 +1,6 @@
-const Student = require("../models/admittedStudents");
 
-// Create a new studentconst AdmittedStudent = require("../models/AdmittedStudent");
 const AdmissionProcess = require("../models/admissionProcessStudent");
-const AdmittedStudent = require("../models/admittedStudents");
+const AdmittedStudent = require("../models/admittedStudent");
 
 // ✅ Create New Admitted Student (from AdmissionProcess)
 exports.createAdmittedStudent = async (req, res) => {
