@@ -1,4 +1,8 @@
-const AdmissionProcess = require("../models/StudentAdmissionProcess");
+const Student_Admission_process = require('../models/admissionProcessStudent');
+const bcrypt = require('bcrypt');
+const os = require('os'); // Get user home directory
+const path = require('path');
+const fs = require('fs');
 
 // ✅ Add New Admission Entry
 exports.addAdmission = async (req, res) => {

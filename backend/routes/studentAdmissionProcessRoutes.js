@@ -3,10 +3,10 @@ const { addAdmission,
     getAllAdmissions,
     updateStudent,
     deleteStudent,
-    // getStudentsByTrack,
-    // downloadStudentExcel
-} = require('../modules/student/controllers/StudentAdmitionProcessControllers');
-const StudentAdmissionProcess = require('../modules/student/models/StudentAdmissionProcess');
+    getStudentsByTrack,
+    downloadStudentExcel
+} = require('../modules/student/controllers/admissionProcessStudentControllers');
+const StudentAdmissionProcess = require('../modules/student/models/admissionProcessStudent');
 const router = express.Router();
 
 
