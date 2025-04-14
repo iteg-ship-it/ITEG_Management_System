@@ -7,6 +7,7 @@ import {
 import Sidebar from "./components/common-components/sidebar/Sidebar";
 import Dashboard from "./components/dashboard/Dashboard";
 import LoginPage from "./components/common-components/login&registration/LoginPage";
+import SignupPage from "./components/common-components/signup/SignupPage";
 
 function App() {
   const token = localStorage.getItem("token");
@@ -35,6 +36,7 @@ function App() {
             <Route path="*" element={<Navigate to="/login" />} />
           </>
         )}
+        <Route path="/registration" element={<SignupPage />} />
       </Routes>
     </Router>
   );
