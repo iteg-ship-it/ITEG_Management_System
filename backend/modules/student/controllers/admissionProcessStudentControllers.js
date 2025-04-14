@@ -29,8 +29,8 @@ exports.addAdmission = async (req, res) => {
       // Update the existing document with new data
       console.log("✅ Updating existing student admission process data:", existingStudent);
       existingStudent.set(payload);
-      await existingStudent.save();
-      return res.status(200).json({ message: "Student admission updated", data: existingStudent });
+      // await existingStudent.save();
+      return res.status(200).json({ message: "Student already registered", data: existingStudent });
     }
   const newAdmission = new AdmissionProcess(payload);
 
