@@ -14,7 +14,6 @@ const menuItems = [
     icon: admissionIcon,
     roles: ["admin"],
     subMenu: [
-
       { name: "Dashboard", path: "/" },
       { name: "Admission Process", path: "/admission" },
     ],
@@ -61,7 +60,9 @@ const Sidebar = ({ role }) => {
   const handleLogout = () => {
     localStorage.removeItem("isAuthenticated");
     localStorage.removeItem("user");
-    navigate("/login"); // Assuming "/login" is your login route
+    localStorage.removeItem("token"); // Important!
+    navigate("/login");
+    window.location.reload(); // Optional but useful to re-evaluate auth state
   };
 
   return (
