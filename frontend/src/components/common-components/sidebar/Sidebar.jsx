@@ -58,10 +58,10 @@ const Sidebar = ({ role }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated");
+    // localStorage.removeItem("isAuthenticated");
     localStorage.removeItem("user");
     localStorage.removeItem("token"); // Important!
-    navigate("/login");
+    navigate("/login", { replace: true });
     window.location.reload(); // Optional but useful to re-evaluate auth state
   };
 
