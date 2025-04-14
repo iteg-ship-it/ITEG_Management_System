@@ -13,6 +13,8 @@ const AdminRoutes = require("./routes/adminRoutes.js");
 const superAdminRoutes = require("./routes/superAdminRoutes.js");
 const facultyRoutes= require("./routes/facultyRoutes.js");
 
+const webhookRoutes = require("./routes/webhookRoutes");
+
 
 
 const app = express();
@@ -29,7 +31,7 @@ app.use(
 );
 
 app.options("*", cors());
-
+app.use(express.json());
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -41,7 +43,7 @@ app.use("/api/protected", protectedRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/studentAdmissionProcess", student_admissionProcessRoutes);
 
-
+app.use("/api/webhook", webhookRoutes);
 
 // app.use("/api/", studentAdmission);
 app.use("/api/studentAdmission",student_admissionProcessRoutes);
