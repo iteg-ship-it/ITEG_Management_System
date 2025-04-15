@@ -92,7 +92,7 @@ export default function StudentProfile() {
 
   if (!studentData || Object.keys(studentData).length === 0) {
     return (
-      <div className="w-[85vw] px-8 py-5 bg-gray-100 min-h-screen">
+      <div className="w-[70vw] px-8 py-5 bg-gray-100 min-h-screen">
         <div className="flex items-center gap-5">
           <img
             className="h-5 cursor-pointer"
@@ -109,7 +109,7 @@ export default function StudentProfile() {
 
   return (
     <>
-      <div className="w-[85vw] px-8 py-5 bg-gray-100 min-h-screen">
+      <div className="w-[80vw] px-8 py-5 bg-gray-100 min-h-screen">
         <div className="flex items-center gap-5">
           <img
             className="h-5 cursor-pointer"
@@ -130,7 +130,8 @@ export default function StudentProfile() {
                   <img className="h-5" src={attendence} alt="attendance-icon" />
                 </div>
                 <h3 className="text-2xl py-2">
-                  93<span className="text-sm">%</span> {/* Replace with actual data */}
+                  93<span className="text-sm">%</span>{" "}
+                  {/* Replace with actual data */}
                 </h3>
                 <p>Overall from starting</p>
               </div>
@@ -150,7 +151,8 @@ export default function StudentProfile() {
                   <img className="h-5" src={permission} alt="permission-icon" />
                 </div>
                 <h3 className="text-2xl py-2">
-                  {studentData.permissionStatus || "N/A"} {/* Display permission status */}
+                  {studentData.permissionStatus || "N/A"}{" "}
+                  {/* Display permission status */}
                 </h3>
                 <p>Overall from starting</p>
               </div>
@@ -160,7 +162,8 @@ export default function StudentProfile() {
                   <img className="h-5" src={placed} alt="placement-icon" />
                 </div>
                 <h3 className="text-2xl py-2">
-                  {studentData.placementStatus || "Not Placed"} {/* Display placement status */}
+                  {studentData.placementStatus || "Not Placed"}{" "}
+                  {/* Display placement status */}
                 </h3>
                 <p>Overall from starting</p>
               </div>
@@ -177,7 +180,8 @@ export default function StudentProfile() {
                       alt="company-icon"
                     />
                     <p className="text-gray-500 text-lg">
-                      Company: {studentData.company || "N/A"} {/* Display company */}
+                      Company: {studentData.company || "N/A"}{" "}
+                      {/* Display company */}
                     </p>
                   </div>
                   <div className="flex h-10 items-center">
@@ -187,19 +191,22 @@ export default function StudentProfile() {
                       alt="position-icon"
                     />
                     <p className="text-gray-500 text-lg">
-                      Position: {studentData.position || "N/A"} {/* Display position */}
+                      Position: {studentData.position || "N/A"}{" "}
+                      {/* Display position */}
                     </p>
                   </div>
                   <div className="flex h-10 items-center">
                     <img className="h-5 pr-3" src={loca} alt="location-icon" />
                     <p className="text-gray-500 text-lg">
-                      Location: {studentData.location || "N/A"} {/* Display location */}
+                      Location: {studentData.location || "N/A"}{" "}
+                      {/* Display location */}
                     </p>
                   </div>
                   <div className="flex h-10 items-center">
                     <img className="h-5 pr-3" src={date} alt="calendar-icon" />
                     <p className="text-gray-500 text-lg">
-                      Date: {studentData.placementDate || "N/A"} {/* Display placement date */}
+                      Date: {studentData.placementDate || "N/A"}{" "}
+                      {/* Display placement date */}
                     </p>
                   </div>
                 </div>
@@ -234,8 +241,12 @@ export default function StudentProfile() {
               <h2 className="text-lg font-semibold">{studentData.name}</h2>
               <p className="text-gray-500">{studentData.email || "N/A"}</p>
               <div className="mt-4 space-y-2">
-                <p className="text-gray-700">📞 {studentData.mobile || "N/A"}</p>
-                <p className="text-gray-700">📍 {studentData.address || studentData.village || "N/A"}</p>
+                <p className="text-gray-700">
+                  📞 {studentData.mobile || "N/A"}
+                </p>
+                <p className="text-gray-700">
+                  📍 {studentData.address || studentData.village || "N/A"}
+                </p>
               </div>
             </div>
 
@@ -251,10 +262,6 @@ export default function StudentProfile() {
     </>
   );
 }
-
-
-
-
 
 // import company from "../../../assets/icons/company-icon.png";
 // import position from "../../../assets/icons/position-icon.png";

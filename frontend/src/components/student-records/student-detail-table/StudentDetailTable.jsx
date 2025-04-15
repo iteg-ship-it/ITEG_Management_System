@@ -79,7 +79,7 @@ const StudentDetailTable = () => {
   };
 
   return (
-    <div className="p-6 w-[85vw]">
+    <div className="p-6 w-[80vw]">
       <div className="bg-white shadow-md p-10 rounded-lg">
         <div className="flex items-center mb-6">
           <img
