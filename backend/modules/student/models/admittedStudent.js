@@ -43,7 +43,7 @@ const AdmittedStudentSchema = new mongoose.Schema({
   techno: { type: String },
   attendancePercentage: { type: Number, min: 0, max: 100 },
   placedInfo: placedInfoSchema,
-  permission: permissionSchema,
+  // permission: permissionSchema,
   interviewRecord: [interviewRecordSchema],
   readinessStatus: { type: String, enum: ['Ready', 'Not Ready'], default: 'Not Ready' }
 

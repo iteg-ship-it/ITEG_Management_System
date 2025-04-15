@@ -10,6 +10,7 @@ const facultyRoutes = require("./routes/facultyRoutes");
 const studentAdmissionRoutes = require("./routes/studentAdmissionProcessRoutes");
 const protectedRoutes = require("./routes/protectedRoutes");
 const superAdminRoutes = require("./routes/SuperAdminRoutes");
+const admittedStudentRoutes = require("./routes/studentRoutes");
 //expres object
 const app = express();
 // cors for frontend and backend communication
@@ -31,7 +32,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/api/admin", adminRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/protected", protectedRoutes);
-app.use("/api/students", studentAdmissionRoutes);
+app.use("/api/students/admission", studentAdmissionRoutes);
+app.use("/api/students", admittedStudentRoutes);
+
 app.use("/api/superAdmin", superAdminRoutes);
 
 // MongoDB Connection
