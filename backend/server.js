@@ -7,7 +7,7 @@ require("dotenv").config();
 // Import Routes
 const adminRoutes = require("./routes/AdminRoutes");
 const facultyRoutes = require("./routes/facultyRoutes");
-const studentAdmissionRoutes = require("./routes/student_admissionProcessRoutes");
+const studentAdmissionRoutes = require("./routes/studentAdmissionProcessRoutes");
 const protectedRoutes = require("./routes/protectedRoutes");
 const superAdminRoutes = require("./routes/SuperAdminRoutes");
 //expres object
