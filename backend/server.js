@@ -1,25 +1,18 @@
-require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
-const setupSwagger = require('./swagger/swagger');
+require("dotenv").config();
 
-const protectedRoutes = require("./routes/protectedRoutes.js");
-const studentRoutes = require("./routes/studentRoutes.js");
-const student_admissionProcessRoutes = require("./routes/studentAdmissionProcessRoutes.js");
-const AdminRoutes = require("./routes/adminRoutes.js");
-const superAdminRoutes = require("./routes/superAdminRoutes.js");
-const facultyRoutes= require("./routes/facultyRoutes.js");
-
-
-
+// Import Routes
+const adminRoutes = require("./routes/AdminRoutes");
+const facultyRoutes = require("./routes/facultyRoutes");
+const studentAdmissionRoutes = require("./routes/student_admissionProcessRoutes");
+const protectedRoutes = require("./routes/protectedRoutes");
+const superAdminRoutes = require("./routes/SuperAdminRoutes");
+//expres object
 const app = express();
-
-setupSwagger(app); 
-// Middleware
-
+// cors for frontend and backend communication
 app.use(
   cors({
     origin: "http://localhost:5173", // or '*' to allow all
@@ -30,21 +23,16 @@ app.use(
 
 app.options("*", cors());
 
-
+// Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use("/api/admin", AdminRoutes);
-app.use("/api/superAdmin", superAdminRoutes);
+// Routes
+app.use("/api/admin", adminRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/protected", protectedRoutes);
-app.use("/api/students", studentRoutes);
-app.use("/api/studentAdmissionProcess", student_admissionProcessRoutes);
-
-
-
-// app.use("/api/", studentAdmission);
-app.use("/api/studentAdmission",student_admissionProcessRoutes);
+app.use("/api/students", studentAdmissionRoutes);
+app.use("/api/superAdmin", superAdminRoutes);
 
 // MongoDB Connection
 mongoose
@@ -52,15 +40,6 @@ mongoose
   .then(() => console.log("✅ Connected to MongoDB"))
   .catch((err) => console.error("❌ DB Connection Error:", err));
 
-app.get("/", (req, res) => {
-  res.send("JWT Authentication API Running...");
-});
-
+// Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-
-
-
-
-

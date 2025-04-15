@@ -1,14 +1,16 @@
 const Admin = require("../models/adminModels");
 const jwt = require("jsonwebtoken"); // Import JWT
-const bcrypt = require('bcrypt');
+const bcrypt = require("bcrypt");
 
 
-
-require('dotenv').config();
-
+require("dotenv").config();
 
 const generateToken = (admin) => {
-  return jwt.sign({ id: admin._id, role: admin.positionRole }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  return jwt.sign(
+    { id: admin._id, role: admin.positionRole },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+  );
 };
 
 // Get All Admins
@@ -60,9 +62,13 @@ exports.createAdmin = async (req, res) => {
     await newAdmin.save();
 
     // Generate JWT Token
-    // const token = jwt.sign({ id: newAdmin._id, role: newAdmin.role }, process.env.JWT_SECRET, {
-    //   expiresIn: "1h", // Token valid for 1 hour
-    // });
+    const token = jwt.sign(
+      { id: newAdmin._id, role: newAdmin.role },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h", // Token valid for 1 hour
+      }
+    );
 
     res.status(201).json({ message: "Admin created successfully!",newAdmin });
   } catch (error) {
@@ -70,32 +76,29 @@ exports.createAdmin = async (req, res) => {
   }
 };
 
-
 exports.loginAdmin = async (req, res) => {
   try {
     const { email, password } = req.body;
-
+    console.log("Admin loging Api calling");
     const admin = await Admin.findOne({ email });
     if (!admin) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
     // Check password
     const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
     // Generate JWT token
     const token = generateToken(admin);
 
-    res.json({ message: 'Login successful', token });
+    res.json({ message: "Login successful", token });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
-
-
 
 // Update Admin
 exports.updateAdmin = async (req, res) => {
@@ -109,9 +112,12 @@ exports.updateAdmin = async (req, res) => {
       { new: true }
     );
 
-    if (!updatedAdmin) return res.status(404).json({ message: "Admin not found" });
+    if (!updatedAdmin)
+      return res.status(404).json({ message: "Admin not found" });
 
-    res.status(200).json({ message: "Admin updated successfully", updatedAdmin });
+    res
+      .status(200)
+      .json({ message: "Admin updated successfully", updatedAdmin });
   } catch (error) {
     res.status(500).json({ message: "Server Error", error });
   }
@@ -121,7 +127,8 @@ exports.updateAdmin = async (req, res) => {
 exports.deleteAdmin = async (req, res) => {
   try {
     const deletedAdmin = await Admin.findByIdAndDelete(req.params.id);
-    if (!deletedAdmin) return res.status(404).json({ message: "Admin not found" });
+    if (!deletedAdmin)
+      return res.status(404).json({ message: "Admin not found" });
 
     res.status(200).json({ message: "Admin deleted successfully" });
   } catch (error) {
