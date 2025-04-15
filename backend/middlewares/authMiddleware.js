@@ -14,7 +14,7 @@ console.log("Received Token:", token);
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded; // Attach user details to request object
 
-        console.log("Decoded JWT:", decoded); // Debugging line
+        // console.log("Decoded JWT:", decoded); // Debugging line
 
         next();
     } catch (err) {
