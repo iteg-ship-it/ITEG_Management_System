@@ -4,7 +4,7 @@ const express = require('express');
 const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
 
 
-const SuperAdminController= require("../modules/SuperAdmin/controllers/SuperAdminController");
+const SuperAdminController= require("../modules/SuperAdmin/controllers/superAdminController");
 
 
 const router = express.Router();

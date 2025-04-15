@@ -1,4 +1,4 @@
-const Faculty = require('../models/facultymodels');
+const Faculty = require('../models/FacultyModels');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
