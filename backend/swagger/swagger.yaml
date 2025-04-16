@@ -16,6 +16,107 @@ components:
       bearerFormat: JWT
 
   schemas:
+
+    StudentAdmissionProcess:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 661d12fe94aabc1234567890
+        prkey:
+          type: string
+          example: "PR123456"
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+        fatherName:
+          type: string
+          example: "Richard Doe"
+        studentMobile:
+          type: string
+          example: "9876543210"
+        parentMobile:
+          type: string
+          example: "9123456789"
+        gender:
+          type: string
+          example: "Male"
+        dob:
+          type: string
+          format: date
+          example: "2005-06-15"
+        aadharCard:
+          type: string
+          example: "1234-5678-9012"
+        address:
+          type: string
+          example: "123 Main Street, City, State"
+        stream:
+          type: string
+          example: "Science"
+        course:
+          type: string
+          example: "B.Sc"
+        category:
+          type: string
+          example: "General"
+        subject12:
+          type: string
+          example: "Physics, Chemistry, Math"
+        year12:
+          type: string
+          example: "2022"
+        percent12:
+          type: string
+          example: "82.5"
+        onlineTest:
+          type: object
+          properties:
+            date:
+              type: string
+              format: date-time
+              example: "2025-04-10T09:30:00Z"
+            testLink:
+              type: string
+              example: "https://example.com/test-link"
+            result:
+              type: string
+              enum: [Pass, Fail, Pending]
+              example: "Pass"
+        interviews:
+          type: array
+          items:
+            type: object
+            properties:
+              noOfAttempts:
+                type: integer
+                example: 1
+              marks:
+                type: integer
+                example: 85
+              remark:
+                type: string
+                example: "Good performance, confident answers."
+              date:
+                type: string
+                format: date-time
+                example: "2025-04-15T10:30:00Z"
+              result:
+                type: string
+                enum: [Pass, Fail, Pending]
+                example: "Pass"
+        admissionFlag:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
     SuperAdmin:
       type: object
       required:
@@ -944,4 +1045,63 @@ paths:
       responses:
         '200':
           description: Dashboard data
+
+  /studentAdmission/createInterview/{id}:
+    post:
+      tags:
+        - Admission Process
+      summary: Add an interview attempt for a student
+      description: Adds a new interview entry to a student's interview array by student ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: MongoDB ObjectId of the student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                noOfAttempts:
+                  type: integer
+                  example: 1
+                marks:
+                  type: integer
+                  example: 85
+                remark:
+                  type: string
+                  example: Good performance, confident answers.
+                date:
+                  type: string
+                  format: date-time
+                  example: "2025-04-15T10:30:00.000Z"
+                result:
+                  type: string
+                  enum: [Pass, Fail, Pending]
+                  example: Pass
+      responses:
+        '201':
+          description: Interview added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Interview added successfully
+                  student:
+                    $ref: '#/components/schemas/StudentAdmissionProcess'
+        '404':
+          description: Student not found
+        '500':
+          description: Server error
+          
 

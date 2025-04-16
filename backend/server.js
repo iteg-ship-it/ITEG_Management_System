@@ -38,6 +38,7 @@ app.use("/api/faculty", facultyRoutes);
 app.use("/api/protected", protectedRoutes);
 app.use("/api/students/admission", studentAdmissionRoutes);
 app.use("/api/students", admittedStudentRoutes);
+// app.use("/api/studentAdmissionProcess", student_admissionProcessRoutes);
 
 app.use("/api/webhook", webhookRoutes);
 

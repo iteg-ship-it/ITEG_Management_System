@@ -29,9 +29,11 @@ const StudentAdmissionProcessSchema = new mongoose.Schema({
   // Next stage interview (can be array of attempts)
   interviews: [
     {
-      date: Date,
-      remark: String,
-      result: { type: String, enum: ["Pass", "Fail", "Pending"], default: "Pending" }
+      noOfAttempts: { type: Number, default: 0 },
+      marks: { type: Number, default: 0 },
+      remark: { type: String },
+      date: { type: Date },
+      result: { type: String, enum: ['Pass', 'Fail', 'Pending'], default: 'Pending' }
     }
   ],
 
