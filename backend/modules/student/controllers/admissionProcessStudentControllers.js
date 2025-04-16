@@ -1,7 +1,10 @@
 const AdmissionProcess = require('../models/admissionProcessStudent');
+const mongoose = require('mongoose');
+
 const bcrypt = require('bcrypt');
 const path = require('path');
 const crypto = require("crypto");
+// const axios = require('axios');
 require("dotenv").config();
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET; // ✅ Also load this from .env
 
@@ -73,5 +76,43 @@ exports.createInterview = async (req, res) => {
   } catch (error) {
       console.error("Error adding level:", error);
       res.status(500).json({ success: false, message: "Server Error", error });
+  }
+};
+
+
+exports.updateAdmissionFlag = async (req, res) => {
+  try {
+    const { id } = req.params; // MongoDB _id
+    const { flag } = req.body; // Boolean value (true/false)
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid student ID' });
+    }
+
+    // Update admissionFlag
+    const updatedStudent = await AdmissionProcess.findByIdAndUpdate(
+      id,
+      { admissionFlag: flag },
+      { new: true }
+    );
+
+    if (!updatedStudent) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // // Send _id and flag to central system webhook
+    // await axios.post('https://central-system.example.com/webhook/admission-flag-update', {
+    //   _id: updatedStudent._id,
+    //   admissionFlag: updatedStudent.admissionFlag
+    // });
+
+    return res.status(200).json({
+      message: 'Admission flag updated and central system notified',
+      student: updatedStudent
+    });
+
+  } catch (error) {
+    console.error('Error:', error.message);
+    return res.status(500).json({ error: 'Server error' });
   }
 };

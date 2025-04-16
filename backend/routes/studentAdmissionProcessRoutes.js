@@ -6,6 +6,7 @@ const { addAdmission,
     getStudentsByTrack,
     downloadStudentExcel,
     createInterview,
+    updateAdmissionFlag 
 } = require('../modules/student/controllers/admissionProcessStudentControllers');
 const StudentAdmissionProcess = require('../modules/student/models/admissionProcessStudent');
 const router = express.Router();
@@ -13,6 +14,7 @@ const router = express.Router();
 
 router.post('/admission-process', addAdmission);
 router.post('/createInterview/:id', createInterview );
+router.put('/updateAdmissionFlag/:id', updateAdmissionFlag );
 // router.get('/admission-dashboard',getAllAdmissions);
 // router.put('/update/:id', updateStudent);
 // router.delete('/delete/:id', deleteStudent);
