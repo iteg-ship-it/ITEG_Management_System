@@ -1,37 +1,39 @@
-require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
-// const { connectMongoDB } = require("./config/db");
-// const userRoutes = require("./routes/userRoutes");
-const protectedRoutes = require("./routes/protectedRoutes");
-const studentRoutes = require("./routes/studentRoutes");
-const student_admissionProcessRoutes = require("./routes/student_admissionProcessRoutes.js");
+require("dotenv").config();
 
-// const interviewRoutes = require("./routes/interviewRoutes");
-// const levelRoutes = require("./routes/levelRoutes");
-const auth = require("./routes/auth");
-const AdminRoutes = require("./routes/AdminRoutes");
+// Import Routes
+const adminRoutes = require("./routes/AdminRoutes");
+const facultyRoutes = require("./routes/facultyRoutes");
+const studentAdmissionRoutes = require("./routes/studentAdmissionProcessRoutes");
+const protectedRoutes = require("./routes/protectedRoutes");
 const superAdminRoutes = require("./routes/SuperAdminRoutes");
-const facultyRoutes= require("./routes/facultyRoutes");
+//expres object
 const app = express();
+// cors for frontend and backend communication
+app.use(
+  cors({
+    origin: "http://localhost:5173", // or '*' to allow all
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    credentials: true, // only if you're using cookies or sessions
+  })
+);
+
+app.options("*", cors());
 
 // Middleware
-// app.use(express.json()); // JSON Parsing
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-
-// connectMongoDB();
-
-app.use("/api/auth", auth);
-app.use("/api/admin", AdminRoutes);
-app.use("/api/superAdmin", superAdminRoutes);
+// Routes
+app.use("/api/admin", adminRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/protected", protectedRoutes);
-app.use("/api/students", studentRoutes);
-// app.use("/api/", studentAdmission);
-app.use("/api/studentAdmission",student_admissionProcessRoutes);
+app.use("/api/students", studentAdmissionRoutes);
+app.use("/api/superAdmin", superAdminRoutes);
+
 // MongoDB Connection
 mongoose
   .connect(process.env.MONGO_URI)
@@ -39,18 +41,5 @@ mongoose
   .catch((err) => console.error("❌ DB Connection Error:", err));
 
 // Start Server
-
-
-
-app.get("/", (req, res) => {
-  res.send("JWT Authentication API Running...");
-});
-
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-
-
-
-
-

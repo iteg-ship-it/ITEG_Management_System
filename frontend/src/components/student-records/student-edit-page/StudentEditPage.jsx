@@ -107,7 +107,7 @@ const StudentEditPage = () => {
   };
 
   return (
-    <div className="w-[85vw] px-8 py-5 bg-gray-100 min-h-screen">
+    <div className="w-[80vw] px-8 py-5 bg-gray-100 min-h-screen">
       <div className="flex items-center gap-7">
         <img
           className="h-5 cursor-pointer"

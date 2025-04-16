@@ -1,0 +1,947 @@
+openapi: 3.0.0
+info:
+  title: ITEG Management API
+  description: API documentation for Admin, Students, Faculty, and Admission modules
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:5000/api
+    description: Local Dev Server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    SuperAdmin:
+      type: object
+      required:
+        - positionRole
+        - name
+        - email
+        - aadharCard
+        - password
+      properties:
+        positionRole:
+          type: string
+          default: Super Admin
+        name:
+          type: string
+          example: Alice Smith
+        email:
+          type: string
+          format: email
+          example: alice@example.com
+        aadharCard:
+          type: string
+          example: "987654321098"
+        password:
+          type: string
+          format: password
+    Admin:
+      type: object
+      required:
+        - name
+        - email
+        - adharCard
+        - password
+        - role
+        - department
+      properties:
+        positionRole:
+          type: string
+          default: Admin
+        name:
+          type: string
+          example: John Doe
+        email:
+          type: string
+          format: email
+          example: john@example.com
+        adharCard:
+          type: string
+          example: "123456789012"
+        password:
+          type: string
+          format: password
+        role:
+          type: string
+          example: Admin
+        department:
+          type: string
+          example: Computer Science
+  Level:
+      type: object
+      required:
+        - levelNo
+      properties:
+        levelNo:
+          type: string
+          example: "1"
+        noOfAttempts:
+          type: integer
+          example: 1
+        marks:
+          type: number
+          example: 80
+        remark:
+          type: string
+          example: "Good performance"
+        date:
+          type: string
+          format: date
+          example: "2025-04-08"
+        result:
+          type: string
+          enum: [Pass, Fail, Pending]
+          example: "Pending"
+
+  PlacedInfo:
+      type: object
+      properties:
+        companyName:
+          type: string
+          example: "TechCorp"
+        salary:
+          type: number
+          example: 600000
+        location:
+          type: string
+          example: "Bangalore"
+
+  Permission:
+      type: object
+      properties:
+        reason:
+          type: string
+          example: "Medical leave"
+        approvedBy:
+          type: string
+          enum: [Super Admin, Admin, Faculty]
+          example: "Admin"
+
+  InterviewRecord:
+      type: object
+      properties:
+        companyName:
+          type: string
+          example: "Infosys"
+        interviewDate:
+          type: string
+          format: date
+          example: "2025-04-10"
+        remark:
+          type: string
+          example: "Confident and well-prepared"
+        result:
+          type: string
+          enum: [Selected, Rejected, Pending]
+          example: "Selected"
+        location:
+          type: string
+          example: "Mumbai"
+        jobProfile:
+          type: string
+          example: "Software Engineer"
+  StudentAdmissionProcess:
+      type: object
+      required:
+        - prkey
+        - lastName
+        - fatherName
+        - studentMobile
+        - parentMobile
+        - gender
+        - dob
+        - aadharCard
+        - address
+        - stream
+        - course
+        - category
+        - subject12
+        - year12
+      properties:
+        prkey:
+          type: string
+          example: PRK123456
+        lastName:
+          type: string
+          example: Khan
+        fatherName:
+          type: string
+          example: Abdul Khan
+        studentMobile:
+          type: string
+          example: "9876543210"
+        parentMobile:
+          type: string
+          example: "9876543211"
+        gender:
+          type: string
+          example: Male
+        dob:
+          type: string
+          format: date
+          example: 2003-08-15
+        aadharCard:
+          type: string
+          example: "123456789012"
+        address:
+          type: string
+          example: "123 Main Street, Mumbai"
+        stream:
+          type: string
+          example: "Science"
+        course:
+          type: string
+          example: "BSc IT"
+        category:
+          type: string
+          example: "General"
+        subject12:
+          type: string
+          example: "Physics, Chemistry, Math"
+        year12:
+          type: string
+          example: "2022"
+        percent12:
+          type: string
+          example: "85"
+
+        onlineTest:
+          type: object
+          properties:
+            date:
+              type: string
+              format: date
+              example: 2024-05-10
+            testLink:
+              type: string
+              example: "https://testlink.com/student/123"
+            result:
+              type: string
+              enum: [Pass, Fail, Pending]
+              default: Pending
+              example: Pending
+
+        interviews:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+                example: 2024-06-15
+              remark:
+                type: string
+                example: "Good communication skills"
+              result:
+                type: string
+                enum: [Pass, Fail, Pending]
+                default: Pending
+                example: Pending
+
+        admissionFlag:
+          type: boolean
+          default: false
+          example: false
+
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+  FacultyCreateRequest:
+      type: object
+      required:
+        - name
+        - email
+        - aadharCard
+        - password
+        - role
+        - department
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        aadharCard:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+        department:
+          type: string
+
+  FacultyUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        aadharCard:
+          type: string
+        role:
+          type: string
+        department:
+          type: string
+
+    # components:
+  
+    # Level:
+    #   type: object
+    #   properties:
+    #     levelNo:
+    #       type: string
+    #     noOfAttempts:
+    #       type: integer
+    #     marks:
+    #       type: number
+    #     remark:
+    #       type: string
+    #     date:
+    #       type: string
+    #       format: date-time
+    #     result:
+    #       type: string
+    #       enum: [Pass, Fail, Pending]
+    #   required:
+    #     - levelNo
+
+security:
+  - bearerAuth: []
+
+paths:
+  /superadmin/register:
+    post:
+      tags:
+        - Super Admin
+      summary: Create a new Super Admin
+      description: Register a new Super admin user with the required details.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SuperAdmin'
+      responses:
+        '201':
+          description: Super Admin created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Super Admin created successfully!
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6...
+        '400':
+          description: Super Admin already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Super Admin already exists
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server Error
+                  error:
+                    type: string
+                    example: An error message
+
+  /superadmin/login:
+    post:
+      summary: Login as Super Admin
+      tags: [Super Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Login successful (returns JWT token)
+
+  /superadmin/superadmin:
+    get:
+      summary: Get all Super Admins
+      tags: [Super Admin]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of all Super Admins
+
+  /superadmin/{id}:
+    get:
+      summary: Get Super Admin by ID
+      tags: [Super Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Super Admin detail
+
+  /admin:
+    get:
+      summary: Get all admins
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of admins
+  
+
+  /admin/register:
+    post:
+      tags:
+        - Admin
+      summary: Create a new Admin
+      description: Register a new admin user with the required details.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Admin'
+      responses:
+        '201':
+          description: Admin created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Admin created successfully!
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6...
+        '400':
+          description: Admin already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Admin already exists
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server Error
+                  error:
+                    type: string
+                    example: An error message
+
+
+  /admin/login:
+    post:
+      summary: Login as Admin
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Login successful (returns JWT token)
+
+
+  /admin/{id}:
+    get:
+      summary: Get admin by ID
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Admin detail
+    put:
+      summary: Update admin
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Admin updated
+    delete:
+      summary: Delete admin
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Admin deleted
+
+  /students/admitted:
+   paths:
+  /studentAdmissionProcess/admission-process:
+    post:
+      summary: Add a new student admission
+      tags:
+        - Admissions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentAdmissionProcess'
+      responses:
+        '201':
+          description: Student admission initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student admission initiated
+                  data:
+                    $ref: '#/components/schemas/StudentAdmissionProcess'
+        '400':
+          description: Error adding admission
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Error adding admission
+                  error:
+                    type: object
+
+
+  /students/getall:
+    get:
+      summary: Get all students
+      tags: [Student]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of students
+
+  /students/{id}:
+    get:
+      summary: Get student by ID
+      tags: [Student]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Student detail
+    delete:
+      summary: Delete a student
+      tags: [Student]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Student deleted
+
+  # /students/update/{id}:
+  #   patch:
+  #     summary: Update a student by ID
+  #     tags:
+  #       - Student
+  #     parameters:
+  #       - name: id
+  #         in: path
+  #         required: true
+  #         description: The ID of the student to update
+  #         schema:
+  #           type: string
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/Student'
+  #     responses:
+  #       '200':
+  #         description: Student updated successfully
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/Student'
+  #       '400':
+  #         description: Invalid ID or bad request
+  #       '404':
+  #         description: Student not found
+  #       '500':
+  #         description: Server error
+
+  /students/create/level/{id}:
+    post:
+      summary: Create a level record for a student
+      tags: [Student]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Level'
+      responses:
+        '201':
+          description: Level added successfully
+          content:
+           application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Level added successfully
+                student:
+                  $ref: '#/components/schemas/Student'
+      '400':
+        description: Missing level number
+      '404':
+        description: Student not found
+      '500':
+        description: Server error
+
+  /students/student/level/{levelNo}:
+    get:
+      summary: Get students by level number
+      tags: [Student]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: levelNo
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Students in level
+
+  /students/total/student/{levelNo}:
+    get:
+      summary: Get total student count by level
+      tags: [Student]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: levelNo
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Student count
+
+  /students/getlevels/{id}:
+    get:
+      summary: Get all levels of a student
+      tags: [Student]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Levels data
+
+  /students/create/interviews/{id}:
+    post:
+      summary: Add interview record
+      tags: [Student]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                interviewer:
+                  type: string
+                  example: John Doe
+                date:
+                  type: string
+                  format: date
+                  example: 2025-04-10
+                remarks:
+                  type: string
+                  example: "Student showed excellent problem-solving skills"
+                status:
+                  type: string
+                  enum: [Pending, Passed, Failed]
+                  example: Passed
+      responses:
+        '201':
+          description: Interview record added
+
+  /students/interviews/{id}:
+    get:
+      summary: Get interview records by student ID
+      tags: [Student]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Interview records
+
+  /students/{id}/interview-result:
+    patch:
+      summary: Update interview result for a specific student
+      tags:
+        - Student
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the student
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - interviewId
+                - result
+              properties:
+                interviewId:
+                  type: string
+                  example: "64234abc1234def56789ghij"
+                result:
+                  type: string
+                  example: "Passed"
+      responses:
+        '200':
+          description: Interview result updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Interview result updated successfully
+                  updatedInterview:
+                    $ref: '#/components/schemas/InterviewRecord'
+        '400':
+          description: Missing required fields
+        '404':
+          description: Student or interview not found
+        '500':
+          description: Server error
+
+  /faculty:
+    get:
+      summary: Get all faculties
+      tags: [Faculty]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Faculty list
+
+  /faculty/create:
+    post:
+      summary: Create a new faculty
+      tags:
+        - Faculty
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FacultyCreateRequest'
+      responses:
+        '201':
+          description: Faculty created successfully
+        '400':
+          description: Faculty already exists
+        '500':
+          description: Server error
+          
+  /faculty/{id}:
+    get:
+      summary: Get faculty by ID
+      tags: [Faculty]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Faculty detail
+    put:
+      summary: Update faculty
+      tags: [Faculty]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Faculty updated
+    delete:
+      summary: Delete faculty
+      tags: [Faculty]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Faculty deleted
+
+  /studentAdmission/admission-process:
+    post:
+      summary: Start student admission process
+      tags: [Admission]
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Process started
+
+  /studentAdmission/admission-dashboard:
+    get:
+      summary: Get admission dashboard
+      tags: [Admission]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Dashboard data
+

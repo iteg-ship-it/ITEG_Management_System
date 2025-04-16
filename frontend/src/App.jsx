@@ -1,32 +1,44 @@
-import { BrowserRouter as Router } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import Sidebar from "./components/common-components/sidebar/Sidebar";
 import Dashboard from "./components/dashboard/Dashboard";
-// import Login from "./components/common-components/login&registration/Login"
-// import  { useSelector, useDispatch } from "react-redux";
-// import { increment, decrement, incrementByAmount } from "./features/counterSlice";
-import StudentList from "./pages/StudentList"; 
+import LoginPage from "./components/common-components/login&registration/LoginPage";
+import SignupPage from "./components/common-components/signup/SignupPage";
 
 function App() {
+  const token = localStorage.getItem("token");
+
   return (
-    <>
-      <Router>
-        {/* <Login /> */}
-        <div className="flex bg-gray-100">
-          <Sidebar role="admin" />
-
-           <StudentList />
-
-          <Dashboard />
-        </div>
-      </Router>
-
-      {/* <div>
-      <h1>Counter: {count}</h1>
-      <button onClick={() => dispatch(increment())}>+</button>
-      <button onClick={() => dispatch(decrement())}>-</button>
-      <button onClick={() => dispatch(incrementByAmount(5))}>+5</button>
-    </div> */}
-    </>
+    <Router>
+      <Routes>
+        {token ? (
+          <>
+            <Route
+              path="/*"
+              element={
+                <div className="flex bg-gray-100">
+                  <Sidebar role="admin" />
+                  <div className="flex-1 p-4">
+                    <Dashboard />
+                  </div>
+                </div>
+              }
+            />
+            <Route path="/login" element={<Navigate to="/" />} />
+          </>
+        ) : (
+          <>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="*" element={<Navigate to="/login" />} />
+          </>
+        )}
+        <Route path="/registration" element={<SignupPage />} />
+      </Routes>
+    </Router>
   );
 }
 
