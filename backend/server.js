@@ -41,7 +41,7 @@ app.use("/api/superAdmin", superAdminRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/protected", protectedRoutes);
 app.use("/api/students", studentRoutes);
-app.use("/api/studentAdmissionProcess", student_admissionProcessRoutes);
+// app.use("/api/studentAdmissionProcess", student_admissionProcessRoutes);
 
 app.use("/api/webhook", webhookRoutes);
 
