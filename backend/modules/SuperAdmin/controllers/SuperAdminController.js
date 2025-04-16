@@ -71,7 +71,7 @@ exports.loginSuperAdmin = async (req, res) => {
 // // Get All SuperAdmins
 exports.getAllSuperAdmins = async (req, res) => {
   try {
-    const Superadmins = await SuperAdmin.find().select("-password");
+    const Superadmins = await SuperAdmin.find();
     res.status(200).json(Superadmins);
   } catch (error) {
     res.status(500).json({ message: "Server Error", error });

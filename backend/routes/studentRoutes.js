@@ -9,6 +9,7 @@ const allowedRoles = ["Super Admin", "Faculty", "Admin"];
 // //Swagger
  router.post("/admitted", studentController.createAdmittedStudent);
 
+ 
 
 // // Get All Permission Students
 // router.get("/permission-students", verifyToken, checkRole(['Super Admin', 'Admin', 'Faculty']), studentController.getAllPermissionStudents);
@@ -22,8 +23,8 @@ const allowedRoles = ["Super Admin", "Faculty", "Admin"];
 
 
 
-// // Create Permission Student API (Only authorized roles)
-// router.post('/create-permission-student', verifyToken, checkRole(['Super Admin', 'Admin', 'Faculty']), studentController.createPermissionStudent);
+// Create Permission Student API (Only authorized roles)
+// router.post('/create-permission-student/:id', verifyToken, checkRole(['Super Admin', 'Admin', 'Faculty']), studentController.createPermissionStudent);
 
 
 // // Update Permission Student API (Only authorized roles)

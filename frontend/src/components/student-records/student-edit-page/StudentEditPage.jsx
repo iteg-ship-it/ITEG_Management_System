@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { useLocation , useNavigate} from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import back from "../../../assets/icons/back-icon.png";
 
 import {
@@ -107,13 +107,17 @@ const StudentEditPage = () => {
   };
 
   return (
-    <div className="w-[85vw] px-8 py-5 bg-gray-100 min-h-screen">
+    <div className="w-[80vw] px-8 py-5 bg-gray-100 min-h-screen">
+      <div className="flex items-center gap-7">
         <img
-                className="w-5 cursor-pointer"
-                src={back}
-                alt="back"
-                onClick={() => navigate(-1)}
-              />
+          className="h-5 cursor-pointer"
+          src={back}
+          alt="back"
+          onClick={() => navigate(-1)}
+        />
+        <h3 className="text-xl font-bold">Student Profile</h3>
+      </div>
+
       {/* <button className="absolute top-4 right-4 border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white px-6 py-2 rounded-lg"> */}
       <button
         type="button"
@@ -345,7 +349,7 @@ const StudentEditPage = () => {
             type="submit"
             className="bg-orange-500 text-white px-6 py-2 rounded-lg"
           >
-            Submit
+            Select
           </button>
         </div>
       </form>
