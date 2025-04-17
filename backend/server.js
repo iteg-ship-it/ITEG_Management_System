@@ -2,18 +2,19 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
-require("dotenv").config();
-
+const setupSwagger = require('./swagger/swagger');
 // Import Routes
-const adminRoutes = require("./routes/AdminRoutes");
-const facultyRoutes = require("./routes/facultyRoutes");
+const webhookRoutes = require("./routes/webhookRoutes");
+
 const studentAdmissionRoutes = require("./routes/studentAdmissionProcessRoutes");
 const protectedRoutes = require("./routes/protectedRoutes");
-const superAdminRoutes = require("./routes/SuperAdminRoutes");
+
 const admittedStudentRoutes = require("./routes/studentRoutes");
+const userRoutes=require("./routes/userRoutes.js");
 //expres object
 const app = express();
 // cors for frontend and backend communication
+setupSwagger(app);
 app.use(
   cors({
     origin: "http://localhost:5173", // or '*' to allow all
@@ -23,19 +24,23 @@ app.use(
 );
 
 app.options("*", cors());
+app.use(express.json());
+
 
 // Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
-app.use("/api/admin", adminRoutes);
-app.use("/api/faculty", facultyRoutes);
+
 app.use("/api/protected", protectedRoutes);
 app.use("/api/students/admission", studentAdmissionRoutes);
 app.use("/api/students", admittedStudentRoutes);
 
-app.use("/api/superAdmin", superAdminRoutes);
+
+app.use("/api/webhook", webhookRoutes);
+
+app.use("/api/user", userRoutes);
 
 // MongoDB Connection
 mongoose
