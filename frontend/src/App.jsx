@@ -9,6 +9,7 @@ import Dashboard from "./components/dashboard/Dashboard";
 import LoginPage from "./components/common-components/login&registration/LoginPage";
 import SignupPage from "./components/common-components/signup/SignupPage";
 
+
 function App() {
   const token = localStorage.getItem("token");
 
