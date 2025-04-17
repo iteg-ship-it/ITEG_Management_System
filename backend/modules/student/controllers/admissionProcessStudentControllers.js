@@ -117,3 +117,34 @@ exports.updateAdmissionFlag = async (req, res) => {
   }
 };
 
+
+exports.getInterviewsByStudentId = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find student by ID
+    const student = await AdmissionProcess.findById(id);
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found"
+      });
+    }
+
+    // Return only interviews array
+    res.status(200).json({
+      success: true,
+      interviews: student.interviews
+    });
+
+  } catch (error) {
+    console.error("Error fetching interviews:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message
+    });
+  }
+};
+
