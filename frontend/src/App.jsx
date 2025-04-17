@@ -28,12 +28,12 @@ function App() {
                 </div>
               }
             />
-            <Route path="/login" element={<Navigate to="/" />} />
+            {/* <Route path="/login" element={<Navigate to="/" />} /> */}
           </>
         ) : (
           <>
             <Route path="/login" element={<LoginPage />} />
-            <Route path="*" element={<Navigate to="/login" />} />
+            {/* <Route path=/"*" element={<Navigate to="/login" />} /> */}
           </>
         )}
         <Route path="/registration" element={<SignupPage />} />

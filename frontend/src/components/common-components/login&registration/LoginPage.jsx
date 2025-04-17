@@ -47,16 +47,24 @@ const LoginPage = () => {
           response = await login(values).unwrap();
         }
 
-        const encryptedToken = CryptoJS.AES.encrypt(response.token, secretKey).toString();
-        const encryptedRole = CryptoJS.AES.encrypt(response.role || "admin", secretKey).toString();
+        const encryptedToken = CryptoJS.AES.encrypt(
+          response.token,
+          secretKey
+        ).toString();
+        const encryptedRole = CryptoJS.AES.encrypt(
+          response.role || "admin",
+          secretKey
+        ).toString();
 
         localStorage.setItem("token", encryptedToken);
         localStorage.setItem("role", encryptedRole);
+        console.log("ddffdsfdsf", response);
 
-        if (response.role === "faculty") {
-          navigate("/faculty/dashboard", { replace: true });
+        if (response) {
+          alert()
+          navigate("/", { replace: true });
         } else {
-          navigate("/admin/dashboard", { replace: true });
+          navigate("/", { replace: true });
         }
       } catch (error) {
         setLoginError(error?.data?.message || "Invalid email or password.");
@@ -83,9 +91,15 @@ const LoginPage = () => {
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             value={formik.values.email}
-            className={`w-full p-3 mb-1 border rounded-lg focus:outline-none focus:ring-2 ${formik.touched.email && formik.errors.email ? "border-red-500 focus:ring-red-500" : "focus:ring-orange-500"}`}
+            className={`w-full p-3 mb-1 border rounded-lg focus:outline-none focus:ring-2 ${
+              formik.touched.email && formik.errors.email
+                ? "border-red-500 focus:ring-red-500"
+                : "focus:ring-orange-500"
+            }`}
           />
-          {formik.touched.email && formik.errors.email && <p className="text-red-500 text-sm mb-2">{formik.errors.email}</p>}
+          {formik.touched.email && formik.errors.email && (
+            <p className="text-red-500 text-sm mb-2">{formik.errors.email}</p>
+          )}
 
           <input
             type="password"
@@ -94,12 +108,24 @@ const LoginPage = () => {
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             value={formik.values.password}
-            className={`w-full p-3 mb-1 border rounded-lg focus:outline-none focus:ring-2 ${formik.touched.password && formik.errors.password ? "border-red-500 focus:ring-red-500" : "focus:ring-orange-500"}`}
+            className={`w-full p-3 mb-1 border rounded-lg focus:outline-none focus:ring-2 ${
+              formik.touched.password && formik.errors.password
+                ? "border-red-500 focus:ring-red-500"
+                : "focus:ring-orange-500"
+            }`}
           />
-          {formik.touched.password && formik.errors.password && <p className="text-red-500 text-sm mb-2">{formik.errors.password}</p>}
+          {formik.touched.password && formik.errors.password && (
+            <p className="text-red-500 text-sm mb-2">
+              {formik.errors.password}
+            </p>
+          )}
 
-          {loginError && <p className="text-red-600 text-sm mb-2">{loginError}</p>}
-          <p className="text-right text-sm text-gray-500 cursor-pointer hover:underline">Forgot Your Password?</p>
+          {loginError && (
+            <p className="text-red-600 text-sm mb-2">{loginError}</p>
+          )}
+          <p className="text-right text-sm text-gray-500 cursor-pointer hover:underline">
+            Forgot Your Password?
+          </p>
         </div>
 
         <button
@@ -130,7 +156,10 @@ const LoginPage = () => {
 
         <p className="text-center mt-4 text-gray-600">
           Don't have an account?{" "}
-          <Link to="/registration" className="text-orange-500 hover:text-orange-800 transition">
+          <Link
+            to="/registration"
+            className="text-orange-500 hover:text-orange-800 transition"
+          >
             Sign Up
           </Link>
         </p>
