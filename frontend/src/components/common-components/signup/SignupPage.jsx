@@ -1,32 +1,6 @@
 import React from "react";
-import { Formik, Field, Form, ErrorMessage } from "formik";
-import * as Yup from "yup";
-
-const validationSchema = Yup.object().shape({
-  firstName: Yup.string().required("First Name is required"),
-  lastName: Yup.string().required("Last Name is required"),
-  gender: Yup.string().required("Gender is required"),
-  contactNumber: Yup.string()
-    .required("Contact Number is required")
-    .matches(/^[6-9]\d{9}$/, "Must be a valid 10-digit Indian number"),
-  address: Yup.string().required("Address is required"),
-  fathersName: Yup.string().required("Father's Name is required"),
-  fathersContact: Yup.string()
-    .required("Father's Contact is required")
-    .matches(/^[6-9]\d{9}$/, "Must be a valid 10-digit Indian number"),
-  track: Yup.string().required("Track is required"),
-  twelfthSubject: Yup.string().required("12th Subject is required"),
-  twelfthPercentage: Yup.number()
-    .required("12th Percentage is required")
-    .min(0, "Too low")
-    .max(100, "Too high"),
-  tenthPercentage: Yup.number()
-    .required("10th Percentage is required")
-    .min(0, "Too low")
-    .max(100, "Too high"),
-  twelfthPassoutYear: Yup.string().required("12th Passout Year is required"),
-  courseOrDiploma: Yup.string().required("Required"),
-});
+import ReusableForm from "../../../ReusableForm";
+import { signupValidationSchema } from "../../../validationSchema";
 
 const SignupPage = () => {
   const initialValues = {
