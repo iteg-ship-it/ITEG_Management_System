@@ -8,6 +8,7 @@ import Sidebar from "./components/common-components/sidebar/Sidebar";
 import Dashboard from "./components/dashboard/Dashboard";
 import LoginPage from "./components/common-components/login&registration/LoginPage";
 import SignupPage from "./components/common-components/signup/SignupPage";
+import AdmissionDashboard from "./components/admition-process/admission-dashboard/AdmissionDashboard";
 
 function App() {
   const token = localStorage.getItem("token");
@@ -33,7 +34,8 @@ function App() {
         ) : (
           <>
             <Route path="/login" element={<LoginPage />} />
-            <Route path="*" element={<Navigate to="/login" />} />
+            {/* <Route path="*" element={<Navigate to="/login" />} /> */}
+            <Route path="/" element={<AdmissionDashboard />} />
           </>
         )}
         <Route path="/registration" element={<SignupPage />} />
