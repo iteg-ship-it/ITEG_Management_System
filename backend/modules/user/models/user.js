@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 // const Admin = require('../modules/Admin/models/adminmodels');
 
-const AdminSchema = new mongoose.Schema({
-  positionRole: { type: String, required: true, default: 'Admin' },
+const UserSchema = new mongoose.Schema({
+  positionRole: { type: String, required: true},
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   adharCard: { type: String, required: true, unique: true },
@@ -11,4 +11,4 @@ const AdminSchema = new mongoose.Schema({
   department: { type: String, required: true },
 }, { timestamps: true });
 
-module.exports = mongoose.model('Admin', AdminSchema);
+module.exports = mongoose.model('User', UserSchema);

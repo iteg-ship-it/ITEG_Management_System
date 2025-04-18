@@ -16,34 +16,112 @@ components:
       bearerFormat: JWT
 
   schemas:
-    SuperAdmin:
+
+    StudentAdmissionProcess:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 661d12fe94aabc1234567890
+        prkey:
+          type: string
+          example: "PR123456"
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+        fatherName:
+          type: string
+          example: "Richard Doe"
+        studentMobile:
+          type: string
+          example: "9876543210"
+        parentMobile:
+          type: string
+          example: "9123456789"
+        gender:
+          type: string
+          example: "Male"
+        dob:
+          type: string
+          format: date
+          example: "2005-06-15"
+        aadharCard:
+          type: string
+          example: "1234-5678-9012"
+        address:
+          type: string
+          example: "123 Main Street, City, State"
+        stream:
+          type: string
+          example: "Science"
+        course:
+          type: string
+          example: "B.Sc"
+        category:
+          type: string
+          example: "General"
+        subject12:
+          type: string
+          example: "Physics, Chemistry, Math"
+        year12:
+          type: string
+          example: "2022"
+        percent12:
+          type: string
+          example: "82.5"
+        onlineTest:
+          type: object
+          properties:
+            date:
+              type: string
+              format: date-time
+              example: "2025-04-10T09:30:00Z"
+            testLink:
+              type: string
+              example: "https://example.com/test-link"
+            result:
+              type: string
+              enum: [Pass, Fail, Pending]
+              example: "Pass"
+        interviews:
+          type: array
+          items:
+            type: object
+            properties:
+              noOfAttempts:
+                type: integer
+                example: 1
+              marks:
+                type: integer
+                example: 85
+              remark:
+                type: string
+                example: "Good performance, confident answers."
+              date:
+                type: string
+                format: date-time
+                example: "2025-04-15T10:30:00Z"
+              result:
+                type: string
+                enum: [Pass, Fail, Pending]
+                example: "Pass"
+        admissionFlag:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+ 
+    RegisterUserInput:
       type: object
       required:
         - positionRole
-        - name
-        - email
-        - aadharCard
-        - password
-      properties:
-        positionRole:
-          type: string
-          default: Super Admin
-        name:
-          type: string
-          example: Alice Smith
-        email:
-          type: string
-          format: email
-          example: alice@example.com
-        aadharCard:
-          type: string
-          example: "987654321098"
-        password:
-          type: string
-          format: password
-    Admin:
-      type: object
-      required:
         - name
         - email
         - adharCard
@@ -53,26 +131,100 @@ components:
       properties:
         positionRole:
           type: string
-          default: Admin
+          example: "System Admin"
         name:
           type: string
-          example: John Doe
+          example: "Amit Verma"
         email:
           type: string
           format: email
-          example: john@example.com
+          example: "amit.verma@example.com"
         adharCard:
           type: string
-          example: "123456789012"
+          example: "345678901234"
         password:
           type: string
           format: password
+          example: "Admin@456"
         role:
           type: string
-          example: Admin
+          enum: [admin, superadmin, faculty]
+          example: "admin"
         department:
           type: string
-          example: Computer Science
+          example: "IT Services"
+
+    RegisterSuccess:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Admin created successfully!"
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              example: "661f23a1e0bd5d8b89b2c003"
+            name:
+              type: string
+              example: "Amit Verma"
+            email:
+              type: string
+              example: "amit.verma@example.com"
+            role:
+              type: string
+              example: "admin"
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    LoginInput:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: "amit.verma@example.com"
+        password:
+          type: string
+          format: password
+          example: "Admin@456"
+
+    LoginSuccess:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Login successful"
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              example: "661f23a1e0bd5d8b89b2c003"
+            name:
+              type: string
+              example: "Amit Verma"
+            email:
+              type: string
+              example: "amit.verma@example.com"
+            role:
+              type: string
+              example: "admin"
+            positionRole:
+              type: string
+              example: "System Admin"
+            department:
+              type: string
+              example: "IT Services"
+
   Level:
       type: object
       required:
@@ -257,69 +409,57 @@ components:
           type: string
           format: date-time
 
-  FacultyCreateRequest:
-      type: object
-      required:
-        - name
-        - email
-        - aadharCard
-        - password
-        - role
-        - department
-      properties:
-        name:
-          type: string
-        email:
-          type: string
-        aadharCard:
-          type: string
-        password:
-          type: string
-        role:
-          type: string
-        department:
-          type: string
-
-  FacultyUpdateRequest:
-      type: object
-      properties:
-        name:
-          type: string
-        email:
-          type: string
-        aadharCard:
-          type: string
-        role:
-          type: string
-        department:
-          type: string
-
-    # components:
   
-    # Level:
-    #   type: object
-    #   properties:
-    #     levelNo:
-    #       type: string
-    #     noOfAttempts:
-    #       type: integer
-    #     marks:
-    #       type: number
-    #     remark:
-    #       type: string
-    #     date:
-    #       type: string
-    #       format: date-time
-    #     result:
-    #       type: string
-    #       enum: [Pass, Fail, Pending]
-    #   required:
-    #     - levelNo
-
 security:
   - bearerAuth: []
 
 paths:
+
+  /users/create:
+    post:
+      summary: Register a new user (admin, superadmin, faculty)
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterUserInput'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterSuccess'
+        '400':
+          description: Validation error or duplicate user
+        '500':
+          description: Server error
+
+  /user/login:
+    post:
+      summary: Login a user
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginInput'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginSuccess'
+        '401':
+          description: Invalid credentials
+        '500':
+          description: Server error
   /superadmin/register:
     post:
       tags:
@@ -627,38 +767,6 @@ paths:
         '200':
           description: Student deleted
 
-  # /students/update/{id}:
-  #   patch:
-  #     summary: Update a student by ID
-  #     tags:
-  #       - Student
-  #     parameters:
-  #       - name: id
-  #         in: path
-  #         required: true
-  #         description: The ID of the student to update
-  #         schema:
-  #           type: string
-  #     requestBody:
-  #       required: true
-  #       content:
-  #         application/json:
-  #           schema:
-  #             $ref: '#/components/schemas/Student'
-  #     responses:
-  #       '200':
-  #         description: Student updated successfully
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/Student'
-  #       '400':
-  #         description: Invalid ID or bad request
-  #       '404':
-  #         description: Student not found
-  #       '500':
-  #         description: Server error
-
   /students/create/level/{id}:
     post:
       summary: Create a level record for a student
@@ -944,4 +1052,141 @@ paths:
       responses:
         '200':
           description: Dashboard data
+
+  /studentAdmission/createInterview/{id}:
+    post:
+      tags:
+        - Admission Process
+      summary: Add an interview attempt for a student
+      description: Adds a new interview entry to a student's interview array by student ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: MongoDB ObjectId of the student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                noOfAttempts:
+                  type: integer
+                  example: 1
+                marks:
+                  type: integer
+                  example: 85
+                remark:
+                  type: string
+                  example: Good performance, confident answers.
+                date:
+                  type: string
+                  format: date-time
+                  example: "2025-04-15T10:30:00.000Z"
+                result:
+                  type: string
+                  enum: [Pass, Fail, Pending]
+                  example: Pass
+      responses:
+        '201':
+          description: Interview added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Interview added successfully
+                  student:
+                    $ref: '#/components/schemas/StudentAdmissionProcess'
+        '404':
+          description: Student not found
+        '500':
+          description: Server error
+
+
+  /students/admission/getInterviews/{id}:
+    get:
+      tags:
+        - Admission Process
+      summary: Get all interview attempts by student ID
+      description: Retrieves the interview array for a student using their MongoDB ObjectId.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: MongoDB ObjectId of the student
+      responses:
+        '200':
+          description: List of interviews retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  interviews:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        noOfAttempts:
+                          type: integer
+                          example: 1
+                        marks:
+                          type: integer
+                          example: 80
+                        remark:
+                          type: string
+                          example: Well spoken
+                        date:
+                          type: string
+                          format: date-time
+                          example: "2025-04-16T10:00:00.000Z"
+                        result:
+                          type: string
+                          enum: [Pass, Fail, Pending]
+                          example: Pass
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Student not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Server Error
+                  error:
+                    type: string
+                    example: Internal server error message
+
+          
 

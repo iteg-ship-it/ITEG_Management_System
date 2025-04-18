@@ -3,22 +3,24 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const setupSwagger = require('./swagger/swagger');
-
-const protectedRoutes = require("./routes/protectedRoutes.js");
-const studentRoutes = require("./routes/studentRoutes.js");
-const student_admissionProcessRoutes = require("./routes/studentAdmissionProcessRoutes.js");
-const AdminRoutes = require("./routes/adminRoutes.js");
-const superAdminRoutes = require("./routes/superAdminRoutes.js");
-const facultyRoutes= require("./routes/facultyRoutes.js");
-
+// Import Routes
 const webhookRoutes = require("./routes/webhookRoutes");
 
 
+=======
+require("dotenv").config();
+>>>>>>> 03424861b9c815f0f76ebc1db131eb33f581a8c0
+
+// Import Routes
+const adminRoutes = require("./routes/AdminRoutes");
+const facultyRoutes = require("./routes/facultyRoutes");
+const studentAdmissionRoutes = require("./routes/studentAdmissionProcessRoutes");
+const protectedRoutes = require("./routes/protectedRoutes");
+const superAdminRoutes = require("./routes/SuperAdminRoutes");
+const admittedStudentRoutes = require("./routes/studentRoutes");
+//expres object
 const app = express();
 // cors for frontend and backend communication
-
-setupSwagger(app);
-
 app.use(
   cors({
     origin: "http://localhost:5173", // or '*' to allow all
@@ -36,17 +38,21 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
-app.use("/api/admin", AdminRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/protected", protectedRoutes);
 app.use("/api/students/admission", studentRoutes);
 app.use("/api/superAdmin", superAdminRoutes);
 // app.use("/api/students", );
 
+<<<<<<< HEAD
 app.use("/api/webhook", webhookRoutes);
 
 // app.use("/api/", studentAdmission);
 app.use("/api/studentAdmission",student_admissionProcessRoutes);
+=======
+app.use("/api/superAdmin", superAdminRoutes);
+>>>>>>> 03424861b9c815f0f76ebc1db131eb33f581a8c0
 
 // MongoDB Connection
 mongoose
