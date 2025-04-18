@@ -79,5 +79,15 @@
     "nodemon": "^3.1.9",
     "swagger-ui-express": "^5.0.1",
     "yamljs": "^0.3.0"
-  }
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.1.0"
+  },
+  "scripts": {
+  "test": "jest"
+},
+"jest": {
+  "testTimeout": 30000
+}
 }
