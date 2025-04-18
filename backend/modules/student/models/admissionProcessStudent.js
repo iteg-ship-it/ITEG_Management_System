@@ -6,6 +6,7 @@ const StudentAdmissionProcessSchema = new mongoose.Schema({
   firstName: { type: String, required: true }, 
   lastName: { type: String, required: true },
   fatherName: { type: String, required: true },
+  email:{ type: String, required: true, unique: true },
   studentMobile: { type: String, required: true },
   parentMobile: { type: String, required: true },
   gender: { type: String, required: true },

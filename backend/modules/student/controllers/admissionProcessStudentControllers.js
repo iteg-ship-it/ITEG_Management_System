@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const path = require('path');
 const crypto = require("crypto");
+ const { sendEmail } = require('./emailController');
+
 // const axios = require('axios');
 require("dotenv").config();
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET; // ✅ Also load this from .env
@@ -92,19 +94,24 @@ exports.updateAdmissionFlag = async (req, res) => {
     // Update admissionFlag
     const updatedStudent = await AdmissionProcess.findByIdAndUpdate(
       id,
-      { admissionFlag: flag },
+      { admissionStatus: flag },
       { new: true }
-    );
+    ).select('+email');
 
     if (!updatedStudent) {
       return res.status(404).json({ message: 'Student not found' });
     }
+    console.log('Student email:', updatedStudent.email);
 
-    // // Send _id and flag to central system webhook
-    // await axios.post('https://central-system.example.com/webhook/admission-flag-update', {
-    //   _id: updatedStudent._id,
-    //   admissionFlag: updatedStudent.admissionFlag
-    // });
+     // ✅ Send plain text email if admission confirmed
+    if (flag === true && updatedStudent.email) {
+      await sendEmail({
+        to: updatedStudent.email,
+        subject: 'Admission Confirmed',
+        text: `Hi ${updatedStudent.firstName},\n\nYour admission has been successfully confirmed.\n\nRegards,\nAdmission Office`,
+      });
+    }
+
 
     return res.status(200).json({
       message: 'Admission flag updated and central system notified',
@@ -116,6 +123,9 @@ exports.updateAdmissionFlag = async (req, res) => {
     return res.status(500).json({ error: 'Server error' });
   }
 };
+
+
+
 
 
 exports.getInterviewsByStudentId = async (req, res) => {
