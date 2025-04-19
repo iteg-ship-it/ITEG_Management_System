@@ -1,4 +1,3 @@
-
 const AdmissionProcess = require("../models/admissionProcessStudent");
 const AdmittedStudent = require("../models/admittedStudent");
 
@@ -11,7 +10,9 @@ exports.createAdmittedStudent = async (req, res) => {
     console.log("Admission Data Found:", admissionData);
 
     if (!admissionData || !admissionData.admissionFlag) {
-      return res.status(400).json({ message: "Student not cleared or not found." });
+      return res
+        .status(400)
+        .json({ message: "Student not cleared or not found." });
     }
 
     const newAdmitted = new AdmittedStudent({
@@ -25,13 +26,22 @@ exports.createAdmittedStudent = async (req, res) => {
     });
 
     await newAdmitted.save();
-    return res.status(201).json({ message: "Student admitted", data: newAdmitted });
-
+    return res
+      .status(201)
+      .json({ message: "Student admitted", data: newAdmitted });
   } catch (error) {
     console.error("Error during admission:", error); // Important for debugging
-    return res.status(500).json({ message: "Admission failed", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Admission failed", error: error.message });
   }
 };
 
-
-
+exports.getAllStudents = async (req, res) => {
+  try {
+    const students = await AdmittedStudent.find();
+    res.status(200).json(students);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

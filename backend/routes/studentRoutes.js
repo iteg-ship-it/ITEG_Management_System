@@ -1,35 +1,32 @@
-
 const express = require("express");
 const router = express.Router();
 const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
-const studentController= require("../modules/student/controllers/admittedStudentController");
+const studentController = require("../modules/student/controllers/admittedStudentController");
 
 const allowedRoles = ["Super Admin", "Faculty", "Admin"];
 // Register Student
 // //Swagger
- router.post("/admitted", studentController.createAdmittedStudent);
-
- 
+router.post("/admitted", studentController.createAdmittedStudent);
 
 // // Get All Permission Students
 // router.get("/permission-students", verifyToken, checkRole(['Super Admin', 'Admin', 'Faculty']), studentController.getAllPermissionStudents);
 
-
 // // // Get All Students
-// router.get("/getall", verifyToken, checkRole(allowedRoles), studentController.getAllStudents);
+router.get(
+  "/getall",
+  verifyToken,
+  checkRole(allowedRoles),
+  studentController.getAllStudents
+);
 
 // // // Get Single Student by ID
 // router.get("/:id", verifyToken, checkRole(allowedRoles), studentController.getStudentById);
 
-
-
 // Create Permission Student API (Only authorized roles)
 // router.post('/create-permission-student/:id', verifyToken, checkRole(['Super Admin', 'Admin', 'Faculty']), studentController.createPermissionStudent);
 
-
 // // Update Permission Student API (Only authorized roles)
 // router.put('/update-permission-student/:studentId', verifyToken, checkRole(['Super Admin', 'Admin', 'Faculty']), studentController.updatePermissionStudent);
-
 
 // // // Update Student Data
 // //Swagger
@@ -53,7 +50,6 @@ const allowedRoles = ["Super Admin", "Faculty", "Admin"];
 // router.get("/student/level/:levelNo", verifyToken, checkRole(allowedRoles),studentController. getStudentsByLevel );
 
 // router.get("/total/student/:levelNo", verifyToken, checkRole(allowedRoles),studentController. getStudentCountBySpecificLevel );
-
 
 // router.get("/getlevels/:id", verifyToken, checkRole(allowedRoles),studentController. getStudentLevels );
 
