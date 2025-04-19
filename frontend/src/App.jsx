@@ -2,7 +2,7 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
-  
+  Navigate,
 } from "react-router-dom";
 import Sidebar from "./components/common-components/sidebar/Sidebar";
 import Dashboard from "./components/dashboard/Dashboard";
@@ -10,7 +10,9 @@ import LoginPage from "./components/common-components/login&registration/LoginPa
 import SignupPage from "./components/common-components/signup/SignupPage";
 import AdmissionDashboard from "./components/admition-process/admission-dashboard/AdmissionDashboard";
 
-const App = () => {
+function App() {
+  const token = localStorage.getItem("token");
+
   return (
     <Router>
       <Routes>
@@ -40,6 +42,6 @@ const App = () => {
       </Routes>
     </Router>
   );
-};
+}
 
 export default App;
