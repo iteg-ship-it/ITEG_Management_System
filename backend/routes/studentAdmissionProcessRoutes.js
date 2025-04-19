@@ -1,31 +1,12 @@
 const express = require('express');
-const { addAdmission,
-    getAllAdmissions,
-    updateStudent,
-    deleteStudent,
-    getStudentsByTrack,
-    downloadStudentExcel,
-    createInterview,
-    updateAdmissionFlag 
-} = require('../modules/student/controllers/admissionProcessStudentControllers');
-const StudentAdmissionProcess = require('../modules/student/models/admissionProcessStudent');
+const studentAmissionProcess = require('../modules/student/controllers/admissionProcessStudentControllers');
+const studentAdmitted = require('../modules/student/controllers/admittedStudentController');
+
 const router = express.Router();
 
 
-router.post('/admission-process', addAdmission);
-router.post('/createInterview/:id', createInterview );
-router.put('/updateAdmissionFlag/:id', updateAdmissionFlag );
-// router.get('/admission-dashboard',getAllAdmissions);
-// router.put('/update/:id', updateStudent);
-// router.delete('/delete/:id', deleteStudent);
-// router.get('/track/:track', getStudentsByTrack);
+// router.post('/admission-process', studentAmissionProcess.addAdmission);
 
-// const allowedRoles = ["Super Admin", "Faculty", "Admin"];
-
-// Download Student Data as Excel
-// router.get("/download/excel",downloadStudentExcel);
-
-
-
+router.put('/send-interview-flag/:studentId', studentAmissionProcess.sendInterviewFlagToCentral);
 
 module.exports = router;
