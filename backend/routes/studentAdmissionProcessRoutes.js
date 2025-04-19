@@ -1,14 +1,5 @@
 const express = require('express');
-// const { addAdmission,
-//     getAllAdmissions,
-//     updateStudent,
-//     deleteStudent,
-//     getStudentsByTrack,
-//     downloadStudentExcel,
-//     createInterview,
-//     updateAdmissionFlag 
-// } = require('../modules/student/controllers/admissionProcessStudentControllers');
-// const StudentAdmissionProcess = require('../modules/student/models/admissionProcessStudent');
+
 const studentAdmissionProcess = require('../modules/student/controllers/admissionProcessStudentControllers');
 const router = express.Router();
 
