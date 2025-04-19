@@ -22,7 +22,7 @@ function App() {
               path="/*"
               element={
                 <div className="flex bg-gray-100">
-                  <Sidebar role="admin" />
+                  <Sidebar role="superadmin" />
                   <div className="flex-1 p-4">
                     <Dashboard />
                   </div>
