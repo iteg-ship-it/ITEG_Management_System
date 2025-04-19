@@ -1,7 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import { getDecryptedRole } from "../../helpers/authUtils";
-
-// Pages
+import { Routes, Route } from "react-router-dom";
 import AdmissionProcess from "../admition-process/admition-process-page/AdmissionProcess";
 import StudentProfile from "../student-records/studentProfile/StudentProfile";
 import PlacementRecords from "../placement/placement-records/PlacementRecords";
@@ -10,6 +7,8 @@ import AdmitionRecords from "../admition-process/admition-records/AdmitionRecord
 import StudentEditPage from "../student-records/student-edit-page/StudentEditPage";
 import StudentDashboard from "../student-records/student-dashboard/StudentDashboard";
 import StudentDetailTable from "../student-records/student-detail-table/StudentDetailTable";
+// import LoginPage from "../common-components/login&registration/LoginPage";
+// import SignupPage from "./../common-components/signup/SignupPage";
 
 const Dashboard = () => {
   const role = getDecryptedRole();
