@@ -1,6 +1,3 @@
-
-
-import React from "react";
 import { Formik, Form } from "formik";
 
 import {
@@ -8,7 +5,6 @@ import {
   SelectInput,
   RadioInput,
 } from "./../../common-feild/FormFields";
-
 
 import { signupValidationSchema } from "../../../validationSchema";
 
@@ -50,8 +46,7 @@ const SignupPage = () => {
             alt="Logo"
           />
           <div>
-           
- <h1 className="text-3xl font-bold mb-6 w-52 mx-8">
+            <h1 className="text-3xl font-bold mb-6 w-52 mx-8">
               SANT SINGAJI EDUCATIONAL SOCIETY
             </h1>
           </div>
@@ -150,7 +145,3 @@ const SignupPage = () => {
 };
 
 export default SignupPage;
-
-
-
-
