@@ -10,9 +10,7 @@ import LoginPage from "./components/common-components/login&registration/LoginPa
 import SignupPage from "./components/common-components/signup/SignupPage";
 import AdmissionDashboard from "./components/admition-process/admission-dashboard/AdmissionDashboard";
 
-function App() {
-  const token = localStorage.getItem("token");
-
+const App = () => {
   return (
     <Router>
       <Routes>
@@ -42,6 +40,6 @@ function App() {
       </Routes>
     </Router>
   );
-}
+};
 
 export default App;
