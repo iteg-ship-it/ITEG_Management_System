@@ -1,5 +1,5 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
+import UserProfile from "../../common-components/user-profile/UserProfile";
 
 const data = [
   {
@@ -66,9 +66,12 @@ const AdmissionProcess = () => {
   };
   return (
     <div className="min-h-screen w-full p-4 md:p-6">
-      <h1 className="text-2xl font-bold mb-6 text-center md:text-left">
-        Admission Dashboard
-      </h1>
+      <div className="w-full flex justify-between px-4">
+        <h1 className="text-2xl py-1 font-bold mb-6 text-center md:text-left">
+          Admission Dashboard
+        </h1>
+        <UserProfile />
+      </div>
 
       {/* ✅ Top Summary Section with Dividers */}
       <div className="bg-white shadow-md p-6 rounded-lg">

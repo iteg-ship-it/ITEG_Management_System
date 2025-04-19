@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import back from "../../../assets/icons/back-icon.png";
 import del from "../../../assets/icons/delete-icon.png";
 import edit from "../../../assets/icons/edit-icon.png";
 import { IoSearchOutline } from "react-icons/io5";
+import UserProfile from "../../common-components/user-profile/UserProfile";
 
 const allStudents = [
   {
@@ -110,7 +111,10 @@ const AdmitionRecords = () => {
 
   return (
     <>
-      <div className="p-6 w-[85vw] ">
+      <div className="w-full flex justify-end px-4">
+        <UserProfile />
+      </div>
+      <div className="p-5 w-[80vw] ">
         <div className="bg-white h-50 p-9 rounded-lg">
           <div className=" ">
             <div className="flex items-center mb-6">

@@ -33,10 +33,10 @@ const UserProfile = () => {
   return (
     <div className="relative inline-block text-left" ref={dropdownRef}>
       <div
-        className="flex justify-end cursor-pointer p-2 hover:bg-gray-200 rounded-full"
+        className="flex justify-end cursor-pointer p-2 bg-gray-200 hover:bg-gray-300 rounded-full"
         onClick={() => setOpen(!open)}
       >
-        <FiUser size={24} />
+        <FiUser size={20} />
       </div>
 
       {open && (
