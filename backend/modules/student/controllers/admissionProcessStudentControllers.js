@@ -4,6 +4,8 @@ const admittedStudent = require("./admittedStudentController");
 
 const crypto = require("crypto");
  const { sendEmail } = require('./emailController');
+//  console.log('Student email:', updatedStudent.email);
+
 
 // const axios = require('axios');
 require("dotenv").config();
@@ -57,19 +59,7 @@ exports.addAdmission = async (req, res) => {
 exports.updateAdmissionFlag = async (req, res, next) => {
   try {
     const { prkey, admissionStatus } = req.body;
-    // const receivedSignature = req.headers["x-webhook-signature"];
 
-    // const expectedSignature = crypto
-    //   .createHmac("sha256", WEBHOOK_SECRET)
-    //   .update(JSON.stringify(req.body))
-    //   .digest("hex");
-
-    // if (receivedSignature !== expectedSignature) {
-    //   console.log("❌ Invalid Signature");
-    //   return res.status(401).send("Unauthorized");
-    // }
-   // Log the received data
-    // Check if prkey and admissionStatus are provided
     if (!prkey || !admissionStatus) {
       return res.status(400).json({
         message: "Both prkey and admissionStatus are required",
@@ -91,6 +81,15 @@ exports.updateAdmissionFlag = async (req, res, next) => {
     }
          req.updatedStudent = updatedStudent;
 
+
+         // // ✅ Send plain text email if admission confirmed
+         if (admissionStatus === true && updatedStudent.email) {
+          await sendEmail({
+            to: updatedStudent.email,
+            subject: 'Admission Confirmed',
+            text: `Hi ${updatedStudent.firstName},\n\nYour admission has been successfully confirmed.\n\nRegards,\nAdmission Office`,
+          });
+         }
     // Now move to next controller
     next();
     // Call the next middleware or route handler
@@ -101,6 +100,8 @@ exports.updateAdmissionFlag = async (req, res, next) => {
       .json({ message: "Server error", error: error.message });
   }
 };
+
+
 // update the itegIntervieFlag 
 exports.sendInterviewFlagToCentral = async (req, res) => {
   try {
@@ -117,17 +118,24 @@ exports.sendInterviewFlagToCentral = async (req, res) => {
       return res.status(404).json({ message: 'Student not found' });
     }
 
-     // ✅ Send plain text email if admission confirmed
    
+     // // ✅ Send plain text email if admission confirmed
+
 
     // Step 2: Prepare payload (only relevant fields)
     const payload = {
       prkey: student.prkey,
       itegInterviewFlag: true
     };
-
+    if (student.itegInterviewFlag === true && student.email) {
+      await sendEmail({
+        to: student.email,
+        subject: 'Admission Confirmed',
+        text: `Hi ${student.firstName},\n\n Now you are eligible.\n\nRegards,\nAdmission Office`,
+      });
+     }
     // Step 3: Send POST to Central System
-    const response = await axios.post('http://localhost:5001/webhook/iteg-flag-update', payload); // Replace URL
+     const response = await axios.post('http://localhost:5001/webhook/iteg-flag-update', payload); // Replace URL
 
     // Step 4: Respond
     res.status(200).json({
