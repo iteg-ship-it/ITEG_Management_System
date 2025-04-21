@@ -9,6 +9,12 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, default: 'admin', immutable: true },
   department: { type: String, required: true },
+  mobileNo: {
+  type: String,
+  required: true,
+  unique: true,
+}
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', UserSchema);

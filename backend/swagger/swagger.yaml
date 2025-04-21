@@ -460,232 +460,232 @@ paths:
           description: Invalid credentials
         '500':
           description: Server error
-  /superadmin/register:
-    post:
-      tags:
-        - Super Admin
-      summary: Create a new Super Admin
-      description: Register a new Super admin user with the required details.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SuperAdmin'
-      responses:
-        '201':
-          description: Super Admin created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Super Admin created successfully!
-                  token:
-                    type: string
-                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6...
-        '400':
-          description: Super Admin already exists
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Super Admin already exists
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Server Error
-                  error:
-                    type: string
-                    example: An error message
+  # /superadmin/register:
+  #   post:
+  #     tags:
+  #       - Super Admin
+  #     summary: Create a new Super Admin
+  #     description: Register a new Super admin user with the required details.
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/SuperAdmin'
+  #     responses:
+  #       '201':
+  #         description: Super Admin created successfully
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 message:
+  #                   type: string
+  #                   example: Super Admin created successfully!
+  #                 token:
+  #                   type: string
+  #                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6...
+  #       '400':
+  #         description: Super Admin already exists
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 message:
+  #                   type: string
+  #                   example: Super Admin already exists
+  #       '500':
+  #         description: Server error
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 message:
+  #                   type: string
+  #                   example: Server Error
+  #                 error:
+  #                   type: string
+  #                   example: An error message
 
-  /superadmin/login:
-    post:
-      summary: Login as Super Admin
-      tags: [Super Admin]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                password:
-                  type: string
-              required:
-                - email
-                - password
-      responses:
-        '200':
-          description: Login successful (returns JWT token)
+  # /superadmin/login:
+  #   post:
+  #     summary: Login as Super Admin
+  #     tags: [Super Admin]
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               email:
+  #                 type: string
+  #               password:
+  #                 type: string
+  #             required:
+  #               - email
+  #               - password
+  #     responses:
+  #       '200':
+  #         description: Login successful (returns JWT token)
 
-  /superadmin/superadmin:
-    get:
-      summary: Get all Super Admins
-      tags: [Super Admin]
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: List of all Super Admins
+  # /superadmin/superadmin:
+  #   get:
+  #     summary: Get all Super Admins
+  #     tags: [Super Admin]
+  #     security:
+  #       - bearerAuth: []
+  #     responses:
+  #       '200':
+  #         description: List of all Super Admins
 
-  /superadmin/{id}:
-    get:
-      summary: Get Super Admin by ID
-      tags: [Super Admin]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Super Admin detail
+  # /superadmin/{id}:
+  #   get:
+  #     summary: Get Super Admin by ID
+  #     tags: [Super Admin]
+  #     security:
+  #       - bearerAuth: []
+  #     parameters:
+  #       - name: id
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       '200':
+  #         description: Super Admin detail
 
-  /admin:
-    get:
-      summary: Get all admins
-      tags: [Admin]
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: List of admins
+  # /admin:
+  #   get:
+  #     summary: Get all admins
+  #     tags: [Admin]
+  #     security:
+  #       - bearerAuth: []
+  #     responses:
+  #       '200':
+  #         description: List of admins
   
 
-  /admin/register:
-    post:
-      tags:
-        - Admin
-      summary: Create a new Admin
-      description: Register a new admin user with the required details.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Admin'
-      responses:
-        '201':
-          description: Admin created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Admin created successfully!
-                  token:
-                    type: string
-                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6...
-        '400':
-          description: Admin already exists
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Admin already exists
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Server Error
-                  error:
-                    type: string
-                    example: An error message
+  # /admin/register:
+  #   post:
+  #     tags:
+  #       - Admin
+  #     summary: Create a new Admin
+  #     description: Register a new admin user with the required details.
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/Admin'
+  #     responses:
+  #       '201':
+  #         description: Admin created successfully
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 message:
+  #                   type: string
+  #                   example: Admin created successfully!
+  #                 token:
+  #                   type: string
+  #                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6...
+  #       '400':
+  #         description: Admin already exists
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 message:
+  #                   type: string
+  #                   example: Admin already exists
+  #       '500':
+  #         description: Server error
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 message:
+  #                   type: string
+  #                   example: Server Error
+  #                 error:
+  #                   type: string
+  #                   example: An error message
 
 
-  /admin/login:
-    post:
-      summary: Login as Admin
-      tags: [Admin]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                password:
-                  type: string
-              required:
-                - email
-                - password
-      responses:
-        '200':
-          description: Login successful (returns JWT token)
+  # /admin/login:
+  #   post:
+  #     summary: Login as Admin
+  #     tags: [Admin]
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               email:
+  #                 type: string
+  #               password:
+  #                 type: string
+  #             required:
+  #               - email
+  #               - password
+  #     responses:
+  #       '200':
+  #         description: Login successful (returns JWT token)
 
 
-  /admin/{id}:
-    get:
-      summary: Get admin by ID
-      tags: [Admin]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Admin detail
-    put:
-      summary: Update admin
-      tags: [Admin]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Admin updated
-    delete:
-      summary: Delete admin
-      tags: [Admin]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Admin deleted
+  # /admin/{id}:
+  #   get:
+  #     summary: Get admin by ID
+  #     tags: [Admin]
+  #     security:
+  #       - bearerAuth: []
+  #     parameters:
+  #       - name: id
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       '200':
+  #         description: Admin detail
+  #   put:
+  #     summary: Update admin
+  #     tags: [Admin]
+  #     security:
+  #       - bearerAuth: []
+  #     parameters:
+  #       - name: id
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       '200':
+  #         description: Admin updated
+  #   delete:
+  #     summary: Delete admin
+  #     tags: [Admin]
+  #     security:
+  #       - bearerAuth: []
+  #     parameters:
+  #       - name: id
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       '200':
+  #         description: Admin deleted
 
   /students/admitted:
    paths:
@@ -960,78 +960,78 @@ paths:
         '500':
           description: Server error
 
-  /faculty:
-    get:
-      summary: Get all faculties
-      tags: [Faculty]
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Faculty list
+  # /faculty:
+  #   get:
+  #     summary: Get all faculties
+  #     tags: [Faculty]
+  #     security:
+  #       - bearerAuth: []
+  #     responses:
+  #       '200':
+  #         description: Faculty list
 
-  /faculty/create:
-    post:
-      summary: Create a new faculty
-      tags:
-        - Faculty
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/FacultyCreateRequest'
-      responses:
-        '201':
-          description: Faculty created successfully
-        '400':
-          description: Faculty already exists
-        '500':
-          description: Server error
+  # /faculty/create:
+  #   post:
+  #     summary: Create a new faculty
+  #     tags:
+  #       - Faculty
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/FacultyCreateRequest'
+  #     responses:
+  #       '201':
+  #         description: Faculty created successfully
+  #       '400':
+  #         description: Faculty already exists
+  #       '500':
+  #         description: Server error
           
-  /faculty/{id}:
-    get:
-      summary: Get faculty by ID
-      tags: [Faculty]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Faculty detail
-    put:
-      summary: Update faculty
-      tags: [Faculty]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Faculty updated
-    delete:
-      summary: Delete faculty
-      tags: [Faculty]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Faculty deleted
+  # /faculty/{id}:
+  #   get:
+  #     summary: Get faculty by ID
+  #     tags: [Faculty]
+  #     security:
+  #       - bearerAuth: []
+  #     parameters:
+  #       - name: id
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       '200':
+  #         description: Faculty detail
+  #   put:
+  #     summary: Update faculty
+  #     tags: [Faculty]
+  #     security:
+  #       - bearerAuth: []
+  #     parameters:
+  #       - name: id
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       '200':
+  #         description: Faculty updated
+  #   delete:
+  #     summary: Delete faculty
+  #     tags: [Faculty]
+  #     security:
+  #       - bearerAuth: []
+  #     parameters:
+  #       - name: id
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: string
+  #     responses:
+  #       '200':
+  #         description: Faculty deleted
 
   /studentAdmission/admission-process:
     post:
