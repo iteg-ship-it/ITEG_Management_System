@@ -111,21 +111,14 @@ exports.sendInterviewFlagToCentral = async (req, res) => {
       studentId,
       { itegInterviewFlag: true },
       { new: true }
-    ).select('+email');
+    )
 
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
     }
-    console.log('Student email:', updatedStudent.email);
 
      // ✅ Send plain text email if admission confirmed
-    if (flag === true && updatedStudent.email) {
-      await sendEmail({
-        to: updatedStudent.email,
-        subject: 'Admission Confirmed',
-        text: `Hi ${updatedStudent.firstName},\n\nYour admission has been successfully confirmed.\n\nRegards,\nAdmission Office`,
-      });
-    }
+   
 
     // Step 2: Prepare payload (only relevant fields)
     const payload = {
