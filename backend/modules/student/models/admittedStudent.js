@@ -33,11 +33,12 @@ const AdmittedStudentSchema = new mongoose.Schema({
   },
 
   fullName: { type: String, required: true },
+  prkey: { type: String, required: true, unique: true },
   stream: { type: String, required: true },
   course: { type: String, required: true },
   fatherName: { type: String, required: true },
   mobileNo: { type: String, required: true },
-  email: { type: String, required: true },
+  email: { type: String, default: "" },
 
   level: [levelSchema],
   techno: { type: String },
