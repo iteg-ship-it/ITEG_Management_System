@@ -3,6 +3,9 @@ const AdmissionProcess = require("../models/admissionProcessStudent");
 const admittedStudent = require("./admittedStudentController");
 
 const crypto = require("crypto");
+ const { sendEmail } = require('./emailController');
+
+// const axios = require('axios');
 require("dotenv").config();
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET; // ✅ Also load this from .env
 
@@ -108,10 +111,20 @@ exports.sendInterviewFlagToCentral = async (req, res) => {
       studentId,
       { itegInterviewFlag: true },
       { new: true }
-    );
+    ).select('+email');
 
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
+    }
+    console.log('Student email:', updatedStudent.email);
+
+     // ✅ Send plain text email if admission confirmed
+    if (flag === true && updatedStudent.email) {
+      await sendEmail({
+        to: updatedStudent.email,
+        subject: 'Admission Confirmed',
+        text: `Hi ${updatedStudent.firstName},\n\nYour admission has been successfully confirmed.\n\nRegards,\nAdmission Office`,
+      });
     }
 
     // Step 2: Prepare payload (only relevant fields)
@@ -134,3 +147,38 @@ exports.sendInterviewFlagToCentral = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
+
+
+
+
+
+exports.getInterviewsByStudentId = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find student by ID
+    const student = await AdmissionProcess.findById(id);
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found"
+      });
+    }
+
+    // Return only interviews array
+    res.status(200).json({
+      success: true,
+      interviews: student.interviews
+    });
+
+  } catch (error) {
+    console.error("Error fetching interviews:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message
+    });
+  }
+};
+
