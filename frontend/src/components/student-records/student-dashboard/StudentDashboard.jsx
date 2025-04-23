@@ -43,9 +43,8 @@ const StudentDashboard = () => {
 
   return (
     <>
-      <div className="w-full flex justify-end px-4">
-        <UserProfile />
-      </div>
+      <UserProfile heading="Student Dashboard" />
+
       <div className="p-4 md:p-6 bg-gray-100 min-h-screen w-full">
         <div className="container mx-auto bg-white shadow-md p-6 md:p-10 rounded-lg">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">

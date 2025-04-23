@@ -13,7 +13,7 @@ const menuItems = [
   {
     name: "Add Process",
     icon: admissionIcon,
-    roles: ["superadmin"],
+    roles: ["Superadmin", "Admin"],
     subMenu: [
       { name: "Dashboard", path: "/" },
       { name: "Admission Process", path: "/admission" },
@@ -22,10 +22,10 @@ const menuItems = [
   {
     name: "Student Record",
     icon: studentRecordIcon,
-    roles: ["superadmin", "admin", "faculty"],
+    roles: ["Superadmin", "Admin", "Faculty"],
     subMenu: [
       { name: "Student Profiles", path: "/student-dashboard" },
-      { name: "Permission Students", path: "/permission-students" },
+      { name: "Permission Students", path: "/student-permission" },
       { name: "Attendance info", path: "/attendance-info" },
       { name: "Level Info", path: "/level-info" },
       { name: "Interview Record", path: "/interview-record" },
@@ -34,7 +34,7 @@ const menuItems = [
   {
     name: "Placement Info",
     icon: placementIcon,
-    roles: ["superadmin", "admin", "faculty"],
+    roles: ["Superadmin", "Admin", "Faculty"],
     subMenu: [
       { name: "Readiness Status", path: "/readiness-status" },
       { name: "Interview Record", path: "/placement-interview-record" },
