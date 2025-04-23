@@ -1110,5 +1110,83 @@ paths:
           description: Student not found
         '500':
           description: Server error
+
+
+  /students/admission/getInterviews/{id}:
+    get:
+      tags:
+        - Admission Process
+      summary: Get all interview attempts by student ID
+      description: Retrieves the interview array for a student using their MongoDB ObjectId.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: MongoDB ObjectId of the student
+      responses:
+        '200':
+          description: List of interviews retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  interviews:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        noOfAttempts:
+                          type: integer
+                          example: 1
+                        marks:
+                          type: integer
+                          example: 80
+                        remark:
+                          type: string
+                          example: Well spoken
+                        date:
+                          type: string
+                          format: date-time
+                          example: "2025-04-16T10:00:00.000Z"
+                        result:
+                          type: string
+                          enum: [Pass, Fail, Pending]
+                          example: Pass
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Student not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Server Error
+                  error:
+                    type: string
+                    example: Internal server error message
+
           
 

@@ -4,12 +4,14 @@ const AdmittedStudent = require("../models/admittedStudent");
 // ✅ Create New Admitted Student (from AdmissionProcess)
 exports.createAdmittedStudent = async (req, res) => {
   try {
-    const { admissionId, email } = req.body;
+    console.log("Received request to create admitted student:", req.body); // Important for debugging
+
+    const admissionId = req.updatedStudent._id;
 
     const admissionData = await AdmissionProcess.findById(admissionId);
     console.log("Admission Data Found:", admissionData);
 
-    if (!admissionData || !admissionData.admissionFlag) {
+    if (!admissionData || !admissionData.admissionStatus) {
       return res
         .status(400)
         .json({ message: "Student not cleared or not found." });
@@ -17,12 +19,13 @@ exports.createAdmittedStudent = async (req, res) => {
 
     const newAdmitted = new AdmittedStudent({
       admissionRef: admissionData._id,
+      prkey: admissionData.prkey,
       fullName: `${admissionData.firstName} ${admissionData.lastName}`,
       stream: admissionData.stream,
       course: admissionData.course,
       fatherName: admissionData.fatherName,
       mobileNo: admissionData.studentMobile,
-      email: email || "", // Optional
+      email: admissionData.email || "", // Optional
     });
 
     await newAdmitted.save();
