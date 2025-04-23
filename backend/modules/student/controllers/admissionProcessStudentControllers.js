@@ -101,7 +101,6 @@ exports.updateAdmissionFlag = async (req, res, next) => {
   }
 };
 
-
 // update the itegIntervieFlag 
 exports.sendInterviewFlagToCentral = async (req, res) => {
   try {
@@ -148,9 +147,6 @@ exports.sendInterviewFlagToCentral = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
-
-
-
 
 
 exports.getInterviewsByStudentId = async (req, res) => {
