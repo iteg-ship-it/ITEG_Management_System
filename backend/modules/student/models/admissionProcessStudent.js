@@ -116,14 +116,14 @@ const StudentAdmissionProcessSchema = new mongoose.Schema(
     // Interview Attempts Tracking
     interviews: [
       {
-        round: { type: String, enum: ['First', 'Second'], required: true },
+        round: { type: String, enum: ['First', 'Second'], required: true, default: 'First' },
         attemptNo: { type: Number },
         marks: { type: Number },
         remark: { type: String },
         date: { type: Date },
         result: {
           type: String,
-          enum: ['Pass', 'Fail', 'Pending', 'Not Attempted'],
+          enum: ['Pass', 'Fail', 'Pending'],
           default: 'Pending'
         }
       }
@@ -137,10 +137,10 @@ const StudentAdmissionProcessSchema = new mongoose.Schema(
     },
 
     // Optional: Who created this entry (Admin/Faculty)
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    }
+    // createdBy: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: 'User'
+    // }
   },
   { timestamps: true }
 );
