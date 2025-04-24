@@ -48,7 +48,7 @@ const Pagination = ({ entries, setEntries, searchTerm, setSearchTerm }) => {
           )}
         </div>
 
-        <button className="bg-blue-400 text-white p-2 rounded hover:bg-blue-500">
+        <button className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
           <Download size={25} />
         </button>
         <button className="bg-red-200 text-white p-3 rounded hover:bg-red-300">
