@@ -16,17 +16,17 @@ exports.addAdmission = async (req, res) => {
    try {
     const payload = req.body;
 
-    const receivedSignature = req.headers["x-webhook-signature"];
+    // const receivedSignature = req.headers["x-webhook-signature"];
 
-    const expectedSignature = crypto
-      .createHmac("sha256", WEBHOOK_SECRET)
-      .update(JSON.stringify(payload))
-      .digest("hex");
+    // const expectedSignature = crypto
+    //   .createHmac("sha256", WEBHOOK_SECRET)
+    //   .update(JSON.stringify(payload))
+    //   .digest("hex");
 
-    if (receivedSignature !== expectedSignature) {
-      console.log("❌ Invalid Signature");
-      return res.status(401).send("Unauthorized");
-    }
+    // if (receivedSignature !== expectedSignature) {
+    //   console.log("❌ Invalid Signature");
+    //   return res.status(401).send("Unauthorized");
+    // }
 
     const existingStudent = await AdmissionProcess.findOne({
       prkey: payload.prkey,
