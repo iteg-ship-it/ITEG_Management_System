@@ -1,14 +1,58 @@
 import UserProfile from "../../common-components/user-profile/UserProfile";
+import { useGetAllStudentsQuery } from "../../../redux/auth/authApiSlice";
+import CommonTable from "../../common-components/table/CommonTable";
+import Pagination from "../../common-components/pagination/Pagination";
+import { useState } from "react";
 
 const AdmissionProcess = () => {
   return (
     <>
       <UserProfile heading="Admission Process" />
+      <StudentList />
     </>
   );
 };
 
 export default AdmissionProcess;
+
+const StudentList = () => {
+  const { data = [], isLoading, error } = useGetAllStudentsQuery();
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error fetching students.</p>;
+
+  const columns = [
+    { key: "firstName", label: "Full Name" },
+    { key: "fatherName", label: "Father's Name" },
+    { key: "admissionRef", label: "Admission Ref" },
+    // { key: "profile", label: "Profile Photo" },
+  ];
+
+  return (
+    <>
+      <Pagination
+        entries={rowsPerPage}
+        setEntries={setRowsPerPage}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+      />
+      <CommonTable
+        data={data}
+        columns={columns}
+        searchable={true}
+        filterable={true}
+        editable={true}
+        pagination={true}
+        rowsPerPage={rowsPerPage}
+        setRowsPerPage={setRowsPerPage}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+      />
+    </>
+  );
+};
 
 // import { useNavigate } from "react-router-dom";
 // import UserProfile from "../../common-components/user-profile/UserProfile";

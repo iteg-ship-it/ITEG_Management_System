@@ -4,6 +4,7 @@ import Dashboard from "./components/dashboard/Dashboard";
 import LoginPage from "./components/common-components/login-page/LoginPage";
 import SignupPage from "./components/common-components/signup/SignupPage";
 import AdmissionDashboard from "./components/admition-process/admission-dashboard/AdmissionDashboard";
+import ForgetPassword from "./components/common-components/forget-password/ForgetPassword";
 
 function App() {
   const token = localStorage.getItem("token");
@@ -34,6 +35,7 @@ function App() {
           </>
         )}
         <Route path="/registration" element={<SignupPage />} />
+        <Route path="/forget-password" element={<ForgetPassword />} />
       </Routes>
     </Router>
   );
