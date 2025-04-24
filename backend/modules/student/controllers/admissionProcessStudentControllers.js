@@ -12,49 +12,102 @@ require("dotenv").config();
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET; // ✅ Also load this from .env
 
 // ✅ Add New Admission Entry
+// exports.addAdmission = async (req, res) => {
+//    try {
+//     const payload = req.body;
+
+//     // const receivedSignature = req.headers["x-webhook-signature"];
+
+//     // const expectedSignature = crypto
+//     //   .createHmac("sha256", WEBHOOK_SECRET)
+//     //   .update(JSON.stringify(payload))
+//     //   .digest("hex");
+
+//     // if (receivedSignature !== expectedSignature) {
+//     //   console.log("❌ Invalid Signature");
+//     //   return res.status(401).send("Unauthorized");
+//     // }
+
+//     const existingStudent = await AdmissionProcess.findOne({
+//       prkey: payload.prkey,
+//     });
+//     if (existingStudent) {
+//       // Update the existing document with new data
+//       console.log(
+//         "✅ Updating existing student admission process data:",
+//         existingStudent
+//       );
+//       existingStudent.set(payload);
+//       // await existingStudent.save();
+//       return res
+//         .status(200)
+//         .json({ message: "Student already registered", data: existingStudent });
+//     }
+//     // Check if required fields are present
+//     if (isNaN(Date.parse(req.body.dob))) {
+//       return res.status(400).json({ message: "Invalid date format" });
+//     }
+//     const newAdmission = new AdmissionProcess(payload);
+
+//     await newAdmission.save();
+//     console.log("✅ New student admission process data saved:");
+    
+//     res
+//       .status(201)
+//       .json({ message: "Student admission initiated", data: newAdmission });
+//    } catch (error) {
+//     res.status(400).json({ message: "Error adding admission", error });
+//    }
+// };
 exports.addAdmission = async (req, res) => {
-   try {
+  try {
     const payload = req.body;
 
-    // const receivedSignature = req.headers["x-webhook-signature"];
-
-    // const expectedSignature = crypto
-    //   .createHmac("sha256", WEBHOOK_SECRET)
-    //   .update(JSON.stringify(payload))
-    //   .digest("hex");
-
-    // if (receivedSignature !== expectedSignature) {
-    //   console.log("❌ Invalid Signature");
-    //   return res.status(401).send("Unauthorized");
-    // }
-
-    const existingStudent = await AdmissionProcess.findOne({
-      prkey: payload.prkey,
-    });
-    if (existingStudent) {
-      // Update the existing document with new data
-      console.log(
-        "✅ Updating existing student admission process data:",
-        existingStudent
-      );
-      existingStudent.set(payload);
-      // await existingStudent.save();
-      return res
-        .status(200)
-        .json({ message: "Student already registered", data: existingStudent });
+    // 1) Check required fields
+    const requiredFields = [
+      'prkey','firstName','lastName','fatherName',
+      'studentMobile','parentMobile','gender','dob',
+      'aadharCard','address','stream','course',
+      'category','subject12','year12'
+    ];
+    for (let field of requiredFields) {
+      if (!payload[field]) {
+        return res.status(400).json({ message: `Missing field: ${field}` });
+      }
     }
-    const newAdmission = new AdmissionProcess(payload);
 
+    // 2) Validate date format
+    if (isNaN(Date.parse(payload.dob))) {
+      return res.status(400).json({ message: 'Invalid date format' });
+    }
+
+    // 3) Validate mobile & aadhar format
+    const mobileRegex = /^\d{10}$/;
+    if (!mobileRegex.test(payload.studentMobile) || !mobileRegex.test(payload.parentMobile)) {
+      return res.status(400).json({ message: 'Invalid mobile number format' });
+    }
+    const aadharRegex = /^\d{12}$/;
+    if (!aadharRegex.test(payload.aadharCard)) {
+      return res.status(400).json({ message: 'Invalid aadhaar format' });
+    }
+
+    // 4) Duplicate check
+    const existingStudent = await AdmissionProcess.findOne({ prkey: payload.prkey });
+    if (existingStudent) {
+      existingStudent.set(payload);
+      return res.status(200).json({ message: 'Student already registered', data: existingStudent });
+    }
+
+    // 5) Save new
+    const newAdmission = new AdmissionProcess(payload);
     await newAdmission.save();
-    console.log("✅ New student admission process data saved:");
-    
-    res
-      .status(201)
-      .json({ message: "Student admission initiated", data: newAdmission });
-   } catch (error) {
-    res.status(400).json({ message: "Error adding admission", error });
-   }
+    return res.status(201).json({ message: 'Student admission initiated', data: newAdmission });
+
+  } catch (error) {
+    return res.status(500).json({ message: 'Error adding admission', error: error.message });
+  }
 };
+
 
 exports.updateAdmissionFlag = async (req, res, next) => {
   try {
