@@ -148,6 +148,113 @@ exports.sendInterviewFlagToCentral = async (req, res) => {
   }
 };
 
+// exports.createInterview = async (req, res) => {
+//   try {
+//       const { id } = req.params;  // Get student ID from URL
+//       const { round,attemptNo, marks, remark, date, result } = req.body;  // Extract data from request body
+
+
+//       // Find student by ID
+//       const student = await AdmissionProcess.findById(id);
+//       if (!student) {
+//           return res.status(404).json({ success: false, message: "Student not found" });
+//       }
+
+//       // Add new level to student's level array
+//       const newInterview = {
+//           round: round || "1",
+//           attemptNo: attemptNo || 0,
+//           marks: marks || 0,
+//           remark: remark || "",
+//           date: date || new Date(),
+//           result: result || "Pending"
+//       };
+
+//       student.interviews.push(newInterview);
+//       await student.save();  // Save changes to database
+
+//       res.status(201).json({
+//           success: true,
+//           message: "Level added successfully",
+//           student
+//       });
+//   } catch (error) {
+//       console.error("Error adding level:", error);
+//       res.status(500).json({ success: false, message: "Server Error", error });
+//   }
+// };
+
+
+exports.createInterview = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { round, attemptNo, marks, remark, date, result } = req.body;
+
+    const student = await AdmissionProcess.findById(id);
+    if (!student) {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
+
+    // Get the last interview (most recent)
+    const interviews = student.interviews || [];
+    const lastInterview = interviews[interviews.length - 1];
+
+    // Validation rules
+    if (lastInterview) {
+      // Check if trying to skip to the next round without passing
+      if (parseInt(round) > parseInt(lastInterview.round) && lastInterview.result !== "Passed") {
+        return res.status(400).json({
+          success: false,
+          message: `Cannot proceed to round ${round} until round ${lastInterview.round} is passed.`,
+        });
+      }
+
+      // Get attempts in the current round
+      const sameRoundAttempts = interviews.filter(i => i.round === lastInterview.round);
+
+      if (
+        lastInterview.round === round &&
+        sameRoundAttempts.length >= 4 &&
+        lastInterview.result !== "Passed"
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: `Maximum 4 attempts allowed for round ${round}. Student is rejected.`,
+        });
+      }
+
+      // If already passed the round, can't add more interviews for that round
+      if (lastInterview.round === round && lastInterview.result === "Passed") {
+        return res.status(400).json({
+          success: false,
+          message: `Round ${round} is already passed. Please proceed to the next round.`,
+        });
+      }
+    }
+
+    const newInterview = {
+      round: round || "1",
+      attemptNo: attemptNo || 0,
+      marks: marks || 0,
+      remark: remark || "",
+      date: date || new Date(),
+      result: result || "Pending",
+    };
+
+    student.interviews.push(newInterview);
+    await student.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Interview round added successfully",
+      student,
+    });
+  } catch (error) {
+    console.error("Error adding interview round:", error);
+    res.status(500).json({ success: false, message: "Server Error", error });
+  }
+};
+
 
 exports.getInterviewsByStudentId = async (req, res) => {
   try {
