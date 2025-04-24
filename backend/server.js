@@ -40,12 +40,15 @@ app.use("/api/students/admission",  admittedStudentRoutes);
 // app.use("/api/webhook", webhookRoutes);
 
 // app.use("/api/", studentAdmission);
-app.use("/api/studentAdmission", studentAdmissionRoutes);
+app.use("/api/students/admission", studentAdmissionRoutes);
 
 app.use("/api/webhook", webhookRoutes);
 app.use("/", webhookRoutes);
 
 app.use("/api/user", userRoutes);
+// in your main server.js / app.js
+app.use('/api/otp', require('./routes/otpRoutes'));
+
 
 
 // MongoDB Connection
