@@ -15,9 +15,18 @@ const generateToken = (user) => {
   );
 };
 
+const generateRefreshToken = (user) => {
+  return jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+};
+
+
 exports.createUser = async (req, res) => {
   try {
-    const { name, email, password, adharCard, department, positionRole, role } = req.body;
+    const { name, email, password, adharCard, department, position, role } = req.body;
 
     // Allowed roles
     const allowedRoles = ["admin", "superadmin", "faculty"];
@@ -42,7 +51,7 @@ exports.createUser = async (req, res) => {
       password: hashedPassword,
       adharCard,
       department,
-      positionRole,
+      position,
       role
     });
 
@@ -86,16 +95,21 @@ exports.login = async (req, res) => {
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
       );
+
+      const refreshToken = generateRefreshToken(user);
+      user.refreshToken = refreshToken;
+      await user.save();
   
       res.status(200).json({
         message: "Login successful",
         token,
+        refreshToken,
         user: {
           id: user._id,
           name: user.name,
           email: user.email,
           role: user.role,
-          positionRole: user.positionRole,
+          position: user.position,
           department: user.department,
         }
       });
@@ -161,12 +175,72 @@ exports.login = async (req, res) => {
           email: user.email,
           role: user.role,
           department: user.department,
-          positionRole: user.positionRole,
+          position: user.position,
         },
       });
     } catch (err) {
       console.error("OTP verify error:", err.message);
       res.status(500).json({ message: "OTP verification failed", error: err.message });
+    }
+  };
+  
+
+
+  exports.refreshAccessToken = async (req, res) => {
+    try {
+      const { refreshToken } = req.body;
+  
+      if (!refreshToken) {
+        return res.status(401).json({ message: "Refresh token required" });
+      }
+  
+      // Find user by refresh token
+      const user = await User.findOne({ refreshToken });
+      if (!user) return res.status(403).json({ message: "Invalid refresh token" });
+  
+      // Verify token
+      jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) return res.status(403).json({ message: "Invalid or expired refresh token" });
+  
+        const newAccessToken = jwt.sign(
+          { id: decoded.id, role: user.role },
+          process.env.JWT_SECRET,
+          { expiresIn: "1h" }
+        );
+  
+        res.status(200).json({
+          message: "Access token refreshed",
+          accessToken: newAccessToken
+        });
+      });
+    } catch (err) {
+      console.error("Refresh token error:", err.message);
+      res.status(500).json({ message: "Server error", error: err.message });
+    }
+  };
+  
+
+
+  exports.logout = async (req, res) => {
+    try {
+      const { _id } = req.body;
+  
+      if (!_id) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+  
+      const user = await User.findById(_id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+  
+      user.refreshToken = null;
+      await user.save();
+  
+      res.status(200).json({ message: "Logged out successfully, refresh token removed" });
+    } catch (error) {
+      console.error("Logout error:", error);
+      res.status(500).json({ message: "Server error", error: error.message });
     }
   };
   
