@@ -11,7 +11,7 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, default: 'admin' },
   department: { type: String, required: true },
-  refreshToken: { type: String }
+  refreshToken: { type: String },
 
 
   isActive: { type: Boolean, default: true },
