@@ -1,3 +1,4 @@
+
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -11,6 +12,11 @@ const protectedRoutes = require("./routes/protectedRoutes");
 
 const admittedStudentRoutes = require("./routes/studentRoutes");
 const userRoutes=require("./routes/userRoutes.js");
+
+
+
+
+
 //expres object
 const app = express();
 // cors for frontend and backend communication
@@ -48,6 +54,7 @@ app.use("/", webhookRoutes);
 app.use("/api/user", userRoutes);
 // in your main server.js / app.js
 app.use('/api/otp', require('./routes/otpRoutes'));
+
 
 
 

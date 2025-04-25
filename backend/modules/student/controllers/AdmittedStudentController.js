@@ -39,24 +39,3 @@ exports.createAdmittedStudent = async (req, res) => {
       .json({ message: "Admission failed", error: error.message });
   }
 };
-
-// const createAdmittedStudentInternal = async (admissionId) => {
-//   const admissionData = await AdmissionProcess.findById(admissionId);
-
-//   if (!admissionData || !admissionData.admissionStatus) {
-//     throw new Error("Student not cleared or not found.");
-//   }
-
-//   const newAdmitted = new AdmittedStudent({
-//     admissionRef: admissionData._id,
-//     fullName: `${admissionData.firstName} ${admissionData.lastName}`,
-//     stream: admissionData.stream,
-//     course: admissionData.course,
-//     fatherName: admissionData.fatherName,
-//     mobileNo: admissionData.studentMobile,
-//     email: admissionData.email || "", // Avoid undefined
-//   });
-
-//   await newAdmitted.save();
-//   return newAdmitted;
-// };
