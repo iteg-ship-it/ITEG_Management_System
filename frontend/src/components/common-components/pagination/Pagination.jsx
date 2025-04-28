@@ -57,22 +57,6 @@ const Pagination = ({ entries, setEntries, searchTerm, setSearchTerm }) => {
           <img src={del} alt="delete" />
         </button>
         <div className="flex-1"></div>
-
-        {/* <button className="border border-gray-200 p-2 hover:bg-gray-200 rounded">
-          <img className="w-7 h-6" src={filtericon} alt="filter-icon" />
-        </button>
-        <div className="flex border rounded-md overflow-hidden">
-          <div className="flex items-center px-2">
-            <Search className="w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="outline-none px-2 py-1 w-48 h-10 text-sm"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div> */}
         <div className="flex items-center gap-2 relative mt-4">
           {/* Filter Button */}
           <button
@@ -123,63 +107,3 @@ const Pagination = ({ entries, setEntries, searchTerm, setSearchTerm }) => {
 };
 
 export default Pagination;
-// const FilterSearchBar = () => {
-//   const [searchTerm, setSearchTerm] = useState("");
-//   const [showFilter, setShowFilter] = useState(false);
-//   const [trackOptions, setTrackOptions] = useState({
-//     Harda: false,
-//     Kannod: true,
-//     Khetesgon: false,
-//     Nemawar: true,
-//   });
-
-//   const toggleTrack = (track) => {
-//     setTrackOptions((prev) => ({ ...prev, [track]: !prev[track] }));
-//   };
-
-//   return (
-//     <div className="flex items-center gap-2 relative mt-4">
-//       {/* Filter Button */}
-//       <button
-//         onClick={() => setShowFilter(!showFilter)}
-//         className="border border-gray-300 p-2 rounded hover:bg-gray-100 bg-white"
-//       >
-//         <img className="w-6 h-6" src={filtericon} alt="filter-icon" />
-//       </button>
-
-//       {/* Search Bar */}
-//       <div className="flex border border-gray-300 rounded-md overflow-hidden bg-white">
-//         <div className="flex items-center px-2">
-//           <Search className="w-4 h-4 text-gray-400" />
-//           <input
-//             type="text"
-//             placeholder="Search..."
-//             className="outline-none px-2 py-1 w-48 h-10 text-sm bg-white"
-//             value={searchTerm}
-//             onChange={(e) => setSearchTerm(e.target.value)}
-//           />
-//         </div>
-//       </div>
-
-//       {/* Filter Dropdown */}
-//       {showFilter && (
-//         <div className="absolute left-14 top-12 bg-white border border-blue-400 rounded-md shadow-md z-20 p-2 w-48 text-sm">
-//           {Object.keys(trackOptions).map((track) => (
-//             <label
-//               key={track}
-//               className="flex items-center gap-2 py-1 px-2 hover:bg-gray-100 cursor-pointer"
-//             >
-//               <input
-//                 type="checkbox"
-//                 checked={trackOptions[track]}
-//                 onChange={() => toggleTrack(track)}
-//                 className="accent-green-600"
-//               />
-//               {track}
-//             </label>
-//           ))}
-//         </div>
-//       )}
-//     </div>
-//   );
-// };

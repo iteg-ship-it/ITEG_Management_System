@@ -1,9 +1,7 @@
 import { Formik, Form } from "formik";
 
 import TextInput from "../common-feild/TextInput";
-// import RadioGroup from "../common-feild/RadioGroup";
 import SelectInput from "../common-feild/SelectInput";
-
 import { signupValidationSchema } from "../../../validationSchema";
 import RadioGroup from "../common-feild/RadioGroup";
 

@@ -27,7 +27,6 @@ const StudentList = () => {
     { key: "firstName", label: "Full Name" },
     { key: "fatherName", label: "Father's Name" },
     { key: "admissionRef", label: "Admission Ref" },
-    // { key: "profile", label: "Profile Photo" },
   ];
 
   return (

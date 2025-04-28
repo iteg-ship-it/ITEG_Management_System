@@ -8,8 +8,6 @@ import StudentEditPage from "../student-records/student-edit-page/StudentEditPag
 import StudentDashboard from "../student-records/student-dashboard/StudentDashboard";
 import StudentDetailTable from "../student-records/student-detail-table/StudentDetailTable";
 import StudentPermission from "../student-records/student-permission/StudentPermission";
-// import LoginPage from "../common-components/login&registration/LoginPage";
-// import SignupPage from "./../common-components/signup/SignupPage";
 
 const Dashboard = () => {
   return (

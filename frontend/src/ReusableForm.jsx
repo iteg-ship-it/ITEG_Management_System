@@ -1,11 +1,7 @@
+/* eslint-disable react/prop-types */
 // src/components/FormWrapper.j
 
-import React from "react";
-import { Formik, Field, Form, ErrorMessage } from "formik";
-import {
-  loginValidationSchema,
-  signupValidationSchema,
-} from "./validationSchema";
+import { Formik,  Form,  } from "formik";
 
 const ReusableForm = ({
   initialValues,

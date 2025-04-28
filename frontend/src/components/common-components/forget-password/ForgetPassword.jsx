@@ -1,7 +1,7 @@
 import logo from "../../../assets/images/logo-ssism.png";
 import ReusableForm from "../../../ReusableForm";
 import EmailField from "../common-feild/EmailField";
-import { loginValidationSchema } from "../../../validationSchema"; // common validation
+import { loginValidationSchema } from "../../../validationSchema"; 
 
 const ForgetPassword = () => {
   const initialValues = {

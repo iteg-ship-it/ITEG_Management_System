@@ -2,20 +2,12 @@ import { useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import back from "../../../assets/icons/back-icon.png";
 
-import {
-  // FaUserGraduate,
-  // FaBars,
-  // FaTimes,
-  FaCamera,
-  // FaClipboardList,
-  // FaBriefcase,
-} from "react-icons/fa";
-//import uploadImageToCloudinary from './helper/uploadImage'
+import { FaCamera } from "react-icons/fa";
 
 const StudentEditPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const studentData = location.state?.student || {}; // Default empty object to prevent errors
+  const studentData = location.state?.student || {}; 
 
   const [formData, setFormData] = useState({
     firstName: studentData.name || "",

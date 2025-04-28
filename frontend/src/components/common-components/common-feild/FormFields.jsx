@@ -1,6 +1,5 @@
-// src/components/common-field/FormFields.jsx
+/* eslint-disable react/prop-types */
 
-import React from "react";
 import { useField } from "formik";
 
 export const TextInput = ({ label, ...props }) => {

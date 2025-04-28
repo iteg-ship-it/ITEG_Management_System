@@ -48,10 +48,8 @@ const Sidebar = () => {
   const [openMenus, setOpenMenus] = useState([0]);
   const location = useLocation();
 
-  // Get the role from localStorage
   const role = localStorage.getItem("role");
 
-  // Normalize the role to lowercase to ensure consistency
   const normalizedRole = role?.toLowerCase() || "";
 
   console.log("Sidebar Role:", normalizedRole);
@@ -80,7 +78,7 @@ const Sidebar = () => {
           {/* Menu Items */}
           <ul className="flex-1 overflow-y-auto">
             {menuItems
-              .filter((item) => item.roles.includes(normalizedRole)) // Filter based on role
+              .filter((item) => item.roles.includes(normalizedRole)) 
               .map((item, index) => {
                 const isActive = openMenus.includes(index);
                 return (
