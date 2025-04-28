@@ -148,42 +148,6 @@ exports.sendInterviewFlagToCentral = async (req, res) => {
   }
 };
 
-// exports.createInterview = async (req, res) => {
-//   try {
-//       const { id } = req.params;  // Get student ID from URL
-//       const { round,attemptNo, marks, remark, date, result } = req.body;  // Extract data from request body
-
-
-//       // Find student by ID
-//       const student = await AdmissionProcess.findById(id);
-//       if (!student) {
-//           return res.status(404).json({ success: false, message: "Student not found" });
-//       }
-
-//       // Add new level to student's level array
-//       const newInterview = {
-//           round: round || "1",
-//           attemptNo: attemptNo || 0,
-//           marks: marks || 0,
-//           remark: remark || "",
-//           date: date || new Date(),
-//           result: result || "Pending"
-//       };
-
-//       student.interviews.push(newInterview);
-//       await student.save();  // Save changes to database
-
-//       res.status(201).json({
-//           success: true,
-//           message: "Level added successfully",
-//           student
-//       });
-//   } catch (error) {
-//       console.error("Error adding level:", error);
-//       res.status(500).json({ success: false, message: "Server Error", error });
-//   }
-// };
-
 
 exports.createInterview = async (req, res) => {
   try {
