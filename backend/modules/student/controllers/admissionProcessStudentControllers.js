@@ -11,54 +11,6 @@ const crypto = require("crypto");
 require("dotenv").config();
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET; // ✅ Also load this from .env
 
-// ✅ Add New Admission Entry
-// exports.addAdmission = async (req, res) => {
-//    try {
-//     const payload = req.body;
-
-//     // const receivedSignature = req.headers["x-webhook-signature"];
-
-//     // const expectedSignature = crypto
-//     //   .createHmac("sha256", WEBHOOK_SECRET)
-//     //   .update(JSON.stringify(payload))
-//     //   .digest("hex");
-
-//     // if (receivedSignature !== expectedSignature) {
-//     //   console.log("❌ Invalid Signature");
-//     //   return res.status(401).send("Unauthorized");
-//     // }
-
-//     const existingStudent = await AdmissionProcess.findOne({
-//       prkey: payload.prkey,
-//     });
-//     if (existingStudent) {
-//       // Update the existing document with new data
-//       console.log(
-//         "✅ Updating existing student admission process data:",
-//         existingStudent
-//       );
-//       existingStudent.set(payload);
-//       // await existingStudent.save();
-//       return res
-//         .status(200)
-//         .json({ message: "Student already registered", data: existingStudent });
-//     }
-//     // Check if required fields are present
-//     if (isNaN(Date.parse(req.body.dob))) {
-//       return res.status(400).json({ message: "Invalid date format" });
-//     }
-//     const newAdmission = new AdmissionProcess(payload);
-
-//     await newAdmission.save();
-//     console.log("✅ New student admission process data saved:");
-    
-//     res
-//       .status(201)
-//       .json({ message: "Student admission initiated", data: newAdmission });
-//    } catch (error) {
-//     res.status(400).json({ message: "Error adding admission", error });
-//    }
-// };
 exports.addAdmission = async (req, res) => {
   try {
     const payload = req.body;
