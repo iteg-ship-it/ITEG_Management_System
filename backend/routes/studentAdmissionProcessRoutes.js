@@ -9,6 +9,7 @@ const router = express.Router();
 
 router.put('/send-interview-flag/:studentId', studentAdmissionProcess.sendInterviewFlagToCentral);
 // router.put('/update-admission-status/:studentId', studentAdmissionProcess.updateAdmissionStatus);
-router.get('/getInterviews/:id', studentAdmissionProcess.getInterviewsByStudentId);
+router.post('/createInterview/:id', studentAdmissionProcess.createInterview );
+router.get('/getInterviews/:id', studentAdmissionProcess.getInterviewsByStudentId);``
 router.get('/studentgetall',verifyToken, studentAdmissionProcess.getAllStudents);
 module.exports = router;
