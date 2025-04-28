@@ -101,6 +101,7 @@ exports.addAdmission = async (req, res) => {
     // 5) Save new
     const newAdmission = new AdmissionProcess(payload);
     await newAdmission.save();
+    console.log("✅ New student admission process data saved:");
     return res.status(201).json({ message: 'Student admission initiated', data: newAdmission });
 
   } catch (error) {

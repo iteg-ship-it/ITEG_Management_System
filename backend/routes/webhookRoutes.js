@@ -10,3 +10,4 @@ router.post("/receive/data",admissionController.addAdmission);
 router.post("/admission-flag-update", admissionController.updateAdmissionFlag, studentAdmittedController.createAdmittedStudent);
 module.exports = router;
  
+
