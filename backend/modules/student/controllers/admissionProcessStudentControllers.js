@@ -152,53 +152,64 @@ exports.sendInterviewFlagToCentral = async (req, res) => {
 exports.createInterview = async (req, res) => {
   try {
     const { id } = req.params;
-    const { round, attemptNo, marks, remark, date, result } = req.body;
+    const { round, marks, remark, date, result } = req.body;
 
     const student = await AdmissionProcess.findById(id);
     if (!student) {
       return res.status(404).json({ success: false, message: "Student not found" });
     }
 
-    // Get the last interview (most recent)
     const interviews = student.interviews || [];
-    const lastInterview = interviews[interviews.length - 1];
 
-    // Validation rules
-    if (lastInterview) {
-      // Check if trying to skip to the next round without passing
-      if (parseInt(round) > parseInt(lastInterview.round) && lastInterview.result !== "Passed") {
-        return res.status(400).json({
-          success: false,
-          message: `Cannot proceed to round ${round} until round ${lastInterview.round} is passed.`,
-        });
-      }
+    // Round Order (you can add more later)
+    const roundOrder = ["First", "Second"];
 
-      // Get attempts in the current round
-      const sameRoundAttempts = interviews.filter(i => i.round === lastInterview.round);
+    const requestedRoundIndex = roundOrder.indexOf(round);
+    if (requestedRoundIndex === -1) {
+      return res.status(400).json({ success: false, message: "Invalid round name" });
+    }
 
-      if (
-        lastInterview.round === round &&
-        sameRoundAttempts.length >= 4 &&
-        lastInterview.result !== "Passed"
-      ) {
-        return res.status(400).json({
-          success: false,
-          message: `Maximum 4 attempts allowed for round ${round}. Student is rejected.`,
-        });
-      }
+    // Find all interviews of current requested round
+    const currentRoundAttempts = interviews.filter(i => i.round === round);
 
-      // If already passed the round, can't add more interviews for that round
-      if (lastInterview.round === round && lastInterview.result === "Passed") {
-        return res.status(400).json({
-          success: false,
-          message: `Round ${round} is already passed. Please proceed to the next round.`,
-        });
+    // Find highest round passed
+    let lastPassedRoundIndex = -1;
+    for (let i = 0; i < roundOrder.length; i++) {
+      const passed = interviews.some(interview => interview.round === roundOrder[i] && interview.result === "Pass");
+      if (passed) {
+        lastPassedRoundIndex = i;
+      } else {
+        break;
       }
     }
 
+    // 🚫 If trying to attempt a new round without passing previous one
+    if (requestedRoundIndex > lastPassedRoundIndex + 1) {
+      return res.status(400).json({
+        success: false,
+        message: `You must pass ${roundOrder[lastPassedRoundIndex + 1] || 'previous round'} before proceeding to ${round}.`
+      });
+    }
+
+    // 🚫 If 4 attempts already done without passing, student is rejected
+    if (currentRoundAttempts.length >= 4 && !currentRoundAttempts.some(i => i.result === "Pass")) {
+      return res.status(400).json({
+        success: false,
+        message: `Student rejected after 4 failed attempts in ${round} round.`,
+      });
+    }
+
+    // 🚫 If already passed the current round
+    if (currentRoundAttempts.some(i => i.result === "Pass")) {
+      return res.status(400).json({
+        success: false,
+        message: `Round ${round} already passed. Please move to next round.`,
+      });
+    }
+
     const newInterview = {
-      round: round || "1",
-      attemptNo: attemptNo || 0,
+      round: round || "First",
+      attemptNo: currentRoundAttempts.length + 1, // Auto-increment attemptNo
       marks: marks || 0,
       remark: remark || "",
       date: date || new Date(),
@@ -218,6 +229,7 @@ exports.createInterview = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error", error });
   }
 };
+
 
 
 exports.getInterviewsByStudentId = async (req, res) => {
