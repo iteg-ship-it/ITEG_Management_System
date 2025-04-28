@@ -1,5 +1,5 @@
 import UserProfile from "../../common-components/user-profile/UserProfile";
-import { useGetAllStudentsQuery } from "../../../redux/auth/authApiSlice";
+import { useGetAllStudentsQuery } from "../../../redux/api/authApi";
 import CommonTable from "../../common-components/table/CommonTable";
 import Pagination from "../../common-components/pagination/Pagination";
 import { useState } from "react";
@@ -54,7 +54,7 @@ const StudentList = () => {
   );
 };
 
-// import { useNavigate } from "react-router-dom";
+// import { usegate } from "react-router-dom";
 // import UserProfile from "../../common-components/user-profile/UserProfile";
 
 // const data = [

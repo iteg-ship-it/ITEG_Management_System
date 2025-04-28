@@ -1,5 +1,5 @@
 import UserProfile from "../../common-components/user-profile/UserProfile";
-import { useGetAllStudentsQuery } from "../../../redux/auth/authApiSlice";
+import { useGetAllStudentsQuery } from "../../../redux/api/authApi";
 
 const StudentPermission = () => {
   return (

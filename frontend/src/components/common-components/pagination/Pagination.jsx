@@ -13,6 +13,8 @@ const Pagination = ({ entries, setEntries, searchTerm, setSearchTerm }) => {
     Kannod: true,
     Khetesgon: false,
     Nemawar: true,
+    Narsullaganj: false,
+    Satwas: false,
   });
   const handleSelect = (value) => {
     setEntries(value);

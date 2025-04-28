@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import CryptoJS from "crypto-js";
 
-import { useLoginMutation } from "../../../redux/auth/authApiSlice";
+import { useLoginMutation } from "../../../redux/api/authApi";
 import ReusableForm from "../../../ReusableForm";
 import { loginValidationSchema } from "../../../validationSchema";
 

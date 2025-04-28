@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
@@ -13,7 +12,7 @@ const menuItems = [
   {
     name: "Add Process",
     icon: admissionIcon,
-    roles: ["Superadmin", "Admin"],
+    roles: ["superadmin", "admin"],
     subMenu: [
       { name: "Dashboard", path: "/" },
       { name: "Admission Process", path: "/admission" },
@@ -22,11 +21,11 @@ const menuItems = [
   {
     name: "Student Record",
     icon: studentRecordIcon,
-    roles: ["Superadmin", "Admin", "Faculty"],
+    roles: ["superadmin", "admin", "faculty"],
     subMenu: [
       { name: "Student Profiles", path: "/student-dashboard" },
       { name: "Permission Students", path: "/student-permission" },
-      { name: "Attendance info", path: "/attendance-info" },
+      { name: "Attendance Info", path: "/attendance-info" },
       { name: "Level Info", path: "/level-info" },
       { name: "Interview Record", path: "/interview-record" },
     ],
@@ -34,7 +33,7 @@ const menuItems = [
   {
     name: "Placement Info",
     icon: placementIcon,
-    roles: ["Superadmin", "Admin", "Faculty"],
+    roles: ["superadmin", "admin", "faculty"],
     subMenu: [
       { name: "Readiness Status", path: "/readiness-status" },
       { name: "Interview Record", path: "/placement-interview-record" },
@@ -44,10 +43,18 @@ const menuItems = [
   },
 ];
 
-const Sidebar = ({ role }) => {
+const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [openMenus, setOpenMenus] = useState([0]);
   const location = useLocation();
+
+  // Get the role from localStorage
+  const role = localStorage.getItem("role");
+
+  // Normalize the role to lowercase to ensure consistency
+  const normalizedRole = role?.toLowerCase() || "";
+
+  console.log("Sidebar Role:", normalizedRole);
 
   const toggleMenu = (index) => {
     if (openMenus.includes(index)) {
@@ -73,7 +80,7 @@ const Sidebar = ({ role }) => {
           {/* Menu Items */}
           <ul className="flex-1 overflow-y-auto">
             {menuItems
-              .filter((item) => item.roles.includes(role))
+              .filter((item) => item.roles.includes(normalizedRole)) // Filter based on role
               .map((item, index) => {
                 const isActive = openMenus.includes(index);
                 return (
