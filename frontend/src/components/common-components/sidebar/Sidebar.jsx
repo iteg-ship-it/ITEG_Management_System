@@ -52,8 +52,6 @@ const Sidebar = () => {
 
   const normalizedRole = role?.toLowerCase() || "";
 
-  console.log("Sidebar Role:", normalizedRole);
-
   const toggleMenu = (index) => {
     if (openMenus.includes(index)) {
       setOpenMenus(openMenus.filter((item) => item !== index));

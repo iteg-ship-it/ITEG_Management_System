@@ -20,7 +20,6 @@ export const authApi = createApi({
 
           if (decryptedToken) {
             headers.set("Authorization", `Bearer ${decryptedToken}`);
-            console.log("Decrypted Token:", decryptedToken);
           }
         } catch (error) {
           console.error("Token decryption failed:", error);
@@ -42,9 +41,6 @@ export const authApi = createApi({
         try {
           const { data } = await queryFulfilled;
           const { token, role } = data;
-
-          console.log("role", role, data);
-
           const encryptedToken = CryptoJS.AES.encrypt(
             token,
             secretKey
@@ -53,7 +49,6 @@ export const authApi = createApi({
           localStorage.setItem("role", role);
 
           dispatch(setCredentials({ token, role })); // ✅ Redux me set
-          console.log("Login Successful: Token and Role set.");
           window.location.replace("/");
         } catch (error) {
           console.error("Login failed:", error);
