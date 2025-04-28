@@ -11,50 +11,56 @@ const crypto = require("crypto");
 require("dotenv").config();
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET; // ✅ Also load this from .env
 
-// ✅ Add New Admission Entry
 exports.addAdmission = async (req, res) => {
-   try {
+  try {
     const payload = req.body;
 
-    const receivedSignature = req.headers["x-webhook-signature"];
-
-    const expectedSignature = crypto
-      .createHmac("sha256", WEBHOOK_SECRET)
-      .update(JSON.stringify(payload))
-      .digest("hex");
-
-    if (receivedSignature !== expectedSignature) {
-      console.log("❌ Invalid Signature");
-      return res.status(401).send("Unauthorized");
+    // 1) Check required fields
+    const requiredFields = [
+      'prkey','firstName','lastName','fatherName',
+      'studentMobile','parentMobile','gender','dob',
+      'aadharCard','address','stream','course',
+      'category','subject12','year12'
+    ];
+    for (let field of requiredFields) {
+      if (!payload[field]) {
+        return res.status(400).json({ message: `Missing field: ${field}` });
+      }
     }
 
-    const existingStudent = await AdmissionProcess.findOne({
-      prkey: payload.prkey,
-    });
+    // 2) Validate date format
+    if (isNaN(Date.parse(payload.dob))) {
+      return res.status(400).json({ message: 'Invalid date format' });
+    }
+
+    // 3) Validate mobile & aadhar format
+    const mobileRegex = /^\d{10}$/;
+    if (!mobileRegex.test(payload.studentMobile) || !mobileRegex.test(payload.parentMobile)) {
+      return res.status(400).json({ message: 'Invalid mobile number format' });
+    }
+    const aadharRegex = /^\d{12}$/;
+    if (!aadharRegex.test(payload.aadharCard)) {
+      return res.status(400).json({ message: 'Invalid aadhaar format' });
+    }
+
+    // 4) Duplicate check
+    const existingStudent = await AdmissionProcess.findOne({ prkey: payload.prkey });
     if (existingStudent) {
-      // Update the existing document with new data
-      console.log(
-        "✅ Updating existing student admission process data:",
-        existingStudent
-      );
       existingStudent.set(payload);
-      // await existingStudent.save();
-      return res
-        .status(200)
-        .json({ message: "Student already registered", data: existingStudent });
+      return res.status(200).json({ message: 'Student already registered', data: existingStudent });
     }
-    const newAdmission = new AdmissionProcess(payload);
 
+    // 5) Save new
+    const newAdmission = new AdmissionProcess(payload);
     await newAdmission.save();
     console.log("✅ New student admission process data saved:");
-    
-    res
-      .status(201)
-      .json({ message: "Student admission initiated", data: newAdmission });
-   } catch (error) {
-    res.status(400).json({ message: "Error adding admission", error });
-   }
+    return res.status(201).json({ message: 'Student admission initiated', data: newAdmission });
+
+  } catch (error) {
+    return res.status(500).json({ message: 'Error adding admission', error: error.message });
+  }
 };
+
 
 exports.updateAdmissionFlag = async (req, res, next) => {
   try {
@@ -100,7 +106,6 @@ exports.updateAdmissionFlag = async (req, res, next) => {
       .json({ message: "Server error", error: error.message });
   }
 };
-
 
 // update the itegIntervieFlag 
 exports.sendInterviewFlagToCentral = async (req, res) => {
@@ -150,6 +155,86 @@ exports.sendInterviewFlagToCentral = async (req, res) => {
 };
 
 
+exports.createInterview = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { round, marks, remark, date, result } = req.body;
+
+    const student = await AdmissionProcess.findById(id);
+    if (!student) {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
+
+    const interviews = student.interviews || [];
+
+    // Round Order (you can add more later)
+    const roundOrder = ["First", "Second"];
+
+    const requestedRoundIndex = roundOrder.indexOf(round);
+    if (requestedRoundIndex === -1) {
+      return res.status(400).json({ success: false, message: "Invalid round name" });
+    }
+
+    // Find all interviews of current requested round
+    const currentRoundAttempts = interviews.filter(i => i.round === round);
+
+    // Find highest round passed
+    let lastPassedRoundIndex = -1;
+    for (let i = 0; i < roundOrder.length; i++) {
+      const passed = interviews.some(interview => interview.round === roundOrder[i] && interview.result === "Pass");
+      if (passed) {
+        lastPassedRoundIndex = i;
+      } else {
+        break;
+      }
+    }
+
+    // 🚫 If trying to attempt a new round without passing previous one
+    if (requestedRoundIndex > lastPassedRoundIndex + 1) {
+      return res.status(400).json({
+        success: false,
+        message: `You must pass ${roundOrder[lastPassedRoundIndex + 1] || 'previous round'} before proceeding to ${round}.`
+      });
+    }
+
+    // 🚫 If 4 attempts already done without passing, student is rejected
+    if (currentRoundAttempts.length >= 4 && !currentRoundAttempts.some(i => i.result === "Pass")) {
+      return res.status(400).json({
+        success: false,
+        message: `Student rejected after 4 failed attempts in ${round} round.`,
+      });
+    }
+
+    // 🚫 If already passed the current round
+    if (currentRoundAttempts.some(i => i.result === "Pass")) {
+      return res.status(400).json({
+        success: false,
+        message: `Round ${round} already passed. Please move to next round.`,
+      });
+    }
+
+    const newInterview = {
+      round: round || "First",
+      attemptNo: currentRoundAttempts.length + 1, // Auto-increment attemptNo
+      marks: marks || 0,
+      remark: remark || "",
+      date: date || new Date(),
+      result: result || "Pending",
+    };
+
+    student.interviews.push(newInterview);
+    await student.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Interview round added successfully",
+      student,
+    });
+  } catch (error) {
+    console.error("Error adding interview round:", error);
+    res.status(500).json({ success: false, message: "Server Error", error });
+  }
+};
 
 
 
