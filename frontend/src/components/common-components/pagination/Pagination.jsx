@@ -25,7 +25,7 @@ const Pagination = ({ entries, setEntries, searchTerm, setSearchTerm }) => {
   };
 
   return (
-    <div className="border bg-white p-2 rounded-lg shadow-sm py-10 px-10">
+    <div className=" p-2 rounded-lg py-6 px-6">
       <div className="flex items-center gap-2">
         <div className="relative">
           <button

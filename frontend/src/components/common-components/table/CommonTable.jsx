@@ -34,7 +34,7 @@ const CommonTable = ({
           <table className="min-w-full text-sm">
             <thead className="bg-[#f9fafb] border-b">
               <tr>
-                <th className="px-4 py-2">
+                <th className="py-2">
                   <input type="checkbox" />
                 </th>
                 {columns

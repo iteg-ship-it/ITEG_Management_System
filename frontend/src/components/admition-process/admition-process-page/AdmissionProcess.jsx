@@ -31,12 +31,21 @@ const StudentList = () => {
 
   return (
     <>
-      <Pagination
-        entries={rowsPerPage}
-        setEntries={setRowsPerPage}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-      />
+      <div className="border bg-white shadow-sm rounded-lg">
+        <Pagination
+          entries={rowsPerPage}
+          setEntries={setRowsPerPage}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+        />
+        <div className="px-8 flex gap-6">
+        <p className=" border-b-orange-400 border-2 border-white ">Total Registration</p>
+        <p className=" border-b-orange-400 border-2 border-white ">Online Assisment</p>
+        <p className=" border-b-orange-400 border-2 border-white ">Selected</p>
+        <p className=" border-b-orange-400 border-2 border-white ">Rejected</p>
+     
+        </div>
+      </div>
       <CommonTable
         data={data}
         columns={columns}
