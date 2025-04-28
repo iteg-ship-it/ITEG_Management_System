@@ -26,7 +26,7 @@ const generateRefreshToken = (user) => {
 
 exports.createUser = async (req, res) => {
   try {
-    const { name, email, password, adharCard, department, position, role, mobileNo} = req.body;
+    const { name, email, password, adharCard, department, position, role} = req.body;
 
     // Allowed roles
     const allowedRoles = ["admin", "superadmin", "faculty"];
@@ -48,7 +48,7 @@ exports.createUser = async (req, res) => {
     const newUser = new User({
       name,
       email,
-      mobileNo,
+      // mobileNo,
       password: hashedPassword,
       adharCard,
       department,
@@ -67,7 +67,7 @@ exports.createUser = async (req, res) => {
         id: newUser._id,
         name: newUser.name,
         email: newUser.email,
-        mobileNo: newUser.mobileNo,
+        // mobileNo: newUser.mobileNo,
         role: newUser.role
       },
       token
