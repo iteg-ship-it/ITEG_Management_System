@@ -160,7 +160,7 @@ exports.sendInterviewFlagToCentral = async (req, res) => {
         error: err.response.data,
       });
     }
-
+  
     // General error fallback (includes your test case error)
     return res.status(500).json({
       message: 'Server error',

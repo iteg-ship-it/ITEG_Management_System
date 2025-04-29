@@ -35,7 +35,7 @@ describe("Admission API Tests", () => {
       year12: "2020",
     };
     const res = await request(app)
-      .post("/api/webhook/receive/data")
+      .post("/api/admission/students/webhook/register")
       .send(payload);
     expect(res.status).toBe(201);
     expect(res.body.message).toBe("Student admission initiated");
@@ -45,7 +45,7 @@ describe("Admission API Tests", () => {
   it("2. should fail when a required field is missing", async () => {
     const payload = { prkey: "test2" }; // missing others
     const res = await request(app)
-      .post("/api/webhook/receive/data")
+      .post("/api/admission/students/webhook/register")
       .send(payload);
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/^Missing field:/);
@@ -70,7 +70,7 @@ describe("Admission API Tests", () => {
       year12: "2020",
     };
     const res = await request(app)
-      .post("/api/webhook/receive/data")
+      .post("/api/admission/students/webhook/register")
       .send(payload);
     expect(res.status).toBe(400);
     expect(res.body.message).toBe("Invalid date format");
@@ -95,7 +95,7 @@ describe("Admission API Tests", () => {
       year12: "2020",
     };
     const res = await request(app)
-      .post("/api/webhook/receive/data")
+      .post("/api/admission/students/webhook/register")
       .send(payload);
     expect(res.status).toBe(400);
     expect(res.body.message).toBe("Invalid mobile number format");
@@ -120,10 +120,10 @@ describe("Admission API Tests", () => {
       year12: "2020",
     };
     // first request
-    await request(app).post("/api/webhook/receive/data").send(payload);
+    await request(app).post("/api/admission/students/webhook/register").send(payload);
     // duplicate request
     const res = await request(app)
-      .post("/api/webhook/receive/data")
+      .post("/api/admission/students/webhook/register")
       .send(payload);
     expect(res.status).toBe(200);
     expect(res.body.message).toBe("Student already registered");
@@ -162,7 +162,7 @@ describe("Admission API Tests - Interview Flag", () => {
     sendEmail.mockResolvedValue();
     
     const res = await request(app)
-      .put(`/api/students/admission/send-interview-flag/${student._id}`);
+      .put(`/api/admission/students/update_interview_flag/${student._id}`);
 
     expect(res.status).toBe(200);
     expect(res.body.message).toBe(
@@ -178,7 +178,7 @@ describe("Admission API Tests - Interview Flag", () => {
   
     const fakeId = new mongoose.Types.ObjectId();
     const res = await request(app).put(
-      `/api/students/admission/send-interview-flag/${fakeId}`
+      `/api/admission/students/update_interview_flag/${fakeId}`
     );
 
     expect(res.status).toBe(404);
@@ -187,26 +187,7 @@ describe("Admission API Tests - Interview Flag", () => {
   
 // tried to solve it but due to anonymous function in axios.post, it is not working
 
-  // it("3. should handle error if axios fails", async () => {
-  //   // Arrange (Mock external services)
-  //   axios.post.mockRejectedValue(new Error("Axios Error"));
-  //   sendEmail.mockResolvedValue();
-  
-  //   // Create a fake ObjectId
-  //   const fakeId = new mongoose.Types.ObjectId();
-  
-  //   // Act (Perform the API call)
-  //   const res = await request(app)
-  //     .put(`/api/students/admission/send-interview-flag/${fakeId}`); // Use fakeId
-  
-  //   // Assert (Check if response is what you expect)
-  //   expect(res.status).toBe(500);
-  //   expect(res.body.message).toBe("Server Error");
-  //   expect(res.body.error).toMatch("Axios Error");
-  // });
-  
-
-  it("4. should send email if email exists", async () => {
+  it("3. should send email if email exists", async () => {
     axios.post.mockResolvedValue({ data: { success: true } });
    
     // Spy on the same module you mocked at top
@@ -216,7 +197,7 @@ describe("Admission API Tests - Interview Flag", () => {
       .mockResolvedValue();
 
     await request(app)
-      .put(`/api/students/admission/send-interview-flag/${student._id}`);
+      .put(`/api/admission/students/update_interview_flag/${student._id}`);
 
     expect(sendEmailMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -229,7 +210,7 @@ describe("Admission API Tests - Interview Flag", () => {
     sendEmailMock.mockRestore();
   });
 
-  it("5. should not fail if email is missing", async () => {
+  it("4. should not fail if email is missing", async () => {
     // create a student without email
    const studentWithoutEmail = await AdmissionProcess.create({
       prkey: "test-no-email",
@@ -255,7 +236,7 @@ describe("Admission API Tests - Interview Flag", () => {
       .mockResolvedValue();
 
     const res = await request(app).put(
-      `/api/students/admission/send-interview-flag/${studentWithoutEmail._id}`
+      `/api/admission/students/update_interview_flag/${studentWithoutEmail._id}`
     );
 
     expect(res.status).toBe(200);
@@ -263,4 +244,35 @@ describe("Admission API Tests - Interview Flag", () => {
 
     sendEmailMock.mockRestore();
   });
+
+  it("5. should handle error if axios.post fails", async () => {
+    // Arrange
+    const fakeId = new mongoose.Types.ObjectId();
+    const student1 = {
+      _id: fakeId,
+      prkey: "test-prkey",
+      firstName: "Ali",
+      email: "ali@example.com",
+      itegInterviewFlag: true
+    };
+  
+    // Mock the DB update
+    jest.spyOn(AdmissionProcess, 'findByIdAndUpdate').mockResolvedValue(student1);
+  
+    // Mock axios error
+    axios.post.mockRejectedValue(new Error("Axios Error"));
+  
+    // Mock email send
+    sendEmail.mockResolvedValue();
+  
+    // Act
+    const res = await request(app)
+      .put(`/api/admission/students/update_interview_flag/${fakeId}`);
+  
+    // Assert
+    expect(res.status).toBe(500);
+    expect(res.body.message).toBe("Server error");
+    expect(res.body.error).toMatch("Axios Error");
+  });
 })
+
