@@ -177,7 +177,10 @@ function FilterSection() {
                 className="flex justify-between items-center cursor-pointer hover:bg-gray-100 px-2 py-1 rounded"
               >
                 <span>{title}</span>
-                <ChevronRight size={14} />
+                <ChevronRight
+                  size={14}
+                  className={expandedSection === title ? "rotate-90" : ""} // Conditional rotation
+                />
               </div>
 
               {/* Side panel with options */}
@@ -192,7 +195,7 @@ function FilterSection() {
                         type="checkbox"
                         checked={selected.includes(opt)}
                         onChange={() => toggleSelection(opt, setter, selected)}
-                        className="accent-green-500"
+                        className="accent-green-500 "
                       />
                       {opt}
                     </label>
