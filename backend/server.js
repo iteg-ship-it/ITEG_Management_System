@@ -1,4 +1,3 @@
-
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -12,10 +11,6 @@ const protectedRoutes = require("./routes/protectedRoutes");
 
 const admittedStudentRoutes = require("./routes/studentRoutes");
 const userRoutes = require("./routes/userRoutes.js");
-
-
-
-
 
 //expres object
 const app = express();
@@ -38,7 +33,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
 app.use("/api/protected", protectedRoutes);
-app.use("/api/students/admission",  admittedStudentRoutes);
+app.use("/api/students", admittedStudentRoutes);
 // app.use("/api/superAdmin", superAdminRoutes);
 // app.use("/api/students", );
 
@@ -52,10 +47,7 @@ app.use("/", webhookRoutes);
 
 app.use("/api/user", userRoutes);
 // in your main server.js / app.js
-app.use('/api/otp', require('./routes/otpRoutes'));
-
-
-
+app.use("/api/otp", require("./routes/otpRoutes"));
 
 // MongoDB Connection
 module.exports = app;

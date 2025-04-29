@@ -14,11 +14,11 @@ const AdmissionProcess = () => {
 };
 
 export default AdmissionProcess;
-
 const StudentList = () => {
   const { data = [], isLoading, error } = useGetAllStudentsQuery();
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("Total Registration");
 
   if (isLoading) return <p>Loading...</p>;
   if (error) return <p>Error fetching students.</p>;
@@ -29,23 +29,38 @@ const StudentList = () => {
     { key: "admissionRef", label: "Admission Ref" },
   ];
 
+  const tabs = [
+    "Total Registration",
+    "Online Assessment",
+    "Selected",
+    "Rejected",
+  ];
+
   return (
     <>
-      <div className="border bg-white shadow-sm rounded-lg">
-        <Pagination
-          entries={rowsPerPage}
-          setEntries={setRowsPerPage}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-        />
-        <div className="px-8 flex gap-6">
-        <p className=" border-b-orange-400 border-2 border-white ">Total Registration</p>
-        <p className=" border-b-orange-400 border-2 border-white ">Online Assisment</p>
-        <p className=" border-b-orange-400 border-2 border-white ">Selected</p>
-        <p className=" border-b-orange-400 border-2 border-white ">Rejected</p>
-     
+      <div className="border bg-white shadow-sm rounded-lg px-5">
+        <div className="flex justify-between items-center flex-wrap gap-4 ">
+          <Pagination
+            rowsPerPage={rowsPerPage}
+            setRowsPerPage={setRowsPerPage}
+          />
+        </div>
+
+        <div className="px-2 flex gap-6 mt-4">
+          {tabs.map((tab) => (
+            <p
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`cursor-pointer pb-2 border-b-2 ${
+                activeTab === tab ? "border-orange-400" : "border-transparent"
+              }`}
+            >
+              {tab}
+            </p>
+          ))}
         </div>
       </div>
+
       <CommonTable
         data={data}
         columns={columns}
