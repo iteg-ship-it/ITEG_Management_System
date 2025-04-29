@@ -38,7 +38,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
 app.use("/api/protected", protectedRoutes);
-app.use("/api/students/admission",  admittedStudentRoutes);
+app.use("/api/students",  admittedStudentRoutes);
 // app.use("/api/superAdmin", superAdminRoutes);
 // app.use("/api/students", );
 
