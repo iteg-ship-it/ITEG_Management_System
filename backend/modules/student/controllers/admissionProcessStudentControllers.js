@@ -107,6 +107,8 @@ exports.updateAdmissionFlag = async (req, res, next) => {
   }
 };
 
+
+
 // update the itegIntervieFlag 
 exports.sendInterviewFlagToCentral = async (req, res) => {
   try {
@@ -274,5 +276,33 @@ exports.getAllStudents = async (req, res) => {
     res.status(200).json(students); // send as JSON response
   } catch (error) {
     res.status(500).json({ message: 'Failed to retrieve students', error: error.message });
+  }
+};
+
+exports.getStudentById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const student = await AdmissionProcess.findById(id);
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student not found',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Student fetched successfully',
+      data: student,
+    });
+  } catch (error) {
+    console.error('Error fetching student by ID:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server Error',
+      error: error.message,
+    });
   }
 };
