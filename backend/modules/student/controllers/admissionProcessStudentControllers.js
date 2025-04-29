@@ -153,20 +153,18 @@ exports.sendInterviewFlagToCentral = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error sending interview flag:', err);
-
-    // If it’s an Axios error with a response payload, bubble that
+    // Axios error with custom payload
     if (err.response && err.response.data) {
       return res.status(500).json({
-        message: 'Server rror',
-        error: err.response.data
+        message: 'Server error',
+        error: err.response.data,
       });
     }
 
-    // Fallback for any other errors
+    // General error fallback (includes your test case error)
     return res.status(500).json({
       message: 'Server error',
-      error: 'Axio'
+      error: err.message || 'Unknown error',
     });
   }
 };
