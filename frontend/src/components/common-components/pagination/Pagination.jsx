@@ -179,7 +179,7 @@ function FilterSection() {
                 <span>{title}</span>
                 <ChevronRight
                   size={14}
-                  className={expandedSection === title ? "rotate-90" : ""} // Conditional rotation
+                  className={expandedSection === title ? "rotate-180" : ""} // Conditional rotation
                 />
               </div>
 

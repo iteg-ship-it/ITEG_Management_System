@@ -26,7 +26,9 @@ const StudentList = () => {
   const columns = [
     { key: "firstName", label: "Full Name" },
     { key: "fatherName", label: "Father's Name" },
-    { key: "admissionRef", label: "Admission Ref" },
+    { key: "studentMobile", label: "Mobile" },
+    { key: "stream", label: "Subject" },
+    { key: "address", label: "Village" },
   ];
 
   const tabs = [
