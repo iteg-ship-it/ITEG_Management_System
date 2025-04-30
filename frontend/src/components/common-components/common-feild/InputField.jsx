@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useField } from "formik";
 
 const InputField = ({ label, ...props }) => {

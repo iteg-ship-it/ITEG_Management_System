@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import edit from "../../../assets/icons/edit-fill-icon.png";
 const CommonTable = ({
   columns,
@@ -11,7 +12,7 @@ const CommonTable = ({
 }) => {
   const [visibleColumns] = useState(columns.map((col) => col.key));
   const [currentPage, setCurrentPage] = useState(1);
-
+  const navigate = useNavigate();
   const filteredData = data.filter((row) =>
     Object.values(row)
       .join(" ")
@@ -73,7 +74,14 @@ const CommonTable = ({
                     ))}
                   {editable && (
                     <td className="px-4 py-2">
-                      <img src={edit} alt="edit icon" />{" "}
+                      <img
+                        src={edit}
+                        alt="edit icon"
+                        className="cursor-pointer"
+                        onClick={() =>
+                          navigate(`/admission-edit/${row.id}`, { state: row })
+                        }
+                      />
                     </td>
                   )}
                 </tr>
