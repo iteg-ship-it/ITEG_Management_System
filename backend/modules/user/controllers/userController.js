@@ -26,7 +26,7 @@ const generateRefreshToken = (user) => {
 
 exports.createUser = async (req, res) => {
   try {
-    const { name, email, password, adharCard, department, position, role} = req.body;
+    const { name, email, mobileNo ,password, adharCard, department, position, role} = req.body;
 
     // Allowed roles
     const allowedRoles = ["admin", "superadmin", "faculty"];
@@ -48,7 +48,7 @@ exports.createUser = async (req, res) => {
     const newUser = new User({
       name,
       email,
-      // mobileNo,
+      mobileNo,
       password: hashedPassword,
       adharCard,
       department,
@@ -67,7 +67,7 @@ exports.createUser = async (req, res) => {
         id: newUser._id,
         name: newUser.name,
         email: newUser.email,
-        // mobileNo: newUser.mobileNo,
+        mobileNo: newUser.mobileNo,
         role: newUser.role
       },
       token
@@ -120,72 +120,6 @@ exports.login = async (req, res) => {
       res.status(500).json({ message: "Server error", error });
     }
   };
-  
-
-  exports.loginWithOtpRequest = async (req, res) => {
-    try {
-      const { mobileNo } = req.body;
-  
-      // 1. Check user exists
-      const user = await User.findOne({ mobileNo });
-      if (!user) return res.status(404).json({ message: "User not found with this mobile number" });
-  
-      // 2. Generate OTP
-      const otp = generateOtp();
-  
-      // 3. Save OTP in DB
-      await Otp.create({ email: user.email, otp });
-  
-      // 4. Send OTP to user's mobile number
-      await sendOtp(mobileNo, otp);
-  
-      res.status(200).json({ message: "OTP sent successfully" });
-    } catch (err) {
-      console.error("OTP request error:", err.message);
-      res.status(500).json({ message: "Failed to send OTP", error: err.message });
-    }
-  };
-
-
-  exports.verifyOtpAndLogin = async (req, res) => {
-    try {
-      const { mobileNo, otp } = req.body;
-  
-      // 1. Find user
-      const user = await User.findOne({ mobileNo });
-      if (!user) return res.status(404).json({ message: "User not found" });
-  
-      // 2. Get latest OTP from DB
-      const latestOtp = await Otp.findOne({ email: user.email }).sort({ createdAt: -1 });
-  
-      if (!latestOtp || latestOtp.otp !== otp) {
-        return res.status(401).json({ message: "Invalid or expired OTP" });
-      }
-  
-      // 3. Delete OTP after successful verification
-      await Otp.deleteMany({ email: user.email });
-  
-      // 4. Generate JWT
-      const token = generateToken(user);
-  
-      res.status(200).json({
-        message: "OTP verified successfully. Login success.",
-        token,
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          department: user.department,
-          position: user.position,
-        },
-      });
-    } catch (err) {
-      console.error("OTP verify error:", err.message);
-      res.status(500).json({ message: "OTP verification failed", error: err.message });
-    }
-  };
-  
 
 
   exports.refreshAccessToken = async (req, res) => {

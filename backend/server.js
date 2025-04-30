@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 const setupSwagger = require("./swagger/swagger");
 // Import Routes
 const webhookRoutes = require("./routes/webhookRoutes");
+const whatsappRoutes = require('./routes/whatsappRoutes');
 
 const studentAdmissionRoutes = require("./routes/studentAdmissionProcessRoutes");
 const protectedRoutes = require("./routes/protectedRoutes");
@@ -38,7 +39,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
 app.use("/api/protected", protectedRoutes);
-app.use("/api/students/admission",  admittedStudentRoutes);
+app.use("/api/students",  admittedStudentRoutes);
 // app.use("/api/superAdmin", superAdminRoutes);
 // app.use("/api/students", );
 
@@ -48,6 +49,7 @@ app.use("/api/students/admission",  admittedStudentRoutes);
 app.use("/api/students/admission", studentAdmissionRoutes);
 
 app.use("/api/webhook", webhookRoutes);
+app.use('/api', whatsappRoutes); // <-- add this line
 app.use("/", webhookRoutes);
 
 app.use("/api/user", userRoutes);

@@ -87,12 +87,11 @@
   },
   "devDependencies": {
     "jest": "^29.7.0",
+    "mock-req-res": "^1.2.1",
+    "mongodb-memory-server": "^10.1.4",
     "supertest": "^7.1.0"
   },
   "scripts": {
     "test": "jest"
-  },
-  "jest": {
-    "testTimeout": 30000
   }
 }
