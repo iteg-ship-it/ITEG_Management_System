@@ -6,8 +6,8 @@ const studentAdmittedController= require('../modules/student/controllers/admitte
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 
 
-router.post("/receive/data",admissionController.addAdmission);
-router.post("/admission-flag-update", admissionController.updateAdmissionFlag, studentAdmittedController.createAdmittedStudent);
+router.post("/register",admissionController.addAdmission);
+router.post("/admission_flag_update", admissionController.updateAdmissionFlag, studentAdmittedController.createAdmittedStudent);
 module.exports = router;
  
 
