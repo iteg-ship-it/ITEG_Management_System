@@ -51,7 +51,7 @@ beforeAll(async () => {
       console.log("🔍 Sending test payload:", payload);
   
       const res = await request(app)
-        .post("/api/user/create") // 👈 match your route
+        .post("/api/user/signup") // 👈 match your route
         .send(payload)
         .expect(201);
   
@@ -72,7 +72,7 @@ beforeAll(async () => {
       };
     
       const res = await request(app)
-        .post("/api/user/create")
+        .post("/api/user/signup")
         .send(duplicateUser)
         .expect(400);
     
@@ -93,7 +93,7 @@ beforeAll(async () => {
       };
     
       const res = await request(app)
-        .post("/api/user/create")
+        .post("/api/user/signup")
         .send(payload)
         .expect(400);
     
@@ -115,14 +115,14 @@ beforeAll(async () => {
       };
     
       const res = await request(app)
-        .post("/api/user/create")
+        .post("/api/user/signup")
         .send(payload)
         .expect(201);
     
       expect(res.body.user.email).toBe(email.toLowerCase());
     });
     
-    it("should reject if required fields are missing", async () => {
+    it("5 should reject if required fields are missing", async () => {
       const payload = {
         email: "missingfields@example.com",
         mobileNo: "9876543214",
@@ -130,160 +130,164 @@ beforeAll(async () => {
       };
     
       const res = await request(app)
-        .post("/api/user/create")
+        .post("/api/user/signup")
         .send(payload)
         .expect(400); // ✅ Changed from 500 to 400
     
       expect(res.body.message).toMatch(/required/i); // Optional: improve if your error message changes
     });
     
-    
-  
+  });
 
+    describe('User API - Login User', () => {
   // login tests
-//   it('1 should login successfully with valid credentials', async () => {
-//     // First, create a user
-//     const user = await User.create({
-//       name: 'Test User',
-//       email: 'test@example.com',
-//       password: await bcrypt.hash('Password123', 10),
-//       adharCard: '123456789012',
-//       department: 'IT',
-//       position: 'Developer',
-//       role: 'admin'
-//     });
+  it('1 should login successfully with valid credentials', async () => {
+    // First, create a user
+    const user = await User.create({
+      name: 'Test User',
+      email: 'test@example.com',
+      mobileNo: '9876543210', 
+      password: await bcrypt.hash('Password123', 10),
+      adharCard: '123456789012',
+      department: 'IT',
+      position: 'Developer',
+      role: 'admin'
+    });
   
-//     const res = await request(app)
-//       .post('/api/user/login')
-//       .send({
-//         email: 'test@example.com',
-//         password: 'Password123'
-//       });
+    const res = await request(app)
+      .post('/api/user/login')
+      .send({
+        email: 'test@example.com',
+        password: 'Password123'
+      });
   
-//     expect(res.statusCode).toBe(200);
-//     expect(res.body).toHaveProperty('message', 'Login successful');
-//     expect(res.body).toHaveProperty('token');
-//     expect(res.body).toHaveProperty('refreshToken');
-//     expect(res.body.user).toHaveProperty('email', 'test@example.com');
-//   });
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty('message', 'Login successful');
+    expect(res.body).toHaveProperty('token');
+    expect(res.body).toHaveProperty('refreshToken');
+    expect(res.body.user).toHaveProperty('email', 'test@example.com');
+  });
  
-//   it('2 should fail if email does not exist', async () => {
-//     const res = await request(app)
-//       .post('/api/user/login')
-//       .send({
-//         email: 'nonexistent@example.com',
-//         password: 'Password123'
-//       });
+  it('2 should fail if email does not exist', async () => {
+    const res = await request(app)
+      .post('/api/user/login')
+      .send({
+        email: 'nonexistent@example.com',
+        password: 'Password123'
+      });
   
-//     expect(res.statusCode).toBe(401);
-//     expect(res.body).toHaveProperty('message', 'Invalid email or password');
-//   });
-//   it('3 should fail if password is incorrect', async () => {
-//     // First, create a user
-//     const user = await User.create({
-//       name: 'Test User',
-//       email: 'test@example.com',
-//       password: await bcrypt.hash('Password123', 10),
-//       adharCard: '123456789012',
-//       department: 'IT',
-//       position: 'Developer',
-//       role: 'admin'
-//     });
-  
-//     const res = await request(app)
-//       .post('/api/user/login')
-//       .send({
-//         email: 'test@example.com',
-//         password: 'WrongPassword'
-//       });
-  
-//     expect(res.statusCode).toBe(401);
-//     expect(res.body).toHaveProperty('message', 'Invalid email or password');
-//   });
-  
-//   it('4 should fail if email is missing', async () => {
-//     const res = await request(app)
-//       .post('/api/user/login')
-//       .send({
-//         password: 'Password123'
-//       });
-  
-//     expect(res.statusCode).toBe(400); // Optional: if you handle missing fields
-//     // or if you don't handle, expect 500
-//   });
+    expect(res.statusCode).toBe(401);
+    expect(res.body).toHaveProperty('message', 'Invalid email or password');
+  });
 
-
-//   it('5 should fail if password is missing', async () => {
-//     const res = await request(app)
-//       .post('/api/user/login')
-//       .send({
-//         email: 'test@example.com'
-//       });
+  it('3 should fail if password is incorrect', async () => {
+    // First, create a user
+    const user = await User.create({
+      name: 'Test User',
+      email: 'test@example.com',
+      mobileNo: '9876543210',
+      password: await bcrypt.hash('Password123', 10),
+      adharCard: '123456789012',
+      department: 'IT',
+      position: 'Developer',
+      role: 'admin'
+    });
   
-//     expect(res.statusCode).toBe(400); // Again, if validation is added
-//   });
+    const res = await request(app)
+      .post('/api/user/login')
+      .send({
+        email: 'test@example.com',
+        password: 'WrongPassword'
+      });
+  
+    expect(res.statusCode).toBe(401);
+    expect(res.body).toHaveProperty('message', 'Invalid email or password');
+  });
+  
+  it('4 should fail if email is missing', async () => {
+    const res = await request(app)
+      .post('/api/user/login')
+      .send({
+        password: 'Password123'
+      });
+  
+    expect(res.statusCode).toBe(400); // Optional: if you handle missing fields
+    // or if you don't handle, expect 500
+  });
+
+  it('5 should fail if password is missing', async () => {
+    const res = await request(app)
+      .post('/api/user/login')
+      .send({
+        email: 'test@example.com'
+      });
+  
+    expect(res.statusCode).toBe(400); // Again, if validation is added
+  });
+});
 
 // // Update
 
-// it('1 should update the user\'s position successfully', async () => {
-//   const res = await request(app)
-//     .patch(`/api/user/update/${user._id}`)
-//     .send({ position: 'Senior Developer' });
+describe('User API - Udate User', () => {
+it('1 should update the user\'s position successfully', async () => {
+  const res = await request(app)
+    .patch(`/api/user/update/${user._id}`)
+    .send({ position: 'Senior Developer' });
 
-//   expect(res.statusCode).toBe(200);
-//   expect(res.body.success).toBe(true);
-//   expect(res.body.user.position).toBe('Senior Developer');
-// });
+  expect(res.statusCode).toBe(200);
+  expect(res.body.success).toBe(true);
+  expect(res.body.user.position).toBe('Senior Developer');
+});
 
-// it('2 should update multiple fields successfully', async () => {
-//   const res = await request(app)
-//     .patch(`/api/user/update/${user._id}`)
-//     .send({
-//       position: 'Team Lead',
-//       department: 'Engineering',
-//       role: 'faculty',
-//       isActive: false,
-//     });
+it('2 should update multiple fields successfully', async () => {
+  const res = await request(app)
+    .patch(`/api/user/update/${user._id}`)
+    .send({
+      position: 'Team Lead',
+      department: 'Engineering',
+      role: 'faculty',
+      isActive: false,
+    });
 
-//   expect(res.statusCode).toBe(200);
-//   expect(res.body.user.position).toBe('Team Lead');
-//   expect(res.body.user.department).toBe('Engineering');
-//   expect(res.body.user.role).toBe('faculty');
-//   expect(res.body.user.isActive).toBe(false);
-// });
+  expect(res.statusCode).toBe(200);
+  expect(res.body.user.position).toBe('Team Lead');
+  expect(res.body.user.department).toBe('Engineering');
+  expect(res.body.user.role).toBe('faculty');
+  expect(res.body.user.isActive).toBe(false);
+});
   
 
-// it('3 should return 404 if ID is invalid', async () => {
-//   const invalidId = '12345';
+it('3 should return 404 if ID is invalid', async () => {
+  const invalidId = '12345';
 
-//   const res = await request(app)
-//     .patch(`/api/user/update/${invalidId}`)
-//     .send({ position: 'Senior Developer' });
+  const res = await request(app)
+    .patch(`/api/user/update/${invalidId}`)
+    .send({ position: 'Senior Developer' });
 
-//   expect(res.statusCode).toBe(404);
-//   expect(res.body.message).toBe('User not found');
-// });
+  expect(res.statusCode).toBe(404);
+  expect(res.body.message).toBe('User not found');
+});
 
 
-// it('4 should return 404 if user does not exist', async () => {
-//   const validNonExistentId = new mongoose.Types.ObjectId();
+it('4 should return 404 if user does not exist', async () => {
+  const validNonExistentId = new mongoose.Types.ObjectId();
 
-//   const res = await request(app)
-//     .patch(`/api/user/update/${validNonExistentId}`)
-//     .send({ position: 'Senior Developer' });
+  const res = await request(app)
+    .patch(`/api/user/update/${validNonExistentId}`)
+    .send({ position: 'Senior Developer' });
 
-//   expect(res.statusCode).toBe(404);
-//   expect(res.body.message).toBe('User not found');
-// });
+  expect(res.statusCode).toBe(404);
+  expect(res.body.message).toBe('User not found');
+});
 
-// it('5 should return 200 even if no fields are updated (optional behavior)', async () => {
-//   const res = await request(app)
-//     .patch(`/api/user/update/${user._id}`)
-//     .send({});
+it('5 should return 200 even if no fields are updated (optional behavior)', async () => {
+  const res = await request(app)
+    .patch(`/api/user/update/${user._id}`)
+    .send({});
 
-//   expect(res.statusCode).toBe(200);
-//   expect(res.body.success).toBe(true);
-//   expect(res.body.message).toBe('User updated successfully');
-// });
+  expect(res.statusCode).toBe(200);
+  expect(res.body.success).toBe(true);
+  expect(res.body.message).toBe('User updated successfully');
+});
 
 });

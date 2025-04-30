@@ -200,7 +200,7 @@ info:
               example: true
 
 paths:
-  /api/user/create:
+  /api/user/signup:
     post:
       summary: Register a new user (admin/superadmin/faculty)
       tags:
@@ -408,7 +408,7 @@ paths:
   /api/admission/create/Interview/{id}:
   post:
     tags:
-      - Admission
+      - Admission Process
     summary: Add an interview round
     parameters:
       - name: id
