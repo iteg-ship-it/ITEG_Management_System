@@ -39,6 +39,9 @@ const AdmittedStudentSchema = new mongoose.Schema({
   fatherName: { type: String, required: true },
   mobileNo: { type: String, required: true },
   email: { type: String, default: "" },
+  address: { type: String, required: true },
+  track: { type: String, required: true },   
+  village: { type: String, required: true },
 
   level: [levelSchema],
   techno: { type: String },
