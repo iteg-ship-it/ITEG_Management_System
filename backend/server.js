@@ -1,4 +1,3 @@
-
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -13,6 +12,7 @@ const protectedRoutes = require("./routes/protectedRoutes");
 
 const admittedStudentRoutes = require("./routes/studentRoutes");
 const userRoutes = require("./routes/userRoutes.js");
+const otpRoutes = require("./routes/otpRoutes.js");
 
 
 
@@ -39,22 +39,24 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
 app.use("/api/protected", protectedRoutes);
-app.use("/api/students",  admittedStudentRoutes);
-// app.use("/api/superAdmin", superAdminRoutes);
-// app.use("/api/students", );
 
-// app.use("/api/webhook", webhookRoutes);
-
-// app.use("/api/", studentAdmission);
-app.use("/api/students/admission", studentAdmissionRoutes);
-
-app.use("/api/webhook", webhookRoutes);
-app.use('/api', whatsappRoutes); // <-- add this line
-app.use("/", webhookRoutes);
-
+// user routes
 app.use("/api/user", userRoutes);
+
+// admission process routes
+app.use("/api/admission/students", studentAdmissionRoutes);
+
+// admitted students routes
+app.use("/api/admitted/students",  admittedStudentRoutes);
+
+// webhook routes
+app.use("/api/admission/students/webhook", webhookRoutes);
+
 // in your main server.js / app.js
-app.use('/api/otp', require('./routes/otpRoutes'));
+app.use('/api/user/otp', otpRoutes);
+
+// in your main server.js / app.js
+app.use('/api/students', whatsappRoutes); 
 
 
 
