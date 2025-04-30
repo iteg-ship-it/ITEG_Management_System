@@ -26,68 +26,14 @@ const generateRefreshToken = (user) => {
 };
 
 
-// exports.createUser = async (req, res) => {
-//   try {
-//     const { name, email,mobileNo, password, adharCard, department, position, role,  isActive, updatedAt,createdAt} = req.body;
-
-//     // Allowed roles
-//     const allowedRoles = ["admin", "superadmin", "faculty"];
-//     if (!allowedRoles.includes(role)) {
-//       return res.status(400).json({ message: "Invalid role. Only admin, superadmin, and faculty are allowed." });
-//     }
-//     console.log("Received role:", role);
-  
-   
-//     // Check if user already exists
-//     const existingUser = await User.findOne({ $or: [{ email }, { adharCard }] });
-//     if (existingUser) {
-//       return res.status(400).json({ message: "User with this email or Aadhar already exists." });
-//     }
-//     console.log("Existing user found:", existingUser);
-//     // Hash the password
-//     const salt = await bcrypt.genSalt(10);
-//     const hashedPassword = await bcrypt.hash(password, salt);
-
-//     // Create new user
-//     const newUser = new User({
-//       name,
-//       email,
-//       mobileNo,
-//       password: hashedPassword,
-//       adharCard,
-//       department,
-//       position,
-//       role,
-//       isActive,
-//        updatedAt,
-//        createdAt
-//     });
-
-//     await newUser.save();
-
-//     // Generate JWT Token
-//     const token = generateToken(newUser);
-
-//     res.status(201).json({
-//       message: `${role.charAt(0).toUpperCase() + role.slice(1)} created successfully!`,
-//       user: {
-//         id: newUser._id,
-//         name: newUser.name,
-//         email: newUser.email,
-//         mobileNo: newUser.mobileNo,
-//         role: newUser.role
-//       },
-//       token
-//     });
-//   } catch (error) {
-//     console.error("Error creating user:", error);
-//     res.status(500).json({ message: "Server Error", error });
-//   }
-// };
 
 exports.createUser = async (req, res) => {
   try {
     let { name, email, mobileNo, password, adharCard, department, position, role, isActive, updatedAt, createdAt } = req.body;
+
+    if (!name || !email || !mobileNo || !password || !adharCard || !department || !position || !role) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
 
     // Convert email to lowercase
     email = email.toLowerCase();
