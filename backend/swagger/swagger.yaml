@@ -370,13 +370,8 @@ paths:
           description: User ID to update
           schema:
             type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
+
+            properties:
                 position:
                   type: string
                   example: "Senior Developer"
@@ -392,6 +387,109 @@ paths:
       responses:
         200:
           description: User updated successfully
+              required:
+                - email
+                - otp
+              properties:
+                email:
+                  type: string
+                  example: user@example.com
+                otp:
+                  type: string
+                  example: "123456"
+
+  /api/user/refresh_token:
+    post:
+      summary: Refresh JWT access token using a refresh token
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      responses:
+        '200':
+          description: Access token refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Access token refreshed
+                  accessToken:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '401':
+          description: Refresh token required
+        '403':
+          description: Invalid or expired refresh token
+        '500':
+          description: Server error
+
+  /api/user/otp/send:
+    post:
+      summary: Send OTP to user email for login
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  example: anees774883@gmail.com
+      responses:
+        '200':
+          description: OTP sent to registered email
+        '400':
+          description: Email is required
+        '404':
+          description: User with this email does not exist
+        '429':
+          description: Maximum OTP request limit exceeded
+        '500':
+          description: Internal Server Error
+
+  /api/user/otp/verify:
+    post:
+      summary: Verify OTP and login user
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - otp
+              properties:
+                email:
+                  type: string
+                  example: anees774883@gmail.com
+                otp:
+                  type: string
+                  example: "123456"
+              
+      responses:
+        '200':
+          description: OTP verified and login success
           content:
             application/json:
               schema:
@@ -471,11 +569,57 @@ paths:
                     type: string
                     example: Interview round added successfully
                   student:
-                    $ref: './schemas/Admission'
+                    $ref: '#/components/schemas/AdmissionProcess'
         '400':
           description: Bad request due to validation failure or logic rejection
         '404':
           description: Student not found
+        '500':
+          description: Server error
+
+  /api/user/logout:
+    post:
+      summary: Logout user and remove refresh token
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - _id
+              properties:
+                _id:
+                  type: string
+                  example: 644a99999f73e02bcd123456
+             
+      responses:
+        '200':
+          description: Logged out successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Interview round added successfully
+                  student:
+                    $ref: './schemas/Admission'
+        '400':
+          description: Bad request due to validation failure or logic rejection
+                  message:
+                    type: string
+                    example: Logged out successfully, refresh token removed
+        '400':
+          description: User ID is required
+        '404':
+          description: User not found
         '500':
           description: Server error
 
@@ -566,3 +710,8 @@ paths:
           description: Student not found
         '500':
           description: Server Error
+
+
+
+
+  
