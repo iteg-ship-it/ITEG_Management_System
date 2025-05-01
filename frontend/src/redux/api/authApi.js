@@ -59,7 +59,7 @@ export const authApi = createApi({
 
     getAllStudents: builder.query({
       query: () => ({
-        url: "/students/admission/getall",
+        url: "/admission/students/getall",
         method: "GET",
       }),
     }),

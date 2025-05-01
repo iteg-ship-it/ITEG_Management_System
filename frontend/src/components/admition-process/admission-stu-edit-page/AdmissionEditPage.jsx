@@ -53,7 +53,8 @@ const AdmissionEditPage = () => {
 
   return (
     <>
-      <UserProfile heading="Interview Process" />
+      <UserProfile showBackButton heading="Interview Process" />
+
       <div className="mx-auto ">
         <Formik
           initialValues={initialValues}
