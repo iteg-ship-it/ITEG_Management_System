@@ -1,5 +1,5 @@
 import UserProfile from "../../common-components/user-profile/UserProfile";
-import { useGetAllStudentsQuery } from "../../../redux/api/authApi";
+import { useAdmitedStudentsQuery } from "../../../redux/api/authApi";
 
 const StudentPermission = () => {
   return (
@@ -12,7 +12,7 @@ const StudentPermission = () => {
 
 export default StudentPermission;
 const StudentList = () => {
-  const { data, error, isLoading } = useGetAllStudentsQuery();
+  const { data, error, isLoading } = useAdmitedStudentsQuery();
 
   if (isLoading) return <p>Loading...</p>;
   if (error) return <p>Error fetching students.</p>;

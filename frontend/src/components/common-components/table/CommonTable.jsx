@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState } from "react";
-import edit from "../../../assets/icons/edit-fill-icon.png";
+
 const CommonTable = ({
   columns,
   data,
@@ -8,15 +8,18 @@ const CommonTable = ({
   pagination,
   rowsPerPage,
   searchTerm,
+  actionButton, // New prop for action button
+  extraColumn, // New prop for additional column
 }) => {
   const [visibleColumns] = useState(columns.map((col) => col.key));
   const [currentPage, setCurrentPage] = useState(1);
 
   const filteredData = data.filter((row) =>
     Object.values(row)
+      .map((val) => String(val ?? ""))
       .join(" ")
       .toLowerCase()
-      .includes(searchTerm.toLowerCase())
+      .includes((searchTerm ?? "").toLowerCase())
   );
 
   const paginatedData = filteredData.slice(
@@ -30,9 +33,9 @@ const CommonTable = ({
       <div className="bg-white p-4 rounded-2xl shadow-md w-full">
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
-            <thead className="bg-[#f9fafb] border-b">
+            <thead className="border-b-2 border-b-orange-300 ">
               <tr>
-                <th className="py-2">
+                <th className="text-start ps-4">
                   <input type="checkbox" />
                 </th>
                 {columns
@@ -40,13 +43,20 @@ const CommonTable = ({
                   .map((col) => (
                     <th
                       key={col.key}
-                      className="px-4 py-2 text-left font-medium text-gray-700"
+                      className="px-4 py-2 text-center font-medium text-gray-700"
                     >
                       {col.label}
                     </th>
                   ))}
                 {editable && (
-                  <th className="px-4 py-2 text-left text-gray-700">Edit</th>
+                  <th className="px-4 py-2 text-center text-gray-700">
+                    Action
+                  </th>
+                )}
+                {extraColumn && (
+                  <th className="px-4 py-2 text-center text-gray-700">
+                    {extraColumn.header}
+                  </th>
                 )}
               </tr>
             </thead>
@@ -59,8 +69,10 @@ const CommonTable = ({
                   {columns
                     .filter((col) => visibleColumns.includes(col.key))
                     .map((col) => (
-                      <td key={col.key} className="px-4 py-2">
-                        {col.key === "profile" ? (
+                      <td key={col.key} className="px-4 text-center py-2">
+                        {col.render ? (
+                          col.render(row)
+                        ) : col.key === "profile" ? (
                           <img
                             src={row[col.key]}
                             alt="avatar"
@@ -72,8 +84,14 @@ const CommonTable = ({
                       </td>
                     ))}
                   {editable && (
-                    <td className="px-4 py-2">
-                      <img src={edit} alt="edit icon" />{" "}
+                    <td className="px-4 text-center py-2">
+                      {/* Custom Action Button */}
+                      {actionButton && actionButton(row)}
+                    </td>
+                  )}
+                  {extraColumn && (
+                    <td className="px-4 text-center py-2">
+                      {extraColumn.render && extraColumn.render(row)}
                     </td>
                   )}
                 </tr>
@@ -85,43 +103,11 @@ const CommonTable = ({
         {pagination && (
           <div className="mt-4 flex flex-col md:flex-row justify-between items-center text-sm gap-3">
             <p className="text-gray-600">Total Count {filteredData.length}</p>
-
-            {/* Pagination controls */}
-            {/* <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                className="px-2 py-1 bg-gray-300 text-white font-extrabold text-base border rounded-md"
-              >
-                {"<"}
-              </button>
-              {[...Array(totalPages)].map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentPage(i + 1)}
-                  className={`px-3 py-1 rounded-md border font-medium text-base ${
-                    currentPage === i + 1
-                      ? "text-orange-500 "
-                      : "hover:bg-gray-100"
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-              <button
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(p + 1, totalPages))
-                }
-                className="px-2 py-1 bg-gray-300 text-white font-extrabold text-base border rounded-md"
-              >
-                {">"}
-              </button>
-            </div> */}
             <div className="flex items-center gap-2">
-              {/* Previous Button */}
               <button
                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                 disabled={currentPage === 1}
-                className={`px-2 py-1  font-extrabold text-base border rounded-md ${
+                className={`px-2 py-1 font-extrabold text-base border rounded-md ${
                   currentPage === 1
                     ? "bg-white text-gray-400 cursor-not-allowed"
                     : "bg-gray-300 text-white hover:bg-gray-400"
@@ -129,8 +115,6 @@ const CommonTable = ({
               >
                 {"<"}
               </button>
-
-              {/* Page Numbers */}
               {[...Array(totalPages)].map((_, i) => (
                 <button
                   key={i}
@@ -144,14 +128,12 @@ const CommonTable = ({
                   {i + 1}
                 </button>
               ))}
-
-              {/* Next Button */}
               <button
                 onClick={() =>
                   setCurrentPage((p) => Math.min(p + 1, totalPages))
                 }
                 disabled={currentPage === totalPages}
-                className={`px-2 py-1  font-extrabold text-base border rounded-md ${
+                className={`px-2 py-1 font-extrabold text-base border rounded-md ${
                   currentPage === totalPages
                     ? "bg-white text-gray-400 cursor-not-allowed"
                     : "bg-gray-300 text-white hover:bg-gray-400"
@@ -171,7 +153,6 @@ export default CommonTable;
 
 // /* eslint-disable react/prop-types */
 // import { useState } from "react";
-// import { Pencil } from "lucide-react";
 
 // const CommonTable = ({
 //   columns,
@@ -179,17 +160,18 @@ export default CommonTable;
 //   editable,
 //   pagination,
 //   rowsPerPage,
-//   setRowsPerPage,
 //   searchTerm,
+//   actionButton, // New prop for action button
 // }) => {
 //   const [visibleColumns] = useState(columns.map((col) => col.key));
 //   const [currentPage, setCurrentPage] = useState(1);
 
 //   const filteredData = data.filter((row) =>
 //     Object.values(row)
+//       .map((val) => String(val ?? ""))
 //       .join(" ")
 //       .toLowerCase()
-//       .includes(searchTerm.toLowerCase())
+//       .includes((searchTerm ?? "").toLowerCase())
 //   );
 
 //   const paginatedData = filteredData.slice(
@@ -203,9 +185,9 @@ export default CommonTable;
 //       <div className="bg-white p-4 rounded-2xl shadow-md w-full">
 //         <div className="overflow-x-auto">
 //           <table className="min-w-full text-sm">
-//             <thead className="bg-[#f9fafb] border-b">
+//             <thead className="border-b-2 border-b-orange-300 ">
 //               <tr>
-//                 <th className="py-2">
+//                 <th className="text-start ps-4">
 //                   <input type="checkbox" />
 //                 </th>
 //                 {columns
@@ -213,13 +195,15 @@ export default CommonTable;
 //                   .map((col) => (
 //                     <th
 //                       key={col.key}
-//                       className="px-4 py-2 text-left font-medium text-gray-700"
+//                       className="px-4 py-2 text-center font-medium  text-gray-700"
 //                     >
 //                       {col.label}
 //                     </th>
 //                   ))}
 //                 {editable && (
-//                   <th className="px-4 py-2 text-left text-gray-700">Edit</th>
+//                   <th className="px-4 py-2 text-center text-gray-700">
+//                     Action
+//                   </th>
 //                 )}
 //               </tr>
 //             </thead>
@@ -232,8 +216,10 @@ export default CommonTable;
 //                   {columns
 //                     .filter((col) => visibleColumns.includes(col.key))
 //                     .map((col) => (
-//                       <td key={col.key} className="px-4 py-2">
-//                         {col.key === "profile" ? (
+//                       <td key={col.key} className="px-4 text-center py-2">
+//                         {col.render ? (
+//                           col.render(row)
+//                         ) : col.key === "profile" ? (
 //                           <img
 //                             src={row[col.key]}
 //                             alt="avatar"
@@ -245,8 +231,9 @@ export default CommonTable;
 //                       </td>
 //                     ))}
 //                   {editable && (
-//                     <td className="px-4 py-2">
-//                       <Pencil className="w-4 h-4 text-gray-500 hover:text-blue-500 cursor-pointer" />
+//                     <td className="px-4 text-center py-2">
+//                       {/* Custom Action Button */}
+//                       {actionButton && actionButton(row)}
 //                     </td>
 //                   )}
 //                 </tr>
@@ -257,30 +244,16 @@ export default CommonTable;
 
 //         {pagination && (
 //           <div className="mt-4 flex flex-col md:flex-row justify-between items-center text-sm gap-3">
-//             <p className="text-gray-600">
-//               Showing {(currentPage - 1) * rowsPerPage + 1} to{" "}
-//               {Math.min(currentPage * rowsPerPage, filteredData.length)} of{" "}
-//               {filteredData.length}
-//             </p>
-//             <select
-//               id="rowsPerPage"
-//               value={rowsPerPage}
-//               onChange={(e) => {
-//                 setRowsPerPage(Number(e.target.value));
-//                 setCurrentPage(1);
-//               }}
-//               className="border px-2 py-1 rounded-md"
-//             >
-//               {[5, 10, 20, 50].map((count) => (
-//                 <option key={count} value={count}>
-//                   {count}
-//                 </option>
-//               ))}
-//             </select>
+//             <p className="text-gray-600">Total Count {filteredData.length}</p>
 //             <div className="flex items-center gap-2">
 //               <button
 //                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-//                 className="px-2 py-1 bg-gray-300 text-white font-extrabold text-base border rounded-md"
+//                 disabled={currentPage === 1}
+//                 className={`px-2 py-1 font-extrabold text-base border rounded-md ${
+//                   currentPage === 1
+//                     ? "bg-white text-gray-400 cursor-not-allowed"
+//                     : "bg-gray-300 text-white hover:bg-gray-400"
+//                 }`}
 //               >
 //                 {"<"}
 //               </button>
@@ -290,7 +263,7 @@ export default CommonTable;
 //                   onClick={() => setCurrentPage(i + 1)}
 //                   className={`px-3 py-1 rounded-md border font-medium text-base ${
 //                     currentPage === i + 1
-//                       ? "text-orange-500 "
+//                       ? "text-orange-500 bg-gray-100"
 //                       : "hover:bg-gray-100"
 //                   }`}
 //                 >
@@ -301,7 +274,12 @@ export default CommonTable;
 //                 onClick={() =>
 //                   setCurrentPage((p) => Math.min(p + 1, totalPages))
 //                 }
-//                 className="px-2 py-1 bg-gray-300 text-white font-extrabold text-base border rounded-md"
+//                 disabled={currentPage === totalPages}
+//                 className={`px-2 py-1 font-extrabold text-base border rounded-md ${
+//                   currentPage === totalPages
+//                     ? "bg-white text-gray-400 cursor-not-allowed"
+//                     : "bg-gray-300 text-white hover:bg-gray-400"
+//                 }`}
 //               >
 //                 {">"}
 //               </button>

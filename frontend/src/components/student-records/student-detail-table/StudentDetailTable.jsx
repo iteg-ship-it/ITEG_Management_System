@@ -153,15 +153,7 @@ const StudentDetailTable = () => {
             }}
           />
 
-          <div className="flex justify-between items-center mt-4">
-            <p className="text-gray-600">Showing {students.length} entries</p>
-            <div className="flex gap-2">
-              <button className="px-3 py-2 bg-gray-200 rounded">1</button>
-              <button className="px-3 py-2 bg-gray-200 rounded">2</button>
-              <button className="px-3 py-2 bg-gray-200 rounded">...</button>
-              <button className="px-3 py-2 bg-gray-200 rounded">10</button>
-            </div>
-          </div>
+         
         </div>
       </div>
     </>

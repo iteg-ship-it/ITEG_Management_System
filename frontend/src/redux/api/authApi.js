@@ -63,7 +63,17 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+    admitedStudents: builder.query({
+      query: () => ({
+        url: "/students/getall",
+        method: "GET",
+      }),
+    }),
   }),
 });
 
-export const { useLoginMutation, useGetAllStudentsQuery } = authApi;
+export const {
+  useLoginMutation,
+  useGetAllStudentsQuery,
+  useAdmitedStudentsQuery,
+} = authApi;
