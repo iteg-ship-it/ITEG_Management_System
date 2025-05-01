@@ -5,3 +5,23 @@
 :root {
   --primary: #f2f7fc;
 }
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected,
+.react-datepicker__day--in-selecting-range,
+.react-datepicker__day--in-range {
+  background-color: #fb923c !important; /* Tailwind orange-400 */
+  color: white;
+}
+.react-datepicker__day:hover {
+  background-color: #f97316 !important; /* Tailwind orange-500 */
+}
+
+.input {
+  @apply border p-2 rounded-md w-full;
+}
+
+
+input {
+  @apply border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500;
+}

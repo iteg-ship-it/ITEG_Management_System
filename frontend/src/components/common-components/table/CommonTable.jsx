@@ -1,6 +1,5 @@
 /* eslint-disable react/prop-types */
 import { useState } from "react";
-
 const CommonTable = ({
   columns,
   data,
@@ -13,7 +12,6 @@ const CommonTable = ({
 }) => {
   const [visibleColumns] = useState(columns.map((col) => col.key));
   const [currentPage, setCurrentPage] = useState(1);
-
   const filteredData = data.filter((row) =>
     Object.values(row)
       .map((val) => String(val ?? ""))

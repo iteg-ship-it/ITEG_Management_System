@@ -8,6 +8,7 @@ import StudentEditPage from "../student-records/student-edit-page/StudentEditPag
 import StudentDashboard from "../student-records/student-dashboard/StudentDashboard";
 import StudentDetailTable from "../student-records/student-detail-table/StudentDetailTable";
 import StudentPermission from "../student-records/student-permission/StudentPermission";
+import AdmissionEditPage from "../admition-process/admission-stu-edit-page/AdmissionEditPage";
 
 const Dashboard = () => {
   return (
@@ -24,6 +25,10 @@ const Dashboard = () => {
         <Route
           path="/student-profile/:studentId"
           element={<StudentProfile />}
+        />
+        <Route
+          path="/admission-edit/:studentId"
+          element={<AdmissionEditPage />}
         />
       </Routes>
     </>

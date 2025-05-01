@@ -36,3 +36,25 @@ export const signupValidationSchema = Yup.object({
   twelfthPassoutYear: Yup.string().required("12th Passout Year is required"),
   courseOrDiploma: Yup.string().required("Required"),
 });
+
+
+
+export const interviewSchema = Yup.object({
+  firstName: Yup.string().required("Required"),
+  lastName: Yup.string().required("Required"),
+  contact: Yup.string().required("Required"),
+  fatherName: Yup.string().required("Required"),
+  gender: Yup.string().required("Select gender"),
+  track: Yup.string().required("Select track"),
+  address: Yup.string().required("Required"),
+  subject12: Yup.string().required("Required"),
+  percent12: Yup.string().required("Required"),
+  percent10: Yup.string().required("Required"),
+  passOut: Yup.date().required("Required"),
+  course: Yup.string().required("Select course"),
+  marks: Yup.number().required("Required"),
+  remark: Yup.string().required("Required"),
+  attempt: Yup.number().required("Required"),
+  examDate: Yup.date().required("Required"),
+});
+
