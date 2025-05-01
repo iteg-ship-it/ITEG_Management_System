@@ -3,16 +3,14 @@ const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema({
   position: { type: String, required: true},
-  position: { type: String, required: true},
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  // mobileNo: { type: String, required: true },
+  mobileNo: { type: String, required: true },
   adharCard: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, default: 'admin' },
   department: { type: String, required: true },
   refreshToken: { type: String },
-
 
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now },

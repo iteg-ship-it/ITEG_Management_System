@@ -5,12 +5,14 @@ const bodyParser = require("body-parser");
 const setupSwagger = require("./swagger/swagger");
 // Import Routes
 const webhookRoutes = require("./routes/webhookRoutes");
+const whatsappRoutes = require('./routes/whatsappRoutes');
 
 const studentAdmissionRoutes = require("./routes/studentAdmissionProcessRoutes");
 const protectedRoutes = require("./routes/protectedRoutes");
 
 const admittedStudentRoutes = require("./routes/studentRoutes");
 const userRoutes = require("./routes/userRoutes.js");
+const otpRoutes = require("./routes/otpRoutes.js");
 
 //expres object
 const app = express();
@@ -33,21 +35,27 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
 app.use("/api/protected", protectedRoutes);
-app.use("/api/students", admittedStudentRoutes);
-// app.use("/api/superAdmin", superAdminRoutes);
-// app.use("/api/students", );
 
-// app.use("/api/webhook", webhookRoutes);
-
-// app.use("/api/", studentAdmission);
-app.use("/api/students/admission", studentAdmissionRoutes);
-
-app.use("/api/webhook", webhookRoutes);
-app.use("/", webhookRoutes);
-
+// user routes
 app.use("/api/user", userRoutes);
+
+// admission process routes
+app.use("/api/admission/students", studentAdmissionRoutes);
+
+// admitted students routes
+app.use("/api/admitted/students",  admittedStudentRoutes);
+
+// webhook routes
+app.use("/api/admission/students/webhook", webhookRoutes);
+
 // in your main server.js / app.js
-app.use("/api/otp", require("./routes/otpRoutes"));
+app.use('/api/user/otp', otpRoutes);
+
+// in your main server.js / app.js
+app.use('/api/students', whatsappRoutes); 
+
+
+
 
 // MongoDB Connection
 module.exports = app;

@@ -19,7 +19,7 @@ exports.addAdmission = async (req, res) => {
     const requiredFields = [
       'prkey','firstName','lastName','fatherName',
       'studentMobile','parentMobile','gender','dob',
-      'aadharCard','address','stream','course',
+      'aadharCard','address','village','track','stream','course',
       'category','subject12','year12'
     ];
     for (let field of requiredFields) {
@@ -107,17 +107,23 @@ exports.updateAdmissionFlag = async (req, res, next) => {
   }
 };
 
+
+
 // update the itegIntervieFlag 
 exports.sendInterviewFlagToCentral = async (req, res) => {
   try {
     const { studentId } = req.params;
+    // 0) Validate input
+    if (!studentId) {
+      return res.status(400).json({ message: 'Student ID is required' });
+    }
 
-    // Step 1: Update interview flag locally
+    // 1) Update interview flag locally
     const student = await AdmissionProcess.findByIdAndUpdate(
       studentId,
       { itegInterviewFlag: true },
       { new: true }
-    )
+    );
 
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
@@ -138,19 +144,30 @@ exports.sendInterviewFlagToCentral = async (req, res) => {
         subject: 'Admission Confirmed',
         text: `Hi ${student.firstName},\n\n Now you are eligible.\n\nRegards,\nAdmission Office`,
       });
-     }
+    }
     // Step 3: Send POST to Central System
      const response = await axios.post('http://localhost:5001/webhook/iteg-flag-update', payload); // Replace URL
 
-    // Step 4: Respond
-    res.status(200).json({
+    // 4) Return success
+    return res.status(200).json({
       message: 'Interview flag updated and sent to central',
       centralResponse: response.data
     });
 
   } catch (err) {
-    console.error('Error sending interview flag:', err);
-    res.status(500).json({ message: 'Server error', error: err.message });
+    // Axios error with custom payload
+    if (err.response && err.response.data) {
+      return res.status(500).json({
+        message: 'Server error',
+        error: err.response.data,
+      });
+    }
+  
+    // General error fallback (includes your test case error)
+    return res.status(500).json({
+      message: 'Server error',
+      error: err.message || 'Unknown error',
+    });
   }
 };
 
@@ -274,5 +291,33 @@ exports.getAllStudents = async (req, res) => {
     res.status(200).json(students); // send as JSON response
   } catch (error) {
     res.status(500).json({ message: 'Failed to retrieve students', error: error.message });
+  }
+};
+
+exports.getStudentById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const student = await AdmissionProcess.findById(id);
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student not found',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Student fetched successfully',
+      data: student,
+    });
+  } catch (error) {
+    console.error('Error fetching student by ID:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server Error',
+      error: error.message,
+    });
   }
 };

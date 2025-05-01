@@ -45,34 +45,6 @@ const sendOtpToEmail = async (req, res) => {
     }
 };
 
-
-
-// const verifyEmailOtp = (req, res) => {
-//     const { email, otp } = req.body;
-
-//     if (!email || !otp) return res.status(400).json({ message: 'Email and OTP required' });
-
-//     const stored = otpStore.get(email);
-
-//     if (!stored) {
-//         return res.status(400).json({ message: 'No OTP found for this email' });
-//     }
-
-//     if (Date.now() > stored.expiresAt) {
-//         otpStore.delete(email);
-//         return res.status(400).json({ message: 'OTP expired' });
-//     }
-
-//     if (stored.otp !== otp) {
-//         return res.status(400).json({ message: 'Invalid OTP' });
-//     }
-
-//     otpStore.delete(email);
-//     res.status(200).json({ message: 'OTP verified successfully' });
-// };
-
-
-
 const verifyEmailOtp = async (req, res) => {
     const { email, otp } = req.body;
 

@@ -4,19 +4,18 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 let mongo;
 
 beforeAll(async () => {
-  // Start an in-memory MongoDB server
-  mongo = await MongoMemoryServer.create();
-  const uri = mongo.getUri();
-
-  // Connect Mongoose to the in-memory DB
-  await mongoose.connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  try {
+    mongo = await MongoMemoryServer.create();
+    const uri = mongo.getUri();
+    await mongoose.connect(uri);
+  } catch (error) {
+    console.error("Error setting up in-memory MongoDB:", error);
+    throw error;
+  }
 });
 
 afterEach(async () => {
-  // Clean up the database after each test to ensure test isolation
+
   const collections = await mongoose.connection.db.collections();
   for (let collection of collections) {
     await collection.deleteMany({});
@@ -24,7 +23,12 @@ afterEach(async () => {
 });
 
 afterAll(async () => {
-  // Close the connection and stop the in-memory server
-  await mongoose.connection.close();
-  await mongo.stop();
+  try {
+    console.log("Closing MongoDB connection and stopping server...");
+    await mongoose.connection.close();
+    await mongo.stop();
+  } catch (error) {
+    console.error("Error during test cleanup:", error);
+    throw error;
+  }
 });

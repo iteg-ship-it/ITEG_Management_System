@@ -24,6 +24,9 @@ exports.createAdmittedStudent = async (req, res) => {
       stream: admissionData.stream,
       course: admissionData.course,
       fatherName: admissionData.fatherName,
+      address: admissionData.address,
+      village: admissionData.village,
+      track: admissionData.track,
       mobileNo: admissionData.studentMobile,
       email: admissionData.email || "", // Optional
     });

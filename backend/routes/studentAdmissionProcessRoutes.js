@@ -6,21 +6,13 @@ const router = express.Router();
 
 // router.post('/register', studentAdmissionProcess.addAdmission);
 
-router.put(
-  "/send-interview-flag/:studentId",
-  studentAdmissionProcess.sendInterviewFlagToCentral
-);
+// router.put('/send-interview-flag/:studentId', studentAdmissionProcess.sendInterviewFlagToCentral);
 // router.put('/update-admission-status/:studentId', studentAdmissionProcess.updateAdmissionStatus);
-router.post("/createInterview/:id", studentAdmissionProcess.createInterview);
-router.get(
-  "/getInterviews/:id",
-  studentAdmissionProcess.getInterviewsByStudentId
-);
-``;
-router.get(
-  "/getall",
-  verifyToken,
-  checkRole(["superadmin", "admin", "faculty"]),
-  studentAdmissionProcess.getAllStudents
-);
+router.get('/getall',verifyToken, studentAdmissionProcess.getAllStudents);
+router.get('/:id',studentAdmissionProcess.getStudentById);
+router.put('/update_interview_flag/:studentId', studentAdmissionProcess.sendInterviewFlagToCentral);
+router.post('/create_interview/:id', studentAdmissionProcess.createInterview );
+
+router.get('/get_interviews/:id', studentAdmissionProcess.getInterviewsByStudentId);
+router.get('/get/:id', studentAdmissionProcess.getStudentById);
 module.exports = router;

@@ -7,6 +7,8 @@ const generateOtp = require("../helpers/generateOtp");
 const bcrypt = require("bcrypt");
 require("dotenv").config();
 
+const mongoose = require('mongoose');
+
 const generateToken = (user) => {
   return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
     expiresIn: "1h",
@@ -22,9 +24,26 @@ const generateRefreshToken = (user) => {
 };
 
 
+
 exports.createUser = async (req, res) => {
   try {
-    const { name, email, password, adharCard, department, position, role} = req.body;
+    let { name, email, mobileNo, password, adharCard, department, position, role, isActive, updatedAt, createdAt } = req.body;
+
+    if (!name || !email || !mobileNo || !password || !adharCard || !department || !position || !role) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+        // ✅ Check email is from @ssism.org
+        const collegeEmailRegex = /^[a-zA-Z0-9._%+-]+@ssism\.org$/;
+        if (!collegeEmailRegex.test(email)) {
+          return res.status(400).json({
+            message: "Only institutional emails (@ssism.org) are allowed to register."
+          });
+        }
+    
+
+    // Convert email to lowercase
+    email = email.toLowerCase();
 
     // Allowed roles
     const allowedRoles = ["admin", "superadmin", "faculty"];
@@ -35,10 +54,8 @@ exports.createUser = async (req, res) => {
       });
     }
 
-    // Check if user already exists
-    const existingUser = await User.findOne({
-      $or: [{ email }, { adharCard }],
-    });
+    // Check if user already exists by email or Aadhar
+    const existingUser = await User.findOne({ $or: [{ email }, { adharCard }] });
     if (existingUser) {
       return res
         .status(400)
@@ -53,18 +70,18 @@ exports.createUser = async (req, res) => {
     const newUser = new User({
       name,
       email,
-      // mobileNo,
+      mobileNo,
       password: hashedPassword,
       adharCard,
       department,
       position,
-      role
+      role,
+      isActive,
+      updatedAt,
+      createdAt,
     });
 
     await newUser.save();
-
-    // Generate JWT Token
-    const token = generateToken(newUser);
 
     res.status(201).json({
       message: `${
@@ -74,11 +91,11 @@ exports.createUser = async (req, res) => {
         id: newUser._id,
         name: newUser.name,
         email: newUser.email,
-        // mobileNo: newUser.mobileNo,
+        mobileNo: newUser.mobileNo,
         role: newUser.role
-      },
-      token,
+      }
     });
+
   } catch (error) {
     console.error("Error creating user:", error);
     res.status(500).json({ message: "Server Error", error });
@@ -88,6 +105,22 @@ exports.createUser = async (req, res) => {
 exports.login = async (req, res) => {
     try {
       const { email, password } = req.body;
+
+
+          // ✅ Check email is from @ssism.org
+    const collegeEmailRegex = /^[a-zA-Z0-9._%+-]+@ssism\.org$/;
+    if (!collegeEmailRegex.test(email)) {
+      return res.status(403).json({
+        message: "Only institutional emails (@ssism.org) are allowed to login."
+      });
+    }
+
+
+
+         // 🔥 Validate input early
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
   
       // Check if user exists
       const user = await User.findOne({ email });
@@ -127,72 +160,6 @@ exports.login = async (req, res) => {
     }
   };
   
-
-  exports.loginWithOtpRequest = async (req, res) => {
-    try {
-      const { mobileNo } = req.body;
-  
-      // 1. Check user exists
-      const user = await User.findOne({ mobileNo });
-      if (!user) return res.status(404).json({ message: "User not found with this mobile number" });
-  
-      // 2. Generate OTP
-      const otp = generateOtp();
-  
-      // 3. Save OTP in DB
-      await Otp.create({ email: user.email, otp });
-  
-      // 4. Send OTP to user's mobile number
-      await sendOtp(mobileNo, otp);
-  
-      res.status(200).json({ message: "OTP sent successfully" });
-    } catch (err) {
-      console.error("OTP request error:", err.message);
-      res.status(500).json({ message: "Failed to send OTP", error: err.message });
-    }
-  };
-
-
-  exports.verifyOtpAndLogin = async (req, res) => {
-    try {
-      const { mobileNo, otp } = req.body;
-  
-      // 1. Find user
-      const user = await User.findOne({ mobileNo });
-      if (!user) return res.status(404).json({ message: "User not found" });
-  
-      // 2. Get latest OTP from DB
-      const latestOtp = await Otp.findOne({ email: user.email }).sort({ createdAt: -1 });
-  
-      if (!latestOtp || latestOtp.otp !== otp) {
-        return res.status(401).json({ message: "Invalid or expired OTP" });
-      }
-  
-      // 3. Delete OTP after successful verification
-      await Otp.deleteMany({ email: user.email });
-  
-      // 4. Generate JWT
-      const token = generateToken(user);
-  
-      res.status(200).json({
-        message: "OTP verified successfully. Login success.",
-        token,
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          department: user.department,
-          position: user.position,
-        },
-      });
-    } catch (err) {
-      console.error("OTP verify error:", err.message);
-      res.status(500).json({ message: "OTP verification failed", error: err.message });
-    }
-  };
-  
-
 
   exports.refreshAccessToken = async (req, res) => {
     try {
@@ -252,3 +219,50 @@ exports.login = async (req, res) => {
     }
   };
   
+  exports.updateUserFields = async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+  
+      // Extract only allowed fields
+      const { name,position, role,department, isActive } = req.body;
+   
+      const updatedData = {
+        ...(name && { name }),
+        ...(position && { position }),
+        ...(role && { role }),
+        ...(department && { department }),
+        ...(typeof isActive === 'boolean' && { isActive }),
+        updatedAt: new Date(), // Always update the updatedAt field
+      };
+  
+      const updatedUser = await User.findByIdAndUpdate(
+        id,
+        updatedData,
+        { new: true, runValidators: true }
+      );
+  
+      if (!updatedUser) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+      
+      res.status(200).json({
+        success: true,
+        message: "User updated successfully",
+        user: updatedUser
+      });
+  
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ success: false, message: "Server error", error });
+    }
+
+    
+
+  };
+  
+
+
