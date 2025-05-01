@@ -922,7 +922,6 @@ paths:
                   error:
                     type: string
 
-
   /api/admission/students/update_interview_flag/{studentId}:
     put:
       summary: Update ITEG interview flag and notify central system
