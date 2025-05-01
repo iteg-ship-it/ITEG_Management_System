@@ -2,6 +2,9 @@
 
 
 const nodemailer = require('nodemailer');
+const path = require('path');
+require('dotenv').config();
+
 
 function generateOTP() {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -15,7 +18,7 @@ async function sendEmailOtp(email, otp) {
             pass: process.env.EMAIL_PASS,
         }
     });
-
+    const logoPath = path.join(__dirname, '..', process.env.EMAIL_LOGO_PATH);
     const mailOptions = {
         from: `"ITEG Management System" <${process.env.EMAIL_USER}>`,
         to: email,
@@ -50,7 +53,7 @@ async function sendEmailOtp(email, otp) {
         `,
         attachments: [{
             // filename: 'Ssism_Logo.png',
-            path: '../modules/user/helpers/Ssism_Logo.png', // Update path if needed
+            path: logoPath, // Update path if needed
             cid: 'ssismLogo'
         }],
         text: `Your OTP is: ${otp} (Valid for 5 minutes)`
