@@ -94,7 +94,7 @@ const UserProfile = (props) => {
                       <span className="absolute bottom-1 right-1 bg-green-500 w-3 h-3 rounded-full border-2 border-white"></span>
                     </div>
                     <p className="text-sm text-gray-600 mt-2">
-                      olivia@untitledui.com
+                      {user?.email || "Loading..."}
                     </p>
                     <h2 className="font-bold text-lg mt-1">Edit Profile</h2>
                   </div>

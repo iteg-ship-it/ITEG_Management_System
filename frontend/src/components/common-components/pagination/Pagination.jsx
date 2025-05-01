@@ -2,11 +2,13 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronRight, ChevronDown, Search } from "lucide-react";
 import filtericon from "../../../assets/icons/filter.png";
+import download from "../../../assets/icons/download-icon.png";
+import del from "../../../assets/icons/delete-icon.png";
 
 const Pagination = ({ rowsPerPage, setRowsPerPage }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
-  const options = [5, 10, 15, 25, 50, 100];
+  const options = [10, 25, 50, 100];
 
   const handleSelect = (value) => {
     setRowsPerPage(value);
@@ -28,30 +30,38 @@ const Pagination = ({ rowsPerPage, setRowsPerPage }) => {
   return (
     <>
       <div className="flex justify-between items-center w-full flex-wrap gap-4 py-5">
-        <div className="relative w-fit" ref={dropdownRef}>
-          <button
-            onClick={() => setShowDropdown((prev) => !prev)}
-            className="border h-10 rounded-md px-3 py-1 text-sm flex items-center gap-2 bg-white shadow-sm hover:bg-gray-100"
-          >
-            Show Entries: {rowsPerPage}
-            <ChevronDown size={16} />
-          </button>
+        <div className="flex">
+          <div className="relative w-fit" ref={dropdownRef}>
+            <button
+              onClick={() => setShowDropdown((prev) => !prev)}
+              className="border h-10 rounded-md px-3 py-1 text-sm flex items-center gap-2 bg-white shadow-sm hover:bg-gray-100"
+            >
+              Show Entries: {rowsPerPage}
+              <ChevronDown size={16} />
+            </button>
 
-          {showDropdown && (
-            <ul className="absolute left-0 mt-1 w-full bg-white border rounded-md shadow-lg z-10">
-              {options.map((option) => (
-                <li
-                  key={option}
-                  onClick={() => handleSelect(option)}
-                  className={`px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer ${
-                    rowsPerPage === option ? "bg-gray-100 font-semibold" : ""
-                  }`}
-                >
-                  {option}
-                </li>
-              ))}
-            </ul>
-          )}
+            {showDropdown && (
+              <ul className="absolute left-0 mt-1 w-full bg-white border rounded-md shadow-lg z-10">
+                {options.map((option) => (
+                  <li
+                    key={option}
+                    onClick={() => handleSelect(option)}
+                    className={`px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer ${
+                      rowsPerPage === option ? "bg-blue-100 font-semibold" : ""
+                    }`}
+                  >
+                    {option}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <button className="mx-3 bg-blue-500 px-2 border rounded">
+            <img className="" src={download} alt="download" />{" "}
+          </button>
+          <button className="bg-red-300 px-3 border rounded">
+            <img className="h-5" src={del} alt="delete" />{" "}
+          </button>
         </div>
 
         <FilterSection />

@@ -14,14 +14,12 @@ const AdmissionProcess = () => {
 };
 
 export default AdmissionProcess;
+
 const StudentList = () => {
   const { data = [], isLoading, error } = useGetAllStudentsQuery();
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("Total Registration");
-
-  if (isLoading) return <p>Loading...</p>;
-  if (error) return <p>Error fetching students.</p>;
 
   const columns = [
     { key: "firstName", label: "Full Name" },
@@ -38,10 +36,43 @@ const StudentList = () => {
     "Rejected",
   ];
 
+  // Helper to get latest interview result by date
+  const getLatestInterviewResult = (interviews = []) => {
+    if (!interviews.length) return null;
+    const sorted = [...interviews].sort(
+      (a, b) => new Date(b.date) - new Date(a.date)
+    );
+    return sorted[0]?.result;
+  };
+
+  // Filter data based on selected tab
+  const filteredData = data.filter((student) => {
+    if (activeTab === "Total Registration") return true;
+
+    if (activeTab === "Online Assessment") {
+      return student.onlineTest?.result === "Pending";
+    }
+
+    if (activeTab === "Selected") {
+      const latestResult = getLatestInterviewResult(student.interviews);
+      return latestResult === "Pass";
+    }
+
+    if (activeTab === "Rejected") {
+      const latestResult = getLatestInterviewResult(student.interviews);
+      return latestResult === "Fail";
+    }
+
+    return true;
+  });
+
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error fetching students.</p>;
+
   return (
     <>
       <div className="border bg-white shadow-sm rounded-lg px-5">
-        <div className="flex justify-between items-center flex-wrap gap-4 ">
+        <div className="flex justify-between items-center flex-wrap gap-4">
           <Pagination
             rowsPerPage={rowsPerPage}
             setRowsPerPage={setRowsPerPage}
@@ -54,7 +85,9 @@ const StudentList = () => {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`cursor-pointer pb-2 border-b-2 ${
-                activeTab === tab ? "border-orange-400" : "border-transparent"
+                activeTab === tab
+                  ? "border-orange-400 font-semibold"
+                  : "border-transparent"
               }`}
             >
               {tab}
@@ -64,7 +97,7 @@ const StudentList = () => {
       </div>
 
       <CommonTable
-        data={data}
+        data={filteredData}
         columns={columns}
         searchable={true}
         filterable={true}
@@ -78,6 +111,71 @@ const StudentList = () => {
     </>
   );
 };
+
+// const StudentList = () => {
+//   const { data = [], isLoading, error } = useGetAllStudentsQuery();
+//   const [rowsPerPage, setRowsPerPage] = useState(10);
+//   const [searchTerm, setSearchTerm] = useState("");
+//   const [activeTab, setActiveTab] = useState("Total Registration");
+
+//   if (isLoading) return <p>Loading...</p>;
+//   if (error) return <p>Error fetching students.</p>;
+
+//   const columns = [
+//     { key: "firstName", label: "Full Name" },
+//     { key: "fatherName", label: "Father's Name" },
+//     { key: "studentMobile", label: "Mobile" },
+//     { key: "stream", label: "Subject" },
+//     { key: "address", label: "Village" },
+//   ];
+
+//   const tabs = [
+//     "Total Registration",
+//     "Online Assessment",
+//     "Selected",
+//     "Rejected",
+//   ];
+
+//   return (
+//     <>
+//       <div className="border bg-white shadow-sm rounded-lg px-5">
+//         <div className="flex justify-between items-center flex-wrap gap-4 ">
+//           <Pagination
+//             rowsPerPage={rowsPerPage}
+//             setRowsPerPage={setRowsPerPage}
+//           />
+//         </div>
+
+//         <div className="px-2 flex gap-6 mt-4">
+//           {tabs.map((tab) => (
+//             <p
+//               key={tab}
+//               onClick={() => setActiveTab(tab)}
+//               className={`cursor-pointer pb-2 border-b-2 ${
+//                 activeTab === tab ? "border-orange-400" : "border-transparent"
+//               }`}
+//             >
+//               {tab}
+//             </p>
+//           ))}
+//         </div>
+//       </div>
+
+//       <CommonTable
+//         data={data}
+//         columns={columns}
+//         searchable={true}
+//         filterable={true}
+//         editable={true}
+//         pagination={true}
+//         rowsPerPage={rowsPerPage}
+//         setRowsPerPage={setRowsPerPage}
+//         searchTerm={searchTerm}
+//         setSearchTerm={setSearchTerm}
+//       />
+//     </>
+//   );
+// };
 
 // import { usegate } from "react-router-dom";
 // import UserProfile from "../../common-components/user-profile/UserProfile";
