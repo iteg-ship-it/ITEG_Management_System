@@ -35,6 +35,15 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
+        // ✅ Check email is from @ssism.org
+        const collegeEmailRegex = /^[a-zA-Z0-9._%+-]+@ssism\.org$/;
+        if (!collegeEmailRegex.test(email)) {
+          return res.status(400).json({
+            message: "Only institutional emails (@ssism.org) are allowed to register."
+          });
+        }
+    
+
     // Convert email to lowercase
     email = email.toLowerCase();
 
@@ -92,6 +101,16 @@ exports.createUser = async (req, res) => {
 exports.login = async (req, res) => {
     try {
       const { email, password } = req.body;
+
+
+          // ✅ Check email is from @ssism.org
+    const collegeEmailRegex = /^[a-zA-Z0-9._%+-]+@ssism\.org$/;
+    if (!collegeEmailRegex.test(email)) {
+      return res.status(403).json({
+        message: "Only institutional emails (@ssism.org) are allowed to login."
+      });
+    }
+
 
 
          // 🔥 Validate input early
