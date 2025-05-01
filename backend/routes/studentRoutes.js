@@ -3,7 +3,7 @@ const router = express.Router();
 const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
 const studentController = require("../modules/student/controllers/admittedStudentController");
 
-const allowedRoles = ["super sdmin", "faculty", "admin"];
+const allowedRoles = ["superadmin", "faculty", "admin"];
 // Register Student
 // //Swagger
 router.post("/admitted", studentController.createAdmittedStudent);
