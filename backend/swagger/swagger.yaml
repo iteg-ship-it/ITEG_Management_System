@@ -510,6 +510,139 @@ paths:
         500:
           description: Server error
 
+  /api/admission/students/webhook/register:
+    post:
+      summary: Add or update student admission data
+      tags:
+        - Admission Process
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - prkey
+                - firstName
+                - lastName
+                - fatherName
+                - studentMobile
+                - parentMobile
+                - gender
+                - dob
+                - aadharCard
+                - address
+                - stream
+                - course
+                - category
+                - subject12
+                - year12
+              properties:
+                prkey:
+                  type: string
+                  example: "SS123456"
+                firstName:
+                  type: string
+                  example: "Rahul"
+                lastName:
+                  type: string
+                  example: "Sharma"
+                fatherName:
+                  type: string
+                  example: "Mahesh Sharma"
+                studentMobile:
+                  type: string
+                  pattern: "^[0-9]{10}$"
+                  example: "9876543210"
+                parentMobile:
+                  type: string
+                  pattern: "^[0-9]{10}$"
+                  example: "9876543211"
+                gender:
+                  type: string
+                  enum: [Male, Female, Other]
+                  example: "Male"
+                dob:
+                  type: string
+                  format: date
+                  example: "2005-08-15"
+                aadharCard:
+                  type: string
+                  pattern: "^[0-9]{12}$"
+                  example: "123412341234"
+                address:
+                  type: string
+                  example: "123, ABC Nagar, Indore"
+                track:
+                  type: string
+                  example: "harda"
+                village:
+                  type: string
+                  example: "Harda"
+                stream:
+                  type: string
+                  example: "Science"
+                course:
+                  type: string
+                  example: "B.Sc"
+                category:
+                  type: string
+                  example: "General"
+                subject12:
+                  type: string
+                  example: "PCM"
+                year12:
+                  type: string
+                  example: "2022"
+      responses:
+        '201':
+          description: Student admission initiated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student admission initiated
+                  data:
+                    $ref: '#/components/schemas/Admission'
+        '200':
+          description: Student already registered, data updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student already registered
+                  data:
+                    $ref: '#/components/schemas/Admission'
+        '400':
+          description: Missing or invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Missing field: firstName
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Error adding admission
+                  error:
+                    type: string
+
+
   /api/admission/students/create_interview/{id}:
     post:
       tags:
@@ -711,7 +844,141 @@ paths:
         '500':
           description: Server Error
 
-
-
-
   
+  /api/admission/students/webhook/admission_flag_update:
+    post:
+      summary: Update admission status and create admitted student record
+      tags:
+         - Admitted Student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - prkey
+                - admissionStatus
+              properties:
+                prkey:
+                  type: string
+                  example: "SS123456"
+                admissionStatus:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Student admission status updated and admitted student created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Student admitted"
+                  data:
+                    $ref: '#/components/schemas/AdmittedStudent'
+        '200':
+          description: Admission status updated but student not admitted (e.g., status false)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Student not cleared or not found."
+        '400':
+          description: Bad request - missing fields or status false
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Both prkey and admissionStatus are required"
+        '404':
+          description: Student with prkey not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Student not found with the provided prkey"
+        '500':
+          description: Server error during update or creation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Server error"
+                  error:
+                    type: string
+
+  /api/admission/students/update_interview_flag/:studentId:
+    patch:
+      summary: Update ITEG interview flag and notify central system
+      tags:
+         - Admission Process
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: string
+            example: "6811f74b6a40d2524ec7d870"
+          description: MongoDB ObjectId of the student to update
+      responses:
+        '200':
+          description: Interview flag updated and sent to central system
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Interview flag updated and sent to central
+                  centralResponse:
+                    type: object
+                    description: Response from the central system
+        '400':
+          description: Missing or invalid student ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student ID is required
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student not found
+        '500':
+          description: Server or central system error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server error
+                  error:
+                    type: string
+                    example: Failed to connect to central system

@@ -50,7 +50,7 @@ async function sendEmailOtp(email, otp) {
         `,
         attachments: [{
             // filename: 'Ssism_Logo.png',
-            path: 'B:/ITEG_Management_System/backend/modules/user/helpers/Ssism_Logo.png', // Update path if needed
+            path: '../modules/user/helpers/Ssism_Logo.png', // Update path if needed
             cid: 'ssismLogo'
         }],
         text: `Your OTP is: ${otp} (Valid for 5 minutes)`

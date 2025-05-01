@@ -19,7 +19,7 @@ exports.addAdmission = async (req, res) => {
     const requiredFields = [
       'prkey','firstName','lastName','fatherName',
       'studentMobile','parentMobile','gender','dob',
-      'aadharCard','address','stream','course',
+      'aadharCard','address','village','track','stream','course',
       'category','subject12','year12'
     ];
     for (let field of requiredFields) {
