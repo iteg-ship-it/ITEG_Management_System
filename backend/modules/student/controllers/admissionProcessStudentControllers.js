@@ -154,21 +154,39 @@ exports.sendInterviewFlagToCentral = async (req, res) => {
       centralResponse: response.data
     });
 
-  } catch (err) {
-    // Axios error with custom payload
-    if (err.response && err.response.data) {
-      return res.status(500).json({
-        message: 'Server error',
-        error: err.response.data,
-      });
-    }
+  // } catch (err) {
+  //   // Axios error with custom payload
+  //   if (err.response && err.response.data) {
+  //     return res.status(500).json({
+  //       message: 'Server error',
+  //       error: err.response.data,
+  //     });
+  //   }
   
-    // General error fallback (includes your test case error)
+  //   // General error fallback (includes your test case error)
+  //   return res.status(500).json({
+  //     message: 'Server error',
+  //     error: err.message || 'Unknown error',
+  //   });
+  // }
+
+} catch (err) {
+  console.error("❌ Full error:", err);
+
+  if (err.response) {
+    console.error("❌ Axios Error Response:", err.response.data);
     return res.status(500).json({
-      message: 'Server error',
-      error: err.message || 'Unknown error',
+      message: "Server error (from central system)",
+      error: err.response.data,
     });
   }
+
+  return res.status(500).json({
+    message: "Server error",
+    error: err.message || err.stack || JSON.stringify(err),
+  });
+}
+
 };
 
 
