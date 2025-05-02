@@ -205,6 +205,124 @@ components:
             isScheduled:
               type: boolean
               example: true
+    Admittedstudent:
+      Level:
+      type: object
+      properties:
+        levelNo:
+          type: string
+          example: "1"
+        noOfAttempts:
+          type: integer
+          default: 0
+        marks:
+          type: number
+          default: 0
+        remark:
+          type: string
+        date:
+          type: string
+          format: date
+        result:
+          type: string
+          enum: [Pass, Fail, Pending]
+          default: Pending
+
+    PlacedInfo:
+      type: object
+      properties:
+        companyName:
+          type: string
+        salary:
+          type: number
+        location:
+          type: string
+
+    InterviewRecord:
+      type: object
+      properties:
+        companyName:
+          type: string
+        interviewDate:
+          type: string
+          format: date
+        remark:
+          type: string
+        result:
+          type: string
+          enum: [Selected, Rejected, Pending]
+          default: Pending
+        location:
+          type: string
+        jobProfile:
+          type: string
+
+    AdmittedStudent:
+      type: object
+      required:
+        - admissionRef
+        - fullName
+        - prkey
+        - stream
+        - course
+        - fatherName
+        - mobileNo
+        - address
+        - track
+        - village
+      properties:
+        admissionRef:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+        prkey:
+          type: string
+        stream:
+          type: string
+        course:
+          type: string
+        fatherName:
+          type: string
+        mobileNo:
+          type: string
+        email:
+          type: string
+        address:
+          type: string
+        track:
+          type: string
+        village:
+          type: string
+        level:
+          type: array
+          items:
+            $ref: '#/components/schemas/Level'
+        techno:
+          type: string
+        attendancePercentage:
+          type: number
+          minimum: 0
+          maximum: 100
+        placedInfo:
+          $ref: '#/components/schemas/PlacedInfo'
+        permissionRequired:
+          type: boolean
+          default: false
+        interviewRecord:
+          type: array
+          items:
+            $ref: '#/components/schemas/InterviewRecord'
+        readinessStatus:
+          type: string
+          enum: [Ready, Not Ready]
+          default: Not Ready
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
 
 paths:
   /api/user/signup:
@@ -878,7 +996,7 @@ paths:
                     type: string
                     example: "Student admitted"
                   data:
-                    $ref: '#/components/schemas/AdmittedStudent'
+                    $ref:  '#/components/schemas/Admission'
         '200':
           description: Admission status updated but student not admitted (e.g., status false)
           content:
