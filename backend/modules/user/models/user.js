@@ -10,9 +10,10 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, default: 'admin' },
   department: { type: String, required: true },
-  refreshToken: { type: String },
-  resetPasswordToken: { type: String },
+  refreshToken: { type: String }, 
+  resetPasswordToken: { type: String }, 
   resetPasswordExpires: { type: Date },
+  resetTokenUsed: { type: Boolean, default: false }, 
 
 
   isActive: { type: Boolean, default: true },

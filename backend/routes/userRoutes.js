@@ -11,9 +11,11 @@ router.patch('/update/:id', usercontroller.updateUserFields);
 
 router.post("/refresh_token", usercontroller.refreshAccessToken);
 
-router.post('/forgot_password', usercontroller.forgotPassword);
-router.get('/reset_password/:token', usercontroller.verifyResetToken);
-router.post('/reset_password/:token', usercontroller.resetPassword);
+// Forgot Password - send email
+router.post("/forgot_password", usercontroller.forgotPassword);
+
+// Reset Password using link
+router.post("/reset_password/:token", usercontroller.resetPassword);
 
 
 module.exports = router;

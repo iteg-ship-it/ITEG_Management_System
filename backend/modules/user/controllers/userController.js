@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const Otp = require("../models/otpModel");
-const { sendResetPasswordLink } = require("../helpers/sendOtp");
+const { sendResetLinkEmail } = require("../helpers/sendOtp");
 const generateOtp = require("../helpers/generateOtp");
 
 require("dotenv").config();
@@ -258,60 +258,67 @@ exports.login = async (req, res) => {
     }
   };
   
+exports.forgotPassword = async (req, res) => {
+  const { email } = req.body;
 
+  try {
+    const user = await User.findOne({ email });
 
-  exports.forgotPassword = async (req, res) => {
-    try {
-      const { email } = req.body;
-  
-      const user = await User.findOne({ email });
-      if (!user) return res.status(404).json({ message: "User not found" });
-  
-      const token = crypto.randomBytes(32).toString("hex");
-      const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
-  
-      user.resetPasswordToken = token;
-      user.resetPasswordExpires = expires;
-      await user.save();
-  
-      await sendResetPasswordLink(email, token); // ✅ send the email with link
-  
-      res.status(200).json({ message: "Password reset link sent to email." });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Server error" });
-    }
-  };
+    if (!user) return res.status(404).json({ message: "User not found" });
 
+    //1. Generate token
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
 
+    //2. Save token + expiry + used = false
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
+    user.resetTokenUsed = false;
+    await user.save();
 
-exports.verifyResetToken = async (req, res) => {
-  const { token } = req.params;
-  const user = await User.findOne({
-      resetPasswordToken: token,
-      resetPasswordExpires: { $gt: Date.now() }
-  });
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
 
-  if (!user) return res.status(400).json({ message: 'Invalid or expired token' });
-  res.json({ message: 'Token is valid' });
+    await sendResetLinkEmail(email, resetLink);
+
+    res.status(200).json({ message: "Reset link sent to your email." });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
 };
-
 
 exports.resetPassword = async (req, res) => {
   const { token } = req.params;
-  const { newPassword } = req.body;
+  const { newPassword, confirmPassword } = req.body;
 
-  const user = await User.findOne({
-      resetPasswordToken: token,
-      resetPasswordExpires: { $gt: Date.now() }
-  });
+  if (!newPassword || !confirmPassword)
+    return res.status(400).json({ message: "Both fields are required" });
 
-  if (!user) return res.status(400).json({ message: 'Invalid or expired token' });
+  if (newPassword !== confirmPassword)
+    return res.status(400).json({ message: "Passwords do not match" });
 
-  user.password = await bcrypt.hash(newPassword, 10);
-  user.resetPasswordToken = undefined;
-  user.resetPasswordExpires = undefined;
-  await user.save();
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
 
-  res.json({ message: 'Password successfully reset' });
+    if (!user || user.resetPasswordToken !== token || user.resetTokenUsed)
+      return res.status(400).json({ message: "Invalid or expired token" });
+
+    if (user.resetPasswordExpires < Date.now())
+      return res.status(400).json({ message: "Token has expired" });
+
+    // Password hashing (either pre-save or manual)
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+
+    // Invalidate the token after first use
+    user.resetTokenUsed = true;
+    await user.save();
+
+    res.status(200).json({ message: "Password successfully reset" });
+  } catch (err) {
+    return res.status(400).json({ message: "Invalid or expired token" });
+  }
 };
