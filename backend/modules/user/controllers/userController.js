@@ -283,8 +283,7 @@ exports.forgotPassword = async (req, res) => {
     user.resetTokenUsed = false;
     await user.save();
 
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
-
+    const resetLink = `${token}`;
     await sendResetLinkEmail(email, resetLink);
 
     res.status(200).json({ message: "Reset link sent to your email." });
