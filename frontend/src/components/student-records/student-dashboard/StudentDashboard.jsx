@@ -8,23 +8,18 @@ const StudentDashboard = () => {
   const [studentCounts, setStudentCounts] = useState({});
   const [loading, setLoading] = useState(true);
 
-  const yearCategories = [
-    "1st Year",
-    "2nd Year",
-    "3rd Year",
-    "Diploma 1st Year",
-    "Diploma 2nd Year",
-  ];
+  const yearCategories = ["1A", "1B", "1C", "2A", "2B", "2C"];
 
   useEffect(() => {
     // Simulated API delay
     setTimeout(() => {
       setStudentCounts({
-        "1st Year": 45,
-        "2nd Year": 38,
-        "3rd Year": 37,
-        "Diploma 1st Year": 30,
-        "Diploma 2nd Year": 28,
+        "1A": 45,
+        "1B": 38,
+        "1C": 37,
+        "2A": 30,
+        "2B": 28,
+        "2C": 28,
       });
       setLoading(false);
     }, 0);
@@ -37,6 +32,7 @@ const StudentDashboard = () => {
       "bg-green-500",
       "bg-purple-500",
       "bg-pink-500",
+      "bg-red-700",
     ];
     return colors[index % colors.length];
   };
@@ -53,11 +49,10 @@ const StudentDashboard = () => {
               className="bg-white hover:shadow-xl transition-all duration-300 hover:scale-105 rounded-lg p-5 border border-gray-200 cursor-pointer flex flex-col justify-between"
             >
               <h3 className="text-lg font-semibold flex items-center gap-2">
-                👨‍🎓 {year}
+                👨‍🎓 Trainee Level {year}
               </h3>
               <p className="text-sm text-gray-600 mt-1">
-                All enrolled {year.toLowerCase()} students categorized by
-                department
+                All enrolled {year} students categorized by department
               </p>
 
               {loading ? (
