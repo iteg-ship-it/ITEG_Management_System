@@ -12,6 +12,9 @@ jest.mock("../modules/student/controllers/emailController", () => ({
   sendEmail: jest.fn(), // mock sendEmail as a Jest function
 }));
 
+
+let studentId;
+
 // for addAdmission Api
 describe("Admission API Tests", () => {
   
@@ -28,6 +31,8 @@ describe("Admission API Tests", () => {
       dob: "2000-01-01",
       aadharCard: "123456789012",
       address: "Addr",
+      village:"village",
+      track:"track",
       stream: "Sci",
       course: "Course",
       category: "Gen",
@@ -63,6 +68,8 @@ describe("Admission API Tests", () => {
       dob: "invalid-date",
       aadharCard: "123456789012",
       address: "Addr",
+      village:"village",
+      track:"track",
       stream: "Sci",
       course: "Course",
       category: "Gen",
@@ -88,6 +95,8 @@ describe("Admission API Tests", () => {
       dob: "2000-01-01",
       aadharCard: "invalid",
       address: "Addr",
+      village:"village",
+      track:"track",
       stream: "Sci",
       course: "Course",
       category: "Gen",
@@ -113,6 +122,8 @@ describe("Admission API Tests", () => {
       dob: "2000-01-01",
       aadharCard: "123456789012",
       address: "Addr",
+      village:"village",
+      track:"track",
       stream: "Sci",
       course: "Course",
       category: "Gen",
@@ -147,6 +158,8 @@ describe("Admission API Tests - Interview Flag", () => {
       dob: "2000-01-01",
       aadharCard: "123456789012",
       address: "Test Address",
+      village:"village",
+      track:"track",
       stream: "Sci",
       course: "Course",
       category: "Gen",
@@ -223,6 +236,8 @@ describe("Admission API Tests - Interview Flag", () => {
       dob: "2000-01-01",
       aadharCard: "123456789012",
       address: "Test Address",
+      village:"village",
+      track:"track",
       stream: "Sci",
       course: "Course",
       category: "Gen",
@@ -274,6 +289,38 @@ describe("Admission API Tests - Interview Flag", () => {
     expect(res.body.message).toBe("Server error");
     expect(res.body.error).toMatch("Axios Error");
   });
+
+})
+
+
+describe("Admission API Tests get student by id", () => {
+
+
+  // it('should return interviews for a valid student ID', async () => {
+  //   const res = await request(app).get(`/api/admission/students/get_interviews/${studentId}`);
+
+  //   expect(res.statusCode).toBe(200);
+  //   expect(res.body.success).toBe(true);
+  //   expect(Array.isArray(res.body.interviews)).toBe(true);
+  //   expect(res.body.interviews.length).toBeGreaterThan(0);
+  //   expect(res.body.interviews[0]).toHaveProperty('round', 'First');
+  // });
+
+  it('should return 404 for invalid student ID', async () => {
+    const res = await request(app).get(`/api/admission/students/get_interviews/invalidId123`);
+
+    expect(res.statusCode).toBe(500); // If not a valid ObjectId
+  });
+
+  it('should return 404 if student not found', async () => {
+    const nonExistentId = new mongoose.Types.ObjectId();
+    const res = await request(app).get(`/api/admission/students/get_interviews/${nonExistentId}`);
+
+    expect(res.statusCode).toBe(404);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('Student not found');
+  });
+
 })
 
 

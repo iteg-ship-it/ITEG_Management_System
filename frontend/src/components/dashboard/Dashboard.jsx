@@ -1,4 +1,4 @@
-import React from "react";
+// src/pages/Dashboard.jsx
 import { Routes, Route } from "react-router-dom";
 import AdmissionProcess from "../admition-process/admition-process-page/AdmissionProcess";
 import StudentProfile from "../student-records/studentProfile/StudentProfile";
@@ -8,26 +8,26 @@ import AdmitionRecords from "../admition-process/admition-records/AdmitionRecord
 import StudentEditPage from "../student-records/student-edit-page/StudentEditPage";
 import StudentDashboard from "../student-records/student-dashboard/StudentDashboard";
 import StudentDetailTable from "../student-records/student-detail-table/StudentDetailTable";
-import LoginPage from "../common-components/login&registration/LoginPage";
-import SignupPage from "./../common-components/signup/SignupPage";
+import StudentPermission from "../student-records/student-permission/StudentPermission";
+import AdmissionEditPage from "../admition-process/admission-stu-edit-page/AdmissionEditPage";
 
 const Dashboard = () => {
   return (
-    <>
-      <Routes>
-        <Route path="/" element={<AdmissionDashboard />} />
-        <Route path="/admission" element={<AdmissionProcess />} />
-        <Route path="/admition-record" element={<AdmitionRecords />} />
-        <Route path="/student-dashboard" element={<StudentDashboard />} />
-        <Route path="/student-detail-table" element={<StudentDetailTable />} />
-        <Route path="/student-edit-profile" element={<StudentEditPage />} />
-        <Route path="/placement" element={<PlacementRecords />} />
-        <Route
-          path="/student-profile/:studentId"
-          element={<StudentProfile />}
-        />
-      </Routes>
-    </>
+    <Routes>
+      <Route path="/" element={<AdmissionDashboard />} />
+      <Route path="/admission" element={<AdmissionProcess />} />
+      <Route path="/admission/edit/:id" element={<AdmissionEditPage />} />
+      <Route path="/admition-record" element={<AdmitionRecords />} />
+      <Route path="/student-dashboard" element={<StudentDashboard />} />
+      <Route path="/student-permission" element={<StudentPermission />} />
+      <Route path="/student-detail-table" element={<StudentDetailTable />} />
+      <Route path="/student-edit-profile" element={<StudentEditPage />} />
+      <Route path="/placement" element={<PlacementRecords />} />
+      <Route
+        path="/student-detail-table/:studentId"
+        element={<StudentProfile />}
+      />
+    </Routes>
   );
 };
 

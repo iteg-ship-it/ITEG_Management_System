@@ -11,11 +11,9 @@ require("dotenv").config();
 const mongoose = require('mongoose');
 
 const generateToken = (user) => {
-  return jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: "1h" }
-  );
+  return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+    expiresIn: "1h",
+  });
 };
 
 const generateRefreshToken = (user) => {
@@ -51,13 +49,18 @@ exports.createUser = async (req, res) => {
     // Allowed roles
     const allowedRoles = ["admin", "superadmin", "faculty"];
     if (!allowedRoles.includes(role)) {
-      return res.status(400).json({ message: "Invalid role. Only admin, superadmin, and faculty are allowed." });
+      return res.status(400).json({
+        message:
+          "Invalid role. Only admin, superadmin, and faculty are allowed.",
+      });
     }
 
     // Check if user already exists by email or Aadhar
     const existingUser = await User.findOne({ $or: [{ email }, { adharCard }] });
     if (existingUser) {
-      return res.status(400).json({ message: "User with this email or Aadhar already exists." });
+      return res
+        .status(400)
+        .json({ message: "User with this email or Aadhar already exists." });
     }
 
     // Hash the password
@@ -82,7 +85,9 @@ exports.createUser = async (req, res) => {
     await newUser.save();
 
     res.status(201).json({
-      message: `${role.charAt(0).toUpperCase() + role.slice(1)} created successfully!`,
+      message: `${
+        role.charAt(0).toUpperCase() + role.slice(1)
+      } created successfully!`,
       user: {
         id: newUser._id,
         name: newUser.name,
@@ -97,7 +102,6 @@ exports.createUser = async (req, res) => {
     res.status(500).json({ message: "Server Error", error });
   }
 };
-
 
 exports.login = async (req, res) => {
     try {

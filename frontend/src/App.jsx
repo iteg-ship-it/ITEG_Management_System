@@ -1,17 +1,15 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Sidebar from "./components/common-components/sidebar/Sidebar";
 import Dashboard from "./components/dashboard/Dashboard";
-import LoginPage from "./components/common-components/login&registration/LoginPage";
-import SignupPage from "./components/common-components/signup/SignupPage";
+import LoginPage from "./components/common-components/login-page/LoginPage";
+// import SignupPage from "./components/common-components/signup/SignupPage";
+import AdmissionDashboard from "./components/admition-process/admission-dashboard/AdmissionDashboard";
+import ForgetPassword from "./components/common-components/forget-password/ForgetPassword";
+import CondfirmPassword from "./components/common-components/confirm-password/ConfirmPassword";
 
 function App() {
   const token = localStorage.getItem("token");
-
+  const role = localStorage.getItem("role");
   return (
     <Router>
       <Routes>
@@ -20,23 +18,23 @@ function App() {
             <Route
               path="/*"
               element={
-                <div className="flex bg-gray-100">
-                  <Sidebar role="admin" />
+                <div className="flex bg-[var(--primary)]">
+                  <Sidebar role={role} /> {/* ✅ Pass role from localStorage */}
                   <div className="flex-1 p-4">
                     <Dashboard />
                   </div>
                 </div>
               }
             />
-            <Route path="/login" element={<Navigate to="/" />} />
           </>
         ) : (
           <>
+            <Route path="/" element={<AdmissionDashboard />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="*" element={<Navigate to="/login" />} />
           </>
         )}
-        <Route path="/registration" element={<SignupPage />} />
+        <Route path="/confirm-password" element={<CondfirmPassword />} />
+        <Route path="/forget-password" element={<ForgetPassword />} />
       </Routes>
     </Router>
   );
