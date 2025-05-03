@@ -193,7 +193,7 @@ exports.sendInterviewFlagToCentral = async (req, res) => {
 exports.createInterview = async (req, res) => {
   try {
     const { id } = req.params;
-    const { round, marks, remark, date, result } = req.body;
+    const { round,communication,confidence,goal,subjectKnowlage,technical,sincerity,  maths,reasoning, marks, remark, date, result } = req.body;
 
     const student = await AdmissionProcess.findById(id);
     if (!student) {
@@ -250,6 +250,14 @@ exports.createInterview = async (req, res) => {
 
     const newInterview = {
       round: round || "First",
+      communication:communication || 0,
+      confidence:confidence || 0,
+      goal:goal || 0,
+      subjectKnowlage:subjectKnowlage|| 0,
+      technical:technical || 0,
+      sincerity:sincerity || 0,
+      maths:maths || 0,
+      reasoning:reasoning || 0,
       attemptNo: currentRoundAttempts.length + 1, // Auto-increment attemptNo
       marks: marks || 0,
       remark: remark || "",
