@@ -41,7 +41,7 @@ const CommonTable = ({
                   .map((col) => (
                     <th
                       key={col.key}
-                      className="px-4 py-2 text-center font-medium text-gray-700"
+                      className="px-4 py-2 text-center font-bold text-gray-700"
                     >
                       {col.label}
                     </th>

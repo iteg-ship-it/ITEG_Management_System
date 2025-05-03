@@ -74,23 +74,24 @@ export default function CustomTimeDate({ onClose }) {
 
             {/* Time Picker Dropdown */}
             {showTimePicker && (
-              <div className="absolute top-full mt-2 right-0 z-20 bg-white border shadow-xl rounded-xl p-4 w-72">
+              <div className="absolute top-full mt-2 right-0 z-20 bg-white border shadow-xl rounded-xl p-4 w-64">
                 <h3 className="text-orange-500 font-semibold text-lg mb-4">
                   Set time
                 </h3>
 
                 <div className="flex justify-center items-center space-x-4 text-lg font-semibold text-orange-500">
                   {/* Hours */}
-                  <div className="h-32 overflow-y-scroll no-scrollbar flex flex-col items-center w-14 rounded-md">
+                  <div className="relative h-32 w-14 overflow-y-scroll no-scrollbar text-center">
                     {Array.from({ length: 12 }, (_, i) => {
                       const h = String(i + 1).padStart(2, "0");
+                      const isSelected = hour === h;
                       return (
                         <div
                           key={h}
                           onClick={() => setHour(h)}
-                          className={`cursor-pointer py-2 w-full text-center ${
-                            hour === h
-                              ? "text-orange-500 font-bold"
+                          className={`py-2 cursor-pointer ${
+                            isSelected
+                              ? "text-orange-500 font-bold bg-orange-100 rounded"
                               : "text-black"
                           }`}
                         >
@@ -98,6 +99,7 @@ export default function CustomTimeDate({ onClose }) {
                         </div>
                       );
                     })}
+                    <div className="absolute top-1/2 left-0 right-0 h-8 pointer-events-none border-t border-b border-orange-300 -mt-4" />
                   </div>
 
                   {/* Colon */}
@@ -106,16 +108,17 @@ export default function CustomTimeDate({ onClose }) {
                   </div>
 
                   {/* Minutes */}
-                  <div className="h-32 overflow-y-scroll no-scrollbar flex flex-col items-center w-14 rounded-md">
+                  <div className="relative h-32 w-14 overflow-y-scroll no-scrollbar text-center">
                     {Array.from({ length: 60 }, (_, i) => {
                       const m = String(i).padStart(2, "0");
+                      const isSelected = minute === m;
                       return (
                         <div
                           key={m}
                           onClick={() => setMinute(m)}
-                          className={`cursor-pointer py-2 w-full text-center ${
-                            minute === m
-                              ? "text-orange-500 font-bold"
+                          className={`py-2 cursor-pointer ${
+                            isSelected
+                              ? "text-orange-500 font-bold bg-orange-100 rounded"
                               : "text-black"
                           }`}
                         >
@@ -123,27 +126,32 @@ export default function CustomTimeDate({ onClose }) {
                         </div>
                       );
                     })}
+                    <div className="absolute top-1/2 left-0 right-0 h-8 pointer-events-none border-t border-b border-orange-300 -mt-4" />
                   </div>
 
                   {/* AM/PM */}
-                  <div className="h-32 overflow-y-scroll no-scrollbar flex flex-col items-center w-14 rounded-md">
-                    {["AM", "PM"].map((p) => (
-                      <div
-                        key={p}
-                        onClick={() => setPeriod(p)}
-                        className={`cursor-pointer py-2 w-full text-center ${
-                          period === p
-                            ? "text-orange-500 font-bold"
-                            : "text-black"
-                        }`}
-                      >
-                        {p}
-                      </div>
-                    ))}
+                  <div className="relative h-32 w-14 overflow-y-scroll no-scrollbar text-center">
+                    {["AM", "PM"].map((p) => {
+                      const isSelected = period === p;
+                      return (
+                        <div
+                          key={p}
+                          onClick={() => setPeriod(p)}
+                          className={`py-2 cursor-pointer ${
+                            isSelected
+                              ? "text-orange-500 font-bold bg-orange-100 rounded"
+                              : "text-black"
+                          }`}
+                        >
+                          {p}
+                        </div>
+                      );
+                    })}
+                    <div className="absolute top-1/2 left-0 right-0 h-8 pointer-events-none border-t border-b border-orange-300 -mt-4" />
                   </div>
                 </div>
 
-                {/* Time Buttons */}
+                {/* Buttons */}
                 <div className="flex justify-between mt-6">
                   <button
                     onClick={() => setShowTimePicker(false)}

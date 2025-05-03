@@ -43,52 +43,42 @@ const StudentDashboard = () => {
 
   return (
     <>
-      <UserProfile heading="Student Dashboard" />
+      <UserProfile heading="Explore Student Data by Year" />
 
-      <div className="p-4 md:p-6 bg-gray-100 min-h-screen w-full">
-        <div className="container mx-auto bg-white shadow-md p-6 md:p-10 rounded-lg">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
-            Explore Student Data by Year
-          </h2>
+      <div className="container mx-auto bg-white shadow-md p-6 md:p-10 rounded-lg my-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-10">
+          {yearCategories.map((year, index) => (
+            <div
+              key={year}
+              className="bg-white hover:shadow-xl transition-all duration-300 hover:scale-105 rounded-lg p-5 border border-gray-200 cursor-pointer flex flex-col justify-between"
+            >
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                👨‍🎓 {year}
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">
+                All enrolled {year.toLowerCase()} students categorized by
+                department
+              </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-10">
-            {yearCategories.map((year, index) => (
-              <div
-                key={year}
-                className="bg-white hover:shadow-xl transition-all duration-300 hover:scale-105 rounded-lg p-5 border border-gray-200 cursor-pointer flex flex-col justify-between"
-              >
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  👨‍🎓 {year}
-                </h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  All enrolled {year.toLowerCase()} students categorized by
-                  department
+              {loading ? (
+                <div className="h-5 mt-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+              ) : (
+                <p className="text-sm font-medium mt-3 pt-10">
+                  Total: {studentCounts[year]} students
                 </p>
+              )}
 
-                {loading ? (
-                  <div className="h-5 mt-4 w-24 bg-gray-200 rounded animate-pulse"></div>
-                ) : (
-                  <p className="text-sm font-medium mt-3 pt-10">
-                    Total: {studentCounts[year]} students
-                  </p>
-                )}
+              <div className={`h-1 w-full mt-2 rounded ${getColor(index)}`} />
 
-                <div className={`h-1 w-full mt-2 rounded ${getColor(index)}`} />
-
-                <button
-                  className="mt-4 w-full flex items-center justify-between font-semibold py-2 px-4"
-                  onClick={() =>
-                    navigate(
-                      `/student-detail-table?year=${encodeURIComponent(year)}`
-                    )
-                  }
-                >
-                  View Students
-                  <img src={forward} alt="forward" className="w-5 h-5" />
-                </button>
-              </div>
-            ))}
-          </div>
+              <button
+                className="mt-4 w-full flex items-center justify-between font-semibold py-2 px-4 hover:bg-gray-100 rounded"
+                onClick={() => navigate(`/student-detail-table`)}
+              >
+                View Students
+                <img src={forward} alt="forward" className="w-5 h-5" />
+              </button>
+            </div>
+          ))}
         </div>
       </div>
     </>

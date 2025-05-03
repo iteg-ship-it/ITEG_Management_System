@@ -65,7 +65,13 @@ export const authApi = createApi({
     }),
     admitedStudents: builder.query({
       query: () => ({
-        url: "/students/getall",
+        url: "/admitted/students/getall",
+        method: "GET",
+      }),
+    }),
+    getStudentById: builder.query({
+      query: (id) => ({
+        url: `/admission/students/get/${id}`,
         method: "GET",
       }),
     }),
@@ -76,4 +82,5 @@ export const {
   useLoginMutation,
   useGetAllStudentsQuery,
   useAdmitedStudentsQuery,
+  useGetStudentByIdQuery,
 } = authApi;

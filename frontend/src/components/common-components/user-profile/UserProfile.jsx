@@ -11,9 +11,7 @@ const UserProfile = (props) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const navigate = useNavigate();
 
-  const onSettings = () => {
-    setIsSettingsOpen(true);
-  };
+  const onSettings = () => setIsSettingsOpen(true);
 
   const user = JSON.parse(localStorage.getItem("user"));
 
@@ -35,19 +33,9 @@ const UserProfile = (props) => {
   }, []);
 
   return (
-    <div className="flex justify-between items-start w-full">
-      <div className="flex items-center gap-4 mb-6">
-        {props.showBackButton && (
-          <button
-            onClick={props.onBack || (() => navigate(-1))}
-          >
-         <img className="w-6 pt-2" src={backbutton} alt="backbutton" />
-          </button>
-        )}
-        <h1 className="text-2xl font-bold">{props.heading}</h1>
-      </div>
-
-      <div className="relative" ref={dropdownRef}>
+    <div className="relative w-full p-2 mb-6 ">
+      {/* Right side: User avatar fixed */}
+      <div className="absolute right-0 top-0" ref={dropdownRef}>
         <img
           src={
             user?.avatar ||
@@ -59,7 +47,7 @@ const UserProfile = (props) => {
         />
 
         {open && (
-          <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border z-50">
+          <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border z-50">
             <div className="p-4 flex flex-col items-center border-b">
               <img
                 src={
@@ -83,9 +71,10 @@ const UserProfile = (props) => {
               <FiSettings className="mr-2" /> Settings
             </button>
 
+            {/* Settings Modal */}
             {isSettingsOpen && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-2xl overflow-hidden shadow-2xl w-96">
+                <div className="bg-white rounded-2xl overflow-hidden shadow-2xl w-11/12 max-w-md">
                   <div className="bg-[#FCD2AA] p-6 flex flex-col items-center relative">
                     <button
                       onClick={() => setIsSettingsOpen(false)}
@@ -147,17 +136,31 @@ const UserProfile = (props) => {
           </div>
         )}
       </div>
+
+      {/* Left side: Back button and heading, padded to avoid overlap */}
+      <div className="pr-16">
+        <div className="flex items-start gap-2 flex-wrap">
+          {props.showBackButton && (
+            <button onClick={props.onBack || (() => navigate(-1))}>
+              <img className="w-6 pt-1" src={backbutton} alt="Back" />
+            </button>
+          )}
+          <h1 className="text-xl sm:text-2xl font-bold break-words">
+            {props.heading}
+          </h1>
+        </div>
+      </div>
     </div>
   );
 };
 
 export default UserProfile;
-
 // /* eslint-disable react/prop-types */
 // import { useState, useRef, useEffect } from "react";
 // import { FiSettings, FiLogOut } from "react-icons/fi";
 // import { useNavigate } from "react-router-dom";
 // import profile from "../../../assets/images/profile-img.png";
+// import backbutton from "../../../assets/icons/back-icon.png";
 
 // const UserProfile = (props) => {
 //   const [open, setOpen] = useState(false);
@@ -166,11 +169,10 @@ export default UserProfile;
 //   const navigate = useNavigate();
 
 //   const onSettings = () => {
-//     setIsSettingsOpen(true); // open modal
+//     setIsSettingsOpen(true);
 //   };
 
-//   // Retrieve user data from localStorage
-//   const user = JSON.parse(localStorage.getItem("user")); // Assuming 'user' is stored in localStorage
+//   const user = JSON.parse(localStorage.getItem("user"));
 
 //   const handleLogout = () => {
 //     localStorage.removeItem("user");
@@ -190,16 +192,24 @@ export default UserProfile;
 //   }, []);
 
 //   return (
-//     <div className="flex justify-between items-start">
-//       <h1 className="text-2xl py-1 font-bold mb-6 text-center md:text-left">
-//         {props.heading}
-//       </h1>
+//     <div className="flex justify-between items-start w-full">
+//       <div className="flex items-center gap-4 mb-6">
+//         {props.showBackButton && (
+//           <button
+//             onClick={props.onBack || (() => navigate(-1))}
+//           >
+//          <img className="w-6 pt-2" src={backbutton} alt="backbutton" />
+//           </button>
+//         )}
+//         <h1 className="text-2xl font-bold">{props.heading}</h1>
+//       </div>
+
 //       <div className="relative" ref={dropdownRef}>
 //         <img
 //           src={
 //             user?.avatar ||
 //             "https://images.unsplash.com/photo-1502685104226-ee32379fefbe"
-//           } // Default to a placeholder if no avatar
+//           }
 //           alt="User avatar"
 //           className="w-10 h-10 rounded-full cursor-pointer"
 //           onClick={() => setOpen(!open)}
@@ -212,7 +222,7 @@ export default UserProfile;
 //                 src={
 //                   user?.avatar ||
 //                   "https://images.unsplash.com/photo-1502685104226-ee32379fefbe"
-//                 } // Default to a placeholder if no avatar
+//                 }
 //                 alt="User avatar"
 //                 className="w-12 h-12 rounded-full mb-2"
 //               />
@@ -229,10 +239,10 @@ export default UserProfile;
 //             >
 //               <FiSettings className="mr-2" /> Settings
 //             </button>
+
 //             {isSettingsOpen && (
 //               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 //                 <div className="bg-white rounded-2xl overflow-hidden shadow-2xl w-96">
-//                   {/* Header */}
 //                   <div className="bg-[#FCD2AA] p-6 flex flex-col items-center relative">
 //                     <button
 //                       onClick={() => setIsSettingsOpen(false)}
@@ -254,7 +264,6 @@ export default UserProfile;
 //                     <h2 className="font-bold text-lg mt-1">Edit Profile</h2>
 //                   </div>
 
-//                   {/* Form Body */}
 //                   <div className="px-8 py-6 bg-white">
 //                     <div className="space-y-4">
 //                       <input
