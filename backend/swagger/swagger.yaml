@@ -516,43 +516,89 @@ paths:
                   type: string
                   example: "123456"
 
-  /api/user/refresh_token:
-    post:
-      summary: Refresh JWT access token using a refresh token
+  /api/user/update/{id}:
+    patch:
+      patch:
+      summary: Update selected fields of a user
       tags:
         - Auth
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: 66347f96f30bfa9012c0df25
+          description: MongoDB ObjectId of the user to update
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-                - refreshToken
               properties:
-                refreshToken:
+                name:
                   type: string
-                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  example: John Doe
+                position:
+                  type: string
+                  example: Assistant Professor
+                role:
+                  type: string
+                  enum: [admin, superadmin, faculty]
+                  example: faculty
+                department:
+                  type: string
+                  example: Computer Science
+                isActive:
+                  type: boolean
+                  example: true
       responses:
         '200':
-          description: Access token refreshed
+          description: User updated successfully
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    example: true
                   message:
                     type: string
-                    example: Access token refreshed
-                  accessToken:
+                    example: User updated successfully
+                  user:
+                    $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
                     type: string
-                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        '401':
-          description: Refresh token required
-        '403':
-          description: Invalid or expired refresh token
+                    example: User not found
         '500':
           description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Server error
+                  error:
+                    type: string
+
+
 
   /api/user/otp/send:
     post:
