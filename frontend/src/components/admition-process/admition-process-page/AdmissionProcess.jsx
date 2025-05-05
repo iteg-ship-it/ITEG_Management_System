@@ -1,170 +1,516 @@
-import React from "react";
+// src/pages/admission/AdmissionProcess.js
+import UserProfile from "../../common-components/user-profile/UserProfile";
+import { useGetAllStudentsQuery } from "../../../redux/api/authApi";
+import CommonTable from "../../common-components/table/CommonTable";
+import Pagination from "../../common-components/pagination/Pagination";
+import { useState } from "react";
+import edit from "../../../assets/icons/edit-fill-icon.png";
+import CustomTimeDate from "../date-time-modal/CustomTimeDate";
 import { useNavigate } from "react-router-dom";
 
-const data = [
-  {
-    location: "Harda",
-    selected: 40,
-    rejected: 40,
-    totalRegistration: 40,
-    totalStudents: 40,
-    paid: 40,
-    unpaid: 40,
-  },
-  {
-    location: "Nemawar",
-    selected: 40,
-    rejected: 40,
-    totalRegistration: 40,
-    totalStudents: 40,
-    paid: 40,
-    unpaid: 40,
-  },
-  {
-    location: "Kannod",
-    selected: 40,
-    rejected: 40,
-    totalRegistration: 40,
-    totalStudents: 40,
-    paid: 40,
-    unpaid: 40,
-  },
-  {
-    location: "Satwas",
-    selected: 40,
-    rejected: 40,
-    totalRegistration: 40,
-    totalStudents: 40,
-    paid: 40,
-    unpaid: 40,
-  },
-  {
-    location: "Narsullaganj",
-    selected: 40,
-    rejected: 40,
-    totalRegistration: 40,
-    totalStudents: 40,
-    paid: 40,
-    unpaid: 40,
-  },
-  {
-    location: "Khategaon",
-    selected: 40,
-    rejected: 40,
-    totalRegistration: 40,
-    totalStudents: 40,
-    paid: 40,
-    unpaid: 40,
-  },
-];
-
 const AdmissionProcess = () => {
-  const navigate = useNavigate();
-
-  const handleLocationClick = (location) => {
-    navigate(`/admition-record?location=${location}`);
-  };
   return (
-    <div className="min-h-screen w-full p-4 md:p-6">
-      <h1 className="text-2xl font-bold mb-6 text-center md:text-left">
-        Admission Dashboard
-      </h1>
-
-      {/* ✅ Top Summary Section with Dividers */}
-      <div className="bg-white shadow-md p-6 rounded-lg">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          {["Selected", "Rejected", "Total Registration", "Total Students"].map(
-            (title, index) => (
-              <div key={index} className="relative flex flex-col items-center">
-                <p className="text-lg font-semibold">{title}</p>
-                <div className="flex justify-center gap-2 mt-2">
-                  <div className="bg-blue-100 text-blue-600 font-bold px-3 py-1 rounded-md">
-                    40
-                  </div>
-                  <div className="bg-red-100 text-red-600 font-bold px-3 py-1 rounded-md">
-                    40
-                  </div>
-                  <div className="bg-green-100 text-green-600 font-bold px-3 py-1 rounded-md">
-                    40
-                  </div>
-                </div>
-                <div className="flex justify-center gap-4 text-sm text-gray-500 mt-1">
-                  <span>Total</span>
-                  <span>Paid</span>
-                  <span>Unpaid</span>
-                </div>
-                {/* Divider for Desktop View */}
-                {index !== 3 && (
-                  <div className="hidden md:block absolute right-0 top-1/2 transform -translate-y-1/2 h-12 w-[1px] bg-gray-300"></div>
-                )}
-              </div>
-            )
-          )}
-        </div>
-      </div>
-
-      {/* ✅ Location-wise Data with Clickable Locations */}
-      <h2 className="text-xl font-semibold mt-8 mb-4">
-        Track-wise Data of Students
-      </h2>
-      <div className="space-y-4">
-        {data.map((locationData, index) => (
-          <div
-            key={index}
-            className="bg-white shadow-md p-6 rounded-lg hover:bg-gray-100 transition"
-          >
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { title: locationData.location, value: locationData.selected },
-                { title: "Rejected", value: locationData.rejected },
-                {
-                  title: "Total Registration",
-                  value: locationData.totalRegistration,
-                },
-                { title: "Total Students", value: locationData.totalStudents },
-              ].map((item, idx) => (
-                <div key={idx} className="relative text-center">
-                  <p
-                    className={`text-md font-medium ${
-                      item.title === locationData.location
-                        ? "cursor-pointer text-black hover:underline"
-                        : ""
-                    }`}
-                    onClick={
-                      item.title === locationData.location
-                        ? () => handleLocationClick(locationData.location)
-                        : undefined
-                    }
-                  >
-                    {item.title}
-                  </p>
-                  <div className="flex justify-center gap-2 mt-2">
-                    <div className="bg-blue-100 text-blue-600 font-bold px-3 py-1 rounded-md">
-                      {item.value}
-                    </div>
-                    <div className="bg-red-100 text-red-600 font-bold px-3 py-1 rounded-md">
-                      {locationData.paid}
-                    </div>
-                    <div className="bg-green-100 text-green-600 font-bold px-3 py-1 rounded-md">
-                      {locationData.unpaid}
-                    </div>
-                  </div>
-                  <div className="flex justify-center gap-4 text-sm text-gray-500 mt-1">
-                    <span>Total</span>
-                    <span>Paid</span>
-                    <span>Unpaid</span>
-                  </div>
-                  {idx !== 3 && (
-                    <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-12 w-[1px] bg-gray-300 hidden md:block"></div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+    <>
+      <UserProfile heading="Admission Process" />
+      <StudentList />
+    </>
   );
 };
 
 export default AdmissionProcess;
+
+const StudentList = () => {
+  const { data = [], isLoading, error } = useGetAllStudentsQuery();
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("Total Registration");
+  const [selectedTracks, setSelectedTracks] = useState([]);
+  const [selectedResults, setSelectedResults] = useState([]);
+  const [selectedPercentages, setSelectedPercentages] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate();
+
+  const handleEditClick = (studentId) => {
+    navigate(`/admission/edit/${studentId}`);
+  };
+
+  const filtersConfig = [
+    {
+      title: "Track",
+      options: ["Harda", "Kannod", "Khategaon"],
+      selected: selectedTracks,
+      setter: setSelectedTracks,
+    },
+    {
+      title: "Result",
+      options: ["Pass", "Fail"],
+      selected: selectedResults,
+      setter: setSelectedResults,
+    },
+    {
+      title: "Interview",
+      options: ["50-60%", "60-70%", "70-80%", "80-90%", "90-100%"],
+      selected: selectedPercentages,
+      setter: setSelectedPercentages,
+    },
+  ];
+
+  const tabs = [
+    "Total Registration",
+    "Online Assessment",
+    "Selected",
+    "Rejected",
+  ];
+
+  const getLatestInterviewResult = (interviews = []) => {
+    if (!interviews.length) return null;
+    return [...interviews].sort(
+      (a, b) => new Date(b.date) - new Date(a.date)
+    )[0]?.result;
+  };
+
+  const scheduleButton = () => {
+    setShowModal(true);
+  };
+
+  const filteredData = data
+    .filter((student) => {
+      if (activeTab === "Online Assessment") {
+        return student.onlineTest?.result === "Pending";
+      }
+      if (activeTab === "Selected") {
+        return getLatestInterviewResult(student.interviews) === "Pass";
+      }
+      if (activeTab === "Rejected") {
+        return getLatestInterviewResult(student.interviews) === "Fail";
+      }
+      return true;
+    })
+    .filter((student) => {
+      const values = Object.values(student)
+        .map((val) => String(val ?? "").toLowerCase())
+        .join(" ");
+      return values.includes(searchTerm.toLowerCase());
+    })
+    .filter((student) => {
+      const matchTrack =
+        selectedTracks.length === 0 ||
+        selectedTracks.some(
+          (track) => track.toLowerCase() === (student.track || "").toLowerCase()
+        );
+
+      const matchResult =
+        selectedResults.length === 0 ||
+        selectedResults.some(
+          (result) =>
+            result.toLowerCase() ===
+            getLatestInterviewResult(student.interviews || []).toLowerCase()
+        );
+
+      const percentage = parseFloat(student.percentage);
+      const matchPercentage =
+        selectedPercentages.length === 0 ||
+        selectedPercentages.some((range) => {
+          const [min, max] = range.replace("%", "").split("-").map(Number);
+          return percentage >= min && percentage <= max;
+        });
+
+      return matchTrack && matchResult && matchPercentage;
+    });
+
+  let columns = [];
+  let actionButton;
+
+  switch (activeTab) {
+    case "Online Assessment":
+      columns = [
+        {
+          key: "firstName",
+          label: "Full Name",
+          render: (row) => `${row.firstName} ${row.lastName}`,
+        },
+        { key: "fatherName", label: "Father's Name" },
+        { key: "studentMobile", label: "Mobile" },
+        {
+          key: "interviews",
+          label: "Marks",
+          render: (row) =>
+            row.interviews && row.interviews.length > 0
+              ? row.interviews[0].marks
+              : "N/A",
+        },
+        { key: "village", label: "Status" },
+      ];
+      actionButton = (row) => (
+        <button
+          onClick={() => scheduleButton(row)}
+          className="bg-orange-500 text-white px-3 py-1 rounded"
+        >
+          + Schedule Interview
+        </button>
+      );
+      break;
+
+    case "Selected":
+      columns = [
+        {
+          key: "firstName",
+          label: "Full Name",
+          render: (row) => `${row.firstName} ${row.lastName}`,
+        },
+        { key: "year", label: "Year" },
+        { key: "track", label: "Track" },
+      ];
+      actionButton = (row) => (
+        <button
+          onClick={() => alert(`Send confirmation to ${row.firstName}`)}
+          className="bg-green-500 text-white px-3 py-1 rounded"
+        >
+          Confirm
+        </button>
+      );
+      break;
+
+    case "Rejected":
+      columns = [
+        {
+          key: "firstName",
+          label: "Full Name",
+          render: (row) => `${row.firstName} ${row.lastName}`,
+        },
+        { key: "reason", label: "Rejection Reason" },
+      ];
+      actionButton = (row) => (
+        <button
+          onClick={() => alert(`Review ${row.firstName}'s case again`)}
+          className="bg-red-500 text-white px-3 py-1 rounded"
+        >
+          Re-review
+        </button>
+      );
+      break;
+
+    default:
+      columns = [
+        {
+          key: "firstName",
+          label: "Full Name",
+          render: (row) => `${row.firstName} ${row.lastName}`,
+        },
+        { key: "fatherName", label: "Father's Name" },
+        { key: "studentMobile", label: "Mobile" },
+        { key: "stream", label: "Subject" },
+        { key: "village", label: "Village" },
+      ];
+      actionButton = (row) => (
+        <button onClick={() => handleEditClick(row._id)}>
+          <img src={edit} alt="edit-icon" className="w-5 h-5" />
+        </button>
+      );
+      break;
+  }
+
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error fetching students.</p>;
+
+  return (
+    <>
+      <div className="border bg-white shadow-sm rounded-lg px-5">
+        <div className="flex justify-between items-center flex-wrap gap-4">
+          <Pagination
+            rowsPerPage={rowsPerPage}
+            setRowsPerPage={setRowsPerPage}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            filtersConfig={filtersConfig}
+          />
+        </div>
+
+        <div className="px-2 flex gap-6 mt-4">
+          {tabs.map((tab) => (
+            <p
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`cursor-pointer pb-2 border-b-2 ${
+                activeTab === tab
+                  ? "border-orange-400 font-semibold"
+                  : "border-transparent"
+              }`}
+            >
+              {tab}
+            </p>
+          ))}
+        </div>
+      </div>
+
+      <CommonTable
+        data={filteredData}
+        columns={columns}
+        editable={true}
+        pagination={true}
+        rowsPerPage={rowsPerPage}
+        searchTerm={searchTerm}
+        actionButton={actionButton}
+      />
+
+      {showModal && <CustomTimeDate onClose={() => setShowModal(false)} />}
+    </>
+  );
+};
+
+// import UserProfile from "../../common-components/user-profile/UserProfile";
+// import { useGetAllStudentsQuery } from "../../../redux/api/authApi";
+// import CommonTable from "../../common-components/table/CommonTable";
+// import Pagination from "../../common-components/pagination/Pagination";
+// import { useState } from "react";
+// import edit from "../../../assets/icons/edit-fill-icon.png";
+// // import { useNavigate } from "react-router-dom";
+// import CustomTimeDate from "../date-time-modal/CustomTimeDate";
+// import { useNavigate } from "react-router-dom";
+
+// const AdmissionProcess = () => {
+//   return (
+//     <>
+//       <UserProfile heading="Admission Process" />
+//       <StudentList />
+//     </>
+//   );
+// };
+
+// export default AdmissionProcess;
+
+// const StudentList = () => {
+//   const { data = [], isLoading, error } = useGetAllStudentsQuery();
+//   const [rowsPerPage, setRowsPerPage] = useState(10);
+//   const [searchTerm, setSearchTerm] = useState("");
+//   const [activeTab, setActiveTab] = useState("Total Registration");
+//   const [selectedTracks, setSelectedTracks] = useState([]);
+//   const [selectedResults, setSelectedResults] = useState([]);
+//   const [selectedPercentages, setSelectedPercentages] = useState([]);
+//   const [showModal, setShowModal] = useState(false);
+//   const navigate = useNavigate();
+
+//   const handleEditClick = (studentId) => {
+//     navigate(`/admission/edit/${studentId}`);
+//   };
+//   const filtersConfig = [
+//     {
+//       title: "Track",
+//       options: ["Harda", "Kannod", "Khategaon"],
+//       selected: selectedTracks,
+//       setter: setSelectedTracks,
+//     },
+//     {
+//       title: "Result",
+//       options: ["Pass", "Fail"],
+//       selected: selectedResults,
+//       setter: setSelectedResults,
+//     },
+//     {
+//       title: "Interview",
+//       options: ["50-60%", "60-70%", "70-80%", "80-90%", "90-100%"],
+//       selected: selectedPercentages,
+//       setter: setSelectedPercentages,
+//     },
+//   ];
+
+//   const tabs = [
+//     "Total Registration",
+//     "Online Assessment",
+//     "Selected",
+//     "Rejected",
+//   ];
+
+//   const getLatestInterviewResult = (interviews = []) => {
+//     if (!interviews.length) return null;
+//     return [...interviews].sort(
+//       (a, b) => new Date(b.date) - new Date(a.date)
+//     )[0]?.result;
+//   };
+
+//   const scheduleButton = () => {
+//     setShowModal(true);
+//   };
+
+//   const filteredData = data
+//     .filter((student) => {
+//       if (activeTab === "Online Assessment") {
+//         return student.onlineTest?.result === "Pending";
+//       }
+//       if (activeTab === "Selected") {
+//         return getLatestInterviewResult(student.interviews) === "Pass";
+//       }
+//       if (activeTab === "Rejected") {
+//         return getLatestInterviewResult(student.interviews) === "Fail";
+//       }
+//       return true;
+//     })
+//     .filter((student) => {
+//       const values = Object.values(student)
+//         .map((val) => String(val ?? "").toLowerCase())
+//         .join(" ");
+//       return values.includes(searchTerm.toLowerCase());
+//     })
+//     .filter((student) => {
+//       const matchTrack =
+//         selectedTracks.length === 0 ||
+//         selectedTracks.some(
+//           (track) => track.toLowerCase() === (student.track || "").toLowerCase()
+//         );
+
+//       const matchResult =
+//         selectedResults.length === 0 ||
+//         selectedResults.some(
+//           (result) =>
+//             result.toLowerCase() ===
+//             getLatestInterviewResult(student.interviews || []).toLowerCase()
+//         );
+
+//       const percentage = parseFloat(student.percentage);
+//       const matchPercentage =
+//         selectedPercentages.length === 0 ||
+//         selectedPercentages.some((range) => {
+//           const [min, max] = range.replace("%", "").split("-").map(Number);
+//           return percentage >= min && percentage <= max;
+//         });
+
+//       return matchTrack && matchResult && matchPercentage;
+//     });
+
+//   let columns = [];
+//   let actionButton;
+//   switch (activeTab) {
+//     case "Online Assessment":
+//       columns = [
+//         {
+//           key: "firstName",
+//           label: "Full Name",
+//           render: (row) => `${row.firstName} ${row.lastName}`,
+//         },
+//         { key: "fatherName", label: "Father's Name" },
+//         { key: "studentMobile", label: "Mobile" },
+//         {
+//           key: "interviews",
+//           label: "Marks",
+//           render: (row) =>
+//             row.interviews && row.interviews.length > 0
+//               ? row.interviews[0].marks
+//               : "N/A",
+//         },
+//         { key: "village", label: "Status" },
+//       ];
+//       actionButton = (row) => (
+//         <button
+//           onClick={() => scheduleButton(row)}
+//           className="bg-orange-500 text-white px-3 py-1 rounded"
+//         >
+//           + Schedule Interview
+//         </button>
+//       );
+//       break;
+
+//     case "Selected":
+//       columns = [
+//         {
+//           key: "firstName",
+//           label: "Full Name",
+//           render: (row) => `${row.firstName} ${row.lastName}`,
+//         },
+//         { key: "year", label: "Year" },
+//         { key: "track", label: "Track" },
+//       ];
+//       actionButton = (row) => (
+//         <button
+//           onClick={() => alert(`Send confirmation to ${row.firstName}`)}
+//           className="bg-green-500 text-white px-3 py-1 rounded"
+//         >
+//           Confirm
+//         </button>
+//       );
+//       break;
+
+//     case "Rejected":
+//       columns = [
+//         {
+//           key: "firstName",
+//           label: "Full Name",
+//           render: (row) => `${row.firstName} ${row.lastName}`,
+//         },
+//         { key: "reason", label: "Rejection Reason" },
+//       ];
+//       actionButton = (row) => (
+//         <button
+//           onClick={() => alert(`Review ${row.firstName}'s case again`)}
+//           className="bg-red-500 text-white px-3 py-1 rounded"
+//         >
+//           Re-review
+//         </button>
+//       );
+//       break;
+
+//     default:
+//       columns = [
+//         {
+//           key: "firstName",
+//           label: "Full Name",
+//           render: (row) => `${row.firstName} ${row.lastName}`,
+//         },
+//         { key: "fatherName", label: "Father's Name" },
+//         { key: "studentMobile", label: "Mobile" },
+//         { key: "stream", label: "Subject" },
+//         { key: "village", label: "Village" },
+//       ];
+
+//       actionButton = (row) => (
+//         <button onClick={() => handleEditClick(row._id)}>
+//           <img src={edit} alt="edit-icon" className="w-5 h-5" />
+//         </button>
+//       );
+//       break;
+//   }
+
+//   if (isLoading) return <p>Loading...</p>;
+//   if (error) return <p>Error fetching students.</p>;
+
+//   return (
+//     <>
+//       <div className="border bg-white shadow-sm rounded-lg px-5">
+//         <div className="flex justify-between items-center flex-wrap gap-4">
+//           <Pagination
+//             rowsPerPage={rowsPerPage}
+//             setRowsPerPage={setRowsPerPage}
+//             searchTerm={searchTerm}
+//             setSearchTerm={setSearchTerm}
+//             filtersConfig={filtersConfig}
+//           />
+//         </div>
+
+//         <div className="px-2 flex gap-6 mt-4">
+//           {tabs.map((tab) => (
+//             <p
+//               key={tab}
+//               onClick={() => setActiveTab(tab)}
+//               className={`cursor-pointer pb-2 border-b-2 ${
+//                 activeTab === tab
+//                   ? "border-orange-400 font-semibold"
+//                   : "border-transparent"
+//               }`}
+//             >
+//               {tab}
+//             </p>
+//           ))}
+//         </div>
+//       </div>
+//       <CommonTable
+//         data={filteredData}
+//         columns={columns}
+//         editable={true}
+//         pagination={true}
+//         rowsPerPage={rowsPerPage}
+//         searchTerm={searchTerm}
+//         actionButton={actionButton}
+//       />
+//       {showModal && <CustomTimeDate onClose={() => setShowModal(false)} />}
+//     </>
+//   );
+// };

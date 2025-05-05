@@ -5,7 +5,7 @@ const AdmittedStudent = require("../models/admittedStudent");
 exports.createAdmittedStudent = async (req, res) => {
   try {
     console.log("Received request to create admitted student:", req.body); // Important for debugging
-    
+
     const admissionId = req.updatedStudent._id;
 
     const admissionData = await AdmissionProcess.findById(admissionId);
@@ -40,5 +40,14 @@ exports.createAdmittedStudent = async (req, res) => {
     return res
       .status(500)
       .json({ message: "Admission failed", error: error.message });
+  }
+};
+
+exports.getAllStudents = async (req, res) => {
+  try {
+    const students = await AdmittedStudent.find();
+    res.status(200).json(students);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

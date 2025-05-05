@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
 import logo from "../../../assets/images/logo.png";
 import admissionIcon from "../../../assets/icons/fluent_desktop-cursor-20-filled.png";
@@ -12,7 +12,7 @@ const menuItems = [
   {
     name: "Add Process",
     icon: admissionIcon,
-    roles: ["admin"],
+    roles: ["superadmin", "admin"],
     subMenu: [
       { name: "Dashboard", path: "/" },
       { name: "Admission Process", path: "/admission" },
@@ -21,11 +21,11 @@ const menuItems = [
   {
     name: "Student Record",
     icon: studentRecordIcon,
-    roles: ["admin", "teacher"],
+    roles: ["superadmin", "admin", "faculty"],
     subMenu: [
       { name: "Student Profiles", path: "/student-dashboard" },
-      { name: "Permission Students", path: "/permission-students" },
-      { name: "Attendance info", path: "/attendance-info" },
+      { name: "Permission Students", path: "/student-permission" },
+      { name: "Attendance Info", path: "/attendance-info" },
       { name: "Level Info", path: "/level-info" },
       { name: "Interview Record", path: "/interview-record" },
     ],
@@ -33,7 +33,7 @@ const menuItems = [
   {
     name: "Placement Info",
     icon: placementIcon,
-    roles: ["admin", "teacher", "student"],
+    roles: ["superadmin", "admin", "faculty"],
     subMenu: [
       { name: "Readiness Status", path: "/readiness-status" },
       { name: "Interview Record", path: "/placement-interview-record" },
@@ -43,11 +43,14 @@ const menuItems = [
   },
 ];
 
-const Sidebar = ({ role }) => {
+const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [openMenus, setOpenMenus] = useState([0]);
   const location = useLocation();
-  const navigate = useNavigate();
+
+  const role = localStorage.getItem("role");
+
+  const normalizedRole = role?.toLowerCase() || "";
 
   const toggleMenu = (index) => {
     if (openMenus.includes(index)) {
@@ -55,14 +58,6 @@ const Sidebar = ({ role }) => {
     } else {
       setOpenMenus([...openMenus, index]);
     }
-  };
-
-  const handleLogout = () => {
-    // localStorage.removeItem("isAuthenticated");
-    localStorage.removeItem("user");
-    localStorage.removeItem("token"); // Important!
-    navigate("/login", { replace: true });
-    window.location.reload(); // Optional but useful to re-evaluate auth state
   };
 
   return (
@@ -74,14 +69,14 @@ const Sidebar = ({ role }) => {
           } md:translate-x-0 z-50 flex flex-col`}
         >
           {/* Logo */}
-          <div className="flex items-center mb-4">
-            <img src={logo} alt="Logo" />
+          <div className="flex items-center mb-4 ">
+            <img className="h-[11vh]" src={logo} alt="Logo" />
           </div>
 
           {/* Menu Items */}
           <ul className="flex-1 overflow-y-auto">
             {menuItems
-              .filter((item) => item.roles.includes(role))
+              .filter((item) => item.roles.includes(normalizedRole)) 
               .map((item, index) => {
                 const isActive = openMenus.includes(index);
                 return (
@@ -131,16 +126,6 @@ const Sidebar = ({ role }) => {
                 );
               })}
           </ul>
-
-          {/* Logout Button */}
-          <div className="mt-4">
-            <button
-              onClick={handleLogout}
-              className="w-full bg-orange-500 text-white py-2 rounded-md hover:bg-orange-600 transition"
-            >
-              Logout
-            </button>
-          </div>
         </div>
 
         {/* Mobile Toggle Button */}

@@ -14,10 +14,6 @@ const admittedStudentRoutes = require("./routes/studentRoutes");
 const userRoutes = require("./routes/userRoutes.js");
 const otpRoutes = require("./routes/otpRoutes.js");
 
-
-
-
-
 //expres object
 const app = express();
 // cors for frontend and backend communication

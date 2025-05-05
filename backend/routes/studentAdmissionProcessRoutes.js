@@ -1,9 +1,8 @@
-const express = require('express');
-const studentAdmissionProcess = require('../modules/student/controllers/admissionProcessStudentControllers');
-const studentAdmitted = require('../modules/student/controllers/admittedStudentController');
-const { verifyToken, checkRole } = require('../middlewares/authMiddleware');
+const express = require("express");
+const studentAdmissionProcess = require("../modules/student/controllers/admissionProcessStudentControllers");
+const studentAdmitted = require("../modules/student/controllers/admittedStudentController");
+const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
 const router = express.Router();
-
 
 // router.post('/register', studentAdmissionProcess.addAdmission);
 

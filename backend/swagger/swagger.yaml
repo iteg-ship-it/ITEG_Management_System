@@ -1159,4 +1159,63 @@ paths:
                   error:
                     type: string
 
-  
+  /api/admission/students/update_interview_flag/{studentId}:
+    put:
+      summary: Update ITEG interview flag and notify central system
+      tags:
+         - Admission Process
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: string
+            example: "6811f74b6a40d2524ec7d870"
+          description: MongoDB ObjectId of the student to update
+      responses:
+        '200':
+          description: Interview flag updated and sent to central system
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Interview flag updated and sent to central
+                  centralResponse:
+                    type: object
+                    description: Response from the central system
+        '400':
+          description: Missing or invalid student ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student ID is required
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student not found
+        '500':
+          description: Server or central system error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server error
+                  error:
+                    type: string
+                    example: Failed to connect to central system

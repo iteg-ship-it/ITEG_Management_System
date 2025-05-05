@@ -1,21 +1,20 @@
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const Otp = require("../models/otpModel");
-const sendOtp = require("../helpers/sendOtp");
+const { sendResetLinkEmail } = require("../helpers/sendOtp");
 const generateOtp = require("../helpers/generateOtp");
 const cloudinary = require('cloudinary').v2;
 
-const bcrypt = require("bcrypt");
 require("dotenv").config();
 
 const mongoose = require('mongoose');
 
 const generateToken = (user) => {
-  return jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: "1h" }
-  );
+  return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+    expiresIn: "1h",
+  });
 };
 
 const generateRefreshToken = (user) => {
@@ -56,13 +55,18 @@ exports.createUser = async (req, res) => {
     // Allowed roles
     const allowedRoles = ["admin", "superadmin", "faculty"];
     if (!allowedRoles.includes(role)) {
-      return res.status(400).json({ message: "Invalid role. Only admin, superadmin, and faculty are allowed." });
+      return res.status(400).json({
+        message:
+          "Invalid role. Only admin, superadmin, and faculty are allowed.",
+      });
     }
 
     // Check if user already exists by email or Aadhar
     const existingUser = await User.findOne({ $or: [{ email }, { adharCard }] });
     if (existingUser) {
-      return res.status(400).json({ message: "User with this email or Aadhar already exists." });
+      return res
+        .status(400)
+        .json({ message: "User with this email or Aadhar already exists." });
     }
 
     // Hash the password
@@ -96,7 +100,9 @@ exports.createUser = async (req, res) => {
     await newUser.save();
 
     res.status(201).json({
-      message: `${role.charAt(0).toUpperCase() + role.slice(1)} created successfully!`,
+      message: `${
+        role.charAt(0).toUpperCase() + role.slice(1)
+      } created successfully!`,
       user: {
         id: newUser._id,
         name: newUser.name,
@@ -111,7 +117,6 @@ exports.createUser = async (req, res) => {
     res.status(500).json({ message: "Server Error", error });
   }
 };
-
 
 exports.login = async (req, res) => {
     try {
@@ -270,10 +275,69 @@ exports.login = async (req, res) => {
       console.error("Error updating user:", error);
       res.status(500).json({ success: false, message: "Server error", error });
     }
-
-    
-
   };
   
+exports.forgotPassword = async (req, res) => {
+  const { email } = req.body;
 
+  try {
+    const user = await User.findOne({ email });
 
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    //1. Generate token
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    //2. Save token + expiry + used = false
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
+    user.resetTokenUsed = false;
+    await user.save();
+
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+
+    await sendResetLinkEmail(email, resetLink);
+
+    res.status(200).json({ message: "Reset link sent to your email." });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  const { token } = req.params;
+  const { newPassword, confirmPassword } = req.body;
+
+  if (!newPassword || !confirmPassword)
+    return res.status(400).json({ message: "Both fields are required" });
+
+  if (newPassword !== confirmPassword)
+    return res.status(400).json({ message: "Passwords do not match" });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user || user.resetPasswordToken !== token || user.resetTokenUsed)
+      return res.status(400).json({ message: "Invalid or expired token" });
+
+    if (user.resetPasswordExpires < Date.now())
+      return res.status(400).json({ message: "Token has expired" });
+
+    // Password hashing (either pre-save or manual)
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+
+    // Invalidate the token after first use
+    user.resetTokenUsed = true;
+    await user.save();
+
+    res.status(200).json({ message: "Password successfully reset" });
+  } catch (err) {
+    return res.status(400).json({ message: "Invalid or expired token" });
+  }
+};
