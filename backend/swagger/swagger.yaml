@@ -21,6 +21,9 @@ components:
         _id:
           type: string
           example: "662b18b6c3eabc00123f5678"
+        profileImage:
+          type: string
+          example: "https://example.com/profile.jpg"
         position:
           type: string
           example: "Developer"
@@ -30,6 +33,9 @@ components:
         email:
           type: string
           example: "johndoe@example.com"
+        mobileNo:
+          type: string
+          example: "9876543210"
         adharCard:
           type: string
           example: "123456789012"
@@ -349,6 +355,9 @@ paths:
                 name:
                   type: string
                   example: John Doe
+                profileImage:
+                  type: string
+                  example: https://example.com/profile.jpg
                 email:
                   type: string
                   format: email
