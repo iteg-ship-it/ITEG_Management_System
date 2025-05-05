@@ -180,6 +180,9 @@ components:
                 type: string
                 enum: [First, Second]
                 example: First
+              assignment:
+                type: string
+                example: "Assignment details here"
               attemptNo:
                 type: integer
                 example: 1
@@ -195,7 +198,7 @@ components:
               subjectKnowlage:
                 type: number
                 example: 4
-              technical:
+              assignmentMarks:
                 type: number
                 example: 4
               sincerity:
@@ -867,6 +870,10 @@ paths:
                   type: string
                   description: Interview round name (e.g., First, Second)
                   example: "First"
+                assignment:
+                  type: string
+                  description: Assignment details for the interview
+                  example: "Assignment details here"
                 communication:
                   type: Number
                   description: Communication mode (e.g., Zoom, Google Meet)
@@ -883,7 +890,7 @@ paths:
                  type: Number
                  description: Subject of the interview
                  example: 5
-                technical:
+                assignmentMarks:
                   type: Number
                   description: Technical skills assessed in the interview
                   example: 5

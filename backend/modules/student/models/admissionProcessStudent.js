@@ -60,11 +60,12 @@ const StudentAdmissionProcessSchema = new mongoose.Schema(
       {
         round: { type: String, enum: ['First', 'Second'], required: true, default: 'First' },
         attemptNo: { type: Number },
+        assignment: { type: String },
         communication: { type: Number },
         confidence: { type: Number },
         goal: { type: Number },
         subjectKnowlage: { type: Number },
-        technical: { type: Number },
+        assignmentMarks: { type: Number },
         sincerity: { type: Number },
         maths : { type: Number },
         reasoning: { type: Number },
