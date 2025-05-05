@@ -183,6 +183,31 @@ components:
               attemptNo:
                 type: integer
                 example: 1
+              communication:
+                type: number
+                example: 5
+              confidence:
+                type: number
+                example: 4
+              goal:
+                type: number
+                example: 3
+              subjectKnowlage:
+                type: number
+                example: 4
+              technical:
+                type: number
+                example: 4
+              sincerity:
+                type: number
+                example: 4
+              maths:
+                type: number
+                example: 4
+              reasoning:
+                type: number
+                example: 4
+              
               marks:
                 type: number
                 example: 85
@@ -842,6 +867,38 @@ paths:
                   type: string
                   description: Interview round name (e.g., First, Second)
                   example: "First"
+                communication:
+                  type: Number
+                  description: Communication mode (e.g., Zoom, Google Meet)
+                  example: 7
+                confidence:
+                  type: Number
+                  description: Confidence level of the candidate
+                  example: 5
+                goal:
+                  type: Number
+                  description: Interview goal (e.g., Technical, HR)
+                  example: 3
+                subjectKnowlage:
+                 type: Number
+                 description: Subject of the interview
+                 example: 5
+                technical:
+                  type: Number
+                  description: Technical skills assessed in the interview
+                  example: 5
+                sincerity:
+                 type: Number
+                 description: Sincerity level of the candidate
+                 example: 5
+                maths:
+                  type: Number
+                  description: Mathematics skills assessed in the interview
+                  example: 5
+                reasoning:
+                 type: Number
+                 description: Reasoning skills assessed in the interview
+                 example: 5
                 marks:
                   type: integer
                   description: Marks obtained in the interview
