@@ -174,9 +174,9 @@ const AdmissionEditPage = () => {
                     label="Passed Out Year"
                     name="passOut"
                     type="date"
-                    value={values.year10}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
+                    // value={values.year10}
+                    // onChange={handleChange}
+                    // onBlur={handleBlur}
                   />
                   <RadioGroup
                     label="Course"
@@ -186,7 +186,11 @@ const AdmissionEditPage = () => {
                       { value: "Diploma", label: "Diploma" },
                     ]}
                     className="col-span-1 md:col-span-2"
+                       // value={values.courseDeg}
+                    // onChange={handleChange}
+                    // onBlur={handleBlur}
                   />
+
                 </div>
               </Section>
 
