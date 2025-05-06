@@ -13,7 +13,9 @@ const UserSchema = new mongoose.Schema({
   refreshToken: { type: String }, 
   resetPasswordToken: { type: String }, 
   resetPasswordExpires: { type: Date },
-  resetTokenUsed: { type: Boolean, default: false }, 
+  resetTokenUsed: { type: Boolean, default: false },
+  googleId: { type: String },
+ 
 
 
   isActive: { type: Boolean, default: true },

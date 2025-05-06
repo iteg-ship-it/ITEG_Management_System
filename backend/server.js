@@ -13,6 +13,7 @@ const protectedRoutes = require("./routes/protectedRoutes");
 const admittedStudentRoutes = require("./routes/studentRoutes");
 const userRoutes = require("./routes/userRoutes.js");
 const otpRoutes = require("./routes/otpRoutes.js");
+const passport = require("./config/passport.js");
 
 //expres object
 const app = express();
@@ -53,6 +54,9 @@ app.use('/api/user/otp', otpRoutes);
 
 // in your main server.js / app.js
 app.use('/api/students', whatsappRoutes); 
+
+// passport.js
+app.use(passport.initialize());
 
 
 
