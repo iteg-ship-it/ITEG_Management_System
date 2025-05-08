@@ -5,7 +5,6 @@ const bodyParser = require("body-parser");
 const setupSwagger = require("./swagger/swagger");
 // Import Routes
 const webhookRoutes = require("./routes/webhookRoutes");
-const whatsappRoutes = require('./routes/whatsappRoutes');
 
 const studentAdmissionRoutes = require("./routes/studentAdmissionProcessRoutes");
 const protectedRoutes = require("./routes/protectedRoutes");
@@ -51,9 +50,6 @@ app.use("/api/admission/students/webhook", webhookRoutes);
 
 // in your main server.js / app.js
 app.use('/api/user/otp', otpRoutes);
-
-// in your main server.js / app.js
-app.use('/api/students', whatsappRoutes); 
 
 // passport.js
 app.use(passport.initialize());
