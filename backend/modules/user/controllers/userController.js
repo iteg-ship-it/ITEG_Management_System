@@ -73,14 +73,6 @@ exports.createUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Upload Profile Image to Cloudinary
-    // let base64Image = imageBase64.startsWith("data:image")
-    //   ? imageBase64
-    //   : `data:image/png;base64,${imageBase64}`;
-
-    // const result = await cloudinary.uploader.upload(base64Image, { folder: "uploads" });
-    // console.log(userRecord.uid,"userRecord.uid")
-
     // Create new user
     const newUser = new User({
       profileImage,
