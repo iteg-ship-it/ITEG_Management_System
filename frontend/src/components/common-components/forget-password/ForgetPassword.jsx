@@ -1,7 +1,7 @@
 import logo from "../../../assets/images/logo-ssism.png";
 import ReusableForm from "../../../ReusableForm";
 import EmailField from "../common-feild/EmailField";
-import { loginValidationSchema } from "../../../validationSchema"; 
+import { loginValidationSchema } from "../../../validationSchema";
 import { useNavigate } from "react-router-dom";
 
 const ForgetPassword = () => {
@@ -16,7 +16,7 @@ const ForgetPassword = () => {
         <div className="flex flex-col items-center">
           <img src={logo} alt="SSISM Logo" className="h-20 w-30" />
           <h2 className="text-xl font-bold text-gray-800 mt-2">
-            Enter Your Email
+            Forget Password
           </h2>
         </div>
 
@@ -32,7 +32,7 @@ const ForgetPassword = () => {
               </div>
 
               <button
-              onClick={navigate("/confirm-password")}
+                onClick={navigate("/confirm-password")}
                 type="submit"
                 className="w-full bg-orange-500 text-white py-3 rounded-full mt-4 hover:bg-orange-600 transition"
               >

@@ -94,7 +94,7 @@ const Pagination = ({
         >
           <img className="h-5" src={download} alt="download" />
         </button>
-        <button className="bg-red-300 p-2 px-2.5 border rounded">
+        <button className="bg-red-200 p-2 px-2.5 border rounded">
           <img className="h-5" src={del} alt="delete" />
         </button>
       </div>

@@ -38,7 +38,9 @@ const CommonTable = ({
                 <th className="text-start ps-4">
                   <input type="checkbox" />
                 </th>
-                <th className="px-4 py-2 text-center font-bold text-gray-700">S.No</th>
+                <th className="px-4 py-2 text-center font-bold text-gray-700">
+                  S.No
+                </th>
                 {columns
                   .filter((col) => visibleColumns.includes(col.key))
                   .map((col) => (
@@ -50,7 +52,9 @@ const CommonTable = ({
                     </th>
                   ))}
                 {editable && (
-                  <th className="px-4 py-2 text-center text-gray-700">Action</th>
+                  <th className="px-4 py-2 text-center text-gray-700">
+                    Action
+                  </th>
                 )}
                 {extraColumn && (
                   <th className="px-4 py-2 text-center text-gray-700">
