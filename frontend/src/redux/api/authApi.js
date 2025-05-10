@@ -8,7 +8,7 @@ const secretKey = "ITEG@123";
 
 //  Step 1: Create base query to attach decrypted token
 const rawBaseQuery = fetchBaseQuery({
-  baseUrl: "http://localhost:5000/api",
+  baseUrl: import.meta.env.VITE_API_URL,
   credentials: "include",
   prepareHeaders: (headers) => {
     const encryptedToken = localStorage.getItem("token");
@@ -50,7 +50,7 @@ export const authApi = createApi({
   endpoints: (builder) => ({
     login: builder.mutation({
       query: (credentials) => ({
-        url: "/user/login",
+        url: import.meta.env.VITE_LOGIN_ENDPOINT,
         method: "POST",
         body: credentials,
       }),
@@ -79,21 +79,21 @@ export const authApi = createApi({
 
     getAllStudents: builder.query({
       query: () => ({
-        url: "/admission/students/getall",
+        url: import.meta.env.VITE_GET_ALL_STUDENTS,
         method: "GET",
       }),
     }),
 
     admitedStudents: builder.query({
       query: () => ({
-        url: "/admitted/students/getall",
+        url: import.meta.env.VITE_GET_ADMITTED_STUDENTS,
         method: "GET",
       }),
     }),
 
     getStudentById: builder.query({
       query: (id) => ({
-        url: `/admission/students/get/${id}`,
+        url: `${import.meta.env.VITE_GET_STUDENT_BY_ID}${id}`,
         method: "GET",
       }),
     }),
