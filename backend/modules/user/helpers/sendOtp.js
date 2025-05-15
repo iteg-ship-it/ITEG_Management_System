@@ -69,7 +69,7 @@ async function sendResetLinkEmail(email, token) {
     });
 
     const logoPath = path.join(__dirname, '..', process.env.EMAIL_LOGO_PATH);
-    const resetLink = `${process.env.CLIENT_BASE_URL}/reset-password/${token}`;
+    const resetLink = `${process.env.CLIENT_BASE_URL}${token}`;
 
     const mailOptions = {
         from: `"ITEG Management System" <${process.env.EMAIL_USER}>`,

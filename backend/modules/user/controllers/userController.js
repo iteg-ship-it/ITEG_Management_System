@@ -298,8 +298,7 @@ exports.forgotPassword = async (req, res) => {
     user.resetTokenUsed = false;
     await user.save();
 
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
-
+    const resetLink = `${token}`;
     await sendResetLinkEmail(email, resetLink);
 
     res.status(200).json({ message: "Reset link sent to your email." });
@@ -339,5 +338,55 @@ exports.resetPassword = async (req, res) => {
     res.status(200).json({ message: "Password successfully reset" });
   } catch (err) {
     return res.status(400).json({ message: "Invalid or expired token" });
+  }
+};
+
+
+exports.googleAuthCallback = async (req, res) => {
+  try {
+    const { _json } = req.user;
+    const { sub, email, name } = _json;
+
+    if(!email.endsWith('@ssism.org')) {
+      return res.status(403).json({ message: "Only institutional emails (@ssism.org) are allowed to login." });
+    }
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        googleId: sub,
+        email,
+        name,
+      });
+    }
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: '1h',
+    });
+
+    const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: '7d',
+    });
+
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.status(200).json({
+      message: 'Google login successful',
+      token,
+      refreshToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        position: user.position,
+        department: user.department,
+      },
+    });
+  } catch (error) {
+    console.error('Google login failed:', error);
+    res.status(500).json({ error: 'Login failed' });
   }
 };
