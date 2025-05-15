@@ -79,11 +79,13 @@ const CommonTable = ({
                         {col.render ? (
                           col.render(row)
                         ) : col.key === "profile" ? (
-                          <img
-                            src={row[col.key]}
-                            alt="avatar"
-                            className="w-8 h-8 rounded-full object-cover"
-                          />
+                          <div className="flex justify-center">
+                            <img
+                              src={row[col.key]}
+                              alt="avatar"
+                              className="w-8 h-8 rounded-full object-cover"
+                            />
+                          </div>
                         ) : (
                           row[col.key]
                         )}

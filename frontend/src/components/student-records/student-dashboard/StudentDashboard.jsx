@@ -45,6 +45,7 @@ const StudentDashboard = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-10">
           {yearCategories.map((year, index) => (
             <div
+              onClick={() => navigate(`/student-detail-table`)}
               key={year}
               className="bg-white hover:shadow-xl transition-all duration-300 hover:scale-105 rounded-lg p-5 border border-gray-200 cursor-pointer flex flex-col justify-between"
             >
