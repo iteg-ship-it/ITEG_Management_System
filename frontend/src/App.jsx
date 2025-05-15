@@ -32,11 +32,12 @@ function App() {
           <>
             <Route path="/" element={<AdmissionDashboard />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
+
           </>
         )}
         <Route path="/confirm-password" element={<CondfirmPassword />} />
         <Route path="/forget-password" element={<ForgetPassword />} />
-        <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
 
       </Routes>
     </Router>
