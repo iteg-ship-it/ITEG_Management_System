@@ -15,7 +15,7 @@ const ConfirmPassword = () => {
           <div className="flex flex-col items-center">
             <img src={logo} alt="SSISM Logo" className="h-20 w-30" />
             <h2 className="text-xl font-bold text-gray-800 mt-2">
-              Confirm Password{" "}
+              Reset Password
             </h2>
           </div>
 
@@ -30,7 +30,7 @@ const ConfirmPassword = () => {
                   <PasswordField
                     value={values.password}
                     onChange={handleChange}
-                    password="Password"
+                    password="New Password"
                   />{" "}
                 </div>
                 <div className="mt-4">
@@ -45,7 +45,7 @@ const ConfirmPassword = () => {
                   type="submit"
                   className="w-full bg-orange-500 text-white py-3 rounded-full mt-4 hover:bg-orange-600 transition"
                 >
-                  Update Password{" "}
+                  Update
                 </button>
               </>
             )}
