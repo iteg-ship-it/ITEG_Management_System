@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 const setupSwagger = require("./swagger/swagger");
 // Import Routes
 const webhookRoutes = require("./routes/webhookRoutes");
+const whatsappRoutes = require("./routes/whatsappRoutes.js");
 
 const studentAdmissionRoutes = require("./routes/studentAdmissionProcessRoutes");
 const protectedRoutes = require("./routes/protectedRoutes");
