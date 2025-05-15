@@ -1,10 +1,7 @@
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const crypto = require("crypto");
-const Otp = require("../models/otpModel");
 const { sendResetLinkEmail } = require("../helpers/sendOtp");
-const generateOtp = require("../helpers/generateOtp");
 
 require("dotenv").config();
 
@@ -357,19 +354,22 @@ exports.googleAuthCallback = async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
-    res.status(200).json({
-      message: 'Google login successful',
-      token,
-      refreshToken,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        position: user.position,
-        department: user.department,
-      },
-    });
+     const redirectUrl = `${process.env.GOOGLE_REDIRECT_URI}?token=${token}&refreshToken=${refreshToken}&userId=${user._id}`;
+    return res.redirect(redirectUrl);
+
+    // res.status(200).json({
+    //   message: 'Google login successful',
+    //   token,
+    //   refreshToken,
+    //   user: {
+    //     id: user._id,
+    //     name: user.name,
+    //     email: user.email,
+    //     role: user.role,
+    //     position: user.position,
+    //     department: user.department,
+    //   },
+    // });
   } catch (error) {
     console.error('Google login failed:', error);
     res.status(500).json({ error: 'Login failed' });
