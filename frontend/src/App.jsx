@@ -6,6 +6,7 @@ import LoginPage from "./components/common-components/login-page/LoginPage";
 import AdmissionDashboard from "./components/admition-process/admission-dashboard/AdmissionDashboard";
 import ForgetPassword from "./components/common-components/forget-password/ForgetPassword";
 import CondfirmPassword from "./components/common-components/confirm-password/ConfirmPassword";
+import GoogleAuthSuccess from "./helpers/GoogleAuthSuccess";
 
 function App() {
   const token = localStorage.getItem("token");
@@ -35,6 +36,8 @@ function App() {
         )}
         <Route path="/confirm-password" element={<CondfirmPassword />} />
         <Route path="/forget-password" element={<ForgetPassword />} />
+        <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
+
       </Routes>
     </Router>
   );

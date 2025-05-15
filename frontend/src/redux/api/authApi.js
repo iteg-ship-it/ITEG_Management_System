@@ -85,7 +85,7 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
 
   return result;
 };
-
+// ---------users-------------
 // 🔨 Create API
 export const authApi = createApi({
   reducerPath: "authApi",
@@ -114,7 +114,7 @@ export const authApi = createApi({
         }
       },
     }),
-
+    // Refresh token
     refreshToken: builder.mutation({
       query: (payload) => ({
         url: import.meta.env.VITE_REFRESH_TOKEN,
@@ -123,6 +123,18 @@ export const authApi = createApi({
       }),
     }),
 
+    // login with goggle
+    loginWithGoogle: builder.mutation({
+      query: () => ({
+        url: `/google`,
+        method: "GET",
+      }),
+    }),
+
+
+
+    // ----otp-----
+    // verify the otp
     verifyOtp: builder.mutation({
       query: (payload) => ({
         url: import.meta.env.VITE_LOGIN_OTP_VERIFY, // e.g., /auth/verify-otp
@@ -130,7 +142,7 @@ export const authApi = createApi({
         body: payload, // { email, otp }
       }),
     }),
-
+    // send the otp
     sendOtp: builder.mutation({
       query: (payload) => ({
         url: import.meta.env.VITE_LOGIN_OTP,
@@ -139,13 +151,27 @@ export const authApi = createApi({
       }),
     }),
 
+
+    // ---------admission process-------------
+
+    // get the students for admission process
     getAllStudents: builder.query({
       query: () => ({
         url: import.meta.env.VITE_GET_ALL_STUDENTS,
         method: "GET",
       }),
     }),
+    // get admission process student by id
+    getStudentById: builder.query({
+      query: (id) => ({
+        url: `${import.meta.env.VITE_GET_STUDENT_BY_ID}${id}`,
+        method: "GET",
+      }),
+    }),
 
+    // ---------admitted students-------------
+
+    // get all the students for admitted process
     admitedStudents: builder.query({
       query: () => ({
         url: import.meta.env.VITE_GET_ADMITTED_STUDENTS,
@@ -153,17 +179,13 @@ export const authApi = createApi({
       }),
     }),
 
-    getStudentById: builder.query({
-      query: (id) => ({
-        url: `${import.meta.env.VITE_GET_STUDENT_BY_ID}${id}`,
-        method: "GET",
-      }),
-    }),
+
   }),
 });
 
 export const {
   useLoginMutation,
+  useLoginWithGoogleMutation,
   useSendOtpMutation,
   useVerifyOtpMutation,
   useRefreshTokenMutation,
