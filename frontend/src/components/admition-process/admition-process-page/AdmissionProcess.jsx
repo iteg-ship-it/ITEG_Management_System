@@ -1,5 +1,3 @@
-// src/pages/admission/AdmissionProcess.js
-import UserProfile from "../../common-components/user-profile/UserProfile";
 import { useGetAllStudentsQuery } from "../../../redux/api/authApi";
 import CommonTable from "../../common-components/table/CommonTable";
 import Pagination from "../../common-components/pagination/Pagination";
@@ -7,17 +5,15 @@ import { useState } from "react";
 import edit from "../../../assets/icons/edit-fill-icon.png";
 import CustomTimeDate from "../date-time-modal/CustomTimeDate";
 import { useNavigate } from "react-router-dom";
+import UserProfile from "../../common-components/user-profile/UserProfile";
 
-const AdmissionProcess = () => {
-  return (
-    <>
-      <UserProfile heading="Admission Process" />
-      <StudentList />
-    </>
-  );
-};
-
-export default AdmissionProcess;
+// Converts string to Title Case (e.g., "john doe" => "John Doe")
+const toTitleCase = (str) =>
+  str
+    ?.toLowerCase()
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 
 const StudentList = () => {
   const { data = [], isLoading, error } = useGetAllStudentsQuery();
@@ -58,6 +54,8 @@ const StudentList = () => {
   const tabs = [
     "Total Registration",
     "Online Assessment",
+    "Technical Round",
+    "Final Round",
     "Selected",
     "Rejected",
   ];
@@ -104,7 +102,7 @@ const StudentList = () => {
         selectedResults.some(
           (result) =>
             result.toLowerCase() ===
-            getLatestInterviewResult(student.interviews || []).toLowerCase()
+            getLatestInterviewResult(student.interviews || [])?.toLowerCase()
         );
 
       const percentage = parseFloat(student.percentage);
@@ -118,6 +116,50 @@ const StudentList = () => {
       return matchTrack && matchResult && matchPercentage;
     });
 
+  const handleGetMarks = (data) => {
+    if (data.length > 0) {
+      const onlineTestData = data.filter((item) => item?.round === "First");
+      let latestData = onlineTestData?.length;
+      return onlineTestData[latestData - 1]?.marks || 0;
+    }
+    return 0;
+  };
+
+  const handleGetStatus = (data = []) => {
+    if (Array.isArray(data) && data.length > 0) {
+      const onlineTestData = data.filter((item) => item?.round === "First");
+      const latestData = onlineTestData.length;
+      const result = onlineTestData[latestData - 1]?.result;
+
+      switch (result) {
+        case "Pass":
+          return (
+            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-xl text-sm font-medium">
+              Pass
+            </span>
+          );
+        case "Fail":
+          return (
+            <span className="bg-red-100 text-red-700 px-3 py-1 rounded-xl text-sm font-medium">
+              Fail
+            </span>
+          );
+        default:
+          return (
+            <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-xl text-sm font-medium">
+              {toTitleCase(result) || "Not Attempted"}
+            </span>
+          );
+      }
+    }
+
+    return (
+      <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-xl text-sm font-medium">
+        Not Attempted
+      </span>
+    );
+  };
+
   let columns = [];
   let actionButton;
 
@@ -127,26 +169,40 @@ const StudentList = () => {
         {
           key: "firstName",
           label: "Full Name",
-          render: (row) => `${row.firstName} ${row.lastName}`,
+          render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
         },
-        { key: "fatherName", label: "Father's Name" },
-        { key: "studentMobile", label: "Mobile" },
         {
-          key: "interviews",
-          label: "Marks",
-          render: (row) =>
-            row.interviews && row.interviews.length > 0
-              ? row.interviews[0].marks
-              : "N/A",
+          key: "fatherName",
+          label: "Father's Name",
+          render: (row) => toTitleCase(row.fatherName),
         },
-        { key: "village", label: "Status" },
+        {
+          key: "studentMobile",
+          label: "Mobile",
+        },
+        {
+          key: "track",
+          label: "Track",
+          render: (row) => toTitleCase(row.track),
+        },
+        {
+          key: "stream",
+          label: "Marks",
+          render: (row) => handleGetMarks(row.interviews),
+        },
+        {
+          key: "stream",
+          label: "Status",
+          render: (row) => handleGetStatus(row.interviews),
+        },
       ];
+
       actionButton = (row) => (
         <button
           onClick={() => scheduleButton(row)}
           className="bg-orange-500 text-white px-3 py-1 rounded"
         >
-          + Schedule Interview
+          Take interview
         </button>
       );
       break;
@@ -156,17 +212,35 @@ const StudentList = () => {
         {
           key: "firstName",
           label: "Full Name",
-          render: (row) => `${row.firstName} ${row.lastName}`,
+          render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
         },
-        { key: "year", label: "Year" },
-        { key: "track", label: "Track" },
+        {
+          key: "fatherName",
+          label: "Father's Name",
+          render: (row) => toTitleCase(row.fatherName),
+        },
+        {
+          key: "studentMobile",
+          label: "Mobile",
+        },
+        {
+          key: "course",
+          label: "Course",
+          render: (row) => toTitleCase(row.course),
+        },
+        {
+          key: "track",
+          label: "Track",
+          render: (row) => toTitleCase(row.track),
+        },
       ];
+
       actionButton = (row) => (
         <button
           onClick={() => alert(`Send confirmation to ${row.firstName}`)}
-          className="bg-green-500 text-white px-3 py-1 rounded"
+          className="bg-green-300 text-green-700 fold-semibold px-3 py-1 rounded"
         >
-          Confirm
+          Selected
         </button>
       );
       break;
@@ -176,16 +250,40 @@ const StudentList = () => {
         {
           key: "firstName",
           label: "Full Name",
-          render: (row) => `${row.firstName} ${row.lastName}`,
+          render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
         },
-        { key: "reason", label: "Rejection Reason" },
+        {
+          key: "fatherName",
+          label: "Father's Name",
+          render: (row) => toTitleCase(row.fatherName),
+        },
+        {
+          key: "studentMobile",
+          label: "Mobile",
+        },
+        {
+          key: "stream",
+          label: "Subject",
+          render: (row) => toTitleCase(row.stream),
+        },
+        {
+          key: "village",
+          label: "Village",
+          render: (row) => toTitleCase(row.village),
+        },
+        {
+          key: "track",
+          label: "Track",
+          render: (row) => toTitleCase(row.track),
+        },
       ];
+
       actionButton = (row) => (
         <button
           onClick={() => alert(`Review ${row.firstName}'s case again`)}
-          className="bg-red-500 text-white px-3 py-1 rounded"
+          className="bg-red-40 text-red-700 bg-red-300 px-3 py-1 rounded"
         >
-          Re-review
+          Reject
         </button>
       );
       break;
@@ -195,13 +293,34 @@ const StudentList = () => {
         {
           key: "firstName",
           label: "Full Name",
-          render: (row) => `${row.firstName} ${row.lastName}`,
+          render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
         },
-        { key: "fatherName", label: "Father's Name" },
-        { key: "studentMobile", label: "Mobile" },
-        { key: "stream", label: "Subject" },
-        { key: "village", label: "Village" },
+        {
+          key: "fatherName",
+          label: "Father's Name",
+          render: (row) => toTitleCase(row.fatherName),
+        },
+        {
+          key: "studentMobile",
+          label: "Mobile",
+        },
+        {
+          key: "stream",
+          label: "Subject",
+          render: (row) => toTitleCase(row.stream),
+        },
+        {
+          key: "village",
+          label: "Village",
+          render: (row) => toTitleCase(row.village),
+        },
+        {
+          key: "track",
+          label: "Track",
+          render: (row) => toTitleCase(row.track),
+        },
       ];
+
       actionButton = (row) => (
         <button onClick={() => handleEditClick(row._id)}>
           <img src={edit} alt="edit-icon" className="w-5 h-5" />
@@ -215,6 +334,8 @@ const StudentList = () => {
 
   return (
     <>
+      <UserProfile heading="Admission Process" />
+
       <div className="border bg-white shadow-sm rounded-lg px-5">
         <div className="flex justify-between items-center flex-wrap gap-4">
           <Pagination
@@ -223,6 +344,7 @@ const StudentList = () => {
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
             filtersConfig={filtersConfig}
+            filteredData={filteredData}
           />
         </div>
 
@@ -258,26 +380,23 @@ const StudentList = () => {
   );
 };
 
-// import UserProfile from "../../common-components/user-profile/UserProfile";
+export default StudentList;
+
 // import { useGetAllStudentsQuery } from "../../../redux/api/authApi";
 // import CommonTable from "../../common-components/table/CommonTable";
 // import Pagination from "../../common-components/pagination/Pagination";
 // import { useState } from "react";
 // import edit from "../../../assets/icons/edit-fill-icon.png";
-// // import { useNavigate } from "react-router-dom";
 // import CustomTimeDate from "../date-time-modal/CustomTimeDate";
 // import { useNavigate } from "react-router-dom";
 
-// const AdmissionProcess = () => {
-//   return (
-//     <>
-//       <UserProfile heading="Admission Process" />
-//       <StudentList />
-//     </>
-//   );
-// };
-
-// export default AdmissionProcess;
+// // Title Case Formatter
+// const toTitleCase = (str) =>
+//   str
+//     ?.toLowerCase()
+//     .split(" ")
+//     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+//     .join(" ");
 
 // const StudentList = () => {
 //   const { data = [], isLoading, error } = useGetAllStudentsQuery();
@@ -293,6 +412,7 @@ const StudentList = () => {
 //   const handleEditClick = (studentId) => {
 //     navigate(`/admission/edit/${studentId}`);
 //   };
+
 //   const filtersConfig = [
 //     {
 //       title: "Track",
@@ -317,6 +437,8 @@ const StudentList = () => {
 //   const tabs = [
 //     "Total Registration",
 //     "Online Assessment",
+//     "Technical Round",
+//     "Final Round",
 //     "Selected",
 //     "Rejected",
 //   ];
@@ -328,7 +450,8 @@ const StudentList = () => {
 //     )[0]?.result;
 //   };
 
-//   const scheduleButton = () => {
+//   const scheduleButton = (row) => {
+//     console.log(row.interviews[0].marks);
 //     setShowModal(true);
 //   };
 
@@ -377,28 +500,87 @@ const StudentList = () => {
 //       return matchTrack && matchResult && matchPercentage;
 //     });
 
+//   const handleGetMarks = (data) => {
+//     if (data.length > 0) {
+//       const onlineTestData = data.filter((item) => item?.round === "First");
+//       let latestData = onlineTestData?.length;
+//       return onlineTestData[latestData - 1].marks;
+//     }
+//     return 0;
+//   };
+
+//   const handleGetStatus = (data = []) => {
+//     if (Array.isArray(data) && data.length > 0) {
+//       const onlineTestData = data.filter((item) => item?.round === "First");
+//       const latestData = onlineTestData.length;
+//       const result = onlineTestData[latestData - 1]?.result;
+
+//       switch (result) {
+//         case "Pass":
+//           return (
+//             <span className="bg-green-100 text-green-700 px-3 py-1 rounded-xl text-sm font-medium">
+//               Pass
+//             </span>
+//           );
+//         case "Fail":
+//           return (
+//             <span className="bg-red-100 text-red-700 px-3 py-1 rounded-xl text-sm font-medium">
+//               Fail
+//             </span>
+//           );
+//         default:
+//           return (
+//             <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-xl text-sm font-medium">
+//               {result || "Not Attempted"}
+//             </span>
+//           );
+//       }
+//     }
+
+//     return (
+//       <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-xl text-sm font-medium">
+//         Not Attempted
+//       </span>
+//     );
+//   };
+
 //   let columns = [];
 //   let actionButton;
+
 //   switch (activeTab) {
 //     case "Online Assessment":
 //       columns = [
 //         {
 //           key: "firstName",
 //           label: "Full Name",
-//           render: (row) => `${row.firstName} ${row.lastName}`,
+//           render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
 //         },
-//         { key: "fatherName", label: "Father's Name" },
-//         { key: "studentMobile", label: "Mobile" },
 //         {
-//           key: "interviews",
-//           label: "Marks",
-//           render: (row) =>
-//             row.interviews && row.interviews.length > 0
-//               ? row.interviews[0].marks
-//               : "N/A",
+//           key: "fatherName",
+//           label: "Father's Name",
+//           render: (row) => toTitleCase(row.fatherName),
 //         },
-//         { key: "village", label: "Status" },
+//         {
+//           key: "studentMobile",
+//           label: "Mobile",
+//         },
+//         {
+//           key: "track",
+//           label: "Track",
+//           render: (row) => toTitleCase(row.track),
+//         },
+//         {
+//           key: "stream",
+//           label: "Marks",
+//           render: (row) => handleGetMarks(row.interviews),
+//         },
+//         {
+//           key: "stream",
+//           label: "Status",
+//           render: (row) => handleGetStatus(row.interviews),
+//         },
 //       ];
+
 //       actionButton = (row) => (
 //         <button
 //           onClick={() => scheduleButton(row)}
@@ -414,17 +596,35 @@ const StudentList = () => {
 //         {
 //           key: "firstName",
 //           label: "Full Name",
-//           render: (row) => `${row.firstName} ${row.lastName}`,
+//           render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
 //         },
-//         { key: "year", label: "Year" },
-//         { key: "track", label: "Track" },
+//         {
+//           key: "fatherName",
+//           label: "Father's Name",
+//           render: (row) => toTitleCase(row.fatherName),
+//         },
+//         {
+//           key: "studentMobile",
+//           label: "Mobile",
+//         },
+//         {
+//           key: "course",
+//           label: "Course",
+//           render: (row) => toTitleCase(row.course),
+//         },
+//         {
+//           key: "track",
+//           label: "Track",
+//           render: (row) => toTitleCase(row.track),
+//         },
 //       ];
+
 //       actionButton = (row) => (
 //         <button
 //           onClick={() => alert(`Send confirmation to ${row.firstName}`)}
-//           className="bg-green-500 text-white px-3 py-1 rounded"
+//           className="bg-green-300 text-green-700 fold-semibold px-3 py-1 rounded"
 //         >
-//           Confirm
+//           Selected
 //         </button>
 //       );
 //       break;
@@ -434,16 +634,40 @@ const StudentList = () => {
 //         {
 //           key: "firstName",
 //           label: "Full Name",
-//           render: (row) => `${row.firstName} ${row.lastName}`,
+//           render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
 //         },
-//         { key: "reason", label: "Rejection Reason" },
+//         {
+//           key: "fatherName",
+//           label: "Father's Name",
+//           render: (row) => toTitleCase(row.fatherName),
+//         },
+//         {
+//           key: "studentMobile",
+//           label: "Mobile",
+//         },
+//         {
+//           key: "stream",
+//           label: "Subject",
+//           render: (row) => toTitleCase(row.stream),
+//         },
+//         {
+//           key: "village",
+//           label: "Village",
+//           render: (row) => toTitleCase(row.village),
+//         },
+//         {
+//           key: "track",
+//           label: "Track",
+//           render: (row) => toTitleCase(row.track),
+//         },
 //       ];
+
 //       actionButton = (row) => (
 //         <button
 //           onClick={() => alert(`Review ${row.firstName}'s case again`)}
-//           className="bg-red-500 text-white px-3 py-1 rounded"
+//           className="bg-red-40 text-red-700 bg-red-300 px-3 py-1 rounded"
 //         >
-//           Re-review
+//           Reject
 //         </button>
 //       );
 //       break;
@@ -453,12 +677,32 @@ const StudentList = () => {
 //         {
 //           key: "firstName",
 //           label: "Full Name",
-//           render: (row) => `${row.firstName} ${row.lastName}`,
+//           render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
 //         },
-//         { key: "fatherName", label: "Father's Name" },
-//         { key: "studentMobile", label: "Mobile" },
-//         { key: "stream", label: "Subject" },
-//         { key: "village", label: "Village" },
+//         {
+//           key: "fatherName",
+//           label: "Father's Name",
+//           render: (row) => toTitleCase(row.fatherName),
+//         },
+//         {
+//           key: "studentMobile",
+//           label: "Mobile",
+//         },
+//         {
+//           key: "stream",
+//           label: "Subject",
+//           render: (row) => toTitleCase(row.stream),
+//         },
+//         {
+//           key: "village",
+//           label: "Village",
+//           render: (row) => toTitleCase(row.village),
+//         },
+//         {
+//           key: "track",
+//           label: "Track",
+//           render: (row) => toTitleCase(row.track),
+//         },
 //       ];
 
 //       actionButton = (row) => (
@@ -482,6 +726,7 @@ const StudentList = () => {
 //             searchTerm={searchTerm}
 //             setSearchTerm={setSearchTerm}
 //             filtersConfig={filtersConfig}
+//             filteredData={filteredData}
 //           />
 //         </div>
 
@@ -501,6 +746,7 @@ const StudentList = () => {
 //           ))}
 //         </div>
 //       </div>
+
 //       <CommonTable
 //         data={filteredData}
 //         columns={columns}
@@ -510,7 +756,10 @@ const StudentList = () => {
 //         searchTerm={searchTerm}
 //         actionButton={actionButton}
 //       />
+
 //       {showModal && <CustomTimeDate onClose={() => setShowModal(false)} />}
 //     </>
 //   );
 // };
+
+// export default StudentList;

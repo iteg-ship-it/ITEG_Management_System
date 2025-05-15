@@ -1,3 +1,4 @@
+
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -20,7 +21,8 @@ const app = express();
 setupSwagger(app);
 app.use(
   cors({
-    origin: "http://localhost:5173", // or '*' to allow all
+    origin: "http://localhost:5173",
+    // origin: '*', // or '*' to allow all
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true, // only if you're using cookies or sessions
   })

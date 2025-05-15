@@ -21,6 +21,9 @@ components:
         _id:
           type: string
           example: "662b18b6c3eabc00123f5678"
+        profileImage:
+          type: string
+          example: "https://example.com/profile.jpg"
         position:
           type: string
           example: "Developer"
@@ -30,6 +33,9 @@ components:
         email:
           type: string
           example: "johndoe@example.com"
+        mobileNo:
+          type: string
+          example: "9876543210"
         adharCard:
           type: string
           example: "123456789012"
@@ -174,9 +180,37 @@ components:
                 type: string
                 enum: [First, Second]
                 example: First
+              assignment:
+                type: string
+                example: "Assignment details here"
               attemptNo:
                 type: integer
                 example: 1
+              communication:
+                type: number
+                example: 5
+              confidence:
+                type: number
+                example: 4
+              goal:
+                type: number
+                example: 3
+              subjectKnowlage:
+                type: number
+                example: 4
+              assignmentMarks:
+                type: number
+                example: 4
+              sincerity:
+                type: number
+                example: 4
+              maths:
+                type: number
+                example: 4
+              reasoning:
+                type: number
+                example: 4
+              
               marks:
                 type: number
                 example: 85
@@ -205,6 +239,124 @@ components:
             isScheduled:
               type: boolean
               example: true
+    Admittedstudent:
+      Level:
+      type: object
+      properties:
+        levelNo:
+          type: string
+          example: "1"
+        noOfAttempts:
+          type: integer
+          default: 0
+        marks:
+          type: number
+          default: 0
+        remark:
+          type: string
+        date:
+          type: string
+          format: date
+        result:
+          type: string
+          enum: [Pass, Fail, Pending]
+          default: Pending
+
+    PlacedInfo:
+      type: object
+      properties:
+        companyName:
+          type: string
+        salary:
+          type: number
+        location:
+          type: string
+
+    InterviewRecord:
+      type: object
+      properties:
+        companyName:
+          type: string
+        interviewDate:
+          type: string
+          format: date
+        remark:
+          type: string
+        result:
+          type: string
+          enum: [Selected, Rejected, Pending]
+          default: Pending
+        location:
+          type: string
+        jobProfile:
+          type: string
+
+    AdmittedStudent:
+      type: object
+      required:
+        - admissionRef
+        - fullName
+        - prkey
+        - stream
+        - course
+        - fatherName
+        - mobileNo
+        - address
+        - track
+        - village
+      properties:
+        admissionRef:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+        prkey:
+          type: string
+        stream:
+          type: string
+        course:
+          type: string
+        fatherName:
+          type: string
+        mobileNo:
+          type: string
+        email:
+          type: string
+        address:
+          type: string
+        track:
+          type: string
+        village:
+          type: string
+        level:
+          type: array
+          items:
+            $ref: '#/components/schemas/Level'
+        techno:
+          type: string
+        attendancePercentage:
+          type: number
+          minimum: 0
+          maximum: 100
+        placedInfo:
+          $ref: '#/components/schemas/PlacedInfo'
+        permissionRequired:
+          type: boolean
+          default: false
+        interviewRecord:
+          type: array
+          items:
+            $ref: '#/components/schemas/InterviewRecord'
+        readinessStatus:
+          type: string
+          enum: [Ready, Not Ready]
+          default: Not Ready
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
 
 paths:
   /api/user/signup:
@@ -231,6 +383,9 @@ paths:
                 name:
                   type: string
                   example: John Doe
+                profileImage:
+                  type: string
+                  example: https://example.com/profile.jpg
                 email:
                   type: string
                   format: email
@@ -398,43 +553,89 @@ paths:
                   type: string
                   example: "123456"
 
-  /api/user/refresh_token:
-    post:
-      summary: Refresh JWT access token using a refresh token
+  /api/user/update/{id}:
+    patch:
+      patch:
+      summary: Update selected fields of a user
       tags:
         - Auth
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: 66347f96f30bfa9012c0df25
+          description: MongoDB ObjectId of the user to update
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-                - refreshToken
               properties:
-                refreshToken:
+                name:
                   type: string
-                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  example: John Doe
+                position:
+                  type: string
+                  example: Assistant Professor
+                role:
+                  type: string
+                  enum: [admin, superadmin, faculty]
+                  example: faculty
+                department:
+                  type: string
+                  example: Computer Science
+                isActive:
+                  type: boolean
+                  example: true
       responses:
         '200':
-          description: Access token refreshed
+          description: User updated successfully
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    example: true
                   message:
                     type: string
-                    example: Access token refreshed
-                  accessToken:
+                    example: User updated successfully
+                  user:
+                    $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
                     type: string
-                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        '401':
-          description: Refresh token required
-        '403':
-          description: Invalid or expired refresh token
+                    example: User not found
         '500':
           description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Server error
+                  error:
+                    type: string
+
+
 
   /api/user/otp/send:
     post:
@@ -669,6 +870,42 @@ paths:
                   type: string
                   description: Interview round name (e.g., First, Second)
                   example: "First"
+                assignment:
+                  type: string
+                  description: Assignment details for the interview
+                  example: "Assignment details here"
+                communication:
+                  type: Number
+                  description: Communication mode (e.g., Zoom, Google Meet)
+                  example: 7
+                confidence:
+                  type: Number
+                  description: Confidence level of the candidate
+                  example: 5
+                goal:
+                  type: Number
+                  description: Interview goal (e.g., Technical, HR)
+                  example: 3
+                subjectKnowlage:
+                 type: Number
+                 description: Subject of the interview
+                 example: 5
+                assignmentMarks:
+                  type: Number
+                  description: Technical skills assessed in the interview
+                  example: 5
+                sincerity:
+                 type: Number
+                 description: Sincerity level of the candidate
+                 example: 5
+                maths:
+                  type: Number
+                  description: Mathematics skills assessed in the interview
+                  example: 5
+                reasoning:
+                 type: Number
+                 description: Reasoning skills assessed in the interview
+                 example: 5
                 marks:
                   type: integer
                   description: Marks obtained in the interview
@@ -702,7 +939,7 @@ paths:
                     type: string
                     example: Interview round added successfully
                   student:
-                    $ref: '#/components/schemas/AdmissionProcess'
+                    $ref: '#/components/schemas/Admission'
         '400':
           description: Bad request due to validation failure or logic rejection
         '404':
@@ -878,7 +1115,7 @@ paths:
                     type: string
                     example: "Student admitted"
                   data:
-                    $ref: '#/components/schemas/AdmittedStudent'
+                    $ref:  '#/components/schemas/Admission'
         '200':
           description: Admission status updated but student not admitted (e.g., status false)
           content:

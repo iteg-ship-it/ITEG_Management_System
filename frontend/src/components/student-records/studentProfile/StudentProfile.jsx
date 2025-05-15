@@ -1,74 +1,19 @@
-import company from "../../../assets/icons/company-icon.png";
-import position from "../../../assets/icons/position-icon.png";
-import loca from "../../../assets/icons/location-icon.png";
-import date from "../../../assets/icons/calendar-icon.png";
+/* eslint-disable react/prop-types */
+// Your imports remain the same
+import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import profilePlaceholder from "../../../assets/images/profile-img.png";
+import back from "../../../assets/icons/back-icon.png";
 import attendence from "../../../assets/icons/attendence-card-icon.png";
 import level from "../../../assets/icons/level-card-icon.png";
 import permission from "../../../assets/icons/permission-card-icon.png";
 import placed from "../../../assets/icons/placement-card-icon.png";
-import back from "../../../assets/icons/back-icon.png";
-// import address from "../../../assets/icons/company-icon.png"
-// import reason from "../../../assets/icons/company-icon.png"
-// import profileEdit from "../../../assets/icons/company-icon.png"
-import profilePlaceholder from "../../../assets/images/profile-img.png";
-import { useNavigate, useLocation } from "react-router-dom";
+import company from "../../../assets/icons/company-icon.png";
+import position from "../../../assets/icons/position-icon.png";
+import loca from "../../../assets/icons/location-icon.png";
+import date from "../../../assets/icons/calendar-icon.png";
 import { Chart } from "react-google-charts";
-import { useEffect, useState } from "react";
-
-const rawGraphData = [
-  ["Month", "Attendance"],
-  ["Jan", 100],
-  ["Feb", 90],
-  ["Mar", 75],
-  ["Apr", 80],
-  ["May", 60],
-  ["Jun", 50],
-  ["Jul", 40],
-  ["Aug", 30],
-  ["Sep", 30],
-  ["Oct", 20],
-  ["Nov", 20],
-  ["Dec", 10],
-];
-
-// Function to assign colors dynamically
-const getColor = (attendance) => {
-  if (attendance > 80) return "#4285F4"; // Blue
-  if (attendance >= 50) return "#FBBC05"; // Yellow
-  return "#EA4335"; // Red
-};
-
-// Transform data to include color and tooltip
-const graphData = [
-  [
-    "Month",
-    "Attendance",
-    { role: "style" },
-    { role: "tooltip", type: "string" },
-  ],
-  ...rawGraphData.slice(1).map(([month, attendance]) => [
-    month,
-    attendance,
-    `color: ${getColor(attendance)}; stroke-color: none; stroke-width: 0;`,
-    `Attendance: ${attendance}%`, // Tooltip content
-  ]),
-];
-
-const options = {
-  title: "Monthly Attendance",
-  chartArea: { width: "70%" },
-  bar: {
-    groupWidth: "40%", // Reduce bar width
-  },
-  hAxis: { title: "Months" },
-  vAxis: {
-    title: "Attendance (%)",
-    ticks: [0, 20, 40, 60, 80, 100],
-    minValue: 0,
-  },
-  legend: { position: "none" },
-  enableInteractivity: true, // Enables hover tooltips
-};
+import UserProfile from "../../common-components/user-profile/UserProfile";
 
 export default function StudentProfile() {
   const navigate = useNavigate();
@@ -79,14 +24,12 @@ export default function StudentProfile() {
   useEffect(() => {
     if (student) {
       setStudentData(student);
-    } else {
-      console.log("No student data received via navigation state.");
     }
   }, [student]);
 
   if (!studentData || Object.keys(studentData).length === 0) {
     return (
-      <div className="w-[70vw] px-8 py-5 bg-gray-100 min-h-screen">
+      <div className="w-[80vw] px-8 py-5 bg-gray-100 min-h-screen">
         <div className="flex items-center gap-5">
           <img
             className="h-5 cursor-pointer"
@@ -100,155 +43,170 @@ export default function StudentProfile() {
       </div>
     );
   }
+  const rawGraphData = [
+    ["Month", "Attendance"],
+    ["Jan", 100],
+    ["Feb", 90],
+    ["Mar", 75],
+    ["Apr", 80],
+    ["May", 60],
+    ["Jun", 50],
+    ["Jul", 40],
+    ["Aug", 30],
+    ["Sep", 30],
+    ["Oct", 20],
+    ["Nov", 20],
+    ["Dec", 10],
+  ];
+
+  const getColor = (attendance) => {
+    if (attendance > 80) return "#4285F4";
+    if (attendance >= 50) return "#FBBC05";
+    return "#EA4335";
+  };
+
+  const graphData = [
+    [
+      "Month",
+      "Attendance",
+      { role: "style" },
+      { role: "tooltip", type: "string" },
+    ],
+    ...rawGraphData
+      .slice(1)
+      .map(([month, attendance]) => [
+        month,
+        attendance,
+        `color: ${getColor(attendance)}; stroke-color: none; stroke-width: 0;`,
+        `Attendance: ${attendance}%`,
+      ]),
+  ];
+
+  const options = {
+    title: "Monthly Attendance",
+    chartArea: { width: "70%" },
+    bar: { groupWidth: "40%" },
+    hAxis: { title: "Months" },
+    vAxis: {
+      title: "Attendance (%)",
+      ticks: [0, 20, 40, 60, 80, 100],
+      minValue: 0,
+    },
+    legend: { position: "none" },
+    enableInteractivity: true,
+  };
 
   return (
     <>
-      <div className="w-[80vw] px-8 py-5 bg-gray-100 min-h-screen">
-        <div className="flex items-center gap-5">
-          <img
-            className="h-5 cursor-pointer"
-            src={back}
-            alt="back"
-            onClick={() => navigate(-1)}
-          />
-          <h3 className="text-xl font-bold">Student Profile</h3>
-        </div>
-
-        <div className="grid grid-cols-3 gap-6 h-screen mt-6">
-          {/* Left Column (75%) */}
-          <div className="col-span-2 py-8">
+      <UserProfile showBackButton heading="Student Profile" />
+      <div className="w-[82vw]">
+        {/* Grid layout */}
+        <div className="grid grid-cols-3 gap-6 mt-6">
+          {/* Left 2/3 */}
+          <div className="col-span-2 flex flex-col gap-6">
+            {/* Four colored summary cards */}
             <div className="grid grid-cols-4 gap-4">
-              <div className="p-4 bg-[#9BAEF5] text-white rounded-xl shadow">
-                <div className="flex justify-between">
-                  <p>Attendance</p>
-                  <img className="h-5" src={attendence} alt="attendance-icon" />
-                </div>
-                <h3 className="text-2xl py-2">
-                  93<span className="text-sm">%</span>{" "}
-                  {/* Replace with actual data */}
-                </h3>
-                <p>Overall from starting</p>
-              </div>
-              <div className="p-4 bg-[#F5B477] text-white rounded-xl shadow">
-                <div className="flex justify-between">
-                  <p>Current Level</p>
-                  <img className="h-5" src={level} alt="level-icon" />
-                </div>
-                <h3 className="text-2xl py-2">
-                  {studentData.level || "N/A"} {/* Display level from data */}
-                </h3>
-                <p>Overall from starting</p>
-              </div>
-              <div className="p-4 bg-[#C23F7E] text-white rounded-xl shadow">
-                <div className="flex justify-between">
-                  <p>Permission</p>
-                  <img className="h-5" src={permission} alt="permission-icon" />
-                </div>
-                <h3 className="text-2xl py-2">
-                  {studentData.permissionStatus || "N/A"}{" "}
-                  {/* Display permission status */}
-                </h3>
-                <p>Overall from starting</p>
-              </div>
-              <div className="p-4 bg-[#3FC260] text-white rounded-xl shadow">
-                <div className="flex justify-between">
-                  <p>Placement Info</p>
-                  <img className="h-5" src={placed} alt="placement-icon" />
-                </div>
-                <h3 className="text-2xl py-2">
-                  {studentData.placementStatus || "Not Placed"}{" "}
-                  {/* Display placement status */}
-                </h3>
-                <p>Overall from starting</p>
-              </div>
+              <InfoCard
+                title="Attendance"
+                icon={attendence}
+                value="93%"
+                bg="#9BAEF5"
+              />
+              <InfoCard
+                title="Current Level"
+                icon={level}
+                value="1A"
+                // value={studentData.level || "N/A"}
+                bg="#F5B477"
+              />
+              <InfoCard
+                title="Permission"
+                icon={permission}
+                value={studentData.permissionStatus || "N/A"}
+                bg="#C23F7E"
+              />
+              <InfoCard
+                title="Placement Info"
+                icon={placed}
+                value={studentData.placementStatus || "Not Placed"}
+                bg="#3FC260"
+              />
             </div>
 
-            <div className="grid grid-cols-3 gap-4 mt-6">
-              <div className="p-4 border col-span-1 bg-white rounded-xl shadow">
-                <h2 className="text-lg font-semibold">Placement Info</h2>
-                <div className="py-6">
-                  <div className="flex h-10 items-center">
-                    <img
-                      className="h-5 pr-3"
-                      src={company}
-                      alt="company-icon"
-                    />
-                    <p className="text-gray-500 text-lg">
-                      Company: {studentData.company || "N/A"}{" "}
-                      {/* Display company */}
-                    </p>
-                  </div>
-                  <div className="flex h-10 items-center">
-                    <img
-                      className="h-5 pr-3"
-                      src={position}
-                      alt="position-icon"
-                    />
-                    <p className="text-gray-500 text-lg">
-                      Position: {studentData.position || "N/A"}{" "}
-                      {/* Display position */}
-                    </p>
-                  </div>
-                  <div className="flex h-10 items-center">
-                    <img className="h-5 pr-3" src={loca} alt="location-icon" />
-                    <p className="text-gray-500 text-lg">
-                      Location: {studentData.location || "N/A"}{" "}
-                      {/* Display location */}
-                    </p>
-                  </div>
-                  <div className="flex h-10 items-center">
-                    <img className="h-5 pr-3" src={date} alt="calendar-icon" />
-                    <p className="text-gray-500 text-lg">
-                      Date: {studentData.placementDate || "N/A"}{" "}
-                      {/* Display placement date */}
-                    </p>
-                  </div>
+            {/* Placement + Graph Section */}
+            <div className="grid grid-cols-3 gap-4">
+              {/* Placement Info */}
+              <div className="bg-white rounded-2xl shadow-lg p-6 col-span-1">
+                <h2 className="text-lg font-semibold mb-4">Placement Info</h2>
+                <div className="space-y-3">
+                  <InfoLine
+                    icon={company}
+                    label="Company"
+                    value={studentData.company}
+                  />
+                  <InfoLine
+                    icon={position}
+                    label="Position"
+                    value={studentData.position}
+                  />
+                  <InfoLine
+                    icon={loca}
+                    label="Location"
+                    value={studentData.location}
+                  />
+                  <InfoLine
+                    icon={date}
+                    label="Date"
+                    value={studentData.placementDate}
+                  />
                 </div>
               </div>
 
-              <div className="p-4 border col-span-2 bg-white rounded-xl shadow">
-                <h2 className="text-lg font-semibold">Attendance</h2>
+              {/* Attendance Chart */}
+              <div className="bg-white rounded-2xl shadow-lg p-6 col-span-2">
+                <h2 className="text-lg font-semibold mb-2">Attendance</h2>
                 <Chart
                   chartType="ColumnChart"
                   width="100%"
-                  height="250px"
-                  data={graphData} // You might want dynamic attendance data here
+                  height="260px"
+                  data={graphData}
                   options={options}
                 />
               </div>
             </div>
           </div>
 
-          {/* Right Column (25%) */}
-          <div className="col-span-1 flex flex-col gap-6">
-            {/* Profile Section (75% Height) */}
-            <div className="flex-1 bg-white rounded-2xl shadow p-6 flex flex-col items-center text-center">
+          {/* Right 1/3 */}
+          <div className="flex flex-col gap-6">
+            {/* Profile Card */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center text-center">
               <img
                 src={studentData.profilePhoto || profilePlaceholder}
                 alt="Profile"
                 className="rounded-full w-24 h-24 mb-4 object-cover"
                 onError={(e) => {
-                  e.target.onerror = null; // Prevent infinite loop
+                  e.target.onerror = null;
                   e.target.src = profilePlaceholder;
                 }}
               />
-              <h2 className="text-lg font-semibold">{studentData.name}</h2>
+              <h2 className="text-xl font-semibold">{studentData.name}</h2>
               <p className="text-gray-500">{studentData.email || "N/A"}</p>
-              <div className="mt-4 space-y-2">
-                <p className="text-gray-700">
-                  📞 {studentData.mobile || "N/A"}
-                </p>
-                <p className="text-gray-700">
-                  📍 {studentData.address || studentData.village || "N/A"}
-                </p>
+              <div className="mt-4 space-y-2 text-sm text-gray-700">
+                <p>📞 {studentData.mobile || "N/A"}</p>
+                <p>📍 {studentData.address || studentData.village || "N/A"}</p>
               </div>
             </div>
 
-            {/* Permission Section (25% Height) */}
-            <div className="h-1/4 bg-white rounded-2xl shadow p-6">
-              <h2 className="text-lg font-semibold">Permission</h2>
-              <p>Date - {studentData.permissionDate || "N/A"}</p>
-              <p>Reason - {studentData.permissionReason || "N/A"}</p>
+            {/* Permission Card */}
+            <div className="bg-white rounded-2xl shadow-lg p-6">
+              <h2 className="text-lg font-semibold mb-2">Permission</h2>
+              <p>
+                <strong>Date</strong> - {studentData.permissionDate || "N/A"}
+              </p>
+              <p>
+                <strong>Reason</strong> -{" "}
+                {studentData.permissionReason || "N/A"}
+              </p>
             </div>
           </div>
         </div>
@@ -257,3 +215,262 @@ export default function StudentProfile() {
   );
 }
 
+const InfoCard = ({ title, icon, value, bg }) => (
+  <div
+    className={`p-4 text-white rounded-xl shadow-lg`}
+    style={{ backgroundColor: bg }}
+  >
+    <div className="flex justify-between">
+      <p className="font-medium">{title}</p>
+      <img className="h-5" src={icon} alt={`${title}-icon`} />
+    </div>
+    <h3 className="text-2xl font-bold py-2">{value}</h3>
+    <p className="text-sm">Overall from starting</p>
+  </div>
+);
+
+const InfoLine = ({ icon, label, value }) => (
+  <div className="flex items-center gap-3 text-sm">
+    <img className="h-5" src={icon} alt={`${label}-icon`} />
+    <p className="text-gray-700">
+      <span className="font-medium">{label}</span>: {value || "N/A"}
+    </p>
+  </div>
+);
+
+// /* eslint-disable react/prop-types */
+// import { useLocation, useNavigate } from "react-router-dom";
+// import { useEffect, useState } from "react";
+// import profilePlaceholder from "../../../assets/images/profile-img.png";
+// import back from "../../../assets/icons/back-icon.png";
+// import attendence from "../../../assets/icons/attendence-card-icon.png";
+// import level from "../../../assets/icons/level-card-icon.png";
+// import permission from "../../../assets/icons/permission-card-icon.png";
+// import placed from "../../../assets/icons/placement-card-icon.png";
+// import company from "../../../assets/icons/company-icon.png";
+// import position from "../../../assets/icons/position-icon.png";
+// import loca from "../../../assets/icons/location-icon.png";
+// import date from "../../../assets/icons/calendar-icon.png";
+// import { Chart } from "react-google-charts";
+
+// const rawGraphData = [
+//   ["Month", "Attendance"],
+//   ["Jan", 100],
+//   ["Feb", 90],
+//   ["Mar", 75],
+//   ["Apr", 80],
+//   ["May", 60],
+//   ["Jun", 50],
+//   ["Jul", 40],
+//   ["Aug", 30],
+//   ["Sep", 30],
+//   ["Oct", 20],
+//   ["Nov", 20],
+//   ["Dec", 10],
+// ];
+
+// const getColor = (attendance) => {
+//   if (attendance > 80) return "#4285F4";
+//   if (attendance >= 50) return "#FBBC05";
+//   return "#EA4335";
+// };
+
+// const graphData = [
+//   [
+//     "Month",
+//     "Attendance",
+//     { role: "style" },
+//     { role: "tooltip", type: "string" },
+//   ],
+//   ...rawGraphData
+//     .slice(1)
+//     .map(([month, attendance]) => [
+//       month,
+//       attendance,
+//       `color: ${getColor(attendance)}; stroke-color: none; stroke-width: 0;`,
+//       `Attendance: ${attendance}%`,
+//     ]),
+// ];
+
+// const options = {
+//   title: "Monthly Attendance",
+//   chartArea: { width: "70%" },
+//   bar: { groupWidth: "40%" },
+//   hAxis: { title: "Months" },
+//   vAxis: {
+//     title: "Attendance (%)",
+//     ticks: [0, 20, 40, 60, 80, 100],
+//     minValue: 0,
+//   },
+//   legend: { position: "none" },
+//   enableInteractivity: true,
+// };
+
+// export default function StudentProfile() {
+//   const navigate = useNavigate();
+//   const location = useLocation();
+//   const { student } = location.state || {};
+//   const [studentData, setStudentData] = useState(student || {});
+
+//   useEffect(() => {
+//     if (student) {
+//       setStudentData(student);
+//     } else {
+//       console.log("No student data received via navigation state.");
+//     }
+//   }, [student]);
+
+//   if (!studentData || Object.keys(studentData).length === 0) {
+//     return (
+//       <div className="w-[70vw] px-8 py-5 bg-gray-100 min-h-screen">
+//         <div className="flex items-center gap-5">
+//           <img
+//             className="h-5 cursor-pointer"
+//             src={back}
+//             alt="back"
+//             onClick={() => navigate(-1)}
+//           />
+//           <h3 className="text-xl font-bold">Student Profile</h3>
+//         </div>
+//         <p className="mt-4">No student data available.</p>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="w-[80vw] px-8 py-5 bg-gray-100 min-h-screen">
+//       <div className="flex items-center gap-5">
+//         <img
+//           className="h-5 cursor-pointer"
+//           src={back}
+//           alt="back"
+//           onClick={() => navigate(-1)}
+//         />
+//         <h3 className="text-xl font-bold">Student Profile</h3>
+//       </div>
+
+//       <div className="grid grid-cols-3 gap-6 h-screen mt-6">
+//         <div className="col-span-2 py-8">
+//           <div className="grid grid-cols-4 gap-4">
+//             {/* Cards */}
+//             <InfoCard
+//               title="Attendance"
+//               icon={attendence}
+//               value="93%"
+//               bg="#9BAEF5"
+//             />
+//             <InfoCard
+//               title="Current Level"
+//               icon={level}
+//               value={studentData.level || "N/A"}
+//               bg="#F5B477"
+//             />
+//             <InfoCard
+//               title="Permission"
+//               icon={permission}
+//               value={studentData.permissionStatus || "N/A"}
+//               bg="#C23F7E"
+//             />
+//             <InfoCard
+//               title="Placement Info"
+//               icon={placed}
+//               value={studentData.placementStatus || "Not Placed"}
+//               bg="#3FC260"
+//             />
+//           </div>
+
+//           <div className="grid grid-cols-3 gap-4 mt-6">
+//             <div className="p-4 border col-span-1 bg-white rounded-xl shadow">
+//               <h2 className="text-lg font-semibold">Placement Info</h2>
+//               <div className="py-6 space-y-2">
+//                 <InfoLine
+//                   icon={company}
+//                   label="Company"
+//                   value={studentData.company}
+//                 />
+//                 <InfoLine
+//                   icon={position}
+//                   label="Position"
+//                   value={studentData.position}
+//                 />
+//                 <InfoLine
+//                   icon={loca}
+//                   label="Location"
+//                   value={studentData.location}
+//                 />
+//                 <InfoLine
+//                   icon={date}
+//                   label="Date"
+//                   value={studentData.placementDate}
+//                 />
+//               </div>
+//             </div>
+
+//             <div className="p-4 border col-span-2 bg-white rounded-xl shadow">
+//               <h2 className="text-lg font-semibold">Attendance</h2>
+//               <Chart
+//                 chartType="ColumnChart"
+//                 width="100%"
+//                 height="250px"
+//                 data={graphData}
+//                 options={options}
+//               />
+//             </div>
+//           </div>
+//         </div>
+
+//         <div className="col-span-1 flex flex-col gap-6">
+//           <div className="flex-1 bg-white rounded-2xl shadow p-6 flex flex-col items-center text-center">
+//             <img
+//               src={studentData.profilePhoto || profilePlaceholder}
+//               alt="Profile"
+//               className="rounded-full w-24 h-24 mb-4 object-cover"
+//               onError={(e) => {
+//                 e.target.onerror = null;
+//                 e.target.src = profilePlaceholder;
+//               }}
+//             />
+//             <h2 className="text-lg font-semibold">{studentData.name}</h2>
+//             <p className="text-gray-500">{studentData.email || "N/A"}</p>
+//             <div className="mt-4 space-y-2">
+//               <p className="text-gray-700">📞 {studentData.mobile || "N/A"}</p>
+//               <p className="text-gray-700">
+//                 📍 {studentData.address || studentData.village || "N/A"}
+//               </p>
+//             </div>
+//           </div>
+
+//           <div className="h-1/4 bg-white rounded-2xl shadow p-6">
+//             <h2 className="text-lg font-semibold">Permission</h2>
+//             <p>Date - {studentData.permissionDate || "N/A"}</p>
+//             <p>Reason - {studentData.permissionReason || "N/A"}</p>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+// // Helper components
+// const InfoCard = ({ title, icon, value, bg }) => (
+//   <div
+//     className={`p-4 text-white rounded-xl shadow`}
+//     style={{ backgroundColor: bg }}
+//   >
+//     <div className="flex justify-between">
+//       <p>{title}</p>
+//       <img className="h-5" src={icon} alt={`${title}-icon`} />
+//     </div>
+//     <h3 className="text-2xl py-2">{value}</h3>
+//     <p>Overall from starting</p>
+//   </div>
+// );
+
+// const InfoLine = ({ icon, label, value }) => (
+//   <div className="flex h-10 items-center">
+//     <img className="h-5 pr-3" src={icon} alt={`${label}-icon`} />
+//     <p className="text-gray-500 text-lg">
+//       {label}: {value || "N/A"}
+//     </p>
+//   </div>
+// );
