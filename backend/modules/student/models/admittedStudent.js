@@ -82,7 +82,8 @@ const levelSchema = new mongoose.Schema({
 const placedInfoSchema = new mongoose.Schema({
   companyName: { type: String, required: true },
   salary: { type: Number, required: true },
-  location: { type: String, required: true }
+  location: { type: String, required: true },
+  jobProfile: { type: String, required: true }
 });
 
 const interviewRecordSchema = new mongoose.Schema({
@@ -100,6 +101,7 @@ const interviewRecordSchema = new mongoose.Schema({
 
 const permissionSchema = new mongoose.Schema({
   imageURL: { type: String, required: true },
+  remark: { type: String, default: "" },
   uploadDate: { type: Date, default: Date.now },
   approved_by: { type: String, default: "admin" }
 });
@@ -123,12 +125,13 @@ const AdmittedStudentSchema = new mongoose.Schema({
   address: { type: String, required: true },
   village: { type: String, required: true },
   track: { type: String, required: true },
-  year: { type: String, required: true },
+  year: { type: String, required: true, default: "first" },
 
   // 📚 Academic & Activity
   level: { type: [levelSchema], default: [] },
+
   techno: { type: String, default: "" },
-  attendancePercentage: { type: Number, min: 0, max: 100, default: 0 },
+  // attendancePercentage: { type: Number, min: 0, max: 100, default: 0 },
 
   // 🧑‍💼 Placement
   placedInfo: { type: placedInfoSchema, default: null },
@@ -137,7 +140,7 @@ const AdmittedStudentSchema = new mongoose.Schema({
   interviewRecord: { type: [interviewRecordSchema], default: [] },
 
   // ✅ Permission
-  permissionRequired: { type: Boolean, default: false },
+
   permissionDetails: { type: permissionSchema, default: null },
 
   // 🚦 Status
