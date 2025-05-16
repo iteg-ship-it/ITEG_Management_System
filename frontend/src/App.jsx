@@ -20,7 +20,7 @@ function App() {
               path="/*"
               element={
                 <div className="flex bg-[var(--primary)]">
-                  <Sidebar role={role} /> {/* ✅ Pass role from localStorage */}
+                  <Sidebar role={role} />
                   <div className="flex-1 p-4">
                     <Dashboard />
                   </div>
@@ -32,7 +32,8 @@ function App() {
           <>
             <Route path="/" element={<AdmissionDashboard />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
+            <Route path="/google" element={<GoogleAuthSuccess />} />
+
 
           </>
         )}

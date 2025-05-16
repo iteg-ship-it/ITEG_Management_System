@@ -52,6 +52,7 @@ const LoginPage = () => {
   const handleGoogleLogin = () => {
     window.location.href = `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_LOGIN_WITH_GOOGLE}`;
   };
+
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
       <div className="w-96 max-w-md bg-white p-6 rounded-lg shadow-md">
