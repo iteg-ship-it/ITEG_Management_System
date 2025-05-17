@@ -150,9 +150,8 @@ const Pagination = ({
                 <li
                   key={option}
                   onClick={() => handleSelect(option)}
-                  className={`px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer ${
-                    rowsPerPage === option ? "bg-blue-100 font-semibold" : ""
-                  }`}
+                  className={`px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer ${rowsPerPage === option ? "bg-blue-100 font-semibold" : ""
+                    }`}
                 >
                   {option}
                 </li>
@@ -259,10 +258,11 @@ const FilterSection = ({ searchTerm, setSearchTerm, filtersConfig }) => {
           <input
             type="text"
             placeholder="Search..."
-            className="outline-none border-none px-2 py-1 w-48 h-10 text-sm bg-white"
+            className="outline-none border-none ring-0 focus:ring-0 focus:outline-none px-2 py-1 w-48 h-10 text-sm bg-white"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+
         </div>
       </div>
 

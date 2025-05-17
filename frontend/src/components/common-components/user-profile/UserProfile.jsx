@@ -33,7 +33,7 @@ const UserProfile = (props) => {
   }, []);
 
   return (
-    <div className="relative w-full p-2 mb-6 ">
+    <div className="relative w-full p-2 mb-2 ">
       {/* Right side: User avatar fixed */}
       <div className="absolute right-0 top-0" ref={dropdownRef}>
         <img
