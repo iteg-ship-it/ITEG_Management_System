@@ -21,6 +21,7 @@ const StudentAdmissionProcessSchema = new mongoose.Schema(
     subject12: { type: String, required: true },
     year12: { type: String, required: true },
     percent12: { type: String },
+    percent10: { type: String },
 
     // Admission process tracking
     itegInterviewFlag: { type: Boolean, default: false }, // Final flag
@@ -72,6 +73,7 @@ const StudentAdmissionProcessSchema = new mongoose.Schema(
         marks: { type: Number },
         remark: { type: String },
         date: { type: Date },
+        created_by: { type: String },
         result: {
           type: String,
           enum: ['Pass', 'Fail', 'Pending'],

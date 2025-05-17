@@ -35,18 +35,18 @@ async function sendEmailOtp(email, otp) {
                 <p>Hello,</p>
                 <p>You have requested to verify your email address for accessing <strong>ITEG Management System</strong>.</p>
 
-                <div style="background: #fff7ed; padding: 14px; border-radius: 8px; text-align: center; margin: 19px 0; border: 0.5px solid rgb(184, 182, 182);">
+                <div style="background: #fff7ed; padding: 14px; border-radius: 8px; text-align: center; margin: 14px 0; border: 0.5px solid rgb(184, 182, 182);">
                     <p style="font-size: 16px; margin-bottom: 10px; color: #555;">Your OTP is:</p>
                     <div style="font-size: 20px; font-weight: bold; color: #e65100; letter-spacing: 4px;">${otp}</div>
-                    <p style="font-size: 12px; color: #999;">(Valid for 5 minutes)</p>
+                    <p style="font-size: 12px; color: #999; font-weight: bold;">(Valid for 5 minutes)</p>
                 </div>
 
                 <p style="color: #444;">⚠️ <strong>Please do not share this OTP with anyone.</strong> If you did not request this OTP, you can ignore this message or contact our support.</p>
 
                 <br />
                 <p style="color: #555;">Regards,</p>
-                <p style="font-weight: bold; color: #e65100;">Team SSISM | ITEG Management</p>
-                <p style="font-size: 12px; color: #999;">ssism.org | support@santsingaji.org</p>
+                <p style="font-weight: bold; color: #e65100; font-size: 16px;">Team ITEG | SSISM </p>
+                <p style="font-size: 13px; color: #999; color: #e65100;">ssism.org | support@santsingaji.org</p>
             </div>
         `,
         attachments: [{
