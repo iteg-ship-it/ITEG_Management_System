@@ -126,12 +126,19 @@ export const authApi = createApi({
     // login with goggle
     loginWithGoogle: builder.mutation({
       query: () => ({
-        url: `/google`,
+        url: import.meta.env.VITE_LOGIN_WITH_GOOGLE,
         method: "GET",
       }),
     }),
+    // ----forget password link-----
 
-
+    forgetPassword: builder.mutation({
+      query: (data) => ({
+        url: import.meta.env.VITE_FORGET_PASSWORD, // e.g., '/auth/forgot-password'
+        method: "POST",
+        body: data,
+      }),
+    }),
 
     // ----otp-----
     // verify the otp
@@ -186,6 +193,7 @@ export const authApi = createApi({
 export const {
   useLoginMutation,
   useLoginWithGoogleMutation,
+  useForgetPasswordMutation,
   useSendOtpMutation,
   useVerifyOtpMutation,
   useRefreshTokenMutation,
