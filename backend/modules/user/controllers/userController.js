@@ -2,9 +2,9 @@ const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
-const Otp = require("../models/otpModel");
+// const Otp = require("../models/otpModel");
 const { sendResetLinkEmail } = require("../helpers/sendOtp");
-const generateOtp = require("../helpers/generateOtp");
+// const generateOtp = require("../helpers/generateOtp");
 const cloudinary = require('cloudinary').v2;
 
 require("dotenv").config();
