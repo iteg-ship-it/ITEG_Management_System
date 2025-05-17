@@ -20,7 +20,7 @@ exports.addAdmission = async (req, res) => {
       'prkey','firstName','lastName','fatherName',
       'studentMobile','parentMobile','gender','dob',
       'aadharCard','address','village','track','stream','course',
-      'category','subject12','year12'
+      'category','subject12','year12','percent10','percent12'
     ];
     for (let field of requiredFields) {
       if (!payload[field]) {
@@ -262,6 +262,7 @@ exports.createInterview = async (req, res) => {
       marks: marks || 0,
       remark: remark || "",
       date: date || new Date(),
+      // created_by:Faculty||Faculty,
       result: result || "Pending",
     };
 

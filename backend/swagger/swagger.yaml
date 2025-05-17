@@ -80,6 +80,8 @@ components:
         - category
         - subject12
         - year12
+        - percent12
+        - percent10
       properties:
         prkey:
           type: string
@@ -132,6 +134,9 @@ components:
           type: string
           example: "2018"
         percent12:
+          type: string
+          example: "85%"
+        percent10:
           type: string
           example: "85%"
         itegInterviewFlag:
@@ -210,7 +215,9 @@ components:
               reasoning:
                 type: number
                 example: 4
-              
+              created_by:
+                type: string
+                example: "faculty"
               marks:
                 type: number
                 example: 85
@@ -738,6 +745,8 @@ paths:
                 - category
                 - subject12
                 - year12
+                - percent12
+                - percent10
               properties:
                 prkey:
                   type: string
@@ -795,6 +804,12 @@ paths:
                 year12:
                   type: string
                   example: "2022"
+                percent12:
+                  type: string
+                  example: "85%"
+                percent10:
+                  type: string
+                  example: "90%"
       responses:
         '201':
           description: Student admission initiated successfully
@@ -914,6 +929,10 @@ paths:
                   type: string
                   description: Interviewer's remark
                   example: "Strong technical skills"
+                created_by:
+                  type: string
+                  description: The person who created the interview record
+                  example: "faculty"
                 date:
                   type: string
                   format: date-time
@@ -1159,22 +1178,179 @@ paths:
                   error:
                     type: string
 
-  /api/admission/students/update_interview_flag/{studentId}:
-    put:
-      summary: Update ITEG interview flag and notify central system
+  # /api/admission/students/update_interview_flag/{studentId}:
+  #   put:
+  #     summary: Update ITEG interview flag and notify central system
+  #     tags:
+  #        - Admission Process
+  #     parameters:
+  #       - in: path
+  #         name: studentId
+  #         required: true
+  #         schema:
+  #           type: string
+  #           example: "6811f74b6a40d2524ec7d870"
+  #         description: MongoDB ObjectId of the student to update
+  #     responses:
+  #       '200':
+  #         description: Interview flag updated and sent to central system
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 message:
+  #                   type: string
+  #                   example: Interview flag updated and sent to central
+  #                 centralResponse:
+  #                   type: object
+  #                   description: Response from the central system
+  #       '400':
+  #         description: Missing or invalid student ID
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 message:
+  #                   type: string
+  #                   example: Student ID is required
+  #       '404':
+  #         description: Student not found
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 message:
+  #                   type: string
+  #                   example: Student not found
+  #       '500':
+  #         description: Server or central system error
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 message:
+  #                   type: string
+  #                   example: Server error
+  #                 error:
+  #                   type: string
+  #                   example: Failed to connect to central system
+
+
+
+  /api/admitted/students/create_level/{id}:
+    post:
+      summary: Add new level attempt for a student
+      description: Automatically determines and adds the next level based on student's previous progress.
       tags:
-         - Admission Process
+        - Admitted Student
       parameters:
-        - in: path
-          name: studentId
+        - name: id
+          in: path
           required: true
           schema:
             type: string
-            example: "6811f74b6a40d2524ec7d870"
-          description: MongoDB ObjectId of the student to update
+          description: ID of the admitted student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Theoretical_Marks:
+                  type: number
+                  example: 30
+                Practical_Marks:
+                  type: number
+                  example: 25
+                Communication_Marks:
+                  type: number
+                  example: 15
+                marks:
+                  type: number
+                  example: 70
+                remark:
+                  type: string
+                  example: Good performance
+                date:
+                  type: string
+                  format: date-time
+                  example: "2025-05-01T10:00:00Z"
+                result:
+                  type: string
+                  enum: [Pass, Fail, Pending]
+                  example: Pass
+      responses:
+        '201':
+          description: Level attempt added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  student:
+                    $ref: '#/components/schemas/AdmittedStudent'
+        '400':
+          description: Bad Request (e.g., all levels completed or duplicate passed level)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  error:
+                    type: string
+
+  /api/admitted/students/getall:
+    get:
+      summary: Get all admitted students
+      description: Fetches a list of all admitted students.
+      tags:
+        - Admitted Student
       responses:
         '200':
-          description: Interview flag updated and sent to central system
+          description: List of admitted students
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdmittedStudent'
+        '500':
+          description: Server error
           content:
             application/json:
               schema:
@@ -1182,20 +1358,28 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Interview flag updated and sent to central
-                  centralResponse:
-                    type: object
-                    description: Response from the central system
-        '400':
-          description: Missing or invalid student ID
+                    example: Server error
+
+  /api/admitted/students/{id}:
+    get:
+      summary: Get student by ID
+      description: Fetches a single admitted student's details using their unique MongoDB ObjectId.
+      tags:
+        - Admitted Student
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the admitted student
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Student found successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Student ID is required
+                $ref: '#/components/schemas/AdmittedStudent'
         '404':
           description: Student not found
           content:
@@ -1207,7 +1391,7 @@ paths:
                     type: string
                     example: Student not found
         '500':
-          description: Server or central system error
+          description: Server error
           content:
             application/json:
               schema:
@@ -1215,7 +1399,5 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Server error
                   error:
                     type: string
-                    example: Failed to connect to central system

@@ -19,8 +19,11 @@ router.get(
   studentController.getAllStudents
 );
 
-// // // Get Single Student by ID
-// router.get("/:id", verifyToken, checkRole(allowedRoles), studentController.getStudentById);
+
+router.post("/create_level/:id", verifyToken, checkRole(allowedRoles),studentController.createLevels);
+
+// Get Single Student by ID
+router.get("/:id", verifyToken, checkRole(allowedRoles), studentController.getStudentById);
 
 // Create Permission Student API (Only authorized roles)
 // router.post('/create-permission-student/:id', verifyToken, checkRole(['Super Admin', 'Admin', 'Faculty']), studentController.createPermissionStudent);
