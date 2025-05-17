@@ -2,40 +2,43 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 require('dotenv').config();
-// const { generateToken, generateRefreshToken } = require('../controllers/userController');
 const { generateOTP, sendEmailOtp } = require('../helpers/sendOtp');
 const User = require('../models/user');
+const mongoose = require('mongoose');
 
-// Temporary in-memory store (replace with DB or Redis in real project)
-const otpStore = new Map(); // email => { otp, expiresAt }
-const otpAttempts = new Map(); // email => attempts
-// const otpStore = new Map(); // email => { otp, expiresAt }
+// Create a schema for storing OTPs in the database
+const otpSchema = new mongoose.Schema({
+    email: { type: String, required: true },
+    otp: { type: String, required: true },
+    expiresAt: { type: Date, required: true }
+}, { timestamps: true });
+
+const OtpModel = mongoose.model('Otp', otpSchema);
+
+// Send OTP Controller (stores in DB instead of in-memory)
 const sendOtpToEmail = async (req, res) => {
     const { email } = req.body;
-
     if (!email) return res.status(400).json({ message: 'Email is required' });
 
+    // Only allow organization email (e.g., ssism.org)
+    const allowedDomain = "@ssism.org";
+    if (!email.endsWith(allowedDomain)) {
+        return res.status(403).json({ message: `Only ${allowedDomain} email addresses are allowed` });
+    }
+
     try {
-        // ✅ Check if email exists in database
-        const existingUser = await User.findOne({ email });
-        if (!existingUser) {
-            return res.status(404).json({ message: 'User with this email does not exist' });
-        }
+        const user = await User.findOne({ email });
+        if (!user) return res.status(404).json({ message: 'User not found' });
 
-        // ✅ Check OTP attempt limit
-        const attempts = otpAttempts.get(email) || 0;
-        if (attempts >= 3) {
-            return res.status(429).json({ message: 'You have exceeded the maximum OTP request limit' });
-        }
-
-        // ✅ Generate and send OTP
         const otp = generateOTP();
-        const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
 
-        otpStore.set(email, { otp, expiresAt });
-
-        // ✅ Increase attempt count
-        otpAttempts.set(email, attempts + 1);
+        // Save or update OTP in DB
+        await OtpModel.findOneAndUpdate(
+            { email },
+            { otp, expiresAt },
+            { upsert: true, new: true }
+        );
 
         await sendEmailOtp(email, otp);
         res.status(200).json({ message: 'OTP sent to registered email' });
@@ -45,52 +48,47 @@ const sendOtpToEmail = async (req, res) => {
     }
 };
 
+// Verify OTP Controller (checks OTP from DB)
 const verifyEmailOtp = async (req, res) => {
     const { email, otp } = req.body;
-
     if (!email || !otp) return res.status(400).json({ message: 'Email and OTP required' });
 
-    const stored = otpStore.get(email);
-
-    if (!stored) {
-        return res.status(400).json({ message: 'No OTP found for this email' });
-    }
-
-    if (Date.now() > stored.expiresAt) {
-        otpStore.delete(email);
-        return res.status(400).json({ message: 'OTP expired' });
-    }
-
-    if (stored.otp !== otp) {
-        return res.status(400).json({ message: 'Invalid OTP' });
-    }
-
     try {
+        const otpRecord = await OtpModel.findOne({ email });
+        if (!otpRecord) return res.status(400).json({ message: 'No OTP found' });
+
+        if (Date.now() > otpRecord.expiresAt.getTime()) {
+            await OtpModel.deleteOne({ email });
+            return res.status(400).json({ message: 'OTP expired' });
+        }
+
+        if (otpRecord.otp !== otp) {
+            return res.status(400).json({ message: 'Invalid OTP' });
+        }
+
         const user = await User.findOne({ email });
-        if (!user) return res.status(404).json({ message: "User not found" });
+        if (!user) return res.status(404).json({ message: 'User not found' });
 
-        // ✅ Generate JWT tokens
+            // generate JWT token
         const token = jwt.sign(
-            { id: user._id, role: user.role },
-            process.env.JWT_SECRET,
-            { expiresIn: "1h" }
-        );
-
+            { 
+                id: user._id, 
+                role: user.role 
+            }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        // Generate refresh token
         const refreshToken = jwt.sign(
-            { id: user._id, role: user.role },
-            process.env.JWT_SECRET,
-            { expiresIn: "7d" }
-        );
+            { 
+                id: user._id, 
+                role: user.role 
+            }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-        // ✅ Save refreshToken in database
         user.refreshToken = refreshToken;
         await user.save();
 
-        // ✅ Clear OTP from memory
-        otpStore.delete(email);
+        await OtpModel.deleteOne({ email }); // Clear used OTP from DB
 
         res.status(200).json({
-            message: "OTP verified successfully. Login success.",
+            message: 'OTP verified successfully. Login success.',
             token,
             refreshToken,
             user: {
@@ -103,8 +101,9 @@ const verifyEmailOtp = async (req, res) => {
             },
         });
     } catch (error) {
-        console.error("OTP verify error:", error.message);
-        res.status(500).json({ message: "OTP verification failed", error: error.message });
+        console.error('OTP verify error:', error.message);
+        res.status(500).json({ message: 'OTP verification failed', error: error.message });
     }
 };
+
 module.exports = { sendOtpToEmail, verifyEmailOtp };
