@@ -100,7 +100,7 @@ export default function StudentProfile() {
   return (
     <>
       <UserProfile showBackButton heading="Student Profile" />
-      <div className="w-full px-4 md:px-10">
+      <div className="w-full">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
           {/* Left Section */}
           <div className="md:col-span-2 flex flex-col gap-6">
@@ -161,7 +161,7 @@ export default function StudentProfile() {
           <div className="flex flex-col gap-6 md:col-span-1">
             <div className="relative bg-white rounded-2xl shadow-lg p-6 flex flex-col">
               <span className="absolute top-4 right-4 cursor-pointer"
-                onClick={() => navigate(`/admission/edit/${studentData._id}`)}>
+                onClick={() => navigate(`/student/edit/${studentData._id}`, { state: { student: studentData } })}>
                 <img src={editbutton} alt="edit button" />
               </span>
               <div className="flex flex-col items-center text-center">

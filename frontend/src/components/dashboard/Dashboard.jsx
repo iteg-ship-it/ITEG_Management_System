@@ -1,4 +1,3 @@
-// src/pages/Dashboard.jsx
 import { Routes, Route } from "react-router-dom";
 import AdmissionProcess from "../admition-process/admition-process-page/AdmissionProcess";
 import StudentProfile from "../student-records/studentProfile/StudentProfile";
@@ -21,12 +20,12 @@ const Dashboard = () => {
       <Route path="/student-dashboard" element={<StudentDashboard />} />
       <Route path="/student-permission" element={<StudentPermission />} />
       <Route path="/student-detail-table" element={<StudentDetailTable />} />
-      <Route path="/student-edit-profile" element={<StudentEditPage />} />
+      <Route path="/student/edit/:id" element={<StudentEditPage />} />
       <Route path="/placement" element={<PlacementRecords />} />
       <Route path="/student-profile/:id" element={<StudentProfile />} />
-
     </Routes>
   );
 };
 
 export default Dashboard;
+

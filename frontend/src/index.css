@@ -5,6 +5,14 @@
 :root {
   --primary: #f2f7fc;
 }
+/* Add to index.css or global.css */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
 
 /* .react-datepicker__day--selected,
 .react-datepicker__day--keyboard-selected,

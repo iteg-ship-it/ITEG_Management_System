@@ -62,7 +62,7 @@ const AdmissionEditPage = () => {
 
   return (
     <>
-      <UserProfile showBackButton heading="Interview Process" />
+      <UserProfile showBackButton heading="Interview student edit page" />
 
       <div className="mx-auto">
         <Formik
