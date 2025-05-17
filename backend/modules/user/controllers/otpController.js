@@ -10,8 +10,12 @@ const mongoose = require('mongoose');
 const otpSchema = new mongoose.Schema({
     email: { type: String, required: true },
     otp: { type: String, required: true },
-    expiresAt: { type: Date, required: true }
+    expiresAt: { type: Date, required: true },
+    attempts: { type: Number, default: 0 },
+    blockedUntil: { type: Date, default: null },
 }, { timestamps: true });
+
+otpSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 const OtpModel = mongoose.model('Otp', otpSchema);
 
@@ -57,10 +61,26 @@ const verifyEmailOtp = async (req, res) => {
         const otpRecord = await OtpModel.findOne({ email });
         if (!otpRecord) return res.status(400).json({ message: 'No OTP found' });
 
+        if (otpRecord.blockedUntil && otpRecord.blockedUntil > new Date()) {
+      const remaining = Math.ceil((otpRecord.blockedUntil - new Date()) / 60000);
+      return res.status(429).json({ message: `Too many attempts. Try again in ${remaining} min` });
+    }
+
         if (Date.now() > otpRecord.expiresAt.getTime()) {
             await OtpModel.deleteOne({ email });
             return res.status(400).json({ message: 'OTP expired' });
         }
+
+        if (otpRecord.otp !== otp) {
+      otpRecord.attempts += 1;
+
+      if (otpRecord.attempts >= 5) {
+        otpRecord.blockedUntil = new Date(Date.now() + 10 * 60 * 1000); // 10 min block
+      }
+
+      await otpRecord.save();
+      return res.status(400).json({ message: 'Invalid OTP' });
+    }
 
         if (otpRecord.otp !== otp) {
             return res.status(400).json({ message: 'Invalid OTP' });
