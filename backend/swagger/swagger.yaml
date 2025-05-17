@@ -80,6 +80,8 @@ components:
         - category
         - subject12
         - year12
+        - percent12
+        - percent10
       properties:
         prkey:
           type: string
@@ -743,6 +745,8 @@ paths:
                 - category
                 - subject12
                 - year12
+                - percent12
+                - percent10
               properties:
                 prkey:
                   type: string
@@ -800,6 +804,12 @@ paths:
                 year12:
                   type: string
                   example: "2022"
+                percent12:
+                  type: string
+                  example: "85%"
+                percent10:
+                  type: string
+                  example: "90%"
       responses:
         '201':
           description: Student admission initiated successfully
