@@ -202,3 +202,23 @@ exports.createLevels = async (req, res) => {
 
 
 
+
+exports.getStudentLevels = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const student = await AdmittedStudent.findById(id);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+    const levels = student.level;
+    if (!levels || levels.length === 0) {
+      return res.status(404).json({ message: "No levels found for this student" });
+    }
+    res.status(200).json(levels);
+  }
+  catch (error) {
+    console.error("Error fetching levels:", error);
+    res.status(500).json({ message: "Server Error", error });
+  }     
+}
+
