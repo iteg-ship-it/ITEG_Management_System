@@ -13,6 +13,7 @@ const protectedRoutes = require("./routes/protectedRoutes");
 const admittedStudentRoutes = require("./routes/studentRoutes");
 const userRoutes = require("./routes/userRoutes.js");
 const otpRoutes = require("./routes/otpRoutes.js");
+const passport = require("./config/passport.js");
 
 //expres object
 const app = express();
@@ -20,8 +21,8 @@ const app = express();
 setupSwagger(app);
 app.use(
   cors({
-    // origin: "http://localhost:5173"
-    origin: '*', // or '*' to allow all
+    origin: "http://localhost:5173",
+    // origin: '*', // or '*' to allow all
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true, // only if you're using cookies or sessions
   })
@@ -51,6 +52,9 @@ app.use("/api/admission/students/webhook", webhookRoutes);
 
 // in your main server.js / app.js
 app.use('/api/user/otp', otpRoutes);
+
+// passport.js
+app.use(passport.initialize());
 
 
 
