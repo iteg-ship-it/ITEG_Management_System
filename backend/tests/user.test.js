@@ -36,196 +36,144 @@ beforeAll(async () => {
   });
   describe('User API - Create User', () => {
 
-    it("1 should create a new user successfully", async () => {
-      const payload = {
-        name: "Test User",
-        email: "TEST@EMAIL.COM",
-        mobileNo: "9876543210", // ✅ must match schema key
-        password: "securepass123",
-        adharCard: "123456789012",
-        department: "IT",
-        position: "Manager",
-        role: "admin"
-      };
+    const validPayload = {
+      name: "John Doe",
+      email: "john.doe@ssism.org",
+      mobileNo: "9876543210",
+      password: "Password123",
+      adharCard: "123456789012",
+      department: "IT",
+      position: "Lecturer",
+      role: "faculty",
+      isActive: true,
+      updatedAt: new Date(),
+      createdAt: new Date()
+    };
   
-      console.log("🔍 Sending test payload:", payload);
-  
+    it('should create a new user successfully', async () => {
       const res = await request(app)
-        .post("/api/user/signup") // 👈 match your route
-        .send(payload)
-        .expect(201);
+        .post('/api/user/signup')
+        .send(validPayload);
   
-      expect(res.body.message).toMatch(/created successfully/i);
+      expect(res.statusCode).toBe(201);
+      expect(res.body).toHaveProperty('message');
+      expect(res.body.message).toMatch(/Faculty created successfully!/i);
+      expect(res.body.user).toHaveProperty('email', validPayload.email.toLowerCase());
     });
   
-
-    it("2 should reject user with duplicate email or Aadhar", async () => {
-      const duplicateUser = {
-        name: "Duplicate User",
-        email: user.email, // existing user's email
-        mobileNo: "9876543211",
-        password: "pass123",
-        adharCard: user.adharCard, // existing user's Aadhar
-        department: "IT",
-        position: "Manager",
-        role: "admin"
-      };
-    
+    it('should fail if required fields are missing', async () => {
+      const { name, ...incomplete } = validPayload;
       const res = await request(app)
-        .post("/api/user/signup")
-        .send(duplicateUser)
-        .expect(400);
-    
+        .post('/api/user/signup')
+        .send(incomplete);
+  
+      expect(res.statusCode).toBe(400);
+      expect(res.body.message).toBe("All fields are required");
+    });
+  
+    it('should reject non-ssism.org email', async () => {
+      const badEmailPayload = { ...validPayload, email: "john@gmail.com" };
+      const res = await request(app)
+        .post('/api/user/signup')
+        .send(badEmailPayload);
+  
+      expect(res.statusCode).toBe(400);
+      expect(res.body.message).toMatch(/institutional emails/i);
+    });
+  
+    it('should reject duplicate email or Aadhar', async () => {
+      await request(app).post('/api/user/signup').send(validPayload);
+  
+      const res = await request(app)
+        .post('/api/user/signup')
+        .send(validPayload); // duplicate
+  
+      expect(res.statusCode).toBe(400);
       expect(res.body.message).toMatch(/already exists/i);
     });
-    
-    
-    it("3 should reject user with invalid role", async () => {
-      const payload = {
-        name: "Invalid Role User",
-        email: `invalidrole${Date.now()}@example.com`,
-        mobileNo: "9876543212",
-        password: "pass123",
-        adharCard: `${Date.now()}1234`,
-        department: "HR",
-        position: "Lead",
-        role: "student" // ❌ Not allowed
-      };
-    
-      const res = await request(app)
-        .post("/api/user/signup")
-        .send(payload)
-        .expect(400);
-    
-      expect(res.body.message).toMatch(/invalid role/i);
-    });
-    
   
-    it("4 should save email in lowercase", async () => {
-      const email = "MIXEDCASE@Example.COM";
-      const payload = {
-        name: "Lowercase Email",
-        email,
-        mobileNo: "9876543213",
-        password: "pass123",
-        adharCard: `${Date.now()}5678`,
-        department: "Finance",
-        position: "Executive",
-        role: "faculty"
-      };
-    
+    it('should reject invalid roles', async () => {
       const res = await request(app)
-        .post("/api/user/signup")
-        .send(payload)
-        .expect(201);
-    
-      expect(res.body.user.email).toBe(email.toLowerCase());
+        .post('/api/user/signup')
+        .send({ ...validPayload, role: "student" });
+  
+      expect(res.statusCode).toBe(400);
+      expect(res.body.message).toMatch(/Invalid role/i);
     });
-    
-    it("5 should reject if required fields are missing", async () => {
-      const payload = {
-        email: "missingfields@example.com",
-        mobileNo: "9876543214",
-        // Missing name, adharCard, password, department, position, role
-      };
-    
-      const res = await request(app)
-        .post("/api/user/signup")
-        .send(payload)
-        .expect(400); // ✅ Changed from 500 to 400
-    
-      expect(res.body.message).toMatch(/required/i); // Optional: improve if your error message changes
-    });
-    
+  
   });
+
+  
 
     describe('User API - Login User', () => {
-  // login tests
-  it('1 should login successfully with valid credentials', async () => {
-    // First, create a user
-    const user = await User.create({
-      name: 'Test User',
-      email: 'test@example.com',
-      mobileNo: '9876543210', 
-      password: await bcrypt.hash('Password123', 10),
-      adharCard: '123456789012',
-      department: 'IT',
-      position: 'Developer',
-      role: 'admin'
-    });
-  
-    const res = await request(app)
-      .post('/api/user/login')
-      .send({
-        email: 'test@example.com',
-        password: 'Password123'
-      });
-  
-    expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveProperty('message', 'Login successful');
-    expect(res.body).toHaveProperty('token');
-    expect(res.body).toHaveProperty('refreshToken');
-    expect(res.body.user).toHaveProperty('email', 'test@example.com');
-  });
- 
-  it('2 should fail if email does not exist', async () => {
-    const res = await request(app)
-      .post('/api/user/login')
-      .send({
-        email: 'nonexistent@example.com',
-        password: 'Password123'
-      });
-  
-    expect(res.statusCode).toBe(401);
-    expect(res.body).toHaveProperty('message', 'Invalid email or password');
-  });
 
-  it('3 should fail if password is incorrect', async () => {
-    // First, create a user
-    const user = await User.create({
-      name: 'Test User',
-      email: 'test@example.com',
-      mobileNo: '9876543210',
-      password: await bcrypt.hash('Password123', 10),
-      adharCard: '123456789012',
-      department: 'IT',
-      position: 'Developer',
-      role: 'admin'
-    });
-  
-    const res = await request(app)
-      .post('/api/user/login')
-      .send({
-        email: 'test@example.com',
-        password: 'WrongPassword'
+      // describe('POST /users/login', () => {
+        const validUser = {
+          name: 'John Doe',
+          email: 'john.doe@ssism.org',
+          password: 'TestPass123',
+          mobileNo: '9876543210',
+          adharCard: '123456789012',
+          department: 'IT',
+          position: 'Lecturer',
+          role: 'faculty',
+          isActive: true,
+        };
+      
+        beforeEach(async () => {
+          const hashedPassword = await bcrypt.hash(validUser.password, 10);
+          await User.create({ ...validUser, password: hashedPassword });
+        });
+      
+        it('should login successfully with valid credentials', async () => {
+          const res = await request(app)
+            .post('/api/user/login')
+            .send({ email: validUser.email, password: validUser.password });
+      
+          expect(res.statusCode).toBe(200);
+          expect(res.body).toHaveProperty('message', 'Login successful');
+          expect(res.body).toHaveProperty('token');
+          expect(res.body).toHaveProperty('refreshToken');
+          expect(res.body.user.email).toBe(validUser.email.toLowerCase());
+        });
+      
+        it('should fail with missing email or password', async () => {
+          const res = await request(app)
+            .post('/api/user/login')
+            .send({ email: validUser.email });
+      
+          expect(res.statusCode).toBe(400);
+          expect(res.body.message).toBe('Email and password are required');
+        });
+      
+        it('should reject non-ssism.org email', async () => {
+          const res = await request(app)
+            .post('/api/user/login')
+            .send({ email: 'john@gmail.com', password: 'anything' });
+      
+          expect(res.statusCode).toBe(403);
+          expect(res.body.message).toMatch(/institutional emails/i);
+        });
+      
+        it('should fail with incorrect email', async () => {
+          const res = await request(app)
+            .post('/api/user/login')
+            .send({ email: 'wrong@ssism.org', password: validUser.password });
+      
+          expect(res.statusCode).toBe(401);
+          expect(res.body.message).toBe('Invalid email or password');
+        });
+      
+        it('should fail with incorrect password', async () => {
+          const res = await request(app)
+            .post('/api/user/login')
+            .send({ email: validUser.email, password: 'WrongPass' });
+      
+          expect(res.statusCode).toBe(401);
+          expect(res.body.message).toBe('Invalid email or password');
+        });
       });
   
-    expect(res.statusCode).toBe(401);
-    expect(res.body).toHaveProperty('message', 'Invalid email or password');
-  });
-  
-  it('4 should fail if email is missing', async () => {
-    const res = await request(app)
-      .post('/api/user/login')
-      .send({
-        password: 'Password123'
-      });
-  
-    expect(res.statusCode).toBe(400); // Optional: if you handle missing fields
-    // or if you don't handle, expect 500
-  });
-
-  it('5 should fail if password is missing', async () => {
-    const res = await request(app)
-      .post('/api/user/login')
-      .send({
-        email: 'test@example.com'
-      });
-  
-    expect(res.statusCode).toBe(400); // Again, if validation is added
-  });
-});
-
 // // Update
 
 describe('User API - Udate User', () => {

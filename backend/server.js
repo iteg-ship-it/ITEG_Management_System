@@ -1,3 +1,4 @@
+
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -5,7 +6,7 @@ const bodyParser = require("body-parser");
 const setupSwagger = require("./swagger/swagger");
 // Import Routes
 const webhookRoutes = require("./routes/webhookRoutes");
-const whatsappRoutes = require('./routes/whatsappRoutes');
+const whatsappRoutes = require("./routes/whatsappRoutes.js");
 
 const studentAdmissionRoutes = require("./routes/studentAdmissionProcessRoutes");
 const protectedRoutes = require("./routes/protectedRoutes");
@@ -13,6 +14,7 @@ const protectedRoutes = require("./routes/protectedRoutes");
 const admittedStudentRoutes = require("./routes/studentRoutes");
 const userRoutes = require("./routes/userRoutes.js");
 const otpRoutes = require("./routes/otpRoutes.js");
+const passport = require("./config/passport.js");
 
 //expres object
 const app = express();
@@ -20,7 +22,8 @@ const app = express();
 setupSwagger(app);
 app.use(
   cors({
-    origin: "http://localhost:5173", // or '*' to allow all
+    origin: "http://localhost:5173",
+    // origin: '*', // or '*' to allow all
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true, // only if you're using cookies or sessions
   })
@@ -53,6 +56,9 @@ app.use('/api/user/otp', otpRoutes);
 
 // in your main server.js / app.js
 app.use('/api/students', whatsappRoutes); 
+
+// passport.js
+app.use(passport.initialize());
 
 
 

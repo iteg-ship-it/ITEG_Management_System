@@ -154,28 +154,46 @@ exports.sendInterviewFlagToCentral = async (req, res) => {
       centralResponse: response.data
     });
 
-  } catch (err) {
-    // Axios error with custom payload
-    if (err.response && err.response.data) {
-      return res.status(500).json({
-        message: 'Server error',
-        error: err.response.data,
-      });
-    }
+  // } catch (err) {
+  //   // Axios error with custom payload
+  //   if (err.response && err.response.data) {
+  //     return res.status(500).json({
+  //       message: 'Server error',
+  //       error: err.response.data,
+  //     });
+  //   }
   
-    // General error fallback (includes your test case error)
+  //   // General error fallback (includes your test case error)
+  //   return res.status(500).json({
+  //     message: 'Server error',
+  //     error: err.message || 'Unknown error',
+  //   });
+  // }
+
+} catch (err) {
+  console.error("❌ Full error:", err);
+
+  if (err.response) {
+    console.error("❌ Axios Error Response:", err.response.data);
     return res.status(500).json({
-      message: 'Server error',
-      error: err.message || 'Unknown error',
+      message: "Server error (from central system)",
+      error: err.response.data,
     });
   }
+
+  return res.status(500).json({
+    message: "Server error",
+    error: err.message || err.stack || JSON.stringify(err),
+  });
+}
+
 };
 
 
 exports.createInterview = async (req, res) => {
   try {
     const { id } = req.params;
-    const { round, marks, remark, date, result } = req.body;
+    const { round,communication,confidence,goal,subjectKnowlage,technical,sincerity,  maths,reasoning, marks, remark, date, result } = req.body;
 
     const student = await AdmissionProcess.findById(id);
     if (!student) {
@@ -232,6 +250,14 @@ exports.createInterview = async (req, res) => {
 
     const newInterview = {
       round: round || "First",
+      communication:communication || 0,
+      confidence:confidence || 0,
+      goal:goal || 0,
+      subjectKnowlage:subjectKnowlage|| 0,
+      technical:technical || 0,
+      sincerity:sincerity || 0,
+      maths:maths || 0,
+      reasoning:reasoning || 0,
       attemptNo: currentRoundAttempts.length + 1, // Auto-increment attemptNo
       marks: marks || 0,
       remark: remark || "",

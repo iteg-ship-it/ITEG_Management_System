@@ -7,7 +7,7 @@ import ReusableForm from "../../../ReusableForm";
 import { loginValidationSchema } from "../../../validationSchema";
 
 import logo from "../../../assets/images/logo-ssism.png";
-import googleLogo from "../../../assets/images/Google.png";
+import goggleLogo from "../../../assets/images/Google.png";
 // import linkedinLogo from "../../../assets/images/linkedin.png";
 // import facebookLogo from "../../../assets/images/FB.png";
 
@@ -18,6 +18,8 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [loginError, setLoginError] = useState("");
   const [login, { isLoading }] = useLoginMutation();
+  // const [loginWithGoogle] = useLoginWithGoogleMutation();
+
   const secretKey = "ITEG@123"; // AES encryption key
 
   const initialValues = {
@@ -46,6 +48,9 @@ const LoginPage = () => {
     } catch (error) {
       setLoginError(error?.data?.message || "Invalid email or password.");
     }
+  };
+  const handleGoogleLogin = () => {
+    window.location.href = `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_LOGIN_WITH_GOOGLE}`;
   };
 
   return (
@@ -104,9 +109,16 @@ const LoginPage = () => {
               </div>
 
               <div className="flex justify-center gap-4 mb-2">
-                <button type="button">
-                  <img src={googleLogo} alt="Google" className="h-10" />
+                <button type="button" onClick={handleGoogleLogin}>
+                  <img src={goggleLogo} alt="Google" className="h-10" />
                 </button>
+
+
+
+
+                {/* <button type="button">
+                  <img src={goggleLogo} alt="Google" className="h-10" />
+                </button> */}
                 {/* <button type="button">
                   <img src={linkedinLogo} alt="LinkedIn" className="h-10" />
                 </button>
