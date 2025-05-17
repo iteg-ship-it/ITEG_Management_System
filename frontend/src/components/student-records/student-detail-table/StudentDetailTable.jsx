@@ -36,10 +36,25 @@ const StudentDetailTable = () => {
     },
   ];
 
-  const filteredData = data.filter((student) => {
+  // ✅ Add a new field 'latestLevel' to each student
+  const enhancedData = data.map((student) => {
+    const passedLevels = (student.level || []).filter(
+      (lvl) => lvl.result === "Pass"
+    );
+    const latestPassedLevel = passedLevels.length > 0
+      ? passedLevels[passedLevels.length - 1].levelNo
+      : "1A";
+
+    return {
+      ...student,
+      latestLevel: latestPassedLevel,
+    };
+  });
+
+  const filteredData = enhancedData.filter((student) => {
     const matchesSearch =
       searchTerm === "" ||
-      student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.email?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesTrack =
@@ -70,7 +85,7 @@ const StudentDetailTable = () => {
     { key: "fatherName", label: "Father's Name" },
     { key: "mobileNo", label: "Mobile" },
     { key: "course", label: "Course" },
-    { key: "level", label: "Level" },
+    { key: "latestLevel", label: "Level" },
     { key: "village", label: "Village" },
   ];
 
@@ -112,6 +127,10 @@ const StudentDetailTable = () => {
 
 export default StudentDetailTable;
 
+
+
+
+
 // import { useState } from "react";
 // import Pagination from "../../common-components/pagination/Pagination";
 // import UserProfile from "../../common-components/user-profile/UserProfile";
@@ -122,7 +141,6 @@ export default StudentDetailTable;
 
 // const StudentDetailTable = () => {
 //   const { data = [], isLoading } = useAdmitedStudentsQuery();
-
 //   const [rowsPerPage, setRowsPerPage] = useState(10);
 //   const [searchTerm, setSearchTerm] = useState("");
 //   const [selectedTracks, setSelectedTracks] = useState([]);
@@ -130,7 +148,6 @@ export default StudentDetailTable;
 //   const [selectedPercentages, setSelectedPercentages] = useState([]);
 //   const navigate = useNavigate();
 
-//   // Define dynamic filter config
 //   const filtersConfig = [
 //     {
 //       title: "Track",
@@ -152,7 +169,6 @@ export default StudentDetailTable;
 //     },
 //   ];
 
-//   // Filter logic
 //   const filteredData = data.filter((student) => {
 //     const matchesSearch =
 //       searchTerm === "" ||
@@ -181,10 +197,8 @@ export default StudentDetailTable;
 //     return matchesSearch && matchesTrack && matchesResult && matchesPercentage;
 //   });
 
-//   // Define table columns
 //   const columns = [
-//     { key: "", label: "Profile" },
-//     { key: "fullName", label: "Full Name" },
+//     { key: "profile", label: "Profile" },
 //     { key: "fullName", label: "Full Name" },
 //     { key: "fatherName", label: "Father's Name" },
 //     { key: "mobileNo", label: "Mobile" },
@@ -192,14 +206,18 @@ export default StudentDetailTable;
 //     { key: "level", label: "Level" },
 //     { key: "village", label: "Village" },
 //   ];
-//   const actionButton = () => (
+
+//   const actionButton = (student) => (
 //     <button
-//       onClick={() => navigate("/student-profile/:studentId")}
-//       className="px-3 py-1  rounded"
+//       onClick={() =>
+//         navigate(`/student-profile/${student._id}`, { state: { student } })
+//       }
+//       className="px-3 py-1 rounded"
 //     >
 //       <img src={edit} alt="edit-icon" className="w-5 h-5" />
 //     </button>
 //   );
+
 //   return (
 //     <>
 //       <UserProfile showBackButton heading="Admitted Students" />

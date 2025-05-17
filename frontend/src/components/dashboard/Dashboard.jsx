@@ -23,7 +23,7 @@ const Dashboard = () => {
       <Route path="/student-detail-table" element={<StudentDetailTable />} />
       <Route path="/student-edit-profile" element={<StudentEditPage />} />
       <Route path="/placement" element={<PlacementRecords />} />
-    <Route path="/student-profile/:id" element={<StudentProfile />} />
+      <Route path="/student-profile/:id" element={<StudentProfile />} />
 
     </Routes>
   );
