@@ -16,6 +16,13 @@ const StudentDetailTable = () => {
   const [selectedPercentages, setSelectedPercentages] = useState([]);
   const navigate = useNavigate();
 
+  const toTitleCase = (str) =>
+    str
+      ?.toLowerCase()
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+
   // Define dynamic filter config
   const filtersConfig = [
     {
@@ -85,14 +92,11 @@ const StudentDetailTable = () => {
   const columns = [
     {
       key: "fullName",
-      label: "Full Name",
-    },
-    {
-      key: "fullName",
-      label: "Full Name",
+      label: "Full Name", render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
+
     },
     { key: "fatherName", label: "Father's Name" },
-    { key: "mobileNo", label: "Mobile" },
+    { key: "studentMobile", label: "Mobile" },
     { key: "course", label: "Course" },
     { key: "latestLevel", label: "Level" },
     { key: "village", label: "Village" },
