@@ -4,6 +4,8 @@ import { FaCamera } from "react-icons/fa";
 import UserProfile from "../../common-components/user-profile/UserProfile";
 
 const StudentEditPage = () => {
+  // const fileInputRef = useRef(null);
+  const [imageSrc, setImageSrc] = useState("https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg"); // Set default or placeholder
   const location = useLocation();
   // const navigate = useNavigate();
   const studentData = location.state?.student || {};
@@ -32,23 +34,23 @@ const StudentEditPage = () => {
   });
   const [errors, setErrors] = useState({});
   const fileInputRef = useRef(null);
-  const [imageSrc] = useState(
-    "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg"
-  );
+  // const [imageSrc] = useState(
+  //   "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg"
+  // );
 
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
+  const handleImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setFormData((prevData) => ({ ...prevData, imageSrc: e.target.result }));
+      reader.onloadend = () => {
+        setImageSrc(reader.result);
       };
       reader.readAsDataURL(file);
     }
-  };
-
-  const handleImageClick = () => {
-    fileInputRef.current.click();
   };
 
   const handleChange = (e) => {
@@ -112,16 +114,16 @@ const StudentEditPage = () => {
 
         <div className="flex items-center space-x-4 mt-4">
           <div
-            className="relative w-40 h-40 rounded-full border-3 border-dotted border-orange-500 cursor-pointer"
+            className="relative w-40 h-40 rounded-full border-4 border-dotted border-orange-500 cursor-pointer"
             onClick={handleImageClick}
           >
             <img
-              className="w-full h-full rounded-full object-cover border border-dashed border-orange-500 p-3"
+              className="w-full h-full rounded-full object-cover p-2"
               src={imageSrc}
               alt="Profile"
             />
             {/* Camera Icon */}
-            <div className="absolute bottom-0 right-0 bg-orange-500 rounded-full p-2 transform translate-x-1/40 translate-y-1/50">
+            <div className="absolute bottom-2 right-2 bg-orange-500 rounded-full p-2">
               <FaCamera className="text-white text-lg" />
             </div>
             {/* Hidden File Input */}

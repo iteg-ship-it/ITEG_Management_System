@@ -5,7 +5,7 @@ import Dashboard from "./components/dashboard/Dashboard";
 import LoginPage from "./components/common-components/login-page/LoginPage";
 // import AdmissionDashboard from "./components/admition-process/admission-dashboard/AdmissionDashboard";
 import ForgetPassword from "./components/common-components/forget-password/ForgetPassword";
-import CondfirmPassword from "./components/common-components/confirm-password/ConfirmPassword";
+import ConfirmPassword from "./components/common-components/confirm-password/ConfirmPassword";
 import GoogleAuthSuccess from "./helpers/GoogleAuthSuccess";
 
 // ✅ Protected Route Component
@@ -34,10 +34,10 @@ function App() {
           }
         />
 
-        {/* ✅ Public routes */}
+        {/*  Public routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/google" element={<GoogleAuthSuccess />} />
-        <Route path="/confirm-password" element={<CondfirmPassword />} />
+        <Route path="/reset-password/:token" element={<ConfirmPassword />} />
         <Route path="/forget-password" element={<ForgetPassword />} />
         {/* <Route path="/" element={<AdmissionDashboard />} /> */}
       </Routes>

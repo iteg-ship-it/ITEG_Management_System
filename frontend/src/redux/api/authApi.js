@@ -130,13 +130,28 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
-    // ----forget password link-----
 
+    // ---- Forget Password API ----
     forgetPassword: builder.mutation({
-      query: (data) => ({
-        url: import.meta.env.VITE_FORGET_PASSWORD, // e.g., '/auth/forgot-password'
+      query: ({ email }) => ({
+        url: import.meta.env.VITE_FORGET_PASSWORD, // or your actual endpoint
         method: "POST",
-        body: data,
+        body: { email },
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }),
+    }),
+
+    // ---- Reset Password API ----
+    resetPassword: builder.mutation({
+      query: ({ token, password }) => ({
+        url: `${import.meta.env.VITE_RESET_PASSWORD}/${token}`,
+        method: "POST",
+        body: { password },
+        headers: {
+          "Content-Type": "application/json",
+        },
       }),
     }),
 
@@ -194,6 +209,7 @@ export const {
   useLoginMutation,
   useLoginWithGoogleMutation,
   useForgetPasswordMutation,
+  useResetPasswordMutation,
   useSendOtpMutation,
   useVerifyOtpMutation,
   useRefreshTokenMutation,
