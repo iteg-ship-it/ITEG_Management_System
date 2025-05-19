@@ -22,6 +22,13 @@ router.get(
 
 router.post("/create_level/:id", verifyToken, checkRole(allowedRoles),studentController.createLevels);
 
+// Get All Students With Permission
+router.get("/permission_students", verifyToken, checkRole(allowedRoles), studentController.getAllPermissionStudents
+);
+
+// Update Student Permission
+router.put("/update_permission_student/:studentId", verifyToken, checkRole(allowedRoles), studentController.updatePermissionStudent);
+
 // Get Single Student by ID
 router.get("/:id", verifyToken, checkRole(allowedRoles), studentController.getStudentById);
 
