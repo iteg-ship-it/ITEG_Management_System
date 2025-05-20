@@ -7,7 +7,6 @@ import CustomTimeDate from "../date-time-modal/CustomTimeDate";
 import { useNavigate } from "react-router-dom";
 import UserProfile from "../../common-components/user-profile/UserProfile";
 
-// Converts string to Title Case
 const toTitleCase = (str) =>
   str
     ?.toLowerCase()
@@ -23,19 +22,17 @@ const StudentList = () => {
   const [selectedTracks, setSelectedTracks] = useState([]);
   const [selectedResults, setSelectedResults] = useState([]);
   const [selectedPercentages, setSelectedPercentages] = useState([]);
-  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Modal open function
   const scheduleButton = (student) => {
-    setSelectedStudent(student);
+    setSelectedStudentId(student._id); // store student ID
     setIsModalOpen(true);
   };
 
-  // Modal close function
   const handleCloseModal = () => {
-    setSelectedStudent(null);
+    setSelectedStudentId(null);
     setIsModalOpen(false);
   };
 
@@ -257,11 +254,11 @@ const StudentList = () => {
         actionButton={actionButton}
       />
 
-      {isModalOpen && selectedStudent && (
+      {isModalOpen && selectedStudentId && (
         <CustomTimeDate
           isOpen={isModalOpen}
           onClose={handleCloseModal}
-          student={selectedStudent}
+          studentId={selectedStudentId}
         />
       )}
     </>
@@ -269,6 +266,7 @@ const StudentList = () => {
 };
 
 export default StudentList;
+
 
 
 // import { useGetAllStudentsQuery,  } from "../../../redux/api/authApi";

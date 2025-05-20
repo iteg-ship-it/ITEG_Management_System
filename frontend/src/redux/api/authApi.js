@@ -193,10 +193,10 @@ export const authApi = createApi({
     }),
 
     interviewCreate: builder.mutation({
-      query: ({ id }) => ({
-        url: `${import.meta.env.VITE_INTERVIEW_CREATE}${id}`,
+      query: ({ studentId, ...formData }) => ({
+        url: `${import.meta.env.VITE_INTERVIEW_CREATE}${studentId}`,
         method: "POST",
-        body: { id },
+        body: formData,
         headers: {
           "Content-Type": "application/json",
         },

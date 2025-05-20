@@ -14,16 +14,13 @@
   border-radius: 4px;
 }
 
-/* .react-datepicker__day--selected,
-.react-datepicker__day--keyboard-selected,
-.react-datepicker__day--in-selecting-range,
-.react-datepicker__day--in-range {
-  background-color: #fb923c !important; 
-  color: white;
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
-.react-datepicker__day:hover {
-  background-color: #f97316 !important; 
-}*/
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 
 .input {
   @apply border p-2 rounded-md w-full;
