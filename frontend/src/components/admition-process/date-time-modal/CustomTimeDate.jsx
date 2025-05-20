@@ -58,8 +58,8 @@ const CustomTimeDate = ({ isOpen, onClose, studentId }) => {
           <div>
             <label className="text-sm font-medium">Round</label>
             <select name="round" value={formData.round} onChange={handleChange} className="w-full border rounded p-2">
-              <option value="First">First</option>
-              <option value="Second">Second</option>
+              <option value="First">Technical Round</option>
+              <option value="Second">Final Round</option>
             </select>
           </div>
 

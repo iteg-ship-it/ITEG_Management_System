@@ -8,7 +8,7 @@ import { loginValidationSchema } from "../../../validationSchema";
 
 import logo from "../../../assets/images/logo-ssism.png";
 import goggleLogo from "../../../assets/images/Google.png";
-// import linkedinLogo from "../../../assets/images/linkedin.png";
+import linkedinLogo from "../../../assets/images/linkedin.png";
 // import facebookLogo from "../../../assets/images/FB.png";
 
 import EmailField from "../common-feild/EmailField";
@@ -52,6 +52,9 @@ const LoginPage = () => {
   const handleGoogleLogin = () => {
     window.location.href = `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_LOGIN_WITH_GOOGLE}`;
   };
+  const handleOtpLogin = () => {
+    navigate("/otp-verification")
+  }
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
@@ -112,7 +115,9 @@ const LoginPage = () => {
                 <button type="button" onClick={handleGoogleLogin}>
                   <img src={goggleLogo} alt="Google" className="h-10" />
                 </button>
-
+                <button type="button" onClick={handleOtpLogin}>
+                  <img src={linkedinLogo} alt="LinkedIn" className="h-10" />
+                </button>
 
 
 

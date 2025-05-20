@@ -155,6 +155,25 @@ const StudentList = () => {
         </button>
       );
       break;
+ case "Final Round":
+  columns = [
+    { key: "firstName", label: "Full Name", render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`) },
+    { key: "fatherName", label: "Father's Name", render: (row) => toTitleCase(row.fatherName) },
+    { key: "studentMobile", label: "Mobile" },
+    { key: "course", label: "Course", render: (row) => toTitleCase(row.course) },
+    { key: "track", label: "Track", render: (row) => toTitleCase(row.track) },
+    { key: "stream", label: "Marks of tech", render: (row) => handleGetMarks(row.interviews) },
+  ];
+  actionButton = (row) => (
+    <button
+      onClick={() => navigate(`/interview-detail/${row._id}`)}
+      className="bg-orange-400 text-white font-semibold px-3 py-1 rounded hover:bg-orange-500"
+    >
+      Interviews Detail
+    </button>
+  );
+  break;
+
 
     case "Selected":
       columns = [
@@ -173,6 +192,7 @@ const StudentList = () => {
         </button>
       );
       break;
+    
 
     case "Rejected":
       columns = [

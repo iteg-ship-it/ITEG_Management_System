@@ -9,6 +9,7 @@ import StudentDashboard from "../student-records/student-dashboard/StudentDashbo
 import StudentDetailTable from "../student-records/student-detail-table/StudentDetailTable";
 import StudentPermission from "../student-records/student-permission/StudentPermission";
 import AdmissionEditPage from "../admition-process/admission-stu-edit-page/AdmissionEditPage";
+import AdmissionInterviewDetails from "../admition-process/admission-interview-detail/AdmissionInterviewDetails";
 
 const Dashboard = () => {
   return (
@@ -17,6 +18,7 @@ const Dashboard = () => {
       <Route path="/admission" element={<AdmissionProcess />} />
       <Route path="/admission/edit/:id" element={<AdmissionEditPage />} />
       <Route path="/admition-record" element={<AdmitionRecords />} />
+      <Route path="/interview-detail/:id" element={<AdmissionInterviewDetails />} />
       <Route path="/student-dashboard" element={<StudentDashboard />} />
       <Route path="/student-permission" element={<StudentPermission />} />
       <Route path="/student-detail-table" element={<StudentDetailTable />} />
