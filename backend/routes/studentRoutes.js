@@ -7,11 +7,7 @@ const allowedRoles = ["superadmin", "faculty", "admin"];
 // Register Student
 // //Swagger
 router.post("/admitted", studentController.createAdmittedStudent);
-
-// // Get All Permission Students
-// router.get("/permission-students", verifyToken, checkRole(['Super Admin', 'Admin', 'Faculty']), studentController.getAllPermissionStudents);
-
-// // // Get All Students
+// Get All Students
 router.get(
   "/getall",
   verifyToken,
@@ -50,10 +46,8 @@ router.get("/get_levels/:id", verifyToken, checkRole(allowedRoles),studentContro
 // // // // Add Interview Record
 
 // // // router.put("/:interviewId",studentController. updateInterview);
-// // Swagger
-// router.post("/create/level/:id", verifyToken, checkRole(allowedRoles),studentController. createLevel);
 
-// router.get("/student/level/:levelNo", verifyToken, checkRole(allowedRoles),studentController. getStudentsByLevel );
+ router.get("/level/:levelNo", verifyToken, checkRole(allowedRoles),studentController.getLevelWiseStudents );
 
 // router.get("/total/student/:levelNo", verifyToken, checkRole(allowedRoles),studentController. getStudentCountBySpecificLevel );
 

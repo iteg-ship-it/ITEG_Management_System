@@ -1,7 +1,7 @@
 
 openapi: 3.0.0
 info:
-  title: User Management API
+  title: ITEG Management API
   version: 1.0.0
   description: API for managing users like admin, superadmin, and faculty.
 
@@ -786,6 +786,10 @@ paths:
                 track:
                   type: string
                   example: "harda"
+                email:
+                  type: string
+                  format: email
+                  example: "ssism.org"
                 village:
                   type: string
                   example: "Harda"
@@ -1478,3 +1482,50 @@ paths:
                     example: "Server Error"
                   error:
                     type: string
+
+
+
+  /api/admitted/students/level/{levelNo}:
+    get:
+      summary: Get students by their latest level number
+      tags:
+        - Admitted Student
+      parameters:
+        - in: path
+          name: levelNo
+          required: true
+          schema:
+            type: string
+          description: Level number to filter students by their latest level
+      responses:
+        '200':
+          description: List of students with the specified latest level
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdmittedStudent'
+        '404':
+          description: No students found for this level
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: No students found for this level
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  error:
+                    type: object
+
+ 

@@ -222,3 +222,30 @@ exports.getStudentLevels = async (req, res) => {
   }     
 }
 
+exports.getLevelWiseStudents = async (req, res) => {
+  try {
+    const { levelNo } = req.params;
+
+    const students = await AdmittedStudent.aggregate([
+      {
+        $addFields: {
+          latestLevel: { $arrayElemAt: ["$level", -1] }
+        }
+      },
+      {
+        $match: {
+          "latestLevel.levelNo": levelNo
+        }
+      }
+    ]);
+
+    if (!students || students.length === 0) {
+      return res.status(404).json({ message: "No students found for this level" });
+    }
+
+    res.status(200).json(students);
+  } catch (error) {
+    console.error("Error fetching students by latest level:", error);
+    res.status(500).json({ message: "Server Error", error });
+  }
+};
