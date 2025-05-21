@@ -1,6 +1,8 @@
 const AdmissionProcess = require("../models/admissionProcessStudent");
 const AdmittedStudent = require("../models/admittedStudent");
 
+const { sendEmail } = require('./emailController');
+
 // ✅ Create New Admitted Student (from AdmissionProcess)
 exports.createAdmittedStudent = async (req, res) => {
   try {
@@ -184,6 +186,20 @@ exports.createLevels = async (req, res) => {
         student.readinessStatus = "Ready";
       }
     }
+    
+
+      // // ✅ Send plain text email if admission confirmed
+         if (newInterview.result === "Fail"&& student.email) {
+          await sendEmail({
+            to: student.email,
+            subject: `Interview Result - Level  ${newInterview.levelNo}`,
+            text: `Hi ${student.firstName},\n\nThank you for attending the level interview. We regret to inform you that you have not cleared the interview for Level  ${newInterview.levelNo}.
+
+We appreciate your effort and encourage you to stay positive and keep striving for future opportunities.
+
+Best wishes`,
+          });
+         }
 
 
     await student.save();

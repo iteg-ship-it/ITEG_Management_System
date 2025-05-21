@@ -1245,7 +1245,7 @@ paths:
 
 
 
-    /api/admitted/students/getall:
+  /api/admitted/students/getall:
     get:
       summary: Get all admitted students
       description: Fetches a list of all admitted students.
