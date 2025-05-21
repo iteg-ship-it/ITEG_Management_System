@@ -183,11 +183,11 @@ exports.createLevels = async (req, res) => {
 
 
 
-      if (newInterview.result === "Pass" && newInterview.levelNo === "1C") {
+      if (newInterview.result === "Pass" && newInterview.levelNo === "1B") {
   if (student?.email) {
     await sendHTMLMail({
       to: student.email,
-      studentName: student.firstName || "Student",
+      studentName: student.firstName + " " + student.lastName,
     });
     console.log("Email sent to student:", student.email);
   } else {
@@ -201,16 +201,6 @@ exports.createLevels = async (req, res) => {
         student.readinessStatus = "Ready";
       }
     }
-
-    //  if (newInterview.result === "Pass" && newInterview.levelNo === "") {
-    //     await sendHTMLMail({
-    //     to: student.email,
-    //     studentName: student.firstName,
-    //  });
-    //     console.log("Email sent to student:", student.email);
-    //   }
-
-
 
     await student.save();
 
