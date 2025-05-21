@@ -1,5 +1,6 @@
 const AdmissionProcess = require("../models/admissionProcessStudent");
 const AdmittedStudent = require("../models/admittedStudent");
+const { sendHTMLMail } = require("./emailController");
 
 // ✅ Create New Admitted Student (from AdmissionProcess)
 exports.createAdmittedStudent = async (req, res) => {
@@ -180,10 +181,35 @@ exports.createLevels = async (req, res) => {
         student.level.some(entry => entry.levelNo === level && entry.result === "Pass")
       );
 
+
+
+      if (newInterview.result === "Pass" && newInterview.levelNo === "1C") {
+  if (student?.email) {
+    await sendHTMLMail({
+      to: student.email,
+      studentName: student.firstName || "Student",
+    });
+    console.log("Email sent to student:", student.email);
+  } else {
+    console.log("❌ No email found for student:", student?.prkey || student?._id);
+  }
+}
+
+
+     
       if (allLevelsPassed) {
         student.readinessStatus = "Ready";
       }
     }
+
+    //  if (newInterview.result === "Pass" && newInterview.levelNo === "") {
+    //     await sendHTMLMail({
+    //     to: student.email,
+    //     studentName: student.firstName,
+    //  });
+    //     console.log("Email sent to student:", student.email);
+    //   }
+
 
 
     await student.save();
