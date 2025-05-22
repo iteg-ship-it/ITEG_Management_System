@@ -12,6 +12,7 @@ require("dotenv").config();
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET; // ✅ Also load this from .env
 
 exports.addAdmission = async (req, res) => {
+  
   try {
     const payload = req.body;
 
@@ -108,16 +109,16 @@ exports.updateAdmissionFlag = async (req, res, next) => {
 };
 
 
-
 // update the itegIntervieFlag 
 exports.sendInterviewFlagToCentral = async (req, res) => {
+  
   try {
     const { studentId } = req.params;
     // 0) Validate input
     if (!studentId) {
       return res.status(400).json({ message: 'Student ID is required' });
     }
-
+    if(AdmissionProcess.status==="Active"){
     // 1) Update interview flag locally
     const student = await AdmissionProcess.findByIdAndUpdate(
       studentId,
@@ -153,22 +154,11 @@ exports.sendInterviewFlagToCentral = async (req, res) => {
       message: 'Interview flag updated and sent to central',
       centralResponse: response.data
     });
-
-  // } catch (err) {
-  //   // Axios error with custom payload
-  //   if (err.response && err.response.data) {
-  //     return res.status(500).json({
-  //       message: 'Server error',
-  //       error: err.response.data,
-  //     });
-  //   }
-  
-  //   // General error fallback (includes your test case error)
-  //   return res.status(500).json({
-  //     message: 'Server error',
-  //     error: err.message || 'Unknown error',
-  //   });
-  // }
+  } else {
+    return res.status(400).json({
+      message: 'Student is not active, cannot update interview flag',
+    });
+  }
 
 } catch (err) {
   console.error("❌ Full error:", err);

@@ -22,6 +22,7 @@ const StudentAdmissionProcessSchema = new mongoose.Schema(
     year12: { type: String, required: true },
     percent12: { type: String },
     percent10: { type: String },
+    // status:{ enum: ['Active', 'Inactive'], default: 'Active' },
 
     // Admission process tracking
     itegInterviewFlag: { type: Boolean, default: false }, // Final flag
