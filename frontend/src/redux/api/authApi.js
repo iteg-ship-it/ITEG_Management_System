@@ -146,7 +146,7 @@ export const authApi = createApi({
     // ---- Reset Password API ----
     resetPassword: builder.mutation({
       query: ({ token, password }) => ({
-        url: `${import.meta.env.VITE_RESET_PASSWORD}/${token}`,
+        url: `${import.meta.env.VITE_RESET_PASSWORD}/${token}`, // Token from URL
         method: "POST",
         body: { password },
         headers: {
@@ -154,6 +154,7 @@ export const authApi = createApi({
         },
       }),
     }),
+
 
     // ----otp-----
     // verify the otp

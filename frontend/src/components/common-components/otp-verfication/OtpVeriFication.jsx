@@ -1,121 +1,76 @@
 import { useState } from "react";
-import ReusableForm from "../../../ReusableForm";
-import EmailField from "../common-feild/EmailField";
-import logo from "../../../assets/images/otpVerify.png"
-import logoVerify from "../../../assets/images/otpEnter.png"
+import { useNavigate } from "react-router-dom";
+import { useSendOtpMutation } from "../../../redux/api/authApi";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import logoVerify from "../../../assets/images/otpVerify.png"
+
+
 const OtpVeriFication = () => {
-    return (
-        <>
-            <div className="flex justify-center items-center h-screen bg-gray-100">
-                <div className="bg-white p-10 rounded-lg w-full max-w-sm">
-                    <div className="flex flex-col items-center">
-                        <img src={logo} alt="SSISM Logo" />
-                        <h2 className="text-2xl font-bold text-gray-800 mt-5 mb-2">Verify Your email address</h2>
-                        <p className="text-sm text-gray-500">
-                            Enter your Email Address
-                        </p>
-                    </div>
+    const [sendOtp, { isLoading }] = useSendOtpMutation();
+    const [email, setEmail] = useState("");
+    const [errorMsg, setErrorMsg] = useState("");
+    const navigate = useNavigate();
 
-                    {/* ✅ ReusableForm properly used */}
-                    <ReusableForm
-                    // initialValues={initialValues}
-                    // validationSchema={loginValidationSchema}
-                    >
-                        {(values, handleChange) => (
-                            <>
-                                <div className="mt-4">
-                                    <EmailField value={values.email} onChange={handleChange} />
-                                </div>
-
-                                <button
-                                    // onClick={navigate("/confirm-password")}
-                                    type="submit"
-                                    className="w-full bg-orange-500 text-white py-3 rounded-full mt-4 hover:bg-orange-600 transition"
-                                >
-                                    Send OTP
-                                </button>
-                            </>
-                        )}
-                    </ReusableForm>
-                </div >
-            </div>
-            <VerifyEmail />
-        </>
-    )
-}
-
-export default OtpVeriFication
-
-
-
-const VerifyEmail = () => {
-    const [otp, setOtp] = useState(new Array(6).fill(""));
-
-    const handleChange = (element, index) => {
-        const val = element.value.replace(/[^0-9]/g, "");
-        if (val.length > 1) return;
-
-        let newOtp = [...otp];
-        newOtp[index] = val;
-        setOtp(newOtp);
-
-        // Move focus
-        if (val && index < 5) {
-            document.getElementById(`otp-${index + 1}`).focus();
+    const handleSendOtp = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await sendOtp({ email }).unwrap();
+            console.log("OTP sent successfully:", response);
+            toast.success("OTP sent successfully!");
+            setTimeout(() => {
+                navigate("/otp-enter", { state: { email } });
+            }, 1500);
+        } catch (err) {
+            console.error("Failed to send OTP:", err);
+            setErrorMsg("Failed to send OTP. Please try again.");
+            toast.error("Failed to send OTP.");
         }
     };
 
     return (
-        <div className="flex justify-center items-center min-h-screen bg-gray-100">
-            <div className="bg-white border rounded-2xl shadow-lg px-6 py-8 w-full max-w-md text-center">
-                {/* Lock Icon */}
-                <div className="flex justify-center">
-                    <div className="rounded-lg p-4">
-                        <img src={logoVerify} alt="SSISM Logo" />
+        <div className="min-h-screen flex items-center justify-center ">
+            <div className="w-full max-w-md">
+                <form
+                    onSubmit={handleSendOtp}
+                    className="border border-200 rounded-lg shadow-lg py-14 flex flex-col items-center justify-center text-center"
+                >
+                    {/* Email Icon + Envelope Illustration */}
+                    <img
+                        src={logoVerify}
+                        alt="email"
+                    />
 
-                        {/* <FiLock className="text-white text-2xl" /> */}
-                    </div>
-                </div>
+                    {/* Title */}
+                    <h2 className="text-lg font-semibold mb-1 text-gray-800">Verify Your email address</h2>
+                    <p className="text-sm text-gray-500 mb-4">Enter Your Email Address</p>
 
-                {/* Heading */}
-                <h2 className="text-2xl font-bold text-gray-800 mt-5 mb-2">Enter Your Valid OTP</h2>
-                <p className="text-sm text-gray-500 mb-6">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore
-                </p>
+                    {/* Input */}
+                    <input
+                        type="email"
+                        placeholder="email"
+                        className="border w-72 px-4 py-3 rounded-xl mb-4 bg-gray-100 focus:outline-none"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
 
-                {/* OTP Inputs */}
-                <div className="flex justify-center gap-2 mb-4">
-                    {otp.map((data, index) => (
-                        <input
-                            key={index}
-                            id={`otp-${index}`}
-                            type="text"
-                            maxLength="1"
-                            value={data}
-                            onChange={(e) => handleChange(e.target, index)}
-                            className={`w-12 h-14 text-center text-xl border ${data ? "border-orange-500" : "border-gray-300"
-                                } rounded-md focus:outline-none`}
-                        />
-                    ))}
-                </div>
+                    {/* Submit Button */}
+                    <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="bg-orange-400 w-60 hover:bg-orange-500 text-white font-medium px-6 py-3 rounded-full"
+                    >
+                        {isLoading ? "Sending OTP..." : "Send OTP"}
+                    </button>
 
-                {/* Change Email Link */}
-                <p className="text-sm text-gray-700 mb-4">
-                    Want to Change Your Email Address?{" "}
-                    <a href="#" className="text-black font-semibold underline">Change Here</a>
-                </p>
+                    {errorMsg && <p className="text-red-600 text-sm mt-2">{errorMsg}</p>}
+                </form>
 
-                {/* Submit Button */}
-                <button className="w-full bg-orange-400 hover:bg-orange-500 text-white py-3 rounded-full text-lg font-semibold transition">
-                    Verify Email
-                </button>
-
-                {/* Resend Link */}
-                <p className="mt-4 text-sm text-gray-800">
-                    <a href="#" className="underline font-medium">Resend Code</a>
-                </p>
+                <ToastContainer position="top-center" autoClose={2000} />
             </div>
         </div>
     );
 };
 
+export default OtpVeriFication;

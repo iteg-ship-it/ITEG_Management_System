@@ -6,11 +6,12 @@ import UserProfile from "../../common-components/user-profile/UserProfile";
 const AdmissionInterviewDetails = () => {
     const { id } = useParams();
     const { data, isLoading, error } = useGetInterviewDetailByIdQuery(id);
+    const studentData = JSON.parse(localStorage.getItem('studdedntDetails'))
 
     if (isLoading) return <p>Loading interview details...</p>;
     if (error) return <p>Error loading interview details.</p>;
 
-    const student = data?.student;
+    // const student = data?.student;
     const interviews = data?.interviews || [];
 
     return (
@@ -21,8 +22,8 @@ const AdmissionInterviewDetails = () => {
                 <div>
                     <h2 className="text-2xl font-semibold mb-4">Student Information</h2>
                     <div className="space-y-2 text-sm text-gray-800">
-                        <p><strong>Name:</strong> {student?.firstName} {student?.lastName}</p>
-                        <p><strong>Track:</strong> {student?.track}</p>
+                        <p><strong>Name:</strong> {studentData?.firstName} {studentData?.lastName}</p>
+                        <p><strong>Track:</strong> {studentData?.track}</p>
                     </div>
                 </div>
 
