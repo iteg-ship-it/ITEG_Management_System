@@ -1,5 +1,6 @@
 const AdmissionProcess = require("../models/admissionProcessStudent");
 const AdmittedStudent = require("../models/admittedStudent");
+const { sendHTMLMail } = require("./emailController");
 
 const { sendEmail } = require('./emailController');
 
@@ -182,6 +183,22 @@ exports.createLevels = async (req, res) => {
         student.level.some(entry => entry.levelNo === level && entry.result === "Pass")
       );
 
+
+
+      if (newInterview.result === "Pass" && newInterview.levelNo === "1B") {
+  if (student?.email) {
+    await sendHTMLMail({
+      to: student.email,
+      studentName: student.firstName + " " + student.lastName,
+    });
+    console.log("Email sent to student:", student.email);
+  } else {
+    console.log("❌ No email found for student:", student?.prkey || student?._id);
+  }
+}
+
+
+     
       if (allLevelsPassed) {
         student.readinessStatus = "Ready";
       }
@@ -201,7 +218,6 @@ Best wishes`,
           });
          }
 
-
     await student.save();
 
     res.status(201).json({
@@ -216,7 +232,21 @@ Best wishes`,
   }
 };
 
+// Get all students with permissionDetails granted
+exports.getAllPermissionStudents = async (req, res) => {
+  try {
+    const students = await AdmittedStudent.find({ permissionDetails: { $ne: null } }).select('-password');
 
+    res.status(200).json({
+      success: true,
+      count: students.length,
+      data: students
+    });
+  } catch (error) {
+    console.error("Get Permission Students Error:", error);
+    res.status(500).json({ message: "Server Error", error });
+  }
+};
 
 
 exports.getStudentLevels = async (req, res) => {
@@ -262,6 +292,45 @@ exports.getLevelWiseStudents = async (req, res) => {
     res.status(200).json(students);
   } catch (error) {
     console.error("Error fetching students by latest level:", error);
+    res.status(500).json({ message: "Server Error", error });
+  }
+};
+// Update a student's permissionDetails
+exports.updatePermissionStudent = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const { imageURL, remark, approved_by } = req.body;
+
+    // Base64 image validation
+    if (!/^data:image\/(png|jpeg|jpg);base64,/.test(imageURL)) {
+      return res.status(400).json({ message: "Invalid image format. Must be Base64 string." });
+    }
+
+    // Validate role
+    if (!['super admin', 'admin', 'faculty'].includes(approved_by)) {
+      return res.status(400).json({ message: "Invalid approver role." });
+    }
+
+    const student = await AdmittedStudent.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    student.permissionDetails = {
+      imageURL,
+      remark,
+      approved_by,
+      uploadDate: new Date()
+    };
+
+    await student.save();
+
+    res.status(200).json({
+      message: "Permission updated successfully",
+      student
+    });
+  } catch (error) {
+    console.error("Update Permission Error:", error);
     res.status(500).json({ message: "Server Error", error });
   }
 };
