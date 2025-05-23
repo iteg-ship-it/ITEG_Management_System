@@ -271,3 +271,26 @@ exports.updatePermissionStudent = async (req, res) => {
     res.status(500).json({ message: "Server Error", error });
   }
 };
+
+exports.updatePlacementInfo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { companyName, salary, location, jobProfile } = req.body;
+
+    const student = await AdmittedStudent.findById(id);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    student.placedInfo = { companyName, salary, location, jobProfile };
+
+    await student.save();
+    return res.status(200).json({
+      message: "Placement information updated successfully.",
+      placedInfo: student.placedInfo
+    });
+  } catch (error) {
+    console.error("Error updating placement info:", error);
+    return res.status(500).json({ message: "Server Error", error });
+  }
+};
