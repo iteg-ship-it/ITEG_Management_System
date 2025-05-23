@@ -183,7 +183,7 @@ exports.createLevels = async (req, res) => {
 
 
 
-      if (newInterview.result === "Pass" && newInterview.levelNo === "1B") {
+      if (newInterview.result === "Pass" && newInterview.levelNo === "1C") {
   if (student?.email) {
     await sendHTMLMail({
       to: student.email,
