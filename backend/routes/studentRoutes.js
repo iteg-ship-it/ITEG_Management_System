@@ -28,8 +28,11 @@ router.put("/update_permission_student/:studentId", verifyToken, checkRole(allow
 // Get Single Student by ID
 router.get("/:id", verifyToken, checkRole(allowedRoles), studentController.getStudentById);
 
+router.get("/get_levels/:id", verifyToken, checkRole(allowedRoles), studentController.getStudentLevels);
 
-router.get("/get_levels/:id", verifyToken, checkRole(allowedRoles),studentController. getStudentLevels );
+router.put("/update-placement/:id", verifyToken, checkRole(allowedRoles), studentController.updatePlacementInfo);
+
+
 
 
 // router.patch("/update/:id", verifyToken, checkRole(allowedRoles), studentController.updateStudent);

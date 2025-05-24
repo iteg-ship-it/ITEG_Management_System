@@ -246,6 +246,64 @@ exports.getAllPermissionStudents = async (req, res) => {
   }
 };
 
+// Update a student's permissionDetails
+exports.updatePermissionStudent = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const { imageURL, remark, approved_by } = req.body;
+
+    // Base64 image validation
+    if (!/^data:image\/(png|jpeg|jpg);base64,/.test(imageURL)) {
+      return res.status(400).json({ message: "Invalid image format. Must be Base64 string." });
+    }
+
+    // Validate role
+    if (!['super admin', 'admin', 'faculty'].includes(approved_by)) {
+      return res.status(400).json({ message: "Invalid approver role." });
+    }
+
+    const student = await AdmittedStudent.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    student.permissionDetails = {
+      imageURL,
+      remark,
+      approved_by,
+      uploadDate: new Date()
+    };
+
+    await student.save();
+
+    res.status(200).json({
+      message: "Permission updated successfully",
+      student
+    });
+  } catch (error) {
+    console.error("Update Permission Error:", error);
+    res.status(500).json({ message: "Server Error", error });
+  }
+};
+
+exports.updatePlacementInfo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const student = await AdmittedStudent.findById(id);
+    const { companyName, salary, location, jobProfile } = req.body;
+    student.placedInfo = { companyName, salary, location, jobProfile };
+
+    await student.save();
+    return res.status(200).json({
+      message: "Placement information updated successfully.",
+      placedInfo: student.placedInfo
+    });
+  } catch (error) {
+    console.error("Error updating placement info:", error);
+    return res.status(500).json({ message: "Server Error", error });
+  }
+};
+
 
 exports.getStudentLevels = async (req, res) => {
   try {

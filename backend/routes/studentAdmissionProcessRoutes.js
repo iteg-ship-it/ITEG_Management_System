@@ -1,6 +1,6 @@
 const express = require("express");
 const studentAdmissionProcess = require("../modules/student/controllers/admissionProcessStudentControllers");
-const studentAdmitted = require("../modules/student/controllers/admittedStudentController");
+const studentAdmitted = require("../modules/student/controllers/AdmittedStudentController");
 const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
 const router = express.Router();
 
