@@ -31,29 +31,8 @@ router.get("/:id", verifyToken, checkRole(allowedRoles), studentController.getSt
 
 router.get("/get_levels/:id", verifyToken, checkRole(allowedRoles),studentController. getStudentLevels );
 
-// Create Permission Student API (Only authorized roles)
-// router.post('/create-permission-student/:id', verifyToken, checkRole(['Super Admin', 'Admin', 'Faculty']), studentController.createPermissionStudent);
 
-// // Update Permission Student API (Only authorized roles)
-// router.put('/update-permission-student/:studentId', verifyToken, checkRole(['Super Admin', 'Admin', 'Faculty']), studentController.updatePermissionStudent);
-
-// // // Update Student Data
-// //Swagger
 // router.patch("/update/:id", verifyToken, checkRole(allowedRoles), studentController.updateStudent);
-
-// // // Delete Student
-// router.delete("/:id", verifyToken, checkRole(allowedRoles), studentController.deleteStudent);
-// //swagger
-// router.post("/create/interviews/:id", verifyToken,  checkRole(allowedRoles),studentController. addInterviewRecord);
-
-// router.get("/interviews/:id", verifyToken, checkRole(allowedRoles),studentController. getStudentInterview );
-// //Swagger
-// // Update Interview Record
-// router.patch("/up/interviews/:id", verifyToken, checkRole(allowedRoles),studentController. updateInterviewResult);
-// // // // Add Interview Record
-
-// // // router.put("/:interviewId",studentController. updateInterview);
-
  router.get("/level/:levelNo", verifyToken, checkRole(allowedRoles),studentController.getLevelWiseStudents );
 
 // router.get("/total/student/:levelNo", verifyToken, checkRole(allowedRoles),studentController. getStudentCountBySpecificLevel );

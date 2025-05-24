@@ -1599,3 +1599,129 @@ paths:
 
  
                     type: string
+
+
+  /api/admission/students/webhook/update-admitted-student:
+    patch:
+      summary: Update admitted student by primary key (prkey)
+      tags:
+        - Admitted Student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - prkey
+              properties:
+                prkey:
+                  type: string
+                  example: "SS123457"
+                firstName:
+                  type: string
+                  example: "UpdatedFirstName"
+                lastName:
+                  type: string
+                  example: "UpdatedLastName"
+                fatherName:
+                  type: string
+                  example: "UpdatedFather"
+                email:
+                  type: string
+                  format: email
+                  example: "updated.email@example.com"
+                studentMobile:
+                  type: string
+                  example: "9876543210"
+                parentMobile:
+                  type: string
+                  example: "9123456780"
+                gender:
+                  type: string
+                  enum: [Male, Female, Other]
+                  example: "Male"
+                dob:
+                  type: string
+                  format: date
+                  example: "2006-07-20"
+                aadharCard:
+                  type: string
+                  example: "1234-5678-9012"
+                village:
+                  type: string
+                  example: "UpdatedVillage"
+                track:
+                  type: string
+                  example: "Science"
+                category:
+                  type: string
+                  example: "OBC"
+                stream:
+                  type: string
+                  example: "PCM"
+                course:
+                  type: string
+                  example: "B.Sc"
+                subject12:
+                  type: string
+                  example: "Physics, Chemistry, Math"
+                year12:
+                  type: string
+                  example: "2024"
+                percent12:
+                  type: string
+                  example: "85.60"
+                percent10:
+                  type: string
+                  example: "88.40"
+                address:
+                  type: string
+                  example: "123 New Street, Town, State"
+      responses:
+        "200":
+          description: Admitted student updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Admitted student updated successfully
+                  data:
+                    $ref: '#/components/schemas/AdmittedStudent'
+        "400":
+          description: Missing or invalid prkey
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Admission ID (prkey) is required
+        "404":
+          description: Admitted student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Admitted student not found
+        "500":
+          description: Server error during update
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Update failed
+                  error:
+                    type: string
+                    example: Detailed error message
+

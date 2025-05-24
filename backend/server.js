@@ -50,6 +50,8 @@ app.use("/api/admitted/students",  admittedStudentRoutes);
 // webhook routes
 app.use("/api/admission/students/webhook", webhookRoutes);
 
+app.use("/api/admitted/students/webhook", webhookRoutes);
+
 // in your main server.js / app.js
 app.use('/api/user/otp', otpRoutes);
 

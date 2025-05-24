@@ -185,7 +185,7 @@ exports.createLevels = async (req, res) => {
 
 
 
-      if (newInterview.result === "Pass" && newInterview.levelNo === "1B") {
+      if (newInterview.result === "Pass" && newInterview.levelNo === "1C") {
   if (student?.email) {
     await sendHTMLMail({
       to: student.email,
@@ -203,8 +203,6 @@ exports.createLevels = async (req, res) => {
         student.readinessStatus = "Ready";
       }
     }
-    
-
       // // ✅ Send plain text email if admission confirmed
          if (newInterview.result === "Fail"&& student.email) {
           await sendEmail({
@@ -295,6 +293,7 @@ exports.getLevelWiseStudents = async (req, res) => {
     res.status(500).json({ message: "Server Error", error });
   }
 };
+
 // Update a student's permissionDetails
 exports.updatePermissionStudent = async (req, res) => {
   try {
@@ -332,5 +331,70 @@ exports.updatePermissionStudent = async (req, res) => {
   } catch (error) {
     console.error("Update Permission Error:", error);
     res.status(500).json({ message: "Server Error", error });
+  }
+};
+
+
+
+
+exports.updateAdmittedStudent = async (req, res) => {
+  try {
+    console.log("Received update request for admitted student:", req.body);
+
+    const { prkey } = req.body;
+    if (!prkey) {
+      return res.status(400).json({ message: "Admission ID (prkey) is required" });
+    }
+
+    // Define which fields you want to allow updates for
+    const updateFields = {
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      fatherName: req.body.fatherName,
+      email: req.body.email,
+      studentMobile: req.body.studentMobile,
+      parentMobile: req.body.parentMobile,
+      gender: req.body.gender,
+      dob: req.body.dob,
+      aadharCard: req.body.aadharCard,
+      village: req.body.village,
+      track: req.body.track,
+      category: req.body.category,
+      stream: req.body.stream,
+      course: req.body.course,
+      subject12: req.body.subject12,
+      year12: req.body.year12,
+      percent12: req.body.percent12,
+      percent10: req.body.percent10,
+      address: req.body.address,
+    };
+
+    // Remove undefined fields (in case partial update)
+    Object.keys(updateFields).forEach(key => {
+      if (updateFields[key] === undefined) {
+        delete updateFields[key];
+      }
+    });
+
+    const updatedStudent = await AdmittedStudent.findOneAndUpdate(
+      { prkey }, // Match by prkey field
+      updateFields,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedStudent) {
+      return res.status(404).json({ message: "Admitted student not found" });
+    }
+
+    return res.status(200).json({
+      message: "Admitted student updated successfully",
+      data: updatedStudent,
+    });
+  } catch (error) {
+    console.error("Error during admitted student update:", error);
+    return res.status(500).json({
+      message: "Update failed",
+      error: error.message,
+    });
   }
 };
