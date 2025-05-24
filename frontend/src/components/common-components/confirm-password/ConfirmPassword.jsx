@@ -16,21 +16,31 @@ const ConfirmPassword = () => {
     password: "",
     confirmpassword: "",
   };
-
   const handleSubmit = async (values) => {
     try {
-      const response = await resetPassword({ token, password: values.password });
-      if (response.data) {
-        alert("Password reset successful!");
-        navigate("/"); // Redirect to home
+      const payload = {
+        token,
+        body: {
+          newPassword: values.password,
+          confirmPassword: values.confirmpassword,
+        },
+      };
+
+      const response = await resetPassword(payload).unwrap();
+
+      if (response) {
+        // alert("Password reset successful!");
+        navigate("/login");
       } else {
         alert("Password reset failed. Please try again.");
       }
     } catch (err) {
       console.error("Reset failed:", err);
-      alert("Something went wrong.");
+      alert(err?.data?.message || "Something went wrong.");
     }
   };
+
+
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">

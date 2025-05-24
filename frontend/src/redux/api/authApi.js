@@ -145,13 +145,10 @@ export const authApi = createApi({
 
     // ---- Reset Password API ----
     resetPassword: builder.mutation({
-      query: ({ token, password }) => ({
-        url: `${import.meta.env.VITE_RESET_PASSWORD}/${token}`, // Token from URL
+      query: ({ token, body }) => ({
+        url: `${import.meta.env.VITE_RESET_PASSWORD}${token}`,
         method: "POST",
-        body: { password },
-        headers: {
-          "Content-Type": "application/json",
-        },
+        body,
       }),
     }),
 
