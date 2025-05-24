@@ -1,7 +1,7 @@
 
 openapi: 3.0.0
 info:
-  title: User Management API
+  title: ITEG Management API
   version: 1.0.0
   description: API for managing users like admin, superadmin, and faculty.
 
@@ -786,6 +786,10 @@ paths:
                 track:
                   type: string
                   example: "harda"
+                email:
+                  type: string
+                  format: email
+                  example: "ssism.org"
                 village:
                   type: string
                   example: "Harda"
@@ -1310,6 +1314,75 @@ paths:
 
 
 
+  /api/admitted/students/getall:
+    get:
+      summary: Get all admitted students
+      description: Fetches a list of all admitted students.
+      tags:
+        - Admitted Student
+      responses:
+        '200':
+          description: List of admitted students
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdmittedStudent'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server error
+
+  /api/admitted/students/{id}:
+    get:
+      summary: Get student by ID
+      description: Fetches a single admitted student's details using their unique MongoDB ObjectId.
+      tags:
+        - Admitted Student
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the admitted student
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Student found successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdmittedStudent'
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student not found
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  error:
+                    type: string
+  
+
   /api/admitted/students/create_level/{id}:
     post:
       summary: Add new level attempt for a student
@@ -1367,6 +1440,7 @@ paths:
                     type: string
                   student:
                     $ref: '#/components/schemas/AdmittedStudent'
+                    $ref: '#/components/schemas/Admission/Level'
         '400':
           description: Bad Request (e.g., all levels completed or duplicate passed level)
           content:
@@ -1402,3 +1476,127 @@ paths:
                     type: string
                   error:
                     type: string
+                    type: string
+
+
+
+  /api/admitted/students/get_levels/{id}:
+    get:
+      summary: Get all interview levels of a student
+      description: Retrieve all interview levels for a student by their ID.
+      tags:
+        - Admitted Student
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the student
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of interview levels
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    levelNo:
+                      type: string
+                      example: "1A"
+                    noOfAttempts:
+                      type: integer
+                      example: 1
+                    Theoretical_Marks:
+                      type: number
+                      example: 30
+                    Practical_Marks:
+                      type: number
+                      example: 25
+                    Communication_Marks:
+                      type: number
+                      example: 15
+                    marks:
+                      type: number
+                      example: 70
+                    remark:
+                      type: string
+                      example: "Good performance"
+                    date:
+                      type: string
+                      format: date-time
+                      example: "2025-05-01T10:00:00Z"
+                    result:
+                      type: string
+                      example: "Pass"
+        '404':
+          description: Student or levels not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Student not found"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Server Error"
+                  error:
+                    type: string
+
+
+
+  /api/admitted/students/level/{levelNo}:
+    get:
+      summary: Get students by their latest level number
+      tags:
+        - Admitted Student
+      parameters:
+        - in: path
+          name: levelNo
+          required: true
+          schema:
+            type: string
+          description: Level number to filter students by their latest level
+      responses:
+        '200':
+          description: List of students with the specified latest level
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdmittedStudent'
+        '404':
+          description: No students found for this level
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: No students found for this level
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  error:
+                    type: object
+
+ 

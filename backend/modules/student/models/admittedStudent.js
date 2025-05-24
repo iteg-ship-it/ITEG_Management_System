@@ -119,7 +119,7 @@ const AdmittedStudentSchema = new mongoose.Schema({
   },
 
   // 🎓 Personal Details
-   prkey: { type: String, required: true, unique: true },
+  prkey: { type: String, required: true, unique: true },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     fatherName: { type: String, required: true },

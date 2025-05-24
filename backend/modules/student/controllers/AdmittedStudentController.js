@@ -2,6 +2,8 @@ const AdmissionProcess = require("../models/admissionProcessStudent");
 const AdmittedStudent = require("../models/admittedStudent");
 const { sendHTMLMail } = require("./emailController");
 
+const { sendEmail } = require('./emailController');
+
 // ✅ Create New Admitted Student (from AdmissionProcess)
 exports.createAdmittedStudent = async (req, res) => {
   try {
@@ -201,6 +203,20 @@ exports.createLevels = async (req, res) => {
         student.readinessStatus = "Ready";
       }
     }
+    
+
+      // // ✅ Send plain text email if admission confirmed
+         if (newInterview.result === "Fail"&& student.email) {
+          await sendEmail({
+            to: student.email,
+            subject: `Interview Result - Level  ${newInterview.levelNo}`,
+            text: `Hi ${student.firstName},\n\nThank you for attending the level interview. We regret to inform you that you have not cleared the interview for Level  ${newInterview.levelNo}.
+
+We appreciate your effort and encourage you to stay positive and keep striving for future opportunities.
+
+Best wishes`,
+          });
+         }
 
     await student.save();
 
@@ -277,6 +293,10 @@ exports.updatePlacementInfo = async (req, res) => {
     const { id } = req.params;
     const { companyName, salary, location, jobProfile } = req.body;
 
+
+exports.getStudentLevels = async (req, res) => {
+  try {
+    const { id } = req.params;
     const student = await AdmittedStudent.findById(id);
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
@@ -292,5 +312,44 @@ exports.updatePlacementInfo = async (req, res) => {
   } catch (error) {
     console.error("Error updating placement info:", error);
     return res.status(500).json({ message: "Server Error", error });
+  }
+};
+    const levels = student.level;
+    if (!levels || levels.length === 0) {
+      return res.status(404).json({ message: "No levels found for this student" });
+    }
+    res.status(200).json(levels);
+  }
+  catch (error) {
+    console.error("Error fetching levels:", error);
+    res.status(500).json({ message: "Server Error", error });
+  }     
+}
+
+exports.getLevelWiseStudents = async (req, res) => {
+  try {
+    const { levelNo } = req.params;
+
+    const students = await AdmittedStudent.aggregate([
+      {
+        $addFields: {
+          latestLevel: { $arrayElemAt: ["$level", -1] }
+        }
+      },
+      {
+        $match: {
+          "latestLevel.levelNo": levelNo
+        }
+      }
+    ]);
+
+    if (!students || students.length === 0) {
+      return res.status(404).json({ message: "No students found for this level" });
+    }
+
+    res.status(200).json(students);
+  } catch (error) {
+    console.error("Error fetching students by latest level:", error);
+    res.status(500).json({ message: "Server Error", error });
   }
 };
