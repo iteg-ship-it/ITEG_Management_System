@@ -291,17 +291,8 @@ exports.updatePermissionStudent = async (req, res) => {
 exports.updatePlacementInfo = async (req, res) => {
   try {
     const { id } = req.params;
-    const { companyName, salary, location, jobProfile } = req.body;
-
-
-exports.getStudentLevels = async (req, res) => {
-  try {
-    const { id } = req.params;
     const student = await AdmittedStudent.findById(id);
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
-    }
-
+    const { companyName, salary, location, jobProfile } = req.body;
     student.placedInfo = { companyName, salary, location, jobProfile };
 
     await student.save();
@@ -314,6 +305,15 @@ exports.getStudentLevels = async (req, res) => {
     return res.status(500).json({ message: "Server Error", error });
   }
 };
+
+
+exports.getStudentLevels = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const student = await AdmittedStudent.findById(id);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
     const levels = student.level;
     if (!levels || levels.length === 0) {
       return res.status(404).json({ message: "No levels found for this student" });
