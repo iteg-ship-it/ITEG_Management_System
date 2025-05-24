@@ -118,8 +118,69 @@ const CommonTable = ({
             </table>
           </div>
         </div>
-
         {pagination && (
+          <div className="mt-4 flex flex-col md:flex-row justify-between items-center text-sm gap-3">
+            <p className="text-gray-600">Total Count: {filteredData.length}</p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+                className={`px-2 py-1 font-extrabold text-base border rounded-md ${currentPage === 1
+                  ? "bg-white text-gray-400 cursor-not-allowed"
+                  : "bg-gray-300 text-white hover:bg-gray-400"
+                  }`}
+              >
+                {"<"}
+              </button>
+
+              {/* Page Numbers with Ellipsis */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter((page) => {
+                  return (
+                    page === 1 ||
+                    page === totalPages ||
+                    (page >= currentPage - 1 && page <= currentPage + 1)
+                  );
+                })
+                .reduce((acc, page, idx, arr) => {
+                  if (idx > 0 && page !== arr[idx - 1] + 1) acc.push("ellipsis");
+                  acc.push(page);
+                  return acc;
+                }, [])
+                .map((page, idx) =>
+                  page === "ellipsis" ? (
+                    <span key={`ellipsis-${idx}`} className="px-2 text-gray-500">
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-1 rounded-md border font-medium text-base ${currentPage === page
+                        ? "text-orange-500 bg-gray-100"
+                        : "hover:bg-gray-100"
+                        }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                )}
+
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className={`px-2 py-1 font-extrabold text-base border rounded-md ${currentPage === totalPages
+                  ? "bg-white text-gray-400 cursor-not-allowed"
+                  : "bg-gray-300 text-white hover:bg-gray-400"
+                  }`}
+              >
+                {">"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* {pagination && (
           <div className="mt-4 flex flex-col md:flex-row justify-between items-center text-sm gap-3">
             <p className="text-gray-600">Total Count: {filteredData.length}</p>
             <div className="flex items-center gap-2">
@@ -159,7 +220,7 @@ const CommonTable = ({
               </button>
             </div>
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );

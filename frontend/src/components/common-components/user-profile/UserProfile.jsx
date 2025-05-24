@@ -32,14 +32,14 @@ const UserProfile = ({ heading, showBackButton = false, onBack }) => {
   return (
     <div className="relative w-full p-2 mb-2">
       {/* Avatar & Dropdown */}
-      <div className="absolute right-0 top-0" ref={dropdownRef}>
+      <div className="absolute right-0 top-0 border-2 rounded-full" ref={dropdownRef}>
         <img
           src={
             user?.avatar ||
             profileImg
           }
           alt="User avatar"
-          className="w-10 h-10 rounded-full cursor-pointer"
+          className="w-12 h-12 rounded-full cursor-pointer"
           onClick={() => setOpen((prev) => !prev)}
         />
         {open && (

@@ -1,33 +1,77 @@
 import { Routes, Route } from "react-router-dom";
-import AdmissionProcess from "../admition-process/admition-process-page/AdmissionProcess";
-import StudentProfile from "../student-records/studentProfile/StudentProfile";
-import PlacementRecords from "../placement/placement-records/PlacementRecords";
+
+// Admission process components
 import AdmissionDashboard from "../admition-process/admission-dashboard/AdmissionDashboard";
-import AdmitionRecords from "../admition-process/admition-records/AdmitionRecords";
-import StudentEditPage from "../student-records/student-edit-page/StudentEditPage";
-import StudentDashboard from "../student-records/student-dashboard/StudentDashboard";
-import StudentDetailTable from "../student-records/student-detail-table/StudentDetailTable";
-import StudentPermission from "../student-records/student-permission/StudentPermission";
+import AdmissionProcess from "../admition-process/admition-process-page/AdmissionProcess";
 import AdmissionEditPage from "../admition-process/admission-stu-edit-page/AdmissionEditPage";
 import AdmissionInterviewDetails from "../admition-process/admission-interview-detail/AdmissionInterviewDetails";
+import AdmissionRecords from "../admition-process/admition-records/AdmitionRecords";
 
-const Dashboard = () => {
-  return (
-    <Routes>
-      <Route path="/" element={<AdmissionDashboard />} />
-      <Route path="/admission" element={<AdmissionProcess />} />
-      <Route path="/admission/edit/:id" element={<AdmissionEditPage />} />
-      <Route path="/admition-record" element={<AdmitionRecords />} />
-      <Route path="/interview-detail/:id" element={<AdmissionInterviewDetails />} />
-      <Route path="/student-dashboard" element={<StudentDashboard />} />
-      <Route path="/student-permission" element={<StudentPermission />} />
-      <Route path="/student-detail-table" element={<StudentDetailTable />} />
-      <Route path="/student/edit/:id" element={<StudentEditPage />} />
-      <Route path="/placement" element={<PlacementRecords />} />
-      <Route path="/student-profile/:id" element={<StudentProfile />} />
-    </Routes>
-  );
-};
+// Student records components
+import StudentDashboard from "../student-records/student-dashboard/StudentDashboard";
+import StudentPermission from "../student-records/student-permission/StudentPermission";
+import StudentDetailTable from "../student-records/student-detail-table/StudentDetailTable";
+import StudentEditPage from "../student-records/student-edit-page/StudentEditPage";
+import StudentProfile from "../student-records/studentProfile/StudentProfile";
+
+// Placement components
+import PlacementRecords from "../placement/placement-records/PlacementRecords";
+
+const routes = [
+  { path: "/", element: <AdmissionDashboard /> },
+  { path: "/admission", element: <AdmissionProcess /> },
+  { path: "/admission/edit/:id", element: <AdmissionEditPage /> },
+  { path: "/admission-record", element: <AdmissionRecords /> },
+  { path: "/interview-detail/:id", element: <AdmissionInterviewDetails /> },
+  { path: "/student-dashboard", element: <StudentDashboard /> },
+  { path: "/student-permission", element: <StudentPermission /> },
+  { path: "/student-detail-table", element: <StudentDetailTable /> },
+  { path: "/student/edit/:id", element: <StudentEditPage /> },
+  { path: "/placement", element: <PlacementRecords /> },
+  { path: "/student-profile/:id", element: <StudentProfile /> },
+];
+
+const Dashboard = () => (
+  <Routes>
+    {routes.map(({ path, element }, index) => (
+      <Route key={index} path={path} element={element} />
+    ))}
+  </Routes>
+);
 
 export default Dashboard;
+
+
+// import { Routes, Route } from "react-router-dom";
+// import AdmissionProcess from "../admition-process/admition-process-page/AdmissionProcess";
+// import StudentProfile from "../student-records/studentProfile/StudentProfile";
+// import PlacementRecords from "../placement/placement-records/PlacementRecords";
+// import AdmissionDashboard from "../admition-process/admission-dashboard/AdmissionDashboard";
+// import AdmitionRecords from "../admition-process/admition-records/AdmitionRecords";
+// import StudentEditPage from "../student-records/student-edit-page/StudentEditPage";
+// import StudentDashboard from "../student-records/student-dashboard/StudentDashboard";
+// import StudentDetailTable from "../student-records/student-detail-table/StudentDetailTable";
+// import StudentPermission from "../student-records/student-permission/StudentPermission";
+// import AdmissionEditPage from "../admition-process/admission-stu-edit-page/AdmissionEditPage";
+// import AdmissionInterviewDetails from "../admition-process/admission-interview-detail/AdmissionInterviewDetails";
+
+// const Dashboard = () => {
+//   return (
+//     <Routes>
+//       <Route path="/" element={<AdmissionDashboard />} />
+//       <Route path="/admission" element={<AdmissionProcess />} />
+//       <Route path="/admission/edit/:id" element={<AdmissionEditPage />} />
+//       <Route path="/admition-record" element={<AdmitionRecords />} />
+//       <Route path="/interview-detail/:id" element={<AdmissionInterviewDetails />} />
+//       <Route path="/student-dashboard" element={<StudentDashboard />} />
+//       <Route path="/student-permission" element={<StudentPermission />} />
+//       <Route path="/student-detail-table" element={<StudentDetailTable />} />
+//       <Route path="/student/edit/:id" element={<StudentEditPage />} />
+//       <Route path="/placement" element={<PlacementRecords />} />
+//       <Route path="/student-profile/:id" element={<StudentProfile />} />
+//     </Routes>
+//   );
+// };
+
+// export default Dashboard;
 
