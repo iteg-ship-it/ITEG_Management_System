@@ -718,174 +718,6 @@ paths:
         500:
           description: Server error
 
-  /api/user/refresh_token:
-    post:
-      summary: Refresh Access Token using valid Refresh Token
-      tags:
-        - Auth
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - refreshToken
-              properties:
-                refreshToken:
-                  type: string
-                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-
-      responses:
-        '200':
-          description: New access token issued successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Access token refreshed"
-                  accessToken:
-                    type: string
-                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        '401':
-          description: Refresh token not provided
-        '403':
-          description: Invalid or expired refresh token
-        '500':
-          description: Server error 
-
-  /api/user/forgot_password:
-    post:
-      summary: Send reset password link to user's email
-      tags:
-        - Auth
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - email
-              properties:
-                email:
-                  type: string
-                  format: email
-                  example: aneeskhan@ssism.org
-      responses:
-        '200':
-          description: Reset password link sent successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Reset link sent to your email.
-        '404':
-          description: User not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: User not found
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Server error
-                  error:
-                    type: string
-                    example: Internal server error 
-
-  /api/user/reset_password/{token}:
-    post:
-      summary: Reset password using token
-      tags:
-        - Auth
-      parameters:
-        - in: path
-          name: token
-          required: true
-          schema:
-            type: string
-          description: JWT token received via reset password email
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - newPassword
-                - confirmPassword
-              properties:
-                newPassword:
-                  type: string
-                  format: password
-                  example: NewPass@123
-                confirmPassword:
-                  type: string
-                  format: password
-                  example: NewPass@123
-      responses:
-        '200':
-          description: Password reset successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Password successfully reset
-        '400':
-          description: Invalid token, expired token, or bad input
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Invalid or expired token
-        '500':
-          description: Internal server error
-
-  /api/user/google/callback:
-    get:
-      summary: Google OAuth callback handler
-      tags:
-        - Auth
-      description: Google redirects here after login. This route verifies the user and issues access and refresh tokens. Only SSISM domain users are allowed.
-      responses:
-        '302':
-          description: Redirect to frontend with JWT token and refresh token
-        '403':
-          description: Forbidden - Non SSISM email used
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Only institutional emails (@ssism.org) are allowed to login.
-        '500':
-          description: Internal server error
-
   /api/admission/students/webhook/register:
     post:
       summary: Add or update student admission data
@@ -1607,7 +1439,6 @@ paths:
                   message:
                     type: string
                   student:
-                    $ref: '#/components/schemas/AdmittedStudent'
                     $ref: '#/components/schemas/Admission/Level'
         '400':
           description: Bad Request (e.g., all levels completed or duplicate passed level)
@@ -1770,118 +1601,18 @@ paths:
                     type: string
 
 
-  
-  /api/admitted/students/permission_students:
-    get:
-      summary: Get all permission-granted students
-      description: Returns a list of students who have permission details assigned (non-null).
-      tags:
-        - Admitted Student
-      security:
-        - bearerAuth: []  #Requires JWT token
-      responses:
-        '200':
-          description: List of students with permission granted
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  count:
-                    type: integer
-                    example: 3
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/AdmittedStudent'
-        '401':
-          description: Unauthorized - Missing or invalid token
-        '403':
-          description: Forbidden - You are not allowed to access this route
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Server Error
-
-  # /api/admitted/students/update_permission_student/{studentId}:
-  #   put:
-  #     summary: Update permission details of a student
-  #     description: Updates the permission details of an admitted student using their student ID. Only accessible by Super Admin, Admin, or Faculty.
-  #     tags:
-  #       - Admitted Student
-  #     parameters:
-  #       - name: studentId
-  #         in: path
-  #         required: true
-  #         description: MongoDB ID of the student
-  #         schema:
-  #           type: string
-  #           example: 664f3b7c2390ab0ef2d9a0e4
-  #            - imageURL
-  #               - approved_by
-  #           requestBody:
-  #       required: true
-  #       content:
-  #         application/json:
-  #           schema:
-  #             type: object
-  #               imageURL:
-  #                 type: string
-  #                 description: Base64 encoded image string (format: data:image/jpeg;base64,...)
-  #                 example: data:image/jpeg;base64,/9j/4AAQSkZJRgABAQE...
-  #               remark:
-  #                 type: string
-  #                 description: Optional remark for permission approval
-  #                 example: Approved due to special request
-  #               approved_by:
-  #                 type: string
-  #                 description: Role of the approver
-  #                 enum: [super admin, admin, faculty]
-  #                 example: admin
-      
-  #     responses:
-  #       '200':
-  #         description: Permission updated successfully
-  #         content:
-  #           application/json:
-  #             schema:
-  #               type: object
-  #               properties:
-  #                 message:
-  #                   type: string
-  #                   example: Admitted student updated successfully
-  #                 data:
-  #                   $ref: '#/components/schemas/AdmittedStudent'
-  #       "400":
-  #         description: Missing or invalid prkey
-  #         content:
-  #           application/json:
-  #             schema:
-  #               type: object
-  #               properties:
-  #                 message:
-  #                   type: string
-  #                   example: Admission ID (prkey) is required
-
-  #       "500":
-  #         description: Server error during update
-  #                   example: Student not found
-
-
   /api/admission/students/webhook/update-admitted-student:
     patch:
       summary: Update admitted student by primary key (prkey)
       tags:
         - Admitted Student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
                 - prkey
               properties:
                 prkey:
@@ -1950,12 +1681,28 @@ paths:
       responses:
         "200":
           description: Admitted student updated successfully
-               
-              "404":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Admitted student updated successfully
+                  data:
+                    $ref: '#/components/schemas/AdmittedStudent'
+        "400":
+          description: Missing or invalid prkey
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Admission ID (prkey) is required
+        "404":
           description: Admitted student not found
-                    example: Invalid image format. Must be Base64 string.
-        '404':
-          description: Student not found
           content:
             application/json:
               schema:
@@ -1964,9 +1711,8 @@ paths:
                   message:
                     type: string
                     example: Admitted student not found
-        
-        '500':
-          description: Server error
+        "500":
+          description: Server error during update
           content:
             application/json:
               schema:
@@ -1979,81 +1725,3 @@ paths:
                     type: string
                     example: Detailed error message
 
-                    example: Server Error
-
-  /api/admitted/students/update-placement/{id}:
-    put:
-      summary: Update placement information for a student
-      description: |
-        Allows only **superadmin** and **admin** to update the placement information 
-        (even if student has not cleared Level 2C).  
-        Placement info includes company name, salary, location, and job profile.
-      tags:
-        - Admitted Student
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          description: MongoDB ObjectId of the admitted student
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                companyName:
-                  type: string
-                  example: Infosys
-                salary:
-                  type: number
-                  example: 400000
-                location:
-                  type: string
-                  example: Pune
-                jobProfile:
-                  type: string
-                  example: Software Developer
-              required:
-                - companyName
-                - salary
-                - location
-                - jobProfile
-      responses:
-        '200':
-          description: Placement updated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Placement information updated successfully.
-                  placedInfo:
-                    type: object
-                    properties:
-                      companyName:
-                        type: string
-                        example: Infosys
-                      salary:
-                        type: number
-                        example: 400000
-                      location:
-                        type: string
-                        example: Pune
-                      jobProfile:
-                        type: string
-                        example: Software Developer
-        '500':
-          description: Server Error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Server Error
