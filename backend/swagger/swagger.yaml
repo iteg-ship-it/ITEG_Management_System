@@ -1725,3 +1725,170 @@ paths:
                     type: string
                     example: Detailed error message
 
+  /api/user/refresh_token:
+    post:
+      summary: Refresh Access Token using valid Refresh Token
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+      responses:
+        '200':
+          description: New access token issued successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Access token refreshed"
+                  accessToken:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '401':
+          description: Refresh token not provided
+        '403':
+          description: Invalid or expired refresh token
+        '500':
+          description: Server error 
+
+  /api/user/forgot_password:
+    post:
+      summary: Send reset password link to user's email
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: aneeskhan@ssism.org
+      responses:
+        '200':
+          description: Reset password link sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Reset link sent to your email.
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User not found
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server error
+                  error:
+                    type: string
+                    example: Internal server error 
+
+  /api/user/reset_password/{token}:
+    post:
+      summary: Reset password using token
+      tags:
+        - Auth
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema:
+            type: string
+          description: JWT token received via reset password email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - newPassword
+                - confirmPassword
+              properties:
+                newPassword:
+                  type: string
+                  format: password
+                  example: NewPass@123
+                confirmPassword:
+                  type: string
+                  format: password
+                  example: NewPass@123
+      responses:
+        '200':
+          description: Password reset successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Password successfully reset
+        '400':
+          description: Invalid token, expired token, or bad input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid or expired token
+        '500':
+          description: Internal server error
+
+  /api/user/google/callback:
+    get:
+      summary: Google OAuth callback handler
+      tags:
+        - Auth
+      description: Google redirects here after login. This route verifies the user and issues access and refresh tokens. Only SSISM domain users are allowed.
+      responses:
+        '302':
+          description: Redirect to frontend with JWT token and refresh token
+        '403':
+          description: Forbidden - Non SSISM email used
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Only institutional emails (@ssism.org) are allowed to login.
+        '500':
+          description: Internal server error
