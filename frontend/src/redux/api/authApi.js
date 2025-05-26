@@ -114,6 +114,24 @@ export const authApi = createApi({
         }
       },
     }),
+    // ---- Create User API ----
+    updateUser: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `user/update/${id}`,
+        method: "PATCH",
+        body: data,
+      }),
+    }),
+    //-- Logout API ----
+    logout: builder.mutation({
+      query: (payload) => ({
+        url: import.meta.env.VITE_LOGOUT_ENDPOINT,
+        method: "POST",
+        body: payload,
+      }),
+    }),
+
+
     // Refresh token
     refreshToken: builder.mutation({
       query: (payload) => ({
@@ -130,6 +148,7 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+
 
     // ---- Forget Password API ----
     forgetPassword: builder.mutation({
@@ -226,6 +245,7 @@ export const authApi = createApi({
 export const {
   useLoginMutation,
   useLoginWithGoogleMutation,
+  useUpdateUserMutation,
   useForgetPasswordMutation,
   useResetPasswordMutation,
   useSendOtpMutation,
@@ -236,4 +256,5 @@ export const {
   useInterviewCreateMutation,
   useGetInterviewDetailByIdQuery,
   useGetStudentByIdQuery,
+  useLogoutMutation,
 } = authApi;

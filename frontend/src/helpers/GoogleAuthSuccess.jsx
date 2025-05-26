@@ -21,7 +21,7 @@ const GoogleAuthSuccess = () => {
 
             localStorage.setItem("token", encryptedToken);
             localStorage.setItem("refreshToken", encryptedRefreshToken);
-            localStorage.setItem("user", JSON.stringify(parsedUser));
+            // localStorage.setItem("user", JSON.stringify(parsedUser));
             localStorage.setItem("role", parsedUser.role);
             localStorage.setItem("positionRole", parsedUser.positionRole);
 

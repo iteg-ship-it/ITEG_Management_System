@@ -58,9 +58,6 @@ export const interviewSchema = Yup.object({
   examDate: Yup.date().required("Required"),
 });
 
-// src/validationSchema.js
-// src/validationSchema.js
-
 export const resetPasswordValidationSchema = Yup.object({
   password: Yup.string()
     .required("Password is required")

@@ -135,8 +135,16 @@ const StudentList = () => {
 
     return matchTrack && matchResult && matchPercentage;
   });
-  const handleGetOnlineMarks = (onlineTests = {}) => {
-    return onlineTests?.result || "Pending";
+  const handleGetOnlineMarks = (onlineTest = {}) => {
+    const result = onlineTest?.result;
+    switch (result) {
+      case "Pass":
+        return <span className="bg-green-100 text-green-700 px-3 py-1 rounded-xl text-sm font-medium">Pass</span>;
+      case "Fail":
+        return <span className="bg-red-100 text-red-700 px-3 py-1 rounded-xl text-sm font-medium">Fail</span>;
+      default:
+        return <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-xl text-sm font-medium">{toTitleCase(result) || "Not Attempted"}</span>;
+    }
   };
 
 
@@ -157,19 +165,6 @@ const StudentList = () => {
         return <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-xl text-sm font-medium">{toTitleCase(result) || "Not Attempted"}</span>;
     }
   };
-
-  const handleGetWrittenStatus = (row) => {
-    const result = row?.onlineTest?.result;
-    switch (result) {
-      case "Pass":
-        return <span className="bg-green-100 text-green-700 px-3 py-1 rounded-xl text-sm font-medium">Pass</span>;
-      case "Fail":
-        return <span className="bg-red-100 text-red-700 px-3 py-1 rounded-xl text-sm font-medium">Fail</span>;
-      default:
-        return <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-xl text-sm font-medium">{toTitleCase(result) || "Not Attempted"}</span>;
-    }
-  };
-
   let columns = [];
   let actionButton;
 
@@ -180,7 +175,7 @@ const StudentList = () => {
         { key: "fatherName", label: "Father's Name", render: (row) => toTitleCase(row.fatherName) },
         { key: "studentMobile", label: "Mobile" },
         { key: "track", label: "Track", render: (row) => toTitleCase(row.track) },
-        { key: "stream", label: "Status", render: (row) => handleGetOnlineMarks(row.interviews) },
+        { key: "stream", label: "Status", render: (row) => handleGetOnlineMarks(row.onlineTest) },
         // { key: "stream", label: "Status", render: (row) => handleGetStatus(row.interviews) },     
         //    { key: "stream", label: "Marks", render: (row) => handleGetMarks(row.interviews) },
         // { key: "stream", label: "Status", render: (row) => handleGetStatus(row.interviews) },
@@ -198,7 +193,7 @@ const StudentList = () => {
         { key: "studentMobile", label: "Mobile" },
         { key: "track", label: "Track", render: (row) => toTitleCase(row.track) },
         { key: "course", label: "Course", render: (row) => toTitleCase(row.course) },
-        { key: "result", label: "Status of Written", render: (row) => handleGetWrittenStatus(row.interviews) },
+        { key: "stream", label: "Status of Written", render: (row) => handleGetOnlineMarks(row.onlineTest) },
         { key: "stream", label: "Marks of tech", render: (row) => handleGetMarks(row.interviews) },
       ];
       actionButton = (row) => handleGetStatus(row.interviews);
