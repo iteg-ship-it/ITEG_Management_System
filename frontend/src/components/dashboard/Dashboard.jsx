@@ -8,11 +8,10 @@ import AdmissionInterviewDetails from "../admition-process/admission-interview-d
 import AdmissionRecords from "../admition-process/admition-records/AdmitionRecords";
 
 // Student records components
-import StudentDashboard from "../student-records/student-dashboard/StudentDashboard";
-import StudentPermission from "../student-records/student-permission/StudentPermission";
-import StudentDetailTable from "../student-records/student-detail-table/StudentDetailTable";
-import StudentEditPage from "../student-records/student-edit-page/StudentEditPage";
-import StudentProfile from "../student-records/studentProfile/StudentProfile";
+import StudentDashboard from "../student-records/StudentDashboard";
+import StudentDetailTable from "../student-records/StudentDetailTable";
+import StudentEditPage from "../student-records/StudentEditPage";
+import StudentProfile from "../student-records/StudentProfile";
 
 // Placement components
 import PlacementRecords from "../placement/placement-records/PlacementRecords";
@@ -24,7 +23,6 @@ const routes = [
   { path: "/admission-record", element: <AdmissionRecords /> },
   { path: "/interview-detail/:id", element: <AdmissionInterviewDetails /> },
   { path: "/student-dashboard", element: <StudentDashboard /> },
-  { path: "/student-permission", element: <StudentPermission /> },
   { path: "/student-detail-table", element: <StudentDetailTable /> },
   { path: "/student/edit/:id", element: <StudentEditPage /> },
   { path: "/placement", element: <PlacementRecords /> },

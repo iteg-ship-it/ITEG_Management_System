@@ -2,19 +2,19 @@
 /* eslint-disable react/prop-types */
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import profilePlaceholder from "../../../assets/images/profile-img.png";
-import back from "../../../assets/icons/back-icon.png";
-import attendence from "../../../assets/icons/attendence-card-icon.png";
-import level from "../../../assets/icons/level-card-icon.png";
-import permission from "../../../assets/icons/permission-card-icon.png";
-import placed from "../../../assets/icons/placement-card-icon.png";
-import company from "../../../assets/icons/company-icon.png";
-import position from "../../../assets/icons/position-icon.png";
-import loca from "../../../assets/icons/location-icon.png";
-import date from "../../../assets/icons/calendar-icon.png";
-import editbutton from "../../../assets/icons/edit-icon.png";
+import profilePlaceholder from "../../assets/images/profile-img.png";
+import back from "../../assets/icons/back-icon.png";
+import attendence from "../../assets/icons/attendence-card-icon.png";
+import level from "../../assets/icons/level-card-icon.png";
+import permission from "../../assets/icons/permission-card-icon.png";
+import placed from "../../assets/icons/placement-card-icon.png";
+import company from "../../assets/icons/company-icon.png";
+import position from "../../assets/icons/position-icon.png";
+import loca from "../../assets/icons/location-icon.png";
+import date from "../../assets/icons/calendar-icon.png";
+import editbutton from "../../assets/icons/edit-icon.png";
 import { Chart } from "react-google-charts";
-import UserProfile from "../../common-components/user-profile/UserProfile";
+import UserProfile from "../common-components/user-profile/UserProfile";
 
 export default function StudentProfile() {
   const navigate = useNavigate();

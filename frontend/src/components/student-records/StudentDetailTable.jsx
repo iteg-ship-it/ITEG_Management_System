@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import Pagination from "../../common-components/pagination/Pagination";
-import UserProfile from "../../common-components/user-profile/UserProfile";
-import { useAdmitedStudentsQuery } from "../../../redux/api/authApi";
-import CommonTable from "../../common-components/table/CommonTable";
-import edit from "../../../assets/icons/edit-fill-icon.png";
+import Pagination from "../common-components/pagination/Pagination";
+import UserProfile from "../common-components/user-profile/UserProfile";
+import { useAdmitedStudentsQuery } from "../../redux/api/authApi";
+import CommonTable from "../common-components/table/CommonTable";
+import edit from "../../assets/icons/edit-fill-icon.png";
+import CreateInterviewModal from "./CreateInterviewModal";
 
 const StudentDetailTable = () => {
   const { data = [], isLoading } = useAdmitedStudentsQuery();
@@ -17,6 +18,8 @@ const StudentDetailTable = () => {
   const [selectedTracks, setSelectedTracks] = useState([]);
   const [selectedResults, setSelectedResults] = useState([]);
   const [selectedPercentages, setSelectedPercentages] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState(null); // 👈 new state
 
   const toTitleCase = (str) =>
     str
@@ -112,15 +115,27 @@ const StudentDetailTable = () => {
   ];
 
   const actionButton = (student) => (
-    <button
-      onClick={() =>
-        navigate(`/student-profile/${student._id}`, { state: { student } })
-      }
-      className="px-3 py-1 rounded"
-    >
-      <img src={edit} alt="edit-icon" className="w-5 h-5" />
-    </button>
+    <>
+      <button
+        onClick={() => {
+          setSelectedStudentId(student._id); // 👈 set ID here
+          setShowModal(true);
+        }}
+        className="px-3 py-1 rounded"
+      >
+        <img src={edit} alt="edit-icon" className="w-5 h-5" />
+      </button>
+      <button
+        onClick={() =>
+          navigate(`/student-profile/${student._id}`, { state: { student } })
+        }
+        className="px-3 py-1 rounded"
+      >
+        <img src={edit} alt="edit-icon" className="w-5 h-5" />
+      </button>
+    </>
   );
+
 
   return (
     <>
@@ -147,6 +162,11 @@ const StudentDetailTable = () => {
         rowsPerPage={rowsPerPage}
         isLoading={isLoading}
         actionButton={actionButton}
+      />
+      <CreateInterviewModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        studentId={selectedStudentId}
       />
     </>
   );

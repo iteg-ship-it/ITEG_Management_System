@@ -237,7 +237,14 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
-
+    createLevelInterview: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `${import.meta.env.VITE_CREATE_LEVEL_INTERVIEW}${id}`,
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['Student'], // Optional
+    }),
 
   }),
 });
@@ -256,5 +263,6 @@ export const {
   useInterviewCreateMutation,
   useGetInterviewDetailByIdQuery,
   useGetStudentByIdQuery,
+  useCreateLevelInterviewMutation,
   useLogoutMutation,
 } = authApi;

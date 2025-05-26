@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import forward from "../../../assets/icons/forward-icon.png";
-import UserProfile from "../../common-components/user-profile/UserProfile";
-import { useAdmitedStudentsQuery } from "../../../redux/api/authApi";
+import forward from "../../assets/icons/forward-icon.png";
+import UserProfile from "../common-components/user-profile/UserProfile";
+import { useAdmitedStudentsQuery } from "../../redux/api/authApi";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();

@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { FaCamera } from "react-icons/fa";
-import UserProfile from "../../common-components/user-profile/UserProfile";
+import UserProfile from "../common-components/user-profile/UserProfile";
 
 const StudentEditPage = () => {
   // const fileInputRef = useRef(null);
