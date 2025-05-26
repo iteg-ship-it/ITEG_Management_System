@@ -20,6 +20,10 @@ router.post("/forgot_password", usercontroller.forgotPassword);
 router.post("/reset_password/:token", usercontroller.resetPassword);
 
 
+router.get("/get/:id", usercontroller.getUserById);
+
+
+
 // router.get("/google", passport.authenticate('google', { scope: ['profile', 'email'] }));
 router.get("/google", passport.authenticate('google', {
       scope: ['profile', 'email'],

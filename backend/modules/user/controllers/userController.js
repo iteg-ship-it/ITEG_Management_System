@@ -210,6 +210,26 @@ exports.refreshAccessToken = async (req, res) => {
 };
 
 
+exports.getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const formattedUser = {
+      ...user._doc,
+      id: user._id,       // add id
+    };
+    delete formattedUser._id;
+    delete formattedUser.__v;
+
+    res.status(200).json({ success: true, user: formattedUser });
+  } catch (err) {
+    console.error("Error fetching user:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
 
 exports.logout = async (req, res) => {
   try {
