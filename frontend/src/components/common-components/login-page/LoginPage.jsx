@@ -1,26 +1,24 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import CryptoJS from "crypto-js";
-
 import { useLoginMutation } from "../../../redux/api/authApi";
+
 import ReusableForm from "../../../ReusableForm";
 import { loginValidationSchema } from "../../../validationSchema";
 
-import logo from "../../../assets/images/logo-ssism.png";
-import goggleLogo from "../../../assets/images/Google.png";
-// import linkedinLogo from "../../../assets/images/linkedin.png";
-// import facebookLogo from "../../../assets/images/FB.png";
-
 import EmailField from "../common-feild/EmailField";
 import PasswordField from "../common-feild/PasswordField";
+
+import logo from "../../../assets/images/logo-ssism.png";
+import googleLogo from "../../../assets/images/Google.png";
+import linkedinLogo from "../../../assets/images/linkedin.png";
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const [loginError, setLoginError] = useState("");
   const [login, { isLoading }] = useLoginMutation();
-  // const [loginWithGoogle] = useLoginWithGoogleMutation();
 
-  const secretKey = "ITEG@123"; // AES encryption key
+  const secretKey = "ITEG@123";
 
   const initialValues = {
     email: "",
@@ -31,26 +29,28 @@ const LoginPage = () => {
     try {
       const response = await login(values).unwrap();
 
-      // Encrypt token
       const encryptedToken = CryptoJS.AES.encrypt(
         response.token,
         secretKey
       ).toString();
 
-      // Store in localStorage
       localStorage.setItem("token", encryptedToken);
       localStorage.setItem("user", JSON.stringify(response.user));
       localStorage.setItem("role", response.user.role);
       localStorage.setItem("positionRole", response.user.positionRole);
 
-      // Navigate to home or dashboard
       navigate("/", { replace: true });
     } catch (error) {
       setLoginError(error?.data?.message || "Invalid email or password.");
     }
   };
+
   const handleGoogleLogin = () => {
     window.location.href = `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_LOGIN_WITH_GOOGLE}`;
+  };
+
+  const handleOtpLogin = () => {
+    navigate("/otp-verification");
   };
 
   return (
@@ -68,28 +68,20 @@ const LoginPage = () => {
                 <h2 className="text-2xl font-bold mt-2">Login</h2>
               </div>
 
-              <div className="mt-6">
-                {/* ✅ Use reusable EmailField */}
-                <div className="py-2">
-                  <EmailField value={values.email} onChange={handleChange} />
-                </div>{" "}
-                <div>
-                  {/* ✅ Use reusable PasswordField */}
-                  <PasswordField
-                    value={values.password}
-                    onChange={handleChange}
-                    password="Password"
-                  />
-                </div>
+              <div className="mt-6 space-y-4">
+                <EmailField value={values.email} onChange={handleChange} />
+                <PasswordField name="password" password="Password" />
+
                 {loginError && (
-                  <p className="text-red-600 text-sm mb-2">{loginError}</p>
+                  <p className="text-red-600 text-sm">{loginError}</p>
                 )}
+
                 <div className="text-right">
                   <Link
                     to="/forget-password"
-                    className=" text-sm  text-gray-500 cursor-pointer hover:underline"
+                    className="text-sm text-gray-500 hover:underline"
                   >
-                    Forgot Your Password
+                    Forgot Your Password?
                   </Link>
                 </div>
               </div>
@@ -103,28 +95,18 @@ const LoginPage = () => {
               </button>
 
               <div className="flex items-center my-4">
-                <div className="flex-grow border  border-gray-500"></div>
+                <hr className="flex-grow border-gray-300" />
                 <span className="mx-2 text-gray-500">or</span>
-                <div className="flex-grow border border-gray-500"></div>
+                <hr className="flex-grow border-gray-300" />
               </div>
 
-              <div className="flex justify-center gap-4 mb-2">
+              <div className="flex justify-center gap-4">
                 <button type="button" onClick={handleGoogleLogin}>
-                  <img src={goggleLogo} alt="Google" className="h-10" />
+                  <img src={googleLogo} alt="Google" className="h-10" />
                 </button>
-
-
-
-
-                {/* <button type="button">
-                  <img src={goggleLogo} alt="Google" className="h-10" />
-                </button> */}
-                {/* <button type="button">
-                  <img src={linkedinLogo} alt="LinkedIn" className="h-10" />
+                <button type="button" onClick={handleOtpLogin}>
+                  <img src={linkedinLogo} alt="OTP Login" className="h-10" />
                 </button>
-                <button type="button">
-                  <img src={facebookLogo} alt="Facebook" className="h-10" />
-                </button> */}
               </div>
             </>
           )}
@@ -135,3 +117,5 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+
+

@@ -114,6 +114,24 @@ export const authApi = createApi({
         }
       },
     }),
+    // ---- Create User API ----
+    updateUser: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `user/update/${id}`,
+        method: "PATCH",
+        body: data,
+      }),
+    }),
+    //-- Logout API ----
+    logout: builder.mutation({
+      query: (payload) => ({
+        url: import.meta.env.VITE_LOGOUT_ENDPOINT,
+        method: "POST",
+        body: payload,
+      }),
+    }),
+
+
     // Refresh token
     refreshToken: builder.mutation({
       query: (payload) => ({
@@ -131,6 +149,7 @@ export const authApi = createApi({
       }),
     }),
 
+
     // ---- Forget Password API ----
     forgetPassword: builder.mutation({
       query: ({ email }) => ({
@@ -145,15 +164,13 @@ export const authApi = createApi({
 
     // ---- Reset Password API ----
     resetPassword: builder.mutation({
-      query: ({ token, password }) => ({
-        url: `${import.meta.env.VITE_RESET_PASSWORD}/${token}`,
+      query: ({ token, body }) => ({
+        url: `${import.meta.env.VITE_RESET_PASSWORD}${token}`,
         method: "POST",
-        body: { password },
-        headers: {
-          "Content-Type": "application/json",
-        },
+        body,
       }),
     }),
+
 
     // ----otp-----
     // verify the otp
@@ -183,10 +200,30 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+
     // get admission process student by id
     getStudentById: builder.query({
       query: (id) => ({
         url: `${import.meta.env.VITE_GET_STUDENT_BY_ID}${id}`,
+        method: "GET",
+      }),
+    }),
+
+    interviewCreate: builder.mutation({
+      query: ({ studentId, ...formData }) => ({
+        url: `${import.meta.env.VITE_INTERVIEW_CREATE}${studentId}`,
+        method: "POST",
+        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }),
+    }),
+
+    // get interview detail of student by id
+    getInterviewDetailById: builder.query({
+      query: (id) => ({
+        url: `${import.meta.env.VITE_INTERVIEW_DETAIL}${id}`,
         method: "GET",
       }),
     }),
@@ -208,6 +245,7 @@ export const authApi = createApi({
 export const {
   useLoginMutation,
   useLoginWithGoogleMutation,
+  useUpdateUserMutation,
   useForgetPasswordMutation,
   useResetPasswordMutation,
   useSendOtpMutation,
@@ -215,92 +253,8 @@ export const {
   useRefreshTokenMutation,
   useGetAllStudentsQuery,
   useAdmitedStudentsQuery,
+  useInterviewCreateMutation,
+  useGetInterviewDetailByIdQuery,
   useGetStudentByIdQuery,
+  useLogoutMutation,
 } = authApi;
-
-// // src/features/api/authApi.js
-
-// import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-// import CryptoJS from "crypto-js";
-// import { setCredentials, logout } from "../auth/authSlice"; // ✅ Import kara
-
-// const secretKey = "ITEG@123"; // Same key used to encrypt
-
-// export const authApi = createApi({
-//   reducerPath: "authApi",
-//   baseQuery: fetchBaseQuery({
-//     baseUrl: "http://localhost:5000/api",
-//     prepareHeaders: (headers) => {
-//       const encryptedToken = localStorage.getItem("token");
-
-//       if (encryptedToken) {
-//         try {
-//           const bytes = CryptoJS.AES.decrypt(encryptedToken, secretKey);
-//           const decryptedToken = bytes.toString(CryptoJS.enc.Utf8);
-
-//           if (decryptedToken) {
-//             headers.set("Authorization", `Bearer ${decryptedToken}`);
-//           }
-//         } catch (error) {
-//           console.error("Token decryption failed:", error);
-//         }
-//       }
-
-//       return headers;
-//     },
-//     credentials: "include",
-//   }),
-//   endpoints: (builder) => ({
-//     login: builder.mutation({
-//       query: (credentials) => ({
-//         url: "/user/login",
-//         method: "POST",
-//         body: credentials,
-//       }),
-//       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
-//         try {
-//           const { data } = await queryFulfilled;
-//           const { token, role } = data;
-//           const encryptedToken = CryptoJS.AES.encrypt(
-//             token,
-//             secretKey
-//           ).toString();
-//           localStorage.setItem("token", encryptedToken);
-//           localStorage.setItem("role", role);
-
-//           dispatch(setCredentials({ token, role })); // ✅ Redux me set
-//           window.location.replace("/");
-//         } catch (error) {
-//           console.error("Login failed:", error);
-//           dispatch(logout()); // ✅ Error pe logout
-//         }
-//       },
-//     }),
-
-//     getAllStudents: builder.query({
-//       query: () => ({
-//         url: "/admission/students/getall",
-//         method: "GET",
-//       }),
-//     }),
-//     admitedStudents: builder.query({
-//       query: () => ({
-//         url: "/admitted/students/getall",
-//         method: "GET",
-//       }),
-//     }),
-//     getStudentById: builder.query({
-//       query: (id) => ({
-//         url: `/admission/students/get/${id}`,
-//         method: "GET",
-//       }),
-//     }),
-//   }),
-// });
-
-// export const {
-//   useLoginMutation,
-//   useGetAllStudentsQuery,
-//   useAdmitedStudentsQuery,
-//   useGetStudentByIdQuery,
-// } = authApi;
