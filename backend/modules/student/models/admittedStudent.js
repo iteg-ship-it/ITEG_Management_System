@@ -100,10 +100,14 @@ const interviewRecordSchema = new mongoose.Schema({
 });
 
 const permissionSchema = new mongoose.Schema({
-  imageURL: { type: String, required: true },
+  imageURL: { type: String, required: true },  // Base64 Image
   remark: { type: String, default: "" },
   uploadDate: { type: Date, default: Date.now },
-  approved_by: { type: String, default: "admin" }
+  approved_by: {
+    type: String,
+    enum: ['super admin', 'admin', 'faculty'],
+    required: true
+  }
 });
 
 const AdmittedStudentSchema = new mongoose.Schema({
@@ -115,7 +119,7 @@ const AdmittedStudentSchema = new mongoose.Schema({
   },
 
   // 🎓 Personal Details
-   prkey: { type: String, required: true, unique: true },
+  prkey: { type: String, required: true, unique: true },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     fatherName: { type: String, required: true },
@@ -149,8 +153,7 @@ const AdmittedStudentSchema = new mongoose.Schema({
   // 🗓️ Interviews
   interviewRecord: { type: [interviewRecordSchema], default: [] },
 
-  // ✅ Permission
-
+  // Permission
   permissionDetails: { type: permissionSchema, default: null },
 
   // 🚦 Status

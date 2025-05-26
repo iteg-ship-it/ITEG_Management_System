@@ -1,5 +1,8 @@
 const AdmissionProcess = require("../models/admissionProcessStudent");
 const AdmittedStudent = require("../models/admittedStudent");
+const { sendHTMLMail } = require("./emailController");
+
+const { sendEmail } = require('./emailController');
 
 // ✅ Create New Admitted Student (from AdmissionProcess)
 exports.createAdmittedStudent = async (req, res) => {
@@ -180,11 +183,38 @@ exports.createLevels = async (req, res) => {
         student.level.some(entry => entry.levelNo === level && entry.result === "Pass")
       );
 
+
+
+      if (newInterview.result === "Pass" && newInterview.levelNo === "1C") {
+  if (student?.email) {
+    await sendHTMLMail({
+      to: student.email,
+      studentName: student.firstName + " " + student.lastName,
+    });
+    console.log("Email sent to student:", student.email);
+  } else {
+    console.log("❌ No email found for student:", student?.prkey || student?._id);
+  }
+}
+
+
+     
       if (allLevelsPassed) {
         student.readinessStatus = "Ready";
       }
     }
+      // // ✅ Send plain text email if admission confirmed
+         if (newInterview.result === "Fail"&& student.email) {
+          await sendEmail({
+            to: student.email,
+            subject: `Interview Result - Level  ${newInterview.levelNo}`,
+            text: `Hi ${student.firstName},\n\nThank you for attending the level interview. We regret to inform you that you have not cleared the interview for Level  ${newInterview.levelNo}.
 
+We appreciate your effort and encourage you to stay positive and keep striving for future opportunities.
+
+Best wishes`,
+          });
+         }
 
     await student.save();
 
@@ -200,5 +230,229 @@ exports.createLevels = async (req, res) => {
   }
 };
 
+// Get all students with permissionDetails granted
+exports.getAllPermissionStudents = async (req, res) => {
+  try {
+    const students = await AdmittedStudent.find({ permissionDetails: { $ne: null } }).select('-password');
+
+    res.status(200).json({
+      success: true,
+      count: students.length,
+      data: students
+    });
+  } catch (error) {
+    console.error("Get Permission Students Error:", error);
+    res.status(500).json({ message: "Server Error", error });
+  }
+};
+
+// Update a student's permissionDetails
+exports.updatePermissionStudent = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const { imageURL, remark, approved_by } = req.body;
+
+    // Base64 image validation
+    if (!/^data:image\/(png|jpeg|jpg);base64,/.test(imageURL)) {
+      return res.status(400).json({ message: "Invalid image format. Must be Base64 string." });
+    }
+
+    // Validate role
+    if (!['super admin', 'admin', 'faculty'].includes(approved_by)) {
+      return res.status(400).json({ message: "Invalid approver role." });
+    }
+
+    const student = await AdmittedStudent.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    student.permissionDetails = {
+      imageURL,
+      remark,
+      approved_by,
+      uploadDate: new Date()
+    };
+
+    await student.save();
+
+    res.status(200).json({
+      message: "Permission updated successfully",
+      student
+    });
+  } catch (error) {
+    console.error("Update Permission Error:", error);
+    res.status(500).json({ message: "Server Error", error });
+  }
+};
+
+exports.updatePlacementInfo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const student = await AdmittedStudent.findById(id);
+    const { companyName, salary, location, jobProfile } = req.body;
+    student.placedInfo = { companyName, salary, location, jobProfile };
+
+    await student.save();
+    return res.status(200).json({
+      message: "Placement information updated successfully.",
+      placedInfo: student.placedInfo
+    });
+  } catch (error) {
+    console.error("Error updating placement info:", error);
+    return res.status(500).json({ message: "Server Error", error });
+  }
+};
 
 
+exports.getStudentLevels = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const student = await AdmittedStudent.findById(id);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+    const levels = student.level;
+    if (!levels || levels.length === 0) {
+      return res.status(404).json({ message: "No levels found for this student" });
+    }
+    res.status(200).json(levels);
+  }
+  catch (error) {
+    console.error("Error fetching levels:", error);
+    res.status(500).json({ message: "Server Error", error });
+  }     
+}
+
+exports.getLevelWiseStudents = async (req, res) => {
+  try {
+    const { levelNo } = req.params;
+
+    const students = await AdmittedStudent.aggregate([
+      {
+        $addFields: {
+          latestLevel: { $arrayElemAt: ["$level", -1] }
+        }
+      },
+      {
+        $match: {
+          "latestLevel.levelNo": levelNo
+        }
+      }
+    ]);
+
+    if (!students || students.length === 0) {
+      return res.status(404).json({ message: "No students found for this level" });
+    }
+
+    res.status(200).json(students);
+  } catch (error) {
+    console.error("Error fetching students by latest level:", error);
+    res.status(500).json({ message: "Server Error", error });
+  }
+};
+
+// Update a student's permissionDetails
+exports.updatePermissionStudent = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const { imageURL, remark, approved_by } = req.body;
+
+    // Base64 image validation
+    if (!/^data:image\/(png|jpeg|jpg);base64,/.test(imageURL)) {
+      return res.status(400).json({ message: "Invalid image format. Must be Base64 string." });
+    }
+
+    // Validate role
+    if (!['super admin', 'admin', 'faculty'].includes(approved_by)) {
+      return res.status(400).json({ message: "Invalid approver role." });
+    }
+
+    const student = await AdmittedStudent.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    student.permissionDetails = {
+      imageURL,
+      remark,
+      approved_by,
+      uploadDate: new Date()
+    };
+
+    await student.save();
+
+    res.status(200).json({
+      message: "Permission updated successfully",
+      student
+    });
+  } catch (error) {
+    console.error("Update Permission Error:", error);
+    res.status(500).json({ message: "Server Error", error });
+  }
+};
+
+
+
+
+exports.updateAdmittedStudent = async (req, res) => {
+  try {
+    console.log("Received update request for admitted student:", req.body);
+
+    const { prkey } = req.body;
+    if (!prkey) {
+      return res.status(400).json({ message: "Admission ID (prkey) is required" });
+    }
+
+    // Define which fields you want to allow updates for
+    const updateFields = {
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      fatherName: req.body.fatherName,
+      email: req.body.email,
+      studentMobile: req.body.studentMobile,
+      parentMobile: req.body.parentMobile,
+      gender: req.body.gender,
+      dob: req.body.dob,
+      aadharCard: req.body.aadharCard,
+      village: req.body.village,
+      track: req.body.track,
+      category: req.body.category,
+      stream: req.body.stream,
+      course: req.body.course,
+      subject12: req.body.subject12,
+      year12: req.body.year12,
+      percent12: req.body.percent12,
+      percent10: req.body.percent10,
+      address: req.body.address,
+    };
+
+    // Remove undefined fields (in case partial update)
+    Object.keys(updateFields).forEach(key => {
+      if (updateFields[key] === undefined) {
+        delete updateFields[key];
+      }
+    });
+
+    const updatedStudent = await AdmittedStudent.findOneAndUpdate(
+      { prkey }, // Match by prkey field
+      updateFields,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedStudent) {
+      return res.status(404).json({ message: "Admitted student not found" });
+    }
+
+    return res.status(200).json({
+      message: "Admitted student updated successfully",
+      data: updatedStudent,
+    });
+  } catch (error) {
+    console.error("Error during admitted student update:", error);
+    return res.status(500).json({
+      message: "Update failed",
+      error: error.message,
+    });
+  }
+};
