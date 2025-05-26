@@ -5,6 +5,7 @@ import UserProfile from "../common-components/user-profile/UserProfile";
 import { useAdmitedStudentsQuery } from "../../redux/api/authApi";
 import CommonTable from "../common-components/table/CommonTable";
 import edit from "../../assets/icons/edit-fill-icon.png";
+// import interview from "../../assets/icons/edit-fill-icon.png";
 import CreateInterviewModal from "./CreateInterviewModal";
 
 const StudentDetailTable = () => {
@@ -19,7 +20,7 @@ const StudentDetailTable = () => {
   const [selectedResults, setSelectedResults] = useState([]);
   const [selectedPercentages, setSelectedPercentages] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [selectedStudentId, setSelectedStudentId] = useState(null); // 👈 new state
+  const [selectedStudentId, setSelectedStudentId] = useState(null); 
 
   const toTitleCase = (str) =>
     str
@@ -173,147 +174,3 @@ const StudentDetailTable = () => {
 };
 
 export default StudentDetailTable;
-
-
-
-// import { useState } from "react";
-// import Pagination from "../../common-components/pagination/Pagination";
-// import UserProfile from "../../common-components/user-profile/UserProfile";
-// import { useAdmitedStudentsQuery } from "../../../redux/api/authApi";
-// import CommonTable from "../../common-components/table/CommonTable";
-// import { useNavigate } from "react-router-dom";
-// import edit from "../../../assets/icons/edit-fill-icon.png";
-
-// const StudentDetailTable = () => {
-//   const { data = [], isLoading } = useAdmitedStudentsQuery();
-
-//   const [rowsPerPage, setRowsPerPage] = useState(10);
-//   const [searchTerm, setSearchTerm] = useState("");
-//   const [selectedTracks, setSelectedTracks] = useState([]);
-//   const [selectedResults, setSelectedResults] = useState([]);
-//   const [selectedPercentages, setSelectedPercentages] = useState([]);
-//   const navigate = useNavigate();
-
-//   const toTitleCase = (str) =>
-//     str
-//       ?.toLowerCase()
-//       .split(" ")
-//       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-//       .join(" ");
-
-//   // Define dynamic filter config
-//   const filtersConfig = [
-//     {
-//       title: "Track",
-//       options: ["Harda", "Kannod", "Khategaon", "Nemawar"],
-//       selected: selectedTracks,
-//       setter: setSelectedTracks,
-//     },
-//     {
-//       title: "Result",
-//       options: ["Pass", "Fail"],
-//       selected: selectedResults,
-//       setter: setSelectedResults,
-//     },
-//     {
-//       title: "Interview",
-//       options: ["50-60%", "60-70%", "70-80%", "80-90%", "90-100%"],
-//       selected: selectedPercentages,
-//       setter: setSelectedPercentages,
-//     },
-//   ];
-
-//   // ✅ Add a new field 'latestLevel' to each student
-//   const enhancedData = data.map((student) => {
-//     const passedLevels = (student.level || []).filter(
-//       (lvl) => lvl.result === "Pass"
-//     );
-//     const latestPassedLevel = passedLevels.length > 0
-//       ? passedLevels[passedLevels.length - 1].levelNo
-//       : "1A";
-
-//     return {
-//       ...student,
-//       latestLevel: latestPassedLevel,
-//     };
-//   });
-
-//   const filteredData = enhancedData.filter((student) => {
-//     const matchesSearch =
-//       searchTerm === "" ||
-//       student.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//       student.email?.toLowerCase().includes(searchTerm.toLowerCase());
-
-//     const matchesTrack =
-//       selectedTracks.length === 0 ||
-//       selectedTracks.some(
-//         (track) => track.toLowerCase() === (student.track || "").toLowerCase()
-//       );
-
-//     const matchesResult =
-//       selectedResults.length === 0 || selectedResults.includes(student.result);
-
-//     const matchesPercentage =
-//       selectedPercentages.length === 0 ||
-//       selectedPercentages.some((range) => {
-//         const [min, max] = range.split("-").map((v) => parseFloat(v));
-//         return (
-//           student.interviewPercentage >= min &&
-//           student.interviewPercentage <= max
-//         );
-//       });
-
-//     return matchesSearch && matchesTrack && matchesResult && matchesPercentage;
-//   });
-
-//   // Define table columns
-//   const columns = [
-//     {
-//       key: "fullName",
-//       label: "Full Name", render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
-
-//     },
-//     { key: "fatherName", label: "Father's Name" },
-//     { key: "studentMobile", label: "Mobile" },
-//     { key: "course", label: "Course" },
-//     { key: "latestLevel", label: "Level" },
-//     { key: "village", label: "Village" },
-//   ];
-//   const actionButton = (student) => (
-//     <button
-//       onClick={() =>
-//         navigate(`/student-profile/${student._id}`, { state: { student } })
-//       }
-//       className="px-3 py-1 rounded"
-//     >
-//       <img src={edit} alt="edit-icon" className="w-5 h-5" />
-//     </button>
-//   );
-//   return (
-//     <>
-//       <UserProfile showBackButton heading="Admitted Students" />
-//       <div className="border bg-white shadow-sm rounded-lg px-5">
-//         <Pagination
-//           rowsPerPage={rowsPerPage}
-//           setRowsPerPage={setRowsPerPage}
-//           searchTerm={searchTerm}
-//           setSearchTerm={setSearchTerm}
-//           filtersConfig={filtersConfig}
-//         />
-//       </div>
-//       <CommonTable
-//         columns={columns}
-//         data={filteredData}
-//         editable={true}
-//         pagination={true}
-//         rowsPerPage={rowsPerPage}
-//         isLoading={isLoading}
-//         actionButton={actionButton}
-//       />
-//     </>
-//   );
-// };
-
-// export default StudentDetailTable;
-
-
