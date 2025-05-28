@@ -233,13 +233,13 @@ exports.getUserById = async (req, res) => {
 
 exports.logout = async (req, res) => {
   try {
-    const { _id } = req.body;
+    const userId = req.body.id || req.body._id;
 
-    if (!_id) {
+    if (!userId) {
       return res.status(400).json({ message: "User ID is required" });
     }
 
-    const user = await User.findById(_id);
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
