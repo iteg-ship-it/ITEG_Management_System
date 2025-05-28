@@ -1965,3 +1965,74 @@ paths:
                   message:
                     type: string
                     example: Server Error
+
+  /api/user/get/{id}:
+    get:
+      summary: Get user details by ID
+      tags:
+        - Auth
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: MongoDB ID of the user
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 664e29c535a98a3c5c5e25e1
+                      name:
+                        type: string
+                        example: Anees Khan
+                      email:
+                        type: string
+                        example: anees@ssism.org
+                      role:
+                        type: string
+                        example: admin
+                      mobileNo:
+                        type: string
+                        example: "9999999999"
+                      department:
+                        type: string
+                        example: IT
+                      position:
+                        type: string
+                        example: HOD
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User not found
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server error
+                  error:
+                    type: string
+                    example: Error stack or message
