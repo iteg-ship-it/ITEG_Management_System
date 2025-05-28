@@ -2,6 +2,7 @@ const express = require("express");
 const usercontroller = require("../modules/user/controllers/userController");
 const passport = require("passport");
 const { googleAuthCallback } = require('../modules/user/controllers/userController');
+const { verifyToken } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
@@ -32,6 +33,8 @@ router.get("/google", passport.authenticate('google', {
   );
   
 router.get("/google/callback", passport.authenticate('google', { session: false }), googleAuthCallback);
+
+router.get("/me", verifyToken, usercontroller.getCurrentUser);
 
 module.exports = router;
 
