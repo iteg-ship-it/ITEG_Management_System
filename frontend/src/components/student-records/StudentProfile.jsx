@@ -113,6 +113,7 @@ export default function StudentProfile() {
   return (
     <>
       <UserProfile showBackButton heading="Student Profile" />
+      <button>get level datay</button>
       <div className="w-full">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
           {/* Right Section - Appears first on small screens */}

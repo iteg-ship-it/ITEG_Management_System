@@ -12,7 +12,7 @@ import StudentDashboard from "../student-records/StudentDashboard";
 import StudentDetailTable from "../student-records/StudentDetailTable";
 import StudentEditPage from "../student-records/StudentEditPage";
 import StudentProfile from "../student-records/StudentProfile";
-
+import StudentLevelData from "../student-records/StudentLevelData"
 // Placement components
 import PlacementRecords from "../placement/placement-records/PlacementRecords";
 
@@ -25,8 +25,11 @@ const routes = [
   { path: "/student-dashboard", element: <StudentDashboard /> },
   { path: "/student-detail-table", element: <StudentDetailTable /> },
   { path: "/student/edit/:id", element: <StudentEditPage /> },
+  { path: "/student/leveldata/:id", element: <StudentLevelData /> },
   { path: "/placement", element: <PlacementRecords /> },
   { path: "/student-profile/:id", element: <StudentProfile /> },
+  
+
 ];
 
 const Dashboard = () => (

@@ -131,7 +131,6 @@ export const authApi = createApi({
       }),
     }),
 
-
     // Refresh token
     refreshToken: builder.mutation({
       query: (payload) => ({
@@ -148,7 +147,6 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
-
 
     // ---- Forget Password API ----
     forgetPassword: builder.mutation({
@@ -171,7 +169,6 @@ export const authApi = createApi({
       }),
     }),
 
-
     // ----otp-----
     // verify the otp
     verifyOtp: builder.mutation({
@@ -189,7 +186,6 @@ export const authApi = createApi({
         body: payload,
       }),
     }),
-
 
     // ---------admission process-------------
 
@@ -240,12 +236,32 @@ export const authApi = createApi({
     createLevelInterview: builder.mutation({
       query: ({ id, data }) => ({
         url: `${import.meta.env.VITE_CREATE_LEVEL_INTERVIEW}${id}`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
-      invalidatesTags: ['Student'], // Optional
+      invalidatesTags: ["Student"], // Optional
     }),
 
+    getLevelInterview: builder.query({
+      query: (id) => ({
+        url: `${import.meta.env.VITE_GET_LEVEL_INTERVIEW_BY_ID}${id}`,
+        method: "GET",
+      }),
+    }),
+
+    getLevelNumber: builder.query({
+      query: ({ levelNo }) => ({
+        url: `${import.meta.env.VITE_GET_LEVEL_BY_NUMBER}${levelNo}`,
+        method: "GET",
+      }),
+    }),
+
+    getAdmittedStudentsById: builder.query({
+      query: (id) => ({
+        url: `${import.meta.env.VITE_GET_ADMITTED_STUDENTS_BY_ID}${id}`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -263,6 +279,8 @@ export const {
   useInterviewCreateMutation,
   useGetInterviewDetailByIdQuery,
   useGetStudentByIdQuery,
+  useGetAdmittedStudentsByIdQuery,
   useCreateLevelInterviewMutation,
+  useGetLevelInterviewQuery,
   useLogoutMutation,
 } = authApi;
