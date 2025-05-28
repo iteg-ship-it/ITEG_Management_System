@@ -39,7 +39,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId }) => {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg w-full max-w-md">
-                <h2 className="text-xl font-bold mb-4">Add Interview Round</h2>
+                <h2 className="text-xl text-orange-600 text-center font-bold mb-4">Add Interview Round</h2>
                 <form onSubmit={formik.handleSubmit} className="space-y-4">
                     <input type="number" name="Theoretical_Marks" placeholder="Theoretical Marks" onChange={formik.handleChange} value={formik.values.Theoretical_Marks} className="w-full border p-2 rounded" />
                     <input type="number" name="Practical_Marks" placeholder="Practical Marks" onChange={formik.handleChange} value={formik.values.Practical_Marks} className="w-full border p-2 rounded" />
@@ -54,8 +54,8 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId }) => {
                     </select>
 
                     <div className="flex justify-end space-x-2">
-                        <button type="button" onClick={onClose} className="px-4 py-2 border rounded">Cancel</button>
-                        <button type="submit" disabled={isLoading} className="px-4 py-2 bg-blue-600 text-white rounded">
+                        <button type="button" onClick={onClose} className="px-4 py-2 border rounded hover:bg-gray-100">Cancel</button>
+                        <button type="submit" disabled={isLoading} className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:opacity-50">
                             {isLoading ? "Submitting..." : "Submit"}
                         </button>
                     </div>

@@ -13,13 +13,13 @@ const UserProfile = ({ heading, showBackButton = false, onBack }) => {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  // const [logout, { isLoading }] = useLogoutMutation();
 
-  // const handleLogout = async () => {
+  // const [logout, ] = useLogoutMutation();
+
+
+  //   const handleLogout = async () => {
   //   try {
   //     const userId = user?._id;
-  //     console.log("Logging out user with _id:", userId);
-
   //     if (!userId) throw new Error("User ID is missing");
 
   //     await logout({ _id: userId }).unwrap();
@@ -33,6 +33,7 @@ const UserProfile = ({ heading, showBackButton = false, onBack }) => {
   //     toast.error(err?.data?.message || err.message || "Logout failed");
   //   }
   // };
+
 
   const handleLogout = () => {
     localStorage.clear();

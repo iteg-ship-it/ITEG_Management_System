@@ -5,7 +5,7 @@ import UserProfile from "../common-components/user-profile/UserProfile";
 import { useAdmitedStudentsQuery } from "../../redux/api/authApi";
 import CommonTable from "../common-components/table/CommonTable";
 import edit from "../../assets/icons/edit-fill-icon.png";
-// import interview from "../../assets/icons/edit-fill-icon.png";
+import interview from "../../assets/icons/interview-icon.png";
 import CreateInterviewModal from "./CreateInterviewModal";
 
 const StudentDetailTable = () => {
@@ -20,7 +20,7 @@ const StudentDetailTable = () => {
   const [selectedResults, setSelectedResults] = useState([]);
   const [selectedPercentages, setSelectedPercentages] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [selectedStudentId, setSelectedStudentId] = useState(null); 
+  const [selectedStudentId, setSelectedStudentId] = useState(null);
 
   const toTitleCase = (str) =>
     str
@@ -124,7 +124,7 @@ const StudentDetailTable = () => {
         }}
         className="px-3 py-1 rounded"
       >
-        <img src={edit} alt="edit-icon" className="w-5 h-5" />
+        <img src={interview} alt="interview-icon" className="w-5 h-5" />
       </button>
       <button
         onClick={() =>

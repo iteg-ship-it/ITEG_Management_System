@@ -117,19 +117,20 @@ export const authApi = createApi({
     // ---- Create User API ----
     updateUser: builder.mutation({
       query: ({ id, data }) => ({
-        url: `user/update/${id}`,
+        url: `${import.meta.env.VITE_UPDATE_USER_PROFILE}${id}`,
         method: "PATCH",
         body: data,
       }),
     }),
     //-- Logout API ----
     logout: builder.mutation({
-      query: (payload) => ({
+      query: ({ _id }) => ({
         url: import.meta.env.VITE_LOGOUT_ENDPOINT,
         method: "POST",
-        body: payload,
+        body: { _id },
       }),
     }),
+
 
 
     // Refresh token
@@ -245,9 +246,24 @@ export const authApi = createApi({
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: ['Student'], 
+      invalidatesTags: ['Student'],
     }),
 
+    updateStudentById: builder.mutation({
+      query: ({ data }) => ({
+        url: `${import.meta.env.VITE_UPDATE_STUDENT_BY_ID}`,
+        method: "PATCH",
+        body: data,
+      }),
+    }),
+
+    permissionUpdate: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `${import.meta.env.VITE_UPDATE_PERMISSION_STUDENT}${id}`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -266,5 +282,7 @@ export const {
   useGetInterviewDetailByIdQuery,
   useGetStudentByIdQuery,
   useCreateLevelInterviewMutation,
+  useUpdateStudentByIdMutation,
+  usePermissionUpdateMutation,
   useLogoutMutation,
 } = authApi;
