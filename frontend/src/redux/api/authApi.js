@@ -262,6 +262,14 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+
+
+    getPermissionStudent: builder.query({
+      query: () => ({
+        url: `${import.meta.env.VITE_GET_PERMISSION_STUDENT}`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -282,5 +290,6 @@ export const {
   useGetAdmittedStudentsByIdQuery,
   useCreateLevelInterviewMutation,
   useGetLevelInterviewQuery,
+  useGetPermissionStudentQuery,
   useLogoutMutation,
 } = authApi;

@@ -12,9 +12,10 @@ import StudentDashboard from "../student-records/StudentDashboard";
 import StudentDetailTable from "../student-records/StudentDetailTable";
 import StudentEditPage from "../student-records/StudentEditPage";
 import StudentProfile from "../student-records/StudentProfile";
-import StudentLevelData from "../student-records/StudentLevelData"
+import StudentLevelData from "../student-records/StudentLevelData";
 // Placement components
 import PlacementRecords from "../placement/placement-records/PlacementRecords";
+import StudentPermission from "../student-records/StudentPermission";
 
 const routes = [
   { path: "/", element: <AdmissionDashboard /> },
@@ -22,14 +23,15 @@ const routes = [
   { path: "/admission/edit/:id", element: <AdmissionEditPage /> },
   { path: "/admission-record", element: <AdmissionRecords /> },
   { path: "/interview-detail/:id", element: <AdmissionInterviewDetails /> },
+
   { path: "/student-dashboard", element: <StudentDashboard /> },
   { path: "/student-detail-table", element: <StudentDetailTable /> },
   { path: "/student/edit/:id", element: <StudentEditPage /> },
   { path: "/student/leveldata/:id", element: <StudentLevelData /> },
-  { path: "/placement", element: <PlacementRecords /> },
   { path: "/student-profile/:id", element: <StudentProfile /> },
-  
+  { path: "/student-permission", element: <StudentPermission /> },
 
+  { path: "/placement", element: <PlacementRecords /> },
 ];
 
 const Dashboard = () => (
@@ -41,7 +43,6 @@ const Dashboard = () => (
 );
 
 export default Dashboard;
-
 
 // import { Routes, Route } from "react-router-dom";
 // import AdmissionProcess from "../admition-process/admition-process-page/AdmissionProcess";
@@ -75,4 +76,3 @@ export default Dashboard;
 // };
 
 // export default Dashboard;
-
