@@ -118,20 +118,22 @@ export const authApi = createApi({
     updateUser: builder.mutation({
       query: ({ id, data }) => ({
         url: `${import.meta.env.VITE_UPDATE_USER_PROFILE}${id}`,
-        method: "PATCH",
+        method: 'PATCH',
         body: data,
       }),
     }),
     //-- Logout API ----
     logout: builder.mutation({
-      query: ({ _id }) => ({
-        url: import.meta.env.VITE_LOGOUT_ENDPOINT,
-        method: "POST",
-        body: { _id },
-      }),
+      query: ({ id }) => {
+        console.log("🚀 Sending logout request with ID:", id); // ✅ Log payload
+
+        return {
+          url: import.meta.env.VITE_LOGOUT_ENDPOINT,
+          method: "POST",
+          body: { id }, // ✅ this will match req.body.id in backend
+        };
+      },
     }),
-
-
 
     // Refresh token
     refreshToken: builder.mutation({

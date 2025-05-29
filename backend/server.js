@@ -23,7 +23,7 @@ app.use(
   cors({
     origin: "http://localhost:5173",
     // origin: '*', // or '*' to allow all
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true, // only if you're using cookies or sessions
   })
 );

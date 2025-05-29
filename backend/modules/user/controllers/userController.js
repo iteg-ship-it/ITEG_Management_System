@@ -235,16 +235,19 @@ exports.logout = async (req, res) => {
   try {
     const userId = req.body.id || req.body._id;
 
+    console.log("📩 Logout request received for userId:", userId); // Log the incoming ID
+
     if (!userId) {
       return res.status(400).json({ message: "User ID is required" });
     }
 
     const user = await User.findById(userId);
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    user.refreshToken = null;
+    user.refreshToken = null; // Assuming refreshToken stored in DB
     await user.save();
 
     res.status(200).json({ message: "Logged out successfully, refresh token removed" });
@@ -391,7 +394,7 @@ exports.googleAuthCallback = async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
-     const redirectUrl = `${process.env.GOOGLE_REDIRECT_URI}?token=${token}&refreshToken=${refreshToken}&userId=${user._id}`;
+    const redirectUrl = `${process.env.GOOGLE_REDIRECT_URI}?token=${token}&refreshToken=${refreshToken}&userId=${user._id}`;
     return res.redirect(redirectUrl);
   } catch (error) {
     console.error('Google login failed:', error);
