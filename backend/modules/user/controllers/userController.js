@@ -376,14 +376,16 @@ exports.googleAuthCallback = async (req, res) => {
         googleId: sub,
         email,
         name,
+        role: "admin", // Default role, can be changed later
+        profileImage: _json.picture || "https://via.placeholder.com/150", // Default image if not provided
       });
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: '1h',
     });
 
-    const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const refreshToken = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: '7d',
     });
 
@@ -391,7 +393,9 @@ exports.googleAuthCallback = async (req, res) => {
     await user.save();
 
     //  const redirectUrl = `${process.env.GOOGLE_REDIRECT_URI}?token=${token}&refreshToken=${refreshToken}&userId=${user._id}`;
-    const redirectUrl = `${process.env.GOOGLE_REDIRECT_URI}?token=${token}&refreshToken=${refreshToken}&userId=${user._id}&name=${encodeURIComponent(user.name)}&role=${user.role || ''}&email=${user.email}`;
+    // const redirectUrl = `${process.env.GOOGLE_REDIRECT_URI}?token=${token}&refreshToken=${refreshToken}&userId=${user._id}&name=${encodeURIComponent(user.name)}&role=${user.role || ''}&email=${user.email}`;
+    const redirectUrl = `${process.env.GOOGLE_REDIRECT_URI}?token=${token}&refreshToken=${refreshToken}&userId=${user._id}&name=${encodeURIComponent(user.name)}&role=${user.role}&email=${user.email}`;
+
 
     return res.redirect(redirectUrl);
   } catch (error) {
