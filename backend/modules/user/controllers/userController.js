@@ -1,3 +1,4 @@
+require("dotenv").config();
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -6,8 +7,6 @@ const crypto = require("crypto");
 const { sendResetLinkEmail } = require("../helpers/sendOtp");
 // const generateOtp = require("../helpers/generateOtp");
 const cloudinary = require('cloudinary').v2;
-
-require("dotenv").config();
 
 const mongoose = require('mongoose');
 
@@ -380,24 +379,53 @@ exports.googleAuthCallback = async (req, res) => {
         googleId: sub,
         email,
         name,
+        role: "admin", // Default role, can be changed later
+        profileImage: _json.picture || "https://via.placeholder.com/150", // Default image if not provided
       });
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: '1h',
     });
 
-    const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const refreshToken = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: '7d',
     });
 
     user.refreshToken = refreshToken;
     await user.save();
 
-    const redirectUrl = `${process.env.GOOGLE_REDIRECT_URI}?token=${token}&refreshToken=${refreshToken}&userId=${user._id}`;
+    //  const redirectUrl = `${process.env.GOOGLE_REDIRECT_URI}?token=${token}&refreshToken=${refreshToken}&userId=${user._id}`;
+    // const redirectUrl = `${process.env.GOOGLE_REDIRECT_URI}?token=${token}&refreshToken=${refreshToken}&userId=${user._id}&name=${encodeURIComponent(user.name)}&role=${user.role || ''}&email=${user.email}`;
+    const redirectUrl = `${process.env.GOOGLE_REDIRECT_URI}?token=${token}&refreshToken=${refreshToken}&userId=${user._id}&name=${encodeURIComponent(user.name)}&role=${user.role}&email=${user.email}`;
+
+
     return res.redirect(redirectUrl);
   } catch (error) {
     console.error('Google login failed:', error);
     res.status(500).json({ error: 'Login failed' });
+  }
+};
+
+
+exports.getCurrentUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const formattedUser = {
+      ...user._doc,
+      id: user._id,
+    };
+    delete formattedUser._id;
+    delete formattedUser.__v;
+
+    res.status(200).json({ success: true, user: formattedUser });
+  } catch (error) {
+    console.error("Error fetching current user:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
