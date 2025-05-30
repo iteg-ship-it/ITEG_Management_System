@@ -152,7 +152,6 @@ export const authApi = createApi({
       }),
     }),
 
-
     // ---- Forget Password API ----
     forgetPassword: builder.mutation({
       query: ({ email }) => ({
@@ -174,7 +173,6 @@ export const authApi = createApi({
       }),
     }),
 
-
     // ----otp-----
     // verify the otp
     verifyOtp: builder.mutation({
@@ -192,7 +190,6 @@ export const authApi = createApi({
         body: payload,
       }),
     }),
-
 
     // ---------admission process-------------
 
@@ -245,7 +242,7 @@ export const authApi = createApi({
     createLevelInterview: builder.mutation({
       query: ({ id, data }) => ({
         url: `${import.meta.env.VITE_CREATE_LEVEL_INTERVIEW}${id}`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
       invalidatesTags: ['Student'],
@@ -264,6 +261,36 @@ export const authApi = createApi({
         url: `${import.meta.env.VITE_UPDATE_PERMISSION_STUDENT}${id}`,
         method: "PUT",
         body: data,
+        invalidatesTags: ["Student"], // Optional
+      }),
+
+      getLevelInterview: builder.query({
+        query: (id) => ({
+          url: `${import.meta.env.VITE_GET_LEVEL_INTERVIEW_BY_ID}${id}`,
+          method: "GET",
+        }),
+      }),
+
+      getLevelNumber: builder.query({
+        query: ({ levelNo }) => ({
+          url: `${import.meta.env.VITE_GET_LEVEL_BY_NUMBER}${levelNo}`,
+          method: "GET",
+        }),
+      }),
+
+      getAdmittedStudentsById: builder.query({
+        query: (id) => ({
+          url: `${import.meta.env.VITE_GET_ADMITTED_STUDENTS_BY_ID}${id}`,
+          method: "GET",
+        }),
+      }),
+
+
+      getPermissionStudent: builder.query({
+        query: () => ({
+          url: `${import.meta.env.VITE_GET_PERMISSION_STUDENT}`,
+          method: "GET",
+        }),
       }),
     }),
   }),
@@ -283,8 +310,11 @@ export const {
   useInterviewCreateMutation,
   useGetInterviewDetailByIdQuery,
   useGetStudentByIdQuery,
+  useGetAdmittedStudentsByIdQuery,
   useCreateLevelInterviewMutation,
   useUpdateStudentByIdMutation,
   usePermissionUpdateMutation,
+  useGetLevelInterviewQuery,
+  useGetPermissionStudentQuery,
   useLogoutMutation,
 } = authApi;
