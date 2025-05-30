@@ -22,7 +22,7 @@ const SettingsModal = ({ user, onClose }) => {
         e.preventDefault();
         try {
             const response = await updateUser({
-                id: user.id,
+                id: user.id || user._id,
                 data: { name: formData.name },
             }).unwrap();
 
