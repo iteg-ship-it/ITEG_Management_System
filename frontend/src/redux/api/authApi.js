@@ -263,36 +263,50 @@ export const authApi = createApi({
         body: data,
         invalidatesTags: ["Student"], // Optional
       }),
-
-      getLevelInterview: builder.query({
-        query: (id) => ({
-          url: `${import.meta.env.VITE_GET_LEVEL_INTERVIEW_BY_ID}${id}`,
-          method: "GET",
-        }),
-      }),
-
-      getLevelNumber: builder.query({
-        query: ({ levelNo }) => ({
-          url: `${import.meta.env.VITE_GET_LEVEL_BY_NUMBER}${levelNo}`,
-          method: "GET",
-        }),
-      }),
-
-      getAdmittedStudentsById: builder.query({
-        query: (id) => ({
-          url: `${import.meta.env.VITE_GET_ADMITTED_STUDENTS_BY_ID}${id}`,
-          method: "GET",
-        }),
-      }),
-
-
-      getPermissionStudent: builder.query({
-        query: () => ({
-          url: `${import.meta.env.VITE_GET_PERMISSION_STUDENT}`,
-          method: "GET",
-        }),
+    }),
+    getLevelInterview: builder.query({
+      query: (id) => ({
+        url: `${import.meta.env.VITE_GET_LEVEL_INTERVIEW_BY_ID}${id}`,
+        method: "GET",
       }),
     }),
+
+    getLevelNumber: builder.query({
+      query: ({ levelNo }) => ({
+        url: `${import.meta.env.VITE_GET_LEVEL_BY_NUMBER}${levelNo}`,
+        method: "GET",
+      }),
+    }),
+
+    getAdmittedStudentsById: builder.query({
+      query: (id) => ({
+        url: `${import.meta.env.VITE_GET_ADMITTED_STUDENTS_BY_ID}${id}`,
+        method: "GET",
+      }),
+    }),
+
+    getPermissionStudent: builder.query({
+      query: () => ({
+        url: `${import.meta.env.VITE_GET_PERMISSION_STUDENT}`,
+        method: "GET",
+      }),
+    }),
+    // services/studentApi.js
+    // updatePermission: builder.mutation({
+    //   query: ({ id, body }) => ({
+    //     url: `${import.meta.envVITE_UPDATE_PERMISSION_STUDENT}${id}`,
+    //     method: "PATCH",
+    //     body,
+    //   }),
+    // }),
+    updatePermission: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `${import.meta.envVITE_UPDATE_PERMISSION_STUDENT}${id}`,
+        method: 'PUT',
+        body: data,
+      }),
+    }),
+
   }),
 });
 
@@ -315,6 +329,8 @@ export const {
   useUpdateStudentByIdMutation,
   usePermissionUpdateMutation,
   useGetLevelInterviewQuery,
+  useGetLevelNumberQuery,
   useGetPermissionStudentQuery,
+  useUpdatePermissionMutation,
   useLogoutMutation,
 } = authApi;

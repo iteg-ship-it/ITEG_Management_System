@@ -1,11 +1,10 @@
 /* eslint-disable react/prop-types */
-
 import { Field, ErrorMessage } from "formik";
 
 const TextInput = ({ label, name, placeholder }) => (
   <div>
     <label className="block text-sm font-medium text-gray-700">
-      {label} <span className="text-red-500">*</span>
+      {label} {label && <span className="text-red-500">*</span>}
     </label>
     <Field
       type="text"
