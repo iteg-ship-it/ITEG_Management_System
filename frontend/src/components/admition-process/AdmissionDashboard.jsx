@@ -1,4 +1,4 @@
-import UserProfile from "../../common-components/user-profile/UserProfile"
+import UserProfile from "../common-components/user-profile/UserProfile"
 
 const AdmissionDashboard = () => {
   return (

@@ -1,11 +1,11 @@
 import { Routes, Route } from "react-router-dom";
 
 // Admission process components
-import AdmissionDashboard from "../admition-process/admission-dashboard/AdmissionDashboard";
-import AdmissionProcess from "../admition-process/admition-process-page/AdmissionProcess";
-import AdmissionEditPage from "../admition-process/admission-stu-edit-page/AdmissionEditPage";
-import AdmissionInterviewDetails from "../admition-process/admission-interview-detail/AdmissionInterviewDetails";
-import AdmissionRecords from "../admition-process/admition-records/AdmitionRecords";
+import AdmissionDashboard from "../admition-process/AdmissionDashboard";
+import AdmissionProcess from "../admition-process/AdmissionProcess";
+import AdmissionEditPage from "../admition-process/AdmissionEditPage";
+import AdmissionInterviewDetails from "../admition-process/AdmissionInterviewDetails";
+import AdmissionRecords from "../admition-process/AdmitionRecords";
 
 // Student records components
 import StudentDashboard from "../student-records/StudentDashboard";

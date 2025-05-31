@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useParams } from "react-router-dom";
-import { useGetInterviewDetailByIdQuery } from "../../../redux/api/authApi";
-import UserProfile from "../../common-components/user-profile/UserProfile";
+import { useGetInterviewDetailByIdQuery } from "../../redux/api/authApi";
+import UserProfile from "../common-components/user-profile/UserProfile";
 
 const AdmissionInterviewDetails = () => {
     const { id } = useParams();

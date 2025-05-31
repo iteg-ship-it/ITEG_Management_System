@@ -1,4 +1,3 @@
-// export default StudentEditPage;
 import { useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { FaCamera } from "react-icons/fa";

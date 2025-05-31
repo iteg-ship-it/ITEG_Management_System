@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState } from 'react';
-import { useInterviewCreateMutation } from '../../../redux/api/authApi';
+import { useInterviewCreateMutation } from '../../redux/api/authApi';
 
 const CustomTimeDate = ({ isOpen, onClose, studentId, attemed }) => {
   const [formData, setFormData] = useState({

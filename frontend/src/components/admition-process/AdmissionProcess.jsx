@@ -1,13 +1,13 @@
 // StudentList.jsx
 
-import { useGetAllStudentsQuery } from "../../../redux/api/authApi";
-import CommonTable from "../../common-components/table/CommonTable";
-import Pagination from "../../common-components/pagination/Pagination";
+import { useGetAllStudentsQuery } from "../../redux/api/authApi";
+import CommonTable from "../common-components/table/CommonTable";
+import Pagination from "../common-components/pagination/Pagination";
 import { useEffect, useState } from "react";
-import edit from "../../../assets/icons/edit-fill-icon.png";
-import CustomTimeDate from "../date-time-modal/CustomTimeDate";
+import edit from "../../assets/icons/edit-fill-icon.png";
+import CustomTimeDate from "./CustomTimeDate";
 import { useNavigate, useLocation } from "react-router-dom";
-import UserProfile from "../../common-components/user-profile/UserProfile";
+import UserProfile from "../common-components/user-profile/UserProfile";
 
 const toTitleCase = (str) =>
   str

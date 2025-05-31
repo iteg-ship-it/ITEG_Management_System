@@ -264,12 +264,14 @@ export const authApi = createApi({
         invalidatesTags: ["Student"], // Optional
       }),
     }),
+    // apiSlice.js or interviewApi.js
     getLevelInterview: builder.query({
       query: (id) => ({
         url: `${import.meta.env.VITE_GET_LEVEL_INTERVIEW_BY_ID}${id}`,
         method: "GET",
       }),
     }),
+
 
     getLevelNumber: builder.query({
       query: ({ levelNo }) => ({
@@ -285,20 +287,14 @@ export const authApi = createApi({
       }),
     }),
 
+
     getPermissionStudent: builder.query({
       query: () => ({
         url: `${import.meta.env.VITE_GET_PERMISSION_STUDENT}`,
         method: "GET",
       }),
     }),
-    // services/studentApi.js
-    // updatePermission: builder.mutation({
-    //   query: ({ id, body }) => ({
-    //     url: `${import.meta.envVITE_UPDATE_PERMISSION_STUDENT}${id}`,
-    //     method: "PATCH",
-    //     body,
-    //   }),
-    // }),
+
     updatePermission: builder.mutation({
       query: ({ id, data }) => ({
         url: `${import.meta.envVITE_UPDATE_PERMISSION_STUDENT}${id}`,
@@ -330,6 +326,7 @@ export const {
   usePermissionUpdateMutation,
   useGetLevelInterviewQuery,
   useGetLevelNumberQuery,
+  useGetAdmittedStudentByIdQuery,
   useGetPermissionStudentQuery,
   useUpdatePermissionMutation,
   useLogoutMutation,
