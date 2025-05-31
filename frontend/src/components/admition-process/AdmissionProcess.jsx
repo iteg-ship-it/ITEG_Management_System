@@ -104,15 +104,40 @@ const StudentList = () => {
     ) {
       return false;
     }
-    // if (
-    //   (activeTab === "Online Assessment" &&
-    //     (student.onlineTest?.result === "Pending" || student.onlineTest?.result === "Not Attempted")) ||
-    //   (activeTab === "Selected" && latestResult !== "Pass") ||
-    //   (activeTab === "Final Round" && latestResult !== "Pass") ||
-    //   (activeTab === "Rejected" && latestResult !== "Fail")
-    // ) {
-    //   return false;
-    // }
+    if (
+      (activeTab === "Online Assessment" &&
+        (student.onlineTest?.result !== "Pending" || (student.interviews || []).length > 0)) ||
+      (activeTab === "Online Assessment" &&
+        (student.onlineTest?.result !== "Pending" || (student.interviews || []).length > 0)) ||
+
+      (activeTab === "Selected" &&
+        !student.interviews?.some(
+          (interview) => interview.round === "Second" && interview.result === "Pass"
+        )) ||
+
+      (activeTab === "Final Round" &&
+        !student.interviews?.some(
+          (interview) => interview.round === "First" && interview.result === "Pass"
+        )) ||
+
+      (activeTab === "Rejected" && latestResult !== "Fail") ||
+
+      (activeTab === "Technical Round" && (student.interviews || []).length === 0) ||
+      (activeTab === "Selected" && latestResult !== "Pass") ||
+      (activeTab === "Final Round" && latestResult !== "Pass") ||
+      (activeTab === "Rejected" && latestResult !== "Fail") ||
+      (activeTab === "Technical Round" && (student.interviews || []).length === 0) ||
+      (activeTab === "Rejected" &&
+        latestResult !== "Fail" &&
+        !student.interviews?.some(
+          (interview) => interview.rounddd === "Second" && interview.result === "Fail"
+        ))
+
+    ) {
+      return false;
+    }
+
+
     const searchableValues = Object.values(student)
       .map((val) => String(val ?? "").toLowerCase())
       .join(" ");
