@@ -3,6 +3,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useResetPasswordMutation } from "../../../redux/api/authApi";
 import logo from "../../../assets/images/logo-ssism.png";
+import bg from "../../../assets/images/bgImg.png";
 import ReusableForm from "../../../ReusableForm";
 import { resetPasswordValidationSchema } from "../../../validationSchema"; // ✅ Correct schema
 import PasswordField from "../common-feild/PasswordField";
@@ -43,8 +44,8 @@ const ConfirmPassword = () => {
 
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
-      <div className="bg-white p-10 rounded-lg w-full max-w-sm">
+    <div className="flex justify-center items-center h-screen bg-gray-100" style={{ backgroundImage: `url(${bg})`, backgroundPosition: 'center', backgroundSize: 'cover' }}>
+      <div className="bg-white p-10 rounded-2xl shadow-lg w-full max-w-sm">
         <div className="flex flex-col items-center">
           <img src={logo} alt="SSISM Logo" className="h-20 w-30" />
           <h2 className="text-xl font-bold text-gray-800 mt-2">Reset Password</h2>

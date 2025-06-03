@@ -4,6 +4,7 @@ import { useSendOtpMutation } from "../../../redux/api/authApi";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import logoVerify from "../../../assets/images/otpVerify.png"
+import bg from "../../../assets/images/forgetBg.png"
 
 
 const OtpVeriFication = () => {
@@ -29,11 +30,11 @@ const OtpVeriFication = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center ">
-            <div className="w-full max-w-md">
+        <div className="min-h-screen flex items-center justify-center" style={{ backgroundImage: `url(${bg})`, backgroundPosition: 'center', backgroundSize: 'cover' }}>
+            <div className="bg-white p-10 rounded-lg w-full max-w-md border border-200  shadow-lg py-14">
                 <form
                     onSubmit={handleSendOtp}
-                    className="border border-200 rounded-lg shadow-lg py-14 flex flex-col items-center justify-center text-center"
+                    className=" flex flex-col items-center justify-center text-center"
                 >
                     {/* Email Icon + Envelope Illustration */}
                     <img

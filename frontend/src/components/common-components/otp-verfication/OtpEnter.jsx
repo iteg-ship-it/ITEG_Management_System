@@ -4,6 +4,8 @@ import { useVerifyOtpMutation } from "../../../redux/api/authApi";
 import { toast, ToastContainer } from "react-toastify";
 import CryptoJS from "crypto-js";
 import "react-toastify/dist/ReactToastify.css";
+import bg from "../../../assets/images/bgImg.png";
+import enter from "../../../assets/images/otpEnter.png";
 
 const OtpEnter = () => {
   const location = useLocation();
@@ -68,12 +70,11 @@ const OtpEnter = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <div className="w-[400px] border border-blue-300 rounded-2xl shadow-lg p-6 text-center">
+    <div className="min-h-screen flex items-center justify-center " style={{ backgroundImage: `url(${bg})`, backgroundPosition: 'center', backgroundSize: 'cover' }}>
+      <div className="bg-white p-10 rounded-lg w-full max-w-md border border-200 text-center shadow-lg py-14">
         <img
-          src="https://cdn-icons-png.flaticon.com/512/3064/3064197.png"
-          alt="lock"
-          className="w-16 h-16 mx-auto mb-4"
+          src={enter} alt="lock"
+          className=" h-20 mx-auto mb-4"
         />
         <h2 className="text-xl font-bold text-gray-800 mb-2">Verify Your Email Address</h2>
         <p className="text-gray-500 text-sm mb-6">

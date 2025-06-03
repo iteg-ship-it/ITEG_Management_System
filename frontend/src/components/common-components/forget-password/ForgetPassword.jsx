@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useForgetPasswordMutation } from "../../../redux/api/authApi";
 import logo from "../../../assets/images/logo-ssism.png";
+import bg from "../../../assets/images/forgetBg.png";
 
 export default function ForgetPassword() {
   const [email, setEmail] = useState("");
@@ -18,7 +19,7 @@ export default function ForgetPassword() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+    <div className="flex justify-center items-center min-h-screen bg-gray-100" style={{ backgroundImage: `url(${bg})`, backgroundPosition: 'center', backgroundSize: 'cover' }}>
       <div className="bg-white p-10 rounded-2xl shadow-lg w-full max-w-sm">
         <div className="flex flex-col items-center mb-6">
           <img src={logo} alt="SSISM Logo" className="h-20 w-auto" />

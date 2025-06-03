@@ -10,8 +10,9 @@ import EmailField from "../common-feild/EmailField";
 import PasswordField from "../common-feild/PasswordField";
 
 import logo from "../../../assets/images/logo-ssism.png";
-import googleLogo from "../../../assets/images/Google.png";
-import linkedinLogo from "../../../assets/images/linkedin.png";
+import bg from "../../../assets/images/bgImg.png";
+import googleLogo from "../../../assets/icons/google-icon.png";
+import mail from "../../../assets/icons/gmail-icon.png";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -54,7 +55,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
+    <div className="flex justify-center items-center h-screen bg-gray-100 " style={{ backgroundImage: `url(${bg})`, backgroundPosition: 'center', backgroundSize: 'cover' }}>
       <div className="w-96 max-w-md bg-white p-6 rounded-lg shadow-md">
         <ReusableForm
           initialValues={initialValues}
@@ -100,14 +101,26 @@ const LoginPage = () => {
                 <hr className="flex-grow border-gray-300" />
               </div>
 
-              <div className="flex justify-center gap-4">
-                <button type="button" onClick={handleGoogleLogin}>
-                  <img src={googleLogo} alt="Google" className="h-10" />
+              <div className="flex flex-col items-center space-y-4">
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  className="flex border items-center w-[320px] justify-center space-x-4 bg-white shadow-md rounded-xl py-2 hover:shadow-lg transition"
+                >
+                  <img src={googleLogo} alt="Google"  />
+                  <span className="text-lg font-medium text-gray-800">Login With Google</span>
                 </button>
-                <button type="button" onClick={handleOtpLogin}>
-                  <img src={linkedinLogo} alt="OTP Login" className="h-10" />
+
+                <button
+                  type="button"
+                  onClick={handleOtpLogin}
+                  className="flex border items-center w-[320px] justify-center space-x-4 bg-white shadow-md rounded-xl py-2 hover:shadow-lg transition"
+                >
+                  <img src={mail} alt="OTP Login"  />
+                  <span className="text-lg font-medium text-gray-800">Login with Email OTP</span>
                 </button>
               </div>
+
             </>
           )}
         </ReusableForm>
