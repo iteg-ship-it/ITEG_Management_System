@@ -95,47 +95,81 @@ const StudentList = () => {
     const latestResult = getLatestInterviewResult(student.interviews || []);
     const percentage = parseFloat(student.percentage);
     const studentTrack = (student.track || "").toLowerCase();
+    // Pre-computed conditions
+    const interviewsExist = (student.interviews || []).length > 0;
 
+    const hasFirstRoundPass = student.interviews?.some(
+      (interview) => interview.round === "First" && interview.result === "Pass"
+    );
+
+    const hasSecondRoundPass = student.interviews?.some(
+      (interview) => interview.round === "Second" && interview.result === "Pass"
+    );
+
+    const hasSecondRoundFail = student.interviews?.some(
+      (interview) => interview.round === "Second" && interview.result === "Fail"
+    );
+
+    // Main condition check
     if (
-      (activeTab === "Online Assessment" && student.onlineTest?.result !== "Pending") ||
-      (activeTab === "Selected" && latestResult !== "Pass") ||
-      (activeTab === "Final Round" && latestResult !== "Pass") ||
-      (activeTab === "Rejected" && latestResult !== "Fail")
-    ) {
-      return false;
-    }
-    if (
+      // Online Assessment tab:
       (activeTab === "Online Assessment" &&
-        (student.onlineTest?.result !== "Pending" || (student.interviews || []).length > 0)) ||
-      (activeTab === "Online Assessment" &&
-        (student.onlineTest?.result !== "Pending" || (student.interviews || []).length > 0)) ||
+        (student.onlineTest?.result !== "Pending" || interviewsExist)) ||
 
-      (activeTab === "Selected" &&
-        !student.interviews?.some(
-          (interview) => interview.round === "Second" && interview.result === "Pass"
-        )) ||
+      // Selected tab:
+      (activeTab === "Selected" && !hasSecondRoundPass) ||
 
-      (activeTab === "Final Round" &&
-        !student.interviews?.some(
-          (interview) => interview.round === "First" && interview.result === "Pass"
-        )) ||
+      // Final Round tab:
+      (activeTab === "Final Round" && !hasFirstRoundPass) ||
 
-      (activeTab === "Rejected" && latestResult !== "Fail") ||
-
-      (activeTab === "Technical Round" && (student.interviews || []).length === 0) ||
-      (activeTab === "Selected" && latestResult !== "Pass") ||
-      (activeTab === "Final Round" && latestResult !== "Pass") ||
-      (activeTab === "Rejected" && latestResult !== "Fail") ||
-      (activeTab === "Technical Round" && (student.interviews || []).length === 0) ||
+      // Rejected tab:
       (activeTab === "Rejected" &&
-        latestResult !== "Fail" &&
-        !student.interviews?.some(
-          (interview) => interview.rounddd === "Second" && interview.result === "Fail"
-        ))
+        (latestResult !== "Fail" && !hasSecondRoundFail)) ||
 
+      // Technical Round tab:
+      (activeTab === "Technical Round" && !interviewsExist)
     ) {
       return false;
     }
+
+    // if (
+    //   (activeTab === "Online Assessment" && student.onlineTest?.result !== "Pending") ||
+    //   (activeTab === "Selected" && latestResult !== "Pass") ||
+    //   (activeTab === "Final Round" && latestResult !== "Pass") ||
+    //   (activeTab === "Rejected" && latestResult !== "Fail")
+    // ) {
+    //   return false;
+    // }
+    // if (
+    //   (activeTab === "Online Assessment" &&
+    //     (student.onlineTest?.result !== "Pending" || (student.interviews || []).length > 0)) ||
+    //   (activeTab === "Online Assessment" &&
+    //     (student.onlineTest?.result !== "Pending" || (student.interviews || []).length > 0)) ||
+
+    //   (activeTab === "Selected" &&
+    //     !student.interviews?.some(
+    //       (interview) => interview.round === "Second" && interview.result === "Pass"
+    //     )) ||
+
+    //   (activeTab === "Final Round" &&
+    //     !student.interviews?.some(
+    //       (interview) => interview.round === "First" && interview.result === "Pass"
+    //     )) ||
+
+    //   (activeTab === "Rejected" && latestResult !== "Fail") ||
+    //   (activeTab === "Selected" && latestResult !== "Pass") ||
+    //   (activeTab === "Final Round" && latestResult !== "Pass") ||
+    //   (activeTab === "Rejected" && latestResult !== "Fail") ||
+    //   (activeTab === "Technical Round" && (student.interviews || []).length === 0) ||
+    //   (activeTab === "Rejected" &&
+    //     latestResult !== "Fail" &&
+    //     !student.interviews?.some(
+    //       (interview) => interview.rounddd === "Second" && interview.result === "Fail"
+    //     ))
+
+    // ) {
+    //   return false;
+    // }
 
 
     const searchableValues = Object.values(student)
@@ -221,8 +255,11 @@ const StudentList = () => {
         { key: "stream", label: "Status of Written", render: (row) => handleGetOnlineMarks(row.onlineTest) },
         { key: "stream", label: "Marks of tech", render: (row) => handleGetMarks(row.interviews) },
       ];
-      actionButton = (row) => handleGetStatus(row.interviews);
-      break;
+      actionButton = (row) => (
+        <button onClick={() => scheduleButton(row)} className="bg-orange-500 text-white px-3 py-1 rounded">
+          Take interview
+        </button>
+      ); break;
 
     case "Final Round":
       columns = [
