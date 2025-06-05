@@ -101,22 +101,22 @@ const LoginPage = () => {
                 <hr className="flex-grow border-gray-300" />
               </div>
 
-              <div className="flex flex-col items-center space-y-4">
+              <div className="flex flex-col items-center space-y-4 px-5">
                 <button
                   type="button"
                   onClick={handleGoogleLogin}
-                  className="flex border items-center w-[320px] justify-center space-x-4 bg-white shadow-md rounded-xl py-2 hover:shadow-lg transition"
+                  className="flex border items-center w-[120%] justify-center space-x-4 bg-white shadow-md rounded-xl py-2 hover:shadow-lg transition"
                 >
-                  <img src={googleLogo} alt="Google"  />
+                  <img src={googleLogo} alt="Google" />
                   <span className="text-lg font-medium text-gray-800">Login With Google</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleOtpLogin}
-                  className="flex border items-center w-[320px] justify-center space-x-4 bg-white shadow-md rounded-xl py-2 hover:shadow-lg transition"
+                  className="flex border items-center w-[120%] justify-center space-x-4 bg-white shadow-md rounded-xl py-2 hover:shadow-lg transition"
                 >
-                  <img src={mail} alt="OTP Login"  />
+                  <img src={mail} alt="OTP Login" />
                   <span className="text-lg font-medium text-gray-800">Login with Email OTP</span>
                 </button>
               </div>
