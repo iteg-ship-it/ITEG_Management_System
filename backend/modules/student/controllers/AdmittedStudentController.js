@@ -406,6 +406,7 @@ exports.updateAdmittedStudent = async (req, res) => {
 
     // Define which fields you want to allow updates for
     const updateFields = {
+      image: req.body.image, // Base64 Image
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       fatherName: req.body.fatherName,
