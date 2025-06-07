@@ -1,7 +1,8 @@
 import {
-  useGetPermissionStudentQuery, useGetLevelInterviewQuery,
-  useGetLevelNumberQuery,
-  useGetAdmittedStudentsByIdQuery,
+  useGetPermissionStudentQuery,
+  // useGetLevelInterviewQuery,
+  // useGetLevelNumberQuery,
+  // useGetAdmittedStudentsByIdQuery,
 } from "../../redux/api/authApi";
 import UserProfile from "../common-components/user-profile/UserProfile";
 
@@ -12,26 +13,26 @@ const StudentPermission = () => {
     isError,
     error,
   } = useGetPermissionStudentQuery();
-  const levelInterviewId = "YOUR_INTERVIEW_ID_HERE";
-  const levelNo = 2; // example level number
-  const admittedStudentId = "YOUR_ADMITTED_STUDENT_ID_HERE";
+  // const levelInterviewId = "YOUR_INTERVIEW_ID_HERE";
+  // const levelNo = 2; // example level number
+  // const admittedStudentId = "YOUR_ADMITTED_STUDENT_ID_HERE";
 
-  // Query 1: Get level interview by ID
-  const { data: interviewData, isLoading: interviewLoading, error: interviewError } =
-    useGetLevelInterviewQuery(levelInterviewId);
+  // // Query 1: Get level interview by ID
+  // const { data: interviewData, isLoading: interviewLoading, error: interviewError } =
+  //   useGetLevelInterviewQuery(levelInterviewId);
 
-  // Query 2: Get level details by number
-  const { data: levelData, isLoading: levelLoading, error: levelError } =
-    useGetLevelNumberQuery({ levelNo });
+  // // Query 2: Get level details by number
+  // const { data: levelData, isLoading: levelLoading, error: levelError } =
+  //   useGetLevelNumberQuery({ levelNo });
 
-  // Query 3: Get admitted student by ID
-  const { data: admittedStudentData, isLoading: admittedLoading, error: admittedError } =
-    useGetAdmittedStudentsByIdQuery(admittedStudentId);
+  // // Query 3: Get admitted student by ID
+  // const { data: admittedStudentData, isLoading: admittedLoading, error: admittedError } =
+  //   useGetAdmittedStudentsByIdQuery(admittedStudentId);
 
-  // Log responses to console
-  console.log("Interview Data:", interviewData);
-  console.log("Level Data:", levelData);
-  console.log("Admitted Student Data:", admittedStudentData);
+  // // Log responses to console
+  // console.log("Interview Data:", interviewData);
+  // console.log("Level Data:", levelData);
+  // console.log("Admitted Student Data:", admittedStudentData);
 
   const students = data?.data || [];
 
@@ -90,7 +91,7 @@ const StudentPermission = () => {
         )}
       </div>
 
-      <div className="p-6">
+      {/* <div className="p-6">
         <h2 className="text-xl font-bold mb-4">Check Console for API Logs</h2>
 
         {interviewLoading || levelLoading || admittedLoading ? (
@@ -102,7 +103,7 @@ const StudentPermission = () => {
         {interviewError && <p className="text-red-500">Error loading interview data</p>}
         {levelError && <p className="text-red-500">Error loading level data</p>}
         {admittedError && <p className="text-red-500">Error loading admitted student data</p>}
-      </div>
+      </div> */}
     </>
   );
 };

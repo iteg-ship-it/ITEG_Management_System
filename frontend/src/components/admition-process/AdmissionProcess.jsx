@@ -107,7 +107,7 @@ const StudentList = () => {
       return false;
     }
 
-    const searchMatch = Object.values(student)
+    const searchableValues = Object.values(student)
       .map((val) => String(val ?? "").toLowerCase())
       .join(" ")
       .includes(searchTerm.toLowerCase());
@@ -161,8 +161,8 @@ const StudentList = () => {
       columns = [
         ...commonColumns,
         { key: "course", label: "Course", render: (row) => toTitleCase(row.course) },
-        { key: "stream", label: "Written Status", render: (row) => getStatusBadge(row.onlineTest?.result) },
-        { key: "stream", label: "Tech Marks", render: (row) => getMarks(row.interviews) },
+        { key: "onlineTestStatus", label: "Status of Written", render: (row) => handleGetOnlineMarks(row.onlineTest) },
+        { key: "techMarks", label: "Marks of Tech", render: (row) => handleGetMarks(row.interviews) },
       ];
       actionButton = (row) => (
         <button onClick={() => scheduleButton(row)} className="bg-orange-500 text-white px-3 py-1 rounded">
@@ -170,6 +170,7 @@ const StudentList = () => {
         </button>
       );
       break;
+
 
     case "Final Round":
       columns = [
