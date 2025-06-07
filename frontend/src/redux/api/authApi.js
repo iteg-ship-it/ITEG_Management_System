@@ -208,7 +208,7 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
-    
+
     // create interview for student
     interviewCreate: builder.mutation({
       query: ({ studentId, ...formData }) => ({
@@ -289,10 +289,19 @@ export const authApi = createApi({
     updatePermission: builder.mutation({
       query: ({ id, data }) => ({
         url: `${import.meta.env.VITE_UPDATE_PERMISSION_STUDENT}${id}`,
-        method: 'PUT',
+        method: "PATCH",
         body: data,
       }),
     }),
+
+    updatePlacement: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `${import.meta.env.VITE_UPDATE_PLACEMENT_INFO}${id}`,
+        method: "PATCH",
+        body: data,
+      }),
+    }),
+
 
   }),
 });
@@ -314,10 +323,10 @@ export const {
   useGetAdmittedStudentsByIdQuery,
   useCreateLevelInterviewMutation,
   useUpdateStudentByIdMutation,
-  usePermissionUpdateMutation,
   useGetLevelInterviewQuery,
   useGetLevelNumberQuery,
   useGetPermissionStudentQuery,
   useUpdatePermissionMutation,
+  useUpdatePlacementMutation,
   useLogoutMutation,
 } = authApi;
