@@ -137,7 +137,6 @@ const StudentList = () => {
       return false;
     }
 
-
     const searchableValues = Object.values(student)
       .map((val) => String(val ?? "").toLowerCase())
       .join(" ");
@@ -218,11 +217,12 @@ const StudentList = () => {
         { key: "studentMobile", label: "Mobile" },
         { key: "track", label: "Track", render: (row) => toTitleCase(row.track) },
         { key: "course", label: "Course", render: (row) => toTitleCase(row.course) },
-        { key: "stream", label: "Status of Written", render: (row) => handleGetOnlineMarks(row.onlineTest) },
-        { key: "stream", label: "Marks of tech", render: (row) => handleGetMarks(row.interviews) },
+        { key: "onlineTestStatus", label: "Status of Written", render: (row) => handleGetOnlineMarks(row.onlineTest) },
+        { key: "techMarks", label: "Marks of Tech", render: (row) => handleGetMarks(row.interviews) },
       ];
       actionButton = (row) => handleGetStatus(row.interviews);
       break;
+
 
     case "Final Round":
       columns = [

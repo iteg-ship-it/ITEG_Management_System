@@ -208,7 +208,8 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
-
+    
+    // create interview for student
     interviewCreate: builder.mutation({
       query: ({ studentId, ...formData }) => ({
         url: `${import.meta.env.VITE_INTERVIEW_CREATE}${studentId}`,
@@ -256,14 +257,6 @@ export const authApi = createApi({
       }),
     }),
 
-    permissionUpdate: builder.mutation({
-      query: ({ id, data }) => ({
-        url: `${import.meta.env.VITE_UPDATE_PERMISSION_STUDENT}${id}`,
-        method: "PUT",
-        body: data,
-        invalidatesTags: ["Student"], // Optional
-      }),
-    }),
     // apiSlice.js or interviewApi.js
     getLevelInterview: builder.query({
       query: (id) => ({
@@ -271,7 +264,6 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
-
 
     getLevelNumber: builder.query({
       query: ({ levelNo }) => ({
@@ -287,7 +279,6 @@ export const authApi = createApi({
       }),
     }),
 
-
     getPermissionStudent: builder.query({
       query: () => ({
         url: `${import.meta.env.VITE_GET_PERMISSION_STUDENT}`,
@@ -297,7 +288,7 @@ export const authApi = createApi({
 
     updatePermission: builder.mutation({
       query: ({ id, data }) => ({
-        url: `${import.meta.envVITE_UPDATE_PERMISSION_STUDENT}${id}`,
+        url: `${import.meta.env.VITE_UPDATE_PERMISSION_STUDENT}${id}`,
         method: 'PUT',
         body: data,
       }),
@@ -326,7 +317,6 @@ export const {
   usePermissionUpdateMutation,
   useGetLevelInterviewQuery,
   useGetLevelNumberQuery,
-  useGetAdmittedStudentByIdQuery,
   useGetPermissionStudentQuery,
   useUpdatePermissionMutation,
   useLogoutMutation,
