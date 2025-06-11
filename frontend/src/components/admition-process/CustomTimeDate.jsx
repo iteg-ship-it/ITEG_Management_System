@@ -8,7 +8,7 @@ import * as Yup from 'yup'; // Import Yup for validation
 import TextInput from '../common-components/common-feild/TextInput';
 import SelectInput from '../common-components/common-feild/SelectInput';
 
-const CustomTimeDate = ({ isOpen, onClose, studentId }) => {
+const CustomTimeDate = ({ isOpen, onClose, studentId ,attempted}) => {
   // initialValues for Formik
   const initialValues = {
     round: 'First',
@@ -71,7 +71,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-4xl h-[100vh] overflow-y-auto no-scrollbar relative">
+      <div className="bg-white rounded-xl py-4 px-6 w-full max-w-4xl h-[95vh] overflow-y-auto no-scrollbar relative">
         <h2 className="text-2xl font-bold text-center text-orange-500 mb-4">Schedule Interview</h2>
         <Formik
           initialValues={initialValues}
@@ -85,14 +85,26 @@ const CustomTimeDate = ({ isOpen, onClose, studentId }) => {
               <SelectInput
                 label="Round"
                 name="round"
+                disabled={true}
                 options={[
                   { value: 'First', label: 'Technical Round' },
-                  { value: 'Second', label: 'Final Round' },
+                  // { value: 'Second', label: 'Final Round' },
                 ]}
               />
 
-              <TextInput label="Attempt No" name="attemptNo" type="number" />
-              <TextInput label="Assignment" name="assignment"  />
+            <TextInput
+  label="Attempt No"
+  name="attemptNo"
+  type="number"
+  value={attempted + 1}
+  disabled={true}
+/>
+
+<TextInput
+  label="Assignment"
+  name="assignment"
+/>
+
               <TextInput label="Communication" name="communication" type="number" />
               <TextInput label="Confidence" name="confidence" type="number" />
               <TextInput label="Goal" name="goal" type="number" />
@@ -117,7 +129,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId }) => {
                 ]}
               />
 
-              <div className="md:col-span-2 flex justify-end gap-4 mt-6">
+              <div className="md:col-span-2 flex justify-end gap-4 mt-0">
                 <button type="button" onClick={onClose} className="px-4 py-2 border rounded text-gray-700">Cancel</button>
                 <button
                   type="submit"

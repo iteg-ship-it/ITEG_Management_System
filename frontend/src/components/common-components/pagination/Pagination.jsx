@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown, ChevronRight, Search } from "lucide-react";
 import downloadIcon from "../../../assets/icons/download-icon.png";
-import deleteIcon from "../../../assets/icons/delete-icon.png";
 import filterIcon from "../../../assets/icons/filter.png";
 import {
   downloadCSV,
@@ -82,11 +81,6 @@ const Pagination = ({
             </div>
           )}
         </div>
-
-        {/* Delete Button */}
-        <button className="bg-red-200 p-2 px-2.5 border rounded">
-          <img className="h-5" src={deleteIcon} alt="delete" />
-        </button>
       </div>
 
       {/* Search and Filter Section */}

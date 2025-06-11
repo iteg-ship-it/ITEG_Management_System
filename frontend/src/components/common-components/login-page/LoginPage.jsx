@@ -56,7 +56,7 @@ const LoginPage = () => {
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100 " style={{ backgroundImage: `url(${bg})`, backgroundPosition: 'center', backgroundSize: 'cover' }}>
-      <div className="w-96 max-w-md bg-white p-6 rounded-lg shadow-md">
+      <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg">
         <ReusableForm
           initialValues={initialValues}
           onSubmit={handleLoginSubmit}

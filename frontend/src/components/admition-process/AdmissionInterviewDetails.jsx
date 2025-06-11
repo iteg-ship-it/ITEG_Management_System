@@ -2,23 +2,33 @@
 import { useParams } from "react-router-dom";
 import { useGetInterviewDetailByIdQuery } from "../../redux/api/authApi";
 import UserProfile from "../common-components/user-profile/UserProfile";
+import { useState } from "react";
+import CustomTimeDate from "./CustomTimeDate";
 
 const AdmissionInterviewDetails = () => {
     const { id } = useParams();
     const { data, isLoading, error } = useGetInterviewDetailByIdQuery(id);
-    const studentData = JSON.parse(localStorage.getItem('studdedntDetails'))
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const studentData = JSON.parse(localStorage.getItem('studdedntDetails'));
 
     if (isLoading) return <p>Loading interview details...</p>;
     if (error) return <p>Error loading interview details.</p>;
 
-    // const student = data?.student;
     const interviews = data?.interviews || [];
 
     return (
         <>
             <UserProfile showBackButton heading="Interview Detail Page" />
             <div className="p-6 bg-white rounded shadow-md space-y-6">
-                {/* Student Basic Info */}
+                <div className="flex justify-end">
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+                    >
+                        + Add Interview
+                    </button>
+                </div>
+
                 <div>
                     <h2 className="text-2xl font-semibold mb-4">Student Information</h2>
                     <div className="space-y-2 text-sm text-gray-800">
@@ -27,23 +37,14 @@ const AdmissionInterviewDetails = () => {
                     </div>
                 </div>
 
-                {/* Interview Rounds */}
                 <div className="space-y-4">
                     <h2 className="text-xl font-semibold">Interview Rounds</h2>
                     {interviews.map((item, index) => (
-                        <div
-                            key={item._id || index}
-                            className="bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm"
-                        >
+                        <div key={item._id || index} className="bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm">
                             <div className="flex justify-between items-center mb-2">
-                                <h3 className="font-semibold text-blue-600">
-                                    {item.round} Round
-                                </h3>
-                                <span className="text-sm text-gray-500">
-                                    {new Date(item.date).toLocaleDateString()}
-                                </span>
+                                <h3 className="font-semibold text-blue-600">{item.round} Round</h3>
+                                <span className="text-sm text-gray-500">{new Date(item.date).toLocaleDateString()}</span>
                             </div>
-
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-sm">
                                 <Detail label="Attempt No." value={item.attemptNo} />
                                 <Detail label="Communication" value={item.communication} />
@@ -56,7 +57,6 @@ const AdmissionInterviewDetails = () => {
                                 <Detail label="Marks" value={item.marks} />
                                 <Detail label="Result" value={item.result} />
                             </div>
-
                             {item.remark && (
                                 <div className="mt-3">
                                     <span className="block font-medium text-gray-700">Remark:</span>
@@ -67,6 +67,13 @@ const AdmissionInterviewDetails = () => {
                     ))}
                 </div>
             </div>
+
+            {/* Modal for adding interview */}
+            <CustomTimeDate
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                studentId={id}
+            />
         </>
     );
 };
