@@ -8,7 +8,7 @@ import * as Yup from 'yup'; // Import Yup for validation
 import TextInput from '../common-components/common-feild/TextInput';
 import SelectInput from '../common-components/common-feild/SelectInput';
 
-const CustomTimeDate = ({ isOpen, onClose, studentId, attempted }) => {
+const CustomTimeDate = ({ isOpen, onClose, studentId ,attempted}) => {
   // initialValues for Formik
   const initialValues = {
     round: 'First',
@@ -92,18 +92,18 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, attempted }) => {
                 ]}
               />
 
-              <TextInput
-                label="Attempt No"
-                name="attemptNo"
-                type="number"
-                value={attempted + 1}
-                disabled={true}
-              />
+            <TextInput
+  label="Attempt No"
+  name="attemptNo"
+  type="number"
+  value={attempted + 1}
+  disabled={true}
+/>
 
-              <TextInput
-                label="Assignment"
-                name="assignment"
-              />
+<TextInput
+  label="Assignment"
+  name="assignment"
+/>
 
               <TextInput label="Communication" name="communication" type="number" />
               <TextInput label="Confidence" name="confidence" type="number" />
