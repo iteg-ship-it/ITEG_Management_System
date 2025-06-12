@@ -32,9 +32,9 @@ const Sidebar = ({ children }) => {
       subMenu: [
         { name: "Student Profiles", path: "/student-dashboard" },
         { name: "Permission Students", path: "/student-permission" },
-        { name: "Attendance Info", path: "/attendance-info" },
-        { name: "Level Info", path: "/level-info" },
-        { name: "Interview Record", path: "/interview-record" },
+        // { name: "Attendance Info", path: "/attendance-info" },
+        // { name: "Level Info", path: "/level-info" },
+        // { name: "Interview Record", path: "/interview-record" },
       ],
     },
     {
@@ -44,7 +44,7 @@ const Sidebar = ({ children }) => {
       subMenu: [
         { name: "Readiness Status", path: "/readiness-status" },
         { name: "Interview Record", path: "/placement-interview-record" },
-        { name: "Company Data", path: "/company-data" },
+        // { name: "Company Data", path: "/company-data" },
         { name: "Placement Post", path: "/placement-post" },
       ],
     },

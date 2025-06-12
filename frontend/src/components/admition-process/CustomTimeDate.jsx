@@ -8,7 +8,7 @@ import * as Yup from 'yup'; // Import Yup for validation
 import TextInput from '../common-components/common-feild/TextInput';
 import SelectInput from '../common-components/common-feild/SelectInput';
 
-const CustomTimeDate = ({ isOpen, onClose, studentId ,attempted}) => {
+const CustomTimeDate = ({ isOpen, onClose, studentId, attempted }) => {
   // initialValues for Formik
   const initialValues = {
     round: 'First',
@@ -32,7 +32,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId ,attempted}) => {
   // Basic validation schema for Formik
   const validationSchema = Yup.object().shape({
     round: Yup.string().required('Round is required'),
-    attemptNo: Yup.number().typeError('Must be a number').required('Attempt No is required').min(1),
+    // attemptNo: Yup.number().typeError('Must be a number').required('Attempt No is required').min(1),
     assignment: Yup.string().required('Assignment is required'),
     communication: Yup.number().typeError('Must be a number').required('Communication is required').min(0).max(100),
     confidence: Yup.number().typeError('Must be a number').required('Confidence is required').min(0).max(100),
@@ -92,18 +92,18 @@ const CustomTimeDate = ({ isOpen, onClose, studentId ,attempted}) => {
                 ]}
               />
 
-            <TextInput
-  label="Attempt No"
-  name="attemptNo"
-  type="number"
-  value={attempted + 1}
-  disabled={true}
-/>
+              <TextInput
+                label="Attempt No"
+                name="attemptNo"
+                type="number"
+                value={attempted + 1}
+                disabled={true}
+              />
 
-<TextInput
-  label="Assignment"
-  name="assignment"
-/>
+              <TextInput
+                label="Assignment"
+                name="assignment"
+              />
 
               <TextInput label="Communication" name="communication" type="number" />
               <TextInput label="Confidence" name="confidence" type="number" />
