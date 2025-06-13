@@ -1,47 +1,69 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+/* eslint-disable react/prop-types */
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Sidebar from "./components/common-components/sidebar/Sidebar";
 import Dashboard from "./components/dashboard/Dashboard";
 import LoginPage from "./components/common-components/login-page/LoginPage";
-// import SignupPage from "./components/common-components/signup/SignupPage";
-import AdmissionDashboard from "./components/admition-process/admission-dashboard/AdmissionDashboard";
 import ForgetPassword from "./components/common-components/forget-password/ForgetPassword";
-import CondfirmPassword from "./components/common-components/confirm-password/ConfirmPassword";
-import GoogleAuthSuccess from "./helpers/GoogleAuthSuccess";
+import ConfirmPassword from "./components/common-components/confirm-password/ConfirmPassword";
+import OtpVerification from "./components/common-components/otp-verfication/OtpVeriFication";
+import { ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
+import OtpEnter from "./components/common-components/otp-verfication/OtpEnter";
+import GoogleSuccess from './components/common-components/login-page/GoogleSuccess.jsx';
+
+// ✅ Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem("token");
+  return token ? children : <Navigate to="/login" replace />;
+};
 
 function App() {
-  const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
+
   return (
-    <Router>
-      <Routes>
-        {token ? (
-          <>
-            <Route
-              path="/*"
-              element={
-                <div className="flex bg-[var(--primary)]">
-                  <Sidebar role={role} /> {/* ✅ Pass role from localStorage */}
-                  <div className="flex-1 p-4">
+    <>
+      <Router>
+        <Routes>
+          {/* ✅ Protected routes with sidebar */}
+          <Route
+            path="/*"
+            element={
+              <ProtectedRoute>
+                <div className="bg-[var(--primary)]">
+                  <Sidebar role={role}>
                     <Dashboard />
-                  </div>
+                  </Sidebar>
                 </div>
-              }
-            />
-          </>
-        ) : (
-          <>
-            <Route path="/" element={<AdmissionDashboard />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
+              </ProtectedRoute>
+            }
+          />
 
-          </>
-        )}
-        <Route path="/confirm-password" element={<CondfirmPassword />} />
-        <Route path="/forget-password" element={<ForgetPassword />} />
+          {/*  Public routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/otp-verification" element={<OtpVerification />} />
+          <Route path="/reset-password/:token" element={<ConfirmPassword />} />
+          <Route path="/forget-password" element={<ForgetPassword />} />
+          <Route path="/otp-enter" element={<OtpEnter />} />
+          <Route path="/google-success" element={<GoogleSuccess />} /> 
 
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+       <ToastContainer
+        position="top-right"       // where to show toasts
+        autoClose={3000}           // close after 3 sec
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"              // or 'dark'
+      />
+    </>
   );
 }
 
 export default App;
+
+

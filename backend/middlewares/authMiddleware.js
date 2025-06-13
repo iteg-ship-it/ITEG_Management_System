@@ -3,7 +3,8 @@ const jwt = require("jsonwebtoken");
 // Middleware to verify JWT and check roles
 const verifyToken = (req, res, next) => {
     const authHeader = req.header("Authorization");
-
+            console.log("request is logged"+req);
+            
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return res.status(403).json({ message: "Access Denied. No token provided." });
     }

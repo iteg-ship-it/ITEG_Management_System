@@ -1,4 +1,4 @@
-
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -45,7 +45,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/admission/students", studentAdmissionRoutes);
 
 // admitted students routes
-app.use("/api/admitted/students",  admittedStudentRoutes);
+app.use("/api/admitted/students", admittedStudentRoutes);
 
 // webhook routes
 app.use("/api/admission/students/webhook", webhookRoutes);

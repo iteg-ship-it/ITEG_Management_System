@@ -11,11 +11,16 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.3",
     "@reduxjs/toolkit": "^2.6.1",
     "@tanstack/react-table": "^8.21.3",
+    "browser-image-compression": "^2.0.2",
     "crypto-js": "^4.2.0",
     "formik": "^2.4.6",
     "frontend": "file:",
+    "history": "^5.3.0",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.475.0",
     "react": "^18.3.1",
@@ -25,8 +30,10 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.1.5",
     "react-table": "^7.8.0",
+    "react-toastify": "^11.0.5",
     "recharts": "^2.15.1",
     "router": "^2.2.0",
+    "xlsx": "^0.18.5",
     "yup": "^1.6.1"
   },
   "devDependencies": {

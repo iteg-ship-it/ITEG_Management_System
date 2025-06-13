@@ -5,17 +5,22 @@
 :root {
   --primary: #f2f7fc;
 }
-
-/* .react-datepicker__day--selected,
-.react-datepicker__day--keyboard-selected,
-.react-datepicker__day--in-selecting-range,
-.react-datepicker__day--in-range {
-  background-color: #fb923c !important; 
-  color: white;
+/* Add to index.css or global.css */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
 }
-.react-datepicker__day:hover {
-  background-color: #f97316 !important; 
-}*/
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 
 .input {
   @apply border p-2 rounded-md w-full;

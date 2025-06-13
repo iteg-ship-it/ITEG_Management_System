@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import back from "../../../assets/icons/back-icon.png";
-import del from "../../../assets/icons/delete-icon.png";
-import edit from "../../../assets/icons/edit-icon.png";
+import back from "../../assets/icons/back-icon.png";
+import del from "../../assets/icons/delete-icon.png";
+import edit from "../../assets/icons/edit-icon.png";
 import { IoSearchOutline } from "react-icons/io5";
-import UserProfile from "../../common-components/user-profile/UserProfile";
+import UserProfile from "../common-components/user-profile/UserProfile";
 
 const allStudents = [
   {
