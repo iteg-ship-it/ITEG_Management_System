@@ -30,7 +30,7 @@ const interviewRecordSchema = new mongoose.Schema({
   result: {
     type: String,
     enum: ['Selected', 'Rejected', 'Pending'],
-    default: 'Pending'
+    default: 'Pending'  
   },
   location: { type: String, required: true },
   jobProfile: { type: String, required: true }

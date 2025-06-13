@@ -15,6 +15,7 @@ router.get(
   studentController.getAllStudents
 );
 
+router.get("/Ready_Students", verifyToken, checkRole(allowedRoles), studentController.getReadyStudent);
 
 router.post("/create_level/:id", verifyToken, checkRole(allowedRoles),studentController.createLevels);
 
@@ -32,13 +33,9 @@ router.get("/get_levels/:id", verifyToken, checkRole(allowedRoles), studentContr
 
 router.put("/update-placement/:id", verifyToken, checkRole(allowedRoles), studentController.updatePlacementInfo);
 
-
-
-
 // router.patch("/update/:id", verifyToken, checkRole(allowedRoles), studentController.updateStudent);
  router.get("/level/:levelNo", verifyToken, checkRole(allowedRoles),studentController.getLevelWiseStudents );
 
 // router.get("/total/student/:levelNo", verifyToken, checkRole(allowedRoles),studentController. getStudentCountBySpecificLevel );
-
 
 module.exports = router;
