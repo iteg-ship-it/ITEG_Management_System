@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
-import { useParams, useNavigate } from "react-router-dom";
+// import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useGetAdmittedStudentsByIdQuery } from "../../redux/api/authApi";
 import UserProfile from "../common-components/user-profile/UserProfile";
@@ -8,7 +9,7 @@ import PlacementModal from "./PlacementModal";
 
 // Icons & Images
 import profilePlaceholder from "../../assets/images/profile-img.png";
-import editbutton from "../../assets/icons/edit-icon.png";
+// import editbutton from "../../assets/icons/edit-icon.png";
 import attendence from "../../assets/icons/attendence-card-icon.png";
 import level from "../../assets/icons/level-card-icon.png";
 import permission from "../../assets/icons/permission-card-icon.png";
@@ -22,7 +23,7 @@ import { Chart } from "react-google-charts";
 
 export default function StudentProfile() {
   const { id } = useParams();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
   const [latestLevel, setLatestLevel] = useState("1A");
@@ -154,7 +155,7 @@ export default function StudentProfile() {
                   <p className="text-gray-600">📍 {studentData.address || studentData.village || "N/A"}</p>
                 </div>
               </div>
-              <img
+              {/* <img
                 src={editbutton}
                 alt="Edit"
                 className="w-6 h-6 cursor-pointer"
@@ -163,7 +164,7 @@ export default function StudentProfile() {
                     state: { student: studentData },
                   })
                 }
-              />
+              /> */}
             </div>
           </div>
         </div>
