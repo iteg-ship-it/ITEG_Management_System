@@ -14,8 +14,10 @@ import StudentEditPage from "../student-records/StudentEditPage";
 import StudentProfile from "../student-records/StudentProfile";
 import StudentLevelData from "../student-records/StudentLevelData";
 // Placement components
-import PlacementRecords from "../placement/placement-records/PlacementRecords";
+import PlacementReadyStudents from "../placement/PlacementReadyStudents";
 import StudentPermission from "../student-records/StudentPermission";
+import PlacementRecords from "../placement/PlacementRecords";
+import PlacementPost from "../placement/PlacementPost";
 
 const routes = [
   { path: "/", element: <AdmissionDashboard /> },
@@ -31,7 +33,9 @@ const routes = [
   { path: "/student-profile/:id", element: <StudentProfile /> },
   { path: "/student-permission", element: <StudentPermission /> },
 
-  { path: "/placement", element: <PlacementRecords /> },
+  { path: "/readiness-status", element: <PlacementReadyStudents /> },
+  { path: "/placement-interview-record", element: <PlacementRecords /> },
+  { path: "/placement-post", element: <PlacementPost /> },
 ];
 
 const Dashboard = () => (
