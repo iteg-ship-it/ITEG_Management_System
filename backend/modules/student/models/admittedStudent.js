@@ -1,66 +1,3 @@
-// const mongoose = require("mongoose");
-
-// const levelSchema = new mongoose.Schema({
-//   levelNo: { type: String, required: true },
-//   noOfAttempts: { type: Number, default: 0 },
-//   Theoretical_Marks:{ type: Number, default: 0 },
-//   Practical_Marks:{ type: Number, default: 0 },
-//   Communication_Marks: { type: Number, default: 0 },
-//   marks: { type: Number, default: 0 },
-//   remark: { type: String },
-//   date: { type: Date },
-//   result: { type: String, enum: ['Pass', 'Fail', 'Pending'], default: 'Pending' }
-// });
-
-// const placedInfoSchema = new mongoose.Schema({
-//   companyName: { type: String },
-//   salary: { type: Number },
-//   location: { type: String }
-// });
-
-// const interviewRecordSchema = new mongoose.Schema({
-//   companyName: { type: String },
-//   interviewDate: { type: Date },
-//   remark: { type: String },
-//   result: { type: String, enum: ['Selected', 'Rejected', 'Pending'], default: 'Pending' },
-//   location: { type: String },
-//   jobProfile: { type: String }
-// });
-
-// const AdmittedStudentSchema = new mongoose.Schema({
-//   admissionRef: {
-//     type: mongoose.Schema.Types.ObjectId,
-//     ref: "StudentAdmissionProcess",
-//     required: true,
-//     unique: true
-//   },
-
-//   fullName: { type: String, required: true },
-//   prkey: { type: String, required: true, unique: true },
-//   stream: { type: String, required: true },
-//   course: { type: String, required: true },
-//   fatherName: { type: String, required: true },
-//   mobileNo: { type: String, required: true },
-//   email: { type: String, default: "" },
-//   address: { type: String, required: true },
-//   track: { type: String, required: true },   
-//   village: { type: String, required: true },
-
-//   level: [levelSchema],
-//   techno: { type: String },
-//   attendancePercentage: { type: Number, min: 0, max: 100 },
-//   placedInfo: placedInfoSchema,
-//   // permission: permissionSchema,
-
-//   permissionRequired: { type: Boolean, default: false },
-//   interviewRecord: [interviewRecordSchema],
-//   readinessStatus: { type: String, enum: ['Ready', 'Not Ready'], default: 'Not Ready' }
-
-// }, { timestamps: true });
-
-// module.exports = mongoose.model("AdmittedStudent", AdmittedStudentSchema);
-
-
 const mongoose = require("mongoose");
 
 const levelSchema = new mongoose.Schema({
@@ -93,7 +30,7 @@ const interviewRecordSchema = new mongoose.Schema({
   result: {
     type: String,
     enum: ['Selected', 'Rejected', 'Pending'],
-    default: 'Pending'
+    default: 'Pending'  
   },
   location: { type: String, required: true },
   jobProfile: { type: String, required: true }
@@ -120,6 +57,7 @@ const AdmittedStudentSchema = new mongoose.Schema({
 
   // 🎓 Personal Details
   prkey: { type: String, required: true, unique: true },
+    image: { type: String, default: "" }, // Base64 Image
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     fatherName: { type: String, required: true },

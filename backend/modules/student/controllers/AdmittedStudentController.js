@@ -406,6 +406,7 @@ exports.updateAdmittedStudent = async (req, res) => {
 
     // Define which fields you want to allow updates for
     const updateFields = {
+      image: req.body.image, // Base64 Image
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       fatherName: req.body.fatherName,
@@ -456,3 +457,30 @@ exports.updateAdmittedStudent = async (req, res) => {
     });
   }
 };
+
+
+
+exports.getReadyStudent = async (req, res) => {
+  try {
+    // Find all students whose readinessStatus is "Ready"
+    const readyStudents = await AdmittedStudent.find({ readinessStatus: 'Ready' });
+
+    if (readyStudents.length === 0) {
+      return res.status(404).json({ message: "No students found with readinessStatus 'Ready'." });
+    }
+
+    return res.status(200).json({
+      message: 'Ready students fetched successfully.',
+      data: readyStudents,
+    });
+
+  } catch (error) {
+    console.error("Error fetching ready students:", error);
+    return res.status(500).json({
+      message: 'Failed to fetch ready students.',
+      error: error.message,
+    });
+  }
+};
+
+

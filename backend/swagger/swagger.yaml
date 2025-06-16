@@ -2162,3 +2162,49 @@ paths:
                   error:
                     type: string
                     example: Error stack or message
+
+
+  /api/admitted/students/Ready_Students:
+    get:
+      summary: Get all admitted students who are ready
+      tags:
+        - Admitted Students
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successfully fetched all ready students
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Ready students fetched successfully.
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdmittedStudent'
+        '404':
+          description: No ready students found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: No students found with readinessStatus 'Ready'.
+        '500':
+          description: Server error while fetching students
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Failed to fetch ready students.
+                  error:
+                    type: string
