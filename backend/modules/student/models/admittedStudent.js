@@ -21,7 +21,8 @@ const placedInfoSchema = new mongoose.Schema({
   salary: { type: Number, required: true },
   location: { type: String, required: true },
   jobProfile: { type: String, required: true },
-  companyLogo:{ type: String, required: true }
+  companyLogo:{ type: String, required: true },
+  jobType:{type:String,required: true}
 });
 
 const interviewRecordSchema = new mongoose.Schema({
