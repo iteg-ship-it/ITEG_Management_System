@@ -37,5 +37,13 @@ router.patch("/update-placement/:id", verifyToken, checkRole(allowedRoles), stud
 router.get("/level/:levelNo", verifyToken, checkRole(allowedRoles), studentController.getLevelWiseStudents);
 
 // router.get("/total/student/:levelNo", verifyToken, checkRole(allowedRoles),studentController. getStudentCountBySpecificLevel );
+router.post('/interviews/:id', studentController.addInterviewRecord );
+
+// router.patch('/update/interviews/:interviewId', studentController.updateInterviewRecord);
+
+// router.patch('/students/:studentId/upload-resume', upload.single('resume'), studentController.uploadResume);
+router.patch('/update/interviews/:studentId/:interviewId', studentController.updateInterviewRecord);
+router.patch('/students/:studentId/upload-resume', studentController.uploadResumeToCloudinary);
+
 
 module.exports = router;

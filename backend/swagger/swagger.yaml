@@ -2168,7 +2168,7 @@ paths:
     get:
       summary: Get all admitted students who are ready
       tags:
-        - Admitted Students
+        - Admitted Student
       security:
         - bearerAuth: []
       responses:
@@ -2208,3 +2208,166 @@ paths:
                     example: Failed to fetch ready students.
                   error:
                     type: string
+
+
+
+  /api/admitted/students/interviews/{id}:
+    post:
+      tags:
+        - Admitted Student
+      summary: Add interview record for a student
+      description: Add a new interview record to a student's profile. The student must have readinessStatus = "Ready".
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: MongoDB ObjectId of the student
+          schema:
+            type: string
+            example: 665f6aaf4f55e5aaee6a1234
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - companyName
+                - interviewDate
+                - location
+                - jobProfile
+              properties:
+                companyName:
+                  type: string
+                  example: Infosys
+                interviewDate:
+                  type: string
+                  format: date
+                  example: 2025-06-15
+                remark:
+                  type: string
+                  example: "Performed well in technical round"
+                result:
+                  type: string
+                  enum: [Selected, Rejected, Pending]
+                  default: Pending
+                  example: Pending
+                location:
+                  type: string
+                  example: Pune
+                jobProfile:
+                  type: string
+                  example: Software Engineer Intern
+      responses:
+        '201':
+          description: Interview record added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Interview record added
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InterviewRecord'
+        '400':
+          description: Student is not eligible (readinessStatus is not "Ready")
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Student is not eligible for interview. Status: Not Ready
+        '404':
+          description: Student not found
+        '500':
+          description: Server error
+
+
+
+
+  /api/admitted/students/update/interviews/{studentId}/{interviewId}:
+    patch:
+      tags:
+        - Admitted Student
+      summary: Update interview record for a student
+      description: Update the `remark` and/or `result` of a specific interview in a student's interview record.
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          description: MongoDB ObjectId of the student
+          schema:
+            type: string
+            example: 665f6aaf4f55e5aaee6a1234
+        - name: interviewId
+          in: path
+          required: true
+          description: MongoDB ObjectId of the interview record
+          schema:
+            type: string
+            example: 682c08b600d3e1245aa7cd71
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                remark:
+                  type: string
+                  example: "Good communication skills and confidence"
+                result:
+                  type: string
+                  enum: [Selected, Rejected, Pending]
+                  example: "Selected"
+      responses:
+        '200':
+          description: Interview record updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Interview record updated successfully
+                  data:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: 682c08b600d3e1245aa7cd71
+                      companyName:
+                        type: string
+                        example: TCS
+                      interviewDate:
+                        type: string
+                        format: date
+                        example: 2025-06-10
+                      remark:
+                        type: string
+                        example: Good communication skills and confidence
+                      result:
+                        type: string
+                        example: Selected
+        '400':
+          description: Invalid input (e.g. missing result or remark)
+        '404':
+          description: Student or interview record not found
+        '500':
+          description: Server error

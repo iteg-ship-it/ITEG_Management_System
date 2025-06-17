@@ -20,7 +20,8 @@ const placedInfoSchema = new mongoose.Schema({
   companyName: { type: String, required: true },
   salary: { type: Number, required: true },
   location: { type: String, required: true },
-  jobProfile: { type: String, required: true }
+  jobProfile: { type: String, required: true },
+  companyLogo:{ type: String, required: true }
 });
 
 const interviewRecordSchema = new mongoose.Schema({
@@ -99,7 +100,8 @@ const AdmittedStudentSchema = new mongoose.Schema({
     type: String,
     enum: ['Ready', 'Not Ready'],
     default: 'Not Ready'
-  }
+  },
+  resumeURL: { type: String, default: "" },
 
 }, { timestamps: true });
 
