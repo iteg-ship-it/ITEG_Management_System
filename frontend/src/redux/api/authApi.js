@@ -303,6 +303,15 @@ export const authApi = createApi({
     }),
 
 
+
+    //Placement api calling
+    // get all ready students for placement
+    getReadyStudentsForPlacement: builder.query({
+      query: () => ({
+        url: import.meta.env.VITE_GET_READY_STUDENTS_FOR_PLACEMENT,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -328,5 +337,6 @@ export const {
   useGetPermissionStudentQuery,
   useUpdatePermissionMutation,
   useUpdatePlacementMutation,
+  useGetReadyStudentsForPlacementQuery,
   useLogoutMutation,
 } = authApi;
