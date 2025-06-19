@@ -44,6 +44,7 @@ const StudentDashboard = () => {
     return colors[index % colors.length];
   };
 
+
   return (
     <>
       <UserProfile heading="Explore Student Data by Year" />
@@ -77,6 +78,7 @@ const StudentDashboard = () => {
                 className="mt-4 w-full flex items-center justify-between font-semibold py-2 px-4 hover:bg-gray-100 rounded"
                 onClick={(e) => {
                   e.stopPropagation();
+                  // handelGoLevel(year);
                   navigate(`/student-detail-table`, { state: { level: year } });
                 }}
               >

@@ -201,6 +201,13 @@ export const authApi = createApi({
       }),
     }),
 
+    getAllStudentsByLevel: builder.query({
+      query: (levelNo) => ({
+        url: `${import.meta.env.VITE_GET_ALL_STUDENTS_BY_LEVEL}${levelNo}`,
+        method: "GET",
+      }),
+    }),
+
     // get admission process student by id
     getStudentById: builder.query({
       query: (id) => ({
@@ -266,7 +273,7 @@ export const authApi = createApi({
     }),
 
     getLevelNumber: builder.query({
-      query: ({ levelNo }) => ({
+      query: (levelNo) => ({
         url: `${import.meta.env.VITE_GET_LEVEL_BY_NUMBER}${levelNo}`,
         method: "GET",
       }),
@@ -312,6 +319,27 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+
+    addPlacementInterviewRecord: builder.mutation({
+      query: ({ studentId, interviewData }) => ({
+        url: `${import.meta.env.VITE_INTERVIEW_CREATE_PLACEMENT}${studentId}`,
+        method: "POST",
+        body: interviewData,
+      }),
+    }),
+
+
+    // In redux/api/authApi.js
+    updatePlacedInfo: builder.mutation({
+      query: ({ studentId, interviewId, ...data }) => ({
+        url: `${import.meta.env.VITE_PLACEMENT_INFO_UPDATE}${studentId}/${interviewId}`,
+        method: "PATCH",
+        body: data,
+      }),
+    }),
+
+
+
   }),
 });
 
@@ -338,5 +366,8 @@ export const {
   useUpdatePermissionMutation,
   useUpdatePlacementMutation,
   useGetReadyStudentsForPlacementQuery,
+  useAddPlacementInterviewRecordMutation,
+  useUpdatePlacedInfoMutation,
   useLogoutMutation,
+  useGetAllStudentsByLevelQuery
 } = authApi;

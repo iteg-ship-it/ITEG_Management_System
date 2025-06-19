@@ -15,6 +15,13 @@ router.get(
   studentController.getAllStudents
 );
 
+router.get(
+  "/get_student_by_level/:levelNo",
+  verifyToken,
+  checkRole(allowedRoles),
+  studentController.getAllStudentsByLevel
+);
+
 router.get("/Ready_Students", verifyToken, checkRole(allowedRoles), studentController.getReadyStudent);
 
 router.post("/create_level/:id", verifyToken, checkRole(allowedRoles), studentController.createLevels);
