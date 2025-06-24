@@ -2168,7 +2168,7 @@ paths:
     get:
       summary: Get all admitted students who are ready
       tags:
-        - Admitted Student
+        - Placement
       security:
         - bearerAuth: []
       responses:
@@ -2214,7 +2214,7 @@ paths:
   /api/admitted/students/interviews/{id}:
     post:
       tags:
-        - Admitted Student
+        - Placement
       summary: Add interview record for a student
       description: Add a new interview record to a student's profile. The student must have readinessStatus = "Ready".
       parameters:
@@ -2300,7 +2300,7 @@ paths:
   /api/admitted/students/update/interviews/{studentId}/{interviewId}:
     patch:
       tags:
-        - Admitted Student
+        - Placement
       summary: Update interview record for a student
       description: Update the `remark` and/or `result` of a specific interview in a student's interview record.
       parameters:
@@ -2377,7 +2377,7 @@ paths:
     post:
       summary: Upload student resume as Base64
       tags:
-        - placement
+        - Placement
       requestBody:
         required: true
         content:
