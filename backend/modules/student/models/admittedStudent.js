@@ -22,7 +22,7 @@ const placedInfoSchema = new mongoose.Schema({
   location: { type: String, required: true },
   jobProfile: { type: String, required: true },
   companyLogo:{ type: String, required: true },
-  jobType:{type:String,required: true}
+  jobType:{type:String}
 });
 
 const interviewRecordSchema = new mongoose.Schema({
