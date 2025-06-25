@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Sidebar from "./components/common-components/sidebar/Sidebar";
+import Header from "./components/common-components/sidebar/Header";
 import Dashboard from "./components/dashboard/Dashboard";
 import LoginPage from "./components/common-components/login-page/LoginPage";
 import ForgetPassword from "./components/common-components/forget-password/ForgetPassword";
@@ -30,6 +31,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <div className="bg-[var(--primary)]">
+                  <Header />
                   <Sidebar role={role}>
                     <Dashboard />
                   </Sidebar>

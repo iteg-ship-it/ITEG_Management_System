@@ -1,7 +1,6 @@
 import {
   useGetPermissionStudentQuery,
 } from "../../redux/api/authApi";
-import UserProfile from "../common-components/user-profile/UserProfile";
 
 const StudentPermission = () => {
   const {
@@ -15,8 +14,6 @@ const StudentPermission = () => {
 
   return (
     <>
-      <UserProfile heading="Student Permission" />
-
       <div>
         {/* Loading State */}
         {isLoading && (

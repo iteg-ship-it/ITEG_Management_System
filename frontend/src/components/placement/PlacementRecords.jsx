@@ -1,5 +1,4 @@
 import { useState } from "react";
-import UserProfile from "../common-components/user-profile/UserProfile";
 import {
   useGetReadyStudentsForPlacementQuery,
   useUpdatePlacedInfoMutation,
@@ -77,7 +76,6 @@ const PlacementRecords = () => {
 
   return (
     <>
-      <UserProfile heading="Records of Interview" />
 
       <div className="space-y-6 p-4">
         {students.map((student) => (

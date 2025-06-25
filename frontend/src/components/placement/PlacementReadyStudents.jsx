@@ -1,7 +1,6 @@
 /* PlacementReadyStudents.jsx */
 import { useState } from "react";
 import Pagination from "../common-components/pagination/Pagination";
-import UserProfile from "../common-components/user-profile/UserProfile";
 import {
   useGetReadyStudentsForPlacementQuery,
 } from "../../redux/api/authApi";
@@ -84,7 +83,6 @@ const PlacementReadyStudents = () => {
 
   return (
     <>
-      <UserProfile heading={"Placement Ready Students"} />
       <div className="border bg-white shadow-sm rounded-lg px-5">
         <Pagination
           rowsPerPage={rowsPerPage}

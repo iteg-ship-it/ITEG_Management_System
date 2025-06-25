@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import forward from "../../assets/icons/forward-icon.png";
-import UserProfile from "../common-components/user-profile/UserProfile";
 import { useAdmitedStudentsQuery } from "../../redux/api/authApi";
 
 const StudentDashboard = () => {
@@ -47,7 +46,6 @@ const StudentDashboard = () => {
 
   return (
     <>
-      <UserProfile heading="Explore Student Data by Year" />
 
       <div className="container mx-auto bg-white shadow-md p-6 md:p-10 rounded-lg my-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-10">

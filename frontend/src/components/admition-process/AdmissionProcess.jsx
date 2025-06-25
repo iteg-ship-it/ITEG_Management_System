@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 import edit from "../../assets/icons/edit-fill-icon.png";
 import CustomTimeDate from "./CustomTimeDate";
 import { useNavigate, useLocation } from "react-router-dom";
-import UserProfile from "../common-components/user-profile/UserProfile";
 
 const toTitleCase = (str) =>
   str?.toLowerCase().split(" ").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
@@ -313,7 +312,6 @@ const matchTabCondition = (student) => {
 
   return (
     <>
-      <UserProfile heading="Admission Process" />
 
       <div className="mt-5 border bg-white shadow-sm rounded-lg px-5">
         <div className="flex justify-between items-center flex-wrap gap-4">

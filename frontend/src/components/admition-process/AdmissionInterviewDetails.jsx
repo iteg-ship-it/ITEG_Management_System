@@ -4,7 +4,6 @@ import {
     useGetInterviewDetailByIdQuery,
     useInterviewCreateMutation,
 } from "../../redux/api/authApi";
-import UserProfile from "../common-components/user-profile/UserProfile";
 import { useState } from "react";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
@@ -44,7 +43,6 @@ const AdmissionInterviewDetails = () => {
 
     return (
         <>
-            <UserProfile showBackButton heading="Interview Detail Page" />
 
             <div className="p-6 bg-white rounded-xl shadow-md ">
                 <div className="flex justify-between items-center">

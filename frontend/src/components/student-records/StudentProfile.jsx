@@ -3,7 +3,6 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useGetAdmittedStudentsByIdQuery } from "../../redux/api/authApi";
-import UserProfile from "../common-components/user-profile/UserProfile";
 import PermissionModal from "./PermissionModal";
 import PlacementModal from "./PlacementModal";
 
@@ -74,7 +73,6 @@ export default function StudentProfile() {
 
   return (
     <>
-      <UserProfile showBackButton heading="Student Profile" />
 
       <div className="px-4 space-y-6 min-h-screen mt-6">
         <div className="grid grid-cols-1 lg:grid-cols-[70%_30%] gap-4">

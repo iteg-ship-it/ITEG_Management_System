@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Pagination from "../common-components/pagination/Pagination";
-import UserProfile from "../common-components/user-profile/UserProfile";
 import {
   // useAdmitedStudentsQuery,
   // useGetAllStudentsByLevelQuery,
@@ -145,7 +144,6 @@ const StudentDetailTable = () => {
 
   return (
     <>
-      <UserProfile showBackButton heading="Admitted Students" />
       {selectedLevel && (
         <div className="px-10 pb-5 text-md text-gray-700">
           Showing students of <strong>Level {selectedLevel}</strong>
