@@ -2,7 +2,6 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
 const setupSwagger = require("./swagger/swagger");
 // Import Routes
 const webhookRoutes = require("./routes/webhookRoutes");
@@ -29,11 +28,9 @@ app.use(
 );
 
 app.options("*", cors());
-app.use(express.json());
 
-// Middleware
-app.use(bodyParser.json({ limit: '10mb' }));
-app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Routes
 app.use("/api/protected", protectedRoutes);
