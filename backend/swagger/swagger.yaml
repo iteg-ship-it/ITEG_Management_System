@@ -2168,7 +2168,7 @@ paths:
     get:
       summary: Get all admitted students who are ready
       tags:
-        - Admitted Student
+        - Placement
       security:
         - bearerAuth: []
       responses:
@@ -2214,7 +2214,7 @@ paths:
   /api/admitted/students/interviews/{id}:
     post:
       tags:
-        - Admitted Student
+        - Placement
       summary: Add interview record for a student
       description: Add a new interview record to a student's profile. The student must have readinessStatus = "Ready".
       parameters:
@@ -2300,7 +2300,7 @@ paths:
   /api/admitted/students/update/interviews/{studentId}/{interviewId}:
     patch:
       tags:
-        - Admitted Student
+        - Placement
       summary: Update interview record for a student
       description: Update the `remark` and/or `result` of a specific interview in a student's interview record.
       parameters:
@@ -2371,3 +2371,93 @@ paths:
           description: Student or interview record not found
         '500':
           description: Server error
+
+
+  /api/admitted/students/upload_Resume_Base64:
+    post:
+      summary: Upload student resume as Base64
+      tags:
+        - Placement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - studentId
+                - fileName
+                - fileData
+              properties:
+                studentId:
+                  type: string
+                  description: MongoDB ObjectId of the student
+                  example: "60d9f8c19c2f4f0021a7b123"
+                fileName:
+                  type: string
+                  description: Name of the file (e.g. "resume.pdf")
+                  example: "resume.pdf"
+                fileData:
+                  type: string
+                  description: Base64 encoded file data (with or without Data URI prefix)
+                  example: "JVBERi0xLjQKJfbk..."
+      responses:
+        '200':
+          description: Resume uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Resume uploaded successfully"
+                  resumeURL:
+                    type: string
+                    example: "https://res.cloudinary.com/demo/raw/upload/v1623762345/student-resumes/resume.pdf"
+        '400':
+          description: Missing parameters or bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Missing studentId, fileName, or fileData"
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Student not found"
+        '500':
+          description: Server error during upload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Server Error"
+                  error:
+                    type: string
+                    example: "Error details here"
+

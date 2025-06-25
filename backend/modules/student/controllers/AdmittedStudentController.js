@@ -3,19 +3,10 @@ const AdmittedStudent = require("../models/admittedStudent");
 const { sendHTMLMail } = require("./emailController");
 
 const { sendEmail } = require('./emailController');
-
+const cloudinary = require('backend/config/cloudinaryConfig');
 
 
 const multer = require('multer');
-const cloudinary = require('cloudinary').v2;
-const { Readable } = require('stream');
-
-// Cloudinary Config (✅ inside controller)
-cloudinary.config({
-  cloud_name: 'YOUR_CLOUD_NAME',
-  api_key: 'YOUR_API_KEY',
-  api_secret: 'YOUR_API_SECRET'
-});
 
 // Multer config to hold file in memory (no disk save)
 const storage = multer.memoryStorage();
@@ -571,50 +562,6 @@ exports.addInterviewRecord = async (req, res) => {
 
 
 
-
-
-// controllers/studentController.js
-// exports.updateInterviewRecord = async (req, res) => {
-//   try {
-//     const { interviewId } = req.params;
-//     const { studentId , remark, result } = req.body;
-
-//     if (!interviewId) {
-//       return res.status(400).json({ success: false, message: "interviewId is required in body" });
-//     }
-
-//     const validResults = ['Selected', 'Rejected', 'Pending'];
-//     if (result && !validResults.includes(result)) {
-//       return res.status(400).json({ success: false, message: "Invalid result value" });
-//     }
-
-//     const student = await AdmittedStudent.findById(studentId);
-//     if (!student) {
-//       return res.status(404).json({ success: false, message: "Student not found" });
-//     }
-
-//     const interview = student.interviewRecord.id(interviewId);
-//     if (!interview) {
-//       return res.status(404).json({ success: false, message: "Interview record not found" });
-//     }
-
-//     if (remark !== undefined) interview.remark = remark;
-//     if (result !== undefined) interview.result = result;
-
-//     await student.save();
-
-//     res.status(200).json({
-//       success: true,
-//       message: "Interview record updated successfully",
-//       data: interview
-//     });
-
-//   } catch (error) {
-//     console.error("Update Error:", error);
-//     res.status(500).json({ success: false, message: "Server Error", error: error.message });
-//   }
-// };
-
 exports.updateInterviewRecord = async (req, res) => {
   try {
     const { studentId, interviewId } = req.params;
@@ -654,80 +601,48 @@ exports.updateInterviewRecord = async (req, res) => {
 
 
 
-// exports.uploadResume = async (req, res) => {
-//   try {
-//     const { studentId } = req.params;
-
-//     if (!req.file) {
-//       return res.status(400).json({ success: false, message: "No file uploaded" });
-//     }
-
-//     const student = await AdmittedStudent.findById(studentId);
-//     if (!student) {
-//       return res.status(404).json({ success: false, message: "Student not found" });
-//     }
-
-//     student.resumeURL = `/uploads/resumes/${req.file.filename}`;
-//     await student.save();
-
-//     res.status(200).json({
-//       success: true,
-//       message: "Resume uploaded successfully",
-//       fileURL: student.resumeURL
-//     });
-
-//   } catch (err) {
-//     console.error("Resume Upload Error:", err);
-//     res.status(500).json({ success: false, message: "Server Error", error: err.message });
-//   }
-// };
 
 
 
-exports.uploadResumeToCloudinary = (req, res) => {
-  upload(req, res, async function (err) {
-    if (err || !req.file) {
-      return res.status(400).json({ success: false, message: "No file uploaded or error occurred" });
+// Upload from Base64 encoded string via JSON
+exports.uploadResumeBase64 = async (req, res) => {
+  const { studentId, fileName, fileData } = req.body;
+
+  if (!studentId || !fileName || !fileData) {
+    return res.status(400).json({
+      success: false,
+      message: "Missing studentId, fileName, or fileData"
+    });
+  }
+
+  try {
+    const student = await AdmittedStudent.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ success: false, message: "Student not found" });
     }
 
-    const { studentId } = req.params;
+    // Upload to Cloudinary
+    const cloudinaryUpload = await cloudinary.uploader.upload(`data:application/pdf;base64,${fileData}`,  {
+      folder: 'student-resumes',
+      resource_type: 'raw',
+      public_id: Date.now() + '-' + fileName.split('.')[0]
+    });
 
-    try {
-      const student = await AdmittedStudent.findById(studentId);
-      if (!student) {
-        return res.status(404).json({ success: false, message: "Student not found" });
-      }
+    student.resumeURL = cloudinaryUpload.secure_url;
+    await student.save();
 
-      // Convert buffer to readable stream
-      const fileStream = Readable.from(req.file.buffer);
+    return res.status(200).json({
+      success: true,
+      message: "Resume uploaded successfully",
+      resumeURL: cloudinaryUpload.secure_url
+    });
 
-      const cloudinaryUpload = await new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          {
-            folder: 'student-resumes',
-            resource_type: 'raw',
-            public_id: Date.now() + '-' + req.file.originalname.split('.')[0]
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        );
-        fileStream.pipe(stream);
-      });
-
-      student.resumeURL = cloudinaryUpload.secure_url;
-      await student.save();
-
-      return res.status(200).json({
-        success: true,
-        message: "Resume uploaded successfully to Cloudinary",
-        resumeURL: cloudinaryUpload.secure_url
-      });
-
-    } catch (error) {
-      console.error("Upload Error:", error);
-      return res.status(500).json({ success: false, message: "Server Error", error: error.message });
-    }
-  });
+  } catch (error) {
+    console.error("Upload Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message
+    });
+  }
 };
