@@ -24,7 +24,7 @@ exports.createAdmittedStudent = async (req, res) => {
     const admissionData = await AdmissionProcess.findById(admissionId);
     console.log("Admission Data Found:", admissionData);
 
-    if   (!admissionData || !admissionData.admissionStatus) {
+    if (!admissionData || !admissionData.admissionStatus) {
       return res
         .status(400)
         .json({ message: "Student not cleared or not found." });
@@ -38,14 +38,14 @@ exports.createAdmittedStudent = async (req, res) => {
       // fullName: `${admissionData.firstName} ${admissionData.lastName}`,
       fatherName: admissionData.fatherName,
       email: admissionData.email,
-      studentMobile: admissionData.studentMobile, 
+      studentMobile: admissionData.studentMobile,
       parentMobile: admissionData.parentMobile,
       gender: admissionData.gender,
-      dob: admissionData.dob,   
+      dob: admissionData.dob,
       aadharCard: admissionData.aadharCard,
       village: admissionData.village,
       track: admissionData.track,
-      category: admissionData.category,  
+      category: admissionData.category,
       stream: admissionData.stream,
       course: admissionData.course,
       subject12: admissionData.subject12,
@@ -71,17 +71,54 @@ exports.createAdmittedStudent = async (req, res) => {
 exports.getAllStudents = async (req, res) => {
   try {
     const students = await AdmittedStudent.find();
+    console.log("Fetched all students:", students.length);
     res.status(200).json(students);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+exports.getAllStudentsByLevel = async (req, res) => {
+  // try {
+  //   const { levelNo } = req.params;
+  //   console.log("Fetching students for level:", levelNo);
+  //   const students = await AdmittedStudent.find({ level: levelNo });
+  //   res.status(200).json(students);
+  // } catch (error) {
+  //   console.error("Error fetching students by level:", error);
+  //   res.status(500).json({ message: error.message });
+  // }
+  try {
+    const { levelNo } = req.params;
+
+    const students = await AdmittedStudent.aggregate([
+      {
+        $addFields: {
+          latestLevel: { $arrayElemAt: ["$level", -1] }
+        }
+      },
+      {
+        $match: {
+          "latestLevel.levelNo": levelNo
+        }
+      }
+    ]);
+
+    if (!students || students.length === 0) {
+      return res.status(404).json({ message: "No students found for this level" });
+    }
+
+    res.status(200).json(students);
+  } catch (error) {
+    console.error("Error fetching students by latest level:", error);
+    res.status(500).json({ message: "Server Error", error });
+  }
+};
 
 exports.getStudentById = async (req, res) => {
-  try { 
+  try {
     const { id } = req.params;
     const student = await AdmittedStudent.findById(id);
-    if (!student) { 
+    if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
     res.status(200).json(student);
@@ -94,7 +131,7 @@ exports.getStudentById = async (req, res) => {
 exports.updatedStudent = async (req, res) => {
   try {
     const { id } = req.params;
-    const { fullName,stream, course, fatherName, mobileNo, email, address, village, track } = req.body;
+    const { fullName, stream, course, fatherName, mobileNo, email, address, village, track } = req.body;
     const student = await AdmittedStudent.findById(id);
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
@@ -136,10 +173,10 @@ exports.createLevels = async (req, res) => {
       return res.status(404).json({ success: false, message: "Student not found" });
     }
 
-    const interviews = student.level|| [];
+    const interviews = student.level || [];
 
     const LevelOrder = ["1A", "1B", "1C", "2A", "2B", "2C"];
-   
+
 
 
     // Find previous highest passed round
@@ -153,9 +190,9 @@ exports.createLevels = async (req, res) => {
       }
     }
 
- const nextLevel = LevelOrder[lastPassedRoundIndex + 1];
+    const nextLevel = LevelOrder[lastPassedRoundIndex + 1];
 
-   if (!nextLevel) {
+    if (!nextLevel) {
       return res.status(400).json({
         success: false,
         message: "All levels already passed. No further levels to attempt.",
@@ -173,7 +210,7 @@ exports.createLevels = async (req, res) => {
     }
 
     const newInterview = {
-      levelNo:nextLevel,
+      levelNo: nextLevel,
       noOfAttempts: currentLevelAttempts.length + 1,
       Theoretical_Marks: Theoretical_Marks || 0,
       Practical_Marks: Practical_Marks || 0,
@@ -185,9 +222,9 @@ exports.createLevels = async (req, res) => {
     };
 
 
-     student.level.push(newInterview);
+    student.level.push(newInterview);
 
-      // ✅ If the new result is "Pass", check if all levels are now passed
+    // ✅ If the new result is "Pass", check if all levels are now passed
     if (newInterview.result === "Pass") {
       const allLevelsPassed = LevelOrder.every(level =>
         student.level.some(entry => entry.levelNo === level && entry.result === "Pass")
@@ -196,35 +233,35 @@ exports.createLevels = async (req, res) => {
 
 
       if (newInterview.result === "Pass" && newInterview.levelNo === "1C") {
-  if (student?.email) {
-    await sendHTMLMail({
-      to: student.email,
-      studentName: student.firstName + " " + student.lastName,
-    });
-    console.log("Email sent to student:", student.email);
-  } else {
-    console.log("❌ No email found for student:", student?.prkey || student?._id);
-  }
-}
+        if (student?.email) {
+          await sendHTMLMail({
+            to: student.email,
+            studentName: student.firstName + " " + student.lastName,
+          });
+          console.log("Email sent to student:", student.email);
+        } else {
+          console.log("❌ No email found for student:", student?.prkey || student?._id);
+        }
+      }
 
 
-     
+
       if (allLevelsPassed) {
         student.readinessStatus = "Ready";
       }
     }
-      // // ✅ Send plain text email if admission confirmed
-         if (newInterview.result === "Fail"&& student.email) {
-          await sendEmail({
-            to: student.email,
-            subject: `Interview Result - Level  ${newInterview.levelNo}`,
-            text: `Hi ${student.firstName},\n\nThank you for attending the level interview. We regret to inform you that you have not cleared the interview for Level  ${newInterview.levelNo}.
+    // // ✅ Send plain text email if admission confirmed
+    if (newInterview.result === "Fail" && student.email) {
+      await sendEmail({
+        to: student.email,
+        subject: `Interview Result - Level  ${newInterview.levelNo}`,
+        text: `Hi ${student.firstName},\n\nThank you for attending the level interview. We regret to inform you that you have not cleared the interview for Level  ${newInterview.levelNo}.
 
 We appreciate your effort and encourage you to stay positive and keep striving for future opportunities.
 
 Best wishes`,
-          });
-         }
+      });
+    }
 
     await student.save();
 
@@ -331,7 +368,7 @@ exports.getStudentLevels = async (req, res) => {
   catch (error) {
     console.error("Error fetching levels:", error);
     res.status(500).json({ message: "Server Error", error });
-  }     
+  }
 }
 
 exports.getLevelWiseStudents = async (req, res) => {

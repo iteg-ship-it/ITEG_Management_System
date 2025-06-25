@@ -5,7 +5,6 @@ import SelectInput from "../common-components/common-feild/SelectInput";
 import RadioGroup from "../common-components/common-feild/RadioGroup";
 import InputField from "../common-components/common-feild/InputField";
 import { interviewSchema } from "../../validationSchema";
-import UserProfile from "../common-components/user-profile/UserProfile";
 import { useGetStudentByIdQuery } from "../../redux/api/authApi";
 import { useParams } from "react-router-dom";
 
@@ -62,7 +61,6 @@ const AdmissionEditPage = () => {
 
   return (
     <>
-      <UserProfile showBackButton heading="Student edit page" />
 
       <div className="mx-auto">
         <Formik

@@ -3,12 +3,13 @@ import { useState, useRef, useEffect } from "react";
 import { FiSettings, FiLogOut } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import profileImg from "../../../assets/images/profile-img.png";
-import backIcon from "../../../assets/icons/back-icon.png";
+// import backIcon from "../../../assets/icons/back-icon.png";
 import { useLogoutMutation } from "../../../redux/api/authApi";
 import { toast } from "react-toastify";
 import SettingsModal from "./SettingModal";
 
-const UserProfile = ({ heading, showBackButton = false, onBack }) => {
+// const UserProfile = ({ heading, showBackButton = false, onBack }) => {
+const UserProfile = () => {
   const [open, setOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -44,11 +45,11 @@ const UserProfile = ({ heading, showBackButton = false, onBack }) => {
 
   return (
     <div className="relative w-full p-2 mb-2">
-      <div className="absolute right-0 top-0 border-2 rounded-full" ref={dropdownRef}>
+      <div className="relative" ref={dropdownRef}>
         <img
           src={user?.avatar || profileImg}
           alt="User avatar"
-          className="w-12 h-12 rounded-full cursor-pointer"
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full cursor-pointer object-cover border"
           onClick={() => setOpen((prev) => !prev)}
         />
         {open && (
@@ -80,7 +81,7 @@ const UserProfile = ({ heading, showBackButton = false, onBack }) => {
       </div>
 
       {/* Heading & Back Button */}
-      <div className="pr-16">
+      {/* <div className="pr-16">
         <div className="flex items-start gap-2 flex-wrap">
           {showBackButton && (
             <button onClick={onBack || (() => navigate(-1))}>
@@ -89,7 +90,7 @@ const UserProfile = ({ heading, showBackButton = false, onBack }) => {
           )}
           <h1 className="text-xl sm:text-2xl font-bold break-words">{heading}</h1>
         </div>
-      </div>
+      </div> */}
 
       {/* Settings Modal */}
       {isSettingsOpen && (

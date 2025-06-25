@@ -7,13 +7,12 @@ import { useEffect, useState } from "react";
 import edit from "../../assets/icons/edit-fill-icon.png";
 import CustomTimeDate from "./CustomTimeDate";
 import { useNavigate, useLocation } from "react-router-dom";
-import UserProfile from "../common-components/user-profile/UserProfile";
 
 const toTitleCase = (str) =>
   str?.toLowerCase().split(" ").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
 
 const StudentList = () => {
-  const { data = [], isLoading, error } = useGetAllStudentsQuery();
+  const { data = [], isLoading, error, refetch } = useGetAllStudentsQuery();
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("Total Registration");
@@ -27,17 +26,17 @@ const StudentList = () => {
   const location = useLocation();
 
   useEffect(() => {
-  const searchParams = new URLSearchParams(location.search);
-  const tabFromURL = searchParams.get("tab");
-  const savedTab = localStorage.getItem("admissionActiveTab");
+    const searchParams = new URLSearchParams(location.search);
+    const tabFromURL = searchParams.get("tab");
+    const savedTab = localStorage.getItem("admissionActiveTab");
 
-  if (tabFromURL) {
-    setActiveTab(tabFromURL);
-    localStorage.setItem("admissionActiveTab", tabFromURL);
-  } else if (savedTab) {
-    setActiveTab(savedTab);
-  }
-}, [location.search]);
+    if (tabFromURL) {
+      setActiveTab(tabFromURL);
+      localStorage.setItem("admissionActiveTab", tabFromURL);
+    } else if (savedTab) {
+      setActiveTab(savedTab);
+    }
+  }, [location.search]);
 
 
   const scheduleButton = (student) => {
@@ -62,36 +61,44 @@ const StudentList = () => {
     return [...interviews].sort((a, b) => new Date(b.date) - new Date(a.date))[0]?.result;
   };
 
-  const matchTabCondition = (student) => {
-    const latestResult = getLatestInterviewResult(student.interviews);
-    const hasInterviews = student.interviews?.length > 0;
-    const firstRound = student.interviews?.filter((i) => i.round === "First");
-    const secondRound = student.interviews?.filter((i) => i.round === "Second");
+const matchTabCondition = (student) => {
+  const latestResult = getLatestInterviewResult(student.interviews);
+  const hasInterviews = student.interviews?.length > 0;
+  const firstRound = student.interviews?.filter((i) => i.round === "First");
+  const secondRound = student.interviews?.filter((i) => i.round === "Second");
 
-    switch (activeTab) {
-      case "Online Assessment":
-        return (
-          student.onlineTest?.result === "Pending" &&
-          (!hasInterviews || firstRound.length === 0)
-        );
-      case "Technical Round":
-        return (
-          firstRound.length > 0 &&
-          firstRound.some((i) => i.result === "Pending" || i.result === "Fail")
-        );
-      case "Final Round":
-        return firstRound.some((i) => i.result === "Pass");
-      case "Selected":
-        return secondRound.some((i) => i.result === "Pass");
-      case "Rejected":
-        return (
-          latestResult === "Fail" ||
-          secondRound.some((i) => i.result === "Fail")
-        );
-      default:
-        return true;
-    }
-  };
+  switch (activeTab) {
+    case "Online Assessment":
+      return (
+        student.onlineTest?.result === "Pending" &&
+        (!hasInterviews || firstRound.length === 0)
+      );
+
+    case "Technical Round":
+      return (
+        firstRound.length > 0 &&
+        firstRound.some((i) => i.result === "Pending" || i.result === "Fail")
+      );
+
+    case "Final Round":
+      return (
+        firstRound.some((i) => i.result === "Pass") &&
+        !secondRound.some((i) => i.result === "Pass")
+      );
+
+    case "Selected":
+      return secondRound.some((i) => i.result === "Pass");
+
+    case "Rejected":
+      return (
+        latestResult === "Fail" ||
+        secondRound.some((i) => i.result === "Fail")
+      );
+
+    default:
+      return true;
+  }
+};
 
   const filtersConfig = [
     {
@@ -297,15 +304,14 @@ const StudentList = () => {
 
 
   const handleTabClick = (tab) => {
-  setActiveTab(tab);
-  localStorage.setItem("admissionActiveTab", tab);
-};
+    setActiveTab(tab);
+    localStorage.setItem("admissionActiveTab", tab);
+  };
 
-  
+
 
   return (
     <>
-      <UserProfile heading="Admission Process" />
 
       <div className="mt-5 border bg-white shadow-sm rounded-lg px-5">
         <div className="flex justify-between items-center flex-wrap gap-4">
@@ -321,14 +327,14 @@ const StudentList = () => {
 
         <div className="px-2 flex gap-6 mt-4">
           {tabs.map((tab) => (
-  <p
-    key={tab}
-    onClick={() => handleTabClick(tab)}
-    className={`cursor-pointer pb-2 border-b-2 ${activeTab === tab ? "border-orange-400 font-semibold" : "border-gray-200"}`}
-  >
-    {tab}
-  </p>
-))}
+            <p
+              key={tab}
+              onClick={() => handleTabClick(tab)}
+              className={`cursor-pointer pb-2 border-b-2 ${activeTab === tab ? "border-orange-400 font-semibold" : "border-gray-200"}`}
+            >
+              {tab}
+            </p>
+          ))}
         </div>
       </div>
 
@@ -348,6 +354,8 @@ const StudentList = () => {
           onClose={handleCloseModal}
           studentId={selectedStudentId}
           attempted={atemendNumber}
+          refetch={refetch} // 🔄 GET call after POST
+
         />
       )}
     </>

@@ -11,7 +11,7 @@ import PasswordField from "../common-feild/PasswordField";
 
 import logo from "../../../assets/images/logo-ssism.png";
 import bg from "../../../assets/images/bgImg.png";
-import googleLogo from "../../../assets/icons/google-icon.png";
+import googleLogo from "../../../assets/icons/devicon_google.jpg";
 import mail from "../../../assets/icons/gmail-icon.png";
 
 const LoginPage = () => {
@@ -107,8 +107,8 @@ const LoginPage = () => {
                   onClick={handleGoogleLogin}
                   className="flex border items-center w-[120%] justify-center space-x-4 bg-white shadow-md rounded-xl py-2 hover:shadow-lg transition"
                 >
-                  <img src={googleLogo} alt="Google" />
-                  <span className="text-lg font-medium text-gray-800">Login With Google</span>
+                  <img className="h-5" src={googleLogo} alt="Google" />
+                  <span className="text-sm font-medium text-gray-800">Login With Google</span>
                 </button>
 
                 <button
@@ -116,8 +116,8 @@ const LoginPage = () => {
                   onClick={handleOtpLogin}
                   className="flex border items-center w-[120%] justify-center space-x-4 bg-white shadow-md rounded-xl py-2 hover:shadow-lg transition"
                 >
-                  <img src={mail} alt="OTP Login" />
-                  <span className="text-lg font-medium text-gray-800">Login with Email OTP</span>
+                  <img className="h-6" src={mail} alt="OTP Login" />
+                  <span className="text-sm font-medium text-gray-800">Login with Email OTP</span>
                 </button>
               </div>
 

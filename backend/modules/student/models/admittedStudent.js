@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const levelSchema = new mongoose.Schema({
-  levelNo: { type: String, required: true }, // e.g., "Level 1"
+  levelNo: { type: String, default: "1A" }, // e.g., "Level 1"
   noOfAttempts: { type: Number, default: 0 },
   Theoretical_Marks: { type: Number, default: 0 },
   Practical_Marks: { type: Number, default: 0 },
@@ -21,7 +21,7 @@ const placedInfoSchema = new mongoose.Schema({
   salary: { type: Number, required: true },
   location: { type: String, required: true },
   jobProfile: { type: String, required: true },
-  companyLogo:{ type: String, required: true },
+  // companyLogo:{ type: String, required: true },
   jobType:{type:String}
 });
 
@@ -32,7 +32,7 @@ const interviewRecordSchema = new mongoose.Schema({
   result: {
     type: String,
     enum: ['Selected', 'Rejected', 'Pending'],
-    default: 'Pending'  
+    default: 'Pending'
   },
   location: { type: String, required: true },
   jobProfile: { type: String, required: true }
@@ -59,27 +59,27 @@ const AdmittedStudentSchema = new mongoose.Schema({
 
   // 🎓 Personal Details
   prkey: { type: String, required: true, unique: true },
-    image: { type: String, default: "" }, // Base64 Image
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    fatherName: { type: String, required: true },
-    email: { type: String },
-    studentMobile: { type: String, required: true },
-    parentMobile: { type: String, required: true },
-    gender: { type: String, required: true },
-    dob: { type: Date, required: true },
-    aadharCard: { type: String, required: true, unique: true },
-    address: { type: String, required: true },
-    track: { type: String, required: true },   
-    village: { type: String, required: true },
-    stream: { type: String, required: true },
-    course: { type: String, required: true },
-    category: { type: String, required: true },
-    subject12: { type: String, required: true },
-    year12: { type: String, required: true },
-    percent12: { type: String },
-    percent10: { type: String },
-    year: { type: String, required: true, default: "first" },
+  image: { type: String, default: "" }, // Base64 Image
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  fatherName: { type: String, required: true },
+  email: { type: String },
+  studentMobile: { type: String, required: true },
+  parentMobile: { type: String, required: true },
+  gender: { type: String, required: true },
+  dob: { type: Date, required: true },
+  aadharCard: { type: String, required: true, unique: true },
+  address: { type: String, required: true },
+  track: { type: String, required: true },
+  village: { type: String, required: true },
+  stream: { type: String, required: true },
+  course: { type: String, required: true },
+  category: { type: String, required: true },
+  subject12: { type: String, required: true },
+  year12: { type: String, required: true },
+  percent12: { type: String },
+  percent10: { type: String },
+  year: { type: String, required: true, default: "first" },
 
   // 📚 Academic & Activity
   level: { type: [levelSchema], default: [] },
