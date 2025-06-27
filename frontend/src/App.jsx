@@ -46,11 +46,11 @@ function App() {
           <Route path="/reset-password/:token" element={<ConfirmPassword />} />
           <Route path="/forget-password" element={<ForgetPassword />} />
           <Route path="/otp-enter" element={<OtpEnter />} />
-          <Route path="/google-success" element={<GoogleSuccess />} /> 
+          <Route path="/google-success" element={<GoogleSuccess />} />
 
         </Routes>
       </Router>
-       <ToastContainer
+      <ToastContainer
         position="top-right"       // where to show toasts
         autoClose={3000}           // close after 3 sec
         hideProgressBar={false}

@@ -1,6 +1,7 @@
 
 const PlacementPost = () => {
   return (
+    <div>PlacementPost</div>
   )
 }
 
