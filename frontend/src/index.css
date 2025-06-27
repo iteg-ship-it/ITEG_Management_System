@@ -3,12 +3,38 @@
 @tailwind utilities;
 
 :root {
-  --primary: #f2f7fc;
+  --background: #f2f7fc;
+  --primary: #FDA92D;
+  --primary-light: #FED680;
+  --primary-dark: #B66816;
+  --secondary: #8E33FF;
+  --secondary-light: #C684FF;
+  --secondary-dark: #5119B7;
+  --success: #22C55E;
+  --success-light: #77ED8B;
+  --success-dark: #118D57;
+  --warning: #FFAB00;
+  --warning-light: #FFD666;
+  --warning-dark: #B76E00;
+  --error: #FF5630;
+  --error-light: #FFAC82;
+  --error-dark: #B71D18;
+  --info: #00B8D9;
+  --info-light: #61F3F3;
+  --info-dark: #006C9C;
+  --neutral:#F4F6F8;
+  --neutral-light: #DFE3E8;
+  --neutral-dark: #C4CDD5;
+  --neutral-darker:#919EAB;
+  --diagonal-gradient: linear-gradient(45deg, #84B8CF 0%, #FFFFFF 33%, #FFFFFF 66%, #E6B0AE 100%);
+
 }
+
 /* Add to index.css or global.css */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: 4px;
@@ -17,6 +43,7 @@
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -29,13 +56,21 @@
 input {
   @apply border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500;
 }
+
 @layer utilities {
   .animate-fadeIn {
     animation: fadeIn 0.3s ease-in-out;
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 }
