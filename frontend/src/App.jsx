@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import Sidebar from "./components/common-components/sidebar/Sidebar";
-import Header from "./components/common-components/sidebar/Header";
-import Dashboard from "./components/dashboard/Dashboard";
+// import Sidebar from "./components/common-components/sidebar/Sidebar";
+// import Header from "./components/common-components/sidebar/Header";
+// import Dashboard from "./components/dashboard/Dashboard";
 import LoginPage from "./components/common-components/login-page/LoginPage";
 import ForgetPassword from "./components/common-components/forget-password/ForgetPassword";
 import ConfirmPassword from "./components/common-components/confirm-password/ConfirmPassword";
@@ -11,6 +11,7 @@ import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import OtpEnter from "./components/common-components/otp-verfication/OtpEnter";
 import GoogleSuccess from './components/common-components/login-page/GoogleSuccess.jsx';
+import Layout from "./components/dashboard/Layout.jsx";
 
 // ✅ Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -19,7 +20,7 @@ const ProtectedRoute = ({ children }) => {
 };
 
 function App() {
-  const role = localStorage.getItem("role");
+  // const role = localStorage.getItem("role");
 
   return (
     <>
@@ -31,10 +32,11 @@ function App() {
             element={
               <ProtectedRoute>
                 <div className="bg-[var(--primary)]">
-                  <Header />
+                  {/* <Header />
                   <Sidebar role={role}>
                     <Dashboard />
-                  </Sidebar>
+                  </Sidebar> */}
+                  <Layout />
                 </div>
               </ProtectedRoute>
             }
@@ -46,11 +48,11 @@ function App() {
           <Route path="/reset-password/:token" element={<ConfirmPassword />} />
           <Route path="/forget-password" element={<ForgetPassword />} />
           <Route path="/otp-enter" element={<OtpEnter />} />
-          <Route path="/google-success" element={<GoogleSuccess />} /> 
+          <Route path="/google-success" element={<GoogleSuccess />} />
 
         </Routes>
       </Router>
-       <ToastContainer
+      <ToastContainer
         position="top-right"       // where to show toasts
         autoClose={3000}           // close after 3 sec
         hideProgressBar={false}

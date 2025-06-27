@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { useState, useRef, useEffect } from "react";
 import { FiSettings, FiLogOut } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
@@ -22,7 +21,7 @@ const UserProfile = () => {
       const userId = user?.id || user?._id;
       console.log("🔑 Initiating logout for user:", userId);
       const res = await logout({ id: userId }).unwrap();
-      console.log("✅ Logout success:", res);
+      console.log("✅ Logout success:");
 
       localStorage.clear();
       toast.success(res.message);

@@ -353,6 +353,7 @@ const StudentList = () => {
         pagination={true}
         rowsPerPage={rowsPerPage}
         searchTerm={searchTerm}
+        filtersConfig={filtersConfig}
         actionButton={actionButton}
       />
 
