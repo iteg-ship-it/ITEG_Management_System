@@ -10,7 +10,7 @@ const toTitleCase = (str) =>
 
 const StudentList = () => {
   const { data = [], isLoading, error, refetch } = useGetAllStudentsQuery();
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("Total Registration");
   const [selectedTracks, setSelectedTracks] = useState([]);
