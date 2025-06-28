@@ -61,44 +61,44 @@ const StudentList = () => {
     return [...interviews].sort((a, b) => new Date(b.date) - new Date(a.date))[0]?.result;
   };
 
-const matchTabCondition = (student) => {
-  const latestResult = getLatestInterviewResult(student.interviews);
-  const hasInterviews = student.interviews?.length > 0;
-  const firstRound = student.interviews?.filter((i) => i.round === "First");
-  const secondRound = student.interviews?.filter((i) => i.round === "Second");
+  const matchTabCondition = (student) => {
+    const latestResult = getLatestInterviewResult(student.interviews);
+    const hasInterviews = student.interviews?.length > 0;
+    const firstRound = student.interviews?.filter((i) => i.round === "First");
+    const secondRound = student.interviews?.filter((i) => i.round === "Second");
 
-  switch (activeTab) {
-    case "Online Assessment":
-      return (
-        student.onlineTest?.result === "Pending" &&
-        (!hasInterviews || firstRound.length === 0)
-      );
+    switch (activeTab) {
+      case "Online Assessment":
+        return (
+          student.onlineTest?.result === "Pending" &&
+          (!hasInterviews || firstRound.length === 0)
+        );
 
-    case "Technical Round":
-      return (
-        firstRound.length > 0 &&
-        firstRound.some((i) => i.result === "Pending" || i.result === "Fail")
-      );
+      case "Technical Round":
+        return (
+          firstRound.length > 0 &&
+          firstRound.some((i) => i.result === "Pending" || i.result === "Fail")
+        );
 
-    case "Final Round":
-      return (
-        firstRound.some((i) => i.result === "Pass") &&
-        !secondRound.some((i) => i.result === "Pass")
-      );
+      case "Final Round":
+        return (
+          firstRound.some((i) => i.result === "Pass") &&
+          !secondRound.some((i) => i.result === "Pass")
+        );
 
-    case "Selected":
-      return secondRound.some((i) => i.result === "Pass");
+      case "Selected":
+        return secondRound.some((i) => i.result === "Pass");
 
-    case "Rejected":
-      return (
-        latestResult === "Fail" ||
-        secondRound.some((i) => i.result === "Fail")
-      );
+      case "Rejected":
+        return (
+          latestResult === "Fail" ||
+          secondRound.some((i) => i.result === "Fail")
+        );
 
-    default:
-      return true;
-  }
-};
+      default:
+        return true;
+    }
+  };
 
   const filtersConfig = [
     {
@@ -312,7 +312,7 @@ const matchTabCondition = (student) => {
 
   return (
     <>
-
+      <h1 className="text-2xl pt-1 font-semibold" >Admission Process</h1>
       <div className="mt-5 border bg-white shadow-sm rounded-lg px-5">
         <div className="flex justify-between items-center flex-wrap gap-4">
           <Pagination

@@ -4,7 +4,7 @@ import Header from '../common-components/sidebar/Header';
 import Dashboard from './Dashboard';
 const Layout = () => {
     return (
-        <div className="flex min-h-screen bg-gray-50">
+        <div className="min-h-screen">
             {/* Sidebar */}
             {/* <aside className="fixed top-16 left-0 w-60 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 shadow-md z-20"> */}
                 <Sidebar >
@@ -13,7 +13,7 @@ const Layout = () => {
             {/* </aside> */}
 
             {/* Main Content */}
-            <div className="flex-1  mt-16 p-4 overflow-auto">
+            <div className="flex-1 ">
                 <Outlet /> {/* nested route yaha render hoga */}
             </div>
 
