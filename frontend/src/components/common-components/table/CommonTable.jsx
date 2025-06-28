@@ -132,7 +132,7 @@ const CommonTable = ({
                 <option value={10}>10</option>
                 <option value={25}>25</option>
                 <option value={50}>50</option>
-                <option value={filteredData.length}>All</option>
+                <option value={filteredData.length} >All</option>
               </select>
             </div>
 

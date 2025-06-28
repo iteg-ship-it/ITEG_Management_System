@@ -122,8 +122,8 @@ const Sidebar = ({ children }) => {
 
       {/* Main content */}
       <main
-      // className={`flex-1 bg-[#eef3fb] min-h-screen pt-20 px-4 transition-all duration-300 ${isOpen ? "ml-64" : "ml-16"
-      //   }`}
+      className={`flex-1 bg-[#eef3fb] min-h-screen pt-20 px-4 transition-all duration-300 ${isOpen ? "ml-64" : "ml-16"
+        }`}
       >
         {children}
       </main>
