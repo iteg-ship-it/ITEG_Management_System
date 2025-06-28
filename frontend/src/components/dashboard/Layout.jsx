@@ -13,7 +13,7 @@ const Layout = () => {
             {/* </aside> */}
 
             {/* Main Content */}
-            <div className="flex-1  mt-16 p-4 overflow-auto">
+            <div className="flex-1 ">
                 <Outlet /> {/* nested route yaha render hoga */}
             </div>
 
