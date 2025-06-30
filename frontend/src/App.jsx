@@ -31,7 +31,7 @@ function App() {
             path="/*"
             element={
               <ProtectedRoute>
-                <div className="bg-[--neutral-light]">
+                <div className="bg-white">
                   {/* <Header />
                   <Sidebar role={role}>
                     <Dashboard />
