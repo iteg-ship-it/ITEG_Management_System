@@ -26,11 +26,12 @@
   --neutral-light: #DFE3E8;
   --neutral-dark: #C4CDD5;
   --neutral-darker:#919EAB;
-  --diagonal-gradient: linear-gradient(45deg, #84B8CF 0%, #FFFFFF 33%, #FFFFFF 66%, #E6B0AE 100%);
-
+  --diagonal-gradient: linear-gradient(45deg, #b1ddefe4 0%, #FFFFFF 33%, #FFFFFF 66%, #e3c2c178 100%);
+ --backgroundColor: #FCFDFD;
 }
 
 /* Add to index.css or global.css */
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
@@ -74,3 +75,4 @@ input {
     }
   }
 }
+

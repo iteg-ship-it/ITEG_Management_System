@@ -60,7 +60,7 @@ const Sidebar = ({ children }) => {
     <div className="flex">
       {/* Sidebar */}
       <aside
-        className={`fixed top-16 left-0 z-30 mt-2 transition-all duration-300 bg-white border-r shadow-md ${isOpen ? "w-64" : "w-12"
+        className={`fixed top-16 left-0 z-30 mt-2 transition-all duration-300 bg-[var(--backgroundColor)] border-r shadow-md ${isOpen ? "w-64" : "w-12"
           } h-[calc(100vh-4rem)]`}
       >
         {/* Sidebar toggle */}
@@ -136,7 +136,7 @@ const Sidebar = ({ children }) => {
 
       {/* Main content */}
       <main
-        className={`flex-1 bg-[--neutral] pt-20 px-4 transition-all duration-300 ${isOpen ? "ml-64" : "ml-16"
+        className={`flex-1 bg-white pt-20 px-4 transition-all duration-300 ${isOpen ? "ml-64" : "ml-16"
           } overflow-x-hidden`}
       >
         {children}
