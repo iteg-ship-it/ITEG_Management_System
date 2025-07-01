@@ -28,6 +28,7 @@
   --neutral-darker:#919EAB;
   --diagonal-gradient: linear-gradient(45deg, #b1ddefe4 0%, #FFFFFF 33%, #FFFFFF 66%, #e3c2c178 100%);
  --backgroundColor: #FCFDFD;
+ --text-color: #1C252E;
 }
 
 /* Add to index.css or global.css */

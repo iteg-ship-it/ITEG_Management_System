@@ -143,25 +143,25 @@ const CommonTable = ({
               {filteredData.length === 0
                 ? "0"
                 : `${(currentPage - 1) * pageSize + 1} - ${Math.min(
-                    currentPage * pageSize,
-                    filteredData.length
-                  )} of ${filteredData.length}`}
+                  currentPage * pageSize,
+                  filteredData.length
+                )} of ${filteredData.length}`}
             </span>
 
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                 disabled={currentPage === 1}
-                className="w-7 h-7   flex items-center justify-center text-gray-500 disabled:opacity-40"
+                className="w-7 h-7   flex items-center justify-center text-[var(--text-color)] disabled:opacity-40"
               >
-                ‹
+                <span className="text-3xl">‹</span>
               </button>
               <button
                 onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="w-7 h-7  flex items-center justify-center text-gray-500 disabled:opacity-40"
+                className="w-7 h-7 text-lg  flex items-center justify-center text-[var(--text-color)] disabled:opacity-40"
               >
-                ›
+                <span className="text-3xl">›</span>
               </button>
             </div>
           </div>

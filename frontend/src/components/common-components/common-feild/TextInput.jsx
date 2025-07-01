@@ -18,7 +18,7 @@ const TextInput = ({
           const hasValue = field.value && field.value.length > 0;
           return (
             <div className="relative">
-              <input
+              <Field
                 {...field}
                 type={type}
                 disabled={disabled}
@@ -27,27 +27,29 @@ const TextInput = ({
                   setIsFocused(false);
                   field.onBlur(e);
                 }}
-                placeholder=""
+                placeholder=" "
                 className={`
-                  w-full border border-gray-300 rounded-md px-3 pt-6 pb-2
-                  focus:outline-none focus:border-blue-600
+                  peer
+                  w-full border border-[var(--text-color)] rounded-md
+                  px-3 py-2 leading-tight text-base
+                  focus:outline-none focus:border-[var(--text-color)] 
                   ${disabled ? "bg-gray-100 cursor-not-allowed" : ""}
-                  transition-all duration-300
+                  transition-all duration-200
                 `}
               />
               <label
                 className={`
                   absolute left-3
-                  transition-all duration-300
+                  bg-white px-1 transition-all duration-200
                   pointer-events-none
                   ${
                     isFocused || hasValue
-                      ? "text-xs -top-1 px-1 bg-white text-blue-600"
-                      : "text-gray-400 top-3"
+                      ? "text-xs -top-2 text-[var(--text-color)]"
+                      : "text-gray-400 top-2"
                   }
                 `}
               >
-                {label} {label && <span className="text-red-500">*</span>}
+                {label} {label && <span className="text-[var(--text-color)]">*</span>}
               </label>
             </div>
           );
