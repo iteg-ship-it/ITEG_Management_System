@@ -193,7 +193,7 @@ const StudentList = () => {
         { key: "firstName", label: "Full Name", render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`) },
         { key: "fatherName", label: "Father's Name", render: (row) => toTitleCase(row.fatherName) },
         { key: "studentMobile", label: "Mobile" },
-        { key: "stream", label: "12th Subject", render: (row) => toTitleCase(row.stream) },
+        { key: "subject12", label: "12th Subject", render: (row) => toTitleCase(row.stream) },
         { key: "course", label: "Course", render: (row) => toTitleCase(row.course) },
         { key: "village", label: "Marks", render: (row) => toTitleCase(row.village) },
         { key: "stream", label: "Status", render: (row) => handleGetOnlineMarks(row.onlineTest) },
