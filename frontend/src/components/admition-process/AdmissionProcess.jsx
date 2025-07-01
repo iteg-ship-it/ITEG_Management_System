@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 // import edit from "../../assets/icons/edit-fill-icon.png";
 import CustomTimeDate from "./CustomTimeDate";
 import { useNavigate, useLocation } from "react-router-dom";
-import Pagination from "../common-components/Pagination";
+import Pagination from "../common-components/pagination/Pagination";
 
 const toTitleCase = (str) =>
   str?.toLowerCase().split(" ").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
