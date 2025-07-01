@@ -2,48 +2,45 @@
 import { useInterviewCreateMutation } from '../../redux/api/authApi';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
-import { toast } from 'react-toastify'; // ✅ import toast
+import { toast } from 'react-toastify';
 
-// Common Components
+// ✅ YOUR TextInput style
 import TextInput from '../common-components/common-feild/TextInput';
 import SelectInput from '../common-components/common-feild/SelectInput';
 
 const CustomTimeDate = ({ isOpen, onClose, studentId, attempted, refetch }) => {
   const initialValues = {
-    round: 'First',
-    attemptNo: '',
-    assignment: '',
+    created_by: '',
+    date: '',
+    maths: '',
+    subjectKnowlage: '',
+    reasoning: '',
+    goal: '',
+    sincerity: '',
     communication: '',
     confidence: '',
-    goal: '',
-    subjectKnowlage: '',
+    attemptNo: attempted + 1,
     assignmentMarks: '',
-    sincerity: '',
-    maths: '',
-    reasoning: '',
     marks: '',
-    remark: '',
-    date: '',
-    created_by: '',
     result: 'Pending',
+    remark: '',
   };
 
   const validationSchema = Yup.object().shape({
-    round: Yup.string().required('Round is required'),
-    assignment: Yup.string().required('Assignment is required'),
-    communication: Yup.number().typeError('Must be a number').required().min(0).max(100),
-    confidence: Yup.number().typeError('Must be a number').required().min(0).max(100),
-    goal: Yup.number().typeError('Must be a number').required().min(0).max(100),
-    subjectKnowlage: Yup.number().typeError('Must be a number').required().min(0).max(100),
-    assignmentMarks: Yup.number().typeError('Must be a number').required().min(0).max(100),
-    sincerity: Yup.number().typeError('Must be a number').required().min(0).max(100),
-    maths: Yup.number().typeError('Must be a number').required().min(0).max(100),
-    reasoning: Yup.number().typeError('Must be a number').required().min(0).max(100),
-    marks: Yup.number().typeError('Must be a number').required().min(0).max(100),
-    remark: Yup.string().required('Remark is required'),
-    date: Yup.string().required('Date is required'),
-    created_by: Yup.string().required('Created By is required'),
-    result: Yup.string().required('Result is required'),
+    created_by: Yup.string().required(),
+    date: Yup.string().required(),
+    maths: Yup.number().required(),
+    subjectKnowlage: Yup.string().required(),
+    reasoning: Yup.number().required(),
+    goal: Yup.string().required(),
+    sincerity: Yup.string().required(),
+    communication: Yup.string().required(),
+    confidence: Yup.string().required(),
+    attemptNo: Yup.number().required(),
+    assignmentMarks: Yup.number().required(),
+    marks: Yup.number().required(),
+    result: Yup.string().required(),
+    remark: Yup.string(),
   });
 
   const [createInterview, { isLoading }] = useInterviewCreateMutation();
@@ -51,88 +48,133 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, attempted, refetch }) => {
   const handleSubmit = async (values, { resetForm }) => {
     const payload = {
       ...values,
-      created_by: values.created_by || 'admin',
-      studentId: studentId,
+      round: 'First',
+      studentId,
     };
 
     try {
       await createInterview(payload).unwrap();
       toast.success('Interview scheduled successfully!');
-      if (refetch) refetch(); // ✅ trigger GET call
-      resetForm(); // optional: reset form
-      onClose();   // close modal
+      refetch?.();
+      resetForm();
+      onClose();
     } catch (err) {
-      console.error('Interview submission failed:', err);
       toast.error('Failed to schedule interview.');
+      console.error('Interview error:', err);
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl py-4 px-6 w-full max-w-4xl h-[95vh] overflow-y-auto no-scrollbar relative">
-        <h2 className="text-2xl font-bold text-center text-orange-500 mb-4">Schedule Interview</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+      <div className="bg-white rounded-xl py-6 px-8 w-full max-w-3xl h-[95vh] overflow-y-auto no-scrollbar relative">
 
-        <Formik
-          initialValues={initialValues}
-          validationSchema={validationSchema}
-          onSubmit={handleSubmit}
-        >
+        <h2 className="text-2xl font-bold text-center text-orange-500 mb-6">
+          Technical Interview Form
+        </h2>
+
+        <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit}>
           {() => (
             <Form className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
+              {/* Section: Interview Metadata */}
+              <div className="col-span-2 text-sm font-semibold text-gray-600">Interview Metadata</div>
+              <TextInput name="created_by" placeholder="Created By" />
+              <TextInput name="date" type="datetime-local" placeholder="Select Date" />
+
+              {/* Section: Technical Knowledge & Aptitude */}
+              <div className="col-span-2 text-sm font-semibold text-gray-600">Technical Knowledge & Aptitude</div>
+              <TextInput name="maths" placeholder="Mathematics Marks" type="number" />
               <SelectInput
-                label="Round"
-                name="round"
-                disabled={true}
-                options={[{ value: 'First', label: 'Technical Round' }]}
+                name="subjectKnowlage"
+                options={[
+                  { value: '', label: 'Subjective Knowledge' },
+                  { value: 'Basic', label: 'Basic' },
+                  { value: 'Intermediate', label: 'Intermediate' },
+                  { value: 'Advanced', label: 'Advanced' },
+                ]}
+                placeholder="Subjective Knowledge"
+              />
+              <TextInput name="reasoning" placeholder="Reasoning Marks" type="number" />
+
+              {/* Section: Candidate Behaviour & Soft Skill */}
+              <div className="col-span-2 text-sm font-semibold text-gray-600">Candidate Behaviour & Soft Skill</div>
+              <SelectInput
+                name="goal"
+                options={[
+                  { value: '', label: 'Goal Clarity' },
+                  { value: 'Clear', label: 'Clear' },
+                  { value: 'Average', label: 'Average' },
+                  { value: 'No Clarity', label: 'No Clarity' },
+                ]}
+                placeholder="Goal Clarity"
+              />
+              <SelectInput
+                name="sincerity"
+                options={[
+                  { value: '', label: 'Sincerity' },
+                  { value: 'High', label: 'High' },
+                  { value: 'Medium', label: 'Medium' },
+                  { value: 'Low', label: 'Low' },
+                ]}
+                placeholder="Sincerity"
+              />
+              <SelectInput
+                name="communication"
+                options={[
+                  { value: '', label: 'Communication Level' },
+                  { value: 'Good', label: 'Good' },
+                  { value: 'Average', label: 'Average' },
+                  { value: 'Poor', label: 'Poor' },
+                ]}
+                placeholder="Communication Level"
+              />
+              <SelectInput
+                name="confidence"
+                options={[
+                  { value: '', label: 'Confidence Level' },
+                  { value: 'High', label: 'High' },
+                  { value: 'Medium', label: 'Medium' },
+                  { value: 'Low', label: 'Low' },
+                ]}
+                placeholder="Confidence Level"
               />
 
-              <TextInput
-                label="Attempt No"
+              {/* Section: Assignment Evaluation */}
+              <div className="col-span-2 text-sm font-semibold text-gray-600">Assignment Evaluation</div>
+              <SelectInput
                 name="attemptNo"
-                type="number"
-                value={attempted + 1}
-                disabled={true}
+                options={[
+                  { value: 1, label: '1st Attempt' },
+                  { value: 2, label: '2nd Attempt' },
+                  { value: 3, label: '3rd Attempt' },
+                ]}
+                placeholder="Assignment Attempt"
               />
+              <TextInput name="assignmentMarks" placeholder="Assignment Marks" type="number" />
 
-              <TextInput label="Assignment" name="assignment" />
-              <TextInput label="Communication" name="communication" type="number" />
-              <TextInput label="Confidence" name="confidence" type="number" />
-              <TextInput label="Goal" name="goal" type="number" />
-              <TextInput label="Subject Knowledge" name="subjectKnowlage" type="number" />
-              <TextInput label="Assignment Marks" name="assignmentMarks" type="number" />
-              <TextInput label="Sincerity" name="sincerity" type="number" />
-              <TextInput label="Maths" name="maths" type="number" />
-              <TextInput label="Reasoning" name="reasoning" type="number" />
-              <TextInput label="Total Marks" name="marks" type="number" />
-              <TextInput label="Remark" name="remark" />
-              <TextInput label="Created By" name="created_by" />
-              <TextInput label="Date" name="date" type="datetime-local" />
-
+              {/* Section: Summary & Decision */}
+              <div className="col-span-2 text-sm font-semibold text-gray-600">Summary & Decision</div>
+              <TextInput name="marks" placeholder="Total Mark" type="number" />
               <SelectInput
-                label="Result"
                 name="result"
                 options={[
+                  { value: '', label: 'Result' },
                   { value: 'Pass', label: 'Pass' },
                   { value: 'Fail', label: 'Fail' },
                   { value: 'Pending', label: 'Pending' },
                 ]}
+                placeholder="Result"
               />
 
-              <div className="md:col-span-2 flex justify-end gap-4">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 border rounded text-gray-700"
-                >
-                  Cancel
-                </button>
+              <TextInput name="remark" placeholder="Remark / Feedback..." className="col-span-2" />
+
+              <div className="col-span-2 flex justify-center mt-4">
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+                  className="bg-orange-500 text-white px-6 py-2 rounded-md hover:bg-orange-600"
                 >
                   {isLoading ? 'Submitting...' : 'Submit'}
                 </button>
@@ -143,7 +185,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, attempted, refetch }) => {
 
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-xl text-gray-500 hover:text-gray-700"
+          className="absolute top-3 right-3 text-xl text-gray-400 hover:text-gray-700"
         >
           &times;
         </button>

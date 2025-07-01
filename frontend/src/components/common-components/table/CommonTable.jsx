@@ -19,6 +19,7 @@ const CommonTable = ({
   const currentPage = parentPage ?? internalPage;
   const setCurrentPage = onPageChange ?? setInternalPage;
   const [pageSize, setPageSize] = useState(rowsPerPage);
+  const [selectedRows, setSelectedRows] = useState([]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -43,6 +44,31 @@ const CommonTable = ({
     return filteredData.slice(start, start + pageSize);
   }, [filteredData, currentPage, pageSize]);
 
+
+  const isAllSelected = paginatedData.every((row) =>
+    selectedRows.includes(row._id)
+  );
+
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedRows((prev) =>
+        prev.filter((id) => !paginatedData.find((row) => row._id === id))
+      );
+    } else {
+      const newIds = paginatedData.map((row) => row._id);
+      setSelectedRows((prev) => [...new Set([...prev, ...newIds])]);
+    }
+  };
+
+  const handleRowSelect = (id) => {
+    setSelectedRows((prev) =>
+      prev.includes(id)
+        ? prev.filter((rowId) => rowId !== id)
+        : [...prev, id]
+    );
+  };
+
+
   useEffect(() => {
     scrollRef.current?.scrollTo({
       top: scrollRef.current.scrollHeight,
@@ -59,7 +85,10 @@ const CommonTable = ({
               <thead className="sticky top-0 bg-[--neutral-light] text-sm text-gray-600 border-b shadow-sm">
                 <tr>
                   <th className="px-4 py-3 text-start">
-                    <input type="checkbox" className="h-4 w-4 text-black" />
+                    <input type="checkbox" className="h-4 w-4 text-black accent-[#1c252e] rounded-md" 
+                      checked={isAllSelected}
+                      onChange={handleSelectAll}
+                    />
                   </th>
                   <th className="px-4 py-3 text-start">S.no</th>
                   {columns.map(({ key, label }) => (
@@ -77,7 +106,10 @@ const CommonTable = ({
                 {paginatedData.map((row, rowIndex) => (
                   <tr key={rowIndex} className="hover:bg-gray-100 border-b border-gray-200 transition">
                     <td className="px-4 py-3">
-                      <input type="checkbox" className="rounded-md" />
+                      <input type="checkbox" className="rounded-md accent-[#1c252e] h-4 w-4" 
+                        checked={selectedRows.includes(row._id)}
+                        onChange={() => handleRowSelect(row._id)}
+                      />
                     </td>
                     <td className="px-4 py-3 text-start font-medium text-gray-800">
                       {(currentPage - 1) * pageSize + rowIndex + 1}

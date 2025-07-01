@@ -1,70 +1,31 @@
 /* eslint-disable react/prop-types */
-import { Field, ErrorMessage } from "formik";
-import { useState } from "react";
+import { Field, ErrorMessage } from 'formik';
 
-const TextInput = ({
-  label,
-  name,
-  className = "",
-  disabled = false,
-  type = "text",
-}) => {
-  const [isFocused, setIsFocused] = useState(false);
-
+const TextInput = ({ name, placeholder, type = 'text', disabled = false, className = '' }) => {
   return (
-    <div className={`relative w-full ${className}`}>
+    <div className={`w-full ${className}`}>
       <Field name={name}>
-        {({ field }) => {
-          const hasValue = field.value && field.value.length > 0;
-          return (
-            <div className="relative">
-              <Field
-                {...field}
-                type={type}
-                disabled={disabled}
-                onFocus={() => setIsFocused(true)}
-                onBlur={(e) => {
-                  setIsFocused(false);
-                  field.onBlur(e);
-                }}
-                placeholder=" "
-                className={`
-                  peer
-                  w-full border border-[var(--text-color)] rounded-md
-                  px-3 py-2 leading-tight text-base
-                  focus:outline-none focus:border-[var(--text-color)] 
-                  ${disabled ? "bg-gray-100 cursor-not-allowed" : ""}
-                  transition-all duration-200
-                `}
-              />
-              <label
-                className={`
-                  absolute left-3
-                  bg-white px-1 transition-all duration-200
-                  pointer-events-none
-                  ${
-                    isFocused || hasValue
-                      ? "text-xs -top-2 text-[var(--text-color)]"
-                      : "text-gray-400 top-2"
-                  }
-                `}
-              >
-                {label} {label && <span className="text-[var(--text-color)]">*</span>}
-              </label>
-            </div>
-          );
-        }}
+        {({ field }) => (
+          <input
+            {...field}
+            type={type}
+            disabled={disabled}
+            placeholder={placeholder}
+            className={`
+              w-full border border-gray-300 rounded-md px-3 py-2 
+              focus:outline-none focus:ring-2 focus:ring-orange-400
+              ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}
+            `}
+          />
+        )}
       </Field>
-      <ErrorMessage
-        name={name}
-        component="p"
-        className="text-red-500 text-sm font-semibold mt-1"
-      />
+      <ErrorMessage name={name} component="p" className="text-red-500 text-sm mt-1" />
     </div>
   );
 };
 
 export default TextInput;
+
 
 
 // /* eslint-disable react/prop-types */

@@ -15,7 +15,7 @@ const CheckboxGroup = ({ label, name, options }) => {
 
   return (
     <div className="mb-4">
-      {label && <label className="block font-semibold mb-2">{label}</label>}
+      {label && <label className="block text-sm font-medium text-gray-800 mb-1">{label}</label>}
       <div className="flex flex-wrap gap-4">
         {options.map((option) => (
           <label key={option.value} className="flex items-center space-x-2">
@@ -25,9 +25,9 @@ const CheckboxGroup = ({ label, name, options }) => {
               value={option.value}
               checked={field.value.includes(option.value)}
               onChange={handleChange}
-              className="form-checkbox text-orange-500"
+              className="accent-[#1c252e] w-4 h-4 rounded"
             />
-            <span>{option.label}</span>
+            <span className="text-gray-700 text-sm">{option.label}</span>
           </label>
         ))}
       </div>

@@ -1,17 +1,17 @@
 import { useGetAllStudentsQuery } from "../../redux/api/authApi";
 import CommonTable from "../common-components/table/CommonTable";
-import Pagination from "../common-components/pagination/Pagination";
 import { useEffect, useState } from "react";
 // import edit from "../../assets/icons/edit-fill-icon.png";
 import CustomTimeDate from "./CustomTimeDate";
 import { useNavigate, useLocation } from "react-router-dom";
+import Pagination from "../common-components/pagination/Pagination";
 
 const toTitleCase = (str) =>
   str?.toLowerCase().split(" ").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
 
 const StudentList = () => {
   const { data = [], isLoading, error, refetch } = useGetAllStudentsQuery();
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("Total Registration");
   const [selectedStudentId, setSelectedStudentId] = useState(null);
@@ -325,7 +325,7 @@ const StudentList = () => {
           <div className="flex justify-between items-center flex-wrap gap-4">
             <Pagination
               rowsPerPage={rowsPerPage}
-              setRowsPerPage={setRowsPerPage}
+              // setRowsPerPage={setRowsPerPage}
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
               filtersConfig={filtersConfig}
