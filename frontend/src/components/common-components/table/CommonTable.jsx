@@ -107,7 +107,7 @@ const CommonTable = ({
               <tbody>
                 {paginatedData.map((row, rowIndex) => (
                   <tr key={rowIndex}
-                    className="hover:bg-gray-100 text-[1rem] border-b border-gray-200 transition cursor-pointer"
+                    className="hover:bg-gray-100 text-md border-b border-gray-200 transition cursor-pointer"
                     onClick={() => navigate(`/admission/edit/${row._id}`)} // ⬅️ Navigation trigger
                   >
                     <td className="px-4 py-3"
@@ -204,7 +204,7 @@ const CommonTable = ({
               <button
                 onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="w-7 h-7 text-lg  flex items-center justify-center text-[var(--text-color)] disabled:opacity-40"
+                className="w-7 h-7 text-md  flex items-center justify-center text-[var(--text-color)] disabled:opacity-40"
               >
                 <span className="text-3xl">›</span>
               </button>
