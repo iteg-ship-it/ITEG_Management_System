@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 const CommonTable = ({
   columns,
@@ -15,6 +16,7 @@ const CommonTable = ({
 }) => {
   const [internalPage, setInternalPage] = useState(1);
   const scrollRef = useRef(null);
+  const navigate = useNavigate();
 
   const currentPage = parentPage ?? internalPage;
   const setCurrentPage = onPageChange ?? setInternalPage;
@@ -104,13 +106,20 @@ const CommonTable = ({
               </thead>
               <tbody>
                 {paginatedData.map((row, rowIndex) => (
-                  <tr key={rowIndex} className="hover:bg-gray-100 border-b border-gray-200 transition">
-                    <td className="px-4 py-3">
-                      <input type="checkbox" className="rounded-md accent-[#1c252e] h-4 w-4" 
-                        checked={selectedRows.includes(row._id)}
-                        onChange={() => handleRowSelect(row._id)}
+                  <tr key={rowIndex}
+                    className="hover:bg-gray-100 border-b border-gray-200 transition cursor-pointer"
+                    onClick={() => navigate(`/admission/edit/${row._id}`)} // ⬅️ Navigation trigger
+                  >
+                    <td className="px-4 py-3"
+                        onClick={(e) => e.stopPropagation()} //Stop row click when clicking checkbox
+                    >
+                      <input type="checkbox"
+                          className="rounded-md accent-[#1c252e] h-4 w-4"
+                          checked={selectedRows.includes(row._id)}
+                          onChange={() => handleRowSelect(row._id)}
                       />
                     </td>
+
                     <td className="px-4 py-3 text-start font-medium text-gray-800">
                       {(currentPage - 1) * pageSize + rowIndex + 1}
                     </td>
