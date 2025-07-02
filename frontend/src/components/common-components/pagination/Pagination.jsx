@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Search, ChevronRight } from "lucide-react";
 import { FaFilter } from "react-icons/fa";
-import { RiDownloadCloud2Fill } from "react-icons/ri";
+import { BsFillCloudDownloadFill } from "react-icons/bs";
 
 import {
   downloadCSV,
@@ -55,7 +55,7 @@ const Pagination = ({
         {/* Filters */}
         <button
           onClick={() => setShowFilter(!showFilter)}
-          className="flex items-center gap-1 text-gray-700 hover:text-black text-sm"
+          className="flex items-center text-md gap-1 text-gray-700 hover:text-black"
         >
           <FaFilter />
           Filters
@@ -65,9 +65,9 @@ const Pagination = ({
         <div className="relative" ref={downloadRef}>
           <button
             onClick={() => setDownloadDropdown(!downloadDropdown)}
-            className="flex items-center gap-1 text-gray-700 hover:text-black text-sm"
+            className="flex items-center gap-1 text-lg text-gray-700 hover:text-black"
           >
-            <RiDownloadCloud2Fill className="text-lg" />
+            <BsFillCloudDownloadFill className="text-md" />
 
             Export
           </button>
