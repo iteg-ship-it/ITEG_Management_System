@@ -2,8 +2,9 @@
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect } from "react";
 import { Search, ChevronRight } from "lucide-react";
-// import downloadIcon from "../../../assets/icons/download-icon.png";
-import filterIcon from "../../../assets/icons/filter.png";
+import { FaFilter } from "react-icons/fa";
+import { RiDownloadCloud2Fill } from "react-icons/ri";
+
 import {
   downloadCSV,
   downloadExcel,
@@ -36,7 +37,7 @@ const Pagination = ({
   return (
     <div className="flex  items-center w-full py-5 flex-wrap gap-4 relative">
       {/* Search Box */}
-      <div className="flex border border-gray-300 rounded-md overflow-hidden w-full max-w-5xl h-12 bg-[var(--backgroundColor)]">
+      <div className="flex border border-gray-300 rounded-md overflow-hidden w-full max-w-3xl h-12 bg-[var(--backgroundColor)]">
         <div className="flex items-center px-3">
           <Search className="w-4 h-4 text-gray-600" />
           <input
@@ -56,7 +57,7 @@ const Pagination = ({
           onClick={() => setShowFilter(!showFilter)}
           className="flex items-center gap-1 text-gray-700 hover:text-black text-sm"
         >
-          <img src={filterIcon} alt="Filter" className="w-4 h-4" />
+          <FaFilter />
           Filters
         </button>
 
@@ -66,12 +67,13 @@ const Pagination = ({
             onClick={() => setDownloadDropdown(!downloadDropdown)}
             className="flex items-center gap-1 text-gray-700 hover:text-black text-sm"
           >
+            <RiDownloadCloud2Fill className="text-lg" />
+
             Export
-            {/* <img className="h-5" src={downloadIcon} alt="download" /> */}
           </button>
           {downloadDropdown && (
-            <div className="absolute top-10 left-0 border rounded-md shadow-md w-40 z-20"
-              style={{ background: "var(--diagonal-gradient)" }} // ✅ gradient fallback
+            <div className="absolute top-10 left-0 border bg-white rounded-md shadow-md w-40 z-20"
+            // style={{ background: "var(--diagonal-gradient)" }} // ✅ gradient fallback
             >
               <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { downloadCSV(filteredData); setDownloadDropdown(false); }}>Download CSV</button>
               <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { downloadExcel(filteredData); setDownloadDropdown(false); }}>Download Excel</button>
@@ -86,8 +88,8 @@ const Pagination = ({
       {showFilter && (
         <div
           ref={filterRef}
-          className="absolute top-16 left-[55vw]  border rounded-md shadow-md w-48 z-20 p-2 text-sm"
-          style={{ background: "var(--diagonal-gradient)" }} // ✅ gradient fallback
+          className="absolute top-16 left-[40vw] bg-white border rounded-md shadow-md w-48 z-20 p-2 text-sm"
+        // style={{ background: "var(--diagonal-gradient)" }} // ✅ gradient fallback
 
         >
           {filtersConfig.map(({ title, options, selected, setter }) => (
@@ -106,8 +108,8 @@ const Pagination = ({
               </div>
 
               {expandedSection === title && (
-                <div className="absolute top-0 left-full ml-2 w-44  border rounded-md shadow-md p-2 space-y-1 z-30"
-                  style={{ background: "var(--diagonal-gradient)" }} // ✅ gradient fallback
+                <div className="absolute top-0 left-full ml-2 w-44 bg-white border rounded-md shadow-md p-2 space-y-1 z-30"
+                // style={{ background: "var(--diagonal-gradient)" }} // ✅ gradient fallback
                 >
                   {options.map((opt) => (
                     <label

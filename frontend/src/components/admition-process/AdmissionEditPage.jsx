@@ -1,26 +1,29 @@
 /* eslint-disable react/prop-types */
 import { useState } from "react";
 import { Formik, Form } from "formik";
-import SelectInput from "../common-components/common-feild/SelectInput";
-import RadioGroup from "../common-components/common-feild/RadioGroup";
-import InputField from "../common-components/common-feild/InputField";
-import { interviewSchema } from "../../validationSchema";
-import { useGetStudentByIdQuery } from "../../redux/api/authApi";
 import { useParams } from "react-router-dom";
+import { useGetStudentByIdQuery } from "../../redux/api/authApi";
+import InputField from "../common-components/common-feild/InputField";
+import SelectInput from "../common-components/common-feild/SelectInput";
+import {
+  HiChevronUp,
+  HiChevronDown,
+  HiArrowNarrowLeft,
+} from "react-icons/hi";
 
 const Section = ({ title, children }) => {
   const [open, setOpen] = useState(true);
   return (
-    <div className="w-full mb-4 border rounded-lg shadow-md border-b-4">
+    <div className="w-full mb-6 rounded-lg border bg-white shadow-sm">
       <button
-        className="w-full text-left px-4 py-3 bg-slate-100 font-semibold flex justify-between items-center"
-        onClick={() => setOpen(!open)}
         type="button"
+        onClick={() => setOpen(!open)}
+        className="flex items-center justify-between w-full px-4 py-3 text-base font-semibold rounded-t-lg"
       >
         {title}
-        <span className="text-xl">{open ? "▾" : "▸"}</span>
+        <span>{open ? <HiChevronUp/> : <HiChevronDown/>}</span>
       </button>
-      {open && <div className="p-4 bg-white">{children}</div>}
+      {open && <div className="p-6">{children}</div>}
     </div>
   );
 };
@@ -31,236 +34,218 @@ const AdmissionEditPage = () => {
 
   if (isLoading) return <p>Loading student data...</p>;
   if (isError) return <p>Error loading student data.</p>;
+
   const initialValues = {
     firstName: data?.data.firstName || "",
     lastName: data?.data.lastName || "",
-    fatherName: data?.data.fatherName || "",
     studentMobile: data?.data.studentMobile || "",
-    parentMobile: data?.data.parentMobile || "",
+    fatherName: data?.data.fatherName || "",
     gender: data?.data.gender || "",
-    dob: data?.data.dob || "",
-    aadharCard: data?.data.aadharCard || "",
-    address: data?.data.address || "",
     track: data?.data.track || "",
-    village: data?.data.village || "",
-    stream: data?.data.stream || "",
-    course: data?.data.course || "",
-    category: data?.data.category || "",
+    address: data?.data.address || "",
     subject12: data?.data.subject12 || "",
-    year12: data?.data.year12 || "",
-    itegrInterviewFlag: data?.data.itegInterviewFlag || false,
-    admissionStatus: data?.data.admissionStatus || false,
-    interviewStage: data?.data.interviewStage || "",
-    interviews: data?.data.interviews || [],
+    percent12: data?.data.percent12 || "",
+    percent10: data?.data.percent10 || "",
+    passoutYear: data?.data.passoutYear || "",
+    interviewMarks: data?.data.interviewMarks || "",
+    result: data?.data.result || "",
   };
 
   const handleSubmit = (values) => {
-    console.log("Form submitted with data:", values);
-    // Implement your update logic here (e.g., call an API to update the student data)
+    console.log("Updated data:", values);
+    // Add update logic here
   };
 
   return (
-    <>
+    <div className="w-full px-8 py-6">
+      <div className="flex items-center gap-3 mb-6">
+  <button
+    type="button"
+    onClick={() => window.history.back()}
+    className="text-2xl text-gray-700 hover:text-gray-900"
+  >
+    <HiArrowNarrowLeft />
+  </button>
+  <h2 className="text-xl font-bold text-gray-800">Student Profile</h2>
+</div>
 
-      <div className="mx-auto">
-        <Formik
-          enableReinitialize
-          initialValues={initialValues}
-          validationSchema={interviewSchema}
-          onSubmit={handleSubmit}
-        >
-          {({ values, handleChange, handleBlur, setFieldValue }) => (
-            <Form>
-              {/* Section 1: Personal Info */}
-              <Section title="Personal Information">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-7">
-                  <InputField
-                    label="First Name"
-                    name="firstName"
-                    value={values.firstName}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    placeholder="First Name"
-                  />
-                  <InputField
-                    label="Last Name"
-                    name="lastName"
-                    placeholder="Last Name"
-                    value={values.lastName}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
-                  <InputField
-                    label="Contact Number"
-                    name="contact"
-                    placeholder="Contact Number"
-                    value={values.studentMobile}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
-                  <InputField
-                    label="Father's Name"
-                    name="fatherName"
-                    placeholder="Father's Name"
-                    value={values.fatherName}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
-                  <SelectInput
-                    label="Gender"
-                    name="gender"
-                    options={[
-                      { value: "male", label: "Male" },
-                      { value: "female", label: "Female" },
-                      { value: "other", label: "Other" },
-                    ]}
-                    value={values.gender}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
-                  <SelectInput
-                    label="Select Track"
-                    name="track"
-                    options={[
-                      { value: "track1", label: "Track 1" },
-                      { value: "track2", label: "Track 2" },
-                      { value: "Gopalpur", label: "Gopalpur" },
-                      { value: "Narshullaganj", label: "Narshullaganj" },
-                    ]}
-                    value={values.track}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
-                  <InputField
-                    label="Address"
-                    name="address"
-                    as="textarea"
-                    placeholder="Address"
-                    className="input col-span-2 md:col-span-1"
-                    value={values.address}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
-                </div>
-              </Section>
-
-              {/* Section 2: Academic */}
-              <Section title="Academic Information">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <InputField
-                    label="12th Subject"
-                    name="subject12"
-                    placeholder="12th Subject"
-                    value={values.subject12}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
-                  <InputField
-                    label="12th %"
-                    name="percent12"
-                    placeholder="12th %"
-                    value={values.year12}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
-                  <InputField
-                    label="10th %"
-                    name="percent10"
-                    placeholder="10th %"
-                  />
-                  <InputField
-                    label="Passed Out Year"
-                    name="passOut"
-                    type="date"
-                  // value={values.year10}
-                  // onChange={handleChange}
-                  // onBlur={handleBlur}
-                  />
-                  <RadioGroup
-                    label="Course"
-                    name="courseOrDiploma"
-                    options={[
-                      { value: "Graduation", label: "Graduation" },
-                      { value: "Diploma", label: "Diploma" },
-                    ]}
-                    className="col-span-1 md:col-span-2"
-                  // value={values.courseDeg}
-                  // onChange={handleChange}
-                  // onBlur={handleBlur}
-                  />
-
-                </div>
-              </Section>
-
-              {/* Section 3: Interview Result */}
-              <Section title="Interview Result">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <InputField
-                    label="Marks"
-                    name="marks"
-                    type="number"
-                    placeholder="Marks"
-                  />
-                  <InputField
-                    label="Remark"
-                    name="remark"
-                    placeholder="Enter Remark"
-                  />
-                  <InputField
-                    label="Attempt"
-                    name="attempt"
-                    type="number"
-                    placeholder="Attempt"
-                  />
-                  <InputField
-                    label="Date of Exam"
-                    name="examDate"
-                    type="date"
-                  />
-                  <div className="flex items-center gap-4">
-                    <label className="font-medium">Result</label>
-                    <button
-                      type="button"
-                      className="px-3 py-1 bg-green-500 text-black rounded-md"
-                      onClick={() => setFieldValue("result", "Pass")}
-                    >
-                      Pass
-                    </button>
-                    <button
-                      type="button"
-                      className="px-3 py-1 bg-slate-200 text-black rounded-md"
-                      onClick={() => setFieldValue("result", "Fail")}
-                    >
-                      Fail
-                    </button>
-                  </div>
-                </div>
-              </Section>
-
-              {/* Buttons */}
-              <div className="flex justify-end gap-4 mt-4">
-                <button
-                  type="button"
-                  className="px-6 py-2 bg-gray-300 rounded-md hover:bg-gray-400 transition"
-                  onClick={() => {
-                    console.log("Rejected student ID:", id);
-                    alert(`Rejected student ${id}`);
-                  }}
-                >
-                  Reject
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-orange-400 text-white rounded-md hover:bg-orange-500 transition"
-                >
-                  Select
-                </button>
+      <Formik
+        enableReinitialize
+        initialValues={initialValues}
+        onSubmit={handleSubmit}
+      >
+        {({ values, handleChange, handleBlur}) => (
+          <Form className="space-y-6">
+            {/* Personal Info */}
+            <Section className="bg-white" title="Personal Information">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-[var(--backgroundColor)]">
+                <InputField
+                  name="firstName"
+                  placeholder="First Name"
+                  value={values.firstName}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                <InputField
+                  name="lastName"
+                  placeholder="Last Name"
+                  value={values.lastName}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                <InputField
+                  name="studentMobile"
+                  placeholder="Contact Number"
+                  value={values.studentMobile}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                <InputField
+                  name="fatherName"
+                  placeholder="Father's Name"
+                  value={values.fatherName}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                <SelectInput
+                  name="gender"
+                  value={values.gender}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  options={[
+                    { label: "Male", value: "male" },
+                    { label: "Female", value: "female" },
+                    { label: "Other", value: "other" },
+                  ]}
+                />
+                <SelectInput
+                  name="track"
+                  value={values.track}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  options={[
+                    { label: "Harda", value: "Harda" },
+                    { label: "Rehti", value: "Rehti" },
+                    { label: "Khategaon", value: "Khategaon" },
+                  ]}
+                />
+                <InputField
+                  name="address"
+                  placeholder="Address"
+                  as="textarea"
+                  value={values.address}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className="col-span-3"
+                />
               </div>
-            </Form>
-          )}
-        </Formik>
-      </div>
-    </>
+            </Section>
+
+            {/* Academic Info */}
+            <Section title="Academic Information">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-[var(--backgroundColor)] ">
+                <InputField
+                  name="subject12"
+                  placeholder="12th Subject"
+                  value={values.subject12}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                <InputField
+                  name="percent12"
+                  placeholder="12th %"
+                  value={values.percent12}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                <InputField
+                  name="percent10"
+                  placeholder="10th %"
+                  value={values.percent10}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                <InputField
+                  name="passoutYear"
+                  placeholder="Passout Year"
+                  value={values.passoutYear}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                <SelectInput
+                  name="track"
+                  value={values.track}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  options={[
+                    { label: "Harda", value: "Harda" },
+                    { label: "Rehti", value: "Rehti" },
+                    { label: "Khategaon", value: "Khategaon" },
+                  ]}
+                />
+              </div>
+            </Section>
+
+            {/* Interview History */}
+            <Section title="Interview History">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-[var(--backgroundColor)] ">
+                <InputField
+                  name="interviewMarks"
+                  placeholder="Marks"
+                  value={values.interviewMarks}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                <InputField
+                  name="percent12"
+                  placeholder="12th %"
+                  value={values.percent12}
+                  disabled
+                />
+                <InputField
+                  name="percent10"
+                  placeholder="10th %"
+                  value={values.percent10}
+                  disabled
+                />
+                <InputField
+                  name="passoutYear"
+                  placeholder="Passout Year"
+                  value={values.passoutYear}
+                  disabled
+                />
+                <SelectInput
+                  name="track"
+                  value={values.track}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  options={[
+                    { label: "Harda", value: "Harda" },
+                    { label: "Rehti", value: "Rehti" },
+                    { label: "Khategaon", value: "Khategaon" },
+                  ]}
+                />
+              </div>
+            </Section>
+
+            <div className="flex justify-end gap-4">
+              {/* <button
+                type="button"
+                className="bg-gray-300 px-6 py-2 rounded-md hover:bg-gray-400"
+              >
+                Reject
+              </button>
+              <button
+                type="submit"
+                className="bg-[#FF914D] px-6 py-2 text-white rounded-md hover:bg-orange-500"
+              >
+                Select
+              </button> */}
+            </div>
+          </Form>
+        )}
+      </Formik>
+    </div>
   );
 };
 

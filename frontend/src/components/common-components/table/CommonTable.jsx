@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 const CommonTable = ({
   columns,
@@ -15,10 +16,12 @@ const CommonTable = ({
 }) => {
   const [internalPage, setInternalPage] = useState(1);
   const scrollRef = useRef(null);
+  const navigate = useNavigate();
 
   const currentPage = parentPage ?? internalPage;
   const setCurrentPage = onPageChange ?? setInternalPage;
   const [pageSize, setPageSize] = useState(rowsPerPage);
+  const [selectedRows, setSelectedRows] = useState([]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -43,6 +46,31 @@ const CommonTable = ({
     return filteredData.slice(start, start + pageSize);
   }, [filteredData, currentPage, pageSize]);
 
+
+  const isAllSelected = paginatedData.every((row) =>
+    selectedRows.includes(row._id)
+  );
+
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedRows((prev) =>
+        prev.filter((id) => !paginatedData.find((row) => row._id === id))
+      );
+    } else {
+      const newIds = paginatedData.map((row) => row._id);
+      setSelectedRows((prev) => [...new Set([...prev, ...newIds])]);
+    }
+  };
+
+  const handleRowSelect = (id) => {
+    setSelectedRows((prev) =>
+      prev.includes(id)
+        ? prev.filter((rowId) => rowId !== id)
+        : [...prev, id]
+    );
+  };
+
+
   useEffect(() => {
     scrollRef.current?.scrollTo({
       top: scrollRef.current.scrollHeight,
@@ -59,7 +87,10 @@ const CommonTable = ({
               <thead className="sticky top-0 bg-[--neutral-light] text-sm text-gray-600 border-b shadow-sm">
                 <tr>
                   <th className="px-4 py-3 text-start">
-                    <input type="checkbox" className="h-4 w-4 text-black" />
+                    <input type="checkbox" className="h-4 w-4 text-black accent-[#1c252e] rounded-md" 
+                      checked={isAllSelected}
+                      onChange={handleSelectAll}
+                    />
                   </th>
                   <th className="px-4 py-3 text-start">S.no</th>
                   {columns.map(({ key, label }) => (
@@ -75,10 +106,20 @@ const CommonTable = ({
               </thead>
               <tbody>
                 {paginatedData.map((row, rowIndex) => (
-                  <tr key={rowIndex} className="hover:bg-gray-100 border-b border-gray-200 transition">
-                    <td className="px-4 py-3">
-                      <input type="checkbox" className="rounded-md" />
+                  <tr key={rowIndex}
+                    className="hover:bg-gray-100 border-b border-gray-200 transition cursor-pointer"
+                    onClick={() => navigate(`/admission/edit/${row._id}`)} // ⬅️ Navigation trigger
+                  >
+                    <td className="px-4 py-3"
+                        onClick={(e) => e.stopPropagation()} //Stop row click when clicking checkbox
+                    >
+                      <input type="checkbox"
+                          className="rounded-md accent-[#1c252e] h-4 w-4"
+                          checked={selectedRows.includes(row._id)}
+                          onChange={() => handleRowSelect(row._id)}
+                      />
                     </td>
+
                     <td className="px-4 py-3 text-start font-medium text-gray-800">
                       {(currentPage - 1) * pageSize + rowIndex + 1}
                     </td>
@@ -100,11 +141,15 @@ const CommonTable = ({
                       </td>
                     ))}
                     {editable && actionButton && (
-                      <td className="px-4 py-3 text-start">
+                      <td
+                          className="px-4 py-3 text-start"
+                          onClick={(e) => e.stopPropagation()} //prevent row click from firing
+                      >
                         <div className="inline-block hover:shadow-md transition cursor-pointer">
                           {actionButton(row)}
                         </div>
                       </td>
+
                     )}
                     {extraColumn && (
                       <td className="px-4 py-3 text-start">
@@ -143,25 +188,25 @@ const CommonTable = ({
               {filteredData.length === 0
                 ? "0"
                 : `${(currentPage - 1) * pageSize + 1} - ${Math.min(
-                    currentPage * pageSize,
-                    filteredData.length
-                  )} of ${filteredData.length}`}
+                  currentPage * pageSize,
+                  filteredData.length
+                )} of ${filteredData.length}`}
             </span>
 
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                 disabled={currentPage === 1}
-                className="w-7 h-7   flex items-center justify-center text-gray-500 disabled:opacity-40"
+                className="w-7 h-7   flex items-center justify-center text-[var(--text-color)] disabled:opacity-40"
               >
-                ‹
+                <span className="text-3xl">‹</span>
               </button>
               <button
                 onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="w-7 h-7  flex items-center justify-center text-gray-500 disabled:opacity-40"
+                className="w-7 h-7 text-lg  flex items-center justify-center text-[var(--text-color)] disabled:opacity-40"
               >
-                ›
+                <span className="text-3xl">›</span>
               </button>
             </div>
           </div>
