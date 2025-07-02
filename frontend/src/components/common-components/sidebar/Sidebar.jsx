@@ -91,17 +91,17 @@ const Sidebar = ({ children }) => {
                   <div key={idx}>
                     <div
                       onClick={() => toggleMenu(idx)}
-                      className={`flex items-center justify-between px-3 py-3 rounded cursor-pointer text-base font-semibold ${isActive
+                      className={`flex  text-[1.1rem] items-center justify-between px-3 py-3 rounded cursor-pointer  font-semibold ${isActive
                         ? "text-gray-700"
                         : "hover:bg-gray-100 text-gray-700"
                         }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-xl">{item.icon}</span>
+                        <span >{item.icon}</span>
                         <span>{item.name}</span>
                       </div>
                       <div className="group">
-                        <span className="text-xl hidden group-hover:block">
+                        <span className="hidden group-hover:block">
                           {isActive ? <HiChevronUp /> : <HiChevronDown />}
                         </span>
                       </div>
@@ -110,7 +110,7 @@ const Sidebar = ({ children }) => {
 
                     {/* submenus */}
                     {isActive && (
-                      <div className="ml-1">
+                      <div className="ml-1 ">
                         {item.subMenu.map((sub, i) => {
                           const active =
                             location.pathname === sub.path ||
@@ -119,7 +119,7 @@ const Sidebar = ({ children }) => {
                             <Link
                               key={i}
                               to={sub.path}
-                              className={`block rounded px-3 py-2 text-sm ${active
+                              className={`block rounded px-3 py-2 text-md ${active
                                 ? "bg-orange-50 text-orange-500 font-semibold border-l-4 border-orange-400"
                                 : "text-gray-600 hover:text-orange-500"
                                 }`}

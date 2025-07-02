@@ -205,7 +205,7 @@ const StudentList = () => {
         { key: "stream", label: "Status", render: (row) => handleGetOnlineMarks(row.onlineTest) },
       ];
       actionButton = (row) => (
-        <button onClick={() => scheduleButton(row)} className="bg-orange-500 text-white px-3 py-1 rounded">
+        <button onClick={() => scheduleButton(row)} className="bg-orange-500 text-lg text-white px-3 py-1 rounded">
           Take interview
         </button>
       );
@@ -222,7 +222,7 @@ const StudentList = () => {
         { key: "techStatus", label: "Status of Tech", render: (row) => handleGetStatus(row.interviews) },
       ];
       actionButton = (row) => (
-        <button onClick={() => scheduleButton(row)} className="bg-orange-500 text-white px-3 py-1 rounded">
+        <button onClick={() => scheduleButton(row)} className="bg-orange-500 text-lg text-white px-3 py-1 rounded">
           Take interview
         </button>
       );
@@ -244,7 +244,7 @@ const StudentList = () => {
             localStorage.setItem("studdedntDetails", JSON.stringify(row));
             navigate(`/interview-detail/${row._id}?tab=${activeTab}`);
           }}
-          className="bg-orange-400 text-white font-semibold px-3 py-1 rounded hover:bg-orange-500"
+          className="bg-orange-500 text-lg text-white  px-3 py-1 rounded hover:bg-orange-500"
         >
           Interviews Detail
         </button>
@@ -270,7 +270,7 @@ const StudentList = () => {
         if (isSelected) {
           return (
             <button
-              className="bg-green-500 text-white px-3 py-1 rounded"
+              className="bg-[var(--success-light)]  text-lg text-[var(--success-dark)] px-3 py-1 rounded"
               onClick={() => alert(`Selected: ${row.firstName}`)}
             >
               Selected
@@ -279,7 +279,7 @@ const StudentList = () => {
         } else if (isRejected) {
           return (
             <button
-              className="bg-red-500 text-white px-3 py-1 rounded"
+              className="bg-[var(--error-light)] text-lg text-[var(--error-dark)] px-3 py-1 rounded"
               onClick={() => alert(`Rejected: ${row.firstName}`)}
             >
               Rejected
@@ -323,7 +323,7 @@ const StudentList = () => {
               <p
                 key={tab}
                 onClick={() => handleTabClick(tab)}
-                className={`cursor-pointer text-[var(--text-color)] pb-2 border-b-2 ${activeTab === tab ? "border-[var(--text-color)] font-semibold" : "border-gray-200"
+                className={`cursor-pointer text-lg text-[var(--text-color)] pb-2 border-b-2 ${activeTab === tab ? "border-[var(--text-color)] font-semibold" : "border-gray-200"
                   }`}
               >
                 {tab}

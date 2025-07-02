@@ -84,15 +84,15 @@ const CommonTable = ({
         <div className="overflow-x-auto max-w-full">
           <div ref={scrollRef} className="max-h-[60vh] overflow-y-auto custom-scrollbar">
             <table className="min-w-full text-sm">
-              <thead className="sticky top-0 bg-[--neutral-light] text-sm text-gray-600 border-b shadow-sm">
+              <thead className="sticky  text-lg top-0 bg-[--neutral-light]  text-gray-600 border-b shadow-sm">
                 <tr>
                   <th className="px-4 py-3 text-start">
-                    <input type="checkbox" className="h-4 w-4 text-black accent-[#1c252e] rounded-md" 
+                    <input type="checkbox" className="h-4 w-4 text-black accent-[#1c252e] rounded-md"
                       checked={isAllSelected}
                       onChange={handleSelectAll}
                     />
                   </th>
-                  <th className="px-4 py-3 text-start">S.no</th>
+                  <th className="px-4 py-3 text-start ">S.no</th>
                   {columns.map(({ key, label }) => (
                     <th key={key} className="px-4 py-3 text-start">{label}</th>
                   ))}
@@ -107,16 +107,16 @@ const CommonTable = ({
               <tbody>
                 {paginatedData.map((row, rowIndex) => (
                   <tr key={rowIndex}
-                    className="hover:bg-gray-100 border-b border-gray-200 transition cursor-pointer"
+                    className="hover:bg-gray-100 text-[1.1rem] border-b border-gray-200 transition cursor-pointer"
                     onClick={() => navigate(`/admission/edit/${row._id}`)} // ⬅️ Navigation trigger
                   >
                     <td className="px-4 py-3"
-                        onClick={(e) => e.stopPropagation()} //Stop row click when clicking checkbox
+                      onClick={(e) => e.stopPropagation()} //Stop row click when clicking checkbox
                     >
                       <input type="checkbox"
-                          className="rounded-md accent-[#1c252e] h-4 w-4"
-                          checked={selectedRows.includes(row._id)}
-                          onChange={() => handleRowSelect(row._id)}
+                        className="rounded-md accent-[#1c252e] h-4 w-4"
+                        checked={selectedRows.includes(row._id)}
+                        onChange={() => handleRowSelect(row._id)}
                       />
                     </td>
 
