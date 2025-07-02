@@ -67,7 +67,7 @@ const Pagination = ({
             onClick={() => setDownloadDropdown(!downloadDropdown)}
             className="flex items-center gap-1 text-gray-700 hover:text-black text-sm"
           >
-            <RiDownloadCloud2Fill />
+            <RiDownloadCloud2Fill className="text-lg" />
 
             Export
           </button>

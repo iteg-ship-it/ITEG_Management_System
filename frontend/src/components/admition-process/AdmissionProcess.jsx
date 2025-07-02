@@ -91,11 +91,18 @@ const StudentList = () => {
       case "Technical Round":
         return firstRound.length > 0 && firstRound.some((i) => i.result === "Pending" || i.result === "Fail");
       case "Final Round":
-        return firstRound.some((i) => i.result === "Pass") && !secondRound.some((i) => i.result === "Pass");
-      case "Selected":
-        return secondRound.some((i) => i.result === "Pass");
-      case "Rejected":
-        return latestResult === "Fail" || secondRound.some((i) => i.result === "Fail");
+        return (
+          firstRound.some((i) => i.result === "Pass") &&
+          !secondRound.some((i) => i.result === "Pass")
+        );
+
+      case "Results":
+        // merged Selected + Rejected
+        return (
+          secondRound.some((i) => i.result === "Pass") ||
+          latestResult === "Fail" ||
+          secondRound.some((i) => i.result === "Fail")
+        );
       default:
         return true;
     }
@@ -180,8 +187,7 @@ const StudentList = () => {
     "Online Assessment",
     "Technical Round",
     "Final Round",
-    "Selected",
-    "Rejected",
+    "Results"
   ];
 
   let columns = [];
@@ -245,27 +251,8 @@ const StudentList = () => {
       );
       break;
 
-    case "Selected":
-      columns = [
-        { key: "firstName", label: "Full Name", render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`) },
-        { key: "fatherName", label: "Father's Name", render: (row) => toTitleCase(row.fatherName) },
-        { key: "studentMobile", label: "Mobile" },
-        { key: "course", label: "Course", render: (row) => toTitleCase(row.course) },
-        { key: "onlineTestStatus", label: "Status of Written", render: (row) => handleGetOnlineMarks(row.onlineTest) },
-        { key: "techMarks", label: "Marks of Tech", render: (row) => handleGetMarks(row.interviews) },
-        { key: "stream", label: "Attempts of tech", render: (row) => handleGetMarks(row.interviews) },
-      ];
-      actionButton = (row) => (
-        <button
-          onClick={() => alert(`Send confirmation to ${row.firstName}`)}
-          className="bg-green-300 text-green-700 font-semibold px-3 py-1 rounded"
-        >
-          Selected
-        </button>
-      );
-      break;
 
-    case "Rejected":
+    case "Results":
       columns = [
         { key: "firstName", label: "Full Name", render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`) },
         { key: "fatherName", label: "Father's Name", render: (row) => toTitleCase(row.fatherName) },
@@ -274,15 +261,36 @@ const StudentList = () => {
         { key: "village", label: "Village", render: (row) => toTitleCase(row.village) },
         { key: "track", label: "Track", render: (row) => toTitleCase(row.track) },
       ];
-      actionButton = (row) => (
-        <button
-          onClick={() => alert(`Review ${row.firstName}'s case again`)}
-          className="bg-red-300 text-red-700 px-3 py-1 rounded"
-        >
-          Reject
-        </button>
-      );
+      actionButton = (row) => {
+        const secondRound = row.interviews?.filter(i => i.round === "Second") || [];
+        const latestResult = getLatestInterviewResult(row.interviews);
+        const isSelected = secondRound.some(i => i.result === "Pass");
+        const isRejected = latestResult === "Fail" || secondRound.some(i => i.result === "Fail");
+
+        if (isSelected) {
+          return (
+            <button
+              className="bg-green-500 text-white px-3 py-1 rounded"
+              onClick={() => alert(`Selected: ${row.firstName}`)}
+            >
+              Selected
+            </button>
+          );
+        } else if (isRejected) {
+          return (
+            <button
+              className="bg-red-500 text-white px-3 py-1 rounded"
+              onClick={() => alert(`Rejected: ${row.firstName}`)}
+            >
+              Rejected
+            </button>
+          );
+        } else {
+          return null;
+        }
+      };
       break;
+
 
     default:
       columns = [
