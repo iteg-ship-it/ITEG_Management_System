@@ -67,7 +67,7 @@ const Sidebar = ({ children }) => {
         <div className="flex items-center justify-between p-4 pt-6">
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="flex items-center gap-2 text-black text-xl "
+            className="flex items-center gap-2 text-black text-lg "
           >
             <IoMenu />
             {isOpen && <span className="text-sm font-semibold">Hide Menu</span>}
@@ -91,7 +91,7 @@ const Sidebar = ({ children }) => {
                   <div key={idx}>
                     <div
                       onClick={() => toggleMenu(idx)}
-                      className={`flex  text-[1.1rem] items-center justify-between px-3 py-3 rounded cursor-pointer  font-semibold ${isActive
+                      className={`flex  text-[1rem] items-center justify-between px-3 py-3 rounded cursor-pointer  font-semibold ${isActive
                         ? "text-gray-700"
                         : "hover:bg-gray-100 text-gray-700"
                         }`}
@@ -119,7 +119,7 @@ const Sidebar = ({ children }) => {
                             <Link
                               key={i}
                               to={sub.path}
-                              className={`block rounded px-3 py-2 text-md ${active
+                              className={`block rounded px-3 py-2 text-sm ${active
                                 ? "bg-orange-50 text-orange-500 font-semibold border-l-4 border-orange-400"
                                 : "text-gray-600 hover:text-orange-500"
                                 }`}
