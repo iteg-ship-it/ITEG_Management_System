@@ -141,11 +141,15 @@ const CommonTable = ({
                       </td>
                     ))}
                     {editable && actionButton && (
-                      <td className="px-4 py-3 text-start">
+                      <td
+                          className="px-4 py-3 text-start"
+                          onClick={(e) => e.stopPropagation()} //prevent row click from firing
+                      >
                         <div className="inline-block hover:shadow-md transition cursor-pointer">
                           {actionButton(row)}
                         </div>
                       </td>
+
                     )}
                     {extraColumn && (
                       <td className="px-4 py-3 text-start">
