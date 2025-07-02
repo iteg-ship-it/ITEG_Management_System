@@ -315,7 +315,7 @@ const StudentList = () => {
               <p
                 key={tab}
                 onClick={() => handleTabClick(tab)}
-                className={`cursor-pointer pb-2 border-b-2 ${activeTab === tab ? "border-orange-400 font-semibold" : "border-gray-200"
+                className={`cursor-pointer text-[var(--text-color)] pb-2 border-b-2 ${activeTab === tab ? "border-[var(--text-color)] font-semibold" : "border-gray-200"
                   }`}
               >
                 {tab}

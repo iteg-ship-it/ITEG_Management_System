@@ -64,7 +64,7 @@ const Sidebar = ({ children }) => {
           } h-[calc(100vh-4rem)]`}
       >
         {/* Sidebar toggle */}
-        <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center justify-between p-4 pt-6">
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="flex items-center gap-2 text-black text-xl "
@@ -100,9 +100,12 @@ const Sidebar = ({ children }) => {
                         <span className="text-xl">{item.icon}</span>
                         <span>{item.name}</span>
                       </div>
-                      <span className="text-xl">
-                        {isActive ? <HiChevronUp /> : <HiChevronDown />}
-                      </span>
+                      <div className="group">
+                        <span className="text-xl hidden group-hover:block">
+                          {isActive ? <HiChevronUp /> : <HiChevronDown />}
+                        </span>
+                      </div>
+
                     </div>
 
                     {/* submenus */}

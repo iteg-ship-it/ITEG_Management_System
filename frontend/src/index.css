@@ -30,7 +30,9 @@
  --backgroundColor: #FCFDFD;
  --text-color: #1C252E;
 }
-
+/* *{
+  font-size: 1.3rem;
+} */
 /* Add to index.css or global.css */
 
 .custom-scrollbar::-webkit-scrollbar {
