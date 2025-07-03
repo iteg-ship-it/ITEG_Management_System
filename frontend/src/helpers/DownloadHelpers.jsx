@@ -35,18 +35,49 @@ export const downloadExcel = (data, filename = "filtered_data.xlsx") => {
 
 export const downloadPDF = (data, filename = "filtered_data.pdf") => {
   if (!data || data.length === 0) return;
+
+  // fields to include
+  const keys = ["firstName", "fatherName", "studentMobile", "track", "village", "stream"];
+
+  // helper: capitalize only first character
+  const capitalize = (str) =>
+    str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
+
+  // helper: capitalize all words
+  const titleCase = (str) =>
+    str
+      ? str
+          .split(" ")
+          .map(
+            word =>
+              word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+          )
+          .join(" ")
+      : "";
+
   const doc = new jsPDF();
-  const keys = Object.keys(data[0]);
 
   autoTable(doc, {
-    head: [keys.map(k => k.toUpperCase())],
-    body: data.map(row => keys.map(key => (row[key] ?? "").toString().replace(/\n/g, " ").replace(/\s+/g, " ").trim())),
+    head: [["S NO", ...keys.map(k => k.replace(/_/g, " ").toUpperCase())]],
+    body: data.map((row, index) => [
+      index + 1,
+      ...keys.map(key => {
+        const value = (row[key] ?? "").toString().replace(/\n/g, " ").replace(/\s+/g, " ").trim();
+        if (key === "fatherName") {
+          return titleCase(value); // all words capitalized
+        }
+        if (["firstName", "track", "village", "stream"].includes(key)) {
+          return capitalize(value); // only first char
+        }
+        return value; // studentMobile as is
+      }),
+    ]),
     startY: 10,
     styles: {
       fontSize: 8,
       cellPadding: 3,
       overflow: "ellipsize",
-      cellWidth: 'wrap',
+      cellWidth: "wrap",
     },
     headStyles: {
       fillColor: [63, 81, 181],
@@ -62,6 +93,8 @@ export const downloadPDF = (data, filename = "filtered_data.pdf") => {
 
   doc.save(filename);
 };
+
+
 
 export const toggleSelection = (value, setter, selected) => {
   setter(selected.includes(value)
