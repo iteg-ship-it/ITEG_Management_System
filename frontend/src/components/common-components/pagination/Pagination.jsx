@@ -65,7 +65,7 @@ const Pagination = ({
         <div className="relative" ref={downloadRef}>
           <button
             onClick={() => setDownloadDropdown(!downloadDropdown)}
-            className="flex items-center gap-1 text-lg text-gray-700 hover:text-black"
+            className="flex items-center gap-1 text-md text-gray-700 hover:text-black"
           >
             <BsFillCloudDownloadFill className="text-md" />
 

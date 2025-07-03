@@ -84,7 +84,7 @@ const CommonTable = ({
         <div className="overflow-x-auto max-w-full">
           <div ref={scrollRef} className="max-h-[60vh] overflow-y-auto custom-scrollbar">
             <table className="min-w-full text-sm">
-              <thead className="sticky  text-lg top-0 bg-[--neutral-light]  text-gray-600 border-b shadow-sm">
+              <thead className="sticky  text-md top-0 bg-[--neutral-light]  text-gray-600 border-b shadow-sm">
                 <tr>
                   <th className="px-4 py-3 text-start">
                     <input type="checkbox" className="h-4 w-4 text-black accent-[#1c252e] rounded-md"
@@ -107,7 +107,7 @@ const CommonTable = ({
               <tbody>
                 {paginatedData.map((row, rowIndex) => (
                   <tr key={rowIndex}
-                    className="hover:bg-gray-100 text-[1.1rem] border-b border-gray-200 transition cursor-pointer"
+                    className="hover:bg-gray-100 text-md border-b border-gray-200 transition cursor-pointer"
                     onClick={() => navigate(`/admission/edit/${row._id}`)} // ⬅️ Navigation trigger
                   >
                     <td className="px-4 py-3"
@@ -141,11 +141,15 @@ const CommonTable = ({
                       </td>
                     ))}
                     {editable && actionButton && (
-                      <td className="px-4 py-3 text-start">
+                      <td
+                          className="px-4 py-3 text-start"
+                          onClick={(e) => e.stopPropagation()} //prevent row click from firing
+                      >
                         <div className="inline-block hover:shadow-md transition cursor-pointer">
                           {actionButton(row)}
                         </div>
                       </td>
+
                     )}
                     {extraColumn && (
                       <td className="px-4 py-3 text-start">
@@ -200,7 +204,7 @@ const CommonTable = ({
               <button
                 onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="w-7 h-7 text-lg  flex items-center justify-center text-[var(--text-color)] disabled:opacity-40"
+                className="w-7 h-7 text-md  flex items-center justify-center text-[var(--text-color)] disabled:opacity-40"
               >
                 <span className="text-3xl">›</span>
               </button>
