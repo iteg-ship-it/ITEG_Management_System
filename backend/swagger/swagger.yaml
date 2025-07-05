@@ -1,12 +1,12 @@
+
 openapi: 3.0.0
 info:
   title: ITEG Management API
-  description: API documentation for Admin, Students, Faculty, and Admission modules
   version: 1.0.0
+  description: API for managing users like admin, superadmin, and faculty.
 
-servers:
-  - url: http://localhost:5000/api
-    description: Local Dev Server
+security:
+  - bearerAuth: []
 
 components:
   securitySchemes:
@@ -14,142 +14,59 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-
   schemas:
-    SuperAdmin:
+    User:
       type: object
-      required:
-        - positionRole
-        - name
-        - email
-        - aadharCard
-        - password
       properties:
-        positionRole:
+        _id:
           type: string
-          default: Super Admin
+          example: "662b18b6c3eabc00123f5678"
+        profileImage:
+          type: string
+          example: "https://example.com/profile.jpg"
+        position:
+          type: string
+          example: "Developer"
         name:
           type: string
-          example: Alice Smith
+          example: "John Doe"
         email:
           type: string
-          format: email
-          example: alice@example.com
-        aadharCard:
+          example: "johndoe@example.com"
+        mobileNo:
           type: string
-          example: "987654321098"
-        password:
-          type: string
-          format: password
-    Admin:
-      type: object
-      required:
-        - name
-        - email
-        - adharCard
-        - password
-        - role
-        - department
-      properties:
-        positionRole:
-          type: string
-          default: Admin
-        name:
-          type: string
-          example: John Doe
-        email:
-          type: string
-          format: email
-          example: john@example.com
+          example: "9876543210"
         adharCard:
           type: string
           example: "123456789012"
         password:
           type: string
-          format: password
+          example: "$2b$10$somethinghashed"   # Password will be hashed
         role:
           type: string
-          example: Admin
+          example: "admin"
         department:
           type: string
-          example: Computer Science
-  Level:
-      type: object
-      required:
-        - levelNo
-      properties:
-        levelNo:
+          example: "IT"
+        refreshToken:
           type: string
-          example: "1"
-        noOfAttempts:
-          type: integer
-          example: 1
-        marks:
-          type: number
-          example: 80
-        remark:
+          example: "some-refresh-token"
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
           type: string
-          example: "Good performance"
-        date:
+          format: date-time
+          example: "2024-04-29T08:00:00.000Z"
+        updatedAt:
           type: string
-          format: date
-          example: "2025-04-08"
-        result:
-          type: string
-          enum: [Pass, Fail, Pending]
-          example: "Pending"
-
-  PlacedInfo:
-      type: object
-      properties:
-        companyName:
-          type: string
-          example: "TechCorp"
-        salary:
-          type: number
-          example: 600000
-        location:
-          type: string
-          example: "Bangalore"
-
-  Permission:
-      type: object
-      properties:
-        reason:
-          type: string
-          example: "Medical leave"
-        approvedBy:
-          type: string
-          enum: [Super Admin, Admin, Faculty]
-          example: "Admin"
-
-  InterviewRecord:
-      type: object
-      properties:
-        companyName:
-          type: string
-          example: "Infosys"
-        interviewDate:
-          type: string
-          format: date
-          example: "2025-04-10"
-        remark:
-          type: string
-          example: "Confident and well-prepared"
-        result:
-          type: string
-          enum: [Selected, Rejected, Pending]
-          example: "Selected"
-        location:
-          type: string
-          example: "Mumbai"
-        jobProfile:
-          type: string
-          example: "Software Engineer"
-  StudentAdmissionProcess:
+          format: date-time
+          example: "2024-04-29T08:30:00.000Z"
+    Admission:
       type: object
       required:
         - prkey
+        - firstName
         - lastName
         - fatherName
         - studentMobile
@@ -163,93 +80,284 @@ components:
         - category
         - subject12
         - year12
+        - percent12
+        - percent10
       properties:
         prkey:
           type: string
-          example: PRK123456
+          example: PR123456
+        firstName:
+          type: string
+          example: John
         lastName:
           type: string
-          example: Khan
+          example: Doe
         fatherName:
           type: string
-          example: Abdul Khan
+          example: Richard Doe
+        email:
+          type: string
+          format: email
+          example: john.doe@example.com
         studentMobile:
           type: string
           example: "9876543210"
         parentMobile:
           type: string
-          example: "9876543211"
+          example: "9123456780"
         gender:
           type: string
           example: Male
         dob:
           type: string
           format: date
-          example: 2003-08-15
+          example: 2000-01-01
         aadharCard:
           type: string
           example: "123456789012"
         address:
           type: string
-          example: "123 Main Street, Mumbai"
+          example: "123 Main St, City, State"
         stream:
           type: string
-          example: "Science"
+          example: Science
         course:
           type: string
-          example: "BSc IT"
+          example: B.Sc
         category:
           type: string
-          example: "General"
+          example: General
         subject12:
           type: string
-          example: "Physics, Chemistry, Math"
+          example: Physics
         year12:
           type: string
-          example: "2022"
+          example: "2018"
         percent12:
           type: string
-          example: "85"
-
+          example: "85%"
+        percent10:
+          type: string
+          example: "85%"
+        itegInterviewFlag:
+          type: boolean
+          example: false
+        admissionStatus:
+          type: boolean
+          example: false
+        admissionDate:
+          type: string
+          format: date
+          example: 2025-04-25
+        interviewStage:
+          type: string
+          enum:
+            - Registered
+            - Test Scheduled
+            - Test not Attempted
+            - Test Completed
+            - First Interview Scheduled
+            - First Interview Passed
+            - Second Interview Scheduled
+            - Second Interview Passed
+            - ITEG Interview Completed
+          example: Registered
         onlineTest:
           type: object
           properties:
             date:
               type: string
               format: date
-              example: 2024-05-10
+              example: 2025-04-20
             testLink:
               type: string
-              example: "https://testlink.com/student/123"
+              example: http://example.com/test
             result:
               type: string
-              enum: [Pass, Fail, Pending]
-              default: Pending
+              enum: [Pass, Fail, Pending, Not Attempted]
               example: Pending
-
         interviews:
           type: array
           items:
             type: object
             properties:
+              round:
+                type: string
+                enum: [First, Second]
+                example: First
+              assignment:
+                type: string
+                example: "Assignment details here"
+              attemptNo:
+                type: integer
+                example: 1
+              communication:
+                type: number
+                example: 5
+              confidence:
+                type: number
+                example: 4
+              goal:
+                type: number
+                example: 3
+              subjectKnowlage:
+                type: number
+                example: 4
+              assignmentMarks:
+                type: number
+                example: 4
+              sincerity:
+                type: number
+                example: 4
+              maths:
+                type: number
+                example: 4
+              reasoning:
+                type: number
+                example: 4
+              created_by:
+                type: string
+                example: "faculty"
+              marks:
+                type: number
+                example: 85
+              remark:
+                type: string
+                example: Good performance
               date:
                 type: string
                 format: date
-                example: 2024-06-15
-              remark:
-                type: string
-                example: "Good communication skills"
+                example: 2025-04-22
               result:
                 type: string
                 enum: [Pass, Fail, Pending]
-                default: Pending
-                example: Pending
+                example: Pass
+        scheduledInterview:
+          type: object
+          properties:
+            date:
+              type: string
+              format: date
+              example: 2025-04-25
+            round:
+              type: string
+              enum: [First, Second]
+              example: First
+            isScheduled:
+              type: boolean
+              example: true
+    Admittedstudent:
+      Level:
+      type: object
+      properties:
+        levelNo:
+          type: string
+          example: "1"
+        noOfAttempts:
+          type: integer
+          default: 0
+        marks:
+          type: number
+          default: 0
+        remark:
+          type: string
+        date:
+          type: string
+          format: date
+        result:
+          type: string
+          enum: [Pass, Fail, Pending]
+          default: Pending
 
-        admissionFlag:
+    PlacedInfo:
+      type: object
+      properties:
+        companyName:
+          type: string
+        salary:
+          type: number
+        location:
+          type: string
+
+    InterviewRecord:
+      type: object
+      properties:
+        companyName:
+          type: string
+        interviewDate:
+          type: string
+          format: date
+        remark:
+          type: string
+        result:
+          type: string
+          enum: [Selected, Rejected, Pending]
+          default: Pending
+        location:
+          type: string
+        jobProfile:
+          type: string
+
+    AdmittedStudent:
+      type: object
+      required:
+        - admissionRef
+        - fullName
+        - prkey
+        - stream
+        - course
+        - fatherName
+        - mobileNo
+        - address
+        - track
+        - village
+      properties:
+        admissionRef:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+        prkey:
+          type: string
+        stream:
+          type: string
+        course:
+          type: string
+        fatherName:
+          type: string
+        mobileNo:
+          type: string
+        email:
+          type: string
+        address:
+          type: string
+        track:
+          type: string
+        village:
+          type: string
+        level:
+          type: array
+          items:
+            $ref: '#/components/schemas/Level'
+        techno:
+          type: string
+        attendancePercentage:
+          type: number
+          minimum: 0
+          maximum: 100
+        placedInfo:
+          $ref: '#/components/schemas/PlacedInfo'
+        permissionRequired:
           type: boolean
           default: false
-          example: false
-
+        interviewRecord:
+          type: array
+          items:
+            $ref: '#/components/schemas/InterviewRecord'
+        readinessStatus:
+          type: string
+          enum: [Ready, Not Ready]
+          default: Not Ready
         createdAt:
           type: string
           format: date-time
@@ -257,562 +365,101 @@ components:
           type: string
           format: date-time
 
-  FacultyCreateRequest:
-      type: object
-      required:
-        - name
-        - email
-        - aadharCard
-        - password
-        - role
-        - department
-      properties:
-        name:
-          type: string
-        email:
-          type: string
-        aadharCard:
-          type: string
-        password:
-          type: string
-        role:
-          type: string
-        department:
-          type: string
-
-  FacultyUpdateRequest:
-      type: object
-      properties:
-        name:
-          type: string
-        email:
-          type: string
-        aadharCard:
-          type: string
-        role:
-          type: string
-        department:
-          type: string
-
-    # components:
-  
-    # Level:
-    #   type: object
-    #   properties:
-    #     levelNo:
-    #       type: string
-    #     noOfAttempts:
-    #       type: integer
-    #     marks:
-    #       type: number
-    #     remark:
-    #       type: string
-    #     date:
-    #       type: string
-    #       format: date-time
-    #     result:
-    #       type: string
-    #       enum: [Pass, Fail, Pending]
-    #   required:
-    #     - levelNo
-
-security:
-  - bearerAuth: []
-
 paths:
-  /superadmin/register:
+  /api/user/signup:
     post:
+      summary: Register a new user (admin/superadmin/faculty)
       tags:
-        - Super Admin
-      summary: Create a new Super Admin
-      description: Register a new Super admin user with the required details.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SuperAdmin'
-      responses:
-        '201':
-          description: Super Admin created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Super Admin created successfully!
-                  token:
-                    type: string
-                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6...
-        '400':
-          description: Super Admin already exists
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Super Admin already exists
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Server Error
-                  error:
-                    type: string
-                    example: An error message
-
-  /superadmin/login:
-    post:
-      summary: Login as Super Admin
-      tags: [Super Admin]
+        - Auth
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              properties:
-                email:
-                  type: string
-                password:
-                  type: string
               required:
+                - name
                 - email
                 - password
-      responses:
-        '200':
-          description: Login successful (returns JWT token)
-
-  /superadmin/superadmin:
-    get:
-      summary: Get all Super Admins
-      tags: [Super Admin]
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: List of all Super Admins
-
-  /superadmin/{id}:
-    get:
-      summary: Get Super Admin by ID
-      tags: [Super Admin]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Super Admin detail
-
-  /admin:
-    get:
-      summary: Get all admins
-      tags: [Admin]
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: List of admins
-  
-
-  /admin/register:
-    post:
-      tags:
-        - Admin
-      summary: Create a new Admin
-      description: Register a new admin user with the required details.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Admin'
-      responses:
-        '201':
-          description: Admin created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Admin created successfully!
-                  token:
-                    type: string
-                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6...
-        '400':
-          description: Admin already exists
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Admin already exists
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Server Error
-                  error:
-                    type: string
-                    example: An error message
-
-
-  /admin/login:
-    post:
-      summary: Login as Admin
-      tags: [Admin]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
+                - mobileNo
+                - adharCard
+                - department
+                - position
+                - role
               properties:
-                email:
-                  type: string
-                password:
-                  type: string
-              required:
-                - email
-                - password
-      responses:
-        '200':
-          description: Login successful (returns JWT token)
-
-
-  /admin/{id}:
-    get:
-      summary: Get admin by ID
-      tags: [Admin]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Admin detail
-    put:
-      summary: Update admin
-      tags: [Admin]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Admin updated
-    delete:
-      summary: Delete admin
-      tags: [Admin]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Admin deleted
-
-  /students/admitted:
-   paths:
-  /studentAdmissionProcess/admission-process:
-    post:
-      summary: Add a new student admission
-      tags:
-        - Admissions
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/StudentAdmissionProcess'
-      responses:
-        '201':
-          description: Student admission initiated
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Student admission initiated
-                  data:
-                    $ref: '#/components/schemas/StudentAdmissionProcess'
-        '400':
-          description: Error adding admission
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Error adding admission
-                  error:
-                    type: object
-
-
-  /students/getall:
-    get:
-      summary: Get all students
-      tags: [Student]
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: List of students
-
-  /students/{id}:
-    get:
-      summary: Get student by ID
-      tags: [Student]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Student detail
-    delete:
-      summary: Delete a student
-      tags: [Student]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Student deleted
-
-  # /students/update/{id}:
-  #   patch:
-  #     summary: Update a student by ID
-  #     tags:
-  #       - Student
-  #     parameters:
-  #       - name: id
-  #         in: path
-  #         required: true
-  #         description: The ID of the student to update
-  #         schema:
-  #           type: string
-  #     requestBody:
-  #       required: true
-  #       content:
-  #         application/json:
-  #           schema:
-  #             $ref: '#/components/schemas/Student'
-  #     responses:
-  #       '200':
-  #         description: Student updated successfully
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/Student'
-  #       '400':
-  #         description: Invalid ID or bad request
-  #       '404':
-  #         description: Student not found
-  #       '500':
-  #         description: Server error
-
-  /students/create/level/{id}:
-    post:
-      summary: Create a level record for a student
-      tags: [Student]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-          type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Level'
-      responses:
-        '201':
-          description: Level added successfully
-          content:
-           application/json:
-            schema:
-              type: object
-              properties:
-                success:
-                  type: boolean
-                  example: true
-                message:
-                  type: string
-                  example: Level added successfully
-                student:
-                  $ref: '#/components/schemas/Student'
-      '400':
-        description: Missing level number
-      '404':
-        description: Student not found
-      '500':
-        description: Server error
-
-  /students/student/level/{levelNo}:
-    get:
-      summary: Get students by level number
-      tags: [Student]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: levelNo
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Students in level
-
-  /students/total/student/{levelNo}:
-    get:
-      summary: Get total student count by level
-      tags: [Student]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: levelNo
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Student count
-
-  /students/getlevels/{id}:
-    get:
-      summary: Get all levels of a student
-      tags: [Student]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Levels data
-
-  /students/create/interviews/{id}:
-    post:
-      summary: Add interview record
-      tags: [Student]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                interviewer:
+                name:
                   type: string
                   example: John Doe
-                date:
+                profileImage:
                   type: string
-                  format: date
-                  example: 2025-04-10
-                remarks:
+                  example: https://example.com/profile.jpg
+                email:
                   type: string
-                  example: "Student showed excellent problem-solving skills"
-                status:
+                  format: email
+                  example: johndoe@example.com
+                password:
                   type: string
-                  enum: [Pending, Passed, Failed]
-                  example: Passed
+                  format: password
+                  example: Password123
+                mobileNo:
+                  type: string
+                  example: "9876543210"
+                adharCard:
+                  type: string
+                  example: "123456789012"
+                department:
+                  type: string
+                  example: Computer Science
+                position:
+                  type: string
+                  example: Assistant Professor
+                role:
+                  type: string
+                  enum: [admin, superadmin, faculty]
+                  example: faculty
       responses:
         '201':
-          description: Interview record added
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Faculty created successfully!
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 644a99999f73e02bcd123456
+                      name:
+                        type: string
+                        example: John Doe
+                      email:
+                        type: string
+                        example: johndoe@example.com
+                      mobileNo:
+                        type: string
+                        example: "9876543210"
+                      role:
+                        type: string
+                        example: faculty
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
-  /students/interviews/{id}:
-    get:
-      summary: Get interview records by student ID
-      tags: [Student]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Interview records
+        '400':
+          description: User already exists or invalid role
+        '500':
+          description: Server Error
 
-  /students/{id}/interview-result:
-    patch:
-      summary: Update interview result for a specific student
+  /api/user/login:
+    post:
+      summary: Login a user
       tags:
-        - Student
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: ID of the student
-          schema:
-            type: string
+        - Auth
       requestBody:
         required: true
         content:
@@ -820,18 +467,139 @@ paths:
             schema:
               type: object
               required:
-                - interviewId
-                - result
+                - email
+                - password
               properties:
-                interviewId:
+                email:
                   type: string
-                  example: "64234abc1234def56789ghij"
-                result:
+                  format: email
+                  example: admin@ssism.org
+                password:
                   type: string
-                  example: "Passed"
+                  format: password
+                  example: admin@123
       responses:
         '200':
-          description: Interview result updated successfully
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login successful
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 644a99999f73e02bcd123456
+                      name:
+                        type: string
+                        example: John Doe
+                      email:
+                        type: string
+                        example: johndoe@example.com
+                      role:
+                        type: string
+                        example: faculty
+                      position:
+                        type: string
+                        example: Assistant Professor
+                      department:
+                        type: string
+                        example: Computer Science
+
+        '401':
+          description: Invalid email or password
+        '500':
+          description: Server error
+
+  /api/user/update/{id}:
+    patch:
+      tags:
+        - Auth
+      summary: Update user fields
+      description: Update fields like position, role, department, isActive for a user by their ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: User ID to update
+          schema:
+            type: string
+
+            properties:
+                position:
+                  type: string
+                  example: "Senior Developer"
+                role:
+                  type: string
+                  example: "admin"
+                department:
+                  type: string
+                  example: "IT"
+                isActive:
+                  type: boolean
+                  example: true
+      responses:
+        200:
+          description: User updated successfully
+              required:
+                - email
+                - otp
+              properties:
+                email:
+                  type: string
+                  example: user@example.com
+                otp:
+                  type: string
+                  example: "123456"
+
+  /api/user/update/{id}:
+    patch:
+      patch:
+      summary: Update selected fields of a user
+      tags:
+        - Auth
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: 66347f96f30bfa9012c0df25
+          description: MongoDB ObjectId of the user to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: John Doe
+                position:
+                  type: string
+                  example: Assistant Professor
+                role:
+                  type: string
+                  enum: [admin, superadmin, faculty]
+                  example: faculty
+                department:
+                  type: string
+                  example: Computer Science
+                isActive:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: User updated successfully
           content:
             application/json:
               schema:
@@ -842,106 +610,1854 @@ paths:
                     example: true
                   message:
                     type: string
-                    example: Interview result updated successfully
-                  updatedInterview:
-                    $ref: '#/components/schemas/InterviewRecord'
-        '400':
-          description: Missing required fields
+                    example: User updated successfully
+                  user:
+                    $ref: '#/components/schemas/User'
         '404':
-          description: Student or interview not found
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: User not found
         '500':
           description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Server error
+                  error:
+                    type: string
 
-  /faculty:
-    get:
-      summary: Get all faculties
-      tags: [Faculty]
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Faculty list
 
-  /faculty/create:
+
+  /api/user/otp/send:
     post:
-      summary: Create a new faculty
+      summary: Send OTP to user email for login
       tags:
-        - Faculty
+        - Auth
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FacultyCreateRequest'
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  example: anees774883@gmail.com
+      responses:
+        '200':
+          description: OTP sent to registered email
+        '400':
+          description: Email is required
+        '404':
+          description: User with this email does not exist
+        '429':
+          description: Maximum OTP request limit exceeded
+        '500':
+          description: Internal Server Error
+
+  /api/user/otp/verify:
+    post:
+      summary: Verify OTP and login user
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - otp
+              properties:
+                email:
+                  type: string
+                  example: anees774883@gmail.com
+                otp:
+                  type: string
+                  example: "123456"
+              
+      responses:
+        '200':
+          description: OTP verified and login success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "User updated successfully"
+                  user:
+                    $ref: '#/components/schemas/User'
+        400:
+          description: Invalid request data
+        404:
+          description: User not found
+        500:
+          description: Server error
+
+  /api/admission/students/webhook/register:
+    post:
+      summary: Add or update student admission data
+      tags:
+        - Admission Process
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - prkey
+                - firstName
+                - lastName
+                - fatherName
+                - studentMobile
+                - parentMobile
+                - gender
+                - dob
+                - aadharCard
+                - address
+                - stream
+                - course
+                - category
+                - subject12
+                - year12
+                - percent12
+                - percent10
+              properties:
+                prkey:
+                  type: string
+                  example: "SS123456"
+                firstName:
+                  type: string
+                  example: "Rahul"
+                lastName:
+                  type: string
+                  example: "Sharma"
+                fatherName:
+                  type: string
+                  example: "Mahesh Sharma"
+                studentMobile:
+                  type: string
+                  pattern: "^[0-9]{10}$"
+                  example: "9876543210"
+                parentMobile:
+                  type: string
+                  pattern: "^[0-9]{10}$"
+                  example: "9876543211"
+                gender:
+                  type: string
+                  enum: [Male, Female, Other]
+                  example: "Male"
+                dob:
+                  type: string
+                  format: date
+                  example: "2005-08-15"
+                aadharCard:
+                  type: string
+                  pattern: "^[0-9]{12}$"
+                  example: "123412341234"
+                address:
+                  type: string
+                  example: "123, ABC Nagar, Indore"
+                track:
+                  type: string
+                  example: "harda"
+                email:
+                  type: string
+                  format: email
+                  example: "ssism.org"
+                village:
+                  type: string
+                  example: "Harda"
+                stream:
+                  type: string
+                  example: "Science"
+                course:
+                  type: string
+                  example: "B.Sc"
+                category:
+                  type: string
+                  example: "General"
+                subject12:
+                  type: string
+                  example: "PCM"
+                year12:
+                  type: string
+                  example: "2022"
+                percent12:
+                  type: string
+                  example: "85%"
+                percent10:
+                  type: string
+                  example: "90%"
       responses:
         '201':
-          description: Faculty created successfully
+          description: Student admission initiated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student admission initiated
+                  data:
+                    $ref: '#/components/schemas/Admission'
+        '200':
+          description: Student already registered, data updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student already registered
+                  data:
+                    $ref: '#/components/schemas/Admission'
         '400':
-          description: Faculty already exists
+          description: Missing or invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Missing field: firstName
         '500':
           description: Server error
-          
-  /faculty/{id}:
-    get:
-      summary: Get faculty by ID
-      tags: [Faculty]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Faculty detail
-    put:
-      summary: Update faculty
-      tags: [Faculty]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Faculty updated
-    delete:
-      summary: Delete faculty
-      tags: [Faculty]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Faculty deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Error adding admission
+                  error:
+                    type: string
 
-  /studentAdmission/admission-process:
+
+  /api/admission/students/create_interview/{id}:
     post:
-      summary: Start student admission process
-      tags: [Admission]
-      security:
-        - bearerAuth: []
+      tags:
+        - Admission Process
+      summary: Add an interview round for a student
+      description: Adds a new interview attempt for a given admission ID, enforcing interview rules like round order and maximum failed attempts.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the student in the admission process
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - round
+              properties:
+                round:
+                  type: string
+                  description: Interview round name (e.g., First, Second)
+                  example: "First"
+                assignment:
+                  type: string
+                  description: Assignment details for the interview
+                  example: "Assignment details here"
+                communication:
+                  type: Number
+                  description: Communication mode (e.g., Zoom, Google Meet)
+                  example: 7
+                confidence:
+                  type: Number
+                  description: Confidence level of the candidate
+                  example: 5
+                goal:
+                  type: Number
+                  description: Interview goal (e.g., Technical, HR)
+                  example: 3
+                subjectKnowlage:
+                 type: Number
+                 description: Subject of the interview
+                 example: 5
+                assignmentMarks:
+                  type: Number
+                  description: Technical skills assessed in the interview
+                  example: 5
+                sincerity:
+                 type: Number
+                 description: Sincerity level of the candidate
+                 example: 5
+                maths:
+                  type: Number
+                  description: Mathematics skills assessed in the interview
+                  example: 5
+                reasoning:
+                 type: Number
+                 description: Reasoning skills assessed in the interview
+                 example: 5
+                marks:
+                  type: integer
+                  description: Marks obtained in the interview
+                  example: 85
+                remark:
+                  type: string
+                  description: Interviewer's remark
+                  example: "Strong technical skills"
+                created_by:
+                  type: string
+                  description: The person who created the interview record
+                  example: "faculty"
+                date:
+                  type: string
+                  format: date-time
+                  description: Date of interview
+                  example: "2025-04-29T10:00:00Z"
+                result:
+                  type: string
+                  description: Result of the interview
+                  enum: [Pass, Fail, Pending]
+                  example: "Pass"
       responses:
         '201':
-          description: Process started
+          description: Interview added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Interview round added successfully
+                  student:
+                    $ref: '#/components/schemas/Admission'
+        '400':
+          description: Bad request due to validation failure or logic rejection
+        '404':
+          description: Student not found
+        '500':
+          description: Server error
 
-  /studentAdmission/admission-dashboard:
+  /api/user/logout:
+    post:
+      summary: Logout user and remove refresh token
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - _id
+              properties:
+                _id:
+                  type: string
+                  example: 644a99999f73e02bcd123456
+             
+      responses:
+        '200':
+          description: Logged out successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Interview round added successfully
+                  student:
+                    $ref: './schemas/Admission'
+        '400':
+          description: Bad request due to validation failure or logic rejection
+                  message:
+                    type: string
+                    example: Logged out successfully, refresh token removed
+        '400':
+          description: User ID is required
+        '404':
+          description: User not found
+        '500':
+          description: Server error
+
+  /api/admission/students/get_interviews/{id}:
     get:
-      summary: Get admission dashboard
-      tags: [Admission]
+      tags:
+        - Admission Process
+      description: Get all interviews for a student
+      summary: Get student interviews
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Student ID
+          schema:
+            type: string
+      responses:
+        200:
+          description: Interviews retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  interviews: 
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        round: { type: string, example: "First" }
+                        result: { type: string, enum: ["Pass", "Fail", "Pending"], example: "Pass" }
+        404:
+          description: Student not found
+        500:
+          description: Server error
+
+  /api/admission/students/getall:
+    get:
+      tags:
+        - Admission Process
+      summary: Get all students
+      responses:
+        200:
+          description: List of all students
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: './schemas/Admission'
+        500:
+          description: Server error
+
+
+  /api/admission/students/{id}:
+    get:
+      tags:
+        - Admission Process
+      summary: Get student by ID
+      description: Retrieve a student's admission record by their ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the student
+          schema:
+            type: string
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: Dashboard data
+          description: Student fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Student fetched successfully
+                  data:
+                    $ref: '#/components/schemas/Admission'
+        '404':
+          description: Student not found
+        '500':
+          description: Server Error
+
+  
+  /api/admission/students/webhook/admission_flag_update:
+    post:
+      summary: Update admission status and create admitted student record
+      tags:
+         - Admitted Student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - prkey
+                - admissionStatus
+              properties:
+                prkey:
+                  type: string
+                  example: "SS123456"
+                admissionStatus:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Student admission status updated and admitted student created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Student admitted"
+                  data:
+                    $ref:  '#/components/schemas/Admission'
+        '200':
+          description: Admission status updated but student not admitted (e.g., status false)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Student not cleared or not found."
+        '400':
+          description: Bad request - missing fields or status false
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Both prkey and admissionStatus are required"
+        '404':
+          description: Student with prkey not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Student not found with the provided prkey"
+        '500':
+          description: Server error during update or creation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Server error"
+                  error:
+                    type: string
+
+  # /api/admission/students/update_interview_flag/{studentId}:
+  #   put:
+  #     summary: Update ITEG interview flag and notify central system
+  #     tags:
+  #        - Admission Process
+  #     parameters:
+  #       - in: path
+  #         name: studentId
+  #         required: true
+  #         schema:
+  #           type: string
+  #           example: "6811f74b6a40d2524ec7d870"
+  #         description: MongoDB ObjectId of the student to update
+  #     responses:
+  #       '200':
+  #         description: Interview flag updated and sent to central system
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 message:
+  #                   type: string
+  #                   example: Interview flag updated and sent to central
+  #                 centralResponse:
+  #                   type: object
+  #                   description: Response from the central system
+  #       '400':
+  #         description: Missing or invalid student ID
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 message:
+  #                   type: string
+  #                   example: Student ID is required
+  #       '404':
+  #         description: Student not found
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 message:
+  #                   type: string
+  #                   example: Student not found
+  #       '500':
+  #         description: Server or central system error
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 message:
+  #                   type: string
+  #                   example: Server error
+  #                 error:
+  #                   type: string
+  #                   example: Failed to connect to central system
+
+
+  /api/admitted/students/getall:
+    get:
+      summary: Get all admitted students
+      description: Fetches a list of all admitted students.
+      tags:
+        - Admitted Student
+      responses:
+        '200':
+          description: List of admitted students
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdmittedStudent'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server error
+
+  /api/admitted/students/{id}:
+    get:
+      summary: Get student by ID
+      description: Fetches a single admitted student's details using their unique MongoDB ObjectId.
+      tags:
+        - Admitted Student
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the admitted student
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Student found successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdmittedStudent'
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student not found
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  error:
+                    type: string
+
+
+
+  /api/admitted/students/getall:
+    get:
+      summary: Get all admitted students
+      description: Fetches a list of all admitted students.
+      tags:
+        - Admitted Student
+      responses:
+        '200':
+          description: List of admitted students
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdmittedStudent'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server error
+
+  /api/admitted/students/{id}:
+    get:
+      summary: Get student by ID
+      description: Fetches a single admitted student's details using their unique MongoDB ObjectId.
+      tags:
+        - Admitted Student
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the admitted student
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Student found successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdmittedStudent'
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student not found
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  error:
+                    type: string
+  
+
+  /api/admitted/students/create_level/{id}:
+    post:
+      summary: Add new level attempt for a student
+      description: Automatically determines and adds the next level based on student's previous progress.
+      tags:
+        - Admitted Student
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the admitted student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Theoretical_Marks:
+                  type: number
+                  example: 30
+                Practical_Marks:
+                  type: number
+                  example: 25
+                Communication_Marks:
+                  type: number
+                  example: 15
+                marks:
+                  type: number
+                  example: 70
+                remark:
+                  type: string
+                  example: Good performance
+                date:
+                  type: string
+                  format: date-time
+                  example: "2025-05-01T10:00:00Z"
+                result:
+                  type: string
+                  enum: [Pass, Fail, Pending]
+                  example: Pass
+      responses:
+        '201':
+          description: Level attempt added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  student:
+                    $ref: '#/components/schemas/Admission/Level'
+        '400':
+          description: Bad Request (e.g., all levels completed or duplicate passed level)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  error:
+                    type: string
+
+
+
+  /api/admitted/students/get_levels/{id}:
+    get:
+      summary: Get all interview levels of a student
+      description: Retrieve all interview levels for a student by their ID.
+      tags:
+        - Admitted Student
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the student
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of interview levels
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    levelNo:
+                      type: string
+                      example: "1A"
+                    noOfAttempts:
+                      type: integer
+                      example: 1
+                    Theoretical_Marks:
+                      type: number
+                      example: 30
+                    Practical_Marks:
+                      type: number
+                      example: 25
+                    Communication_Marks:
+                      type: number
+                      example: 15
+                    marks:
+                      type: number
+                      example: 70
+                    remark:
+                      type: string
+                      example: "Good performance"
+                    date:
+                      type: string
+                      format: date-time
+                      example: "2025-05-01T10:00:00Z"
+                    result:
+                      type: string
+                      example: "Pass"
+        '404':
+          description: Student or levels not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Student not found"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Server Error"
+                  error:
+                    type: string
+
+
+
+  /api/admitted/students/level/{levelNo}:
+    get:
+      summary: Get students by their latest level number
+      tags:
+        - Admitted Student
+      parameters:
+        - in: path
+          name: levelNo
+          required: true
+          schema:
+            type: string
+          description: Level number to filter students by their latest level
+      responses:
+        '200':
+          description: List of students with the specified latest level
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdmittedStudent'
+        '404':
+          description: No students found for this level
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: No students found for this level
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  error:
+                    type: object
+
+ 
+                    type: string
+
+
+  /api/admission/students/webhook/update-admitted-student:
+    patch:
+      summary: Update admitted student by primary key (prkey)
+      tags:
+        - Admitted Student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - prkey
+              properties:
+                prkey:
+                  type: string
+                  example: "SS123457"
+                firstName:
+                  type: string
+                  example: "UpdatedFirstName"
+                lastName:
+                  type: string
+                  example: "UpdatedLastName"
+                fatherName:
+                  type: string
+                  example: "UpdatedFather"
+                email:
+                  type: string
+                  format: email
+                  example: "updated.email@example.com"
+                studentMobile:
+                  type: string
+                  example: "9876543210"
+                parentMobile:
+                  type: string
+                  example: "9123456780"
+                gender:
+                  type: string
+                  enum: [Male, Female, Other]
+                  example: "Male"
+                dob:
+                  type: string
+                  format: date
+                  example: "2006-07-20"
+                aadharCard:
+                  type: string
+                  example: "1234-5678-9012"
+                village:
+                  type: string
+                  example: "UpdatedVillage"
+                track:
+                  type: string
+                  example: "Science"
+                category:
+                  type: string
+                  example: "OBC"
+                stream:
+                  type: string
+                  example: "PCM"
+                course:
+                  type: string
+                  example: "B.Sc"
+                subject12:
+                  type: string
+                  example: "Physics, Chemistry, Math"
+                year12:
+                  type: string
+                  example: "2024"
+                percent12:
+                  type: string
+                  example: "85.60"
+                percent10:
+                  type: string
+                  example: "88.40"
+                address:
+                  type: string
+                  example: "123 New Street, Town, State"
+      responses:
+        "200":
+          description: Admitted student updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Admitted student updated successfully
+                  data:
+                    $ref: '#/components/schemas/AdmittedStudent'
+        "400":
+          description: Missing or invalid prkey
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Admission ID (prkey) is required
+        "404":
+          description: Admitted student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Admitted student not found
+        "500":
+          description: Server error during update
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Update failed
+                  error:
+                    type: string
+                    example: Detailed error message
+
+  /api/user/refresh_token:
+    post:
+      summary: Refresh Access Token using valid Refresh Token
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+      responses:
+        '200':
+          description: New access token issued successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Access token refreshed"
+                  accessToken:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '401':
+          description: Refresh token not provided
+        '403':
+          description: Invalid or expired refresh token
+        '500':
+          description: Server error 
+
+  /api/user/forgot_password:
+    post:
+      summary: Send reset password link to user's email
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: aneeskhan@ssism.org
+      responses:
+        '200':
+          description: Reset password link sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Reset link sent to your email.
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User not found
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server error
+                  error:
+                    type: string
+                    example: Internal server error 
+
+  /api/user/reset_password/{token}:
+    post:
+      summary: Reset password using token
+      tags:
+        - Auth
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema:
+            type: string
+          description: JWT token received via reset password email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - newPassword
+                - confirmPassword
+              properties:
+                newPassword:
+                  type: string
+                  format: password
+                  example: NewPass@123
+                confirmPassword:
+                  type: string
+                  format: password
+                  example: NewPass@123
+      responses:
+        '200':
+          description: Password reset successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Password successfully reset
+        '400':
+          description: Invalid token, expired token, or bad input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid or expired token
+        '500':
+          description: Internal server error
+
+  /api/user/google/callback:
+    get:
+      summary: Google OAuth callback handler
+      tags:
+        - Auth
+      description: Google redirects here after login. This route verifies the user and issues access and refresh tokens. Only SSISM domain users are allowed.
+      responses:
+        '302':
+          description: Redirect to frontend with JWT token and refresh token
+        '403':
+          description: Forbidden - Non SSISM email used
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Only institutional emails (@ssism.org) are allowed to login.
+        '500':
+          description: Internal server error
+
+  /api/admitted/students/permission_students:
+    get:
+      summary: Get all permission-granted students
+      description: Returns a list of students who have permission details assigned (non-null).
+      tags:
+        - Admitted Student
+      security:
+        - bearerAuth: []  #Requires JWT token
+      responses:
+        '200':
+          description: List of students with permission granted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                    example: 3
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdmittedStudent'
+        '401':
+          description: Unauthorized - Missing or invalid token
+        '403':
+          description: Forbidden - You are not allowed to access this route
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server Error
+
+  /api/admitted/students/update_permission_student/{studentId}:
+    put:
+      summary: Update permission details of a student
+      description: Updates the permission details of an admitted student using their student ID. Only accessible by Super Admin, Admin, or Faculty.
+      tags:
+        - Admitted Student
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          description: MongoDB ID of the student
+          schema:
+            type: string
+            example: 664f3b7c2390ab0ef2d9a0e4
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - imageURL
+                - approved_by
+              properties:
+                imageURL:
+                  type: string
+                  description: Base64 encoded image string (format: data:image/jpeg;base64,...)
+                  example: data:image/jpeg;base64,/9j/4AAQSkZJRgABAQE...
+                remark:
+                  type: string
+                  description: Optional remark for permission approval
+                  example: Approved due to special request
+                approved_by:
+                  type: string
+                  description: Role of the approver
+                  enum: [super admin, admin, faculty]
+                  example: admin
+      responses:
+        '200':
+          description: Permission updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Permission updated successfully
+                  student:
+                    $ref: '#/components/schemas/AdmittedStudent'
+        '400':
+          description: Validation or role error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid image format. Must be Base64 string.
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student not found
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server Error
+
+  /api/admitted/students/update-placement/{id}:
+    put:
+      summary: Update placement information for a student
+      description: |
+        Allows only **superadmin** and **admin** to update the placement information 
+        (even if student has not cleared Level 2C).  
+        Placement info includes company name, salary, location, and job profile.
+      tags:
+        - Admitted Student
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: MongoDB ObjectId of the admitted student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                companyName:
+                  type: string
+                  example: Infosys
+                salary:
+                  type: number
+                  example: 400000
+                location:
+                  type: string
+                  example: Pune
+                jobProfile:
+                  type: string
+                  example: Software Developer
+              required:
+                - companyName
+                - salary
+                - location
+                - jobProfile
+      responses:
+        '200':
+          description: Placement updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Placement information updated successfully.
+                  placedInfo:
+                    type: object
+                    properties:
+                      companyName:
+                        type: string
+                        example: Infosys
+                      salary:
+                        type: number
+                        example: 400000
+                      location:
+                        type: string
+                        example: Pune
+                      jobProfile:
+                        type: string
+                        example: Software Developer
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server Error
+
+  /api/user/get/{id}:
+    get:
+      summary: Get user details by ID
+      tags:
+        - Auth
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: MongoDB ID of the user
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 664e29c535a98a3c5c5e25e1
+                      name:
+                        type: string
+                        example: Anees Khan
+                      email:
+                        type: string
+                        example: anees@ssism.org
+                      role:
+                        type: string
+                        example: admin
+                      mobileNo:
+                        type: string
+                        example: "9999999999"
+                      department:
+                        type: string
+                        example: IT
+                      position:
+                        type: string
+                        example: HOD
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User not found
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server error
+                  error:
+                    type: string
+                    example: Error stack or message
+
+
+  /api/admitted/students/Ready_Students:
+    get:
+      summary: Get all admitted students who are ready
+      tags:
+        - Placement
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successfully fetched all ready students
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Ready students fetched successfully.
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdmittedStudent'
+        '404':
+          description: No ready students found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: No students found with readinessStatus 'Ready'.
+        '500':
+          description: Server error while fetching students
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Failed to fetch ready students.
+                  error:
+                    type: string
+
+
+
+  /api/admitted/students/interviews/{id}:
+    post:
+      tags:
+        - Placement
+      summary: Add interview record for a student
+      description: Add a new interview record to a student's profile. The student must have readinessStatus = "Ready".
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: MongoDB ObjectId of the student
+          schema:
+            type: string
+            example: 665f6aaf4f55e5aaee6a1234
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - companyName
+                - interviewDate
+                - location
+                - jobProfile
+              properties:
+                companyName:
+                  type: string
+                  example: Infosys
+                interviewDate:
+                  type: string
+                  format: date
+                  example: 2025-06-15
+                remark:
+                  type: string
+                  example: "Performed well in technical round"
+                result:
+                  type: string
+                  enum: [Selected, Rejected, Pending]
+                  default: Pending
+                  example: Pending
+                location:
+                  type: string
+                  example: Pune
+                jobProfile:
+                  type: string
+                  example: Software Engineer Intern
+      responses:
+        '201':
+          description: Interview record added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Interview record added
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InterviewRecord'
+        '400':
+          description: Student is not eligible (readinessStatus is not "Ready")
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Student is not eligible for interview. Status: Not Ready
+        '404':
+          description: Student not found
+        '500':
+          description: Server error
+
+
+
+
+  /api/admitted/students/update/interviews/{studentId}/{interviewId}:
+    patch:
+      tags:
+        - Placement
+      summary: Update interview record for a student
+      description: Update the `remark` and/or `result` of a specific interview in a student's interview record.
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          description: MongoDB ObjectId of the student
+          schema:
+            type: string
+            example: 665f6aaf4f55e5aaee6a1234
+        - name: interviewId
+          in: path
+          required: true
+          description: MongoDB ObjectId of the interview record
+          schema:
+            type: string
+            example: 682c08b600d3e1245aa7cd71
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                remark:
+                  type: string
+                  example: "Good communication skills and confidence"
+                result:
+                  type: string
+                  enum: [Selected, Rejected, Pending]
+                  example: "Selected"
+      responses:
+        '200':
+          description: Interview record updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Interview record updated successfully
+                  data:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: 682c08b600d3e1245aa7cd71
+                      companyName:
+                        type: string
+                        example: TCS
+                      interviewDate:
+                        type: string
+                        format: date
+                        example: 2025-06-10
+                      remark:
+                        type: string
+                        example: Good communication skills and confidence
+                      result:
+                        type: string
+                        example: Selected
+        '400':
+          description: Invalid input (e.g. missing result or remark)
+        '404':
+          description: Student or interview record not found
+        '500':
+          description: Server error
+
+
+  /api/admitted/students/upload_Resume_Base64:
+    post:
+      summary: Upload student resume as Base64
+      tags:
+        - Placement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - studentId
+                - fileName
+                - fileData
+              properties:
+                studentId:
+                  type: string
+                  description: MongoDB ObjectId of the student
+                  example: "60d9f8c19c2f4f0021a7b123"
+                fileName:
+                  type: string
+                  description: Name of the file (e.g. "resume.pdf")
+                  example: "resume.pdf"
+                fileData:
+                  type: string
+                  description: Base64 encoded file data (with or without Data URI prefix)
+                  example: "JVBERi0xLjQKJfbk..."
+      responses:
+        '200':
+          description: Resume uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Resume uploaded successfully"
+                  resumeURL:
+                    type: string
+                    example: "https://res.cloudinary.com/demo/raw/upload/v1623762345/student-resumes/resume.pdf"
+        '400':
+          description: Missing parameters or bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Missing studentId, fileName, or fileData"
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Student not found"
+        '500':
+          description: Server error during upload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Server Error"
+                  error:
+                    type: string
+                    example: "Error details here"
 

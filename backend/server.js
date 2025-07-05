@@ -1,45 +1,90 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
-require("dotenv").config();
-
+const setupSwagger = require("./swagger/swagger");
 // Import Routes
-const adminRoutes = require("./routes/AdminRoutes");
-const facultyRoutes = require("./routes/facultyRoutes");
+const webhookRoutes = require("./routes/webhookRoutes");
+
 const studentAdmissionRoutes = require("./routes/studentAdmissionProcessRoutes");
 const protectedRoutes = require("./routes/protectedRoutes");
-const superAdminRoutes = require("./routes/SuperAdminRoutes");
+
+const admittedStudentRoutes = require("./routes/studentRoutes");
+const userRoutes = require("./routes/userRoutes.js");
+const otpRoutes = require("./routes/otpRoutes.js");
+const passport = require("./config/passport.js");
+
 //expres object
 const app = express();
 // cors for frontend and backend communication
+setupSwagger(app);
+// app.use(
+//   cors({
+//     origin: "http://localhost:5173",
+//     // origin: '*', // or '*' to allow all
+//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+//     credentials: true, // only if you're using cookies or sessions
+//   })
+// );
+const allowedOrigins = process.env.FRONTEND_URL.split(",") ;
+
 app.use(
   cors({
-    origin: "http://localhost:5173", // or '*' to allow all
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true, // only if you're using cookies or sessions
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true); // allow non-browser tools like Postman
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error(`Not allowed by CORS: ${origin}`));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "FETCH"],
+    credentials: true,
   })
 );
 
+
+
 app.options("*", cors());
 
-// Middleware
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Routes
-app.use("/api/admin", adminRoutes);
-app.use("/api/faculty", facultyRoutes);
 app.use("/api/protected", protectedRoutes);
-app.use("/api/students", studentAdmissionRoutes);
-app.use("/api/superAdmin", superAdminRoutes);
+
+// user routes
+app.use("/api/user", userRoutes);
+
+// admission process routes
+app.use("/api/admission/students", studentAdmissionRoutes);
+
+// admitted students routes
+app.use("/api/admitted/students", admittedStudentRoutes);
+
+// webhook routes
+app.use("/api/admission/students/webhook", webhookRoutes);
+
+app.use("/api/admitted/students/webhook", webhookRoutes);
+
+// in your main server.js / app.js
+app.use('/api/user/otp', otpRoutes);
+
+// passport.js
+app.use(passport.initialize());
 
 // MongoDB Connection
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ Connected to MongoDB"))
-  .catch((err) => console.error("❌ DB Connection Error:", err));
+module.exports = app;
+// Start Server only if this is the main module (not when testing)
+if (require.main === module) {
+  mongoose
+    .connect(process.env.MONGO_URI)
+    .then(() => console.log("✅ Connected to MongoDB"))
+    .catch((err) => console.error("❌ DB Connection Error:", err));
 
-// Start Server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  // 👈 Export the app for testing
+
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
+

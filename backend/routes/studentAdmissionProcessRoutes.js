@@ -1,27 +1,18 @@
-const express = require('express');
-const { addAdmission,
-    getAllAdmissions,
-    updateStudent,
-    deleteStudent,
-    getStudentsByTrack,
-    downloadStudentExcel
-} = require('../modules/student/controllers/admissionProcessStudentControllers');
-const StudentAdmissionProcess = require('../modules/student/models/admissionProcessStudent');
+const express = require("express");
+const studentAdmissionProcess = require("../modules/student/controllers/admissionProcessStudentControllers");
+const studentAdmitted = require("../modules/student/controllers/AdmittedStudentController");
+const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
 const router = express.Router();
 
+// router.post('/register', studentAdmissionProcess.addAdmission);
 
-router.post('/admission-process', addAdmission);
-// router.get('/admission-dashboard',getAllAdmissions);
-// router.put('/update/:id', updateStudent);
-// router.delete('/delete/:id', deleteStudent);
-// router.get('/track/:track', getStudentsByTrack);
+// router.put('/send-interview-flag/:studentId', studentAdmissionProcess.sendInterviewFlagToCentral);
+// router.put('/update-admission-status/:studentId', studentAdmissionProcess.updateAdmissionStatus);
+router.get('/getall',verifyToken, studentAdmissionProcess.getAllStudents);
+router.get('/:id',studentAdmissionProcess.getStudentById);
+router.put('/update_interview_flag/:studentId', studentAdmissionProcess.sendInterviewFlagToCentral);
+router.post('/create_interview/:id', studentAdmissionProcess.createInterview );
 
-// const allowedRoles = ["Super Admin", "Faculty", "Admin"];
-
-// Download Student Data as Excel
-// router.get("/download/excel",downloadStudentExcel);
-
-
-
-
+router.get('/get_interviews/:id', studentAdmissionProcess.getInterviewsByStudentId);
+router.get('/get/:id', studentAdmissionProcess.getStudentById);
 module.exports = router;
