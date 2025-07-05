@@ -10,6 +10,7 @@ import {
   HiChevronDown,
   HiArrowNarrowLeft,
 } from "react-icons/hi";
+// import TextInput from "../common-components/common-feild/TextInput";
 
 const Section = ({ title, children }) => {
   const [open, setOpen] = useState(true);
@@ -21,7 +22,7 @@ const Section = ({ title, children }) => {
         className="flex items-center justify-between w-full px-4 py-3 text-base font-semibold rounded-t-lg"
       >
         {title}
-        <span>{open ? <HiChevronUp/> : <HiChevronDown/>}</span>
+        <span>{open ? <HiChevronUp /> : <HiChevronDown />}</span>
       </button>
       {open && <div className="p-6">{children}</div>}
     </div>
@@ -57,30 +58,31 @@ const AdmissionEditPage = () => {
   };
 
   return (
-    <div className="w-full px-8 py-6">
+    <div className="w-full px- py-2">
       <div className="flex items-center gap-3 mb-6">
-  <button
-    type="button"
-    onClick={() => window.history.back()}
-    className="text-2xl text-gray-700 hover:text-gray-900"
-  >
-    <HiArrowNarrowLeft />
-  </button>
-  <h2 className="text-xl font-bold text-gray-800">Student Profile</h2>
-</div>
+        <button
+          type="button"
+          onClick={() => window.history.back()}
+          className="text-2xl text-[var(--text-color)] hover:text-gray-900"
+        >
+          <HiArrowNarrowLeft />
+        </button>
+        <h2 className="text-xl font-bold text-[var(--text-color)]">Student Profile</h2>
+      </div>
 
       <Formik
         enableReinitialize
         initialValues={initialValues}
         onSubmit={handleSubmit}
       >
-        {({ values, handleChange, handleBlur}) => (
+        {({ values, handleChange, handleBlur }) => (
           <Form className="space-y-6">
             {/* Personal Info */}
-            <Section className="bg-white" title="Personal Information">
+            <Section className="bg-[var(--backgroundColor)]" title="Personal Information">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-[var(--backgroundColor)]">
                 <InputField
                   name="firstName"
+                  label="First Name"
                   placeholder="First Name"
                   value={values.firstName}
                   onChange={handleChange}
@@ -88,21 +90,22 @@ const AdmissionEditPage = () => {
                 />
                 <InputField
                   name="lastName"
-                  placeholder="Last Name"
+                  // placeholder="Last Name"
+                  label="Last Name"
                   value={values.lastName}
                   onChange={handleChange}
                   onBlur={handleBlur}
                 />
                 <InputField
                   name="studentMobile"
-                  placeholder="Contact Number"
+                  label="Contact Number"
                   value={values.studentMobile}
                   onChange={handleChange}
                   onBlur={handleBlur}
                 />
                 <InputField
                   name="fatherName"
-                  placeholder="Father's Name"
+                  label="Father's Name"
                   value={values.fatherName}
                   onChange={handleChange}
                   onBlur={handleBlur}
@@ -131,7 +134,7 @@ const AdmissionEditPage = () => {
                 />
                 <InputField
                   name="address"
-                  placeholder="Address"
+                  label="Address"
                   as="textarea"
                   value={values.address}
                   onChange={handleChange}
@@ -143,31 +146,31 @@ const AdmissionEditPage = () => {
 
             {/* Academic Info */}
             <Section title="Academic Information">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-[var(--backgroundColor)] ">
+              <div className="grid grid-cols-1  md:grid-cols-3 gap-4 bg-[var(--backgroundColor)] ">
                 <InputField
                   name="subject12"
-                  placeholder="12th Subject"
+                  label="12th Subject"
                   value={values.subject12}
                   onChange={handleChange}
                   onBlur={handleBlur}
                 />
                 <InputField
                   name="percent12"
-                  placeholder="12th %"
+                  label="12th %"
                   value={values.percent12}
                   onChange={handleChange}
                   onBlur={handleBlur}
                 />
                 <InputField
                   name="percent10"
-                  placeholder="10th %"
+                  label="10th %"
                   value={values.percent10}
                   onChange={handleChange}
                   onBlur={handleBlur}
                 />
                 <InputField
                   name="passoutYear"
-                  placeholder="Passout Year"
+                  label="Passout Year"
                   value={values.passoutYear}
                   onChange={handleChange}
                   onBlur={handleBlur}
@@ -191,26 +194,26 @@ const AdmissionEditPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-[var(--backgroundColor)] ">
                 <InputField
                   name="interviewMarks"
-                  placeholder="Marks"
+                  label="Marks"
                   value={values.interviewMarks}
                   onChange={handleChange}
                   onBlur={handleBlur}
                 />
                 <InputField
                   name="percent12"
-                  placeholder="12th %"
+                  label="12th %"
                   value={values.percent12}
                   disabled
                 />
                 <InputField
                   name="percent10"
-                  placeholder="10th %"
+                  label="10th %"
                   value={values.percent10}
                   disabled
                 />
                 <InputField
                   name="passoutYear"
-                  placeholder="Passout Year"
+                  label="Passout Year"
                   value={values.passoutYear}
                   disabled
                 />
@@ -235,12 +238,7 @@ const AdmissionEditPage = () => {
               >
                 Reject
               </button>
-              <button
-                type="submit"
-                className="bg-[#FF914D] px-6 py-2 text-white rounded-md hover:bg-orange-500"
-              >
-                Select
-              </button> */}
+          */}
             </div>
           </Form>
         )}

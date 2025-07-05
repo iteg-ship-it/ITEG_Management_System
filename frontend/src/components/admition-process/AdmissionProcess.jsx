@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import CustomTimeDate from "./CustomTimeDate";
 import { useNavigate, useLocation } from "react-router-dom";
 import Pagination from "../common-components/pagination/Pagination";
+import { AiFillStop } from "react-icons/ai";
+import { FaCheckCircle } from "react-icons/fa";
 
 const toTitleCase = (str) =>
   str?.toLowerCase().split(" ").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
@@ -270,19 +272,21 @@ const StudentList = () => {
         if (isSelected) {
           return (
             <button
-              className="bg-[var(--success-light)]  text-md text-[var(--success-dark)] px-3 py-1 rounded"
+              className="bg-[var(--success-light)] flex items-center gap-2 text-md text-[var(--success-dark)] px-3 py-1 rounded"
               onClick={() => alert(`Selected: ${row.firstName}`)}
             >
-              Selected
+              <FaCheckCircle className="text-lg" />
+              <span>Selected</span>
             </button>
           );
         } else if (isRejected) {
           return (
             <button
-              className="bg-[var(--error-light)] text-md text-[var(--error-dark)] px-3 py-1 rounded"
+              className="bg-[var(--error-light)] flex items-center gap-2 text-md text-[var(--error-dark)] px-3 py-1 rounded"
               onClick={() => alert(`Rejected: ${row.firstName}`)}
             >
-              Rejected
+              <AiFillStop className="text-lg" />
+              <span>Rejected</span>
             </button>
           );
         } else {
@@ -315,8 +319,8 @@ const StudentList = () => {
 
   return (
     <>
-      <h1 className="text-2xl pt-1 font-semibold">Admission Process</h1>
-      <div className="mt-5 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
+      <h1 className="text-xl py-1 font-semibold">Admission Process</h1>
+      <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
         <div className="px-6">
           <div className="flex gap-6 mt-4">
             {tabs.map((tab) => (
