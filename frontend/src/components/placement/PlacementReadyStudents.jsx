@@ -43,24 +43,27 @@ const PlacementReadyStudents = () => {
   ];
 
   const columns = [
-    {
-      key: "image",
-      label: "Profile",
-      render: (row) => (
-        <div className="flex justify-center">
-          <img
-            src={row.image || profile}
-            alt="avatar"
-            className="w-8 h-8 rounded-full object-cover"
-          />
-        </div>
-      ),
-    },
+    
     {
       key: "fullName",
       label: "Full Name",
-      render: (row) => `${row.firstName} ${row.lastName}`,
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          <img
+            src={row.profile || profile}
+            alt="avatar"
+            className="w-8 h-8 rounded-full object-cover"
+          />
+          <div>
+            <div className="font-semibold text-gray-800">
+              {row.firstName} {row.lastName}
+            </div>
+            <div className="text-sm text-gray-500">{row.email}</div>
+          </div>
+        </div>
+      ),
     },
+    
     { key: "course", label: "Course" },
     { key: "techno", label: "Technology" },
     { key: "studentMobile", label: "Phone" },
