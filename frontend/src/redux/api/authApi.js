@@ -6,10 +6,21 @@ import { logout, setCredentials } from "../auth/authSlice";
 const secretKey = "ITEG@123";
 
 //  Decrypt from localStorage
+// const decrypt = (encrypted) => {
+//   try {
+//     const bytes = CryptoJS.AES.decrypt(encrypted, secretKey);
+//     return bytes.toString(CryptoJS.enc.Utf8);
+//   } catch (err) {
+//     console.error("Decryption failed:", err);
+//     return null;
+//   }
+// };
 const decrypt = (encrypted) => {
   try {
+    if (!encrypted || typeof encrypted !== "string") return null; // ✅ Prevent decryption of null or invalid input
     const bytes = CryptoJS.AES.decrypt(encrypted, secretKey);
-    return bytes.toString(CryptoJS.enc.Utf8);
+    const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+    return decrypted || null; // If decryption fails silently, still return null
   } catch (err) {
     console.error("Decryption failed:", err);
     return null;
