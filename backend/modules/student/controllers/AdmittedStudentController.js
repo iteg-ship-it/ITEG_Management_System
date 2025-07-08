@@ -6,7 +6,8 @@ const { sendEmail } = require('./emailController');
 const cloudinary = require('backend/config/cloudinaryConfig');
 
 const path = require('path');
-
+const fs = require('fs');
+const sharp = require('sharp');
 
 const multer = require('multer');
 
@@ -712,48 +713,39 @@ exports.uploadResumeBase64 = async (req, res) => {
 
 exports.generatePlacementPost = async (req, res) => {
   try {
-    const { studentId } = req.body;
+    const { studentId, studentImageBase64, companyLogoBase64 } = req.body;
 
     const student = await AdmittedStudent.findById(studentId);
     if (!student) return res.status(404).json({ message: 'Student not found' });
 
-    const {
-      name: studentName,
-      profilePhoto,
-      location: studentLocation,
-      placedInfo
-    } = student;
+    const { firstName, lastName, placedInfo } = student;
+    const studentName = `${firstName} ${lastName}`;
 
     if (!placedInfo || !placedInfo.companyName) {
       return res.status(400).json({ message: 'Placement info not available' });
     }
 
-    const {
-      companyName,
-      salary,
-      location: companyLocation,
-      jobProfile,
-      companyLogo,
-      jobType
-    } = placedInfo;
-
-    // ✅ Validate photo paths
-    if (!profilePhoto || !companyLogo) {
-      return res.status(400).json({ message: 'Student or company image is missing.' });
+    if (!studentImageBase64 || !companyLogoBase64) {
+      return res.status(400).json({ message: 'Student image and company logo are required' });
     }
 
     // Paths
     const templatePath = path.join(__dirname, '../public/templates/Placement Template.jpg');
-    const studentImgPath = path.join(__dirname, `../public/uploads/${path.basename(profilePhoto)}`);
-    const companyLogoPath = path.join(__dirname, `../public/uploads/${path.basename(companyLogo)}`);
     const outputFileName = `${studentName.replace(/\s+/g, '_')}_post.jpg`;
     const outputPath = path.join(__dirname, `../public/posts/${outputFileName}`);
+
+    // Ensure posts directory exists
+    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+
+    // Convert base64 to buffer
+    const studentImageBuffer = Buffer.from(studentImageBase64.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64');
+    const companyLogoBuffer = Buffer.from(companyLogoBase64.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64');
 
     // Compose final image
     const finalImage = await sharp(templatePath)
       .composite([
-        { input: studentImgPath, top: 300, left: 280 },
-        { input: companyLogoPath, top: 620, left: 80 }
+        { input: studentImageBuffer, top: 300, left: 280 },
+        { input: companyLogoBuffer, top: 620, left: 80 }
       ])
       .resize(1080, 1080)
       .jpeg()
@@ -761,25 +753,13 @@ exports.generatePlacementPost = async (req, res) => {
 
     fs.writeFileSync(outputPath, finalImage);
 
-    // res.status(200).json({
-    //   message: 'Post generated successfully',
-    //   imageUrl: `/posts/${outputFileName}`,
-    //   student: studentName,
-    //   company: companyName
-    // });
-
-    
+    // Send file for download
+    res.setHeader('Content-Disposition', `attachment; filename="${outputFileName}"`);
+    res.setHeader('Content-Type', 'image/jpeg');
+    res.sendFile(outputPath);
 
   } catch (error) {
     console.error("Error generating post:", error);
     res.status(500).json({ message: 'Server error', error });
   }
-
-  res.status(200).json({
-  message: 'Post generated successfully',
-  imageUrl: `/posts/${outputFileName}`,
-  downloadUrl: `/download-post/${outputFileName}`, // 👈 New endpoint
-  student: studentName,
-  company: companyName
-});
 };
