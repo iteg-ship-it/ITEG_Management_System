@@ -41,5 +41,7 @@ router.patch('/update/interviews/:studentId/:interviewId', studentController.upd
 
 router.post('/upload_Resume_Base64', studentController.uploadResumeBase64);
 
+router.post('/generate', studentController.generatePlacementPost);
+
 
 module.exports = router;
