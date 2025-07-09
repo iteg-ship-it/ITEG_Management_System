@@ -2,9 +2,9 @@ import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Pagination from "../common-components/pagination/Pagination";
 import {
-  // useAdmitedStudentsQuery,
+  useAdmitedStudentsQuery,
   // useGetAllStudentsByLevelQuery,
-  useGetLevelNumberQuery
+  // useGetLevelNumberQuery
 } from "../../redux/api/authApi";
 import CommonTable from "../common-components/table/CommonTable";
 import edit from "../../assets/icons/edit-fill-icon.png";
@@ -12,11 +12,11 @@ import interview from "../../assets/icons/interview-icon.png";
 import CreateInterviewModal from "./CreateInterviewModal";
 
 const StudentDetailTable = () => {
-  // const { data = [], isLoading, refetch } = useAdmitedStudentsQuery();
+  const { data = [], isLoading, refetch } = useAdmitedStudentsQuery();
   const location = useLocation();
   const selectedLevel = location.state?.level || null;
   console.log("🚀 ~ file: StudentDetailTable.jsx:10 ~ StudentDetailTable ~ selectedLevel:", selectedLevel);
-  const { data = [], isLoading, refetch } = useGetLevelNumberQuery(selectedLevel);
+  // const { data = [], isLoading, refetch } = useGetLevelNumberQuery(selectedLevel);
   const navigate = useNavigate();
   console.log("🚀 ~ file: StudentDetailTable.jsx:11 ~ StudentDetailTable ~ data:", data);
   const [rowsPerPage, setRowsPerPage] = useState(10);

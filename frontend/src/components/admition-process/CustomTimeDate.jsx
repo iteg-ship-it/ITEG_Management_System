@@ -80,12 +80,12 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, attempted, refetch }) => {
 
               {/* Section: Interview Metadata */}
               <div className="col-span-2 text-sm font-semibold text-gray-600">Interview Metadata</div>
-              <TextInput name="created_by" placeholder="Created By" />
-              <TextInput name="date" type="datetime-local" placeholder="Select Date" />
+              <TextInput name="created_by" label="Created By" />
+              <TextInput name="date" type="datetime-local" label="Select Date" />
 
               {/* Section: Technical Knowledge & Aptitude */}
               <div className="col-span-2 text-sm font-semibold text-gray-600">Technical Knowledge & Aptitude</div>
-              <TextInput name="maths" placeholder="Mathematics Marks" type="number" />
+              <TextInput name="maths" label="Mathematics Marks" type="number" />
               <SelectInput
                 name="subjectKnowlage"
                 options={[
@@ -94,9 +94,9 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, attempted, refetch }) => {
                   { value: 'Intermediate', label: 'Intermediate' },
                   { value: 'Advanced', label: 'Advanced' },
                 ]}
-                placeholder="Subjective Knowledge"
+                label="Subjective Knowledge"
               />
-              <TextInput name="reasoning" placeholder="Reasoning Marks" type="number" />
+              <TextInput name="reasoning" label="Reasoning Marks" type="number" />
 
               {/* Section: Candidate Behaviour & Soft Skill */}
               <div className="col-span-2 text-sm font-semibold text-gray-600">Candidate Behaviour & Soft Skill</div>
@@ -152,11 +152,11 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, attempted, refetch }) => {
                 ]}
                 placeholder="Assignment Attempt"
               />
-              <TextInput name="assignmentMarks" placeholder="Assignment Marks" type="number" />
+              <TextInput name="assignmentMarks" label="Assignment Marks" type="number" />
 
               {/* Section: Summary & Decision */}
               <div className="col-span-2 text-sm font-semibold text-gray-600">Summary & Decision</div>
-              <TextInput name="marks" placeholder="Total Mark" type="number" />
+              <TextInput name="marks" label="Total Mark" type="number" />
               <SelectInput
                 name="result"
                 options={[
@@ -168,7 +168,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, attempted, refetch }) => {
                 placeholder="Result"
               />
 
-              <TextInput name="remark" placeholder="Remark / Feedback..." className="col-span-2" />
+              <TextInput name="remark" label="Remark / Feedback..." className="col-span-2" />
 
               <div className="col-span-2 flex justify-center mt-4">
                 <button
