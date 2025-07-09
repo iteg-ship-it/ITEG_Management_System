@@ -26,19 +26,12 @@ setupSwagger(app);
 //     credentials: true, // only if you're using cookies or sessions
 //   })
 // );
-const allowedOrigins = process.env.FRONTEND_URL.split(",") ;
+const allowedOrigins = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(",") : ['http://localhost:5173'];
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true); // allow non-browser tools like Postman
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      } else {
-        return callback(new Error(`Not allowed by CORS: ${origin}`));
-      }
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "FETCH"],
+    origin: true, // Allow all origins for now
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     credentials: true,
   })
 );
