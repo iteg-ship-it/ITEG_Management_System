@@ -10,6 +10,7 @@ import {
   HiChevronDown,
   HiArrowNarrowLeft,
 } from "react-icons/hi";
+import Loader from "../common-components/loader/Loader";
 // import TextInput from "../common-components/common-feild/TextInput";
 
 const Section = ({ title, children }) => {
@@ -33,7 +34,11 @@ const AdmissionEditPage = () => {
   const { id } = useParams();
   const { data, isLoading, isError } = useGetStudentByIdQuery(id);
 
-  if (isLoading) return <p>Loading student data...</p>;
+{isLoading && (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <Loader />
+    </div>
+  )};
   if (isError) return <p>Error loading student data.</p>;
 
   const initialValues = {
