@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Pagination from "../common-components/pagination/Pagination";
 import { AiFillStop } from "react-icons/ai";
 import { FaCheckCircle } from "react-icons/fa";
+import Loader from "../common-components/loader/Loader";
 
 const toTitleCase = (str) =>
   str
@@ -389,7 +390,11 @@ const StudentList = () => {
       break;
   }
 
-  if (isLoading) return <p>Loading...</p>;
+  {isLoading && (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <Loader />
+    </div>
+  )}
   if (error) return <p>Error fetching students.</p>;
 
   return (

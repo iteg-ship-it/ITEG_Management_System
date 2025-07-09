@@ -35,11 +35,11 @@ const AdmissionEditPage = () => {
   const { data, isLoading, isError } = useGetStudentByIdQuery(id);
 
 {isLoading && (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <Loader />
-    </div>
-  )};
-  if (isError) return <p>Error loading student data.</p>;
+        <div className="min-h-screen flex items-center justify-center bg-white">
+          <Loader />
+        </div>
+      )};
+      if (isError) return <p>Error loading student data.</p>;
 
   const initialValues = {
     firstName: data?.data.firstName || "",
