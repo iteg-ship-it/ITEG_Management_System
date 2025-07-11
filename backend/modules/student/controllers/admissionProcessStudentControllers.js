@@ -21,7 +21,7 @@ exports.addAdmission = async (req, res) => {
       'prkey','firstName','lastName','fatherName',
       'studentMobile','gender',
       'address','village','stream','course',
-      'category','subject12','percent10'
+      'category','percent10'
     ];
     for (let field of requiredFields) {
       if (!payload[field]) {

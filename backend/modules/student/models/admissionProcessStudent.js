@@ -18,7 +18,7 @@ const StudentAdmissionProcessSchema = new mongoose.Schema(
     stream: { type: String, required: true },
     course: { type: String, required: true },
     category: { type: String, required: true },
-    subject12: { type: String, required: true },
+    // subject12: { type: String, required: true },
     year12: { type: String},
     percent12: { type: String },
     percent10: { type: String },
