@@ -1,14 +1,18 @@
+/* eslint-disable react/prop-types */
 import { useState } from "react";
 import { Pencil } from "lucide-react";
 
+// eslint-disable-next-line react/prop-types
 const Table = ({ columns, data, searchable, filterable, editable, pagination }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  // eslint-disable-next-line react/prop-types
   const [visibleColumns, setVisibleColumns] = useState(columns.map((col) => col.key));
   const [showFilter, setShowFilter] = useState(false);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
   // Filtered & Paginated Data
+  // eslint-disable-next-line react/prop-types
   const filteredData = data.filter((row) =>
     Object.values(row).join(" ").toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -55,6 +59,7 @@ const Table = ({ columns, data, searchable, filterable, editable, pagination }) 
           <div className="bg-white border rounded-md shadow p-4 mb-4 w-fit text-sm">
             <p className="font-semibold mb-2">Select Columns to Show</p>
             <div className="grid grid-cols-2 gap-2">
+          
               {columns.map((col) => (
                 <label key={col.key} className="flex items-center gap-2">
                   <input
