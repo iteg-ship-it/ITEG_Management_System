@@ -19,7 +19,7 @@ exports.addAdmission = async (req, res) => {
     // 1) Check required fields
     const requiredFields = [
       'prkey','firstName','lastName','fatherName',
-      'studentMobile','parentMobile','gender',
+      'studentMobile','gender',
       'address','village','stream','course',
       'category','subject12','percent10'
     ];
