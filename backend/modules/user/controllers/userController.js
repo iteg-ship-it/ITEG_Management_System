@@ -25,9 +25,9 @@ const generateRefreshToken = (user) => {
 };
 
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: 787195123151781,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: 'djarooa0l',
+  api_key: '787195123151781',
+  api_secret: 'Z_iYcURHkeacMgHZS2AjxE0tON8',
 });
 
 exports.createUser = async (req, res) => {

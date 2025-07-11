@@ -19,9 +19,9 @@ exports.addAdmission = async (req, res) => {
     // 1) Check required fields
     const requiredFields = [
       'prkey','firstName','lastName','fatherName',
-      'studentMobile','parentMobile','gender','dob',
-      'aadharCard','address','village','track','stream','course',
-      'category','subject12','year12','percent10','percent12'
+      'studentMobile','parentMobile','gender',
+      'address','village','stream','course',
+      'category','subject12','percent10'
     ];
     for (let field of requiredFields) {
       if (!payload[field]) {
@@ -30,19 +30,19 @@ exports.addAdmission = async (req, res) => {
     }
 
     // 2) Validate date format
-    if (isNaN(Date.parse(payload.dob))) {
-      return res.status(400).json({ message: 'Invalid date format' });
-    }
+    // if (isNaN(Date.parse(payload.dob))) {
+    //   return res.status(400).json({ message: 'Invalid date format' });
+    // }
 
     // 3) Validate mobile & aadhar format
     const mobileRegex = /^\d{10}$/;
     if (!mobileRegex.test(payload.studentMobile) || !mobileRegex.test(payload.parentMobile)) {
       return res.status(400).json({ message: 'Invalid mobile number format' });
     }
-    const aadharRegex = /^\d{12}$/;
-    if (!aadharRegex.test(payload.aadharCard)) {
-      return res.status(400).json({ message: 'Invalid aadhaar format' });
-    }
+    // const aadharRegex = /^\d{12}$/;
+    // if (!aadharRegex.test(payload.aadharCard)) {
+    //   return res.status(400).json({ message: 'Invalid aadhaar format' });
+    // }
 
     // 4) Duplicate check
     const existingStudent = await AdmissionProcess.findOne({ prkey: payload.prkey });

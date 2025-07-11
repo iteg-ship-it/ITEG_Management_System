@@ -1,11 +1,10 @@
-/* PlacementReadyStudents.jsx */
 import { useState } from "react";
 import Pagination from "../common-components/pagination/Pagination";
 import {
   useGetReadyStudentsForPlacementQuery,
 } from "../../redux/api/authApi";
 import CommonTable from "../common-components/table/CommonTable";
-import ScheduleInterviewModal from "./ScheduleInterviewModal"; // ✅ Correct import
+import ScheduleInterviewModal from "./ScheduleInterviewModal";
 import profile from "../../assets/images/profileImgDummy.jpeg";
 
 const PlacementReadyStudents = () => {
@@ -43,49 +42,56 @@ const PlacementReadyStudents = () => {
   ];
 
   const columns = [
-    
     {
-      key: "fullName",
+      key: "profile",
       label: "Full Name",
       render: (row) => (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <img
-            src={row.profile || profile}
+            src={row.image || profile}
             alt="avatar"
-            className="w-8 h-8 rounded-full object-cover"
+            className="w-9 h-9 rounded-full object-cover"
           />
-          <div>
-            <div className="font-semibold text-gray-800">
-              {row.firstName} {row.lastName}
-            </div>
-            <div className="text-sm text-gray-500">{row.email}</div>
+          <div className="flex flex-col">
+            <span className="font-medium text-gray-800">{`${row.firstName} ${row.lastName}`}</span>
+            <span className="text-xs text-gray-500">{row.email}</span>
           </div>
         </div>
       ),
     },
-    
-    { key: "course", label: "Course" },
+    { key: "fatherName", label: "Father Name" },
+    {
+      key: "studentMobile",
+      label: "Mobile no.",
+      render: (row) => `+91 ${row.studentMobile}`,
+    },
     { key: "techno", label: "Technology" },
-    { key: "studentMobile", label: "Phone" },
-    { key: "email", label: "Email" },
-    { key: "gender", label: "Gender" },
-    { key: "stream", label: "Stream" },
+    { key: "course", label: "Course" },
   ];
 
   const actionButton = (student) => (
     <button
-      onClick={() => {
+      onClick={(e) => {
+        e.stopPropagation();
         setSelectedStudent(student);
         setIsModalOpen(true);
       }}
-      className="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600"
+      className="bg-[#FFAA2C] text-white px-3 py-1.5 text-sm font-medium rounded hover:bg-[#ff9d0c]"
     >
-      Interview
+      Add Interview
     </button>
   );
 
   return (
-    <>
+    <div className="p-6 bg-white rounded-xl shadow-sm">
+      <h2 className="text-xl font-semibold mb-4">Placement Workflow</h2>
+
+      <div className="flex gap-6 mb-4 border-b text-sm font-medium text-gray-600">
+        <button className="pb-2 border-b-2 border-black text-black">Qualified Students</button>
+        <button className="pb-2">Ongoing Interviews</button>
+        <button className="pb-2">Selected Student</button>
+      </div>
+
       <div className="border bg-white shadow-sm rounded-lg px-5">
         <Pagination
           rowsPerPage={rowsPerPage}
@@ -106,13 +112,12 @@ const PlacementReadyStudents = () => {
         actionButton={actionButton}
       />
 
-      {/* Interview Modal */}
       <ScheduleInterviewModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        studentId={selectedStudent?._id} // ✅ send only _id
+        studentId={selectedStudent?._id}
       />
-    </>
+    </div>
   );
 };
 
