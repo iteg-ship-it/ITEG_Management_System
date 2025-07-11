@@ -15,10 +15,10 @@ const StudentDetailTable = () => {
   const { data = [], isLoading, refetch } = useAdmitedStudentsQuery();
   const location = useLocation();
   const selectedLevel = location.state?.level || null;
-  console.log("🚀 ~ file: StudentDetailTable.jsx:10 ~ StudentDetailTable ~ selectedLevel:", selectedLevel);
+  // console.log(" StudentDetailTable ~ selectedLevel:", selectedLevel);
   // const { data = [], isLoading, refetch } = useGetLevelNumberQuery(selectedLevel);
   const navigate = useNavigate();
-  console.log("🚀 ~ file: StudentDetailTable.jsx:11 ~ StudentDetailTable ~ data:", data);
+  console.log(" StudentDetailTable ~ data:", data);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTracks, setSelectedTracks] = useState([]);
@@ -145,9 +145,13 @@ const StudentDetailTable = () => {
   return (
     <>
       {selectedLevel && (
-        <div className="px-10 pb-5 text-md text-gray-700">
+        <div>
+          <h1 className="text-2xl py-1 font-semibold">Students Record</h1>
+
+         <div className="px-10 pb-5 text-md text-gray-700">
           Showing students of <strong>Level {selectedLevel}</strong>
         </div>
+     </div>
       )}
       <div className="border bg-white shadow-sm rounded-lg px-5">
         <Pagination
