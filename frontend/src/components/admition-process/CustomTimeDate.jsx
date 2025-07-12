@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 // ✅ YOUR TextInput style
 import TextInput from '../common-components/common-feild/TextInput';
 import SelectInput from '../common-components/common-feild/SelectInput';
+import DatePickerInput from '../datepickerInput/DatePickerInput';
 
 const CustomTimeDate = ({ isOpen, onClose, studentId, attempted, refetch }) => {
   const initialValues = {
@@ -81,20 +82,19 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, attempted, refetch }) => {
               {/* Section: Interview Metadata */}
               <div className="col-span-2 text-sm font-semibold text-gray-600">Interview Metadata</div>
               <TextInput name="created_by" label="Created By" />
-              <TextInput name="date" type="datetime-local" label="Select Date" />
+              <DatePickerInput name="date" label="Select Date" />
 
               {/* Section: Technical Knowledge & Aptitude */}
               <div className="col-span-2 text-sm font-semibold text-gray-600">Technical Knowledge & Aptitude</div>
               <TextInput name="maths" label="Mathematics Marks" type="number" />
               <SelectInput
                 name="subjectKnowlage"
+                label="Subjective Knowledge"
                 options={[
-                  { value: '', label: 'Subjective Knowledge' },
                   { value: 'Basic', label: 'Basic' },
                   { value: 'Intermediate', label: 'Intermediate' },
                   { value: 'Advanced', label: 'Advanced' },
                 ]}
-                label="Subjective Knowledge"
               />
               <TextInput name="reasoning" label="Reasoning Marks" type="number" />
 
@@ -102,55 +102,51 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, attempted, refetch }) => {
               <div className="col-span-2 text-sm font-semibold text-gray-600">Candidate Behaviour & Soft Skill</div>
               <SelectInput
                 name="goal"
+                label="Goal Clarity"
                 options={[
-                  { value: '', label: 'Goal Clarity' },
                   { value: 'Clear', label: 'Clear' },
                   { value: 'Average', label: 'Average' },
                   { value: 'No Clarity', label: 'No Clarity' },
                 ]}
-                placeholder="Goal Clarity"
               />
               <SelectInput
                 name="sincerity"
+                label="Sincerity"
                 options={[
-                  { value: '', label: 'Sincerity' },
                   { value: 'High', label: 'High' },
                   { value: 'Medium', label: 'Medium' },
                   { value: 'Low', label: 'Low' },
                 ]}
-                placeholder="Sincerity"
               />
               <SelectInput
                 name="communication"
+                label="Communication Level"
                 options={[
-                  { value: '', label: 'Communication Level' },
                   { value: 'Good', label: 'Good' },
                   { value: 'Average', label: 'Average' },
                   { value: 'Poor', label: 'Poor' },
                 ]}
-                placeholder="Communication Level"
               />
               <SelectInput
                 name="confidence"
+                label="Confidence Level"
                 options={[
-                  { value: '', label: 'Confidence Level' },
                   { value: 'High', label: 'High' },
                   { value: 'Medium', label: 'Medium' },
                   { value: 'Low', label: 'Low' },
                 ]}
-                placeholder="Confidence Level"
               />
 
               {/* Section: Assignment Evaluation */}
               <div className="col-span-2 text-sm font-semibold text-gray-600">Assignment Evaluation</div>
               <SelectInput
                 name="attemptNo"
+                label="Assignment Attempt"
                 options={[
                   { value: 1, label: '1st Attempt' },
                   { value: 2, label: '2nd Attempt' },
                   { value: 3, label: '3rd Attempt' },
                 ]}
-                placeholder="Assignment Attempt"
               />
               <TextInput name="assignmentMarks" label="Assignment Marks" type="number" />
 
@@ -159,15 +155,13 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, attempted, refetch }) => {
               <TextInput name="marks" label="Total Mark" type="number" />
               <SelectInput
                 name="result"
+                label="Result"
                 options={[
-                  { value: '', label: 'Result' },
                   { value: 'Pass', label: 'Pass' },
                   { value: 'Fail', label: 'Fail' },
                   { value: 'Pending', label: 'Pending' },
                 ]}
-                placeholder="Result"
               />
-
               <TextInput name="remark" label="Remark / Feedback..." className="col-span-2" />
 
               <div className="col-span-2 flex justify-center mt-4">

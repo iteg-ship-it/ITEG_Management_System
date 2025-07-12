@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useGetAdmittedStudentsByIdQuery } from "../../redux/api/authApi";
 import PermissionModal from "./PermissionModal";
 import PlacementModal from "./PlacementModal";
+import Loader from "../common-components/loader/Loader";
 
 // Icons & Images
 import profilePlaceholder from "../../assets/images/profile-img.png";
@@ -37,7 +38,11 @@ export default function StudentProfile() {
     }
   }, [studentData]);
 
-  if (isLoading) return <div className="p-4">Loading...</div>;
+  {isLoading && (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <Loader />
+    </div>
+  )}
   if (isError || !studentData) return <div className="p-4 text-red-500">Error loading student data.</div>;
 
   const graphData = [
