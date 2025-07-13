@@ -10,6 +10,7 @@ import * as Yup from "yup";
 import TextInput from "../common-components/common-feild/TextInput";
 import SelectInput from "../common-components/common-feild/SelectInput";
 import { toast } from "react-toastify";
+import Loader from "../common-components/loader/Loader";
 
 const AdmissionInterviewDetails = () => {
     const { id } = useParams();
@@ -38,7 +39,11 @@ const AdmissionInterviewDetails = () => {
         }
     };
 
-    if (isLoading) return <p className="text-center text-gray-600">Loading interview details...</p>;
+    {isLoading && (
+        <div className="min-h-screen flex items-center justify-center bg-white">
+          <Loader />
+        </div>
+      )}
     if (error) return <p className="text-center text-red-600">Error loading interview details.</p>;
 
     return (

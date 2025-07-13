@@ -1,14 +1,17 @@
 // components/student/StudentLevelData.jsx
 import { useParams } from "react-router-dom";
 import { useGetLevelInterviewQuery } from "../../redux/api/authApi";
+import Loader from "../common-components/loader/Loader";
 
 const StudentLevelData = () => {
   const { id } = useParams(); // assuming route is /student/leveldata/:id
   const { data, isLoading, error } = useGetLevelInterviewQuery(id);
 
-  if (isLoading) {
-    return <p className="p-4">Loading level interview data...</p>;
-  }
+  {isLoading && (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <Loader />
+    </div>
+  )}
 
   if (error) {
     return (
