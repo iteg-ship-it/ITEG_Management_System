@@ -11,6 +11,7 @@ import TextInput from "../common-components/common-feild/TextInput";
 import SelectInput from "../common-components/common-feild/SelectInput";
 import { toast } from "react-toastify";
 import Loader from "../common-components/loader/Loader";
+import { HiArrowNarrowLeft } from "react-icons/hi";
 
 const AdmissionInterviewDetails = () => {
     const { id } = useParams();
@@ -50,14 +51,26 @@ const AdmissionInterviewDetails = () => {
         <>
 
             <div className="p-6 bg-white rounded-xl shadow-md ">
-                <div className="flex justify-between items-center">
-                    <h2 className="text-2xl font-semibold text-gray-800">Student Interview Details</h2>
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="px-5 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
+                <div className="flex justify-between items-center mb-6">
+                {/* 👈 BACK BUTTON ADDED JUST LIKE OTHER PAGE */}
+                    <div className="flex items-center gap-3">
+                <button
+                    type="button"
+                    onClick={() => window.history.back()}
+                    className="text-2xl text-gray-800 hover:text-gray-900"
+                >
+                    <HiArrowNarrowLeft />
+                </button>
+            <h2 className="text-2xl font-semibold text-gray-800">Student Interview Details</h2>
+                    </div>
+
+             {/* ➕ ADD INTERVIEW BUTTON */}
+                <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="px-5 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
                     >
-                        + Add Interview
-                    </button>
+                  + Add Interview
+                </button>
                 </div>
 
                 <div className="pt-4 space-y-2 text-gray-700 text-sm">
