@@ -443,6 +443,7 @@ const StudentList = () => {
           studentId={selectedStudentId}
           attempted={atemendNumber}
           refetch={refetch}
+          activeTab={activeTab}
         />
       )}
     </>

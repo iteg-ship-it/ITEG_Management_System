@@ -349,6 +349,12 @@ export const authApi = createApi({
       }),
     }),
 
+    getInterviewAttemptCount: builder.query({
+  query: (studentId) => ({
+    url: `${import.meta.env.VITE_GET_INTERVIEW_ATTEMPT}${studentId}`,
+    method: "GET",
+  }),
+}),
 
 
   }),
@@ -380,5 +386,6 @@ export const {
   useAddPlacementInterviewRecordMutation,
   useUpdatePlacedInfoMutation,
   useLogoutMutation,
-  useGetAllStudentsByLevelQuery
+  useGetAllStudentsByLevelQuery,
+  useGetInterviewAttemptCountQuery
 } = authApi;

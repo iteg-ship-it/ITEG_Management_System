@@ -15,4 +15,6 @@ router.post('/create_interview/:id', studentAdmissionProcess.createInterview );
 
 router.get('/get_interviews/:id', studentAdmissionProcess.getInterviewsByStudentId);
 router.get('/get/:id', studentAdmissionProcess.getStudentById);
+// router.get('/attempt_count/:id', studentAdmissionProcess.getAttemptCountByStudentId);
+
 module.exports = router;

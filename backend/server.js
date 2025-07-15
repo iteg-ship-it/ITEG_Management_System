@@ -40,6 +40,12 @@ app.use(
 
 app.options("*", cors());
 
+// Health Check Route
+app.get('/api/health-check', (req, res) => {
+  console.log("🔥 Health check hit!");
+  res.status(200).send("Backend is alive 🚀");
+});
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
