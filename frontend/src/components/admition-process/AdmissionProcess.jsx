@@ -38,19 +38,20 @@ const StudentList = () => {
 
   // dynamic unique options across data
   const dynamicTrackOptions = useMemo(() => {
-    return [...new Set(data.map((s) => toTitleCase(s.track || "")))].filter(Boolean);
+    return [...new Set(data.map((s) => toTitleCase(s.track || "")))].filter(
+      Boolean
+    );
   }, [data]);
 
   const dynamicResultOptions = useMemo(() => {
     return [
       ...new Set(
-        data.flatMap((s) =>
-          s.interviews?.map((i) => toTitleCase(i.result || "")) || []
+        data.flatMap(
+          (s) => s.interviews?.map((i) => toTitleCase(i.result || "")) || []
         )
       ),
     ].filter(Boolean);
   }, [data]);
-
 
   const tabFilterConfig = {
     "Total Registration": [
@@ -103,7 +104,7 @@ const StudentList = () => {
         setter: setResultFilterTab2,
       },
     ],
-    "Results": [
+    Results: [
       {
         title: "Track",
         options: dynamicTrackOptions,
@@ -118,7 +119,6 @@ const StudentList = () => {
       },
     ],
   };
-
 
   const filtersConfig = tabFilterConfig[activeTab] || [];
 
@@ -137,7 +137,9 @@ const StudentList = () => {
 
   const getLatestInterviewResult = (interviews = []) => {
     if (!interviews.length) return null;
-    return [...interviews].sort((a, b) => new Date(b.date) - new Date(a.date))[0]?.result;
+    return [...interviews].sort(
+      (a, b) => new Date(b.date) - new Date(a.date)
+    )[0]?.result;
   };
 
   const matchTabCondition = (student) => {
@@ -226,9 +228,13 @@ const StudentList = () => {
     const classes = "px-3 py-1 rounded-xl text-sm font-medium";
     switch (result) {
       case "Pass":
-        return <span className={`bg-green-100 text-green-700 ${classes}`}>Pass</span>;
+        return (
+          <span className={`bg-green-100 text-green-700 ${classes}`}>Pass</span>
+        );
       case "Fail":
-        return <span className={`bg-red-100 text-red-700 ${classes}`}>Fail</span>;
+        return (
+          <span className={`bg-red-100 text-red-700 ${classes}`}>Fail</span>
+        );
       default:
         return (
           <span className={`bg-gray-100 text-gray-700 ${classes}`}>
@@ -249,9 +255,13 @@ const StudentList = () => {
     const classes = "px-3 py-1 rounded-xl text-sm font-medium";
     switch (result) {
       case "Pass":
-        return <span className={`bg-green-100 text-green-700 ${classes}`}>Pass</span>;
+        return (
+          <span className={`bg-green-100 text-green-700 ${classes}`}>Pass</span>
+        );
       case "Fail":
-        return <span className={`bg-red-100 text-red-700 ${classes}`}>Fail</span>;
+        return (
+          <span className={`bg-red-100 text-red-700 ${classes}`}>Fail</span>
+        );
       default:
         return (
           <span className={`bg-gray-100 text-gray-700 ${classes}`}>
@@ -275,13 +285,37 @@ const StudentList = () => {
   switch (activeTab) {
     case "Online Assessment":
       columns = [
-        { key: "firstName", label: "Full Name", render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`) },
-        { key: "fatherName", label: "Father's Name", render: (row) => toTitleCase(row.fatherName) },
+        {
+          key: "firstName",
+          label: "Full Name",
+          render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
+        },
+        {
+          key: "fatherName",
+          label: "Father's Name",
+          render: (row) => toTitleCase(row.fatherName),
+        },
         { key: "studentMobile", label: "Mobile" },
-        { key: "subject12", label: "12th Subject", render: (row) => toTitleCase(row.stream) },
-        { key: "course", label: "Course", render: (row) => toTitleCase(row.course) },
-        { key: "village", label: "Marks", render: (row) => toTitleCase(row.village) },
-        { key: "stream", label: "Status", render: (row) => handleGetOnlineMarks(row.onlineTest) },
+        {
+          key: "subject12",
+          label: "12th Subject",
+          render: (row) => toTitleCase(row.stream),
+        },
+        {
+          key: "course",
+          label: "Course",
+          render: (row) => toTitleCase(row.course),
+        },
+        {
+          key: "village",
+          label: "Marks",
+          render: (row) => toTitleCase(row.village),
+        },
+        {
+          key: "stream",
+          label: "Status",
+          render: (row) => handleGetOnlineMarks(row.onlineTest),
+        },
       ];
       actionButton = (row) => (
         <button
@@ -295,13 +329,37 @@ const StudentList = () => {
 
     case "Technical Round":
       columns = [
-        { key: "firstName", label: "Full Name", render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`) },
-        { key: "fatherName", label: "Father's Name", render: (row) => toTitleCase(row.fatherName) },
+        {
+          key: "firstName",
+          label: "Full Name",
+          render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
+        },
+        {
+          key: "fatherName",
+          label: "Father's Name",
+          render: (row) => toTitleCase(row.fatherName),
+        },
         { key: "studentMobile", label: "Mobile" },
-        { key: "course", label: "Course", render: (row) => toTitleCase(row.course) },
-        { key: "onlineTestStatus", label: "Status of Written", render: (row) => handleGetOnlineMarks(row.onlineTest) },
-        { key: "techMarks", label: "Marks of Tech", render: (row) => handleGetMarks(row.interviews) },
-        { key: "techStatus", label: "Status of Tech", render: (row) => handleGetStatus(row.interviews) },
+        {
+          key: "course",
+          label: "Course",
+          render: (row) => toTitleCase(row.course),
+        },
+        {
+          key: "onlineTestStatus",
+          label: "Status of Written",
+          render: (row) => handleGetOnlineMarks(row.onlineTest),
+        },
+        {
+          key: "techMarks",
+          label: "Marks of Tech",
+          render: (row) => handleGetMarks(row.interviews),
+        },
+        {
+          key: "techStatus",
+          label: "Status of Tech",
+          render: (row) => handleGetStatus(row.interviews),
+        },
       ];
       actionButton = (row) => (
         <button
@@ -315,13 +373,37 @@ const StudentList = () => {
 
     case "Final Round":
       columns = [
-        { key: "firstName", label: "Full Name", render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`) },
-        { key: "fatherName", label: "Father's Name", render: (row) => toTitleCase(row.fatherName) },
+        {
+          key: "firstName",
+          label: "Full Name",
+          render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
+        },
+        {
+          key: "fatherName",
+          label: "Father's Name",
+          render: (row) => toTitleCase(row.fatherName),
+        },
         { key: "studentMobile", label: "Mobile" },
-        { key: "course", label: "Course", render: (row) => toTitleCase(row.course) },
-        { key: "onlineTestStatus", label: "Status of Written", render: (row) => handleGetOnlineMarks(row.onlineTest) },
-        { key: "techMarks", label: "Marks of Tech", render: (row) => handleGetMarks(row.interviews) },
-        { key: "stream", label: "Attempts of tech", render: (row) => handleGetMarks(row.interviews) },
+        {
+          key: "course",
+          label: "Course",
+          render: (row) => toTitleCase(row.course),
+        },
+        {
+          key: "onlineTestStatus",
+          label: "Status of Written",
+          render: (row) => handleGetOnlineMarks(row.onlineTest),
+        },
+        {
+          key: "techMarks",
+          label: "Marks of Tech",
+          render: (row) => handleGetMarks(row.interviews),
+        },
+        {
+          key: "stream",
+          label: "Attempts of tech",
+          render: (row) => handleGetMarks(row.interviews),
+        },
       ];
       actionButton = (row) => (
         <button
@@ -338,24 +420,66 @@ const StudentList = () => {
 
     case "Results":
       columns = [
-        { key: "firstName", label: "Full Name", render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`) },
-        { key: "fatherName", label: "Father's Name", render: (row) => toTitleCase(row.fatherName) },
+        {
+          key: "firstName",
+          label: "Full Name",
+          render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
+        },
+        {
+          key: "fatherName",
+          label: "Father's Name",
+          render: (row) => toTitleCase(row.fatherName),
+        },
         { key: "studentMobile", label: "Mobile" },
-        { key: "stream", label: "Subject", render: (row) => toTitleCase(row.stream) },
-        { key: "village", label: "Village", render: (row) => toTitleCase(row.village) },
-        { key: "track", label: "Track", render: (row) => toTitleCase(row.track) },
+        {
+          key: "stream",
+          label: "Subject",
+          render: (row) => toTitleCase(row.stream),
+        },
+        {
+          key: "village",
+          label: "Village",
+          render: (row) => toTitleCase(row.village),
+        },
+        {
+          key: "track",
+          label: "Track",
+          render: (row) => toTitleCase(row.track),
+        },
       ];
       actionButton = (row) => {
-        const secondRound = row.interviews?.filter((i) => i.round === "Second") || [];
+        const secondRound =
+          row.interviews?.filter((i) => i.round === "Second") || [];
         const latestResult = getLatestInterviewResult(row.interviews);
         const isSelected = secondRound.some((i) => i.result === "Pass");
-        const isRejected = latestResult === "Fail" || secondRound.some((i) => i.result === "Fail");
+        const isRejected =
+          latestResult === "Fail" ||
+          secondRound.some((i) => i.result === "Fail");
 
         if (isSelected) {
+          //   return (
+          //     <button
+          //       className="bg-[var(--success-light)] flex items-center gap-2 text-md text-[var(--success-dark)] px-3 py-1 rounded"
+          //       onClick={() => alert(`Selected: ${row.firstName}`)}
+          //     >
+          //       <FaCheckCircle className="text-lg" />
+          //       <span>Selected</span>
+          //     </button>
+          //   );
+          // } else if (isRejected) {
+          //   return (
+          //     <button
+          //       className="bg-[var(--error-light)] flex items-center gap-2 text-md text-[var(--error-dark)] px-3 py-1 rounded"
+          //       onClick={() => alert(`Rejected: ${row.firstName}`)}
+          //     >
+          //       <AiFillStop className="text-lg" />
+          //       <span>Rejected</span>
+          //     </button>
+          //   );
           return (
             <button
-              className="bg-[var(--success-light)] flex items-center gap-2 text-md text-[var(--success-dark)] px-3 py-1 rounded"
-              onClick={() => alert(`Selected: ${row.firstName}`)}
+              className="bg-[var(--success-light)] flex items-center gap-2 text-md text-[var(--success-dark)] px-3 py-1 rounded cursor-not-allowed"
+              disabled
             >
               <FaCheckCircle className="text-lg" />
               <span>Selected</span>
@@ -364,8 +488,8 @@ const StudentList = () => {
         } else if (isRejected) {
           return (
             <button
-              className="bg-[var(--error-light)] flex items-center gap-2 text-md text-[var(--error-dark)] px-3 py-1 rounded"
-              onClick={() => alert(`Rejected: ${row.firstName}`)}
+              className="bg-[var(--error-light)] flex items-center gap-2 text-md text-[var(--error-dark)] px-3 py-1 rounded cursor-not-allowed"
+              disabled
             >
               <AiFillStop className="text-lg" />
               <span>Rejected</span>
@@ -379,22 +503,48 @@ const StudentList = () => {
 
     default:
       columns = [
-        { key: "firstName", label: "Full Name", render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`) },
-        { key: "fatherName", label: "Father's Name", render: (row) => toTitleCase(row.fatherName) },
+        {
+          key: "firstName",
+          label: "Full Name",
+          render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
+        },
+        {
+          key: "fatherName",
+          label: "Father's Name",
+          render: (row) => toTitleCase(row.fatherName),
+        },
         { key: "studentMobile", label: "Mobile" },
-        { key: "subject12", label: "12th Subject", render: (row) => toTitleCase(row.stream) },
-        { key: "course", label: "Course", render: (row) => toTitleCase(row.course) },
-        { key: "village", label: "Village", render: (row) => toTitleCase(row.village) },
-        { key: "track", label: "Bus Route", render: (row) => toTitleCase(row.track) },
+        {
+          key: "subject12",
+          label: "12th Subject",
+          render: (row) => toTitleCase(row.stream),
+        },
+        {
+          key: "course",
+          label: "Course",
+          render: (row) => toTitleCase(row.course),
+        },
+        {
+          key: "village",
+          label: "Village",
+          render: (row) => toTitleCase(row.village),
+        },
+        {
+          key: "track",
+          label: "Bus Route",
+          render: (row) => toTitleCase(row.track),
+        },
       ];
       break;
   }
 
-  {isLoading && (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <Loader />
-    </div>
-  )}
+  {
+    isLoading && (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader />
+      </div>
+    );
+  }
   if (error) return <p>Error fetching students.</p>;
 
   return (
@@ -407,10 +557,11 @@ const StudentList = () => {
               <p
                 key={tab}
                 onClick={() => handleTabClick(tab)}
-                className={`cursor-pointer text-md text-[var(--text-color)] pb-2 border-b-2 ${activeTab === tab
-                  ? "border-[var(--text-color)] font-semibold"
-                  : "border-gray-200"
-                  }`}
+                className={`cursor-pointer text-md text-[var(--text-color)] pb-2 border-b-2 ${
+                  activeTab === tab
+                    ? "border-[var(--text-color)] font-semibold"
+                    : "border-gray-200"
+                }`}
               >
                 {tab}
               </p>
@@ -451,9 +602,6 @@ const StudentList = () => {
 };
 
 export default StudentList;
-
-
-
 
 // import { useGetAllStudentsQuery } from "../../redux/api/authApi";
 // import CommonTable from "../common-components/table/CommonTable";
@@ -710,7 +858,6 @@ export default StudentList;
 //       );
 //       break;
 
-
 //     case "Results":
 //       columns = [
 //         { key: "firstName", label: "Full Name", render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`) },
@@ -751,7 +898,6 @@ export default StudentList;
 //         }
 //       };
 //       break;
-
 
 //     default:
 //       columns = [

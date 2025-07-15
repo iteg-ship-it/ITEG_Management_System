@@ -5,10 +5,7 @@ import { IoMenu } from "react-icons/io5";
 import { FaClipboardList } from "react-icons/fa6";
 import { GiGraduateCap } from "react-icons/gi";
 import { RiTv2Fill } from "react-icons/ri";
-import {
-  HiChevronUp,
-  HiChevronDown,
-} from "react-icons/hi";
+import { HiChevronUp, HiChevronDown } from "react-icons/hi";
 
 const Sidebar = ({ children }) => {
   const [isOpen, setIsOpen] = useState(true);
@@ -20,8 +17,7 @@ const Sidebar = ({ children }) => {
   const menuItems = [
     {
       name: "Admissions",
-      icon: <RiTv2Fill />
-      ,
+      icon: <RiTv2Fill />,
       roles: ["superadmin", "admin"],
       subMenu: [
         { name: "Dashboard", path: "/" },
@@ -30,8 +26,7 @@ const Sidebar = ({ children }) => {
     },
     {
       name: "Admitted",
-      icon: <FaClipboardList />
-      ,
+      icon: <FaClipboardList />,
       roles: ["superadmin", "admin", "faculty"],
       subMenu: [
         { name: "Student Progress", path: "/student-dashboard" },
@@ -60,8 +55,9 @@ const Sidebar = ({ children }) => {
     <div className="flex">
       {/* Sidebar */}
       <aside
-        className={`fixed top-16 left-0 z-30 mt-2 transition-all duration-300 bg-[var(--backgroundColor)] border-r shadow-md ${isOpen ? "w-64" : "w-12"
-          } h-[calc(100vh-4rem)]`}
+        className={`fixed top-16 left-0 z-30 mt-2 transition-all duration-300 bg-[var(--backgroundColor)] border-r shadow-md ${
+          isOpen ? "w-64" : "w-12"
+        } h-[calc(100vh-4rem)]`}
       >
         {/* Sidebar toggle */}
         <div className="flex items-center justify-between p-4 pt-6">
@@ -91,21 +87,37 @@ const Sidebar = ({ children }) => {
                   <div key={idx}>
                     <div
                       onClick={() => toggleMenu(idx)}
-                      className={`flex  text-[1.1rem] items-center justify-between px-3 py-3 rounded cursor-pointer  font-semibold ${isActive
-                        ? "text-gray-700"
-                        : "hover:bg-gray-100 text-gray-700"
-                        }`}
+                      className={`flex  text-[1.1rem] items-center justify-between px-3 py-3 rounded cursor-pointer  font-semibold ${
+                        isActive
+                          ? "text-gray-700"
+                          : "hover:bg-gray-100 text-gray-700"
+                      }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span >{item.icon}</span>
+                        <span>{item.icon}</span>
                         <span>{item.name}</span>
                       </div>
-                      <div className="group">
+                      {/* <div className="group">
                         <span className="hidden group-hover:block">
                           {isActive ? <HiChevronUp /> : <HiChevronDown />}
                         </span>
+                      </div> */}
+                      <div className="relative flex items-center">
+                        <span
+                          className={`${
+                            isActive ? "block" : "hidden"
+                          } group-hover:hidden`}
+                        >
+                          <HiChevronUp />
+                        </span>
+                        <span
+                          className={`${
+                            isActive ? "hidden" : "block"
+                          } group-hover:block`}
+                        >
+                          <HiChevronDown />
+                        </span>
                       </div>
-
                     </div>
 
                     {/* submenus */}
@@ -119,10 +131,11 @@ const Sidebar = ({ children }) => {
                             <Link
                               key={i}
                               to={sub.path}
-                              className={`block rounded px-3 py-2 text-md ${active
-                                ? "bg-orange-50 text-orange-500 font-semibold border-l-4 border-orange-400"
-                                : "text-gray-600 hover:text-orange-500"
-                                }`}
+                              className={`block rounded px-3 py-2 text-md ${
+                                active
+                                  ? "bg-orange-50 text-orange-500 font-semibold border-l-4 border-orange-400"
+                                  : "text-gray-600 hover:text-orange-500"
+                              }`}
                             >
                               {sub.name}
                             </Link>
@@ -139,18 +152,17 @@ const Sidebar = ({ children }) => {
 
       {/* Main content */}
       <main
-        className={`flex-1 bg-white pt-20 px-4 transition-all duration-300 ${isOpen ? "ml-64" : "ml-16"
-          } overflow-x-hidden`}
+        className={`flex-1 bg-white pt-20 px-4 transition-all duration-300 ${
+          isOpen ? "ml-64" : "ml-16"
+        } overflow-x-hidden`}
       >
         {children}
       </main>
-
     </div>
   );
 };
 
 export default Sidebar;
-
 
 // /* eslint-disable react/prop-types */
 // import { useState } from "react";
@@ -225,7 +237,6 @@ export default Sidebar;
 //           </button>
 //         </div>
 
-
 //         {/* Sidebar links */}
 //         <nav className="flex flex-col gap-1 px-2 py-2 overflow-y-auto">
 //           {menuItems
@@ -289,4 +300,3 @@ export default Sidebar;
 // };
 
 // export default Sidebar;
-
