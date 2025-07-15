@@ -19,9 +19,9 @@ exports.addAdmission = async (req, res) => {
     // 1) Check required fields
     const requiredFields = [
       'prkey','firstName','lastName','fatherName',
-      'studentMobile','parentMobile','gender',
+      'studentMobile','gender',
       'address','village','stream','course',
-      'category','subject12','percent10'
+      'category','percent10'
     ];
     for (let field of requiredFields) {
       if (!payload[field]) {
@@ -179,11 +179,26 @@ exports.sendInterviewFlagToCentral = async (req, res) => {
 
 };
 
-
 exports.createInterview = async (req, res) => {
   try {
     const { id } = req.params;
-    const { round,communication,confidence,goal,subjectKnowlage,technical,sincerity,  maths,reasoning, marks, remark, date, result } = req.body;
+    const {
+      round,
+      communication,
+      confidence,
+      goal,
+      subjectKnowlage,
+      technical,
+      sincerity,
+      maths,
+      reasoning,
+      marks,
+      assignmentMarks,
+      remark,
+      date,
+      result,
+      created_by
+    } = req.body;
 
     const student = await AdmissionProcess.findById(id);
     if (!student) {
@@ -192,18 +207,15 @@ exports.createInterview = async (req, res) => {
 
     const interviews = student.interviews || [];
 
-    // Round Order (you can add more later)
     const roundOrder = ["First", "Second"];
-
     const requestedRoundIndex = roundOrder.indexOf(round);
     if (requestedRoundIndex === -1) {
       return res.status(400).json({ success: false, message: "Invalid round name" });
     }
 
-    // Find all interviews of current requested round
     const currentRoundAttempts = interviews.filter(i => i.round === round);
 
-    // Find highest round passed
+    // Check highest passed round
     let lastPassedRoundIndex = -1;
     for (let i = 0; i < roundOrder.length; i++) {
       const passed = interviews.some(interview => interview.round === roundOrder[i] && interview.result === "Pass");
@@ -214,7 +226,7 @@ exports.createInterview = async (req, res) => {
       }
     }
 
-    // 🚫 If trying to attempt a new round without passing previous one
+    // If previous round not passed
     if (requestedRoundIndex > lastPassedRoundIndex + 1) {
       return res.status(400).json({
         success: false,
@@ -222,7 +234,7 @@ exports.createInterview = async (req, res) => {
       });
     }
 
-    // 🚫 If 4 attempts already done without passing, student is rejected
+    // Rejected after 4 failed attempts
     if (currentRoundAttempts.length >= 4 && !currentRoundAttempts.some(i => i.result === "Pass")) {
       return res.status(400).json({
         success: false,
@@ -230,7 +242,7 @@ exports.createInterview = async (req, res) => {
       });
     }
 
-    // 🚫 If already passed the current round
+    // Already passed this round
     if (currentRoundAttempts.some(i => i.result === "Pass")) {
       return res.status(400).json({
         success: false,
@@ -238,22 +250,22 @@ exports.createInterview = async (req, res) => {
       });
     }
 
-
     const newInterview = {
       round: round || "First",
-      communication:communication || 0,
-      confidence:confidence || 0,
-      goal:goal || 0,
-      subjectKnowlage:subjectKnowlage|| 0,
-      technical:technical || 0,
-      sincerity:sincerity || 0,
-      maths:maths || 0,
-      reasoning:reasoning || 0,
-      attemptNo: currentRoundAttempts.length + 1, // Auto-increment attemptNo
+      attemptNo: currentRoundAttempts.length + 1,
+      communication: communication || "",
+      confidence: confidence || "",
+      goal: goal || "",
+      subjectKnowlage: subjectKnowlage || "",
+      sincerity: sincerity || "",
+      technical: technical || 0,
+      maths: maths || 0,
+      reasoning: reasoning || 0,
       marks: marks || 0,
+      assignmentMarks: assignmentMarks || 0,
       remark: remark || "",
       date: date || new Date(),
-      // created_by:Faculty||Faculty,
+      created_by: created_by || "Unknown",
       result: result || "Pending",
     };
 
@@ -270,8 +282,6 @@ exports.createInterview = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error", error });
   }
 };
-
-
 
 exports.getInterviewsByStudentId = async (req, res) => {
   try {
