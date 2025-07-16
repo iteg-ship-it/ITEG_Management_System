@@ -135,6 +135,20 @@ const StudentList = () => {
     }
   }, [location.search]);
 
+  // ✅ Loader: Show full screen while data is loading
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader />
+      </div>
+    );
+  }
+
+  // ✅ Error state
+  if (error) {
+    return <p className="text-center text-red-500">Error fetching students.</p>;
+  }
+
   const getLatestInterviewResult = (interviews = []) => {
     if (!interviews.length) return null;
     return [...interviews].sort(
