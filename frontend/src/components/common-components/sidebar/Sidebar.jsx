@@ -20,8 +20,8 @@ const Sidebar = ({ children }) => {
       icon: <RiTv2Fill />,
       roles: ["superadmin", "admin"],
       subMenu: [
-        { name: "Dashboard", path: "/" },
-        { name: "Admission WorkFlow", path: "/admission" },
+        // { name: "Dashboard", path: "/" },
+        { name: "Admission WorkFlow", path: "/" },
       ],
     },
     {
