@@ -334,7 +334,7 @@ const StudentList = () => {
       actionButton = (row) => (
         <button
           onClick={() => scheduleButton(row)}
-          className="bg-orange-500 text-md text-white px-3 py-1 rounded"
+          className="bg-brandYellow text-md text-white px-3 py-1 rounded"
         >
           Take interview
         </button>
@@ -378,7 +378,7 @@ const StudentList = () => {
       actionButton = (row) => (
         <button
           onClick={() => scheduleButton(row)}
-          className="bg-orange-500 text-md text-white px-3 py-1 rounded"
+          className="bg-brandYellow text-md text-white px-3 py-1 rounded"
         >
           Take interview
         </button>
@@ -425,7 +425,7 @@ const StudentList = () => {
             localStorage.setItem("studdedntDetails", JSON.stringify(row));
             navigate(`/interview-detail/${row._id}?tab=${activeTab}`);
           }}
-          className="bg-orange-500 text-md text-white px-3 py-1 rounded"
+          className="bg-brandYellow text-md text-white px-3 py-1 rounded"
         >
           Interviews Detail
         </button>
@@ -563,7 +563,7 @@ const StudentList = () => {
 
   return (
     <>
-      <h1 className="text-xl py-1 font-semibold">Admission Process</h1>
+      <h1 className="text-3xl py-10 font-semibold">Admission Process</h1>
       <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
         <div className="px-6">
           <div className="flex gap-6 mt-4">

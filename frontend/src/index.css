@@ -5,18 +5,18 @@
 :root {
   --background: #f2f7fc;
   --primary: #FDA92D;
-  --primary-light: #FED680;
-  --primary-dark: #B66816;
+  --primary-light: #f7d897;
+  --primary-dark: #FDA92D;
   --secondary: #8E33FF;
   --secondary-light: #C684FF;
   --secondary-dark: #5119B7;
   --success: #22C55E;
   --success-light: #77ED8B;
   --success-dark: #118D57;
-  --warning: #FFAB00;
+  --warning: #FDA92D;
   --warning-light: #FFD666;
-  --warning-dark: #B76E00;
-  --error: #FF5630;
+  --warning-dark: #FDA92D;
+  --error: #FDA92D;
   --error-light: #FFCEC3;
   --error-dark: #B71D18;
   --info: #00B8D9;
@@ -31,7 +31,7 @@
  --text-color: #1C252E;
 }
 *{
-  font-family: poppins;
+  font-family: 'Inter', sans-serif;
 }
 /* Add to index.css or global.css */
 

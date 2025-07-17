@@ -137,7 +137,7 @@
 //                 <button
 //                   type="submit"
 //                   disabled={isLoading}
-//                   className="bg-orange-500 text-white px-6 py-2 rounded-md hover:bg-orange-600"
+//                   className="bg-brandYellow text-white px-6 py-2 rounded-md hover:bg-orange-600"
 //                 >
 //                   {isLoading ? 'Submitting...' : 'Submit'}
 //                 </button>
@@ -383,7 +383,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="bg-orange-500 text-white px-6 py-2 rounded-md hover:bg-orange-600"
+                  className="bg-brandYellow text-white px-6 py-2 rounded-md hover:bg-orange-600"
                 >
                   {isLoading ? "Submitting..." : "Submit"}
                 </button>

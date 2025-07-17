@@ -109,7 +109,7 @@ const OtpEnter = () => {
         <button
           onClick={handleVerify}
           disabled={isLoading}
-          className="mt-6 w-full bg-orange-400 hover:bg-orange-500 text-white py-2 rounded-full font-semibold text-lg"
+          className="mt-6 w-full bg-orange-400 hover:bg-brandYellow text-white py-2 rounded-full font-semibold text-lg"
         >
           {isLoading ? "Verifying..." : "Verify Email"}
         </button>

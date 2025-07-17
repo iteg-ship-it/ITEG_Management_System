@@ -33,7 +33,7 @@ const StudentDashboard = () => {
 
   const getColor = (index) => {
     const colors = [
-      "bg-orange-500",
+      "bg-brandYellow",
       "bg-blue-500",
       "bg-green-500",
       "bg-purple-500",
