@@ -198,18 +198,27 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
   const initialValues = {
     created_by: userInfo.name || "",
     date: "",
-    maths: activeTab === "Technical Round" ? lastAttempt?.maths : 0,
-    subjectKnowlage:
-      activeTab === "Technical Round" ? lastAttempt?.subjectKnowlage : 0,
-    reasoning: activeTab === "Technical Round" ? lastAttempt?.reasoning : 0,
-    goal: activeTab === "Technical Round" ? lastAttempt?.goal : 0,
-    sincerity: activeTab === "Technical Round" ? lastAttempt?.sincerity : 0,
-    communication:
-      activeTab === "Technical Round" ? lastAttempt?.communication : 0,
-    confidence: activeTab === "Technical Round" ? lastAttempt?.confidence : 0,
+    // maths: activeTab === "Technical Round" ? lastAttempt?.maths : 0,
+    maths: activeTab === "Technical Round" && lastAttempt?.maths !== undefined ? lastAttempt.maths : "",
+    subjectKnowlage: activeTab === "Technical Round" && lastAttempt?.subjectKnowlage !== undefined ? lastAttempt.subjectKnowlage : "",
+    reasoning: activeTab === "Technical Round" && lastAttempt?.reasoning !== undefined ? lastAttempt.reasoning : "",
+    goal: activeTab === "Technical Round" && lastAttempt?.goal !== undefined ? lastAttempt.goal : "",
+    sincerity: activeTab === "Technical Round" && lastAttempt?.sincerity !== undefined ? lastAttempt.sincerity : "",
+    communication: activeTab === "Technical Round" && lastAttempt?.communication !== undefined ? lastAttempt.communication : "",
+    confidence: activeTab === "Technical Round" && lastAttempt?.confidence !== undefined ? lastAttempt.confidence : "",
     attemptNo: lastAttempt?.attemptNo > 0 ? lastAttempt?.attemptNo + 1 : 1,
-    assignmentMarks:
-      activeTab === "Technical Round" ? lastAttempt?.assignmentMarks : 0,
+    assignmentMarks: activeTab === "Technical Round" && lastAttempt?.assignmentMarks !== undefined ? lastAttempt.assignmentMarks : "",
+    // subjectKnowlage:
+    //   activeTab === "Technical Round" ? lastAttempt?.subjectKnowlage : 0,
+    // reasoning: activeTab === "Technical Round" ? lastAttempt?.reasoning : 0,
+    // goal: activeTab === "Technical Round" ? lastAttempt?.goal : 0,
+    // sincerity: activeTab === "Technical Round" ? lastAttempt?.sincerity : 0,
+    // communication:
+    //   activeTab === "Technical Round" ? lastAttempt?.communication : 0,
+    // confidence: activeTab === "Technical Round" ? lastAttempt?.confidence : 0,
+    // attemptNo: lastAttempt?.attemptNo > 0 ? lastAttempt?.attemptNo + 1 : 1,
+    // assignmentMarks:
+    //   activeTab === "Technical Round" ? lastAttempt?.assignmentMarks : 0,
     marks: activeTab === "Technical Round" ? lastAttempt?.marks : 0,
     result: "Pending",
     remark: "",
