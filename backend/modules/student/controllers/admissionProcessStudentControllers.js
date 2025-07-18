@@ -262,7 +262,7 @@ exports.createInterview = async (req, res) => {
       maths: maths || 0,
       reasoning: reasoning || 0,
       marks: marks || 0,
-      assignmentMarks: assignmentMarks || 0,
+      assignmentMarks: assignmentMarks || "",
       remark: remark || "",
       date: date || new Date(),
       created_by: created_by || "Unknown",
