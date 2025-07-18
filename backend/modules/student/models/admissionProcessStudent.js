@@ -67,7 +67,7 @@ const StudentAdmissionProcessSchema = new mongoose.Schema(
         confidence: { type: Number },
         goal: { type: Number },
         subjectKnowlage: { type: Number },
-        assignmentMarks: { type: Number },
+        assignmentMarks: { type: String },
         sincerity: { type: Number },
         maths : { type: Number },
         reasoning: { type: Number },

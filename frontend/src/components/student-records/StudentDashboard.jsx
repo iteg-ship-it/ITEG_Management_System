@@ -33,7 +33,7 @@ const StudentDashboard = () => {
 
   const getColor = (index) => {
     const colors = [
-      "bg-orange-500",
+      "bg-brandYellow",
       "bg-blue-500",
       "bg-green-500",
       "bg-purple-500",
@@ -46,9 +46,9 @@ const StudentDashboard = () => {
 
   return (
     <>
-
-      <div className="container mx-auto bg-white shadow-md p-6 md:p-10 rounded-lg my-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-10">
+      <h1 className="text-3xl py-4 font-bold">Student Level Group</h1>
+      <div className="container py-2 mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 md:gap-5">
           {yearCategories.map((year, index) => (
             <div
               onClick={() => navigate(`/student-detail-table`, { state: { level: year } })}

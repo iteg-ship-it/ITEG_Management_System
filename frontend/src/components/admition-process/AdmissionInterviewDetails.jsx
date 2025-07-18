@@ -67,7 +67,7 @@ const AdmissionInterviewDetails = () => {
              {/* ➕ ADD INTERVIEW BUTTON */}
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="px-5 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
+                    className="px-5 py-2 bg-brandYellow text-white rounded-lg hover:bg-orange-600 transition"
                     >
                   + Add Interview
                 </button>
@@ -160,7 +160,7 @@ const AdmissionInterviewDetails = () => {
                                         <button
                                             type="submit"
                                             disabled={isSubmitting}
-                                            className="px-5 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition disabled:opacity-50"
+                                            className="px-5 py-2 bg-brandYellow text-white rounded-md hover:bg-orange-600 transition disabled:opacity-50"
                                         >
                                             {isSubmitting ? "Submitting..." : "Submit"}
                                         </button>

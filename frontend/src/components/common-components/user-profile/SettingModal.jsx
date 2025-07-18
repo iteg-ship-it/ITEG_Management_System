@@ -118,7 +118,7 @@ const SettingsModal = ({ user, onClose }) => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full mt-6 bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-3xl font-medium focus:outline-none focus:ring-2 focus:ring-orange-400"
+                            className="w-full mt-6 bg-brandYellow hover:bg-orange-600 text-white py-3 rounded-3xl font-medium focus:outline-none focus:ring-2 focus:ring-orange-400"
                         >
                             {isLoading ? "Saving..." : "Save"}
                         </button>
@@ -203,7 +203,7 @@ export default SettingsModal;
 //                         <button
 //                             type="submit"
 //                             disabled={isLoading}
-//                             className="w-full mt-6 bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-3xl font-medium focus:outline-none focus:ring-2 focus:ring-orange-400"
+//                             className="w-full mt-6 bg-brandYellow hover:bg-orange-600 text-white py-3 rounded-3xl font-medium focus:outline-none focus:ring-2 focus:ring-orange-400"
 //                         >
 //                             {isLoading ? "Saving..." : "Save"}
 //                         </button>

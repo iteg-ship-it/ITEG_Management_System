@@ -243,11 +243,15 @@ const StudentList = () => {
     switch (result) {
       case "Pass":
         return (
-          <span className={`bg-green-100 text-green-700 ${classes}`}>Pass</span>
+          <span className="inline-block px-2 py-1 rounded-md text-[#118D57] bg-[#22C55E]/20 text-sm font-medium">
+  Pass
+</span>
         );
       case "Fail":
         return (
-          <span className={`bg-red-100 text-red-700 ${classes}`}>Fail</span>
+         <span className="inline-block px-2 py-1 rounded-md bg-[#FFCEC3] text-[#D32F2F] text-sm font-medium">
+  Fail
+</span>
         );
       default:
         return (
@@ -270,11 +274,15 @@ const StudentList = () => {
     switch (result) {
       case "Pass":
         return (
-          <span className={`bg-green-100 text-green-700 ${classes}`}>Pass</span>
+          <span className="inline-block px-2 py-1 rounded-md text-[#118D57] bg-[#22C55E]/20 text-sm font-medium">
+  Pass
+</span>
         );
       case "Fail":
         return (
-          <span className={`bg-red-100 text-red-700 ${classes}`}>Fail</span>
+          <span className="inline-block px-2 py-1 rounded-md bg-[#FFCEC3] text-[#D32F2F] text-sm font-medium">
+  Fail
+</span>
         );
       default:
         return (
@@ -492,22 +500,22 @@ const StudentList = () => {
           //   );
           return (
             <button
-              className="bg-[var(--success-light)] flex items-center gap-2 text-md text-[var(--success-dark)] px-3 py-1 rounded cursor-not-allowed"
-              disabled
-            >
-              <FaCheckCircle className="text-lg" />
-              <span>Selected</span>
-            </button>
+  className="bg-[#22C55E]/20 flex items-center gap-2 text-md text-[#118D57] px-3 py-1 rounded-md cursor-not-allowed"
+  disabled
+>
+  <FaCheckCircle className="text-lg" />
+  <span>Selected</span>
+</button>
           );
         } else if (isRejected) {
           return (
-            <button
-              className="bg-[var(--error-light)] flex items-center gap-2 text-md text-[var(--error-dark)] px-3 py-1 rounded cursor-not-allowed"
-              disabled
-            >
-              <AiFillStop className="text-lg" />
-              <span>Rejected</span>
-            </button>
+           <button
+  className="bg-[#FFCEC3] flex items-center gap-2 text-md text-[#D32F2F] px-3 py-1 rounded-md cursor-not-allowed"
+  disabled
+>
+  <AiFillStop className="text-lg" />
+  <span>Rejected</span>
+</button>
           );
         } else {
           return null;
@@ -563,7 +571,7 @@ const StudentList = () => {
 
   return (
     <>
-      <h1 className="text-xl py-1 font-semibold">Admission Process</h1>
+      <h1 className="text-3xl py-4 font-bold">Admission Process</h1>
       <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
         <div className="px-6">
           <div className="flex gap-6 mt-4">

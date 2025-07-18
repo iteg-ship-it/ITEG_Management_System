@@ -150,7 +150,7 @@ const PlacementReadyStudents = () => {
 
   return (
     <>
-      <h1 className="text-xl py-1 font-semibold">Admission Process</h1>
+      <h1 className="text-3xl py-4 font-bold">Admission Process</h1>
       <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
         <div className="px-6">
           {/* Tabs */}
