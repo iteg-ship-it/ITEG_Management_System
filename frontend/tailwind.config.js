@@ -12,6 +12,8 @@ export default {
 
         // Optional: with 7.84% opacity using rgba
         brandYellowOpacity: 'rgba(253, 169, 45, 0.0784)',
+        customGreenText: '#118D57',
+        customGreenBg: 'rgba(34, 197, 94, 0.2)',
       },
       animation: {
         'spin-slow': 'spin 1.4s linear infinite',

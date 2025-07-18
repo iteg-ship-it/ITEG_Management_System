@@ -39,7 +39,7 @@ const StudentPermission = () => {
       {/* ✅ Data */}
       {!isLoading && !isError && students.length > 0 && (
         <div className="p-4">
-          <h2 className="text-2xl font-bold mb-6">Student Permissions</h2>
+          <h2 className="text-3xl py-4 font-bold">Student Permissions</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {students.map((student, index) => (
