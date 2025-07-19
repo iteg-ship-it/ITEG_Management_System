@@ -396,11 +396,6 @@ exports.getLevelWiseStudents = async (req, res) => {
     const { levelNo } = req.params;
 
   const students = await AdmittedStudent.aggregate([
-      {
-        $addFields: {
-          latestLevel: { $arrayElemAt: ["$level", -1] }
-        }
-      },
   {
     $match: {
       currentLevel: levelNo
