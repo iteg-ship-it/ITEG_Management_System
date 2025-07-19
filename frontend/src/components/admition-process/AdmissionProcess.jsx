@@ -2,7 +2,7 @@ import { useGetAllStudentsQuery } from "../../redux/api/authApi";
 import CommonTable from "../common-components/table/CommonTable";
 import { useEffect, useState, useMemo } from "react";
 import CustomTimeDate from "./CustomTimeDate";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Pagination from "../common-components/pagination/Pagination";
 import { AiFillStop } from "react-icons/ai";
 import { FaCheckCircle } from "react-icons/fa";
@@ -34,6 +34,7 @@ const StudentList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [AddInterviwModalOpen, setAddInterviwModalOpen] = useState(false);
   const [id, setId] = useState(null);
+  const navigate = useNavigate();
   
   const location = useLocation();
   const [createInterview, { isLoading: isSubmitting }] =
@@ -650,6 +651,9 @@ const StudentList = () => {
           rowsPerPage={rowsPerPage}
           searchTerm={searchTerm}
           actionButton={actionButton}
+          onRowClick={(row) =>
+          navigate(`/admission/edit/${row._id}`, { state: { student: row } })
+        }
         />
       </div>
       {isModalOpen && selectedStudentId && (
