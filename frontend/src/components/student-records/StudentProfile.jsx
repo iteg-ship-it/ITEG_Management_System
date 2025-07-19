@@ -24,7 +24,7 @@ import { Chart } from "react-google-charts";
 export default function StudentProfile() {
   const { id } = useParams();
   // const navigate = useNavigate();
-
+console.log("StudentProfile ~ id:", import.meta.VITE_GET_ADMITTED_STUDENTS_BY_ID);
   const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
   const [latestLevel, setLatestLevel] = useState("1A");
   const [isPermissionModalOpen, setPermissionModalOpen] = useState(false);

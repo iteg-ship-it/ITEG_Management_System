@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 
 const CommonTable = ({
   columns,
@@ -13,10 +13,11 @@ const CommonTable = ({
   extraColumn,
   currentPage: parentPage,
   onPageChange,
+  onRowClick
 }) => {
   const [internalPage, setInternalPage] = useState(1);
   const scrollRef = useRef(null);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const currentPage = parentPage ?? internalPage;
   const setCurrentPage = onPageChange ?? setInternalPage;
@@ -108,7 +109,7 @@ const CommonTable = ({
                 {paginatedData.map((row, rowIndex) => (
                   <tr key={rowIndex}
                     className="hover:bg-gray-100 text-md border-b border-gray-200 transition cursor-pointer"
-                    onClick={() => navigate(`/admission/edit/${row._id}`)} // ⬅️ Navigation trigger
+                    onClick={()=>onRowClick(row)} // ⬅️ Navigation trigger
                   >
                     <td className="px-4 py-3"
                       onClick={(e) => e.stopPropagation()} //Stop row click when clicking checkbox

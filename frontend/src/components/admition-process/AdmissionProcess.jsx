@@ -599,6 +599,9 @@ const StudentList = () => {
           rowsPerPage={rowsPerPage}
           searchTerm={searchTerm}
           actionButton={actionButton}
+          onRowClick={(row) =>
+          navigate(`/admission/edit/${row._id}`, { state: { student: row } })
+        }
         />
       </div>
       {isModalOpen && selectedStudentId && (
