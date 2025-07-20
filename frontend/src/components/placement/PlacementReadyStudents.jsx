@@ -20,11 +20,11 @@ const PlacementReadyStudents = () => {
   const { data = {} } = useGetReadyStudentsForPlacementQuery();
   const students = data?.data || [];
 
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTracks, setSelectedTracks] = useState([]);
   const [selectedResults, setSelectedResults] = useState([]);
-  const [selectedPercentages, setSelectedPercentages] = useState([]);
+  const [selectedPercentages] = useState([]);
   const [activeTab, setActiveTab] = useState("Qualified Students");
 
   const [isModalOpen, setIsModalOpen] = useState(false);

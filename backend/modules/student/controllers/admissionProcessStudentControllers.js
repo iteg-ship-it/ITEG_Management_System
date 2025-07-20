@@ -118,10 +118,10 @@ exports.updateAdmissionFlag = async (req, res, next) => {
     }
     // Find the student by prkey and update the admissionStatus
     const updatedStudent = await AdmissionProcess.findOneAndUpdate(
-      { admissionStatus },
-      { prkey},
-      { new: true }
-    );
+  { prkey: prkey },                    
+  { $set: { admissionStatus: admissionStatus } },
+  { new: true }                        
+);
     // console.log(updatedStudent);
     
 

@@ -2,11 +2,20 @@ import { useGetAllStudentsQuery } from "../../redux/api/authApi";
 import CommonTable from "../common-components/table/CommonTable";
 import { useEffect, useState, useMemo } from "react";
 import CustomTimeDate from "./CustomTimeDate";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Pagination from "../common-components/pagination/Pagination";
 import { AiFillStop } from "react-icons/ai";
 import { FaCheckCircle } from "react-icons/fa";
 import Loader from "../common-components/loader/Loader";
+import * as Yup from "yup";
+import { Formik, Form } from "formik";
+import InputField from "../common-components/common-feild/InputField";
+import SelectInput from "../common-components/common-feild/SelectInput";
+import {
+  useInterviewCreateMutation,
+} from "../../redux/api/authApi";
+import { toast } from "react-toastify";
+
 
 const toTitleCase = (str) =>
   str
@@ -23,8 +32,19 @@ const StudentList = () => {
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [atemendNumber, setAtemendNumber] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [AddInterviwModalOpen, setAddInterviwModalOpen] = useState(false);
+  const [id, setId] = useState(null);
   const navigate = useNavigate();
+  
   const location = useLocation();
+  const [createInterview, { isLoading: isSubmitting }] =
+      useInterviewCreateMutation();
+
+   const validationSchema = Yup.object().shape({
+      round: Yup.string().required("Required"),
+      remark: Yup.string().required("Remark is required"),
+      result: Yup.string().required("Result is required"),
+    });
 
   // Filter states per tab
   const [trackFilterTab1, setTrackFilterTab1] = useState([]);
@@ -155,6 +175,20 @@ const StudentList = () => {
       (a, b) => new Date(b.date) - new Date(a.date)
     )[0]?.result;
   };
+  const handleInterviewSubmit = async (values, { resetForm }) => {
+      try {
+      const response =  await createInterview({ ...values, studentId: id }).unwrap();
+        setAddInterviwModalOpen(false);
+        toast.success(response.message);
+        setIsModalOpen(false);
+        resetForm();
+        refetch();
+      } catch (err) {
+        toast.error(err?.data?.message || "Failed to create interview");
+      }
+    };
+  
+
 
   const matchTabCondition = (student) => {
     const latestResult = getLatestInterviewResult(student.interviews);
@@ -428,15 +462,25 @@ const StudentList = () => {
         },
       ];
       actionButton = (row) => (
-        <button
-          onClick={() => {
-            localStorage.setItem("studdedntDetails", JSON.stringify(row));
-            navigate(`/interview-detail/${row._id}?tab=${activeTab}`);
-          }}
-          className="bg-orange-500 text-md text-white px-3 py-1 rounded"
-        >
-          Interviews Detail
-        </button>
+        // <button
+        //   onClick={() => {
+        //     localStorage.setItem("studdedntDetails", JSON.stringify(row));
+        //     // navigate(`/interview-detail/${row._id}?tab=${activeTab}`);
+        //   }}
+        //   className="bg-orange-500 text-md text-white px-3 py-1 rounded"
+        // >
+        //   Interviews Detail
+        // </button>' {/* <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-4">
+                <button
+                  onClick={() => {setAddInterviwModalOpen(true) 
+                  setId(row._id)
+                  } }
+                  className="px-4 py-2 bg-brandYellow text-white rounded-md hover:bg-orange-600 transition"
+                >
+                  + Add Interview
+                </button>
+              </div> 
       );
       break;
 
@@ -607,6 +651,9 @@ const StudentList = () => {
           rowsPerPage={rowsPerPage}
           searchTerm={searchTerm}
           actionButton={actionButton}
+          onRowClick={(row) =>
+          navigate(`/admission/edit/${row._id}`, { state: { student: row } })
+        }
         />
       </div>
       {isModalOpen && selectedStudentId && (
@@ -619,6 +666,67 @@ const StudentList = () => {
           activeTab={activeTab}
         />
       )}
+       {AddInterviwModalOpen && (
+              <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm">
+                <div className="bg-white rounded-xl p-6 w-[95%] max-w-xl max-h-[90vh] overflow-y-auto relative shadow-2xl">
+                  <h2 className="text-xl font-bold text-center text-orange-500 mb-6">
+                    Add Interview
+                  </h2>
+                  <Formik
+                    initialValues={{
+                      round: "Second",
+                      remark: "",
+                      result: "Pending",
+                    }}
+                    validationSchema={validationSchema}
+                    onSubmit={handleInterviewSubmit}
+                  >
+                    {() => (
+                      <Form className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <SelectInput
+                          label="Round"
+                          name="round"
+                          disabled
+                          options={[{ value: "Second", label: "Final Round" }]}
+                        />
+                        <InputField label="Remark" name="remark" />
+                        <SelectInput
+                          label="Result"
+                          name="result"
+                          options={[
+                            { value: "Pass", label: "Pass" },
+                            { value: "Fail", label: "Fail" },
+                            { value: "Pending", label: "Pending" },
+                          ]}
+                        />
+                        <div className="md:col-span-2 flex justify-end space-x-3 mt-4">
+                          <button
+                            type="button"
+                            onClick={() => setAddInterviwModalOpen(false)}
+                            className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="px-5 py-2 bg-brandYellow text-white rounded-md hover:bg-orange-600 transition disabled:opacity-50"
+                          >
+                            {isSubmitting ? "Submitting..." : "Submit"}
+                          </button>
+                        </div>
+                      </Form>
+                    )}
+                  </Formik>
+                  <button
+                    onClick={() => setAddInterviwModalOpen(false)}
+                    className="absolute top-3 right-4 text-xl text-gray-400 hover:text-gray-700"
+                  >
+                    &times;
+                  </button>
+                </div>
+              </div>
+            )}
     </>
   );
 };

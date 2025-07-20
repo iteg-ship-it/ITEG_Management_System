@@ -93,18 +93,18 @@ exports.getAllStudentsByLevel = async (req, res) => {
   try {
     const { levelNo } = req.params;
 
-    const students = await AdmittedStudent.aggregate([
-      {
-        $addFields: {
-          latestLevel: { $arrayElemAt: ["$level", -1] }
-        }
-      },
-      {
+const students = await AdmittedStudent.aggregate([
+  {
+    $addFields: {
+      latestLevel: { $arrayElemAt: ["$level", -1] }
+    }
+  },
+  {
         $match: {
           "latestLevel.levelNo": levelNo
-        }
-      }
-    ]);
+    }
+  }
+]);
 
     if (!students || students.length === 0) {
       return res.status(404).json({ message: "No students found for this level" });
@@ -227,8 +227,16 @@ exports.createLevels = async (req, res) => {
 
     student.level.push(newInterview);
 
-    // ✅ If the new result is "Pass", check if all levels are now passed
+    // ✅ Update currentLevel if pass
     if (newInterview.result === "Pass") {
+      const currentLevelIndex = LevelOrder.indexOf(newInterview.levelNo);
+      const nextLevelInOrder = LevelOrder[currentLevelIndex + 1];
+
+      if (nextLevelInOrder) {
+        student.currentLevel = nextLevelInOrder;
+      }
+
+      // Mark student ready if all levels are passed
       const allLevelsPassed = LevelOrder.every(level =>
         student.level.some(entry => entry.levelNo === level && entry.result === "Pass")
       );
@@ -252,8 +260,17 @@ exports.createLevels = async (req, res) => {
       if (allLevelsPassed) {
         student.readinessStatus = "Ready";
       }
+
+      // Send email after 1C passed
+      if (newInterview.levelNo === "1C" && student.email) {
+        await sendHTMLMail({
+          to: student.email,
+          studentName: student.firstName + " " + student.lastName,
+        });
+      }
     }
-    // // ✅ Send plain text email if admission confirmed
+
+    // Send fail email if applicable
     if (newInterview.result === "Fail" && student.email) {
       await sendEmail({
         to: student.email,
@@ -378,18 +395,13 @@ exports.getLevelWiseStudents = async (req, res) => {
   try {
     const { levelNo } = req.params;
 
-    const students = await AdmittedStudent.aggregate([
-      {
-        $addFields: {
-          latestLevel: { $arrayElemAt: ["$level", -1] }
-        }
-      },
-      {
-        $match: {
-          "latestLevel.levelNo": levelNo
-        }
-      }
-    ]);
+  const students = await AdmittedStudent.aggregate([
+  {
+    $match: {
+      currentLevel: levelNo
+    }
+  }
+]);
 
     if (!students || students.length === 0) {
       return res.status(404).json({ message: "No students found for this level" });

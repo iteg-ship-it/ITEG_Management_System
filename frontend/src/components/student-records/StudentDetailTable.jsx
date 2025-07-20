@@ -170,6 +170,9 @@ const StudentDetailTable = () => {
         rowsPerPage={rowsPerPage}
         isLoading={isLoading}
         actionButton={actionButton}
+        onRowClick={(row) =>
+          navigate(`/student-profile/${row._id}`, { state: { student: row } })
+        }
       />
       <CreateInterviewModal
         isOpen={showModal}

@@ -80,8 +80,9 @@ const AdmittedStudentSchema = new mongoose.Schema({
   percent12: { type: String },
   percent10: { type: String },
   year: { type: String, required: true, default: "first" },
-
+  
   // 📚 Academic & Activity
+  currentLevel: { type: String, default: "1A" }, // e.g., "Level 1
   level: { type: [levelSchema], default: [] },
 
   techno: { type: String, default: "" },

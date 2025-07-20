@@ -190,3 +190,6 @@ const Detail = ({ label, value }) => (
 
 export default AdmissionInterviewDetails;
 
+
+
+
