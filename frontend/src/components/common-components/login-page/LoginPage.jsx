@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import CryptoJS from "crypto-js";
 import { useLoginMutation } from "../../../redux/api/authApi";
+import Loader from "../loader/Loader";
 
 import ReusableForm from "../../../ReusableForm";
 import { loginValidationSchema } from "../../../validationSchema";
@@ -65,6 +66,7 @@ const LoginPage = () => {
         backgroundSize: "cover",
       }}
     >
+      {isLoading && <Loader />}
       <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg">
         <ReusableForm
           initialValues={initialValues}
@@ -98,7 +100,7 @@ const LoginPage = () => {
 
               <button
                 type="submit"
-                className="w-full bg-brandYellow text-white py-3 rounded-full mt-4 hover:bg-orange-600 transition"
+                className="w-full bg-brandYellow text-white py-3 rounded-full mt-4 hover:bg-orange-600 transition relative"
                 disabled={isLoading}
               >
                 {isLoading ? "Logging in..." : "Sign in"}

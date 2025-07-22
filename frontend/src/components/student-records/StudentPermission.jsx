@@ -13,14 +13,16 @@ const StudentPermission = () => {
 
   const students = data?.data || [];
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader />
+      </div>
+    );
+  }
+
   return (
     <>
-      {/* 🌀 Loader */}
-      {isLoading && (
-        <div className="min-h-screen flex items-center justify-center bg-white">
-          <Loader />
-        </div>
-      )}
 
       {/* ❌ Error */}
       {!isLoading && isError && (

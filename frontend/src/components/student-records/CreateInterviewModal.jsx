@@ -21,15 +21,15 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                     id: studentId,
                     data: values,
                 }).unwrap();
-
-                alert("Interview added successfully");
-
-                refetchStudents(); // 🔁 Refresh student list
+                
+                // Just refresh and close without alerts
+                refetchStudents();
                 formik.resetForm();
                 onClose();
             } catch (err) {
                 console.error(err);
-                alert("Failed to add interview");
+                // Silently close even on error
+                onClose();
             }
         },
     });
