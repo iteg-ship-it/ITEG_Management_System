@@ -3,13 +3,14 @@ import {
   useGetReadyStudentsForPlacementQuery,
   useUpdatePlacedInfoMutation,
 } from "../../redux/api/authApi";
+import Loader from "../common-components/loader/Loader";
 import profile from "../../assets/images/profileImgDummy.jpeg";
 import { Dialog } from "@headlessui/react";
 import { toast } from "react-toastify";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
 
 const PlacementRecords = () => {
-  const { data = {}, refetch } = useGetReadyStudentsForPlacementQuery();
+  const { data = {}, refetch, isLoading } = useGetReadyStudentsForPlacementQuery();
   const students = data?.data || [];
 
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -74,9 +75,16 @@ const PlacementRecords = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader />
+      </div>
+    );
+  }
+
   return (
     <>
-
       <div className="space-y-6 p-4">
         {students.map((student) => (
           <div

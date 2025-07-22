@@ -6,6 +6,7 @@ import {
   // useGetAllStudentsByLevelQuery,
   // useGetLevelNumberQuery
 } from "../../redux/api/authApi";
+import Loader from "../common-components/loader/Loader";
 import CommonTable from "../common-components/table/CommonTable";
 import edit from "../../assets/icons/edit-fill-icon.png";
 import interview from "../../assets/icons/interview-icon.png";
@@ -142,6 +143,15 @@ const StudentDetailTable = () => {
     </>
   );
 
+  // Show loader when data is loading
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader />
+      </div>
+    );
+  }
+
   return (
     <>
       {selectedLevel && (
@@ -168,7 +178,7 @@ const StudentDetailTable = () => {
         editable={true}
         pagination={true}
         rowsPerPage={rowsPerPage}
-        isLoading={isLoading}
+        isLoading={false}
         actionButton={actionButton}
         onRowClick={(row) =>
           navigate(`/student-profile/${row._id}`, { state: { student: row } })

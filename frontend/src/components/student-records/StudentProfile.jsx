@@ -38,11 +38,14 @@ console.log("StudentProfile ~ id:", import.meta.VITE_GET_ADMITTED_STUDENTS_BY_ID
     }
   }, [studentData]);
 
-  {isLoading && (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <Loader />
-    </div>
-  )}
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader />
+      </div>
+    );
+  }
+  
   if (isError || !studentData) return <div className="p-4 text-red-500">Error loading student data.</div>;
 
   const graphData = [

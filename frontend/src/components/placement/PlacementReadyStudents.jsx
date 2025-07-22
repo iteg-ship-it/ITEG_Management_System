@@ -4,6 +4,7 @@ import Pagination from "../common-components/pagination/Pagination";
 import {
   useGetReadyStudentsForPlacementQuery,
 } from "../../redux/api/authApi";
+import Loader from "../common-components/loader/Loader";
 import CommonTable from "../common-components/table/CommonTable";
 import ScheduleInterviewModal from "./ScheduleInterviewModal";
 import profile from "../../assets/images/profileImgDummy.jpeg";
@@ -17,7 +18,7 @@ const toTitleCase = (str) =>
     .join(" ");
 
 const PlacementReadyStudents = () => {
-  const { data = {} } = useGetReadyStudentsForPlacementQuery();
+  const { data = {}, isLoading } = useGetReadyStudentsForPlacementQuery();
   const students = data?.data || [];
 
   const [rowsPerPage] = useState(10);
@@ -147,6 +148,14 @@ const PlacementReadyStudents = () => {
     setActiveTab(tab);
     localStorage.setItem("admissionActiveTab", tab);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <>

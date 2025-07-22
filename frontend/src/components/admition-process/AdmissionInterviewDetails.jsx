@@ -40,11 +40,14 @@ const AdmissionInterviewDetails = () => {
         }
     };
 
-    {isLoading && (
-        <div className="min-h-screen flex items-center justify-center bg-white">
-          <Loader />
-        </div>
-      )}
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-white">
+                <Loader />
+            </div>
+        );
+    }
+    
     if (error) return <p className="text-center text-red-600">Error loading interview details.</p>;
 
     return (

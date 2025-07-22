@@ -7,11 +7,13 @@ const StudentLevelData = () => {
   const { id } = useParams(); // assuming route is /student/leveldata/:id
   const { data, isLoading, error } = useGetLevelInterviewQuery(id);
 
-  {isLoading && (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <Loader />
-    </div>
-  )}
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader />
+      </div>
+    );
+  }
 
   if (error) {
     return (
