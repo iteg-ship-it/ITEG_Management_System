@@ -11,7 +11,7 @@ const StudentAdmissionProcessSchema = new mongoose.Schema(
     parentMobile: { type: String, required: true },
     gender: { type: String},
     dob: { type: Date },
-    aadharCard: { type: String},
+    aadharCard: { type: String, unique: true },
     address: { type: String, required: true },
     track: { type: String },   
     village: { type: String, required: true },
