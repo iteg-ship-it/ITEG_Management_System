@@ -6,7 +6,7 @@ import Loader from "../common-components/loader/Loader";
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const { data: students = [], isLoading } = useAdmitedStudentsQuery();
-  const [studentCounts, setStudentCounts] = useState({});
+  const [setStudentCounts] = useState({});
   const [activeTab, setActiveTab] = useState("Level 1A");
 
   const levelTabs = ["Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C"];
