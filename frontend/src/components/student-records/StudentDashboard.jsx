@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import forward from "../../assets/icons/forward-icon.png";
 import { useAdmitedStudentsQuery } from "../../redux/api/authApi";
+import Loader from "../common-components/loader/Loader";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const { data: students = [], isLoading } = useAdmitedStudentsQuery();
   const [studentCounts, setStudentCounts] = useState({});
+  const [activeTab, setActiveTab] = useState("Level 1A");
 
-  const yearCategories = ["1A", "1B", "1C", "2A", "2B", "2C"];
+  const levelTabs = ["Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C"];
 
   useEffect(() => {
     if (!isLoading && students.length > 0) {
@@ -31,60 +32,50 @@ const StudentDashboard = () => {
     }
   }, [isLoading, students]);
 
-  const getColor = (index) => {
-    const colors = [
-      "bg-brandYellow",
-      "bg-blue-500",
-      "bg-green-500",
-      "bg-purple-500",
-      "bg-pink-500",
-      "bg-red-700",
-    ];
-    return colors[index % colors.length];
+  // Auto-navigate to Level 1A on component mount
+  useEffect(() => {
+    // Always navigate to student-detail-table with Level 1A when this component mounts
+    const levelCode = "1A";
+    navigate(`/student-detail-table`, { state: { level: levelCode }, replace: true });
+  }, [navigate]);
+
+  const handleTabClick = (tab) => {
+    setActiveTab(tab);
+    // Extract level code from tab name (e.g., "Level 1A" -> "1A")
+    const levelCode = tab.replace("Level ", "");
+    navigate(`/student-detail-table`, { state: { level: levelCode } });
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <>
-      <h1 className="text-3xl py-4 font-bold">Student Level Group</h1>
-      <div className="container py-2 mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 md:gap-5">
-          {yearCategories.map((year, index) => (
-            <div
-              onClick={() => navigate(`/student-detail-table`, { state: { level: year } })}
-              key={year}
-              className="bg-white hover:shadow-xl transition-all duration-300 hover:scale-105 rounded-lg p-5 border border-gray-200 cursor-pointer flex flex-col justify-between"
-            >
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                👨‍🎓 Trainee Level {year}
-              </h3>
-              <p className="text-sm text-gray-600 mt-1">
-                All enrolled {year} students categorized by department
-              </p>
-
-              {isLoading ? (
-                <div className="h-5 mt-4 w-24 bg-gray-200 rounded animate-pulse"></div>
-              ) : (
-                <p className="text-sm font-medium mt-3 pt-10">
-                  Total: {studentCounts[year] || 0} students
+      <h1 className="text-3xl py-4 font-bold">Student Level Progress</h1>
+      <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
+        <div className="px-6">
+          {/* Level Tabs */}
+          <div className="flex gap-6 mt-4 overflow-x-auto">
+            {levelTabs.map((tab) => (
+              <div key={tab}>
+                <p
+                  onClick={() => handleTabClick(tab)}
+                  className={`cursor-pointer text-md text-[var(--text-color)] pb-2 border-b-2 whitespace-nowrap ${
+                    activeTab === tab
+                      ? "border-[var(--text-color)] font-semibold"
+                      : "border-gray-200"
+                  }`}
+                >
+                  {tab}
                 </p>
-              )}
-
-              <div className={`h-1 w-full mt-2 rounded ${getColor(index)}`} />
-
-              <button
-                className="mt-4 w-full flex items-center justify-between font-semibold py-2 px-4 hover:bg-gray-100 rounded"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // handelGoLevel(year);
-                  navigate(`/student-detail-table`, { state: { level: year } });
-                }}
-              >
-                View Students
-                <img src={forward} alt="forward" className="w-5 h-5" />
-              </button>
-            </div>
-          ))}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </>
