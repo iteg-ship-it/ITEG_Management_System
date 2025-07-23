@@ -476,9 +476,9 @@ const StudentList = () => {
                   onClick={() => {setAddInterviwModalOpen(true) 
                   setId(row._id)
                   } }
-                  className="px-4 py-2 bg-brandYellow text-white rounded-md hover:bg-orange-600 transition"
+                  className="bg-orange-500 text-md text-white px-3 py-1 rounded"
                 >
-                  + Add Interview
+                  Add Interview
                 </button>
               </div> 
       );

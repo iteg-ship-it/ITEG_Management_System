@@ -138,7 +138,7 @@ const PlacementReadyStudents = () => {
         setSelectedStudent(student);
         setIsModalOpen(true);
       }}
-      className="bg-[#FFAA2C] text-white px-3 py-1.5 text-sm font-medium rounded hover:bg-[#ff9d0c]"
+      className="bg-orange-500 text-md text-white px-3 py-1 rounded"
     >
       Add Interview
     </button>
