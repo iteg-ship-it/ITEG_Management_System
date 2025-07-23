@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { IoMenu } from "react-icons/io5";
 import { FaClipboardList } from "react-icons/fa6";
@@ -11,8 +11,95 @@ const Sidebar = ({ children }) => {
   const [isOpen, setIsOpen] = useState(true);
   const location = useLocation();
   const role = (localStorage.getItem("role") || "").toLowerCase();
+  
+  // Update open menus when location changes
+  useEffect(() => {
+    const path = location.pathname;
+    const newOpenMenus = [];
+    
+    // Admissions menu (index 0)
+    if (path === "/" || path.startsWith("/admission/") || 
+        path.startsWith("/interview-detail/") || path === "/admission-record") {
+      newOpenMenus.push(0);
+      
+      // Store the source section in localStorage to remember where we came from
+      localStorage.setItem("lastSection", "admission");
+    }
+    
+    // Admitted menu (index 1)
+    if (path === "/student-dashboard" || path === "/student-detail-table" || 
+        path.startsWith("/student/") || path === "/student-permission" ||
+        path.startsWith("/student-profile/")) {
+      newOpenMenus.push(1);
+      
+      // Store the source section in localStorage to remember where we came from
+      localStorage.setItem("lastSection", "admitted");
+    }
+    
+    // Placements menu (index 2)
+    if (path === "/readiness-status" || path === "/placement-interview-record" || 
+        path === "/placement-post") {
+      newOpenMenus.push(2);
+    }
+    
+    // Special handling for student profile pages to maintain the correct active section
+    if (path.startsWith("/student-profile/")) {
+      const lastSection = localStorage.getItem("lastSection");
+      if (lastSection === "admission") {
+        newOpenMenus.push(0); // Keep Admission menu open
+      } else {
+        newOpenMenus.push(1); // Default to Admitted menu
+      }
+    }
+    
+    // Only update if we have matches and the current openMenus doesn't include all of them
+    if (newOpenMenus.length > 0) {
+      setOpenMenus(prev => {
+        // Keep existing open menus and add new ones
+        const combined = [...new Set([...prev, ...newOpenMenus])];
+        return combined;
+      });
+    }
+  }, [location.pathname]);
 
-  const [openMenus, setOpenMenus] = useState([0, 1, 2]);
+  // Initialize open menus based on current path
+  const getInitialOpenMenus = () => {
+    const path = location.pathname;
+    const openMenus = [];
+    
+    // Admissions menu (index 0)
+    if (path === "/" || path.startsWith("/admission/") || 
+        path.startsWith("/interview-detail/") || path === "/admission-record") {
+      openMenus.push(0);
+    }
+    
+    // Admitted menu (index 1)
+    if (path === "/student-dashboard" || path === "/student-detail-table" || 
+        path.startsWith("/student/") || path === "/student-permission") {
+      openMenus.push(1);
+    }
+    
+    // Placements menu (index 2)
+    if (path === "/readiness-status" || path === "/placement-interview-record" || 
+        path === "/placement-post") {
+      openMenus.push(2);
+    }
+    
+    // Special handling for student profile pages
+    if (path.startsWith("/student-profile/")) {
+      const lastSection = localStorage.getItem("lastSection");
+      if (lastSection === "admission") {
+        openMenus.push(0); // Keep Admission menu open
+      } else {
+        openMenus.push(1); // Default to Admitted menu
+      }
+    }
+    
+    // Default to all open if no match
+    return openMenus.length > 0 ? openMenus : [0, 1, 2];
+  };
+  
+  const [openMenus, setOpenMenus] = useState(getInitialOpenMenus());
 
   const menuItems = [
     {
@@ -104,9 +191,41 @@ const Sidebar = ({ children }) => {
                     {isActive && (
                       <div className="ml-1 ">
                         {item.subMenu.map((sub, i) => {
-                          const active =
-                            location.pathname === sub.path ||
+                          // Check if this is the active route
+                          let active = location.pathname === sub.path ||
                             location.pathname.startsWith(sub.path + "/");
+                            
+                          // Special cases to keep sidebar items active when navigating between related pages
+                          if ((location.pathname === "/student-detail-table" || 
+                               location.pathname.startsWith("/student-profile/")) && 
+                              sub.path === "/student-dashboard") {
+                            active = true;
+                          }
+                          
+                          // Keep Admission WorkFlow active for admission-related pages
+                          if ((location.pathname.startsWith("/admission/") || 
+                               location.pathname.startsWith("/interview-detail/") ||
+                               location.pathname === "/admission-record") && 
+                              sub.path === "/") {
+                            active = true;
+                          }
+                          
+                          // Special handling for student profile pages
+                          if (location.pathname.startsWith("/student-profile/")) {
+                            const lastSection = localStorage.getItem("lastSection");
+                            if (lastSection === "admission" && sub.path === "/") {
+                              active = true; // Keep Admission WorkFlow active
+                            } else if ((lastSection === "admitted" || !lastSection) && sub.path === "/student-dashboard") {
+                              active = true; // Keep Student Progress active
+                            }
+                          }
+                          
+                          // Keep Placement Candidates active for placement-related pages
+                          if (sub.path === "/readiness-status" && 
+                              (location.pathname.includes("/placement-") || 
+                               location.pathname.includes("/readiness-"))) {
+                            active = true;
+                          }
                           return (
                             <Link
                               key={i}

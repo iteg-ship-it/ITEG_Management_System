@@ -651,9 +651,11 @@ const StudentList = () => {
           rowsPerPage={rowsPerPage}
           searchTerm={searchTerm}
           actionButton={actionButton}
-          onRowClick={(row) =>
-          navigate(`/admission/edit/${row._id}`, { state: { student: row } })
-        }
+          onRowClick={(row) => {
+            // Set the source section to 'admission' before navigating
+            localStorage.setItem("lastSection", "admission");
+            navigate(`/admission/edit/${row._id}`, { state: { student: row } });
+          }}
         />
       </div>
       {isModalOpen && selectedStudentId && (

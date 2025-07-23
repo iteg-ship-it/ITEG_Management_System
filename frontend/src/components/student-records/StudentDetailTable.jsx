@@ -230,9 +230,11 @@ const StudentDetailTable = () => {
           rowsPerPage={rowsPerPage}
           searchTerm={searchTerm}
           actionButton={actionButton}
-          onRowClick={(row) =>
-            navigate(`/student-profile/${row._id}`, { state: { student: row } })
-          }
+          onRowClick={(row) => {
+            // Set the source section to 'admitted' before navigating
+            localStorage.setItem("lastSection", "admitted");
+            navigate(`/student-profile/${row._id}`, { state: { student: row } });
+          }}
         />
       </div>
       
