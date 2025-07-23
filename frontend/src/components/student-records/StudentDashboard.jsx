@@ -6,6 +6,7 @@ import Loader from "../common-components/loader/Loader";
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const { data: students = [], isLoading } = useAdmitedStudentsQuery();
+  // eslint-disable-next-line no-unused-vars
   const [studentCounts, setStudentCounts] = useState({});
   const [activeTab, setActiveTab] = useState("Level 1A");
 

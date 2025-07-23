@@ -7,7 +7,7 @@ import {
 import Loader from "../common-components/loader/Loader";
 import CommonTable from "../common-components/table/CommonTable";
 // import edit from "../../assets/icons/edit-fill-icon.png";
-import interview from "../../assets/icons/interview-icon.png";
+// import interview from "../../assets/icons/interview-icon.png";
 import CreateInterviewModal from "./CreateInterviewModal";
 
 const StudentDetailTable = () => {
@@ -38,20 +38,20 @@ const StudentDetailTable = () => {
       .join(" ");
 
   // Count students per level
-  const studentCounts = useMemo(() => {
-    const counts = {};
-    data.forEach((student) => {
-      const passedLevels = (student.level || []).filter(
-        (lvl) => lvl.result === "Pass"
-      );
-      const latestLevel =
-        passedLevels.length > 0
-          ? passedLevels[passedLevels.length - 1].levelNo
-          : "1A";
-      counts[latestLevel] = (counts[latestLevel] || 0) + 1;
-    });
-    return counts;
-  }, [data]);
+  // const studentCounts = useMemo(() => {
+  //   const counts = {};
+  //   data.forEach((student) => {
+  //     const passedLevels = (student.level || []).filter(
+  //       (lvl) => lvl.result === "Pass"
+  //     );
+  //     const latestLevel =
+  //       passedLevels.length > 0
+  //         ? passedLevels[passedLevels.length - 1].levelNo
+  //         : "1A";
+  //     counts[latestLevel] = (counts[latestLevel] || 0) + 1;
+  //   });
+  //   return counts;
+  // }, [data]);
 
   // Dynamic track options from data
   const dynamicTrackOptions = useMemo(() => {
@@ -74,17 +74,27 @@ const StudentDetailTable = () => {
   ];
 
   const enhancedData = data.map((student) => {
-    const passedLevels = (student.level || []).filter(
-      (lvl) => lvl.result === "Pass"
-    );
-    const latestPassedLevel =
-      passedLevels.length > 0
-        ? passedLevels[passedLevels.length - 1].levelNo
-        : "1A";
-
+    // Get all level attempts grouped by levelNo
+    const levelAttempts = {};
+    (student.level || []).forEach(lvl => {
+      if (!levelAttempts[lvl.levelNo]) {
+        levelAttempts[lvl.levelNo] = [];
+      }
+      levelAttempts[lvl.levelNo].push(lvl);
+    });
+    
+    // Check if the student has passed their current level
+    const currentLevel = student.currentLevel || "1A";
+    const currentLevelAttempts = levelAttempts[currentLevel] || [];
+    
+    // Check if any attempt for the current level has a Pass result
+    const hasPassedCurrentLevel = currentLevelAttempts.some(lvl => lvl.result === "Pass");
+    
     return {
       ...student,
-      latestLevel: latestPassedLevel,
+      latestLevel: currentLevel,
+      hasPassedCurrentLevel,
+      levelAttempts
     };
   });
 
@@ -103,8 +113,8 @@ const StudentDetailTable = () => {
     const matchesResult = selectedResults.length === 0 || 
       selectedResults.includes(student.result || "Pending");
 
-    // Level filter
-    const matchesLevel = student.latestLevel === selectedLevel;
+    // Level filter - only show students whose current level matches the selected tab
+    const matchesLevel = student.currentLevel === selectedLevel;
 
     return matchesTrack && matchesResult && matchesLevel;
   });
@@ -133,16 +143,19 @@ const StudentDetailTable = () => {
       label: "Course",
       render: (row) => toTitleCase(row.course || ""),
     },
-    { key: "latestLevel", label: "Level" },
-    { 
-      key: "village", 
-      label: "Village",
-      render: (row) => toTitleCase(row.village || ""),
-    },
     { 
       key: "track", 
       label: "Track",
       render: (row) => toTitleCase(row.track || ""),
+    },
+    {
+      key: "attempts",
+      label: "Attempts",
+      render: (row) => {
+        // Get attempts for the current level from our pre-processed data
+        const currentLevelAttempts = row.levelAttempts?.[selectedLevel] || [];
+        return currentLevelAttempts.length || 0;
+      }
     },
   ];
 
@@ -152,6 +165,11 @@ const StudentDetailTable = () => {
         onClick={(e) => {
           e.stopPropagation();
           setSelectedStudentId(student._id);
+          // Store student data in localStorage for the modal to access
+          const students = JSON.parse(localStorage.getItem("students") || "[]");
+          if (!students.some(s => s._id === student._id)) {
+            localStorage.setItem("students", JSON.stringify([...students, student]));
+          }
           setShowModal(true);
         }}
         className="bg-brandYellow text-white px-3 py-1 rounded hover:bg-orange-600 transition"
@@ -172,7 +190,7 @@ const StudentDetailTable = () => {
 
   return (
     <>
-      <h1 className="text-3xl py-4 font-bold">Student Level Progress</h1>
+      <h1 className="text-3xl py-4 font-bold">Admitted Student WorkFlow</h1>
       <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
         <div className="px-6">
           {/* Level Tabs */}
