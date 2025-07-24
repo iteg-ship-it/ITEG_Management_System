@@ -661,7 +661,7 @@ const AdmissionEditPage = () => {
     subject12: studentData?.subject12 || "",
     percent12: studentData?.percent12 || "",
     percent10: studentData?.percent10 || "",
-    passoutYear: studentData?.passoutYear || "",
+    year12: studentData?.year12 || "",
     interviewMarks: studentData?.interviewMarks || "",
     result: studentData?.result || "",
   };
@@ -795,9 +795,9 @@ const AdmissionEditPage = () => {
                   disabled
                 />
                 <InputField
-                  name="passoutYear"
+                  name="year12"
                   label="Passout Year"
-                  value={values.passoutYear}
+                  value={values.year12}
                   onChange={handleChange}
                   onBlur={handleBlur}
                   disabled

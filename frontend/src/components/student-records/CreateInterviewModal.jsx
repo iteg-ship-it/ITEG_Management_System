@@ -129,7 +129,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                                         const { name, value } = e.target;
                                         setFieldValue(name, value);
                                     }}
-                                    className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" 
+                                    className="w-full border p-3 rounded-lg focus:outline-none" 
                                 />
                                 <ErrorMessage name="Theoretical_Marks" component="div" className="text-red-500 text-xs mt-1" />
                             </div>
@@ -144,7 +144,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                                         const { name, value } = e.target;
                                         setFieldValue(name, value);
                                     }}
-                                    className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" 
+                                    className="w-full border p-3 rounded-lg focus:outline-none" 
                                 />
                                 <ErrorMessage name="Practical_Marks" component="div" className="text-red-500 text-xs mt-1" />
                             </div>
@@ -159,7 +159,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                                         const { name, value } = e.target;
                                         setFieldValue(name, value);
                                     }}
-                                    className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" 
+                                    className="w-full border p-3 rounded-lg focus:outline-none" 
                                 />
                                 <ErrorMessage name="Communication_Marks" component="div" className="text-red-500 text-xs mt-1" />
                             </div>
@@ -187,7 +187,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                                         const { name, value } = e.target;
                                         setFieldValue(name, value);
                                     }}
-                                    className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                    className="w-full border p-3 rounded-lg focus:outline-none"
                                 >
                                     <option value="Pending">Pending</option>
                                     <option value="Pass">Pass</option>
@@ -204,7 +204,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                                         const { name, value } = e.target;
                                         setFieldValue(name, value);
                                     }}
-                                    className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 min-h-[80px]" 
+                                    className="w-full border p-3 rounded-lg focus:outline-none min-h-[80px]" 
                                 />
                             </div>
                             
