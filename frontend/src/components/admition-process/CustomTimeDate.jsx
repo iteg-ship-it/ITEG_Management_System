@@ -17,6 +17,16 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
   console.log("activeTab", activeTab);
   const userInfo = JSON.parse(localStorage.getItem("user")) || {};
   const [lastAttempt, setLastAttempt] = useState(0);
+  const [studentName, setStudentName] = useState("");
+  
+  // Get student name directly from localStorage
+  useEffect(() => {
+    const storedStudent = JSON.parse(localStorage.getItem("currentInterviewStudent") || "{}");
+    if (storedStudent && storedStudent.name) {
+      setStudentName(storedStudent.name);
+    }
+  }, []);
+  
   console.log("lastAttempt", lastAttempt);
 
   // const { id } = useParams();
@@ -29,7 +39,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
 
   const initialValues = {
     created_by: userInfo.name || "",
-    date: "",
+    date: new Date().toISOString().split('T')[0],
     // maths: activeTab === "Technical Round" ? lastAttempt?.maths : 0,
     maths:
       activeTab === "Technical Round" && lastAttempt?.maths !== undefined
@@ -97,7 +107,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
 
       // 🔥 Custom messages based on result
       if (values.result === "Pass") {
-        toast.success("🎉 Interview marked as *Pass*!");
+        toast.success("🎉 Interview marked as *Pass*! Student moved to Final Round.");
       } else if (values.result === "Fail") {
         toast.warning("⚠️ Interview marked as *Fail*!");
       } else {
@@ -146,14 +156,21 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
       });
     }
   }, [attemptData]);
+  
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
       <div className="bg-white rounded-xl py-6 px-8 w-full max-w-3xl h-[95vh] overflow-y-auto no-scrollbar relative">
-        <h2 className="text-2xl font-bold text-center text-orange-500 mb-6">
-          Technical Interview Form
-        </h2>
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-center text-orange-500">
+            Technical Interview Form
+          </h2>
+          <p className="text-center mt-2 text-lg font-medium text-gray-800">
+            Student Name - {studentName}
+          </p>
+        </div>
 
         <Formik
           enableReinitialize

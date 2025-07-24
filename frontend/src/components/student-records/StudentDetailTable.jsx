@@ -172,7 +172,7 @@ const StudentDetailTable = () => {
           }
           setShowModal(true);
         }}
-        className="bg-brandYellow text-white px-3 py-1 rounded hover:bg-orange-600 transition"
+        className="bg-orange-500 text-md text-white px-3 py-1 rounded"
       >
         Take Interview
       </button>
@@ -230,9 +230,11 @@ const StudentDetailTable = () => {
           rowsPerPage={rowsPerPage}
           searchTerm={searchTerm}
           actionButton={actionButton}
-          onRowClick={(row) =>
-            navigate(`/student-profile/${row._id}`, { state: { student: row } })
-          }
+          onRowClick={(row) => {
+            // Set the source section to 'admitted' before navigating
+            localStorage.setItem("lastSection", "admitted");
+            navigate(`/student-profile/${row._id}`, { state: { student: row } });
+          }}
         />
       </div>
       

@@ -203,9 +203,12 @@ const StudentList = () => {
           (!hasInterviews || firstRound.length === 0)
         );
       case "Technical Round":
+        // Only show students who have failed the technical round
+        // Don't show students who have passed
         return (
           firstRound.length > 0 &&
-          firstRound.some((i) => i.result === "Pending" || i.result === "Fail")
+          !firstRound.some((i) => i.result === "Pass") &&
+          firstRound.some((i) => i.result === "Fail")
         );
       case "Final Round":
         return (
@@ -262,6 +265,11 @@ const StudentList = () => {
       student?.interviews?.filter((item) => item.round === "First") || [];
     setSelectedStudentId(student._id);
     setAtemendNumber(numberOfAttempted.length);
+    // Store student name in localStorage for the interview form
+    localStorage.setItem("currentInterviewStudent", JSON.stringify({
+      name: `${student.firstName} ${student.lastName}`,
+      id: student._id
+    }));
     setIsModalOpen(true);
   };
 
@@ -363,9 +371,9 @@ const StudentList = () => {
           render: (row) => toTitleCase(row.course),
         },
         {
-          key: "village",
+          key: "marks",
           label: "Marks",
-          render: (row) => toTitleCase(row.village),
+          render: (row) => row.onlineTest?.marks || "0",
         },
         {
           key: "stream",
@@ -402,20 +410,20 @@ const StudentList = () => {
           render: (row) => toTitleCase(row.course),
         },
         {
-          key: "onlineTestStatus",
-          label: "Status of Written",
-          render: (row) => handleGetOnlineMarks(row.onlineTest),
+          key: "onlineTestResult",
+          label: "Result (1st Round)",
+          render: (row) => handleGetStatus(row.interviews),
         },
         {
           key: "techMarks",
-          label: "Marks of Tech",
+          label: "Marks (1st Round)",
           render: (row) => handleGetMarks(row.interviews),
         },
-        {
-          key: "techStatus",
-          label: "Status of Tech",
-          render: (row) => handleGetStatus(row.interviews),
-        },
+        // {
+        //   key: "techStatus",
+        //   label: "Status of Tech",
+        //   render: (row) => handleGetStatus(row.interviews),
+        // },
       ];
       actionButton = (row) => (
         <button
@@ -476,9 +484,9 @@ const StudentList = () => {
                   onClick={() => {setAddInterviwModalOpen(true) 
                   setId(row._id)
                   } }
-                  className="px-4 py-2 bg-brandYellow text-white rounded-md hover:bg-orange-600 transition"
+                  className="bg-orange-500 text-md text-white px-3 py-1 rounded"
                 >
-                  + Add Interview
+                  Add Interview
                 </button>
               </div> 
       );
@@ -651,9 +659,11 @@ const StudentList = () => {
           rowsPerPage={rowsPerPage}
           searchTerm={searchTerm}
           actionButton={actionButton}
-          onRowClick={(row) =>
-          navigate(`/admission/edit/${row._id}`, { state: { student: row } })
-        }
+          onRowClick={(row) => {
+            // Set the source section to 'admission' before navigating
+            localStorage.setItem("lastSection", "admission");
+            navigate(`/admission/edit/${row._id}`, { state: { student: row } });
+          }}
         />
       </div>
       {isModalOpen && selectedStudentId && (

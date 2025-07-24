@@ -914,9 +914,14 @@ const AdmissionEditPage = () => {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="px-5 py-2 bg-brandYellow text-white rounded-md hover:bg-orange-600 transition disabled:opacity-50"
+                      className="px-5 py-2 bg-brandYellow text-white rounded-md hover:bg-orange-600 transition disabled:opacity-50 flex items-center justify-center"
                     >
-                      {isSubmitting ? "Submitting..." : "Submit"}
+                      {isSubmitting ? (
+                        <>
+                          <Loader inline={true} />
+                          <span className="ml-2">Submitting...</span>
+                        </>
+                      ) : "Submit"}
                     </button>
                   </div>
                 </Form>
