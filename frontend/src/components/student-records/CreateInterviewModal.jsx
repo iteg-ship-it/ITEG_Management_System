@@ -63,8 +63,8 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                 data: values,
             }).unwrap();
             
-            // Just refresh and close without alerts
-            refetchStudents();
+            // Force immediate data refresh
+            await refetchStudents();
             resetForm();
             onClose();
         } catch (err) {

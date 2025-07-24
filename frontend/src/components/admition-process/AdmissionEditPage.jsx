@@ -565,7 +565,7 @@
 // export default AdmissionEditPage;
 
 /* eslint-disable react/prop-types */
-import { useState } from "react";
+import { useState} from "react";
 import { Formik, Form } from "formik";
 import { useParams } from "react-router-dom";
 import {
@@ -606,7 +606,11 @@ const AdmissionEditPage = () => {
     isLoading: interviewLoading,
     error: interviewError,
     refetch,
-  } = useGetInterviewDetailByIdQuery(id);
+  } = useGetInterviewDetailByIdQuery(id, {
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+    pollingInterval: 15000, // Poll every 15 seconds
+  });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [createInterview, { isLoading: isSubmitting }] =
@@ -624,7 +628,7 @@ const AdmissionEditPage = () => {
       toast.success("Interview created successfully");
       setIsModalOpen(false);
       resetForm();
-      refetch();
+      await refetch();
     } catch (err) {
       toast.error(err?.data?.message || "Failed to create interview");
     }

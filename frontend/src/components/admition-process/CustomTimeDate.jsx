@@ -114,7 +114,8 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
         toast.info("✅ Interview submitted with status: Pending.");
       }
 
-      refetch?.();
+      // Force immediate data refresh
+      await refetch?.();
       resetForm();
       onClose();
     } catch (err) {

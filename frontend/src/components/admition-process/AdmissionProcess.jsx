@@ -25,7 +25,11 @@ const toTitleCase = (str) =>
     .join(" ");
 
 const StudentList = () => {
-  const { data = [], isLoading, error, refetch } = useGetAllStudentsQuery();
+  const { data = [], isLoading, error, refetch } = useGetAllStudentsQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+    pollingInterval: 30000, // Poll every 30 seconds
+  });
   const [rowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("Total Registration");
@@ -153,7 +157,16 @@ const StudentList = () => {
     } else if (savedTab) {
       setActiveTab(savedTab);
     }
-  }, [location.search]);
+    // Refresh data when component mounts or URL changes
+    refetch();
+  }, [location.search, refetch]);
+
+  // Auto-refresh data when window gains focus
+  useEffect(() => {
+    const handleFocus = () => refetch();
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [refetch]);
 
   // ✅ Loader: Show full screen while data is loading
   if (isLoading) {
@@ -182,7 +195,7 @@ const StudentList = () => {
         toast.success(response.message);
         setIsModalOpen(false);
         resetForm();
-        refetch();
+        await refetch();
       } catch (err) {
         toast.error(err?.data?.message || "Failed to create interview");
       }
@@ -258,6 +271,8 @@ const StudentList = () => {
   const handleTabClick = (tab) => {
     setActiveTab(tab);
     localStorage.setItem("admissionActiveTab", tab);
+    // Refresh data when switching tabs
+    refetch();
   };
 
   const scheduleButton = (student) => {
@@ -277,6 +292,8 @@ const StudentList = () => {
     setSelectedStudentId(null);
     setAtemendNumber(null);
     setIsModalOpen(false);
+    // Refresh data when modal closes
+    refetch();
   };
 
   const handleGetOnlineMarks = (onlineTest = {}) => {
