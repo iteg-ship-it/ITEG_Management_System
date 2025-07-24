@@ -28,7 +28,7 @@ const StudentList = () => {
   const { data = [], isLoading, error, refetch } = useGetAllStudentsQuery(undefined, {
     refetchOnMountOrArgChange: true,
     refetchOnFocus: true,
-    pollingInterval: 30000, // Poll every 30 seconds
+    pollingInterval: 5000, // Poll every 5 seconds
   });
   const [rowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");

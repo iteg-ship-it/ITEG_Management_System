@@ -30,7 +30,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
   console.log("lastAttempt", lastAttempt);
 
   // const { id } = useParams();
-  const { data: attemptData } = useGetInterviewDetailByIdQuery(studentId);
+  const { data: attemptData, refetch: refetchInterviewData } = useGetInterviewDetailByIdQuery(studentId);
   console.log("Attempt Data:", attemptData);
 
   const [createInterview, { isLoading }] = useInterviewCreateMutation();
@@ -158,6 +158,14 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
     }
   }, [attemptData]);
   
+
+  // Refetch interview data when modal opens to get latest previous round data
+  useEffect(() => {
+    if (isOpen && studentId && refetchInterviewData) {
+      refetchInterviewData();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, studentId]);
 
   if (!isOpen) return null;
 
