@@ -681,7 +681,7 @@ const AdmissionEditPage = () => {
         >
           <HiArrowNarrowLeft />
         </button>
-        <h2 className="text-xl font-bold text-[var(--text-color)]">
+        <h2 className="text-2xl font-bold text-[var(--text-color)]">
           Student Profile
         </h2>
       </div>

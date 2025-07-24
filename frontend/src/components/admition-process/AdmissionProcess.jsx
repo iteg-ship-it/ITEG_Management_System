@@ -455,18 +455,21 @@ const StudentList = () => {
         },
         {
           key: "onlineTestStatus",
-          label: "Status of Written",
-          render: (row) => handleGetOnlineMarks(row.onlineTest),
+          label: "Result (1st Round)",
+          render: (row) => handleGetStatus(row.interviews),
         },
         {
           key: "techMarks",
-          label: "Marks of Tech",
+          label: "Marks(Tech Round)",
           render: (row) => handleGetMarks(row.interviews),
         },
         {
-          key: "stream",
-          label: "Attempts of tech",
-          render: (row) => handleGetMarks(row.interviews),
+          key: "attempts",
+          label: "Attempts(1st Round)",
+          render: (row) => {
+            const firstRoundAttempts = row.interviews?.filter((i) => i.round === "First") || [];
+            return firstRoundAttempts.length;
+          },
         },
       ];
       actionButton = (row) => (
@@ -623,7 +626,7 @@ const StudentList = () => {
 
   return (
     <>
-      <h1 className="text-3xl py-4 font-bold">Admission Process</h1>
+      <h1 className="text-2xl py-4 font-bold">Admission Process</h1>
       <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
         <div className="px-6">
           <div className="flex gap-6 mt-4">
