@@ -18,6 +18,7 @@ import company from "../../assets/icons/company-icon.png";
 import position from "../../assets/icons/position-icon.png";
 import loca from "../../assets/icons/location-icon.png";
 import date from "../../assets/icons/calendar-icon.png";
+import { HiArrowNarrowLeft } from "react-icons/hi";
 
 import { Chart } from "react-google-charts";
 
@@ -83,6 +84,18 @@ console.log("StudentProfile ~ id:", import.meta.VITE_GET_ADMITTED_STUDENTS_BY_ID
     <>
 
       <div className="px-4 space-y-6 min-h-screen mt-6">
+      <div className="flex items-center gap-3 mb-6">
+        <button
+          type="button"
+          onClick={() => window.history.back()}
+          className="text-2xl text-[var(--text-color)] hover:text-gray-900"
+        >
+          <HiArrowNarrowLeft />
+        </button>
+        <h2 className="text-2xl font-bold text-[var(--text-color)]">
+          Student Profile
+        </h2>
+      </div>
         <div className="grid grid-cols-1 lg:grid-cols-[70%_30%] gap-4">
           {/* Left Section */}
           <div>
