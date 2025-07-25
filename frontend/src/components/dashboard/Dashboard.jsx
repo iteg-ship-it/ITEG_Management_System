@@ -13,6 +13,7 @@ import StudentDetailTable from "../student-records/StudentDetailTable";
 import StudentEditPage from "../student-records/StudentEditPage";
 import StudentProfile from "../student-records/StudentProfile";
 import StudentLevelData from "../student-records/StudentLevelData";
+import StudentLevelInterviewHistory from "../student-records/StudentLevelInterviewHistory";
 // Placement components
 import PlacementReadyStudents from "../placement/PlacementReadyStudents";
 import StudentPermission from "../student-records/StudentPermission";
@@ -31,6 +32,7 @@ const routes = [
   { path: "/student/edit/:id", element: <StudentEditPage /> },
   { path: "/student/leveldata/:id", element: <StudentLevelData /> },
   { path: "/student-profile/:id", element: <StudentProfile /> },
+  { path: "/student/:studentId/level-interviews", element: <StudentLevelInterviewHistory /> },
   { path: "/student-permission", element: <StudentPermission /> },
 
   { path: "/readiness-status", element: <PlacementReadyStudents /> },

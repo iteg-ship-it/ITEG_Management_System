@@ -1,6 +1,5 @@
 /* eslint-disable react/prop-types */
-// import { useParams, useNavigate } from "react-router-dom";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useGetAdmittedStudentsByIdQuery } from "../../redux/api/authApi";
 import PermissionModal from "./PermissionModal";
@@ -24,7 +23,7 @@ import { Chart } from "react-google-charts";
 
 export default function StudentProfile() {
   const { id } = useParams();
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   console.log("StudentProfile ~ id:", import.meta.VITE_GET_ADMITTED_STUDENTS_BY_ID);
   const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
   const [latestLevel, setLatestLevel] = useState("1A");
@@ -98,7 +97,13 @@ export default function StudentProfile() {
           <div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <InfoCard icon={attendence} title="Attendance" value="93%" bg="#9BAEF5" />
-              <InfoCard icon={level} title="Current Level" value={latestLevel} bg="#F5B477" />
+              <InfoCard 
+                icon={level} 
+                title="Current Level" 
+                value={latestLevel} 
+                bg="#F5B477" 
+                onClick={() => navigate(`/student/${id}/level-interviews`)}
+              />
               <InfoCard
                 icon={permission}
                 title="Permission"
