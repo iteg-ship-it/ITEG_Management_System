@@ -59,7 +59,15 @@
 
 input {
   /* @apply border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500; */
-  @apply border rounded-md px-3 py-2 focus:outline-none;
+  @apply border-2 rounded-md px-3 py-2 focus:outline-none focus:border-gray-800;
+}
+
+select {
+  @apply border-2 rounded-md px-3 py-2 focus:outline-none focus:border-gray-800;
+}
+
+textarea {
+  @apply border-2 rounded-md px-3 py-2 focus:outline-none focus:border-gray-800;
 }
 
 @layer utilities {

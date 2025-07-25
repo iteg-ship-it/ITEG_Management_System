@@ -104,7 +104,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                             </div>
                             
                             <div className="col-span-2 md:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                <label className="block text-sm font-medium text-gray-700">Date</label>
                                 <CustomDatePicker 
                                     name="date" 
                                     value={values.date}
@@ -113,11 +113,11 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                                         setFieldValue(name, value);
                                     }}
                                 />
-                                <ErrorMessage name="date" component="div" className="text-red-500 text-xs mt-1" />
+                                <ErrorMessage name="date" component="div" className="text-red-500 text-xs mt-1 border-2 rounded-md px-3 py-2 focus:outline-none focus:border-gray-800" />
                             </div>
                             
                             {/* Technical Knowledge */}
-                            <div className="col-span-2 text-sm font-semibold text-gray-600 mt-4">Technical Evaluation</div>
+                            <div className="col-span-2 text-sm font-semibold text-gray-600 mt-4 ">Technical Evaluation</div>
                             
                             <div className="col-span-2 md:col-span-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Theoretical Marks</label>
@@ -129,7 +129,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                                         const { name, value } = e.target;
                                         setFieldValue(name, value);
                                     }}
-                                    className="w-full border p-3 rounded-lg focus:outline-none" 
+                                    className="w-full border p-3 rounded-lg focus:outline-none @apply border-2 rounded-md px-3 py-2 focus:outline-none focus:border-gray-800" 
                                 />
                                 <ErrorMessage name="Theoretical_Marks" component="div" className="text-red-500 text-xs mt-1" />
                             </div>
@@ -144,7 +144,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                                         const { name, value } = e.target;
                                         setFieldValue(name, value);
                                     }}
-                                    className="w-full border p-3 rounded-lg focus:outline-none" 
+                                    className="w-full border p-3 rounded-lg focus:outline-none border-2 rounded-md px-3 py-2 focus:outline-none focus:border-gray-800" 
                                 />
                                 <ErrorMessage name="Practical_Marks" component="div" className="text-red-500 text-xs mt-1" />
                             </div>
@@ -159,7 +159,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                                         const { name, value } = e.target;
                                         setFieldValue(name, value);
                                     }}
-                                    className="w-full border p-3 rounded-lg focus:outline-none" 
+                                    className="w-full border p-3 rounded-lg focus:outline-none border-2 rounded-md px-3 py-2 focus:outline-none focus:border-gray-800" 
                                 />
                                 <ErrorMessage name="Communication_Marks" component="div" className="text-red-500 text-xs mt-1" />
                             </div>
@@ -187,7 +187,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                                         const { name, value } = e.target;
                                         setFieldValue(name, value);
                                     }}
-                                    className="w-full border p-3 rounded-lg focus:outline-none"
+                                    className="w-full border p-3 rounded-lg focus:outline-none border-2 rounded-md px-3 py-2 focus:outline-none focus:border-gray-800"
                                 >
                                     <option value="Pending">Pending</option>
                                     <option value="Pass">Pass</option>
@@ -204,7 +204,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                                         const { name, value } = e.target;
                                         setFieldValue(name, value);
                                     }}
-                                    className="w-full border p-3 rounded-lg focus:outline-none min-h-[80px]" 
+                                    className="w-full border p-3 rounded-lg focus:outline-none min-h-[80px] border-2 rounded-md px-3 py-2 focus:outline-none focus:border-gray-800" 
                                 />
                             </div>
                             
