@@ -129,9 +129,9 @@ const SelectInput = ({ name, label, options, className = "", disabled = false })
                   field.onBlur(e);
                 }}
                 className={`
-                  peer h-12 w-full border border-[var(--text-color)] rounded-md
+                  peer h-12 w-full border-2 border-gray-300 rounded-md
                   px-3 py-2 bg-white leading-tight
-                  focus:outline-none focus:border-[var(--text-color)] 
+                  focus:outline-none focus:border-black 
                   focus:ring-0 appearance-none
                   ${disabled ? "bg-gray-100 cursor-not-allowed" : ""}
                   transition-all duration-200
@@ -151,11 +151,11 @@ const SelectInput = ({ name, label, options, className = "", disabled = false })
                   absolute left-3 bg-white px-1 transition-all duration-200
                   pointer-events-none
                   ${isFocused || hasValue
-                    ? "text-xs -top-2 text-[var(--text-color)]"
+                    ? "text-xs -top-2 text-black"
                     : "text-gray-400 top-2"}
                 `}
               >
-                {label} <span className="text-[var(--text-color)]">*</span>
+                {label} <span className="text-black">*</span>
               </label>
             </div>
           );

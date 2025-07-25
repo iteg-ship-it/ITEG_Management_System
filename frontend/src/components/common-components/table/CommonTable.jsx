@@ -71,13 +71,13 @@ const CommonTable = ({
     );
   };
 
-
+  // Scroll to top when page changes or search term changes
   useEffect(() => {
     scrollRef.current?.scrollTo({
-      top: scrollRef.current.scrollHeight,
+      top: 0,
       behavior: "smooth",
     });
-  }, [paginatedData]);
+  }, [currentPage, searchTerm]);
 
   return (
     <div className="w-full py-3">

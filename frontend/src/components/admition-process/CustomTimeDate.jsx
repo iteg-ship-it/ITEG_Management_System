@@ -204,7 +204,6 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
               <SelectInput
                 name="maths"
                 label="Mathematics Marks"
-                className="border-2 rounded-md px-3 py-2 focus:outline-none focus:border-gray-800"
                 options={fivePointOptions}
               />
               <SelectInput
