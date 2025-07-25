@@ -49,8 +49,8 @@ const Pagination = ({
           />
         </div>
         {/* This invisible overlay makes the entire area clickable */}
-        <div 
-          className="absolute inset-0 cursor-text" 
+        <div
+          className="absolute inset-0 cursor-text"
           onClick={() => document.querySelector('input[type="text"]').focus()}
         ></div>
       </div>
@@ -116,20 +116,23 @@ const Pagination = ({
                 <div className="absolute top-0 left-full ml-2 w-44 bg-white border rounded-md shadow-md p-2 space-y-1 z-30"
                 // style={{ background: "var(--diagonal-gradient)" }} // ✅ gradient fallback
                 >
-                  {options.map((opt) => (
-                    <label
-                      key={opt}
-                      className="flex items-center gap-2 cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selected.includes(opt)}
-                        onChange={() => toggleSelection(opt, setter, selected)}
-                        className="accent-green-500"
-                      />
-                      {opt}
-                    </label>
-                  ))}
+                  {options.map((opt) => {
+                    const value = typeof opt === "object" ? opt.value : opt;
+                    const label = typeof opt === "object" ? opt.label : opt;
+
+                    return (
+                      <label key={value} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selected.includes(value)}
+                          onChange={() => toggleSelection(value, setter, selected)}
+                          className="accent-green-500"
+                        />
+                        {label}
+                      </label>
+                    );
+                  })}
+
                 </div>
               )}
             </div>

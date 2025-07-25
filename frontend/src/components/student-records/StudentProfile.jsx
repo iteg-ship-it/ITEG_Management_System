@@ -1,6 +1,5 @@
 /* eslint-disable react/prop-types */
-// import { useParams, useNavigate } from "react-router-dom";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useGetAdmittedStudentsByIdQuery } from "../../redux/api/authApi";
 import PermissionModal from "./PermissionModal";
@@ -24,8 +23,8 @@ import { Chart } from "react-google-charts";
 
 export default function StudentProfile() {
   const { id } = useParams();
-  // const navigate = useNavigate();
-console.log("StudentProfile ~ id:", import.meta.VITE_GET_ADMITTED_STUDENTS_BY_ID);
+  const navigate = useNavigate();
+  console.log("StudentProfile ~ id:", import.meta.VITE_GET_ADMITTED_STUDENTS_BY_ID);
   const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
   const [latestLevel, setLatestLevel] = useState("1A");
   const [isPermissionModalOpen, setPermissionModalOpen] = useState(false);
@@ -46,7 +45,7 @@ console.log("StudentProfile ~ id:", import.meta.VITE_GET_ADMITTED_STUDENTS_BY_ID
       </div>
     );
   }
-  
+
   if (isError || !studentData) return <div className="p-4 text-red-500">Error loading student data.</div>;
 
   const graphData = [
@@ -82,8 +81,6 @@ console.log("StudentProfile ~ id:", import.meta.VITE_GET_ADMITTED_STUDENTS_BY_ID
 
   return (
     <>
-
-      <div className="px-4 space-y-6 min-h-screen mt-6">
       <div className="flex items-center gap-3 mb-6">
         <button
           type="button"
@@ -92,16 +89,21 @@ console.log("StudentProfile ~ id:", import.meta.VITE_GET_ADMITTED_STUDENTS_BY_ID
         >
           <HiArrowNarrowLeft />
         </button>
-        <h2 className="text-2xl font-bold text-[var(--text-color)]">
-          Student Profile
-        </h2>
+        <h1 className="text-2xl py-4 font-bold">Student Profile</h1>
       </div>
+      <div className="px-4 space-y-6 min-h-screen mt-6">
         <div className="grid grid-cols-1 lg:grid-cols-[70%_30%] gap-4">
           {/* Left Section */}
           <div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <InfoCard icon={attendence} title="Attendance" value="93%" bg="#9BAEF5" />
-              <InfoCard icon={level} title="Current Level" value={latestLevel} bg="#F5B477" />
+              <InfoCard 
+                icon={level} 
+                title="Current Level" 
+                value={latestLevel} 
+                bg="#F5B477" 
+                onClick={() => navigate(`/student/${id}/level-interviews`)}
+              />
               <InfoCard
                 icon={permission}
                 title="Permission"
@@ -187,12 +189,13 @@ console.log("StudentProfile ~ id:", import.meta.VITE_GET_ADMITTED_STUDENTS_BY_ID
             </div>
           </div>
         </div>
-      </div>
+      </div >
 
       {/* Modals with studentId */}
-      <PermissionModal
+      < PermissionModal
         isOpen={isPermissionModalOpen}
-        onClose={() => setPermissionModalOpen(false)}
+        onClose={() => setPermissionModalOpen(false)
+        }
         studentData={studentData}
         studentId={studentData._id}
       />

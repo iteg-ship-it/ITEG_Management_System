@@ -3,7 +3,12 @@ import { useEffect, useState } from 'react';
 import { useCreateLevelInterviewMutation } from '../../redux/api/authApi';
 import { Formik, Form, useFormikContext, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import CustomDatePicker from './CustomDatePicker';
+// import CustomDatePicker from './CustomDatePicker';
+import DatePickerInput from "../datepickerInput/DatePickerInput";
+import TextInput from '../common-components/common-feild/TextInput';
+import SelectInput from '../common-components/common-feild/SelectInput';
+import { toast } from 'react-toastify';
+
 
 const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) => {
     const [createInterview, { isLoading }] = useCreateLevelInterviewMutation();
@@ -63,13 +68,22 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                 data: values,
             }).unwrap();
             
+            // Show success message based on result
+            const resultMessage = values.result === 'Pass' 
+                ? `Interview marked as Pass ✅` 
+                : values.result === 'Fail' 
+                ? `Interview marked as Fail ❌` 
+                : `Interview marked as Pending ⏳`;
+            
+            toast.success(resultMessage);
+            
             // Force immediate data refresh
             await refetchStudents();
             resetForm();
             onClose();
         } catch (err) {
             console.error(err);
-            // Silently close even on error
+            toast.error(err?.data?.message || 'Failed to submit interview');
             onClose();
         }
     };
@@ -94,17 +108,22 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                             <div className="col-span-2 text-sm font-semibold text-gray-600 mt-2">Interview Details</div>
                             
                             <div className="col-span-2 md:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Student Name</label>
-                                <input 
-                                    type="text" 
-                                    value={studentName} 
-                                    disabled 
-                                    className="w-full border p-3 rounded-lg bg-gray-100 cursor-not-allowed" 
-                                />
+                                <div className="relative w-full">
+                                    <input 
+                                        type="text" 
+                                        value={studentName} 
+                                        disabled 
+                                        className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-black focus:ring-0 bg-gray-100 cursor-not-allowed transition-all duration-200" 
+                                        placeholder=" "
+                                    />
+                                    <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
+                                        Student Name <span className="text-black">*</span>
+                                    </label>
+                                </div>
                             </div>
                             
-                            <div className="col-span-2 md:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                            {/* <div className="col-span-2 md:col-span-1">
+                                <label className="block text-sm font-medium text-gray-700">Date</label>
                                 <CustomDatePicker 
                                     name="date" 
                                     value={values.date}
@@ -114,97 +133,69 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                                     }}
                                 />
                                 <ErrorMessage name="date" component="div" className="text-red-500 text-xs mt-1" />
-                            </div>
+                            </div> */}
+
+                            <DatePickerInput name="date" label="Select Date" />
                             
                             {/* Technical Knowledge */}
-                            <div className="col-span-2 text-sm font-semibold text-gray-600 mt-4">Technical Evaluation</div>
+                            <div className="col-span-2 text-sm font-semibold text-gray-600 mt-4 ">Technical Evaluation</div>
                             
                             <div className="col-span-2 md:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Theoretical Marks</label>
-                                <input 
-                                    type="number" 
+                                <TextInput 
+                                    label="Theoretical Marks (1-10)" 
                                     name="Theoretical_Marks" 
-                                    value={values.Theoretical_Marks}
-                                    onChange={(e) => {
-                                        const { name, value } = e.target;
-                                        setFieldValue(name, value);
-                                    }}
-                                    className="w-full border p-3 rounded-lg focus:outline-none" 
+                                    type="number"
                                 />
-                                <ErrorMessage name="Theoretical_Marks" component="div" className="text-red-500 text-xs mt-1" />
+                                {/* <p className="text-xs text-gray-500 mt-1">Enter marks between 1 to 10</p> */}
                             </div>
                             
                             <div className="col-span-2 md:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Practical Marks</label>
-                                <input 
-                                    type="number" 
+                                <TextInput 
+                                    label="Practical Marks (1-10)" 
                                     name="Practical_Marks" 
-                                    value={values.Practical_Marks}
-                                    onChange={(e) => {
-                                        const { name, value } = e.target;
-                                        setFieldValue(name, value);
-                                    }}
-                                    className="w-full border p-3 rounded-lg focus:outline-none" 
+                                    type="number"
                                 />
-                                <ErrorMessage name="Practical_Marks" component="div" className="text-red-500 text-xs mt-1" />
+                                {/* <p className="text-xs text-gray-500 mt-1">Enter marks between 1 to 10</p> */}
                             </div>
                             
                             <div className="col-span-2 md:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Communication Marks</label>
-                                <input 
-                                    type="number" 
+                                <TextInput 
+                                    label="Communication Marks (1-10)" 
                                     name="Communication_Marks" 
-                                    value={values.Communication_Marks}
-                                    onChange={(e) => {
-                                        const { name, value } = e.target;
-                                        setFieldValue(name, value);
-                                    }}
-                                    className="w-full border p-3 rounded-lg focus:outline-none" 
+                                    type="number"
                                 />
-                                <ErrorMessage name="Communication_Marks" component="div" className="text-red-500 text-xs mt-1" />
+                                {/* <p className="text-xs text-gray-500 mt-1">Enter marks between 1 to 10</p> */}
                             </div>
                             
                             <div className="col-span-2 md:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Total Marks</label>
-                                <input 
-                                    type="number" 
+                                <TextInput 
+                                    label="Total Marks (Auto-calculated)" 
                                     name="marks" 
-                                    value={values.marks} 
-                                    disabled 
-                                    className="w-full border p-3 rounded-lg bg-gray-100 cursor-not-allowed" 
+                                    type="number"
+                                    disabled
                                 />
+                                <p className="text-xs text-gray-500 mt-1">Sum of all marks (Max: 30)</p>
                             </div>
                             
                             {/* Summary & Decision */}
                             <div className="col-span-2 text-sm font-semibold text-gray-600 mt-4">Summary & Decision</div>
                             
                             <div className="col-span-2 md:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Result</label>
-                                <select 
-                                    name="result" 
-                                    value={values.result}
-                                    onChange={(e) => {
-                                        const { name, value } = e.target;
-                                        setFieldValue(name, value);
-                                    }}
-                                    className="w-full border p-3 rounded-lg focus:outline-none"
-                                >
-                                    <option value="Pending">Pending</option>
-                                    <option value="Pass">Pass</option>
-                                    <option value="Fail">Fail</option>
-                                </select>
+                                <SelectInput 
+                                    label="Result" 
+                                    name="result"
+                                    options={[
+                                        { value: "Pending", label: "Pending" },
+                                        { value: "Pass", label: "Pass" },
+                                        { value: "Fail", label: "Fail" }
+                                    ]}
+                                />
                             </div>
                             
                             <div className="col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Remark / Feedback</label>
-                                <textarea 
-                                    name="remark" 
-                                    value={values.remark}
-                                    onChange={(e) => {
-                                        const { name, value } = e.target;
-                                        setFieldValue(name, value);
-                                    }}
-                                    className="w-full border p-3 rounded-lg focus:outline-none min-h-[80px]" 
+                                <TextInput 
+                                    label="Remark / Feedback" 
+                                    name="remark"
                                 />
                             </div>
                             

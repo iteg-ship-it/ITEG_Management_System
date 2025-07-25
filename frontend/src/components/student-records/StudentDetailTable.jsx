@@ -82,14 +82,14 @@ const StudentDetailTable = () => {
       }
       levelAttempts[lvl.levelNo].push(lvl);
     });
-    
+
     // Check if the student has passed their current level
     const currentLevel = student.currentLevel || "1A";
     const currentLevelAttempts = levelAttempts[currentLevel] || [];
-    
+
     // Check if any attempt for the current level has a Pass result
     const hasPassedCurrentLevel = currentLevelAttempts.some(lvl => lvl.result === "Pass");
-    
+
     return {
       ...student,
       latestLevel: currentLevel,
@@ -110,7 +110,7 @@ const StudentDetailTable = () => {
     const matchesTrack = selectedTracks.length === 0 || selectedTracks.includes(track);
 
     // Result filter
-    const matchesResult = selectedResults.length === 0 || 
+    const matchesResult = selectedResults.length === 0 ||
       selectedResults.includes(student.result || "Pending");
 
     // Level filter - only show students whose current level matches the selected tab
@@ -132,20 +132,20 @@ const StudentDetailTable = () => {
       label: "Full Name",
       render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
     },
-    { 
-      key: "fatherName", 
+    {
+      key: "fatherName",
       label: "Father's Name",
       render: (row) => toTitleCase(row.fatherName || ""),
     },
     { key: "studentMobile", label: "Mobile" },
-    { 
-      key: "course", 
+    {
+      key: "course",
       label: "Course",
       render: (row) => toTitleCase(row.course || ""),
     },
-    { 
-      key: "track", 
-      label: "Track",
+    {
+      key: "track",
+      label: "Bus Route",
       render: (row) => toTitleCase(row.track || ""),
     },
     {
@@ -191,6 +191,7 @@ const StudentDetailTable = () => {
   return (
     <>
       <h1 className="text-2xl py-4 font-bold">Admitted Student WorkFlow</h1>
+
       <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
         <div className="px-6">
           {/* Level Tabs */}
@@ -199,18 +200,17 @@ const StudentDetailTable = () => {
               <div key={tab}>
                 <p
                   onClick={() => handleTabClick(tab)}
-                  className={`cursor-pointer text-md text-[var(--text-color)] pb-2 border-b-2 whitespace-nowrap ${
-                    activeTab === tab
+                  className={`cursor-pointer text-md text-[var(--text-color)] pb-2 border-b-2 whitespace-nowrap ${activeTab === tab
                       ? "border-[var(--text-color)] font-semibold"
                       : "border-gray-200"
-                  }`}
+                    }`}
                 >
                   {tab}
                 </p>
               </div>
             ))}
           </div>
-          
+
           <div className="flex justify-between items-center flex-wrap gap-4 mt-4">
             <Pagination
               rowsPerPage={rowsPerPage}
@@ -221,7 +221,7 @@ const StudentDetailTable = () => {
             />
           </div>
         </div>
-        
+
         <CommonTable
           data={filteredData}
           columns={columns}
@@ -237,7 +237,7 @@ const StudentDetailTable = () => {
           }}
         />
       </div>
-      
+
       <CreateInterviewModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}

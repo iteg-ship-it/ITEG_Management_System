@@ -99,7 +99,7 @@ const AdmissionEditPage = () => {
     subject12: studentData?.subject12 || "",
     percent12: studentData?.percent12 || "",
     percent10: studentData?.percent10 || "",
-    passoutYear: studentData?.year12 || "",
+    year12: studentData?.year12 || "",
     interviewMarks: studentData?.interviewMarks || "",
     result: studentData?.result || "",
   };
