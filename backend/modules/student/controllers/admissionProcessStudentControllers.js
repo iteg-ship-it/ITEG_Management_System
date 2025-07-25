@@ -71,7 +71,7 @@ exports.updateAdmission = async (req, res) => {
       'prkey','firstName','lastName','fatherName',
       'studentMobile','gender',
       'address','village','stream','course',
-      'category','percent10', 'dob', 'aadharCard'
+      'category','percent10', 'dob'
     ];
     console.log('%c [ requiredFields ]-71', 'font-size:13px; background:pink; color:#bf2c9f;', requiredFields)
     for (let field of requiredFields) {
