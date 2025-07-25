@@ -12,13 +12,14 @@ import { toast } from "react-toastify";
 import TextInput from "../common-components/common-feild/TextInput";
 import SelectInput from "../common-components/common-feild/SelectInput";
 import DatePickerInput from "../datepickerInput/DatePickerInput";
+import Loader from "../common-components/loader/Loader";
 
 const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
   console.log("activeTab", activeTab);
   const userInfo = JSON.parse(localStorage.getItem("user")) || {};
   const [lastAttempt, setLastAttempt] = useState(0);
   const [studentName, setStudentName] = useState("");
-  
+
   // Get student name directly from localStorage
   useEffect(() => {
     const storedStudent = JSON.parse(localStorage.getItem("currentInterviewStudent") || "{}");
@@ -26,7 +27,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
       setStudentName(storedStudent.name);
     }
   }, []);
-  
+
   console.log("lastAttempt", lastAttempt);
 
   // const { id } = useParams();
@@ -47,7 +48,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
         : "",
     subjectKnowlage:
       activeTab === "Technical Round" &&
-      lastAttempt?.subjectKnowlage !== undefined
+        lastAttempt?.subjectKnowlage !== undefined
         ? lastAttempt.subjectKnowlage
         : "",
     reasoning:
@@ -64,7 +65,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
         : "",
     communication:
       activeTab === "Technical Round" &&
-      lastAttempt?.communication !== undefined
+        lastAttempt?.communication !== undefined
         ? lastAttempt.communication
         : "",
     confidence:
@@ -157,14 +158,14 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
       });
     }
   }, [attemptData]);
-  
+
 
   // Refetch interview data when modal opens to get latest previous round data
   useEffect(() => {
     if (isOpen && studentId && refetchInterviewData) {
       refetchInterviewData();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, studentId]);
 
   if (!isOpen) return null;
@@ -296,7 +297,15 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
                   disabled={isLoading}
                   className="bg-brandYellow text-white px-6 py-2 rounded-md hover:bg-orange-600"
                 >
-                  {isLoading ? "Submitting..." : "Submit"}
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <Loader />
+                      <span>Submitting...</span>
+                    </div>
+                  ) : (
+                    "Submit"
+                  )}
+
                 </button>
               </div>
             </Form>

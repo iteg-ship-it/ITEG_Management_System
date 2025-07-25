@@ -39,16 +39,16 @@ const StudentList = () => {
   const [AddInterviwModalOpen, setAddInterviwModalOpen] = useState(false);
   const [id, setId] = useState(null);
   const navigate = useNavigate();
-  
+
   const location = useLocation();
   const [createInterview, { isLoading: isSubmitting }] =
-      useInterviewCreateMutation();
+    useInterviewCreateMutation();
 
-   const validationSchema = Yup.object().shape({
-      round: Yup.string().required("Required"),
-      remark: Yup.string().required("Remark is required"),
-      result: Yup.string().required("Result is required"),
-    });
+  const validationSchema = Yup.object().shape({
+    round: Yup.string().required("Required"),
+    remark: Yup.string().required("Remark is required"),
+    result: Yup.string().required("Result is required"),
+  });
 
   // Filter states per tab
   const [trackFilterTab1, setTrackFilterTab1] = useState([]);
@@ -68,14 +68,17 @@ const StudentList = () => {
   }, [data]);
 
   const dynamicResultOptions = useMemo(() => {
-    return [
-      ...new Set(
-        data.flatMap(
-          (s) => s.interviews?.map((i) => toTitleCase(i.result || "")) || []
-        )
-      ),
-    ].filter(Boolean);
+    const onlineResults = data.map((s) =>
+      toTitleCase(s.onlineTest?.result || "Not Attempted")
+    );
+
+    const interviewResults = data.flatMap(
+      (s) => s.interviews?.map((i) => toTitleCase(i.result || "")) || []
+    );
+
+    return [...new Set([...onlineResults, ...interviewResults])].filter(Boolean);
   }, [data]);
+
 
   const tabFilterConfig = {
     "Total Registration": [
@@ -121,12 +124,12 @@ const StudentList = () => {
         selected: trackFilterTab1,
         setter: setTrackFilterTab1,
       },
-      {
-        title: "Result",
-        options: dynamicResultOptions,
-        selected: resultFilterTab2,
-        setter: setResultFilterTab2,
-      },
+      // {
+      //   title: "Result",
+      //   options: dynamicResultOptions,
+      //   selected: resultFilterTab2,
+      //   setter: setResultFilterTab2,
+      // },
     ],
     Results: [
       {
@@ -189,18 +192,18 @@ const StudentList = () => {
     )[0]?.result;
   };
   const handleInterviewSubmit = async (values, { resetForm }) => {
-      try {
-      const response =  await createInterview({ ...values, studentId: id }).unwrap();
-        setAddInterviwModalOpen(false);
-        toast.success(response.message);
-        setIsModalOpen(false);
-        resetForm();
-        await refetch();
-      } catch (err) {
-        toast.error(err?.data?.message || "Failed to create interview");
-      }
-    };
-  
+    try {
+      const response = await createInterview({ ...values, studentId: id }).unwrap();
+      setAddInterviwModalOpen(false);
+      toast.success(response.message);
+      setIsModalOpen(false);
+      resetForm();
+      await refetch();
+    } catch (err) {
+      toast.error(err?.data?.message || "Failed to create interview");
+    }
+  };
+
 
 
   const matchTabCondition = (student) => {
@@ -250,12 +253,25 @@ const StudentList = () => {
       getLatestInterviewResult(student.interviews || []) || ""
     );
     const percentage = parseFloat(student.percentage);
-
     const matches = filtersConfig.every(({ title, selected }) => {
       if (selected.length === 0) return true;
-      if (title === "Track") return selected.includes(track);
-      if (title === "Result" || title === "Tech Status")
+
+      if (title === "Track") {
+        return selected.includes(track);
+      }
+
+      if (title === "Result") {
+        if (activeTab === "Online Assessment") {
+          const onlineResult = toTitleCase(student.onlineTest?.result || "Not Attempted");
+          return selected.includes(onlineResult);
+        } else {
+          return selected.includes(latestResult);
+        }
+      }
+
+      if (title === "Tech Status") {
         return selected.includes(latestResult);
+      }
       if (title === "Interview") {
         return selected.some((range) => {
           const [min, max] = range.replace("%", "").split("-").map(Number);
@@ -303,14 +319,14 @@ const StudentList = () => {
       case "Pass":
         return (
           <span className="inline-block px-2 py-1 rounded-md text-[#118D57] bg-[#22C55E]/20 text-sm font-medium">
-  Pass
-</span>
+            Pass
+          </span>
         );
       case "Fail":
         return (
-         <span className="inline-block px-2 py-1 rounded-md bg-[#FFCEC3] text-[#D32F2F] text-sm font-medium">
-  Fail
-</span>
+          <span className="inline-block px-2 py-1 rounded-md bg-[#FFCEC3] text-[#D32F2F] text-sm font-medium">
+            Fail
+          </span>
         );
       default:
         return (
@@ -334,14 +350,14 @@ const StudentList = () => {
       case "Pass":
         return (
           <span className="inline-block px-2 py-1 rounded-md text-[#118D57] bg-[#22C55E]/20 text-sm font-medium">
-  Pass
-</span>
+            Pass
+          </span>
         );
       case "Fail":
         return (
           <span className="inline-block px-2 py-1 rounded-md bg-[#FFCEC3] text-[#D32F2F] text-sm font-medium">
-  Fail
-</span>
+            Fail
+          </span>
         );
       default:
         return (
@@ -428,12 +444,22 @@ const StudentList = () => {
         },
         {
           key: "onlineTestResult",
-          label: "Result (1st Round)",
+          label: (
+            <div className="flex flex-col ">
+              <span>Result</span>
+              <span className="text-xs text-gray-500">(1st Round)</span>
+            </div>
+          ),
           render: (row) => handleGetStatus(row.interviews),
         },
         {
           key: "techMarks",
-          label: "Marks (1st Round)",
+          label: (
+            <div className="flex flex-col ">
+              <span>Marks</span>
+              <span className="text-xs text-gray-500">(1st Round)</span>
+            </div>
+          ),
           render: (row) => handleGetMarks(row.interviews),
         },
         // {
@@ -472,17 +498,32 @@ const StudentList = () => {
         },
         {
           key: "onlineTestStatus",
-          label: "Result (1st Round)",
+          label: (
+            <div className="flex flex-col ">
+              <span>Result</span>
+              <span className="text-xs text-gray-500">(1st Round)</span>
+            </div>
+          ),
           render: (row) => handleGetStatus(row.interviews),
         },
         {
           key: "techMarks",
-          label: "Marks(Tech Round)",
+          label: (
+            <div className="flex flex-col ">
+              <span>Marks</span>
+              <span className="text-xs text-gray-500">(Tech Round)</span>
+            </div>
+          ),
           render: (row) => handleGetMarks(row.interviews),
         },
         {
           key: "attempts",
-          label: "Attempts(1st Round)",
+          label: (
+            <div className="flex flex-col ">
+              <span>Attempts</span>
+              <span className="text-xs text-gray-500">(1st Round)</span>
+            </div>
+          ),
           render: (row) => {
             const firstRoundAttempts = row.interviews?.filter((i) => i.round === "First") || [];
             return firstRoundAttempts.length;
@@ -490,25 +531,17 @@ const StudentList = () => {
         },
       ];
       actionButton = (row) => (
-        // <button
-        //   onClick={() => {
-        //     localStorage.setItem("studdedntDetails", JSON.stringify(row));
-        //     // navigate(`/interview-detail/${row._id}?tab=${activeTab}`);
-        //   }}
-        //   className="bg-orange-500 text-md text-white px-3 py-1 rounded"
-        // >
-        //   Interviews Detail
-        // </button>' {/* <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-4">
-                <button
-                  onClick={() => {setAddInterviwModalOpen(true) 
-                  setId(row._id)
-                  } }
-                  className="bg-orange-500 text-md text-white px-3 py-1 rounded"
-                >
-                  Add Interview
-                </button>
-              </div> 
+          <button
+            onClick={() => {
+              setAddInterviwModalOpen(true)
+              setId(row._id)
+            }}
+            className="bg-orange-500 text-md text-white px-3 py-1 rounded"
+          >
+            Add Interview
+          </button>
+        </div>
       );
       break;
 
@@ -551,43 +584,24 @@ const StudentList = () => {
           secondRound.some((i) => i.result === "Fail");
 
         if (isSelected) {
-          //   return (
-          //     <button
-          //       className="bg-[var(--success-light)] flex items-center gap-2 text-md text-[var(--success-dark)] px-3 py-1 rounded"
-          //       onClick={() => alert(`Selected: ${row.firstName}`)}
-          //     >
-          //       <FaCheckCircle className="text-lg" />
-          //       <span>Selected</span>
-          //     </button>
-          //   );
-          // } else if (isRejected) {
-          //   return (
-          //     <button
-          //       className="bg-[var(--error-light)] flex items-center gap-2 text-md text-[var(--error-dark)] px-3 py-1 rounded"
-          //       onClick={() => alert(`Rejected: ${row.firstName}`)}
-          //     >
-          //       <AiFillStop className="text-lg" />
-          //       <span>Rejected</span>
-          //     </button>
-          //   );
           return (
             <button
-  className="bg-[#22C55E]/20 flex items-center gap-2 text-md text-[#118D57] px-3 py-1 rounded-md cursor-not-allowed"
-  disabled
->
-  <FaCheckCircle className="text-lg" />
-  <span>Selected</span>
-</button>
+              className="bg-[#22C55E]/20 flex items-center gap-2 text-md text-[#118D57] px-3 py-1 rounded-md cursor-not-allowed"
+              disabled
+            >
+              <FaCheckCircle className="text-lg" />
+              <span>Selected</span>
+            </button>
           );
         } else if (isRejected) {
           return (
-           <button
-  className="bg-[#FFCEC3] flex items-center gap-2 text-md text-[#D32F2F] px-3 py-1 rounded-md cursor-not-allowed"
-  disabled
->
-  <AiFillStop className="text-lg" />
-  <span>Rejected</span>
-</button>
+            <button
+              className="bg-[#FFCEC3] flex items-center gap-2 text-md text-[#D32F2F] px-3 py-1 rounded-md cursor-not-allowed"
+              disabled
+            >
+              <AiFillStop className="text-lg" />
+              <span>Rejected</span>
+            </button>
           );
         } else {
           return null;
@@ -651,11 +665,10 @@ const StudentList = () => {
               <p
                 key={tab}
                 onClick={() => handleTabClick(tab)}
-                className={`cursor-pointer text-md text-[var(--text-color)] pb-2 border-b-2 ${
-                  activeTab === tab
-                    ? "border-[var(--text-color)] font-semibold"
-                    : "border-gray-200"
-                }`}
+                className={`cursor-pointer text-md text-[var(--text-color)] pb-2 border-b-2 ${activeTab === tab
+                  ? "border-[var(--text-color)] font-semibold"
+                  : "border-gray-200"
+                  }`}
               >
                 {tab}
               </p>
@@ -696,67 +709,67 @@ const StudentList = () => {
           activeTab={activeTab}
         />
       )}
-       {AddInterviwModalOpen && (
-              <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm">
-                <div className="bg-white rounded-xl p-6 w-[95%] max-w-xl max-h-[90vh] overflow-y-auto relative shadow-2xl">
-                  <h2 className="text-xl font-bold text-center text-orange-500 mb-6">
-                    Add Interview
-                  </h2>
-                  <Formik
-                    initialValues={{
-                      round: "Second",
-                      remark: "",
-                      result: "Pending",
-                    }}
-                    validationSchema={validationSchema}
-                    onSubmit={handleInterviewSubmit}
-                  >
-                    {() => (
-                      <Form className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <SelectInput
-                          label="Round"
-                          name="round"
-                          disabled
-                          options={[{ value: "Second", label: "Final Round" }]}
-                        />
-                        <InputField label="Remark" name="remark" />
-                        <SelectInput
-                          label="Result"
-                          name="result"
-                          options={[
-                            { value: "Pass", label: "Pass" },
-                            { value: "Fail", label: "Fail" },
-                            { value: "Pending", label: "Pending" },
-                          ]}
-                        />
-                        <div className="md:col-span-2 flex justify-end space-x-3 mt-4">
-                          <button
-                            type="button"
-                            onClick={() => setAddInterviwModalOpen(false)}
-                            className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="px-5 py-2 bg-brandYellow text-white rounded-md hover:bg-orange-600 transition disabled:opacity-50"
-                          >
-                            {isSubmitting ? "Submitting..." : "Submit"}
-                          </button>
-                        </div>
-                      </Form>
-                    )}
-                  </Formik>
-                  <button
-                    onClick={() => setAddInterviwModalOpen(false)}
-                    className="absolute top-3 right-4 text-xl text-gray-400 hover:text-gray-700"
-                  >
-                    &times;
-                  </button>
-                </div>
-              </div>
-            )}
+      {AddInterviwModalOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl p-6 w-[95%] max-w-xl max-h-[90vh] overflow-y-auto relative shadow-2xl">
+            <h2 className="text-xl font-bold text-center text-orange-500 mb-6">
+              Add Interview
+            </h2>
+            <Formik
+              initialValues={{
+                round: "Second",
+                remark: "",
+                result: "Pending",
+              }}
+              validationSchema={validationSchema}
+              onSubmit={handleInterviewSubmit}
+            >
+              {() => (
+                <Form className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <SelectInput
+                    label="Round"
+                    name="round"
+                    disabled
+                    options={[{ value: "Second", label: "Final Round" }]}
+                  />
+                  <InputField label="Remark" name="remark" />
+                  <SelectInput
+                    label="Result"
+                    name="result"
+                    options={[
+                      { value: "Pass", label: "Pass" },
+                      { value: "Fail", label: "Fail" },
+                      { value: "Pending", label: "Pending" },
+                    ]}
+                  />
+                  <div className="md:col-span-2 flex justify-end space-x-3 mt-4">
+                    <button
+                      type="button"
+                      onClick={() => setAddInterviwModalOpen(false)}
+                      className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="px-5 py-2 bg-brandYellow text-white rounded-md hover:bg-orange-600 transition disabled:opacity-50"
+                    >
+                      {isSubmitting ? "Submitting..." : "Submit"}
+                    </button>
+                  </div>
+                </Form>
+              )}
+            </Formik>
+            <button
+              onClick={() => setAddInterviwModalOpen(false)}
+              className="absolute top-3 right-4 text-xl text-gray-400 hover:text-gray-700"
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 };

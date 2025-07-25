@@ -233,7 +233,7 @@ const AdmissionEditPage = () => {
                   disabled
                 />
                 <InputField
-                  name="passoutYear"
+                  name="year12"
                   label="Passout Year"
                   value={values.year12}
                   onChange={handleChange}
