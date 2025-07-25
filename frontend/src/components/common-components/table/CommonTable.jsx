@@ -108,8 +108,8 @@ const CommonTable = ({
               <tbody>
                 {paginatedData.map((row, rowIndex) => (
                   <tr key={rowIndex}
-                    className="hover:bg-gray-100 text-md border-b border-gray-200 transition cursor-pointer"
-                    onClick={()=>onRowClick(row)} // ⬅️ Navigation trigger
+                    className={`hover:bg-gray-100 text-md transition cursor-pointer border-b border-dashed border-gray-300`}
+                    onClick={() => onRowClick(row)} // ⬅️ Navigation trigger
                   >
                     <td className="px-4 py-3"
                       onClick={(e) => e.stopPropagation()} //Stop row click when clicking checkbox
@@ -143,8 +143,8 @@ const CommonTable = ({
                     ))}
                     {editable && actionButton && (
                       <td
-                          className="px-4 py-3 text-start"
-                          onClick={(e) => e.stopPropagation()} //prevent row click from firing
+                        className="px-4 py-3 text-start"
+                        onClick={(e) => e.stopPropagation()} //prevent row click from firing
                       >
                         <div className="inline-block hover:shadow-md transition cursor-pointer">
                           {actionButton(row)}
