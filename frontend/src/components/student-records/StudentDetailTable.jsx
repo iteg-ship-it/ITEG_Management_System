@@ -145,7 +145,7 @@ const StudentDetailTable = () => {
     },
     { 
       key: "track", 
-      label: "Track",
+      label: "Bus Route",
       render: (row) => toTitleCase(row.track || ""),
     },
     {

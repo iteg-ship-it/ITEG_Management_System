@@ -192,18 +192,18 @@ const StudentList = () => {
     )[0]?.result;
   };
   const handleInterviewSubmit = async (values, { resetForm }) => {
-      try {
-      const response =  await createInterview({ ...values, studentId: id }).unwrap();
-        setAddInterviwModalOpen(false);
-        toast.success(response.message);
-        setIsModalOpen(false);
-        resetForm();
-        await refetch();
-      } catch (err) {
-        toast.error(err?.data?.message || "Failed to create interview");
-      }
-    };
-  
+    try {
+      const response = await createInterview({ ...values, studentId: id }).unwrap();
+      setAddInterviwModalOpen(false);
+      toast.success(response.message);
+      setIsModalOpen(false);
+      resetForm();
+      await refetch();
+    } catch (err) {
+      toast.error(err?.data?.message || "Failed to create interview");
+    }
+  };
+
 
 
   const matchTabCondition = (student) => {
@@ -444,12 +444,22 @@ const StudentList = () => {
         },
         {
           key: "onlineTestResult",
-          label: "Result (1st Round)",
+          label: (
+            <div className="flex flex-col ">
+              <span>Result</span>
+              <span className="text-xs text-gray-500">(1st Round)</span>
+            </div>
+          ),
           render: (row) => handleGetStatus(row.interviews),
         },
         {
           key: "techMarks",
-          label: "Marks (1st Round)",
+          label: (
+            <div className="flex flex-col ">
+              <span>Marks</span>
+              <span className="text-xs text-gray-500">(1st Round)</span>
+            </div>
+          ),
           render: (row) => handleGetMarks(row.interviews),
         },
         // {
@@ -488,17 +498,32 @@ const StudentList = () => {
         },
         {
           key: "onlineTestStatus",
-          label: "Result (1st Round)",
+          label: (
+            <div className="flex flex-col ">
+              <span>Result</span>
+              <span className="text-xs text-gray-500">(1st Round)</span>
+            </div>
+          ),
           render: (row) => handleGetStatus(row.interviews),
         },
         {
           key: "techMarks",
-          label: "Marks(Tech Round)",
+          label: (
+            <div className="flex flex-col ">
+              <span>Marks</span>
+              <span className="text-xs text-gray-500">(Tech Round)</span>
+            </div>
+          ),
           render: (row) => handleGetMarks(row.interviews),
         },
         {
           key: "attempts",
-          label: "Attempts(1st Round)",
+          label: (
+            <div className="flex flex-col ">
+              <span>Attempts</span>
+              <span className="text-xs text-gray-500">(1st Round)</span>
+            </div>
+          ),
           render: (row) => {
             const firstRoundAttempts = row.interviews?.filter((i) => i.round === "First") || [];
             return firstRoundAttempts.length;
@@ -506,15 +531,6 @@ const StudentList = () => {
         },
       ];
       actionButton = (row) => (
-        // <button
-        //   onClick={() => {
-        //     localStorage.setItem("studdedntDetails", JSON.stringify(row));
-        //     // navigate(`/interview-detail/${row._id}?tab=${activeTab}`);
-        //   }}
-        //   className="bg-orange-500 text-md text-white px-3 py-1 rounded"
-        // >
-        //   Interviews Detail
-        // </button>' {/* <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-4">
           <button
             onClick={() => {
@@ -568,25 +584,6 @@ const StudentList = () => {
           secondRound.some((i) => i.result === "Fail");
 
         if (isSelected) {
-          //   return (
-          //     <button
-          //       className="bg-[var(--success-light)] flex items-center gap-2 text-md text-[var(--success-dark)] px-3 py-1 rounded"
-          //       onClick={() => alert(`Selected: ${row.firstName}`)}
-          //     >
-          //       <FaCheckCircle className="text-lg" />
-          //       <span>Selected</span>
-          //     </button>
-          //   );
-          // } else if (isRejected) {
-          //   return (
-          //     <button
-          //       className="bg-[var(--error-light)] flex items-center gap-2 text-md text-[var(--error-dark)] px-3 py-1 rounded"
-          //       onClick={() => alert(`Rejected: ${row.firstName}`)}
-          //     >
-          //       <AiFillStop className="text-lg" />
-          //       <span>Rejected</span>
-          //     </button>
-          //   );
           return (
             <button
               className="bg-[#22C55E]/20 flex items-center gap-2 text-md text-[#118D57] px-3 py-1 rounded-md cursor-not-allowed"
