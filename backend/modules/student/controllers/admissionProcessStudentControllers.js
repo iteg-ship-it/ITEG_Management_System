@@ -120,8 +120,8 @@ exports.updateAdmissionFlag = async (req, res, next) => {
     const updatedStudent = await AdmissionProcess.findOneAndUpdate(
   { prkey: prkey },                    
   { $set: { admissionStatus: admissionStatus } },
-  { new: true }                        
-);
+      { new: true }
+    );
     // console.log(updatedStudent);
     
 
@@ -130,17 +130,17 @@ exports.updateAdmissionFlag = async (req, res, next) => {
         .status(404)
         .json({ message: "Student not found with the provided prkey" });
     }
-         req.updatedStudent = updatedStudent;
+    req.updatedStudent = updatedStudent;
 
 
          // // ✅ Send plain text email if admission confirmed
-         if (admissionStatus === true && updatedStudent.email) {
-          await sendEmail({
-            to: updatedStudent.email,
-            subject: 'Admission Confirmed',
-            text: `Hi ${updatedStudent.firstName},\n\nYour admission has been successfully confirmed.\n\nRegards,\nAdmission Office`,
-          });
-         }
+    if (admissionStatus === true && updatedStudent.email) {
+      await sendEmail({
+        to: updatedStudent.email,
+        subject: 'Admission Confirmed',
+        text: `Hi ${updatedStudent.firstName},\n\nYour admission has been successfully confirmed.\n\nRegards,\nAdmission Office`,
+      });
+    }
     // Now move to next controller
     next();
     // Call the next middleware or route handler
