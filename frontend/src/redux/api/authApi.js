@@ -368,6 +368,14 @@ export const authApi = createApi({
       }),
     }),
 
+    // Get student level interviews for history page
+    getStudentLevelInterviews: builder.query({
+      query: (studentId) => ({
+        url: `${import.meta.env.VITE_GET_LEVEL_INTERVIEW_BY_ID}${studentId}`,
+        method: "GET",
+      }),
+    }),
+
 
   }),
 });
@@ -400,5 +408,6 @@ export const {
   useUpdateTechnologyMutation,
   useLogoutMutation,
   useGetAllStudentsByLevelQuery,
-  useGetInterviewAttemptCountQuery
+  useGetInterviewAttemptCountQuery,
+  useGetStudentLevelInterviewsQuery
 } = authApi;

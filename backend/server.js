@@ -3,6 +3,23 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const setupSwagger = require("./swagger/swagger");
+
+//expres object
+const app = express();
+
+// CORS configuration - allow all origins for webhook calls
+app.use(cors({
+  origin: true, // Allow all origins
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
+}));
+
+app.options("*", cors()); // Handle preflight requests
+
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 // Import Routes
 const webhookRoutes = require("./routes/webhookRoutes");
 
@@ -14,8 +31,7 @@ const userRoutes = require("./routes/userRoutes.js");
 const otpRoutes = require("./routes/otpRoutes.js");
 const passport = require("./config/passport.js");
 
-//expres object
-const app = express();
+
 // cors for frontend and backend communication
 setupSwagger(app);
 // app.use(
@@ -26,28 +42,15 @@ setupSwagger(app);
 //     credentials: true, // only if you're using cookies or sessions
 //   })
 // );
-const allowedOrigins = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(",") : ['http://localhost:5173'];
-
-app.use(
-  cors({
-    origin: true, // Allow all origins for now
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    credentials: true,
-  })
-);
+// const allowedOrigins = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(",") : ['http://localhost:5173'];
 
 
-
-app.options("*", cors());
 
 // Health Check Route
 app.get('/api/health-check', (req, res) => {
   console.log("🔥 Health check hit!");
   res.status(200).send("Backend is alive 🚀");
 });
-
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Routes
 app.use("/api/protected", protectedRoutes);
@@ -71,6 +74,15 @@ app.use('/api/user/otp', otpRoutes);
 
 // passport.js
 app.use(passport.initialize());
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ 
+    message: 'Internal server error', 
+    error: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+  });
+});
 
 // MongoDB Connection
 module.exports = app;

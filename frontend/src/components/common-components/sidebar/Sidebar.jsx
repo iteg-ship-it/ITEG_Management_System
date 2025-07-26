@@ -80,7 +80,7 @@ const Sidebar = ({ children }) => {
     }
 
     if (subPath === "/readiness-status") {
-      return path === "/readiness-status" || path.includes("/placement-");
+      return path === "/readiness-status";
     }
 
     if (subPath === "/placement-interview-record") {
