@@ -2461,3 +2461,86 @@ paths:
                     type: string
                     example: "Error details here"
 
+paths:
+  /api/admitted/students/update_technology/{id}:
+    put:
+      summary: Update student's technology after Level 2A
+      description: Updates the 'techno' field of a student only if they have passed Level 2A.
+      tags:
+        - Admitted Student
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the student
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - techno
+              properties:
+                techno:
+                  type: string
+                  example: MERN Stack
+      responses:
+        '200':
+          description: Technology updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Technology updated successfully
+                  student:
+                    $ref: '#/components/schemas/AdmittedStudent'
+        '400':
+          description: Missing technology field
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Technology field is required
+        '403':
+          description: Level 2A not completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student must complete Level 2A before updating technology
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student not found
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server error
+                  error:
+                    type: string
+
+
