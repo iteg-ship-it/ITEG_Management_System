@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, } from "react-router-dom";
 import { useState } from "react";
 import { useGetAdmittedStudentsByIdQuery } from "../../redux/api/authApi";
 import { HiArrowNarrowLeft } from "react-icons/hi";
@@ -8,14 +8,14 @@ import Loader from "../common-components/loader/Loader";
 
 const StudentLevelInterviewHistory = () => {
     const { studentId } = useParams();
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const { 
-        data: studentData, 
-        isLoading, 
-        error, 
-        refetch 
+    const {
+        data: studentData,
+        isLoading,
+        error,
+        refetch
     } = useGetAdmittedStudentsByIdQuery(studentId);
 
     const interviews = studentData?.level || [];
@@ -37,30 +37,20 @@ const StudentLevelInterviewHistory = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#f4f7fe] p-6">
-            <div className="bg-white rounded-xl shadow-md p-6">
-                {/* Header */}
-                <div className="flex justify-between items-center mb-6">
-                    <div className="flex items-center gap-3">
-                        <button
-                            type="button"
-                            onClick={() => navigate(-1)}
-                            className="text-2xl text-gray-800 hover:text-gray-900 transition"
-                        >
-                            <HiArrowNarrowLeft />
-                        </button>
-                        <h1 className="text-2xl font-semibold text-gray-800">
-                            Level Interview History
-                        </h1>
-                    </div>
-
-                    {/* <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="px-5 py-2 bg-brandYellow text-white rounded-lg hover:bg-orange-600 transition"
+        <>
+                <div className="flex items-center gap-3 mb-6">
+                    <button
+                        type="button"
+                        onClick={() => window.history.back()}
+                        className="text-2xl text-[var(--text-color)] hover:text-gray-900"
                     >
-                        Take Interview
-                    </button> */}
+                        <HiArrowNarrowLeft />
+                    </button>
+                    <h1 className="text-2xl py-4 font-bold">Level Interview History
+                    </h1>
                 </div>
+
+
 
                 {/* Student Info */}
                 {studentData && (
@@ -87,7 +77,7 @@ const StudentLevelInterviewHistory = () => {
                     <h3 className="text-xl font-semibold text-gray-700 mb-4">
                         Interview Records ({interviews.length})
                     </h3>
-                    
+
                     {interviews.length === 0 ? (
                         <div className="text-center py-12">
                             <div className="text-gray-400 text-6xl mb-4">📝</div>
@@ -98,29 +88,29 @@ const StudentLevelInterviewHistory = () => {
                         </div>
                     ) : (
                         interviews.map((interview, index) => (
-                            <InterviewCard 
-                                key={interview._id || index} 
-                                interview={interview} 
+                            <InterviewCard
+                                key={interview._id || index}
+                                interview={interview}
                                 index={index}
                             />
                         ))
                     )}
                 </div>
-            </div>
 
-            {/* Interview Modal */}
-            <CreateInterviewModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                studentId={studentId}
-                refetchStudents={refetch}
-            />
-        </div>
+                {/* Interview Modal */}
+                <CreateInterviewModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    studentId={studentId}
+                    refetchStudents={refetch}
+                />
+            
+        </>
     );
 };
 
 // Interview Card Component
-const InterviewCard = ({ interview}) => {
+const InterviewCard = ({ interview }) => {
     const getResultColor = (result) => {
         switch (result?.toLowerCase()) {
             case 'pass': return 'text-green-600 bg-green-100';
@@ -155,7 +145,7 @@ const InterviewCard = ({ interview}) => {
                         </p>
                     </div>
                 </div>
-                
+
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${getResultColor(interview.result)}`}>
                     {interview.result || 'Pending'}
                 </span>
