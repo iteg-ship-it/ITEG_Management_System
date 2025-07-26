@@ -319,6 +319,18 @@ export const authApi = createApi({
         body: data,
       }),
     }),
+    updateTechnology: builder.mutation({
+      query: ({ id, techno }) => {
+        const fullUrl = `${import.meta.env.VITE_UPDATE_TECHNOLOGY}${id}`;
+        return {
+          url: fullUrl,
+          method: "PATCH",
+          body: { techno },
+        };
+      },
+    }),
+
+
 
 
 
@@ -350,11 +362,11 @@ export const authApi = createApi({
     }),
 
     getInterviewAttemptCount: builder.query({
-  query: (studentId) => ({
-    url: `${import.meta.env.VITE_GET_INTERVIEW_ATTEMPT}${studentId}`,
-    method: "GET",
-  }),
-}),
+      query: (studentId) => ({
+        url: `${import.meta.env.VITE_GET_INTERVIEW_ATTEMPT}${studentId}`,
+        method: "GET",
+      }),
+    }),
 
 
   }),
@@ -385,6 +397,7 @@ export const {
   useGetReadyStudentsForPlacementQuery,
   useAddPlacementInterviewRecordMutation,
   useUpdatePlacedInfoMutation,
+  useUpdateTechnologyMutation,
   useLogoutMutation,
   useGetAllStudentsByLevelQuery,
   useGetInterviewAttemptCountQuery

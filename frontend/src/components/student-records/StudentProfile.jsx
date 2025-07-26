@@ -6,6 +6,8 @@ import { useGetAdmittedStudentsByIdQuery } from "../../redux/api/authApi";
 import PermissionModal from "./PermissionModal";
 import PlacementModal from "./PlacementModal";
 import Loader from "../common-components/loader/Loader";
+import UpdateTechnologyModal from "./UpdateTechnologyModal";
+
 
 // Icons & Images
 import profilePlaceholder from "../../assets/images/profile-img.png";
@@ -30,6 +32,8 @@ export default function StudentProfile() {
   const [latestLevel, setLatestLevel] = useState("1A");
   const [isPermissionModalOpen, setPermissionModalOpen] = useState(false);
   const [isPlacedModalOpen, setPlacedModalOpen] = useState(false);
+  const [isTechModalOpen, setTechModalOpen] = useState(false);
+
   console.log(studentData);
 
   useEffect(() => {
@@ -182,6 +186,13 @@ export default function StudentProfile() {
                 }
               /> */}
             </div>
+            <button
+              onClick={() => setTechModalOpen(true)}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg mt-4"
+            >
+              Update Technology
+            </button>
+
           </div>
         </div>
       </div >
@@ -200,6 +211,12 @@ export default function StudentProfile() {
         studentData={studentData}
         studentId={studentData._id}
       />
+      <UpdateTechnologyModal
+        isOpen={isTechModalOpen}
+        onClose={() => setTechModalOpen(false)}
+        studentId={studentData._id}
+      />
+
     </>
   );
 }
