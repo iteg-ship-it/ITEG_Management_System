@@ -52,28 +52,35 @@ export default function StudentProfile() {
 
   if (isError || !studentData) return <div className="p-4 text-red-500">Error loading student data.</div>;
 
+  // Check permission status
+  const hasPermission = studentData.permissionDetails && studentData.permissionDetails !== null && typeof studentData.permissionDetails === 'object' && Object.keys(studentData.permissionDetails).length > 0;
+  const permissionStatus = hasPermission ? "Yes" : "No";
+
+  // Check placement status
+  const hasPlacement = studentData.placedinfo && studentData.placedinfo !== null && typeof studentData.placedinfo === 'object' && Object.keys(studentData.placedinfo).length > 0;
+  const placementStatus = hasPlacement ? "Placed" : "Not Placed";
+
+  // Calculate actual attendance data from API or use default
+  const attendanceData = studentData.attendance || [
+    ["Jan", 95], ["Feb", 92], ["Mar", 88], ["Apr", 90],
+    ["May", 85], ["Jun", 87], ["Jul", 89], ["Aug", 91],
+    ["Sep", 93], ["Oct", 88], ["Nov", 90], ["Dec", 92]
+  ];
+
   const graphData = [
     ["Month", "Attendance", { role: "style" }, { role: "tooltip", type: "string" }],
-    ...[
-      ["Jan", 100],
-      ["Feb", 90],
-      ["Mar", 75],
-      ["Apr", 80],
-      ["May", 60],
-      ["Jun", 50],
-      ["Jul", 45],
-      ["Aug", 40],
-      ["Sep", 38],
-      ["Oct", 30],
-      ["Nov", 30],
-      ["Dec", 25],
-    ].map(([month, att]) => [
+    ...attendanceData.map(([month, att]) => [
       month,
       att,
       `color: ${att > 80 ? "#4285F4" : att >= 50 ? "#FBBC05" : "#EA4335"}`,
       `Attendance: ${att}%`,
     ]),
   ];
+
+  // Calculate average attendance
+  const avgAttendance = Math.round(
+    attendanceData.reduce((sum, [, att]) => sum + att, 0) / attendanceData.length
+  );
 
   const chartOptions = {
     chartArea: { width: "70%" },
@@ -100,7 +107,7 @@ export default function StudentProfile() {
           {/* Left Section */}
           <div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <InfoCard icon={attendence} title="Attendance" value="93%" bg="#9BAEF5" />
+              <InfoCard icon={attendence} title="Attendance" value={`${avgAttendance}%`} bg="#9BAEF5" />
               <InfoCard 
                 icon={level} 
                 title="Current Level" 
@@ -111,14 +118,14 @@ export default function StudentProfile() {
               <InfoCard
                 icon={permission}
                 title="Permission"
-                value={studentData.permissionStatus || "No"}
+                value={permissionStatus}
                 bg="#C23F7E"
                 onClick={() => setPermissionModalOpen(true)}
               />
               <InfoCard
                 icon={placed}
                 title="Placement Info"
-                value={studentData.placementStatus || "Not Placed"}
+                value={placementStatus}
                 bg="#3FC260"
                 onClick={() => setPlacedModalOpen(true)}
               />
@@ -127,18 +134,18 @@ export default function StudentProfile() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
               <div className="bg-white p-4 rounded-2xl shadow-md">
                 <h3 className="text-lg font-semibold mb-2">Placement Info</h3>
-                <InfoLine icon={company} label="Company" value={studentData.company} />
-                <InfoLine icon={position} label="Position" value={studentData.position} />
-                <InfoLine icon={loca} label="Location" value={studentData.location} />
-                <InfoLine icon={date} label="Date" value={studentData.placementDate} />
+                <InfoLine icon={company} label="Company" value={studentData.company || "Not Assigned"} />
+                <InfoLine icon={position} label="Position" value={studentData.position || "Not Assigned"} />
+                <InfoLine icon={loca} label="Location" value={studentData.location || "Not Assigned"} />
+                <InfoLine icon={date} label="Date" value={studentData.placementDate || "Not Assigned"} />
               </div>
 
               <div className="bg-white p-4 rounded-2xl shadow-md">
                 <h3 className="text-lg font-semibold mb-2">Student Progress State</h3>
                 <div className="flex justify-around items-center">
-                  <CircleStat title="Certificates" value="2" />
-                  <CircleStat title="Success Rate" value="99%" color="text-green-600" />
-                  <CircleStat title="Levels" value="6" bg="bg-yellow-400" textColor="text-white" />
+                  <CircleStat title="Certificates" value={studentData.certificates?.length || "0"} />
+                  <CircleStat title="Success Rate" value={`${avgAttendance}%`} color="text-green-600" />
+                  <CircleStat title="Levels" value={studentData.level?.length || "0"} bg="bg-yellow-400" textColor="text-white" />
                 </div>
               </div>
             </div>
@@ -229,38 +236,40 @@ export default function StudentProfile() {
 // InfoCard Component
 const InfoCard = ({ icon, title, value, bg, onClick }) => (
   <div
-    className="p-4 rounded-xl shadow text-white cursor-pointer"
-    style={{ backgroundColor: bg }}
+    className={`bg-white p-4 rounded-2xl shadow-md cursor-pointer hover:shadow-lg transition-shadow ${
+      onClick ? 'hover:scale-105 transform transition-transform' : ''
+    }`}
     onClick={onClick}
+    style={{ backgroundColor: bg }}
   >
-    <div className="flex justify-between items-center">
-      <p className="text-sm font-medium">{title}</p>
-      <img src={icon} className="h-5" alt={title} />
+    <div className="flex items-center gap-3">
+      <img src={icon} alt={title} className="w-8 h-8" />
+      <div>
+        <p className="text-sm text-gray-600">{title}</p>
+        <p className="text-lg font-semibold text-white">{value}</p>
+      </div>
     </div>
-    <h2 className="text-xl font-bold py-2">{value}</h2>
-    <p className="text-xs">Overall From Starting</p>
   </div>
 );
 
 // InfoLine Component
 const InfoLine = ({ icon, label, value }) => (
-  <div className="flex items-center gap-3 py-1">
-    <img className="h-5" src={icon} alt={label} />
-    <span className="text-sm">
-      <strong>{label}</strong>: {value || "N/A"}
-    </span>
+  <div className="flex items-center gap-3 mb-3">
+    <img src={icon} alt={label} className="w-5 h-5" />
+    <div className="flex-1">
+      <span className="text-sm text-gray-600">{label}: </span>
+      <span className="font-medium">{value}</span>
+    </div>
   </div>
 );
 
 // CircleStat Component
-const CircleStat = ({ title, value, bg = "bg-gray-100", textColor = "text-black", color = "" }) => (
-  <div className="flex flex-col items-center">
-    <div
-      className={`w-20 h-20 rounded-full flex items-center justify-center ${bg} ${textColor} text-lg font-semibold ${color}`}
-    >
-      {value}
+const CircleStat = ({ title, value, color = "text-blue-600", bg = "bg-blue-100", textColor = "text-gray-800" }) => (
+  <div className="text-center">
+    <div className={`w-16 h-16 ${bg} rounded-full flex items-center justify-center mb-2`}>
+      <span className={`text-xl font-bold ${textColor}`}>{value}</span>
     </div>
-    <p className="mt-2 text-sm">{title}</p>
+    <p className={`text-sm ${color}`}>{title}</p>
   </div>
 );
 
