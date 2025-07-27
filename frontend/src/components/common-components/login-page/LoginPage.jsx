@@ -133,12 +133,11 @@ const LoginPage = () => {
               </div> */}
 
               <div className="flex flex-col items-center space-y-4 px-5">
-                {/* Google Login Button (Disabled for now) */}
+                {/* Google Login Button */}
                 <button
                   type="button"
                   onClick={handleGoogleLogin}
-                  className="flex w-full justify-center items-center space-x-3 bg-white shadow-md rounded-xl py-2.5 hover:shadow-lg transition border border-gray-300 opacity-50 cursor-not-allowed"
-                  disabled
+                  className="flex w-full justify-center items-center space-x-3 bg-white shadow-md rounded-xl py-2.5 hover:shadow-lg transition border border-gray-300"
                 >
                   <img className="h-5" src={googleLogo} alt="Google" />
                   <span className="text-sm font-medium text-gray-800">

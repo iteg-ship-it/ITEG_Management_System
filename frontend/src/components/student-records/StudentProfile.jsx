@@ -238,7 +238,7 @@ export default function StudentProfile() {
           />
           <ProfessionalMetricCard 
             icon={level} 
-            title="Current Level" 
+            title="Level History" 
             value={latestLevel} 
             bgColor="#8E33FF"
             description="Academic progress"
