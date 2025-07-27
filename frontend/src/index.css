@@ -7,6 +7,7 @@
   --primary: #FDA92D;
   --primary-light: #f7d897;
   --primary-dark: #FDA92D;
+  --primary-darker: #FFAB00;
   --secondary: #8E33FF;
   --secondary-light: #C684FF;
   --secondary-dark: #5119B7;
@@ -65,11 +66,11 @@
   @apply bg-gray-100 cursor-not-allowed;
 }
 
-input {
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="tel"], input[type="url"], input[type="date"], input[type="file"] {
   @apply h-12 border-2 border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-black transition-all duration-200;
 }
 
-select {
+select:not([multiple]) {
   @apply h-12 border-2 border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-black transition-all duration-200 bg-white;
 }
 

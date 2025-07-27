@@ -172,10 +172,13 @@ export default function StudentProfile() {
               backgroundPosition: 'center'
             }}></div>
             <button
-              onClick={() => setTechModalOpen(true)}
-              className="absolute top-4 right-8 px-4 py-2 bg-indigo-700 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium transition-colors shadow-lg z-20"
+              onClick={() => {
+                console.log('Update Technology button clicked');
+                setTechModalOpen(true);
+              }}
+              className="absolute top-7 right-8 px-4 py-2 bg-[var(--primary-darker)] hover:bg-[var(--primary-dark)] text-black font-extrabold rounded-lg text-sm font-medium transition-colors shadow-lg z-20"
             >
-              Update Tech
+              Choose Elective
             </button>
             <div className="relative px-3 sm:px-8 py-4 sm:py-12">
               <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
@@ -190,12 +193,13 @@ export default function StudentProfile() {
                   <div 
                     className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full shadow-md flex items-center justify-center cursor-pointer hover:shadow-lg transition-shadow"
                     onClick={triggerImageUpload}
+                    style={{ transform: 'translate(-25%, -25%)' }}
                   >
                     {isImageUploading ? (
                       <div className="w-4 h-4 sm:w-3 sm:h-3 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
                     ) : (
                       <IoCamera
- className="w-5 h-5 sm:w-5 sm:h-5 text-gray-700 hover:text-gray-900" />
+ className="w-5 h-5 sm:w-7 sm:h-6 text-gray-700 hover:text-gray-900" />
                     )}
                   </div>
                   {/* Hidden file input */}
@@ -431,17 +435,34 @@ export default function StudentProfile() {
               <DetailRow 
                 icon={date} 
                 label="Last Request" 
-                value={studentData?.permissionDetails?.date || "No recent requests"} 
+                value={studentData?.permissionDetails?.uploadDate 
+                  ? new Date(studentData.permissionDetails.uploadDate).toLocaleDateString() 
+                  : "No recent requests"} 
               />
               <DetailRow 
                 icon={permission} 
                 label="Reason" 
-                value={studentData?.permissionDetails?.reason || "N/A"} 
+                value={studentData?.permissionDetails?.remark || "N/A"} 
               />
+              <DetailRow 
+                icon={permission} 
+                label="Approved By" 
+                value={studentData?.permissionDetails?.approved_by || "N/A"} 
+              />
+              {studentData?.permissionDetails?.imageURL && (
+                <div className="mt-4">
+                  <p className="text-xs text-black uppercase tracking-wide font-medium mb-2">Signature</p>
+                  <img 
+                    src={studentData.permissionDetails.imageURL} 
+                    alt="Permission Signature" 
+                    className="h-20 object-contain border rounded shadow"
+                  />
+                </div>
+              )}
               <div className="mt-6 p-4 bg-gray-50 rounded-lg" style={{ boxShadow: '0 0 15px 4px rgba(0, 0, 0, 0.06)' }}>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">Current Status</span>
-                  <StatusBadge status={studentData.permissionStatus} />
+                  <StatusBadge status={hasPermission ? "Approved" : "No Permission"} />
                 </div>
               </div>
             </div>

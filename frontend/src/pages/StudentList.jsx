@@ -42,6 +42,13 @@ const StudentList = () => {
     refetch();
   }, [refetch]);
 
+  // Filter out students who have permission details (dummy students)
+  const activeStudents = data.filter(student => {
+    return !student.permissionDetails || 
+           (typeof student.permissionDetails === 'object' && 
+            Object.keys(student.permissionDetails).length === 0);
+  });
+
   if (isLoading) return <p>Loading...</p>;
   if (error) return <p>Error fetching students</p>;
 
@@ -51,7 +58,7 @@ const StudentList = () => {
       <div className="flex-1 overflow-y-auto">
         <Table
           columns={columns}
-          data={data}
+          data={activeStudents}
           searchable
           filterable
           editable

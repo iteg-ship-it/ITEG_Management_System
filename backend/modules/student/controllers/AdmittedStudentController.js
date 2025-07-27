@@ -73,7 +73,13 @@ exports.createAdmittedStudent = async (req, res) => {
 
 exports.getAllStudents = async (req, res) => {
   try {
-    const students = await AdmittedStudent.find();
+    const students = await AdmittedStudent.find({
+      $or: [
+        { permissionDetails: { $exists: false } },
+        { permissionDetails: null },
+        { permissionDetails: {} }
+      ]
+    });
     console.log("Fetched all students:", students.length);
     res.status(200).json(students);
   } catch (error) {
@@ -101,7 +107,12 @@ const students = await AdmittedStudent.aggregate([
   },
   {
         $match: {
-          "latestLevel.levelNo": levelNo
+          "latestLevel.levelNo": levelNo,
+          $or: [
+            { permissionDetails: { $exists: false } },
+            { permissionDetails: null },
+            { permissionDetails: {} }
+          ]
     }
   }
 ]);
@@ -399,7 +410,12 @@ exports.getLevelWiseStudents = async (req, res) => {
   const students = await AdmittedStudent.aggregate([
   {
     $match: {
-      currentLevel: levelNo
+      currentLevel: levelNo,
+      $or: [
+        { permissionDetails: { $exists: false } },
+        { permissionDetails: null },
+        { permissionDetails: {} }
+      ]
     }
   }
 ]);
