@@ -5,7 +5,7 @@ import { useGetAdmittedStudentsByIdQuery } from "../../redux/api/authApi";
 import PermissionModal from "./PermissionModal";
 import PlacementModal from "./PlacementModal";
 import Loader from "../common-components/loader/Loader";
-// import UpdateTechnologyModal from "./UpdateTechnologyModal";
+import UpdateTechnologyModal from "./UpdateTechnologyModal";
 
 
 // Icons & Images
@@ -31,6 +31,8 @@ export default function StudentProfile() {
   const [isPermissionModalOpen, setPermissionModalOpen] = useState(false);
   const [isPlacedModalOpen, setPlacedModalOpen] = useState(false);
   const [isYearView, setIsYearView] = useState(false);
+    const [isTechModalOpen, setTechModalOpen] = useState(false);
+
 
   useEffect(() => {
     if (studentData?.level?.length > 0) {
@@ -64,6 +66,13 @@ export default function StudentProfile() {
     ["Nov", 30, "#EF4444"],
     ["Dec", 25, "#EF4444"],
   ];
+  // Check permission status
+  const hasPermission = studentData.permissionDetails && studentData.permissionDetails !== null && typeof studentData.permissionDetails === 'object' && Object.keys(studentData.permissionDetails).length > 0;
+  const permissionStatus = hasPermission ? "Yes" : "No";
+
+  // Check placement status
+  const hasPlacement = studentData.placedinfo && studentData.placedinfo !== null && typeof studentData.placedinfo === 'object' && Object.keys(studentData.placedinfo).length > 0;
+  const placementStatus = hasPlacement ? "Placed" : "Not Placed";
 
   return (
     <div className="min-h-screen bg-white">
@@ -91,7 +100,7 @@ export default function StudentProfile() {
               </div>
             </div>
             <button
-              // onClick={() => setTechModalOpen(true)}
+              onClick={() => setTechModalOpen(true)}
               className="px-4 py-2 bg-indigo-600 text-white rounded-lg mt-4"
             >
               Update Technology
@@ -160,7 +169,8 @@ export default function StudentProfile() {
           <ProfessionalMetricCard
             icon={permission}
             title="Permission Status"
-            value={studentData.permissionStatus || "None"}
+            // value={studentData.permissionStatus || "None"}
+            value={permissionStatus || "None"}
             bgColor="#00B8D9"
             description="Current requests"
             onClick={() => setPermissionModalOpen(true)}
@@ -168,7 +178,8 @@ export default function StudentProfile() {
           <ProfessionalMetricCard
             icon={placed}
             title="Placement Status"
-            value={studentData.placementStatus || "Pending"}
+            // value={studentData.placementStatus || "Pending"}
+            value={placementStatus || "Pending"}
             bgColor="#22C55E"
             description="Career progress"
             onClick={() => setPlacedModalOpen(true)}
@@ -375,6 +386,11 @@ export default function StudentProfile() {
         isOpen={isPlacedModalOpen}
         onClose={() => setPlacedModalOpen(false)}
         studentData={studentData}
+        studentId={studentData._id}
+      />
+            <UpdateTechnologyModal
+        isOpen={isTechModalOpen}
+        onClose={() => setTechModalOpen(false)}
         studentId={studentData._id}
       />
     </div>
