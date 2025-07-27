@@ -20,6 +20,8 @@ import loca from "../../assets/icons/location-icon.png";
 import date from "../../assets/icons/calendar-icon.png";
 import studentProfileBg from "../../assets/images/Student_profile_2nd_bg.jpg";
 import { HiArrowNarrowLeft } from "react-icons/hi";
+import { IoCamera } from "react-icons/io5";
+
 
 import { Chart } from "react-google-charts";
 
@@ -75,7 +77,6 @@ export default function StudentProfile() {
         }).unwrap();
         
         console.log('Image upload successful:', result);
-        alert('Profile image updated successfully!');
         
       } catch (error) {
         console.error('Error uploading image:', error);
@@ -156,12 +157,6 @@ export default function StudentProfile() {
                 Active Student
               </div>
             </div>
-            <button
-              onClick={() => setTechModalOpen(true)}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg mt-4"
-            >
-              Update Technology
-            </button>
 
           </div>
         </div>
@@ -176,32 +171,32 @@ export default function StudentProfile() {
               backgroundSize: 'cover',
               backgroundPosition: 'center'
             }}></div>
+            <button
+              onClick={() => setTechModalOpen(true)}
+              className="absolute top-4 right-8 px-4 py-2 bg-indigo-700 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium transition-colors shadow-lg z-20"
+            >
+              Update Tech
+            </button>
             <div className="relative px-3 sm:px-8 py-4 sm:py-12">
               <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
-                <div className="relative group">
+                <div className="relative">
                   <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-full bg-white p-1 sm:p-2 shadow-md">
                     <img
                       src={studentData.image || profilePlaceholder}
                       alt="Profile"
                       className="w-full h-full object-cover rounded-full"
                     />
-                    {/* Upload overlay */}
-                    <div 
-                      className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                      onClick={triggerImageUpload}
-                    >
-                      {isImageUploading ? (
-                        <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      ) : (
-                        <div className="text-white text-center">
-                          <div className="text-lg mb-1">📷</div>
-                          <div className="text-xs">Upload</div>
-                        </div>
-                      )}
-                    </div>
                   </div>
-                  <div className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full border-2 sm:border-4 border-white flex items-center justify-center">
-                    <div className="w-2 h-2 sm:w-3 sm:h-3 bg-white rounded-full"></div>
+                  <div 
+                    className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full shadow-md flex items-center justify-center cursor-pointer hover:shadow-lg transition-shadow"
+                    onClick={triggerImageUpload}
+                  >
+                    {isImageUploading ? (
+                      <div className="w-4 h-4 sm:w-3 sm:h-3 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <IoCamera
+ className="w-5 h-5 sm:w-5 sm:h-5 text-gray-700 hover:text-gray-900" />
+                    )}
                   </div>
                   {/* Hidden file input */}
                   <input
