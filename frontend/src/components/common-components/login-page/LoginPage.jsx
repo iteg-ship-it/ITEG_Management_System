@@ -137,7 +137,8 @@ const LoginPage = () => {
                 <button
                   type="button"
                   onClick={handleGoogleLogin}
-                  className="flex w-full justify-center items-center space-x-3 bg-white shadow-md rounded-xl py-2.5 hover:shadow-lg transition border border-gray-300"
+                  disabled
+                  className="flex w-full justify-center items-center space-x-3 bg-gray-100 shadow-md rounded-xl py-2.5 border border-gray-300 cursor-not-allowed opacity-50"
                 >
                   <img className="h-5" src={googleLogo} alt="Google" />
                   <span className="text-sm font-medium text-gray-800">
