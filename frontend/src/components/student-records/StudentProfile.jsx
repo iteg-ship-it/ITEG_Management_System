@@ -5,6 +5,8 @@ import { useGetAdmittedStudentsByIdQuery } from "../../redux/api/authApi";
 import PermissionModal from "./PermissionModal";
 import PlacementModal from "./PlacementModal";
 import Loader from "../common-components/loader/Loader";
+// import UpdateTechnologyModal from "./UpdateTechnologyModal";
+
 
 // Icons & Images
 import profilePlaceholder from "../../assets/images/profile-img.png";
@@ -88,6 +90,13 @@ export default function StudentProfile() {
                 Active Student
               </div>
             </div>
+            <button
+              // onClick={() => setTechModalOpen(true)}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg mt-4"
+            >
+              Update Technology
+            </button>
+
           </div>
         </div>
       </div>
@@ -393,6 +402,7 @@ const ProfessionalMetricCard = ({ icon, title, value, bgColor, description, onCl
     className="group relative bg-white rounded-xl overflow-hidden cursor-pointer"
     style={{ boxShadow: '0 0 20px 5px rgba(0, 0, 0, 0.08)' }}
     onClick={onClick}
+    // style={{ backgroundColor: bg }}
   >
 
     <div className="relative p-2 sm:p-6">

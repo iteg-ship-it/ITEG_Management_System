@@ -256,7 +256,7 @@ exports.createLevels = async (req, res) => {
       }
 
 
-
+     
       if (allLevelsPassed) {
         student.readinessStatus = "Ready";
       }
@@ -312,6 +312,7 @@ exports.getAllPermissionStudents = async (req, res) => {
     res.status(500).json({ message: "Server Error", error });
   }
 };
+
 
 // Update a student's permissionDetails
 exports.updatePermissionStudent = async (req, res) => {
@@ -663,66 +664,6 @@ exports.uploadResumeBase64 = async (req, res) => {
 };
 
 
-// exports.generatePlacementPost = async (req, res) => {
-//   try {
-//     const { studentId } = req.body;
-
-//     const student = await AdmittedStudent.findById(studentId);
-//     if (!student) return res.status(404).json({ message: 'Student not found' });
-
-//     const {
-//       name: studentName,
-//       profilePhoto,
-//       location: studentLocation,
-//       placedInfo
-//     } = student;
-
-//     if (!placedInfo || !placedInfo.companyName) {
-//       return res.status(400).json({ message: 'Placement info not available' });
-//     }
-
-//     const {
-//       companyName,
-//       salary,
-//       location: companyLocation,
-//       jobProfile,
-//       companyLogo,
-//       jobType
-//     } = placedInfo;
-
-//     // Paths
-//     const templatePath = path.join(__dirname, '../public/templates/Placement Template.jpg');
-//     const studentImgPath = path.join(__dirname, `../public/uploads/${path.basename(profilePhoto)}`);
-//     const companyLogoPath = path.join(__dirname, `../public/uploads/${path.basename(companyLogo)}`);
-//     const outputFileName = `${studentName.replace(/\s+/g, '_')}_post.jpg`;
-//     const outputPath = path.join(__dirname, `../public/posts/${outputFileName}`);
-
-//     // Compose the final image
-//     const finalImage = await sharp(templatePath)
-//       .composite([
-//         { input: studentImgPath, top: 300, left: 280 }, // Adjust positions
-//         { input: companyLogoPath, top: 620, left: 80 }
-//       ])
-//       .resize(1080, 1080)
-//       .jpeg()
-//       .toBuffer();
-
-//     fs.writeFileSync(outputPath, finalImage);
-
-//     res.status(200).json({
-//       message: 'Post generated successfully',
-//       imageUrl: `/posts/${outputFileName}`,
-//       student: studentName,
-//       company: companyName
-//     });
-
-//   } catch (error) {
-//     console.error("Error generating post:", error);
-//     res.status(500).json({ message: 'Server error', error });
-//   }
-// };
-
-
 exports.generatePlacementPost = async (req, res) => {
   try {
     const { studentId, studentImageBase64, companyLogoBase64 } = req.body;
@@ -772,6 +713,75 @@ exports.generatePlacementPost = async (req, res) => {
 
   } catch (error) {
     console.error("Error generating post:", error);
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+// exports.updateTechnology = async (req, res) => {
+//   try {
+//     const studentId = req.params.id;
+//     const { techno } = req.body;
+
+//     if (!techno) {
+//       return res.status(400).json({ message: 'Technology field is required' });
+//     }
+
+//     const updatedStudent = await AdmittedStudent.findByIdAndUpdate(
+//       studentId,
+//       { techno},
+//       { new: true }
+//     );
+
+//     if (!updatedStudent) {
+//       return res.status(404).json({ message: 'Student not found' });
+//     }
+
+//     res.status(200).json({
+//       message: 'Technology updated successfully',
+//       student: updatedStudent
+//     });
+//   } catch (error) {
+//     console.error('Error updating technology:', error);
+//     res.status(500).json({ message: 'Server error', error });
+//   }
+// };
+
+
+exports.updateTechnology = async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    const { techno } = req.body;
+
+    if (!techno) {
+      return res.status(400).json({ message: 'Technology field is required' });
+    }
+
+    // Step 1: Fetch student
+    const student = await AdmittedStudent.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // ✅ Step 2: Check if Level 2A is passed inside the level array
+    const hasPassedLevel2A = student.level?.some(
+      (lvl) => lvl.levelNo === '2A' && lvl.result === 'Pass'
+    );
+
+    if (!hasPassedLevel2A) {
+      return res.status(403).json({ message: 'Student must complete Level 2A before updating technology' });
+    }
+
+    // ✅ Step 3: Update techno field
+    student.techno = techno;
+    await student.save();
+
+    res.status(200).json({
+      message: 'Technology updated successfully',
+      student
+    });
+
+  } catch (error) {
+    console.error('Error updating technology:', error);
     res.status(500).json({ message: 'Server error', error });
   }
 };
