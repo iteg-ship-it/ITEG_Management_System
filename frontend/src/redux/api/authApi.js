@@ -101,6 +101,7 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithAutoRefresh,
+  tagTypes: ['Student'],
   endpoints: (builder) => ({
     login: builder.mutation({
       query: (credentials) => ({
@@ -295,6 +296,9 @@ export const authApi = createApi({
         url: `${import.meta.env.VITE_GET_ADMITTED_STUDENTS_BY_ID}${id}`,
         method: "GET",
       }),
+      providesTags: (result, error, id) => [
+        { type: 'Student', id }
+      ],
     }),
 
     getPermissionStudent: builder.query({
@@ -328,6 +332,17 @@ export const authApi = createApi({
           body: { techno },
         };
       },
+    }),
+
+    updateStudentImage: builder.mutation({
+      query: ({ id, image }) => ({
+        url: `/admitted/students/update/${id}`,
+        method: "PATCH",
+        body: { image },
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'Student', id }
+      ],
     }),
 
 
@@ -406,6 +421,7 @@ export const {
   useAddPlacementInterviewRecordMutation,
   useUpdatePlacedInfoMutation,
   useUpdateTechnologyMutation,
+  useUpdateStudentImageMutation,
   useLogoutMutation,
   useGetAllStudentsByLevelQuery,
   useGetInterviewAttemptCountQuery,

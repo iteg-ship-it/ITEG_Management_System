@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { useGetAdmittedStudentsByIdQuery } from "../../redux/api/authApi";
+import { useEffect, useState, useRef } from "react";
+import { useGetAdmittedStudentsByIdQuery, useUpdateStudentImageMutation } from "../../redux/api/authApi";
 import PermissionModal from "./PermissionModal";
 import PlacementModal from "./PlacementModal";
 import Loader from "../common-components/loader/Loader";
@@ -26,12 +26,15 @@ import { Chart } from "react-google-charts";
 export default function StudentProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
+  const { data: studentData, isLoading, isError} = useGetAdmittedStudentsByIdQuery(id);
+  const [updateStudentImage] = useUpdateStudentImageMutation();
   const [latestLevel, setLatestLevel] = useState("1A");
   const [isPermissionModalOpen, setPermissionModalOpen] = useState(false);
   const [isPlacedModalOpen, setPlacedModalOpen] = useState(false);
   const [isYearView, setIsYearView] = useState(false);
-    const [isTechModalOpen, setTechModalOpen] = useState(false);
+  const [isTechModalOpen, setTechModalOpen] = useState(false);
+  const [isImageUploading, setIsImageUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
 
   useEffect(() => {
@@ -40,6 +43,60 @@ export default function StudentProfile() {
       setLatestLevel(passed.length > 0 ? passed[passed.length - 1].levelNo : "1A");
     }
   }, [studentData]);
+
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select a valid image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size should be less than 5MB');
+      return;
+    }
+
+    setIsImageUploading(true);
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const base64Image = e.target.result;
+        console.log('Uploading image for student ID:', studentData._id);
+        
+        // Update student image via RTK Query
+        const result = await updateStudentImage({
+          id: studentData._id,
+          image: base64Image
+        }).unwrap();
+        
+        console.log('Image upload successful:', result);
+        alert('Profile image updated successfully!');
+        
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        alert(`Failed to upload image: ${error.data?.message || error.message || 'Unknown error'}`);
+      } finally {
+        setIsImageUploading(false);
+      }
+    };
+    
+    reader.onerror = () => {
+      console.error('Error reading file');
+      alert('Error reading file');
+      setIsImageUploading(false);
+    };
+    
+    reader.readAsDataURL(file);
+  };
+
+  const triggerImageUpload = () => {
+    fileInputRef.current?.click();
+  };
 
   if (isLoading) {
     return (
@@ -121,17 +178,39 @@ export default function StudentProfile() {
             }}></div>
             <div className="relative px-3 sm:px-8 py-4 sm:py-12">
               <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
-                <div className="relative">
+                <div className="relative group">
                   <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-full bg-white p-1 sm:p-2 shadow-md">
                     <img
-                      src={studentData.profilePhoto || profilePlaceholder}
+                      src={studentData.image || profilePlaceholder}
                       alt="Profile"
                       className="w-full h-full object-cover rounded-full"
                     />
+                    {/* Upload overlay */}
+                    <div 
+                      className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                      onClick={triggerImageUpload}
+                    >
+                      {isImageUploading ? (
+                        <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <div className="text-white text-center">
+                          <div className="text-lg mb-1">📷</div>
+                          <div className="text-xs">Upload</div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full border-2 sm:border-4 border-white flex items-center justify-center">
                     <div className="w-2 h-2 sm:w-3 sm:h-3 bg-white rounded-full"></div>
                   </div>
+                  {/* Hidden file input */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
                 </div>
                 <div className="flex-1 text-center sm:text-left">
                   <h2 className="text-lg sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 text-white">

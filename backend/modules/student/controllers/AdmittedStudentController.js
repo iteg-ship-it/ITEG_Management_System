@@ -785,3 +785,36 @@ exports.updateTechnology = async (req, res) => {
     res.status(500).json({ message: 'Server error', error });
   }
 };
+
+exports.updateStudentProfile = async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    const { image } = req.body;
+
+    if (!image) {
+      return res.status(400).json({ message: 'Image is required' });
+    }
+
+    // Validate base64 image format
+    if (!/^data:image\/(png|jpeg|jpg|gif);base64,/.test(image)) {
+      return res.status(400).json({ message: 'Invalid image format. Must be base64 encoded image.' });
+    }
+
+    const student = await AdmittedStudent.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    student.image = image;
+    await student.save();
+
+    res.status(200).json({
+      message: 'Profile image updated successfully',
+      student
+    });
+
+  } catch (error) {
+    console.error('Error updating profile image:', error);
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
