@@ -313,20 +313,20 @@ export default function StudentProfile() {
                 >
                   <div className="h-48 sm:h-80 flex items-center justify-center gap-8">
                     <div className="relative w-80 h-80">
-                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 200 200">
+                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 200 200" opacity={0.7}>
                         {/* 2022 - Innermost ring */}
                         <circle cx="100" cy="100" r="40" fill="none" stroke="#F8F9FA" strokeWidth="8" />
-                        <circle cx="100" cy="100" r="40" fill="none" stroke="#FB923C" strokeWidth="8" 
+                        <circle cx="100" cy="100" r="40" fill="none" stroke="#EF4444" strokeWidth="8" 
                                 strokeDasharray={`${92 * 2.51} 251`} strokeLinecap="round" />
                         
                         {/* 2023 - Middle ring */}
                         <circle cx="100" cy="100" r="60" fill="none" stroke="#F8F9FA" strokeWidth="8" />
-                        <circle cx="100" cy="100" r="60" fill="none" stroke="#FDA92D" strokeWidth="8" 
+                        <circle cx="100" cy="100" r="60" fill="none" stroke="#22C55E" strokeWidth="8" 
                                 strokeDasharray={`${88 * 3.77} 377`} strokeLinecap="round" />
                         
                         {/* 2024 - Outermost ring */}
                         <circle cx="100" cy="100" r="80" fill="none" stroke="#F8F9FA" strokeWidth="8" />
-                        <circle cx="100" cy="100" r="80" fill="none" stroke="#FED7AA" strokeWidth="8" 
+                        <circle cx="100" cy="100" r="80" fill="none" stroke="#8E33FF" strokeWidth="8" 
                                 strokeDasharray={`${65 * 5.03} 503`} strokeLinecap="round" />
                       </svg>
                       
