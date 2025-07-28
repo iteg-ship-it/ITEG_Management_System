@@ -215,7 +215,7 @@ export default function StudentProfile() {
                   <h2 className="text-lg sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 text-white">
                     {studentData.firstName} {studentData.lastName}
                   </h2>
-                  <p className="text-gray-300 mb-3 sm:mb-4 text-xs sm:text-base">Track: {studentData.track || "General"}</p>
+                  <p className="text-gray-300 mb-3 sm:mb-4 text-xs sm:text-base">Course: {studentData.course || "N/A"}</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6">
                     <ContactCard icon="📧" label="Email" value={studentData.email} />
                     <ContactCard icon="📞" label="Phone" value={studentData.studentMobile || "N/A"} />
