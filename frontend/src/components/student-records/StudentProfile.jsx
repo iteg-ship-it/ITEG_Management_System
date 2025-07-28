@@ -48,6 +48,13 @@ export default function StudentProfile() {
     }
   }, [studentData]);
 
+  // Check if student can choose elective (Level 2B or 2C passed)
+  const canChooseElective = () => {
+    if (!studentData?.level?.length) return false;
+    const passedLevels = studentData.level.filter(lvl => lvl.result === "Pass");
+    return passedLevels.some(lvl => lvl.levelNo === "2B" || lvl.levelNo === "2C" || lvl.levelNo === "2A");
+  };
+
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -175,10 +182,17 @@ export default function StudentProfile() {
             }}></div>
             <button
               onClick={() => {
-                console.log('Update Technology button clicked');
-                setTechModalOpen(true);
+                if (canChooseElective()) {
+                  console.log('Update Technology button clicked');
+                  setTechModalOpen(true);
+                }
               }}
-              className="absolute top-7 right-8 px-4 py-2 bg-[var(--primary-darker)] hover:bg-[var(--primary-dark)] text-black font-extrabold rounded-lg text-sm font-medium transition-colors shadow-lg z-20"
+              disabled={!canChooseElective()}
+              className={`absolute top-7 right-8 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg z-20 ${
+                canChooseElective() 
+                  ? 'bg-[var(--primary-darker)] hover:bg-[var(--primary-dark)] text-black font-extrabold cursor-pointer' 
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+              }`}
             >
               Choose Elective
             </button>
