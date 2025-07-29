@@ -10,7 +10,11 @@ import { toast } from "react-toastify";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
 
 const PlacementRecords = () => {
-  const { data = {}, refetch, isLoading } = useGetReadyStudentsForPlacementQuery();
+  const { data = {}, refetch, isLoading } = useGetReadyStudentsForPlacementQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+    pollingInterval: 10000, // Poll every 15 seconds
+  });
   const students = data?.data || [];
 
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -18,7 +22,7 @@ const PlacementRecords = () => {
   const [remark, setRemark] = useState("");
   const [result, setResult] = useState("Pending");
 
-  const [updateInterviewRecord] = useUpdatePlacedInfoMutation();
+  const [updateInterviewRecord, { isLoading: isUpdating }] = useUpdatePlacedInfoMutation();
 
   const handleUpdateClick = (studentId, interview) => {
     setSelectedInterview({ studentId, ...interview });
@@ -39,7 +43,7 @@ const PlacementRecords = () => {
 
       toast.success("Interview updated successfully");
       setIsUpdateModalOpen(false);
-      refetch(); // 🔁 Refresh student data after update
+      await refetch();
     } catch (err) {
       console.error(err);
       toast.error("Failed to update interview");
@@ -188,9 +192,10 @@ const PlacementRecords = () => {
                 </button>
                 <button
                   onClick={handleUpdateSubmit}
-                  className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-md hover:opacity-90"
+                  disabled={isUpdating}
+                  className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-md hover:opacity-90 disabled:opacity-50"
                 >
-                  Save
+                  {isUpdating ? "Submitting..." : "Save"}
                 </button>
               </div>
             </div>

@@ -101,7 +101,7 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithAutoRefresh,
-  tagTypes: ['Student'],
+  tagTypes: ['Student', 'PlacementStudent'],
   endpoints: (builder) => ({
     login: builder.mutation({
       query: (credentials) => ({
@@ -356,6 +356,7 @@ export const authApi = createApi({
         url: import.meta.env.VITE_GET_READY_STUDENTS_FOR_PLACEMENT,
         method: "GET",
       }),
+      providesTags: ['PlacementStudent'],
     }),
 
     addPlacementInterviewRecord: builder.mutation({
@@ -364,6 +365,7 @@ export const authApi = createApi({
         method: "POST",
         body: interviewData,
       }),
+      invalidatesTags: ['PlacementStudent'],
     }),
 
 
@@ -374,6 +376,7 @@ export const authApi = createApi({
         method: "PATCH",
         body: data,
       }),
+      invalidatesTags: ['PlacementStudent'],
     }),
 
     getInterviewAttemptCount: builder.query({

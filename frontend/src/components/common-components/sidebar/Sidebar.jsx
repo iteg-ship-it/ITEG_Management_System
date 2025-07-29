@@ -22,7 +22,7 @@ const Sidebar = ({ children }) => {
     if (path === "/student-dashboard" || path === "/student-detail-table" || path.startsWith("/student/") || path === "/student-permission") {
       openMenus.push(1);
     }
-    if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post") {
+    if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post" || path.startsWith("/interview-history/")) {
       openMenus.push(2);
     }
     if (path.startsWith("/student-profile/")) {
@@ -45,7 +45,7 @@ const Sidebar = ({ children }) => {
       newOpenMenus.push(1);
       localStorage.setItem("lastSection", "admitted");
     }
-    if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post") {
+    if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post" || path.startsWith("/interview-history/")) {
       newOpenMenus.push(2);
     }
     if (path.startsWith("/student-profile/")) {
@@ -80,7 +80,7 @@ const Sidebar = ({ children }) => {
     }
 
     if (subPath === "/readiness-status") {
-      return path === "/readiness-status";
+      return path === "/readiness-status" || path.startsWith("/interview-history/");
     }
 
     if (subPath === "/placement-interview-record") {

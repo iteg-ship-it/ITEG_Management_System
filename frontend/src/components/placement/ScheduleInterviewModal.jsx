@@ -2,9 +2,11 @@
 /* eslint-disable react/prop-types */
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { useAddPlacementInterviewRecordMutation } from "../../redux/api/authApi"; // ✅ RTK mutation
+import { useAddPlacementInterviewRecordMutation } from "../../redux/api/authApi";
+import { toast } from "react-toastify";
+// import Loader from "../common-components/loader/Loader";
 
-const ScheduleInterviewModal = ({ isOpen, onClose, studentId }) => {
+const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
     const [addInterviewRecord, { isLoading }] = useAddPlacementInterviewRecordMutation();
 
     const interviewSchema = Yup.object().shape({
@@ -38,12 +40,13 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId }) => {
                     interviewData: values,
                 }).unwrap();
 
-                alert("Interview added successfully ✅");
+                toast.success("Interview added successfully");
                 actions.resetForm();
                 onClose();
+                if (onSuccess) onSuccess();
             } catch (err) {
                 console.error("Failed to submit interview", err);
-                alert(err?.data?.message || "Something went wrong ❌");
+                toast.error(err?.data?.message || "Failed to add interview");
             }
         },
     });
@@ -51,8 +54,11 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl w-full max-w-lg shadow-lg p-8">
+        <>
+
+            
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-2xl w-full max-w-lg shadow-lg p-8">
                 <h2 className="text-2xl font-semibold text-center text-orange-600 mb-6">
                     Add Placement Interview
                 </h2>
@@ -127,8 +133,9 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId }) => {
                         </button>
                     </div>
                 </form>
+                </div>
             </div>
-        </div>
+        </>
     );
 };
 

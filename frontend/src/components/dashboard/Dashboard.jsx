@@ -19,6 +19,7 @@ import PlacementReadyStudents from "../placement/PlacementReadyStudents";
 import StudentPermission from "../student-records/StudentPermission";
 import PlacementRecords from "../placement/PlacementRecords";
 import PlacementPost from "../placement/PlacementPost";
+import InterviewHistory from "../placement/InterviewHistory";
 
 const routes = [
   // { path: "/", element: <AdmissionDashboard /> },
@@ -38,6 +39,7 @@ const routes = [
   { path: "/readiness-status", element: <PlacementReadyStudents /> },
   { path: "/placement-interview-record", element: <PlacementRecords /> },
   { path: "/placement-post", element: <PlacementPost /> },
+  { path: "/interview-history/:id", element: <InterviewHistory /> },
 ];
 
 const Dashboard = () => (
