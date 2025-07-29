@@ -182,6 +182,21 @@ const PlacementReadyStudents = () => {
         return toTitleCase(selectedInterview.jobProfile || "N/A");
       },
     },
+    {
+      key: "action",
+      label: "Action",
+      render: (row) => (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            console.log('Create post for student:', row._id);
+          }}
+          className="bg-brandYellow text-white px-4 py-2 rounded-md hover:bg-orange-600 transition"
+        >
+          Create Post
+        </button>
+      ),
+    },
     // {
     //   key: "course",
     //   label: "Course",
@@ -227,25 +242,25 @@ const PlacementReadyStudents = () => {
     // },
   ];
 
-  const actionButton = (student) => {
-    // Don't show Add Interview button for Selected Students tab
-    if (activeTab === "Selected Student") {
-      return null;
-    }
+  // const actionButton = (student) => {
+  //   // Don't show Add Interview button for Selected Students tab
+  //   if (activeTab === "Selected Student") {
+  //     return null;
+  //   }
     
-    return (
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setSelectedStudent(student);
-          setIsModalOpen(true);
-        }}
-        className="bg-brandYellow text-white px-4 py-2 rounded-md hover:bg-orange-600 transition"
-      >
-        + Add Interview
-      </button>
-    );
-  };
+    // return (
+    //   <button
+    //     onClick={(e) => {
+    //       e.stopPropagation();
+    //       setSelectedStudent(student);
+    //       setIsModalOpen(true);
+    //     }}
+    //     className="bg-brandYellow text-white px-4 py-2 rounded-md hover:bg-orange-600 transition"
+    //   >
+    //     + Add Interview
+    //   </button>
+    // );
+  // };
 
   const handleTabClick = (tab) => {
     setActiveTab(tab);
@@ -315,7 +330,18 @@ const PlacementReadyStudents = () => {
           pagination={true}
           rowsPerPage={rowsPerPage}
           searchTerm={searchTerm}
-          actionButton={actionButton}
+          actionButton={activeTab !== "Selected Student" ? (student) => (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedStudent(student);
+                setIsModalOpen(true);
+              }}
+              className="bg-brandYellow text-white px-4 py-2 rounded-md hover:bg-orange-600 transition"
+            >
+              + Add Interview
+            </button>
+          ) : null}
           onRowClick={handleRowClick}
         />
 
