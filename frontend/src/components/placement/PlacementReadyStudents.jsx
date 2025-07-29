@@ -182,7 +182,11 @@ const PlacementReadyStudents = () => {
         return toTitleCase(selectedInterview.jobProfile || "N/A");
       },
     },
-    
+    // {
+    //   key: "course",
+    //   label: "Course",
+    //   render: (row) => toTitleCase(row.course),
+    // },
   ] : [
     {
       key: "profile",
@@ -216,28 +220,17 @@ const PlacementReadyStudents = () => {
       label: "Technology",
       render: (row) => toTitleCase(row.techno),
     },
-    {
-      key: "course",
-      label: "Course",
-      render: (row) => toTitleCase(row.course),
-    },
+    // {
+    //   key: "course",
+    //   label: "Course",
+    //   render: (row) => toTitleCase(row.course),
+    // },
   ];
 
   const actionButton = (student) => {
-    // Show Create Post button for Selected Students tab
+    // Don't show Add Interview button for Selected Students tab
     if (activeTab === "Selected Student") {
-      return (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            // Handle create post functionality
-            console.log('Create post for student:', student._id);
-          }}
-          className="bg-brandYellow text-white px-4 py-2 rounded-md hover:bg-orange-600 transition"
-        >
-          Create Post
-        </button>
-      );
+      return null;
     }
     
     return (
@@ -247,7 +240,7 @@ const PlacementReadyStudents = () => {
           setSelectedStudent(student);
           setIsModalOpen(true);
         }}
-        className="bg-orange-400 text-md text-white px-3 py-1 rounded"
+        className="bg-brandYellow text-white px-4 py-2 rounded-md hover:bg-orange-600 transition"
       >
         + Add Interview
       </button>
