@@ -73,7 +73,11 @@ const StudentDetailTable = () => {
     },
   ];
 
-  const enhancedData = data.map((student) => {
+  // Use regular admitted students data
+  const currentData = data;
+  const currentLoading = isLoading;
+
+  const enhancedData = currentData.map((student) => {
     // Get all level attempts grouped by levelNo
     const levelAttempts = {};
     (student.level || []).forEach(lvl => {
@@ -180,7 +184,7 @@ const StudentDetailTable = () => {
   );
 
   // Show loader when data is loading
-  if (isLoading) {
+  if (currentLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <Loader />
@@ -229,7 +233,7 @@ const StudentDetailTable = () => {
           pagination={true}
           rowsPerPage={rowsPerPage}
           searchTerm={searchTerm}
-          actionButton={actionButton}
+          actionButton={selectedLevel === "permission" ? null : actionButton}
           onRowClick={(row) => {
             // Set the source section to 'admitted' before navigating
             localStorage.setItem("lastSection", "admitted");

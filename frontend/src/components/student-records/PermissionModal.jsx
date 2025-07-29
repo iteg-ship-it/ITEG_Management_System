@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUpdatePermissionMutation } from "../../redux/api/authApi";
 import { toast } from "react-toastify";
 import imageCompression from "browser-image-compression";
@@ -9,10 +9,20 @@ const PermissionModal = ({ isOpen, onClose, studentId }) => {
         imageURL: "",
         remark: "",
         approved_by: "admin",
+        requested_by: "",
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [currentUser, setCurrentUser] = useState("");
 
     const [updatePermission] = useUpdatePermissionMutation();
+
+    // Get current logged-in user
+    useEffect(() => {
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        const userName = user.name || "Unknown User";
+        setCurrentUser(userName);
+        setPermissionData(prev => ({ ...prev, requested_by: userName }));
+    }, []);
 
     const handleImageUpload = async (e) => {
         const file = e.target.files[0];
@@ -75,6 +85,21 @@ const PermissionModal = ({ isOpen, onClose, studentId }) => {
                 <h2 className="text-xl font-bold text-center text-orange-500 mb-4">Permission Request Form</h2>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Current User Field */}
+                    <div className="col-span-2 md:col-span-1">
+                        <div className="relative w-full">
+                            <input
+                                type="text"
+                                value={currentUser}
+                                readOnly
+                                className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight bg-gray-50 text-gray-700 cursor-not-allowed"
+                            />
+                            <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
+                                Requested By
+                            </label>
+                        </div>
+                    </div>
+
                     {/* Approver Role */}
                     <div className="col-span-2 md:col-span-1">
                         <div className="relative w-full">

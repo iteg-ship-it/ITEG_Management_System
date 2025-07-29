@@ -10,7 +10,9 @@ const StudentDashboard = () => {
   const [studentCounts, setStudentCounts] = useState({});
   const [activeTab, setActiveTab] = useState("Level 1A");
 
-  const levelTabs = ["Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C"];
+  const levelTabs = ["Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C", "Permission Students"];
+  
+  console.log("Level Tabs:", levelTabs); // Debug log
 
   useEffect(() => {
     if (!isLoading && students.length > 0) {
@@ -42,9 +44,14 @@ const StudentDashboard = () => {
 
   const handleTabClick = (tab) => {
     setActiveTab(tab);
-    // Extract level code from tab name (e.g., "Level 1A" -> "1A")
-    const levelCode = tab.replace("Level ", "");
-    navigate(`/student-detail-table`, { state: { level: levelCode } });
+    
+    if (tab === "Permission Students") {
+      navigate(`/student-detail-table`, { state: { level: "permission" } });
+    } else {
+      // Extract level code from tab name (e.g., "Level 1A" -> "1A")
+      const levelCode = tab.replace("Level ", "");
+      navigate(`/student-detail-table`, { state: { level: levelCode } });
+    }
   };
 
   if (isLoading) {
@@ -61,12 +68,12 @@ const StudentDashboard = () => {
       <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
         <div className="px-6">
           {/* Level Tabs */}
-          <div className="flex gap-6 mt-4 overflow-x-auto">
+          <div className="flex gap-6 mt-4 overflow-x-auto pb-4">
             {levelTabs.map((tab) => (
               <div key={tab}>
                 <p
                   onClick={() => handleTabClick(tab)}
-                  className={`cursor-pointer text-md text-[var(--text-color)] pb-2 border-b-2 whitespace-nowrap ${
+                  className={`cursor-pointer text-md text-[var(--text-color)] pb-2 border-b-2 whitespace-nowrap min-w-fit px-2 ${
                     activeTab === tab
                       ? "border-[var(--text-color)] font-semibold"
                       : "border-gray-200"

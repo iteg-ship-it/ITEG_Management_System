@@ -2,7 +2,7 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from 'react';
 import { useCreateLevelInterviewMutation } from '../../redux/api/authApi';
-import { Formik, Form, useFormikContext, ErrorMessage } from 'formik';
+import { Formik, Form, useFormikContext} from 'formik';
 import * as Yup from 'yup';
 // import CustomDatePicker from './CustomDatePicker';
 import DatePickerInput from "../datepickerInput/DatePickerInput";
@@ -69,7 +69,11 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                 data: values,
             }).unwrap();
             
-            // Show success message based on result
+            // Close form immediately
+            resetForm();
+            onClose();
+            
+            // Show success message after closing
             const resultMessage = values.result === 'Pass' 
                 ? `Interview marked as Pass ✅` 
                 : values.result === 'Fail' 
@@ -78,14 +82,14 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
             
             toast.success(resultMessage);
             
-            // Force immediate data refresh
-            await refetchStudents();
-            resetForm();
-            onClose();
+            // Refresh data in background
+            if (refetchStudents) {
+                refetchStudents();
+            }
         } catch (err) {
             console.error(err);
-            toast.error(err?.data?.message || 'Failed to submit interview');
             onClose();
+            toast.error(err?.data?.message || 'Failed to submit interview');
         }
     };
 

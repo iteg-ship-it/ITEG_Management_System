@@ -23,6 +23,7 @@ import { HiArrowNarrowLeft } from "react-icons/hi";
 import { IoCamera } from "react-icons/io5";
 
 
+
 import { Chart } from "react-google-charts";
 
 export default function StudentProfile() {
@@ -36,6 +37,7 @@ export default function StudentProfile() {
   const [isYearView, setIsYearView] = useState(false);
   const [isTechModalOpen, setTechModalOpen] = useState(false);
   const [isImageUploading, setIsImageUploading] = useState(false);
+
   const fileInputRef = useRef(null);
 
 
@@ -45,6 +47,13 @@ export default function StudentProfile() {
       setLatestLevel(passed.length > 0 ? passed[passed.length - 1].levelNo : "1A");
     }
   }, [studentData]);
+
+  // Check if student can choose elective (Level 2B or 2C passed)
+  const canChooseElective = () => {
+    if (!studentData?.level?.length) return false;
+    const passedLevels = studentData.level.filter(lvl => lvl.result === "Pass");
+    return passedLevels.some(lvl => lvl.levelNo === "2B" || lvl.levelNo === "2C" || lvl.levelNo === "2A");
+  };
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
@@ -162,7 +171,7 @@ export default function StudentProfile() {
         </div>
       </div>
 
-      <div className="px-2 sm:px-6 py-3 sm:py-8">
+      <div className="px-2 sm:px-6 py-2 sm:py-4">
         {/* Hero Section with Student Info */}
         <div className="bg-white rounded-2xl overflow-hidden mb-8" style={{ boxShadow: '0 0 25px 8px rgba(0, 0, 0, 0.10)' }}>
           <div className="relative">
@@ -173,10 +182,17 @@ export default function StudentProfile() {
             }}></div>
             <button
               onClick={() => {
-                console.log('Update Technology button clicked');
-                setTechModalOpen(true);
+                if (canChooseElective()) {
+                  console.log('Update Technology button clicked');
+                  setTechModalOpen(true);
+                }
               }}
-              className="absolute top-7 right-8 px-4 py-2 bg-[var(--primary-darker)] hover:bg-[var(--primary-dark)] text-black font-extrabold rounded-lg text-sm font-medium transition-colors shadow-lg z-20"
+              disabled={!canChooseElective()}
+              className={`absolute top-7 right-8 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg z-20 ${
+                canChooseElective() 
+                  ? 'bg-[var(--primary-darker)] hover:bg-[var(--primary-dark)] text-black font-extrabold cursor-pointer' 
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+              }`}
             >
               Choose Elective
             </button>
@@ -215,7 +231,7 @@ export default function StudentProfile() {
                   <h2 className="text-lg sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 text-white">
                     {studentData.firstName} {studentData.lastName}
                   </h2>
-                  <p className="text-gray-300 mb-3 sm:mb-4 text-xs sm:text-base">Track: {studentData.track || "General"}</p>
+                  <p className="text-gray-300 mb-3 sm:mb-4 text-xs sm:text-base">Course: {studentData.course || "N/A"}</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6">
                     <ContactCard icon="📧" label="Email" value={studentData.email} />
                     <ContactCard icon="📞" label="Phone" value={studentData.studentMobile || "N/A"} />
