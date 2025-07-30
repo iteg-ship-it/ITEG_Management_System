@@ -5,7 +5,9 @@ import {
   Building2,
   Award,
 } from 'lucide-react';
-import studentProfileBg from '../../assets/images/Student_profile_2nd_bg.jpg';
+import admissionFlowBg from '../../assets/images/Group 880.jpg';
+import admittedFlowBg from '../../assets/images/Group 881.jpg';
+import placementFlowBg from '../../assets/images/Student_profile_2nd_bg.jpg';
 import { 
   useGetAllStudentsQuery,
   useAdmitedStudentsQuery,
@@ -15,6 +17,98 @@ import Loader from '../common-components/loader/Loader';
 import { Chart } from 'react-google-charts';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+
+// Auto-Swapping Flow Cards Component
+const FlowSwapCard = () => {
+  const [currentCard, setCurrentCard] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  
+  const flowCards = [
+    {
+      title: 'Admission Flow',
+      description: 'Streamlined student admission process from application to enrollment.',
+      subtitle: 'Efficient onboarding system for new students with automated workflows.',
+      icon: '📝',
+      color: '#3B82F6',
+      backgroundImage: admissionFlowBg
+    },
+    {
+      title: 'Admitted Flow', 
+      description: 'Comprehensive training and level progression management system.',
+      subtitle: 'Track student progress through various learning levels and milestones.',
+      icon: '🎓',
+      color: '#8B5CF6',
+      backgroundImage: admittedFlowBg
+    },
+    {
+      title: 'Placement Flow',
+      description: 'End-to-end placement process from readiness to successful career placement.',
+      subtitle: 'Connect students with top companies and track placement success rates.',
+      icon: '💼', 
+      color: '#10B981',
+      backgroundImage: placementFlowBg
+    }
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentCard((prev) => (prev + 1) % flowCards.length);
+        setIsTransitioning(false);
+      }, 150);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [flowCards.length]);
+
+  const currentFlow = flowCards[currentCard];
+
+  return (
+    <div className="bg-white rounded-2xl overflow-hidden h-full" style={{ boxShadow: '0 0 25px 8px rgba(0, 0, 0, 0.10)' }}>
+      <div className="relative h-full">
+        <div 
+          className={`absolute inset-0 transition-all duration-500 ease-in-out ${
+            isTransitioning ? 'opacity-90 scale-105' : 'opacity-100 scale-100'
+          }`}
+          style={{ 
+            backgroundImage: `url(${currentFlow.backgroundImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
+        ></div>
+        <div className={`relative p-6 h-full flex flex-col justify-center transition-all duration-300 ease-out ${
+          isTransitioning ? 'opacity-80 transform translate-y-1' : 'opacity-100 transform translate-y-0'
+        }`}>
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-white/20 backdrop-blur-md border border-white/30">
+              <span className="text-3xl">{currentFlow.icon}</span>
+            </div>
+            <h3 className="text-2xl font-bold mb-3 text-white">
+              {currentFlow.title}
+            </h3>
+            <p className="text-gray-200 mb-2 font-medium">
+              {currentFlow.description}
+            </p>
+            <p className="text-sm text-gray-300">
+              {currentFlow.subtitle}
+            </p>
+          </div>
+          
+          <div className="flex justify-center mt-6 space-x-2">
+            {flowCards.map((_, index) => (
+              <div
+                key={index}
+                className={`h-2 rounded-full transition-all duration-500 ease-in-out ${
+                  index === currentCard ? 'w-8 bg-white' : 'w-2 bg-white/50'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const AdmissionDashboard = () => {
   const { data: allStudentsData, isLoading: studentsLoading } = useGetAllStudentsQuery();
@@ -204,13 +298,13 @@ const AdmissionDashboard = () => {
             <div className="bg-white rounded-2xl overflow-hidden h-full" style={{ boxShadow: '0 0 25px 8px rgba(0, 0, 0, 0.10)' }}>
               <div className="relative h-full">
                 <div className="absolute inset-0" style={{ 
-                  backgroundImage: `url(${studentProfileBg})`,
+                  backgroundImage: `url(${admissionFlowBg})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center'
                 }}></div>
                 <div className="relative px-6 py-8 h-full flex flex-col justify-center">
                   <div className="text-left">
-                    <h2 className="text-2xl font-bold text-white mb-2">Welcome to</h2>
+                    <h2 className="text-2xl font-bold text-white mb-2">Welcome to 👋</h2>
                     <h1 className="text-3xl font-bold text-white mb-4">ITEG Management System</h1>
                     <p className="text-sm text-gray-200 leading-relaxed">
                       A comprehensive platform designed to streamline student lifecycle management from admission to successful placement. 
@@ -449,84 +543,7 @@ const AdmissionDashboard = () => {
         </div>
       </div>
     </div>
-  )
-}
-
-// Auto-Swapping Flow Cards Component
-const FlowSwapCard = () => {
-  const [currentCard, setCurrentCard] = useState(0);
-  
-  const flowCards = [
-    {
-      title: 'Admission Flow',
-      description: 'Streamlined student admission process from application to enrollment.',
-      subtitle: 'Efficient onboarding system for new students with automated workflows.',
-      icon: '📝',
-      color: '#3B82F6'
-    },
-    {
-      title: 'Admitted Flow', 
-      description: 'Comprehensive training and level progression management system.',
-      subtitle: 'Track student progress through various learning levels and milestones.',
-      icon: '🎓',
-      color: '#8B5CF6'
-    },
-    {
-      title: 'Placement Flow',
-      description: 'End-to-end placement process from readiness to successful career placement.',
-      subtitle: 'Connect students with top companies and track placement success rates.',
-      icon: '💼', 
-      color: '#10B981'
-    }
-  ];
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentCard((prev) => (prev + 1) % flowCards.length);
-    }, 3000);
-    return () => clearInterval(timer);
-  }, [flowCards.length]);
-
-  const currentFlow = flowCards[currentCard];
-
-  return (
-    <div className="bg-white rounded-2xl overflow-hidden h-full" style={{ boxShadow: '0 0 25px 8px rgba(0, 0, 0, 0.10)' }}>
-      <div className="relative h-full">
-        <div className="absolute inset-0" style={{ 
-          backgroundImage: `url(${studentProfileBg})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}></div>
-        <div className="relative p-6 h-full flex flex-col justify-center">
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-white/20 backdrop-blur-md border border-white/30">
-              <span className="text-3xl">{currentFlow.icon}</span>
-            </div>
-            <h3 className="text-2xl font-bold mb-3 text-white">
-              {currentFlow.title}
-            </h3>
-            <p className="text-gray-200 mb-2 font-medium">
-              {currentFlow.description}
-            </p>
-            <p className="text-sm text-gray-300">
-              {currentFlow.subtitle}
-            </p>
-          </div>
-          
-          <div className="flex justify-center mt-6 space-x-2">
-            {flowCards.map((_, index) => (
-              <div
-                key={index}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  index === currentCard ? 'bg-white' : 'bg-white/50'
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
   );
 };
 
-export default AdmissionDashboard
+export default AdmissionDashboard;
