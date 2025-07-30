@@ -16,13 +16,15 @@ const Sidebar = ({ children }) => {
     const path = location.pathname;
     const openMenus = [];
 
-    if (path === "/" || path.startsWith("/admission/") || path.startsWith("/interview-detail/") || path === "/admission-record") {
+    // if (path === "/" || path.startsWith("/admission/") || path.startsWith("/interview-detail/") || path === "/admission-record")
+    if (path === "/" || path === "/admission-process" || path.startsWith("/admission/") || path.startsWith("/interview-detail/") || path === "/admission-record") 
+      {
       openMenus.push(0);
     }
     if (path === "/student-dashboard" || path === "/student-detail-table" || path.startsWith("/student/") || path === "/student-permission") {
       openMenus.push(1);
     }
-    if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post") {
+    if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post" || path.startsWith("/interview-history/")) {
       openMenus.push(2);
     }
     if (path.startsWith("/student-profile/")) {
@@ -37,7 +39,9 @@ const Sidebar = ({ children }) => {
     const path = location.pathname;
     const newOpenMenus = [];
 
-    if (path === "/" || path.startsWith("/admission/") || path.startsWith("/interview-detail/") || path === "/admission-record") {
+    // if (path === "/" || path.startsWith("/admission/") || path.startsWith("/interview-detail/") || path === "/admission-record") 
+    if (path === "/" || path === "/admission-process" || path.startsWith("/admission/") || path.startsWith("/interview-detail/") || path === "/admission-record")
+      {
       newOpenMenus.push(0);
       localStorage.setItem("lastSection", "admission");
     }
@@ -45,7 +49,7 @@ const Sidebar = ({ children }) => {
       newOpenMenus.push(1);
       localStorage.setItem("lastSection", "admitted");
     }
-    if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post") {
+    if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post" || path.startsWith("/interview-history/")) {
       newOpenMenus.push(2);
     }
     if (path.startsWith("/student-profile/")) {
@@ -67,8 +71,15 @@ const Sidebar = ({ children }) => {
   const isSubMenuActive = (subPath) => {
     const path = location.pathname;
 
+    // if (subPath === "/") {
+    //   return path === "/" || path.startsWith("/admission/") || path.startsWith("/interview-detail/") || path === "/admission-record";
+    // }
     if (subPath === "/") {
-      return path === "/" || path.startsWith("/admission/") || path.startsWith("/interview-detail/") || path === "/admission-record";
+      return path === "/";
+    }
+
+    if (subPath === "/admission-process") {
+      return path === "/admission-process" || path.startsWith("/admission/") || path.startsWith("/interview-detail/") || path === "/admission-record";
     }
 
     if (subPath === "/student-dashboard") {
@@ -80,7 +91,7 @@ const Sidebar = ({ children }) => {
     }
 
     if (subPath === "/readiness-status") {
-      return path === "/readiness-status";
+      return path === "/readiness-status" || path.startsWith("/interview-history/");
     }
 
     if (subPath === "/placement-interview-record") {
@@ -99,7 +110,11 @@ const Sidebar = ({ children }) => {
       name: "Admissions",
       icon: <RiTv2Fill />,
       roles: ["superadmin", "admin"],
-      subMenu: [{ name: "Admission WorkFlow", path: "/" }],
+      subMenu: [
+        // { name: "Admission WorkFlow", path: "/" }
+        { name: "Dashboard", path: "/" },
+        { name: "Admission WorkFlow", path: "/admission-process" },
+      ],
     },
     {
       name: "Admitted",

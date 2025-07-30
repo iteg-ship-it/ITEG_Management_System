@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Pagination from "../common-components/pagination/Pagination";
 import { useGetReadyStudentsForPlacementQuery } from "../../redux/api/authApi";
 import Loader from "../common-components/loader/Loader";
@@ -16,7 +17,12 @@ const toTitleCase = (str) =>
     .join(" ");
 
 const PlacementReadyStudents = () => {
-  const { data = {}, isLoading } = useGetReadyStudentsForPlacementQuery();
+  const navigate = useNavigate();
+  const { data = {}, isLoading, refetch } = useGetReadyStudentsForPlacementQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+    pollingInterval: 15000, // Poll every 15 seconds
+  });
   const students = data?.data || [];
 
   const [rowsPerPage] = useState(10);
@@ -24,7 +30,9 @@ const PlacementReadyStudents = () => {
   const [selectedTracks, setSelectedTracks] = useState([]);
   const [selectedResults, setSelectedResults] = useState([]);
   const [selectedPercentages] = useState([]);
-  const [activeTab, setActiveTab] = useState("Qualified Students");
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem('placementActiveTab') || 'Qualified Students';
+  });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -122,7 +130,79 @@ const PlacementReadyStudents = () => {
     });
   };
 
-  const columns = [
+  // Helper function to get selected interview details
+  const getSelectedInterviewDetails = (student) => {
+    const selectedInterview = student.interviewRecord?.find(
+      (interview) => interview.result?.toLowerCase() === "selected"
+    );
+    return selectedInterview || {};
+  };
+
+  const columns = activeTab === "Selected Student" ? [
+    {
+      key: "profile",
+      label: "Full Name",
+      render: (row) => (
+        <div className="flex items-center gap-2">
+          <img
+            src={row.image || profile}
+            alt="avatar"
+            className="w-9 h-9 rounded-full object-cover"
+          />
+          <div className="flex flex-col">
+            <span className="font-medium text-gray-800">{`${row.firstName} ${row.lastName}`}</span>
+            <span className="text-xs text-gray-500">{row.email}</span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "fatherName",
+      label: "Father Name",
+      render: (row) => toTitleCase(row.fatherName),
+    },
+    {
+      key: "studentMobile",
+      label: "Mobile no.",
+      render: (row) => `+91 ${row.studentMobile}`,
+    },
+    {
+      key: "companyName",
+      label: "Company",
+      render: (row) => {
+        const selectedInterview = getSelectedInterviewDetails(row);
+        return toTitleCase(selectedInterview.companyName || "N/A");
+      },
+    },
+    {
+      key: "jobProfile",
+      label: "Role",
+      render: (row) => {
+        const selectedInterview = getSelectedInterviewDetails(row);
+        return toTitleCase(selectedInterview.jobProfile || "N/A");
+      },
+    },
+    {
+      key: "action",
+      label: "Action",
+      render: (row) => (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            console.log('Create post for student:', row._id);
+          }}
+          className="bg-brandYellow text-white px-4 py-2 rounded-md hover:bg-orange-600 transition"
+        >
+          Create Post
+        </button>
+      ),
+    },
+    // {
+    //   key: "course",
+    //   label: "Course",
+    //   render: (row) => toTitleCase(row.course),
+    // },
+  ] : [
     {
       key: "profile",
       label: "Full Name",
@@ -155,29 +235,50 @@ const PlacementReadyStudents = () => {
       label: "Technology",
       render: (row) => toTitleCase(row.techno),
     },
-    {
-      key: "course",
-      label: "Course",
-      render: (row) => toTitleCase(row.course),
-    },
+    // {
+    //   key: "course",
+    //   label: "Course",
+    //   render: (row) => toTitleCase(row.course),
+    // },
   ];
 
-  const actionButton = (student) => (
-    <button
-      onClick={(e) => {
-        e.stopPropagation();
-        setSelectedStudent(student);
-        setIsModalOpen(true);
-      }}
-      className="bg-orange-400 text-md text-white px-3 py-1 rounded"
-    >
-      + Add Interview
-    </button>
-  );
+  // const actionButton = (student) => {
+  //   // Don't show Add Interview button for Selected Students tab
+  //   if (activeTab === "Selected Student") {
+  //     return null;
+  //   }
+    
+    // return (
+    //   <button
+    //     onClick={(e) => {
+    //       e.stopPropagation();
+    //       setSelectedStudent(student);
+    //       setIsModalOpen(true);
+    //     }}
+    //     className="bg-brandYellow text-white px-4 py-2 rounded-md hover:bg-orange-600 transition"
+    //   >
+    //     + Add Interview
+    //   </button>
+    // );
+  // };
 
   const handleTabClick = (tab) => {
     setActiveTab(tab);
-    localStorage.setItem("admissionActiveTab", tab);
+    localStorage.setItem('placementActiveTab', tab);
+  };
+
+  // Load active tab from localStorage on component mount
+  useEffect(() => {
+    const savedTab = localStorage.getItem('placementActiveTab');
+    if (savedTab) {
+      setActiveTab(savedTab);
+    }
+  }, []);
+
+  const handleRowClick = (student) => {
+    if (activeTab === "Ongoing Interviews") {
+      navigate(`/interview-history/${student._id}`);
+    }
   };
 
   if (isLoading) {
@@ -229,14 +330,30 @@ const PlacementReadyStudents = () => {
           pagination={true}
           rowsPerPage={rowsPerPage}
           searchTerm={searchTerm}
-          actionButton={actionButton}
+          actionButton={activeTab !== "Selected Student" ? (student) => (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedStudent(student);
+                setIsModalOpen(true);
+              }}
+              className="bg-brandYellow text-white px-4 py-2 rounded-md hover:bg-orange-600 transition"
+            >
+              + Add Interview
+            </button>
+          ) : null}
+          onRowClick={handleRowClick}
         />
 
         {/* Modal */}
         <ScheduleInterviewModal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedStudent(null);
+          }}
           studentId={selectedStudent?._id}
+          onSuccess={() => refetch()}
         />
       </div>
     </>
