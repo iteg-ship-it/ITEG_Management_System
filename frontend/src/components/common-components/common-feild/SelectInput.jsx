@@ -108,6 +108,7 @@
 
 import { Field, ErrorMessage } from "formik";
 import { useState } from "react";
+import tableRowDropdownImg from "../../../assets/images/table-row-dropdown.png";
 
 const SelectInput = ({ name, label, options, className = "", disabled = false }) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -130,12 +131,18 @@ const SelectInput = ({ name, label, options, className = "", disabled = false })
                 }}
                 className={`
                   peer h-12 w-full border-2 border-gray-300 rounded-md
-                  px-3 py-2 bg-white leading-tight
+                  px-3 py-2 leading-tight
                   focus:outline-none focus:border-black 
                   focus:ring-0 appearance-none
                   ${disabled ? "bg-gray-100 cursor-not-allowed" : ""}
                   transition-all duration-200
                 `}
+                style={{
+                  background: `linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(240,240,240,0.8) 100%), url(${tableRowDropdownImg})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat'
+                }}
               >
                 <option value="" disabled hidden>Select</option>
                 {options.map((option) => (

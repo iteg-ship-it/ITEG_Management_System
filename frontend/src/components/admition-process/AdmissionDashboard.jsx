@@ -25,25 +25,22 @@ const FlowSwapCard = () => {
   
   const flowCards = [
     {
-      title: 'Admission Flow',
-      description: 'Streamlined student admission process from application to enrollment.',
-      subtitle: 'Efficient onboarding system for new students with automated workflows.',
+      title: 'Admission Module',
+      description: 'Manage the complete student admission journey — from application to final selection, all in one place.',
       icon: '📝',
       color: '#3B82F6',
       backgroundImage: admissionFlowBg
     },
     {
-      title: 'Admitted Flow', 
-      description: 'Comprehensive training and level progression management system.',
-      subtitle: 'Track student progress through various learning levels and milestones.',
+      title: 'Admitted Module', 
+      description: 'Track academic progress, attendance, and performance of students enrolled in ITEG seamlessly.',
       icon: '🎓',
       color: '#8B5CF6',
       backgroundImage: admittedFlowBg
     },
     {
-      title: 'Placement Flow',
-      description: 'End-to-end placement process from readiness to successful career placement.',
-      subtitle: 'Connect students with top companies and track placement success rates.',
+      title: 'Placements Module',
+      description: 'Control, manage, and monitor placement drives and interview records with full visibility.',
       icon: '💼', 
       color: '#10B981',
       backgroundImage: placementFlowBg

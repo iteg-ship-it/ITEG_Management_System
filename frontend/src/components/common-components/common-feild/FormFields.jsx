@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 
 import { useField } from "formik";
+import tableRowDropdownImg from "../../../assets/images/table-row-dropdown.png";
 
 export const TextInput = ({ label, ...props }) => {
   const [field, meta] = useField(props);
@@ -20,7 +21,17 @@ export const SelectInput = ({ label, options, ...props }) => {
   return (
     <div>
       <label className="font-semibold">{label}</label>
-      <select {...field} {...props} className="w-full p-2 border rounded">
+      <select 
+        {...field} 
+        {...props} 
+        className="w-full p-2 border rounded"
+        style={{
+          background: `linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(240,240,240,0.8) 100%), url(${tableRowDropdownImg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>
             {opt.label}

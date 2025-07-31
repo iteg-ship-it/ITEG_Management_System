@@ -175,7 +175,6 @@ const CommonTable = ({
                   setPageSize(selected);
                   setCurrentPage(1);
                 }}
-                className="px-3 py-1 text-sm focus:outline-none"
               >
                 <option value={filteredData.length}>All</option>
                 <option value={5}>5</option>
