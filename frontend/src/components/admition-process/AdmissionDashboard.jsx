@@ -17,6 +17,7 @@ import Loader from '../common-components/loader/Loader';
 import { Chart } from 'react-google-charts';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import PageNavbar from '../common-components/navbar/PageNavbar';
 
 // Auto-Swapping Flow Cards Component
 const FlowSwapCard = () => {
@@ -248,31 +249,22 @@ const AdmissionDashboard = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Professional Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div>
-                <h1 className="text-3xl font-bold text-black mb-2">ITEG Management Dashboard</h1>
-                <p className="text-gray-600">Comprehensive analytics & performance insights</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-xl font-bold text-black">{currentTime.toLocaleTimeString()}</div>
-              <div className="text-gray-600 text-sm">{currentTime.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}</div>
-              <div className="px-10 py-1 bg-green-100 text-green-900 rounded-full text-xs font-medium mt-4">
-                System Active
-              </div>
-            </div>
+      <PageNavbar 
+        title="ITEG Management Dashboard" 
+        subtitle="Comprehensive analytics & performance insights"
+        showBackButton={false}
+        rightContent={
+          <div className="text-right">
+            <div className="text-xl font-bold text-black">{currentTime.toLocaleTimeString()}</div>
+            <div className="text-gray-600 text-sm">{currentTime.toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}</div>
           </div>
-        </div>
-      </div>
+        }
+      />
           
       <div className="px-2 sm:px-6 py-2 sm:py-4">
         {/* Welcome Section with Flow Cards */}

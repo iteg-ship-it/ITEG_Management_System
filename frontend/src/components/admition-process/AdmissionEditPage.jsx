@@ -9,10 +9,11 @@ import {
 } from "../../redux/api/authApi";
 import InputField from "../common-components/common-feild/InputField";
 import SelectInput from "../common-components/common-feild/SelectInput";
-import { HiChevronUp, HiChevronDown, HiArrowNarrowLeft } from "react-icons/hi";
+import { HiChevronUp, HiChevronDown} from "react-icons/hi";
 import Loader from "../common-components/loader/Loader";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
+import PageNavbar from "../common-components/navbar/PageNavbar";
 
 const Section = ({ title, children }) => {
   const [open, setOpen] = useState(true);
@@ -110,19 +111,12 @@ const AdmissionEditPage = () => {
   };
 
   return (
-    <div className="w-full px-4 py-2">
-      <div className="flex items-center gap-3 mb-6">
-        <button
-          type="button"
-          onClick={() => window.history.back()}
-          className="text-2xl text-[var(--text-color)] hover:text-gray-900"
-        >
-          <HiArrowNarrowLeft />
-        </button>
-        <h2 className="text-2xl font-bold text-[var(--text-color)]">
-          Student Profile
-        </h2>
-      </div>
+    <div className="w-full">
+      <PageNavbar 
+        title="Student Profile" 
+        subtitle="View and manage student admission details"
+      />
+      <div className="px-4 py-2">
 
       <Formik
         enableReinitialize
@@ -374,6 +368,7 @@ const AdmissionEditPage = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

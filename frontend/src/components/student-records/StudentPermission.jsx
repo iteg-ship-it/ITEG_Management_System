@@ -6,7 +6,7 @@ import {
 import Loader from '../common-components/loader/Loader';
 import CommonTable from '../common-components/table/CommonTable';
 import Pagination from '../common-components/pagination/Pagination';
-import { HiArrowNarrowLeft } from "react-icons/hi";
+// import { HiArrowNarrowLeft } from "react-icons/hi";
 
 const StudentPermission = () => {
   const navigate = useNavigate();
@@ -117,18 +117,18 @@ const StudentPermission = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Professional Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+      <div className="bg-white border-b sticky top-0 z-10">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <button
+              {/* <button
                 onClick={() => window.history.back()}
                 className="group flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 text-gray-700 hover:text-gray-900"
               >
                 <HiArrowNarrowLeft className="text-lg group-hover:-translate-x-1 transition-transform" />
                 <span className="text-sm font-medium">Back</span>
-              </button>
-              <div className="h-8 w-px bg-gray-300"></div>
+              </button> */}
+              {/* <div className="h-8 w-px bg-gray-300"></div> */}
               <div>
                 <h1 className="text-2xl font-bold text-black">Student Permissions</h1>
                 <p className="text-sm text-black">Manage and track student permission requests</p>

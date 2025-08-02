@@ -15,6 +15,7 @@ import {
   useInterviewCreateMutation,
 } from "../../redux/api/authApi";
 import { toast } from "react-toastify";
+import PageNavbar from "../common-components/navbar/PageNavbar";
 
 
 const toTitleCase = (str) =>
@@ -653,7 +654,11 @@ const StudentList = () => {
 
   return (
     <>
-      <h1 className="text-2xl py-4 font-bold">Admission Process</h1>
+      <PageNavbar 
+        title="Admission Process" 
+        subtitle="Manage student admission workflow and interviews"
+        showBackButton={false}
+      />
       <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
         <div className="px-6">
           <div className="flex gap-6 mt-4">

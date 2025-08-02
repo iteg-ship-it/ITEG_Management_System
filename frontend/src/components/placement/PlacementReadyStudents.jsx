@@ -7,6 +7,7 @@ import Loader from "../common-components/loader/Loader";
 import CommonTable from "../common-components/table/CommonTable";
 import ScheduleInterviewModal from "./ScheduleInterviewModal";
 import profile from "../../assets/images/profileImgDummy.jpeg";
+import PageNavbar from "../common-components/navbar/PageNavbar";
 
 // Capitalize function
 const toTitleCase = (str) =>
@@ -291,7 +292,11 @@ const PlacementReadyStudents = () => {
 
   return (
     <>
-      <h1 className="text-2xl py-4 font-bold">Placement Process</h1>
+      <PageNavbar 
+        title="Placement Process" 
+        subtitle="Manage student placement workflow and interviews"
+        showBackButton={false}
+      />
       <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
         <div className="px-6">
           {/* Tabs */}

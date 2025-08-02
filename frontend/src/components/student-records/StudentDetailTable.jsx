@@ -9,6 +9,7 @@ import CommonTable from "../common-components/table/CommonTable";
 // import edit from "../../assets/icons/edit-fill-icon.png";
 // import interview from "../../assets/icons/interview-icon.png";
 import CreateInterviewModal from "./CreateInterviewModal";
+import PageNavbar from "../common-components/navbar/PageNavbar";
 
 const StudentDetailTable = () => {
   const { data = [], isLoading, refetch } = useAdmitedStudentsQuery();
@@ -224,7 +225,11 @@ const StudentDetailTable = () => {
 
   return (
     <>
-      <h1 className="text-2xl py-4 font-bold">Admitted Student WorkFlow</h1>
+      <PageNavbar 
+        title="Admitted Student WorkFlow" 
+        subtitle="Track student progress through different levels"
+        showBackButton={false}
+      />
 
       <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
         <div className="px-6">
