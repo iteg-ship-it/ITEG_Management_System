@@ -359,7 +359,7 @@ exports.getInterviewsByStudentId = async (req, res) => {
 
 exports.getAllStudents = async (req, res) => {
   try {
-    const students = await AdmissionProcess.find(); // fetch all student records
+    const students = await AdmissionProcess.find().sort({ updatedAt: -1 }); // fetch all student records sorted by recent first
     res.status(200).json(students); // send as JSON response
   } catch (error) {
     res.status(500).json({ message: 'Failed to retrieve students', error: error.message });

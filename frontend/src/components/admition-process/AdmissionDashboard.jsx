@@ -183,34 +183,21 @@ const AdmissionDashboard = () => {
     '2A': 0, '2B': 0, '2C': 0
   };
 
-  // Count students by their current level (next level after latest passed)
+  // Count students by their current level
   admittedStudents.forEach(student => {
-    if (student.level && Array.isArray(student.level)) {
-      const passedLevels = student.level.filter(lvl => lvl.result === 'Pass');
+    const currentLevel = student.currentLevel || '1A';
+    
+    // Only count students who haven't passed Level 2C for Level 2C
+    if (currentLevel === '2C') {
+      const level2CAttempts = (student.level || []).filter(lvl => lvl.levelNo === '2C');
+      const hasPassedLevel2C = level2CAttempts.some(lvl => lvl.result === 'Pass');
       
-      if (passedLevels.length === 0) {
-        // No level passed yet, student is in Level 1A
-        levelCounts['1A']++;
-      } else {
-        // Get the latest passed level and determine current level
-        const latestPassedLevel = passedLevels[passedLevels.length - 1].levelNo;
-        
-        // Determine next level based on latest passed level
-        const levelProgression = ['1A', '1B', '1C', '2A', '2B', '2C'];
-        const currentIndex = levelProgression.indexOf(latestPassedLevel);
-        
-        if (currentIndex !== -1 && currentIndex < levelProgression.length - 1) {
-          // Student is in next level
-          const currentLevel = levelProgression[currentIndex + 1];
-          levelCounts[currentLevel]++;
-        } else if (latestPassedLevel === '2C') {
-          // Student has completed all levels, count in 2C
-          levelCounts['2C']++;
-        }
+      if (!hasPassedLevel2C) {
+        levelCounts['2C']++;
       }
-    } else {
-      // No level data, assume student is in Level 1A
-      levelCounts['1A']++;
+    // eslint-disable-next-line no-prototype-builtins
+    } else if (levelCounts.hasOwnProperty(currentLevel)) {
+      levelCounts[currentLevel]++;
     }
   });
 
@@ -279,7 +266,7 @@ const AdmissionDashboard = () => {
                 month: 'long', 
                 day: 'numeric' 
               })}</div>
-              <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium mt-2">
+              <div className="px-10 py-1 bg-green-100 text-green-900 rounded-full text-xs font-medium mt-4">
                 System Active
               </div>
             </div>

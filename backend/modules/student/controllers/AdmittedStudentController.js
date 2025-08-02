@@ -79,7 +79,7 @@ exports.getAllStudents = async (req, res) => {
         { permissionDetails: null },
         { permissionDetails: {} }
       ]
-    });
+    }).sort({ updatedAt: -1 });
     console.log("Fetched all students:", students.length);
     res.status(200).json(students);
   } catch (error) {
@@ -114,6 +114,9 @@ const students = await AdmittedStudent.aggregate([
             { permissionDetails: {} }
           ]
     }
+  },
+  {
+    $sort: { updatedAt: -1 }
   }
 ]);
 
@@ -311,7 +314,7 @@ Best wishes`,
 // Get all students with permissionDetails granted
 exports.getAllPermissionStudents = async (req, res) => {
   try {
-    const students = await AdmittedStudent.find({ permissionDetails: { $ne: null } }).select('-password');
+    const students = await AdmittedStudent.find({ permissionDetails: { $ne: null } }).select('-password').sort({ updatedAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -417,6 +420,9 @@ exports.getLevelWiseStudents = async (req, res) => {
         { permissionDetails: {} }
       ]
     }
+  },
+  {
+    $sort: { updatedAt: -1 }
   }
 ]);
 
@@ -542,7 +548,7 @@ exports.updateAdmittedStudent = async (req, res) => {
 exports.getReadyStudent = async (req, res) => {
   try {
     // Find all students whose readinessStatus is "Ready"
-    const readyStudents = await AdmittedStudent.find({ readinessStatus: 'Ready' });
+    const readyStudents = await AdmittedStudent.find({ readinessStatus: 'Ready' }).sort({ updatedAt: -1 });
 
     if (readyStudents.length === 0) {
       return res.status(404).json({ message: "No students found with readinessStatus 'Ready'." });
