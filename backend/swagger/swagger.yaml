@@ -1935,7 +1935,7 @@ paths:
                     example: Server Error
 
   /api/admitted/students/update_permission_student/{studentId}:
-    put:
+    patch:
       summary: Update permission details of a student
       description: Updates the permission details of an admitted student using their student ID. Only accessible by Super Admin, Admin, or Faculty.
       tags:
@@ -2461,7 +2461,7 @@ paths:
                     type: string
                     example: "Error details here"
 
-paths:
+
   /api/admitted/students/update_technology/{id}:
     put:
       summary: Update student's technology after Level 2A
@@ -2544,3 +2544,47 @@ paths:
                     type: string
 
 
+
+  /api/admitted/students/update/profile/{id}:
+    patch:
+      tags:
+        - Students
+      summary: Update student profile image
+      description: Upload a base64 image, store it on Cloudinary, and update the student record with the URL.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Student's ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  description: Base64 image string (must include prefix like data:image/png;base64,...)
+                  example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+      responses:
+        '200':
+          description: Successfully updated student image
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Profile image updated successfully
+                  student:
+                    $ref: '#/components/schemas/AdmittedStudent'
+        '400':
+          description: Bad Request - Missing or invalid image
+        '404':
+          description: Student not found
+        '500':
+          description: Internal Server Error
