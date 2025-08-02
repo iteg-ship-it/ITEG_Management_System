@@ -28,7 +28,6 @@ const StudentList = () => {
   const { data = [], isLoading, error, refetch } = useGetAllStudentsQuery(undefined, {
     refetchOnMountOrArgChange: true,
     refetchOnFocus: true,
-    pollingInterval: 5000, // Poll every 5 seconds
   });
   const [rowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
@@ -160,8 +159,7 @@ const StudentList = () => {
     } else if (savedTab) {
       setActiveTab(savedTab);
     }
-    // Refresh data when component mounts or URL changes
-    refetch();
+    // Data will be fetched automatically on mount
   }, [location.search, refetch]);
 
   // Auto-refresh data when window gains focus
@@ -287,8 +285,7 @@ const StudentList = () => {
   const handleTabClick = (tab) => {
     setActiveTab(tab);
     localStorage.setItem("admissionActiveTab", tab);
-    // Refresh data when switching tabs
-    refetch();
+    // Data filtering will happen automatically
   };
 
   const scheduleButton = (student) => {
@@ -308,8 +305,7 @@ const StudentList = () => {
     setSelectedStudentId(null);
     setAtemendNumber(null);
     setIsModalOpen(false);
-    // Refresh data when modal closes
-    refetch();
+    // Data will be refreshed automatically after interview submission
   };
 
   const handleGetOnlineMarks = (onlineTest = {}) => {

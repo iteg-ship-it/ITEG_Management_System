@@ -211,6 +211,7 @@ export const authApi = createApi({
         url: import.meta.env.VITE_GET_ALL_STUDENTS,
         method: "GET",
       }),
+      providesTags: ['Student'],
     }),
 
     getAllStudentsByLevel: builder.query({
@@ -238,6 +239,7 @@ export const authApi = createApi({
           "Content-Type": "application/json",
         },
       }),
+      invalidatesTags: ['Student'],
     }),
 
     // get interview detail of student by id
@@ -388,10 +390,18 @@ export const authApi = createApi({
 
     // Get student level interviews for history page
     getStudentLevelInterviews: builder.query({
-      query: (studentId) => ({
-        url: `${import.meta.env.VITE_GET_LEVEL_INTERVIEW_BY_ID}${studentId}`,
-        method: "GET",
-      }),
+      query: (studentId) => {
+        const endpoint = `${import.meta.env.VITE_GET_LEVEL_INTERVIEW_BY_ID}${studentId}`;
+        console.log('🎯 Level Interview History API Call:', {
+          endpoint,
+          studentId,
+          fullUrl: `${import.meta.env.VITE_API_URL}${endpoint}`
+        });
+        return {
+          url: endpoint,
+          method: "GET",
+        };
+      },
     }),
 
 

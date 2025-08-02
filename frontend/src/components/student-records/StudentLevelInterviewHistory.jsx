@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useParams, } from "react-router-dom";
 import { useState } from "react";
-import { useGetAdmittedStudentsByIdQuery } from "../../redux/api/authApi";
+import { useGetAdmittedStudentsByIdQuery, useGetStudentLevelInterviewsQuery } from "../../redux/api/authApi";
 import { HiArrowNarrowLeft } from "react-icons/hi";
 import CreateInterviewModal from "./CreateInterviewModal";
 import Loader from "../common-components/loader/Loader";
@@ -11,14 +11,21 @@ const StudentLevelInterviewHistory = () => {
     // const navigate = useNavigate();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    // Get student basic info
+    const { data: studentData } = useGetAdmittedStudentsByIdQuery(studentId);
+    
+    // Get level interview history
     const {
-        data: studentData,
+        data: levelInterviewData,
         isLoading,
         error,
         refetch
-    } = useGetAdmittedStudentsByIdQuery(studentId);
+    } = useGetStudentLevelInterviewsQuery(studentId);
 
-    const interviews = studentData?.level || [];
+    console.log('🎯 Level Interview API Call - studentId:', studentId);
+    console.log('📊 Level Interview Data:', levelInterviewData);
+
+    const interviews = levelInterviewData?.level || levelInterviewData || [];
 
     if (isLoading) {
         return (

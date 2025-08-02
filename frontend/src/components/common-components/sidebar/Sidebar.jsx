@@ -94,9 +94,9 @@ const Sidebar = ({ children }) => {
       return path === "/readiness-status" || path.startsWith("/interview-history/");
     }
 
-    if (subPath === "/placement-interview-record") {
-      return path === "/placement-interview-record";
-    }
+    // if (subPath === "/placement-interview-record") {
+    //   return path === "/placement-interview-record";
+    // }
 
     if (subPath === "/placement-post") {
       return path === "/placement-post";
@@ -131,7 +131,7 @@ const Sidebar = ({ children }) => {
       roles: ["superadmin", "admin", "faculty"],
       subMenu: [
         { name: "Placement Candidates", path: "/readiness-status" },
-        { name: "Interview Record", path: "/placement-interview-record" },
+        // { name: "Interview Record", path: "/placement-interview-record" },
         { name: "Placed Students", path: "/placement-post" },
       ],
     },
