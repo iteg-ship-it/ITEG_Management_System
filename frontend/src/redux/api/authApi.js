@@ -338,7 +338,7 @@ export const authApi = createApi({
 
     updateStudentImage: builder.mutation({
       query: ({ id, image }) => ({
-        url: `/admitted/students/update/${id}`,
+        url: `/admitted/students/update/profile/${id}`,
         method: "PATCH",
         body: { image },
       }),
