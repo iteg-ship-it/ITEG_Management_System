@@ -117,6 +117,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
 
       // Force immediate data refresh
       await refetch?.();
+      await refetchInterviewData?.();
       resetForm();
       onClose();
     } catch (err) {

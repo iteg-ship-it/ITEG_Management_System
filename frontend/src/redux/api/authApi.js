@@ -248,6 +248,9 @@ export const authApi = createApi({
         url: `${import.meta.env.VITE_INTERVIEW_DETAIL}${id}`,
         method: "GET",
       }),
+      providesTags: (result, error, id) => [
+        { type: 'Student', id }
+      ],
     }),
 
     // ---------admitted students-------------

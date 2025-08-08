@@ -165,6 +165,7 @@ const PlacementReadyStudents = () => {
     {
       key: "studentMobile",
       label: "Mobile no.",
+      align: "center",
       render: (row) => `+91 ${row.studentMobile}`,
     },
     {
@@ -229,6 +230,7 @@ const PlacementReadyStudents = () => {
     {
       key: "studentMobile",
       label: "Mobile no.",
+      align: "center",
       render: (row) => `+91 ${row.studentMobile}`,
     },
     {
