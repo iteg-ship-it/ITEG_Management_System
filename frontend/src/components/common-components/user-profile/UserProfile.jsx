@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { FiSettings, FiLogOut } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import profileImg from "../../../assets/images/profile-img.png";
-import Loader from "../loader/Loader";
+// import Loader from "../loader/Loader";
 // import backIcon from "../../../assets/icons/back-icon.png";
 import { useLogoutMutation } from "../../../redux/api/authApi";
 import { toast } from "react-toastify";
@@ -13,14 +13,22 @@ const UserProfile = () => {
   const [open, setOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   const [logout] = useLogoutMutation();
+  
+  const handleLogoutClick = () => {
+    setShowLogoutConfirm(true);
+    setOpen(false);
+  };
+  
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
+      setShowLogoutConfirm(false);
       const userId = user?.id || user?._id;
       console.log("🔑 Initiating logout for user:", userId);
       const res = await logout({ id: userId }).unwrap();
@@ -48,7 +56,6 @@ const UserProfile = () => {
 
   return (
     <div className="relative w-full p-2 mb-2">
-      {isLoggingOut && <Loader />}
       <div className="relative" ref={dropdownRef}>
         <img
           src={user?.avatar || profileImg}
@@ -74,21 +81,12 @@ const UserProfile = () => {
               <FiSettings className="mr-2" /> Settings
             </button>
             <button
-              onClick={handleLogout}
+              onClick={handleLogoutClick}
               disabled={isLoggingOut}
               className="flex items-center w-full px-4 py-3 hover:bg-gray-100 text-sm"
             >
-              {isLoggingOut ? (
-                <>
-                  <FiLogOut className="mr-2" />
-                  Logging out...
-                </>
-              ) : (
-                <>
-                  <FiLogOut className="mr-2" />
-                  Logout
-                </>
-              )}
+              <FiLogOut className="mr-2" />
+              Logout
             </button>
           </div>
         )}
@@ -109,6 +107,31 @@ const UserProfile = () => {
       {/* Settings Modal */}
       {isSettingsOpen && (
         <SettingsModal user={user} onClose={() => setIsSettingsOpen(false)} />
+      )}
+      
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Confirm Logout</h3>
+            <p className="text-gray-600 mb-6">Are you sure you want to logout?</p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="px-4 py-2 bg-brandYellow text-white rounded-md hover:bg-orange-600 transition disabled:opacity-50"
+              >
+                {isLoggingOut ? "Logging out..." : "OK"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
