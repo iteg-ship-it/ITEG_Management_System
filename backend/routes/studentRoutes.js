@@ -53,7 +53,7 @@ router.post('/generate', studentController.generatePlacementPost);
 router.patch('/update_technology/:id', studentController.updateTechnology);
 
 router.patch('/update/profile/:id', studentController.updateStudentProfile);
-
+router.patch("/reschedule/interview/:studentId/:interviewId/", studentController.rescheduleInterview);
 
 
 module.exports = router;

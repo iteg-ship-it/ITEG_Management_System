@@ -256,6 +256,9 @@ components:
         noOfAttempts:
           type: integer
           default: 0
+        Topic:
+          type: string
+          example: "Java"
         marks:
           type: number
           default: 0
@@ -2548,7 +2551,7 @@ paths:
   /api/admitted/students/update/profile/{id}:
     patch:
       tags:
-        - Students
+        - Admitted Student
       summary: Update student profile image
       description: Upload a base64 image, store it on Cloudinary, and update the student record with the URL.
       parameters:
@@ -2588,3 +2591,83 @@ paths:
           description: Student not found
         '500':
           description: Internal Server Error
+ 
+  /api/admitted/students/reschedule/interview/{studentId}/{interviewId}:
+    patch:
+      tags:
+        - Placement
+      summary: Reschedule an interview
+      description: Reschedules a specific interview for a student and updates its status to "Rescheduled".
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: string
+          description: ID of the admitted student
+        - in: path
+          name: interviewId
+          required: true
+          schema:
+            type: string
+          description: ID of the interview record to be rescheduled
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - newDate
+              properties:
+                newDate:
+                  type: string
+                  format: date-time
+                  example: "2025-08-15T10:00:00.000Z"
+      responses:
+        "200":
+          description: Interview rescheduled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Interview rescheduled successfully.
+                  updatedData:
+                    type: object
+                    description: Updated student document with modified interview record
+        "400":
+          description: Bad Request - Missing or invalid date
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: New date is required.
+        "404":
+          description: Student or interview not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student or interview not found.
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server error.
+                  error:
+                    type: string
+                    example: Error message details
