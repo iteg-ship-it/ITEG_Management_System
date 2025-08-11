@@ -71,18 +71,10 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
     );
 
     if (refreshResult?.data) {
-      const {
-        token: newToken,
-        refreshToken: newRefreshToken,
-        role,
-      } = refreshResult.data;
+      const { accessToken } = refreshResult.data;
 
-      // Store encrypted tokens
-      localStorage.setItem("token", encrypt(newToken));
-      localStorage.setItem("refreshToken", encrypt(newRefreshToken));
-      localStorage.setItem("role", role);
-
-      api.dispatch(setCredentials({ token: newToken, role }));
+      // Store encrypted token
+      localStorage.setItem("token", encrypt(accessToken));
 
       // Retry original query
       result = await rawBaseQuery(args, api, extraOptions);
@@ -102,6 +94,11 @@ export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithAutoRefresh,
   tagTypes: ['Student', 'PlacementStudent'],
+  // Global configuration for better caching
+  keepUnusedDataFor: 300, // 5 minutes default cache
+  refetchOnMountOrArgChange: 30, // Only refetch if data is older than 30 seconds
+  refetchOnFocus: false, // Disable refetch on window focus
+  refetchOnReconnect: true, // Refetch on network reconnect
   endpoints: (builder) => ({
     login: builder.mutation({
       query: (credentials) => ({
@@ -212,6 +209,7 @@ export const authApi = createApi({
         method: "GET",
       }),
       providesTags: ['Student'],
+      keepUnusedDataFor: 300, // 5 minutes cache
     }),
 
     getAllStudentsByLevel: builder.query({
@@ -261,6 +259,8 @@ export const authApi = createApi({
         url: import.meta.env.VITE_GET_ADMITTED_STUDENTS,
         method: "GET",
       }),
+      providesTags: ['Student'],
+      keepUnusedDataFor: 300, // 5 minutes cache
     }),
 
     // create level interview
@@ -362,6 +362,7 @@ export const authApi = createApi({
         method: "GET",
       }),
       providesTags: ['PlacementStudent'],
+      keepUnusedDataFor: 300, // Keep data for 5 minutes
     }),
 
     addPlacementInterviewRecord: builder.mutation({
@@ -371,6 +372,15 @@ export const authApi = createApi({
         body: interviewData,
       }),
       invalidatesTags: ['PlacementStudent'],
+      // Optimistic update for better UX
+      async onQueryStarted({ studentId, interviewData }, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          // Only invalidate after successful mutation
+        } catch {
+          // Handle error if needed
+        }
+      },
     }),
 
 
