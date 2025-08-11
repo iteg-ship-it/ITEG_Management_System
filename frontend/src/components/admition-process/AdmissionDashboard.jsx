@@ -4,6 +4,7 @@ import {
   Eye,
   Building2,
   Award,
+  RefreshCw
 } from 'lucide-react';
 import admissionFlowBg from '../../assets/images/Group 880.jpg';
 import admittedFlowBg from '../../assets/images/Group 881.jpg';
@@ -169,13 +170,12 @@ const AdmissionDashboard = () => {
     },
   ];
 
-  // Calculate flow data for 3 main processes
+  // Simple admission flow data - only 3 categories
   const admissionFlowData = [
     ['Status', 'Count'],
-    ['Applied', allStudents.length + 25],
-    ['Under Review', 15],
-    ['Interviewed', allStudents.length + 10],
-    ['Admitted', allStudents.length]
+    ['Applied', allStudents.length],
+    ['Admitted', admittedStudents.length],
+    ['Placed', placedStudents]
   ];
 
   // Calculate current level-wise data from admitted students
@@ -212,11 +212,22 @@ const AdmissionDashboard = () => {
     ['Level 2C', levelCounts['2C']]
   ];
 
+  // Calculate real placement flow data
+  const readyForPlacement = placementStudents.length;
+  const interviewScheduled = placementStudents.filter(student => 
+    student.interviewRecord && student.interviewRecord.length > 0
+  ).length;
+  const interviewCompleted = placementStudents.filter(student => 
+    student.interviewRecord && student.interviewRecord.some(interview => 
+      interview.result && interview.result !== 'Pending'
+    )
+  ).length;
+  
   const placementFlowData = [
     ['Stage', 'Students'],
-    ['Ready for Placement', placementStudents.length],
-    ['Interview Scheduled', Math.floor(placementStudents.length * 0.8)],
-    ['Interview Completed', Math.floor(placementStudents.length * 0.6)],
+    ['Ready for Placement', readyForPlacement],
+    ['Interview Scheduled', interviewScheduled],
+    ['Interview Completed', interviewCompleted],
     ['Successfully Placed', placedStudents]
   ];
 
@@ -251,7 +262,7 @@ const AdmissionDashboard = () => {
     <div className="min-h-screen bg-white">
       <PageNavbar 
         title="ITEG Management Dashboard" 
-        subtitle="Comprehensive analytics & performance insights"
+        subtitle="Real-time analytics & performance insights"
         showBackButton={false}
         rightContent={
           <div className="text-right">
@@ -262,6 +273,7 @@ const AdmissionDashboard = () => {
               month: 'long', 
               day: 'numeric' 
             })}</div>
+
           </div>
         }
       />
@@ -350,7 +362,7 @@ const AdmissionDashboard = () => {
                   options={{
                     backgroundColor: 'transparent',
                     chartArea: { width: '90%', height: '85%' },
-                    colors: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444'],
+                    colors: ['#3B82F6', '#10B981', '#8B5CF6'],
                     legend: { position: 'bottom', textStyle: { color: '#6B7280', fontSize: 10 } },
                     pieSliceText: 'value',
                     pieSliceTextStyle: { color: 'white', fontSize: 12 }

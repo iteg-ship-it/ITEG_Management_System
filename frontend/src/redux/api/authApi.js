@@ -109,11 +109,12 @@ export const authApi = createApi({
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          const { token, refreshToken, role } = data;
+          const { token, refreshToken, role, user } = data;
 
           localStorage.setItem("token", encrypt(token));
           localStorage.setItem("refreshToken", encrypt(refreshToken));
           localStorage.setItem("role", role);
+          localStorage.setItem("userId", user.id);
 
           dispatch(setCredentials({ token, role }));
           window.location.replace("/");
