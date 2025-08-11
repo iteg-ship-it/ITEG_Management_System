@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useParams, } from "react-router-dom";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useGetAdmittedStudentsByIdQuery, useGetStudentLevelInterviewsQuery } from "../../redux/api/authApi";
 // import { HiArrowNarrowLeft } from "react-icons/hi";
 import CreateInterviewModal from "./CreateInterviewModal";
@@ -11,6 +11,8 @@ const StudentLevelInterviewHistory = () => {
     const { studentId } = useParams();
     // const navigate = useNavigate();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(5);
 
     // Get student basic info
     const { data: studentData } = useGetAdmittedStudentsByIdQuery(studentId);
@@ -27,6 +29,18 @@ const StudentLevelInterviewHistory = () => {
     console.log('📊 Level Interview Data:', levelInterviewData);
 
     const interviews = levelInterviewData?.level || levelInterviewData || [];
+
+    // Pagination logic
+    const { paginatedInterviews, totalPages, startIndex, endIndex } = useMemo(() => {
+        const startIdx = (currentPage - 1) * itemsPerPage;
+        const endIdx = startIdx + itemsPerPage;
+        return {
+            paginatedInterviews: interviews.slice(startIdx, endIdx),
+            totalPages: Math.ceil(interviews.length / itemsPerPage),
+            startIndex: startIdx + 1,
+            endIndex: Math.min(endIdx, interviews.length)
+        };
+    }, [interviews, currentPage, itemsPerPage]);
 
     if (isLoading) {
         return (
@@ -132,9 +146,16 @@ const StudentLevelInterviewHistory = () => {
 
             {/* Interview History */}
             <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-gray-700 mb-4">
-                    Interview Records ({interviews.length})
-                </h3>
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-semibold text-gray-700">
+                        Interview Records ({interviews.length})
+                    </h3>
+                    {interviews.length > 0 && (
+                        <div className="text-sm text-gray-500">
+                            Showing {startIndex}-{endIndex} of {interviews.length} records
+                        </div>
+                    )}
+                </div>
 
                 {interviews.length === 0 ? (
                     <div className="text-center py-12">
@@ -158,13 +179,26 @@ const StudentLevelInterviewHistory = () => {
                         </div>
                     </div>
                 ) : (
-                    interviews.map((interview, index) => (
-                        <InterviewCard
-                            key={interview._id || index}
-                            interview={interview}
-                            index={index}
-                        />
-                    ))
+                    <>
+                        <div className="space-y-4">
+                            {paginatedInterviews.map((interview, index) => (
+                                <InterviewCard
+                                    key={interview._id || index}
+                                    interview={interview}
+                                    index={startIndex + index - 1}
+                                />
+                            ))}
+                        </div>
+                        
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <PaginationComponent
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                onPageChange={setCurrentPage}
+                            />
+                        )}
+                    </>
                 )}
             </div>
 
@@ -257,6 +291,87 @@ const InterviewCard = ({ interview }) => {
                     <p className="text-sm text-gray-800">{interview.remark}</p>
                 </div>
             )}
+        </div>
+    );
+};
+
+// Pagination Component
+const PaginationComponent = ({ currentPage, totalPages, onPageChange }) => {
+    const getPageNumbers = () => {
+        const pages = [];
+        const maxVisible = 5;
+        
+        if (totalPages <= maxVisible) {
+            for (let i = 1; i <= totalPages; i++) {
+                pages.push(i);
+            }
+        } else {
+            if (currentPage <= 3) {
+                for (let i = 1; i <= 4; i++) pages.push(i);
+                pages.push('...');
+                pages.push(totalPages);
+            } else if (currentPage >= totalPages - 2) {
+                pages.push(1);
+                pages.push('...');
+                for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+            } else {
+                pages.push(1);
+                pages.push('...');
+                for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+                pages.push('...');
+                pages.push(totalPages);
+            }
+        }
+        return pages;
+    };
+
+    return (
+        <div className="flex items-center justify-center space-x-2 mt-8 py-4">
+            {/* Previous Button */}
+            <button
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    currentPage === 1
+                        ? 'text-gray-400 cursor-not-allowed'
+                        : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+                }`}
+            >
+                ← Previous
+            </button>
+
+            {/* Page Numbers */}
+            <div className="flex items-center space-x-1">
+                {getPageNumbers().map((page, index) => (
+                    <button
+                        key={index}
+                        onClick={() => typeof page === 'number' && onPageChange(page)}
+                        disabled={page === '...'}
+                        className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
+                            page === currentPage
+                                ? 'bg-blue-600 text-white'
+                                : page === '...'
+                                ? 'text-gray-400 cursor-default'
+                                : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+                        }`}
+                    >
+                        {page}
+                    </button>
+                ))}
+            </div>
+
+            {/* Next Button */}
+            <button
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    currentPage === totalPages
+                        ? 'text-gray-400 cursor-not-allowed'
+                        : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+                }`}
+            >
+                Next →
+            </button>
         </div>
     );
 };
