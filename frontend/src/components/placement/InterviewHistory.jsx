@@ -104,7 +104,7 @@ const InterviewHistory = () => {
       </div>
 
       {/* Student Info */}
-      {studentData && (
+      {/* {studentData && (
         <div className="bg-gray-50 rounded-lg p-4 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div>
@@ -121,7 +121,25 @@ const InterviewHistory = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
+      {studentData && (
+  <div className="bg-gray-50 rounded-lg p-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 divide-x divide-gray-300 text-sm">
+      <div className="pr-4">
+        <span className="font-semibold text-gray-600">Student Name:</span>
+        <p className="text-gray-800">{studentData.firstName} {studentData.lastName}</p>
+      </div>
+      <div className="px-4">
+        <span className="font-semibold text-gray-600">Track:</span>
+        <p className="text-gray-800">{studentData.track || 'N/A'}</p>
+      </div>
+      <div className="pl-4">
+        <span className="font-semibold text-gray-600">Technology:</span>
+        <p className="text-gray-800">{studentData.techno || 'N/A'}</p>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* Interview History Cards */}
       <div className="mb-6">

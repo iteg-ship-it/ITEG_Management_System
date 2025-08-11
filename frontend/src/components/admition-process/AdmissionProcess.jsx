@@ -416,11 +416,11 @@ const StudentList = () => {
       ];
       actionButton = (row) => (
         <button
-          onClick={() => scheduleButton(row)}
-          className="bg-orange-500 text-md text-white px-3 py-1 rounded"
-        >
-          Take interview
-        </button>
+        onClick={() => scheduleButton(row)}
+        className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded"
+      >
+        Take interview
+      </button>
       );
       break;
 
@@ -471,7 +471,7 @@ const StudentList = () => {
       actionButton = (row) => (
         <button
           onClick={() => scheduleButton(row)}
-          className="bg-orange-500 text-md text-white px-3 py-1 rounded"
+          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded"
         >
           Take interview
         </button>
@@ -537,7 +537,7 @@ const StudentList = () => {
               setAddInterviwModalOpen(true)
               setId(row._id)
             }}
-            className="bg-orange-500 text-md text-white px-3 py-1 rounded"
+            className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded"
           >
             Add Interview
           </button>

@@ -53,7 +53,7 @@ const StudentLevelInterviewHistory = () => {
 
 
                 {/* Student Info */}
-                {studentData && (
+                {/* {studentData && (
                     <div className="bg-gray-50 rounded-lg p-4 mb-6">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                             <div>
@@ -70,8 +70,42 @@ const StudentLevelInterviewHistory = () => {
                             </div>
                         </div>
                     </div>
-                )}
+                )} */}
+                   {studentData && (
+  <div className="bg-gray-50 rounded-lg p-4 mb-6">
+    <div className="flex flex-col md:flex-row text-sm">
+      {/* Student Name */}
+      <div className="flex flex-col pr-4 mb-4 md:mb-0">
+        <span className="font-semibold text-gray-600 text-base">Student Name:</span>
+        <span className="text-gray-800 font-medium text-md">
+          {studentData.firstName} {studentData.lastName}
+        </span>
+      </div>
 
+      {/* Vertical Divider */}
+      <div className="hidden md:block border-l border-dashed border-gray-300 mx-4 h-auto"></div>
+
+      {/* Track */}
+      <div className="flex flex-col px-4 mb-4 md:mb-0">
+        <span className="font-semibold text-gray-600 text-base">Track:</span>
+        <span className="text-gray-800 font-medium text-md">
+          {studentData.track || 'N/A'}
+        </span>
+      </div>
+
+      {/* Vertical Divider */}
+      <div className="hidden md:block border-l border-dashed border-gray-300 mx-4 h-auto"></div>
+
+      {/* Current Level */}
+      <div className="flex flex-col pl-4">
+        <span className="font-semibold text-gray-600 text-base">Current Level:</span>
+        <span className="text-gray-800 font-medium text-md">
+          {studentData.currentLevel || 'N/A'}
+        </span>
+      </div>
+    </div>
+  </div>
+)}
                 {/* Interview History */}
                 <div className="space-y-4">
                     <h3 className="text-xl font-semibold text-gray-700 mb-4">
