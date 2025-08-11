@@ -1,21 +1,20 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useGetReadyStudentsForPlacementQuery, useUpdatePlacedInfoMutation } from "../../redux/api/authApi";
-import { HiArrowNarrowLeft } from "react-icons/hi";
 import Loader from "../common-components/loader/Loader";
-// import profile from "../../assets/images/profileImgDummy.jpeg";
 import { Dialog } from "@headlessui/react";
 import { toast } from "react-toastify";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
+import PageNavbar from "../common-components/navbar/PageNavbar";
 
 const InterviewHistory = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   
   const { data, isLoading, isError, error, refetch } = useGetReadyStudentsForPlacementQuery(undefined, {
-    refetchOnMountOrArgChange: true,
-    refetchOnFocus: true,
-    pollingInterval: 15000, // Poll every 15 seconds
+    refetchOnMountOrArgChange: 30,
+    refetchOnFocus: false,
+    // Remove aggressive polling
   });
   
   // Find specific student from the list
@@ -85,23 +84,16 @@ const InterviewHistory = () => {
 
   return (
     <>
-
-      
-      <div className="flex items-center gap-3 mb-6">
-        <button
-          type="button"
-          onClick={() => {
-            // Get the active tab from localStorage or default to 'Ongoing Interviews'
-            const activeTab = localStorage.getItem('placementActiveTab') || 'Ongoing Interviews';
-            localStorage.setItem('placementActiveTab', activeTab);
-            navigate('/readiness-status');
-          }}
-          className="text-2xl text-[var(--text-color)] hover:text-gray-900"
-        >
-          <HiArrowNarrowLeft />
-        </button>
-        <h1 className="text-2xl py-4 font-bold">Interview History</h1>
-      </div>
+      <PageNavbar 
+        title="Interview History" 
+        subtitle="View and manage student interview records"
+        onBack={() => {
+          // Get the active tab from localStorage or default to 'Ongoing Interviews'
+          const activeTab = localStorage.getItem('placementActiveTab') || 'Ongoing Interviews';
+          localStorage.setItem('placementActiveTab', activeTab);
+          navigate('/readiness-status');
+        }}
+      />
 
       {/* Student Info */}
       {/* {studentData && (

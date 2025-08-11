@@ -11,7 +11,7 @@ import TextInput from "../common-components/common-feild/TextInput";
 import SelectInput from "../common-components/common-feild/SelectInput";
 import { toast } from "react-toastify";
 import Loader from "../common-components/loader/Loader";
-import { HiArrowNarrowLeft } from "react-icons/hi";
+import PageNavbar from "../common-components/navbar/PageNavbar";
 
 const AdmissionInterviewDetails = () => {
     const { id } = useParams();
@@ -52,29 +52,19 @@ const AdmissionInterviewDetails = () => {
 
     return (
         <>
-
-            <div className="p-6 bg-white rounded-xl shadow-md ">
-                <div className="flex justify-between items-center mb-6">
-                {/* 👈 BACK BUTTON ADDED JUST LIKE OTHER PAGE */}
-                    <div className="flex items-center gap-3">
-                <button
-                    type="button"
-                    onClick={() => window.history.back()}
-                    className="text-2xl text-gray-800 hover:text-gray-900"
-                >
-                    <HiArrowNarrowLeft />
-                </button>
-            <h2 className="text-2xl font-semibold text-gray-800">Student Interview Details</h2>
-                    </div>
-
-             {/* ➕ ADD INTERVIEW BUTTON */}
-                <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="px-5 py-2 bg-brandYellow text-white rounded-lg hover:bg-orange-600 transition"
+            <PageNavbar 
+                title="Student Interview Details" 
+                subtitle="View and manage student interview records"
+                rightContent={
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="px-5 py-2 bg-brandYellow text-white rounded-lg hover:bg-orange-600 transition"
                     >
-                  + Add Interview
-                </button>
-                </div>
+                        + Add Interview
+                    </button>
+                }
+            />
+            <div className="p-6 bg-white rounded-xl shadow-md ">
 
                 <div className="pt-4 space-y-2 text-gray-700 text-sm">
                     <p><strong>Name:</strong> {studentData?.firstName} {studentData?.lastName}</p>

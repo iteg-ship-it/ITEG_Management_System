@@ -144,7 +144,7 @@ export default function StudentProfile() {
   return (
     <div className="min-h-screen bg-white">
       {/* Professional Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+      <div className="sticky top-0 z-10">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -161,11 +161,11 @@ export default function StudentProfile() {
                 <p className="text-sm text-black">Comprehensive analytics & performance insights</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            {/* <div className="flex items-center gap-3">
               <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
                 Active Student
               </div>
-            </div>
+            </div> */}
 
           </div>
         </div>

@@ -559,6 +559,13 @@ exports.createUser = async (req, res) => {
   }
 };
 
+// Helper functions
+const generateRefreshToken = (user) => {
+  return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+    expiresIn: "4h",
+  });
+};
+
 // ✅ LOGIN
 exports.login = async (req, res) => {
   try {
@@ -586,12 +593,17 @@ exports.login = async (req, res) => {
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "2h" }
     );
+
+    const refreshToken = generateRefreshToken(user);
+    user.refreshToken = refreshToken;
+    await user.save();
 
     res.status(200).json({
       message: "Login successful",
       token,
+      refreshToken,
       user: {
         id: user._id,
         name: user.name,
@@ -601,29 +613,14 @@ exports.login = async (req, res) => {
         department: user.department,
       },
     });
-
-    // ❌ Removed refreshToken logic
-    /*
-    const refreshToken = generateRefreshToken(user);
-    user.refreshToken = refreshToken;
-    await user.save();
-
-    res.status(200).json({
-      message: "Login successful",
-      token,
-      refreshToken,
-      user: {...}
-    });
-    */
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };
 
-// ❌ REFRESH ACCESS TOKEN (Commented fully)
+// ✅ REFRESH ACCESS TOKEN
 exports.refreshAccessToken = async (req, res) => {
-  /*
   try {
     const { refreshToken } = req.body;
 
@@ -642,7 +639,7 @@ exports.refreshAccessToken = async (req, res) => {
       const newAccessToken = jwt.sign(
         { id: decoded.id, role: user.role },
         process.env.JWT_SECRET,
-        { expiresIn: "1h" }
+        { expiresIn: "2h" }
       );
 
       res.status(200).json({
@@ -654,7 +651,6 @@ exports.refreshAccessToken = async (req, res) => {
     console.error("Refresh token error:", err.message);
     res.status(500).json({ message: "Server error", error: err.message });
   }
-  */
 };
 
 // 🔐 LOGOUT
@@ -669,9 +665,8 @@ exports.logout = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // ❌ Remove refresh token logic
-    // user.refreshToken = null;
-    // await user.save();
+    user.refreshToken = null;
+    await user.save();
 
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
@@ -822,19 +817,16 @@ exports.googleAuthCallback = async (req, res) => {
     }
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
+      expiresIn: "2h",
     });
 
-    // ❌ Removed refresh token logic
-    /*
     const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
+      expiresIn: "4h",
     });
     user.refreshToken = refreshToken;
     await user.save();
-    */
 
-    const redirectUrl = `${process.env.GOOGLE_REDIRECT_URI}?token=${token}&userId=${user._id}&name=${encodeURIComponent(user.name)}&role=${user.role}&email=${user.email}`;
+    const redirectUrl = `${process.env.GOOGLE_REDIRECT_URI}?token=${token}&refreshToken=${refreshToken}&userId=${user._id}&name=${encodeURIComponent(user.name)}&role=${user.role}&email=${user.email}`;
 
     return res.redirect(redirectUrl);
   } catch (error) {

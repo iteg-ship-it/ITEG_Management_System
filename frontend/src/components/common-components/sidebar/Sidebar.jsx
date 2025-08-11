@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { IoMenu } from "react-icons/io5";
 import { FaClipboardList } from "react-icons/fa6";
-import { GiGraduateCap } from "react-icons/gi";
+import { MdWork } from "react-icons/md";
 import { RiTv2Fill } from "react-icons/ri";
 import { HiChevronUp, HiChevronDown } from "react-icons/hi";
 
@@ -94,9 +94,9 @@ const Sidebar = ({ children }) => {
       return path === "/readiness-status" || path.startsWith("/interview-history/");
     }
 
-    if (subPath === "/placement-interview-record") {
-      return path === "/placement-interview-record";
-    }
+    // if (subPath === "/placement-interview-record") {
+    //   return path === "/placement-interview-record";
+    // }
 
     if (subPath === "/placement-post") {
       return path === "/placement-post";
@@ -113,7 +113,7 @@ const Sidebar = ({ children }) => {
       subMenu: [
         // { name: "Admission WorkFlow", path: "/" }
         { name: "Dashboard", path: "/" },
-        { name: "Admission WorkFlow", path: "/admission-process" },
+        { name: "Admission Workflow", path: "/admission-process" },
       ],
     },
     {
@@ -127,11 +127,11 @@ const Sidebar = ({ children }) => {
     },
     {
       name: "Placements",
-      icon: <GiGraduateCap />,
+      icon: <MdWork />,
       roles: ["superadmin", "admin", "faculty"],
       subMenu: [
         { name: "Placement Candidates", path: "/readiness-status" },
-        { name: "Interview Record", path: "/placement-interview-record" },
+        // { name: "Interview Record", path: "/placement-interview-record" },
         { name: "Placed Students", path: "/placement-post" },
       ],
     },

@@ -93,9 +93,9 @@ const CommonTable = ({
                       onChange={handleSelectAll}
                     />
                   </th>
-                  <th className="px-4 py-3 text-start ">S.no</th>
-                  {columns.map(({ key, label }) => (
-                    <th key={key} className="px-4 py-3 text-start">{label}</th>
+                  <th className="px-4 py-3 text-center">S.No</th>
+                  {columns.map(({ key, label, align }) => (
+                    <th key={key} className={`px-4 py-3 ${align === 'center' ? 'text-center' : 'text-start'}`}>{label}</th>
                   ))}
                   {editable && actionButton && (
                     <th className="px-4 py-3 text-start">Action</th>
@@ -121,11 +121,11 @@ const CommonTable = ({
                       />
                     </td>
 
-                    <td className="px-4 py-3 text-start font-medium text-gray-800">
+                    <td className="px-4 py-3 text-center font-medium text-gray-800">
                       {(currentPage - 1) * pageSize + rowIndex + 1}
                     </td>
-                    {columns.map(({ key, render }) => (
-                      <td key={key} className="px-4 py-3 text-start text-gray-700">
+                    {columns.map(({ key, render, align }) => (
+                      <td key={key} className={`px-4 py-3 ${align === 'center' ? 'text-center' : 'text-start'} text-gray-700`}>
                         {render ? (
                           render(row)
                         ) : key === "profile" ? (
@@ -175,7 +175,6 @@ const CommonTable = ({
                   setPageSize(selected);
                   setCurrentPage(1);
                 }}
-                className="px-3 py-1 text-sm focus:outline-none"
               >
                 <option value={filteredData.length}>All</option>
                 <option value={5}>5</option>

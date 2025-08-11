@@ -52,6 +52,8 @@ router.post('/generate', studentController.generatePlacementPost);
 
 router.patch('/update_technology/:id', studentController.updateTechnology);
 
-router.patch('/update/:id', studentController.updateStudentProfile);
+router.patch('/update/profile/:id', studentController.updateStudentProfile);
+
+
 
 module.exports = router;

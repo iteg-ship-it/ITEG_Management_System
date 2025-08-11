@@ -79,7 +79,7 @@ exports.getAllStudents = async (req, res) => {
         { permissionDetails: null },
         { permissionDetails: {} }
       ]
-    });
+    }).sort({ updatedAt: -1 });
     console.log("Fetched all students:", students.length);
     res.status(200).json(students);
   } catch (error) {
@@ -114,6 +114,9 @@ const students = await AdmittedStudent.aggregate([
             { permissionDetails: {} }
           ]
     }
+  },
+  {
+    $sort: { updatedAt: -1 }
   }
 ]);
 
@@ -311,7 +314,7 @@ Best wishes`,
 // Get all students with permissionDetails granted
 exports.getAllPermissionStudents = async (req, res) => {
   try {
-    const students = await AdmittedStudent.find({ permissionDetails: { $ne: null } }).select('-password');
+    const students = await AdmittedStudent.find({ permissionDetails: { $ne: null } }).select('-password').sort({ updatedAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -325,7 +328,6 @@ exports.getAllPermissionStudents = async (req, res) => {
 };
 
 
-// Update a student's permissionDetails
 exports.updatePermissionStudent = async (req, res) => {
   try {
     const { studentId } = req.params;
@@ -336,7 +338,7 @@ exports.updatePermissionStudent = async (req, res) => {
       return res.status(400).json({ message: "Invalid image format. Must be Base64 string." });
     }
 
-    // Validate role
+    // Role validation
     if (!['super admin', 'admin', 'faculty'].includes(approved_by)) {
       return res.status(400).json({ message: "Invalid approver role." });
     }
@@ -346,8 +348,14 @@ exports.updatePermissionStudent = async (req, res) => {
       return res.status(404).json({ message: "Student not found" });
     }
 
+    // Upload base64 image to Cloudinary
+    const uploadResponse = await cloudinary.uploader.upload(imageURL, {
+      folder: "permission_applications", // Optional: organize uploads
+    });
+
+    // Store Cloudinary image URL
     student.permissionDetails = {
-      imageURL,
+      imageURL: uploadResponse.secure_url,
       remark,
       approved_by,
       uploadDate: new Date()
@@ -359,11 +367,13 @@ exports.updatePermissionStudent = async (req, res) => {
       message: "Permission updated successfully",
       student
     });
+
   } catch (error) {
     console.error("Update Permission Error:", error);
     res.status(500).json({ message: "Server Error", error });
   }
 };
+
 
 exports.updatePlacementInfo = async (req, res) => {
   try {
@@ -417,6 +427,9 @@ exports.getLevelWiseStudents = async (req, res) => {
         { permissionDetails: {} }
       ]
     }
+  },
+  {
+    $sort: { updatedAt: -1 }
   }
 ]);
 
@@ -431,45 +444,6 @@ exports.getLevelWiseStudents = async (req, res) => {
   }
 };
 
-// Update a student's permissionDetails
-exports.updatePermissionStudent = async (req, res) => {
-  try {
-    const { studentId } = req.params;
-    const { imageURL, remark, approved_by } = req.body;
-
-    // Base64 image validation
-    if (!/^data:image\/(png|jpeg|jpg);base64,/.test(imageURL)) {
-      return res.status(400).json({ message: "Invalid image format. Must be Base64 string." });
-    }
-
-    // Validate role
-    if (!['super admin', 'admin', 'faculty'].includes(approved_by)) {
-      return res.status(400).json({ message: "Invalid approver role." });
-    }
-
-    const student = await AdmittedStudent.findById(studentId);
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
-    }
-
-    student.permissionDetails = {
-      imageURL,
-      remark,
-      approved_by,
-      uploadDate: new Date()
-    };
-
-    await student.save();
-
-    res.status(200).json({
-      message: "Permission updated successfully",
-      student
-    });
-  } catch (error) {
-    console.error("Update Permission Error:", error);
-    res.status(500).json({ message: "Server Error", error });
-  }
-};
 
 
 
@@ -542,7 +516,7 @@ exports.updateAdmittedStudent = async (req, res) => {
 exports.getReadyStudent = async (req, res) => {
   try {
     // Find all students whose readinessStatus is "Ready"
-    const readyStudents = await AdmittedStudent.find({ readinessStatus: 'Ready' });
+    const readyStudents = await AdmittedStudent.find({ readinessStatus: 'Ready' }).sort({ updatedAt: -1 });
 
     if (readyStudents.length === 0) {
       return res.status(404).json({ message: "No students found with readinessStatus 'Ready'." });
@@ -733,35 +707,6 @@ exports.generatePlacementPost = async (req, res) => {
   }
 };
 
-// exports.updateTechnology = async (req, res) => {
-//   try {
-//     const studentId = req.params.id;
-//     const { techno } = req.body;
-
-//     if (!techno) {
-//       return res.status(400).json({ message: 'Technology field is required' });
-//     }
-
-//     const updatedStudent = await AdmittedStudent.findByIdAndUpdate(
-//       studentId,
-//       { techno},
-//       { new: true }
-//     );
-
-//     if (!updatedStudent) {
-//       return res.status(404).json({ message: 'Student not found' });
-//     }
-
-//     res.status(200).json({
-//       message: 'Technology updated successfully',
-//       student: updatedStudent
-//     });
-//   } catch (error) {
-//     console.error('Error updating technology:', error);
-//     res.status(500).json({ message: 'Server error', error });
-//   }
-// };
-
 
 exports.updateTechnology = async (req, res) => {
   try {
@@ -802,6 +747,7 @@ exports.updateTechnology = async (req, res) => {
   }
 };
 
+
 exports.updateStudentProfile = async (req, res) => {
   try {
     const studentId = req.params.id;
@@ -821,7 +767,14 @@ exports.updateStudentProfile = async (req, res) => {
       return res.status(404).json({ message: 'Student not found' });
     }
 
-    student.image = image;
+    // Upload image to Cloudinary
+    const uploadResponse = await cloudinary.uploader.upload(image, {
+      folder: 'student_profiles',
+      public_id: `student_${studentId}`,
+      overwrite: true
+    });
+
+    student.image = uploadResponse.secure_url; // Store Cloudinary URL
     await student.save();
 
     res.status(200).json({
@@ -834,3 +787,5 @@ exports.updateStudentProfile = async (req, res) => {
     res.status(500).json({ message: 'Server error', error });
   }
 };
+
+

@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react/prop-types */
 // components/DatePickerInput.js
 import { useField, ErrorMessage } from 'formik';
 import DatePicker from 'react-datepicker';
@@ -6,7 +8,7 @@ import { useEffect, useState } from 'react';
 // import { format } from 'date-fns';
 
 const DatePickerInput = ({ label, name, className = '', disabled = false }) => {
-  const [field, meta, helpers] = useField(name);
+  const [field, helpers] = useField(name);
   const [isFocused, setIsFocused] = useState(false);
   const hasValue = !!field.value;
 
