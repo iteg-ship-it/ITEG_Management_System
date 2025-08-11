@@ -13,7 +13,8 @@ const CommonTable = ({
   extraColumn,
   currentPage: parentPage,
   onPageChange,
-  onRowClick
+  onRowClick,
+  onSelectionChange
 }) => {
   const [internalPage, setInternalPage] = useState(1);
   const scrollRef = useRef(null);
@@ -54,21 +55,23 @@ const CommonTable = ({
 
   const handleSelectAll = () => {
     if (isAllSelected) {
-      setSelectedRows((prev) =>
-        prev.filter((id) => !paginatedData.find((row) => row._id === id))
-      );
+      const newSelection = selectedRows.filter((id) => !paginatedData.find((row) => row._id === id));
+      setSelectedRows(newSelection);
+      onSelectionChange?.(newSelection);
     } else {
       const newIds = paginatedData.map((row) => row._id);
-      setSelectedRows((prev) => [...new Set([...prev, ...newIds])]);
+      const newSelection = [...new Set([...selectedRows, ...newIds])];
+      setSelectedRows(newSelection);
+      onSelectionChange?.(newSelection);
     }
   };
 
   const handleRowSelect = (id) => {
-    setSelectedRows((prev) =>
-      prev.includes(id)
-        ? prev.filter((rowId) => rowId !== id)
-        : [...prev, id]
-    );
+    const newSelection = selectedRows.includes(id)
+      ? selectedRows.filter((rowId) => rowId !== id)
+      : [...selectedRows, id];
+    setSelectedRows(newSelection);
+    onSelectionChange?.(newSelection);
   };
 
   // Scroll to top when page changes or search term changes
@@ -87,11 +90,13 @@ const CommonTable = ({
             <table className="min-w-full text-sm">
               <thead className="sticky  text-md top-0 bg-[--neutral-light]  text-gray-600 border-b shadow-sm">
                 <tr>
-                  <th className="px-4 py-3 text-start">
-                    <input type="checkbox" className="h-4 w-4 text-black accent-[#1c252e] rounded-md"
-                      checked={isAllSelected}
-                      onChange={handleSelectAll}
-                    />
+                  <th className="px-4 py-3 text-center">
+                    <div className="flex items-center justify-center">
+                      <input type="checkbox" className="h-4 w-4 text-black accent-[#1c252e] rounded-md"
+                        checked={isAllSelected}
+                        onChange={handleSelectAll}
+                      />
+                    </div>
                   </th>
                   <th className="px-4 py-3 text-center">S.No</th>
                   {columns.map(({ key, label, align }) => (
@@ -111,14 +116,16 @@ const CommonTable = ({
                     className={`hover:bg-gray-100 text-md transition cursor-pointer border-b border-dashed border-gray-300`}
                     onClick={() => onRowClick(row)} // ⬅️ Navigation trigger
                   >
-                    <td className="px-4 py-3"
+                    <td className="px-4 py-3 text-center"
                       onClick={(e) => e.stopPropagation()} //Stop row click when clicking checkbox
                     >
-                      <input type="checkbox"
-                        className="rounded-md accent-[#1c252e] h-4 w-4"
-                        checked={selectedRows.includes(row._id)}
-                        onChange={() => handleRowSelect(row._id)}
-                      />
+                      <div className="flex items-center justify-center -mt-1">
+                        <input type="checkbox"
+                          className="rounded-md accent-[#1c252e] h-4 w-4"
+                          checked={selectedRows.includes(row._id)}
+                          onChange={() => handleRowSelect(row._id)}
+                        />
+                      </div>
                     </td>
 
                     <td className="px-4 py-3 text-center font-medium text-gray-800">

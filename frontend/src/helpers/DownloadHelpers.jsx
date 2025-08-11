@@ -4,12 +4,14 @@ import autoTable from "jspdf-autotable";
 
 export const downloadCSV = (data, filename = "data.csv") => {
   if (!data?.length) return;
-  const headers = Object.keys(data[0]);
+  const keys = ["firstName", "fatherName", "studentMobile", "track", "village", "stream"];
+  const headers = keys.map(k => k.toUpperCase());
   const rows = [
-    headers.join(","),
-    ...data.map((row) =>
-      headers.map((h) => `"${(row[h] || "").toString().replace(/"/g, '""')}"`).join(",")
-    ),
+    ["S.NO", ...headers].join(","),
+    ...data.map((row, i) => {
+      const rowData = [i + 1, ...keys.map(k => `"${(row[k] || "").toString().replace(/"/g, '""')}"`)]; 
+      return rowData.join(",");
+    })
   ];
   const blob = new Blob([rows.join("\n")], { type: "text/csv" });
   const link = document.createElement("a");
@@ -22,7 +24,15 @@ export const downloadCSV = (data, filename = "data.csv") => {
 
 export const downloadExcel = (data, filename = "data.xlsx") => {
   if (!data?.length) return;
-  const worksheet = XLSX.utils.json_to_sheet(data);
+  const keys = ["firstName", "fatherName", "studentMobile", "track", "village", "stream"];
+  const formattedData = data.map((row, i) => {
+    const newRow = { "S.NO": i + 1 };
+    keys.forEach(key => {
+      newRow[key.toUpperCase()] = row[key] || "";
+    });
+    return newRow;
+  });
+  const worksheet = XLSX.utils.json_to_sheet(formattedData);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
   XLSX.writeFile(workbook, filename);
