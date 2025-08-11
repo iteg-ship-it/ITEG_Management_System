@@ -2,7 +2,7 @@
 import { useParams, } from "react-router-dom";
 import { useState } from "react";
 import { useGetAdmittedStudentsByIdQuery, useGetStudentLevelInterviewsQuery } from "../../redux/api/authApi";
-import { HiArrowNarrowLeft } from "react-icons/hi";
+// import { HiArrowNarrowLeft } from "react-icons/hi";
 import CreateInterviewModal from "./CreateInterviewModal";
 import Loader from "../common-components/loader/Loader";
 import PageNavbar from "../common-components/navbar/PageNavbar";
@@ -71,7 +71,7 @@ const StudentLevelInterviewHistory = () => {
                         <div className="text-gray-400 text-6xl mb-4">📚</div>
                         <p className="text-gray-500 text-lg mb-2">No Level Interview History Found</p>
                         <p className="text-gray-400 text-sm">
-                            This student hasn't taken any level interviews yet.
+                            This student hasnt taken any level interviews yet.
                         </p>
                         <div className="mt-6 p-4 bg-blue-50 rounded-lg max-w-md mx-auto">
                             <p className="text-blue-800 text-sm">
@@ -141,7 +141,7 @@ const StudentLevelInterviewHistory = () => {
                             <div className="text-gray-400 text-6xl mb-4">🎓</div>
                             <p className="text-gray-500 text-lg mb-2">No Level Interview Records</p>
                             <p className="text-gray-400 text-sm mb-4">
-                                This student hasn't taken any level interviews yet.
+                                This student hasnt taken any level interviews yet.
                             </p>
                             <div className="max-w-md mx-auto">
                                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
