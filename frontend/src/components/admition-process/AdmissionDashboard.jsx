@@ -1,6 +1,6 @@
-import { 
-  Users, 
-  GraduationCap, 
+import {
+  Users,
+  GraduationCap,
   Eye,
   Building2,
   Award,
@@ -8,7 +8,7 @@ import {
 import admissionFlowBg from '../../assets/images/Group 880.jpg';
 import admittedFlowBg from '../../assets/images/Group 881.jpg';
 import placementFlowBg from '../../assets/images/Student_profile_2nd_bg.jpg';
-import { 
+import {
   useGetAllStudentsQuery,
   useAdmitedStudentsQuery,
   useGetReadyStudentsForPlacementQuery
@@ -23,7 +23,7 @@ import PageNavbar from '../common-components/navbar/PageNavbar';
 const FlowSwapCard = () => {
   const [currentCard, setCurrentCard] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  
+
   const flowCards = [
     {
       title: 'Admission Module',
@@ -33,7 +33,7 @@ const FlowSwapCard = () => {
       backgroundImage: admissionFlowBg
     },
     {
-      title: 'Admitted Module', 
+      title: 'Admitted Module',
       description: 'Track academic progress, attendance, and performance of students enrolled in ITEG seamlessly.',
       icon: '🎓',
       color: '#8B5CF6',
@@ -42,7 +42,7 @@ const FlowSwapCard = () => {
     {
       title: 'Placements Module',
       description: 'Control, manage, and monitor placement drives and interview records with full visibility.',
-      icon: '💼', 
+      icon: '💼',
       color: '#10B981',
       backgroundImage: placementFlowBg
     }
@@ -64,19 +64,17 @@ const FlowSwapCard = () => {
   return (
     <div className="bg-white rounded-2xl overflow-hidden h-full" style={{ boxShadow: '0 0 25px 8px rgba(0, 0, 0, 0.10)' }}>
       <div className="relative h-full">
-        <div 
-          className={`absolute inset-0 transition-all duration-500 ease-in-out ${
-            isTransitioning ? 'opacity-90 scale-105' : 'opacity-100 scale-100'
-          }`}
-          style={{ 
+        <div
+          className={`absolute inset-0 transition-all duration-500 ease-in-out ${isTransitioning ? 'opacity-90 scale-105' : 'opacity-100 scale-100'
+            }`}
+          style={{
             backgroundImage: `url(${currentFlow.backgroundImage})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center'
           }}
         ></div>
-        <div className={`relative p-6 h-full flex flex-col justify-center transition-all duration-300 ease-out ${
-          isTransitioning ? 'opacity-80 transform translate-y-1' : 'opacity-100 transform translate-y-0'
-        }`}>
+        <div className={`relative p-6 h-full flex flex-col justify-center transition-all duration-300 ease-out ${isTransitioning ? 'opacity-80 transform translate-y-1' : 'opacity-100 transform translate-y-0'
+          }`}>
           <div className="text-center">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-white/20 backdrop-blur-md border border-white/30">
               <span className="text-3xl">{currentFlow.icon}</span>
@@ -91,14 +89,13 @@ const FlowSwapCard = () => {
               {currentFlow.subtitle}
             </p>
           </div>
-          
+
           <div className="flex justify-center mt-6 space-x-2">
             {flowCards.map((_, index) => (
               <div
                 key={index}
-                className={`h-2 rounded-full transition-all duration-500 ease-in-out ${
-                  index === currentCard ? 'w-8 bg-white' : 'w-2 bg-white/50'
-                }`}
+                className={`h-2 rounded-full transition-all duration-500 ease-in-out ${index === currentCard ? 'w-8 bg-white' : 'w-2 bg-white/50'
+                  }`}
               />
             ))}
           </div>
@@ -126,8 +123,8 @@ const AdmissionDashboard = () => {
   }, []);
 
   // Calculate placed students from placement data
-  const placedStudents = Array.isArray(placementStudents) ? 
-    placementStudents.filter(student => 
+  const placedStudents = Array.isArray(placementStudents) ?
+    placementStudents.filter(student =>
       student.interviewRecord?.some(interview => interview.result === 'Selected')
     ).length : 0;
 
@@ -152,7 +149,7 @@ const AdmissionDashboard = () => {
       trend: enrollmentGrowth
     },
     {
-      title: 'Admitted Students', 
+      title: 'Admitted Students',
       value: admittedStudents.length,
       subtitle: 'Currently admitted',
       icon: GraduationCap,
@@ -187,16 +184,16 @@ const AdmissionDashboard = () => {
   // Count students by their current level
   admittedStudents.forEach(student => {
     const currentLevel = student.currentLevel || '1A';
-    
+
     // Only count students who haven't passed Level 2C for Level 2C
     if (currentLevel === '2C') {
       const level2CAttempts = (student.level || []).filter(lvl => lvl.levelNo === '2C');
       const hasPassedLevel2C = level2CAttempts.some(lvl => lvl.result === 'Pass');
-      
+
       if (!hasPassedLevel2C) {
         levelCounts['2C']++;
       }
-    // eslint-disable-next-line no-prototype-builtins
+      // eslint-disable-next-line no-prototype-builtins
     } else if (levelCounts.hasOwnProperty(currentLevel)) {
       levelCounts[currentLevel]++;
     }
@@ -231,7 +228,7 @@ const AdmissionDashboard = () => {
   });
 
   const topCompanies = Object.entries(companyStats)
-    .sort(([,a], [,b]) => b - a)
+    .sort(([, a], [, b]) => b - a)
     .slice(0, 5)
     .map(([name, placements], index) => ({
       name,
@@ -249,23 +246,23 @@ const AdmissionDashboard = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <PageNavbar 
-        title="ITEG Management Dashboard" 
+      <PageNavbar
+        title="ITEG Management Dashboard"
         subtitle="Comprehensive analytics & performance insights"
         showBackButton={false}
         rightContent={
           <div className="text-right">
             <div className="text-xl font-bold text-black">{currentTime.toLocaleTimeString()}</div>
-            <div className="text-gray-600 text-sm">{currentTime.toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
+            <div className="text-gray-600 text-sm">{currentTime.toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
             })}</div>
           </div>
         }
       />
-          
+
       <div className="px-2 sm:px-6 py-2 sm:py-4">
         {/* Welcome Section with Flow Cards */}
         <div className="flex gap-6 mb-8 h-80">
@@ -273,7 +270,7 @@ const AdmissionDashboard = () => {
           <div className="w-3/5">
             <div className="bg-white rounded-2xl overflow-hidden h-full" style={{ boxShadow: '0 0 25px 8px rgba(0, 0, 0, 0.10)' }}>
               <div className="relative h-full">
-                <div className="absolute inset-0" style={{ 
+                <div className="absolute inset-0" style={{
                   backgroundImage: `url(${admissionFlowBg})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center'
@@ -283,7 +280,7 @@ const AdmissionDashboard = () => {
                     <h2 className="text-2xl font-bold text-white mb-2">Welcome to 👋</h2>
                     <h1 className="text-3xl font-bold text-white mb-4">ITEG Management System</h1>
                     <p className="text-sm text-gray-200 leading-relaxed">
-                      A comprehensive platform designed to streamline student lifecycle management from admission to successful placement. 
+                      A comprehensive platform designed to streamline student lifecycle management from admission to successful placement.
                       Our system provides real-time analytics, progress tracking, and efficient workflow management for educational institutions.
                     </p>
                   </div>
@@ -316,8 +313,8 @@ const AdmissionDashboard = () => {
                       <p className="text-xs text-black hidden sm:block">{card.subtitle}</p>
                       <div className="text-xs text-green-600 font-medium mt-1">{card.trend}</div>
                     </div>
-                    <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm" 
-                         style={{ backgroundColor: `${card.color}20` }}>
+                    <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm"
+                      style={{ backgroundColor: `${card.color}20` }}>
                       <IconComponent className="h-3 w-3 sm:h-6 sm:w-6" style={{ color: card.color }} />
                     </div>
                   </div>
@@ -385,11 +382,11 @@ const AdmissionDashboard = () => {
                     chartArea: { width: '85%', height: '75%' },
                     colors: ['#8B5CF6'],
                     bar: { groupWidth: '60%' },
-                    hAxis: { 
+                    hAxis: {
                       textStyle: { color: '#6B7280', fontSize: 10 },
                       gridlines: { color: 'transparent' }
                     },
-                    vAxis: { 
+                    vAxis: {
                       textStyle: { color: '#6B7280', fontSize: 10 },
                       gridlines: { color: '#F3F4F6' }
                     },
@@ -429,11 +426,11 @@ const AdmissionDashboard = () => {
                     areaOpacity: 0.3,
                     lineWidth: 3,
                     pointSize: 5,
-                    hAxis: { 
+                    hAxis: {
                       textStyle: { color: '#6B7280', fontSize: 10 },
                       gridlines: { color: '#F3F4F6' }
                     },
-                    vAxis: { 
+                    vAxis: {
                       textStyle: { color: '#6B7280', fontSize: 10 },
                       gridlines: { color: '#F3F4F6' }
                     },
@@ -510,7 +507,7 @@ const AdmissionDashboard = () => {
                 <GraduationCap className="w-5 h-5" />
                 <span className="font-medium">Admission Process</span>
               </Link>
-              <Link to="/placement-interview-record" className="flex items-center space-x-3 p-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all transform hover:scale-105">
+              <Link to="/readiness-status" className="flex items-center space-x-3 p-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all transform hover:scale-105">
                 <Building2 className="w-5 h-5" />
                 <span className="font-medium">Placement Records</span>
               </Link>

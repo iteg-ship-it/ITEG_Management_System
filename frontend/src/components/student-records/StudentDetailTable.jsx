@@ -209,7 +209,7 @@ const StudentDetailTable = () => {
           }
           setShowModal(true);
         }}
-        className="bg-orange-500 text-md text-white px-3 py-1 rounded"
+        className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded"
       >
         Take Interview
       </button>
