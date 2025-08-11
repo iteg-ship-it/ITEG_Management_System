@@ -134,7 +134,7 @@ const Table = ({ columns, data, searchable, filterable, editable, pagination }) 
                 {columns
                   .filter((col) => visibleColumns.includes(col.key))
                   .map((col) => (
-                    <th key={col.key} className="px-4 py-2 text-left font-medium text-gray-700">
+                    <th key={col.key} className={`px-4 py-2 ${col.align === 'center' ? 'text-center' : 'text-left'} font-medium text-gray-700`}>
                       {col.label}
                     </th>
                   ))}
@@ -154,7 +154,7 @@ const Table = ({ columns, data, searchable, filterable, editable, pagination }) 
                   {columns
                     .filter((col) => visibleColumns.includes(col.key))
                     .map((col) => (
-                      <td key={col.key} className="px-4 py-2">
+                      <td key={col.key} className={`px-4 py-2 ${col.align === 'center' ? 'text-center' : 'text-left'}`}>
                         {col.key === "profile" ? (
                           <img
                             src={row[col.key]}

@@ -164,7 +164,7 @@ const StudentDetailTable = () => {
       label: "Father's Name",
       render: (row) => toTitleCase(row.fatherName || ""),
     },
-    { key: "studentMobile", label: "Mobile" },
+    { key: "studentMobile", label: "Mobile No.", align: "center" },
     {
       key: "course",
       label: "Course",
@@ -178,6 +178,7 @@ const StudentDetailTable = () => {
     ...(activeTab !== "Level's Cleared" ? [{
       key: "attempts",
       label: "Attempts",
+      align: "center",
       render: (row) => {
         const currentLevelAttempts = row.levelAttempts?.[selectedLevel] || [];
         return currentLevelAttempts.length || 0;

@@ -20,9 +20,9 @@ const toTitleCase = (str) =>
 const PlacementReadyStudents = () => {
   const navigate = useNavigate();
   const { data = {}, isLoading, refetch } = useGetReadyStudentsForPlacementQuery(undefined, {
-    refetchOnMountOrArgChange: true,
-    refetchOnFocus: true,
-    pollingInterval: 15000, // Poll every 15 seconds
+    refetchOnMountOrArgChange: 30,
+    refetchOnFocus: false,
+    // Remove aggressive polling
   });
   const students = data?.data || [];
 
@@ -165,6 +165,7 @@ const PlacementReadyStudents = () => {
     {
       key: "studentMobile",
       label: "Mobile no.",
+      align: "center",
       render: (row) => `+91 ${row.studentMobile}`,
     },
     {
@@ -229,6 +230,7 @@ const PlacementReadyStudents = () => {
     {
       key: "studentMobile",
       label: "Mobile no.",
+      align: "center",
       render: (row) => `+91 ${row.studentMobile}`,
     },
     {
