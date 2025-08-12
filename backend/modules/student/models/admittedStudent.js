@@ -37,7 +37,7 @@ const interviewRoundSchema = new mongoose.Schema({
   result: { type: String, enum: ['Passed', 'Failed', 'Pending'], default: 'Pending' }
 });
 
-const PlacementinterviewRecord = new mongoose.Schema({
+const interviewRecord = new mongoose.Schema({
   companyName: { type: String, required: true },
   jobProfile: { type: String, required: true },
   location: { type: String },
@@ -53,8 +53,8 @@ const PlacementinterviewRecord = new mongoose.Schema({
   applicationLetterURL: { type: String, default: "" },
   internshipToJobUpdate: {
     isIntern: { type: Boolean, default: false },
-    internshipEndDate: { type: Date },
-    updatedJobProfile: { type: String }
+    internshipEndDate:{ type: String, default: "" }, 
+    updatedJobProfile:  { type: String, default: "" }
   }
 });
 
@@ -112,7 +112,7 @@ const AdmittedStudentSchema = new mongoose.Schema({
   placedInfo: { type: placedInfoSchema, default: null },
 
   // 🗓️ Interviews
-  PlacementinterviewRecordSchema: { type: [PlacementinterviewRecord], default: [] },
+  PlacementinterviewRecord: { type: [interviewRecord], default: [] },
 
   // Permission
   permissionDetails: { type: permissionSchema, default: null },

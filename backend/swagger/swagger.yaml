@@ -2214,20 +2214,18 @@ paths:
 
 
 
-  /api/admitted/students/interviews/{id}:
+  /api/admitted/students/interviews/{studentId}:
     post:
+      summary: Schedule a placement interview for a student
       tags:
-        - Placement
-      summary: Add interview record for a student
-      description: Add a new interview record to a student's profile. The student must have readinessStatus = "Ready".
+        - Placement Interviews
       parameters:
-        - name: id
-          in: path
+        - in: path
+          name: studentId
           required: true
-          description: MongoDB ObjectId of the student
           schema:
             type: string
-            example: 665f6aaf4f55e5aaee6a1234
+          description: The MongoDB ObjectId of the admitted student
       requestBody:
         required: true
         content:
@@ -2236,66 +2234,153 @@ paths:
               type: object
               required:
                 - companyName
-                - interviewDate
-                - location
                 - jobProfile
+                - scheduleDate
               properties:
                 companyName:
                   type: string
-                  example: Infosys
-                interviewDate:
-                  type: string
-                  format: date
-                  example: 2025-06-15
-                remark:
-                  type: string
-                  example: "Performed well in technical round"
-                result:
-                  type: string
-                  enum: [Selected, Rejected, Pending]
-                  default: Pending
-                  example: Pending
-                location:
-                  type: string
-                  example: Pune
+                  example: "TCS"
                 jobProfile:
                   type: string
-                  example: Software Engineer Intern
+                  example: "Software Engineer"
+                location:
+                  type: string
+                  example: "Bengaluru"
+                status:
+                  type: string
+                  enum: ["Scheduled", "Rescheduled", "Ongoing", "Selected", "RejectedByStudent", "RejectedByCompany"]
+                  example: "Scheduled"
+                scheduleDate:
+                  type: string
+                  format: date-time
+                  example: "2025-08-15T09:30:00Z"
+                rounds:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - roundName
+                      - date
+                    properties:
+                      roundName:
+                        type: string
+                        example: "Technical Round"
+                      date:
+                        type: string
+                        format: date-time
+                        example: "2025-08-15T09:30:00Z"
+                      mode:
+                        type: string
+                        enum: ["Online", "Offline", "Telephonic"]
+                        example: "Online"
+                      feedback:
+                        type: string
+                        example: "Strong problem-solving skills"
+                      result:
+                        type: string
+                        enum: ["Passed", "Failed", "Pending"]
+                        example: "Pending"
       responses:
-        '201':
-          description: Interview record added successfully
+        "201":
+          description: Placement interview scheduled successfully
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
-                    example: true
                   message:
                     type: string
-                    example: Interview record added
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/InterviewRecord'
-        '400':
-          description: Student is not eligible (readinessStatus is not "Ready")
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: Student is not eligible for interview. Status: Not Ready
-        '404':
+                    example: Placement interview scheduled successfully
+                  interview:
+                    $ref: '#/components/schemas/InterviewRecord'
+        "400":
+          description: Missing required fields
+        "404":
           description: Student not found
-        '500':
+        "500":
           description: Server error
+
+    # post:
+    #   tags:
+    #     - Placement
+    #   summary: Add interview record for a student
+    #   description: Add a new interview record to a student's profile. The student must have readinessStatus = "Ready".
+    #   parameters:
+    #     - name: id
+    #       in: path
+    #       required: true
+    #       description: MongoDB ObjectId of the student
+    #       schema:
+    #         type: string
+    #         example: 665f6aaf4f55e5aaee6a1234
+    #   requestBody:
+    #     required: true
+    #     content:
+    #       application/json:
+    #         schema:
+    #           type: object
+    #           required:
+    #             - companyName
+    #             - interviewDate
+    #             - location
+    #             - jobProfile
+    #           properties:
+    #             companyName:
+    #               type: string
+    #               example: Infosys
+    #             interviewDate:
+    #               type: string
+    #               format: date
+    #               example: 2025-06-15
+    #             remark:
+    #               type: string
+    #               example: "Performed well in technical round"
+    #             result:
+    #               type: string
+    #               enum: [Selected, Rejected, Pending]
+    #               default: Pending
+    #               example: Pending
+    #             location:
+    #               type: string
+    #               example: Pune
+    #             jobProfile:
+    #               type: string
+    #               example: Software Engineer Intern
+    #   responses:
+    #     '201':
+    #       description: Interview record added successfully
+    #       content:
+    #         application/json:
+    #           schema:
+    #             type: object
+    #             properties:
+    #               success:
+    #                 type: boolean
+    #                 example: true
+    #               message:
+    #                 type: string
+    #                 example: Interview record added
+    #               data:
+    #                 type: array
+    #                 items:
+    #                   $ref: '#/components/schemas/InterviewRecord'
+    #     '400':
+    #       description: Student is not eligible (readinessStatus is not "Ready")
+    #       content:
+    #         application/json:
+    #           schema:
+    #             type: object
+    #             properties:
+    #               success:
+    #                 type: boolean
+    #                 example: false
+    #               message:
+    #                 type: string
+    #                 example: Student is not eligible for interview. Status: Not Ready
+    #     '404':
+    #       description: Student not found
+    #     '500':
+    #       description: Server error
 
 
 
@@ -2671,3 +2756,30 @@ paths:
                   error:
                     type: string
                     example: Error message details
+
+  /api/admitted/students/count/{studentId}:
+    get:
+      summary: Count total placement interviews of a student
+      tags:
+        - Placement
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: string
+          description: ID of the student
+      responses:
+        "200":
+          description: Interview count fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  studentId:
+                    type: string
+                  totalInterviews:
+                    type: integer
+        "500":
+          description: Internal server error
