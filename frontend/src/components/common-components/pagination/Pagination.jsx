@@ -17,6 +17,8 @@ const Pagination = ({
   setSearchTerm,
   filtersConfig,
   filteredData,
+  selectedRows = [],
+  allData = [],
 }) => {
   const [showFilter, setShowFilter] = useState(false);
   const [downloadDropdown, setDownloadDropdown] = useState(false);
@@ -80,9 +82,27 @@ const Pagination = ({
             <div className="absolute top-10 left-0 border bg-white rounded-md shadow-md w-40 z-20"
             // style={{ background: "var(--diagonal-gradient)" }} // ✅ gradient fallback
             >
-              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { downloadCSV(filteredData); setDownloadDropdown(false); }}>Download CSV</button>
-              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { downloadExcel(filteredData); setDownloadDropdown(false); }}>Download Excel</button>
-              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { downloadPDF(filteredData); setDownloadDropdown(false); }}>Download PDF</button>
+              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { 
+                const dataToExport = selectedRows.length > 0 
+                  ? allData.filter(row => selectedRows.includes(row._id))
+                  : filteredData;
+                downloadCSV(dataToExport); 
+                setDownloadDropdown(false); 
+              }}>Download CSV</button>
+              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { 
+                const dataToExport = selectedRows.length > 0 
+                  ? allData.filter(row => selectedRows.includes(row._id))
+                  : filteredData;
+                downloadExcel(dataToExport); 
+                setDownloadDropdown(false); 
+              }}>Download Excel</button>
+              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { 
+                const dataToExport = selectedRows.length > 0 
+                  ? allData.filter(row => selectedRows.includes(row._id))
+                  : filteredData;
+                downloadPDF(dataToExport); 
+                setDownloadDropdown(false); 
+              }}>Download PDF</button>
             </div>
           )}
         </div>

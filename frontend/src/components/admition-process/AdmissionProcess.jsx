@@ -38,6 +38,7 @@ const StudentList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [AddInterviwModalOpen, setAddInterviwModalOpen] = useState(false);
   const [id, setId] = useState(null);
+  const [selectedRows, setSelectedRows] = useState([]);
   const navigate = useNavigate();
 
   const location = useLocation();
@@ -445,7 +446,7 @@ const StudentList = () => {
       actionButton = (row) => (
         <button
           onClick={() => scheduleButton(row)}
-          className="bg-orange-500 text-md text-white px-3 py-1 rounded"
+          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded"
         >
           Take Interview
         </button>
@@ -513,7 +514,7 @@ const StudentList = () => {
               setAddInterviwModalOpen(true)
               setId(row._id)
             }}
-            className="bg-orange-500 text-md text-white px-3 py-1 rounded"
+            className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded"
           >
             Add Interview
           </button>
@@ -652,6 +653,8 @@ const StudentList = () => {
               setSearchTerm={setSearchTerm}
               filtersConfig={filtersConfig}
               filteredData={filteredData}
+              selectedRows={selectedRows}
+              allData={data}
             />
           </div>
         </div>
@@ -663,6 +666,7 @@ const StudentList = () => {
           rowsPerPage={rowsPerPage}
           searchTerm={searchTerm}
           actionButton={actionButton}
+          onSelectionChange={setSelectedRows}
           onRowClick={(row) => {
             localStorage.setItem("lastSection", "admission");
             navigate(`/admission/edit/${row._id}`, { state: { student: row } });
