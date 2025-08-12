@@ -373,6 +373,7 @@ export const authApi = createApi({
       }),
       invalidatesTags: ['PlacementStudent'],
       // Optimistic update for better UX
+      // eslint-disable-next-line no-unused-vars
       async onQueryStarted({ studentId, interviewData }, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
