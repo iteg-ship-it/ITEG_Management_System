@@ -104,6 +104,12 @@ const AdmittedStudentSchema = new mongoose.Schema({
   },
   resumeURL: { type: String, default: "" },
 
+  // 📄 Placement Documents (after placement)
+  offerLetter: { type: String, default: "" }, // Base64 image/PDF
+  commitmentApplication: { type: String, default: "" }, // Base64 image
+  documentsUploadedBy: { type: String, default: "" },
+  documentsUploadedAt: { type: Date }
+
 }, { timestamps: true });
 
 module.exports = mongoose.model("AdmittedStudent", AdmittedStudentSchema);
