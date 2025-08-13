@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const levelSchema = new mongoose.Schema({
   levelNo: { type: String, default: "1A" }, // e.g., "Level 1"
   noOfAttempts: { type: Number, default: 0 },
+  Topic: { type: String, default: "" },
   Theoretical_Marks: { type: Number, default: 0 },
   Practical_Marks: { type: Number, default: 0 },
   Communication_Marks: { type: Number, default: 0 },
@@ -16,14 +17,6 @@ const levelSchema = new mongoose.Schema({
   }
 });
 
-// const placedInfoSchema = new mongoose.Schema({
-//   companyName: { type: String, required: true },
-//   salary: { type: Number, required: true },
-//   location: { type: String, required: true },
-//   jobProfile: { type: String, required: true },
-//   // companyLogo:{ type: String, required: true },
-//   jobType:{type:String}
-// });
 
 const placedInfoSchema = new mongoose.Schema({
   companyName: { type: String, required: true },
@@ -35,19 +28,6 @@ const placedInfoSchema = new mongoose.Schema({
   applicationURL: { type: String }
 });
 
-// const interviewRecordSchema = new mongoose.Schema({
-//   companyName: { type: String, required: true },
-//   interviewDate: { type: Date, required: true },
-//   remark: { type: String, default: "" },
-//   result: {
-//     type: String,
-//     enum: ['Selected', 'Rejected', 'Pending'],
-//     default: 'Pending'
-//   },
-//   location: { type: String, required: true },
-//   jobProfile: { type: String, required: true }
-// });
-
 
 const interviewRoundSchema = new mongoose.Schema({
   roundName: { type: String, required: true }, // e.g., "HR Round", "Technical Round"
@@ -57,7 +37,7 @@ const interviewRoundSchema = new mongoose.Schema({
   result: { type: String, enum: ['Passed', 'Failed', 'Pending'], default: 'Pending' }
 });
 
-const PlacementinterviewRecordSchema = new mongoose.Schema({
+const interviewRecord = new mongoose.Schema({
   companyName: { type: String, required: true },
   jobProfile: { type: String, required: true },
   location: { type: String },
@@ -73,8 +53,8 @@ const PlacementinterviewRecordSchema = new mongoose.Schema({
   applicationLetterURL: { type: String, default: "" },
   internshipToJobUpdate: {
     isIntern: { type: Boolean, default: false },
-    internshipEndDate: { type: Date },
-    updatedJobProfile: { type: String }
+    internshipEndDate:{ type: String, default: "" }, 
+    updatedJobProfile:  { type: String, default: "" }
   }
 });
 
@@ -132,7 +112,7 @@ const AdmittedStudentSchema = new mongoose.Schema({
   placedInfo: { type: placedInfoSchema, default: null },
 
   // 🗓️ Interviews
-  PlacementinterviewRecordSchema: { type: [PlacementinterviewRecordSchema], default: [] },
+  PlacementinterviewRecord: { type: [interviewRecord], default: [] },
 
   // Permission
   permissionDetails: { type: permissionSchema, default: null },

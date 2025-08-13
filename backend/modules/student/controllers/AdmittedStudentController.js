@@ -176,6 +176,7 @@ exports.createLevels = async (req, res) => {
     const { id } = req.params;
     const {
       levelNo,
+      Topic,
       Theoretical_Marks,
       Practical_Marks,
       Communication_Marks,
@@ -229,6 +230,7 @@ exports.createLevels = async (req, res) => {
     const newInterview = {
       levelNo: nextLevel,
       noOfAttempts: currentLevelAttempts.length + 1,
+      topic: Topic || "",
       Theoretical_Marks: Theoretical_Marks || 0,
       Practical_Marks: Practical_Marks || 0,
       Communication_Marks: Communication_Marks || 0,
@@ -541,31 +543,53 @@ exports.getReadyStudent = async (req, res) => {
 
 // placement
 
+// Schedule Interview API
 exports.addInterviewRecord = async (req, res) => {
   try {
-    const studentId = req.params.id;
-    const newInterview = req.body;
+    const { studentId } = req.params;
+    const { companyName, jobProfile, location, status, scheduleDate, rounds, offerLetterURL, applicationLetterURL } = req.body;
 
-    const student = await AdmittedStudent.findById(studentId);
+    console.log("Searching for studentId:",  studentId );
 
+    // Validate required fields
+    if (!companyName || !jobProfile || !scheduleDate) {
+      return res.status(400).json({ message: "companyName, jobProfile, and scheduleDate are required." });
+    }
+
+    // Find the admitted student
+    const student = await AdmittedStudent.findById( studentId );
     if (!student) {
-      return res.status(404).json({ success: false, message: "Student not found" });
+      return res.status(404).json({ message: "Student not found" });
     }
 
-    if (student.readinessStatus !== "Ready") {
-      return res.status(400).json({ success: false, message: "Student is not eligible for interview. Status: Not Ready" });
-    }
+    // Prepare new interview record
+    const newInterview = {
+      companyName,
+      jobProfile,
+      location: location || "",
+      status: status || "Scheduled",
+      scheduleDate: new Date(scheduleDate),
+      rounds: Array.isArray(rounds) ? rounds : [], // must be array of {roundName, date, mode, feedback, result}
+      offerLetterURL: offerLetterURL || "",
+      applicationLetterURL: applicationLetterURL || ""
+    };
 
-    student.interviewRecord.push(newInterview);
+    // Push new interview into student's PlacementinterviewRecord
+    student.PlacementinterviewRecord.push(newInterview);
+
+    // Save changes
     await student.save();
 
-    res.status(201).json({ success: true, message: "Interview record added", data: student.interviewRecord });
+    res.status(201).json({
+      message: "Placement interview scheduled successfully",
+      interview: newInterview
+    });
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    console.error("Error scheduling interview:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
-
 
 
 exports.updateInterviewRecord = async (req, res) => {
@@ -787,5 +811,102 @@ exports.updateStudentProfile = async (req, res) => {
     res.status(500).json({ message: 'Server error', error });
   }
 };
+
+
+// exports.rescheduleInterview = async (req, res) => {
+//   try {
+//     const { studentId, interviewId } = req.params;
+//     const { newDate } = req.body;
+
+//     if (!newDate) {
+//       return res.status(400).json({ message: "New date is required." });
+//     }
+
+//     const updatedStudent = await AdmittedStudent.findOneAndUpdate(
+//       {
+//         _id: studentId,
+//         "PlacementinterviewRecord._id": interviewId
+//       },
+//       {
+//         $set: {
+//           "PlacementinterviewRecord.$.rescheduleDate": new Date(newDate),
+//           "PlacementinterviewRecord.$.status": "Rescheduled"
+//         }
+//       },
+//       { new: true }
+//     );
+
+//     if (!updatedStudent) {
+//       return res.status(404).json({ message: "Student or interview not found." });
+//     }
+
+//     res.status(200).json({
+//       message: "Interview rescheduled successfully.",
+//       updatedData: updatedStudent
+//     });
+
+//   } catch (error) {
+//     console.error("Error rescheduling interview:", error);
+//     res.status(500).json({ message: "Server error.", error: error.message });
+//   }
+// };
+
+
+exports.rescheduleInterview = async (req, res) => {
+  try {
+    const { studentId, interviewId } = req.params;
+    const { newDate } = req.body;
+
+    if (!newDate) {
+      return res.status(400).json({ message: "New date is required." });
+    }
+
+    const updatedStudent = await AdmittedStudent.findOneAndUpdate(
+      {
+        _id: studentId,
+        "interviewRecord._id": interviewId // ✅ match schema field
+      },
+      {
+        $set: {
+          "interviewRecord.$.rescheduleDate": new Date(newDate), // ✅ match schema field
+          "interviewRecord.$.status": "Rescheduled"
+        }
+      },
+      { new: true }
+    );
+
+    if (!updatedStudent) {
+      return res.status(404).json({ message: "Student or interview not found." });
+    }
+
+    res.status(200).json({
+      message: "Interview rescheduled successfully.",
+      updatedData: updatedStudent
+    });
+
+  } catch (error) {
+    console.error("Error rescheduling interview:", error);
+    res.status(500).json({ message: "Server error.", error: error.message });
+  }
+};
+
+
+// exports.countStudentInterviews = async (req, res) => {
+//   try {
+//     const { studentId } = req.params;
+
+//     // Count the number of interviews for this student
+//     const count = await AdmittedStudent.countDocuments({ studentId });
+
+//     res.status(200).json({
+//       studentId,
+//       totalInterviews: count
+//     });
+
+//   } catch (error) {
+//     console.error("Error counting interviews:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
 
 
