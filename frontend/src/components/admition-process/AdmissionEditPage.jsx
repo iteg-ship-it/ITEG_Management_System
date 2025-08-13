@@ -245,7 +245,7 @@ const AdmissionEditPage = () => {
                 </h3>
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="px-4 py-2 bg-brandYellow text-white rounded-md hover:bg-orange-600 transition"
+                  className="px-4 py-2 bg-[#FDA92D]  text-white rounded-md hover:bg-orange-600 transition"
                 >
                   + Add Interview
                 </button>
@@ -346,7 +346,7 @@ const AdmissionEditPage = () => {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="px-5 py-2 bg-brandYellow text-white rounded-md hover:bg-orange-600 transition disabled:opacity-50 flex items-center justify-center"
+                      className="px-5 py-2 bg-[#FDA92D]  text-white rounded-md hover:bg-orange-600 transition disabled:opacity-50 flex items-center justify-center"
                     >
                       {isSubmitting ? (
                         <>

@@ -40,11 +40,11 @@ const PlacementModal = ({ isOpen, onClose, studentId }) => {
                 onChange={(e) =>
                   setPlacementData((prev) => ({ ...prev, companyName: e.target.value }))
                 }
-                className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-black focus:ring-0 transition-all duration-200"
+                className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200"
                 placeholder=" "
               />
               <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
-                Company Name <span className="text-red-500">*</span>
+                Company Name
               </label>
             </div>
           </div>
@@ -58,11 +58,11 @@ const PlacementModal = ({ isOpen, onClose, studentId }) => {
                 onChange={(e) =>
                   setPlacementData((prev) => ({ ...prev, jobProfile: e.target.value }))
                 }
-                className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-black focus:ring-0 transition-all duration-200"
+                className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200"
                 placeholder=" "
               />
               <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
-                Job Profile <span className="text-red-500">*</span>
+                Job Profile
               </label>
             </div>
           </div>
@@ -76,11 +76,11 @@ const PlacementModal = ({ isOpen, onClose, studentId }) => {
                 onChange={(e) =>
                   setPlacementData((prev) => ({ ...prev, salary: e.target.value }))
                 }
-                className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-black focus:ring-0 transition-all duration-200"
+                className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200"
                 placeholder=" "
               />
               <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
-                Salary <span className="text-red-500">*</span>
+                Salary
               </label>
             </div>
           </div>
@@ -94,11 +94,11 @@ const PlacementModal = ({ isOpen, onClose, studentId }) => {
                 onChange={(e) =>
                   setPlacementData((prev) => ({ ...prev, location: e.target.value }))
                 }
-                className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-black focus:ring-0 transition-all duration-200"
+                className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200"
                 placeholder=" "
               />
               <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
-                Location <span className="text-red-500">*</span>
+                Location
               </label>
             </div>
           </div>
@@ -113,7 +113,7 @@ const PlacementModal = ({ isOpen, onClose, studentId }) => {
             </button>
             <button
               onClick={handleSubmit}
-              className="bg-brandYellow text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition"
+              className="bg-[#FDA92D]  text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition"
             >
               Update
             </button>

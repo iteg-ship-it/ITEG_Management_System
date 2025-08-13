@@ -193,7 +193,7 @@ const PlacementReadyStudents = () => {
             e.stopPropagation();
             console.log('Create post for student:', row._id);
           }}
-          className="bg-brandYellow text-white px-4 py-2 rounded-md hover:bg-orange-600 transition"
+          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
         >
           Create Post
         </button>
@@ -258,7 +258,7 @@ const PlacementReadyStudents = () => {
     //       setSelectedStudent(student);
     //       setIsModalOpen(true);
     //     }}
-    //     className="bg-brandYellow text-white px-4 py-2 rounded-md hover:bg-orange-600 transition"
+    //     className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-orange-600 transition"
     //   >
     //     + Add Interview
     //   </button>
@@ -344,7 +344,7 @@ const PlacementReadyStudents = () => {
                 setSelectedStudent(student);
                 setIsModalOpen(true);
               }}
-              className="bg-brandYellow text-white px-4 py-2 rounded-md hover:bg-orange-600 transition"
+              className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
             >
               + Add Interview
             </button>

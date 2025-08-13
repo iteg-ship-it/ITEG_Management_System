@@ -23,6 +23,16 @@ const CommonTable = ({
   const setCurrentPage = onPageChange ?? setInternalPage;
   const [pageSize, setPageSize] = useState(rowsPerPage);
   const [selectedRows, setSelectedRows] = useState([]);
+  const [open, setOpen] = useState(false);
+  
+  const options = ["All", 5, 10, 25, 50];
+  
+  const handleSelect = (opt) => {
+    const selected = opt === "All" ? filteredData.length : opt;
+    setPageSize(selected);
+    setCurrentPage(1);
+    setOpen(false);
+  };
 
   useEffect(() => {
     setCurrentPage(1);
@@ -109,7 +119,7 @@ const CommonTable = ({
                 {paginatedData.map((row, rowIndex) => (
                   <tr key={rowIndex}
                     className={`hover:bg-gray-100 text-md transition cursor-pointer border-b border-dashed border-gray-300`}
-                    onClick={() => onRowClick(row)} // ⬅️ Navigation trigger
+                    onClick={() => onRowClick && onRowClick(row)} // ⬅️ Navigation trigger
                   >
                     <td className="px-4 py-3"
                       onClick={(e) => e.stopPropagation()} //Stop row click when clicking checkbox
@@ -164,7 +174,7 @@ const CommonTable = ({
           </div>
         </div>
 
-        {pagination && (
+        {/* {pagination && (
           <div className="flex justify-end items-center gap-6 px-6 py-4 border-t border-gray-200 bg-white rounded-b-2xl text-sm">
             <div className="flex items-center gap-2">
               <span className="text-gray-700 font-semibold">Rows Per Pages:</span>
@@ -210,7 +220,80 @@ const CommonTable = ({
               </button>
             </div>
           </div>
-        )}
+        )} */}
+       {pagination && (
+        <div className="flex justify-end items-center gap-6 px-6 py-4 border-t border-gray-200 bg-white rounded-b-2xl text-sm">
+          
+          {/* Rows Per Page */}
+          <div className="flex items-center gap-2 relative">
+            <span className="text-gray-700 font-semibold">Rows Per Pages:</span>
+
+            {/* Custom Dropdown */}
+            <div className="relative inline-block text-left">
+              <button
+                onClick={() => setOpen(!open)}
+                className={`px-3 py-1 border rounded-lg bg-white shadow-sm flex items-center justify-between w-20 ${open ? 'border-black' : 'border-gray-300'}`}
+              >
+                {pageSize === filteredData.length ? "All" : pageSize}
+                <span className="ml-2">▼</span>
+              </button>
+
+              {open && (
+                <div
+                  className="absolute bottom-full mb-1 w-20 rounded-xl shadow-lg z-10 overflow-hidden"
+                  style={{
+                    background: `
+                      linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 40%),
+                      linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 40%),
+                      white
+                    `
+                  }}
+                >
+                  <div>
+                    {options.map((opt) => (
+                      <div
+                        key={opt}
+                        onClick={() => handleSelect(opt)}
+                        className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-center"
+                      >
+                        {opt}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Page Info */}
+          <span className="text-gray-700 font-medium">
+            {filteredData.length === 0
+              ? "0"
+              : `${(currentPage - 1) * pageSize + 1} - ${Math.min(
+                  currentPage * pageSize,
+                  filteredData.length
+                )} of ${filteredData.length}`}
+          </span>
+
+          {/* Pagination Buttons */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              disabled={currentPage === 1}
+              className="w-7 h-7 flex items-center justify-center text-[var(--text-color)] disabled:opacity-40"
+            >
+              <span className="text-3xl">‹</span>
+            </button>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="w-7 h-7 text-md flex items-center justify-center text-[var(--text-color)] disabled:opacity-40"
+            >
+              <span className="text-3xl">›</span>
+            </button>
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );

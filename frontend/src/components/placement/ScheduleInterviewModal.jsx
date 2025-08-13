@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -14,6 +15,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
   const [addInterviewRecord, { isLoading }] = useAddPlacementInterviewRecordMutation();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showTechDropdown, setShowTechDropdown] = useState(false);
 
   const interviewSchema = Yup.object().shape({
     companyName: Yup.string().required("Required"),
@@ -86,110 +88,172 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
 
         <form onSubmit={formik.handleSubmit} className="grid grid-cols-2 gap-4 text-[15px]" style={{ color: TEXT_COLOR }}>
           {/* Row 1 */}
-          <input
-            type="text"
-            name="companyName"
-            placeholder="Company Name"
-            onChange={formik.handleChange}
-            value={formik.values.companyName}
-            className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D]"
-          />
-          <input
-            type="email"
-            name="hrEmail"
-            placeholder="Hr. Email"
-            onChange={formik.handleChange}
-            value={formik.values.hrEmail}
-            className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D]"
-          />
+          <div className="relative">
+            <input
+              type="text"
+              name="companyName"
+              placeholder=" "
+              onChange={formik.handleChange}
+              value={formik.values.companyName}
+              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer"
+            />
+            <label className="absolute left-3 top-3 text-gray-500 transition-all duration-200 peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black">
+              Company Name
+            </label>
+          </div>
+          <div className="relative">
+            <input
+              type="email"
+              name="hrEmail"
+              placeholder=" "
+              onChange={formik.handleChange}
+              value={formik.values.hrEmail}
+              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer"
+            />
+            <label className="absolute left-3 top-3 text-gray-500 transition-all duration-200 peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black">
+              Hr. Email
+            </label>
+          </div>
 
           {/* Row 2 */}
-          <input
-            type="text"
-            name="contactNumber"
-            placeholder="Contact Number"
-            onChange={formik.handleChange}
-            value={formik.values.contactNumber}
-            className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D]"
-          />
-          <input
-            type="text"
-            name="positionOffered"
-            placeholder="Position Offered"
-            onChange={formik.handleChange}
-            value={formik.values.positionOffered}
-            className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D]"
-          />
+          <div className="relative">
+            <input
+              type="text"
+              name="contactNumber"
+              placeholder=" "
+              onChange={formik.handleChange}
+              value={formik.values.contactNumber}
+              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer"
+            />
+            <label className="absolute left-3 top-3 text-gray-500 transition-all duration-200 peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black">
+              Contact Number
+            </label>
+          </div>
+          <div className="relative">
+            <input
+              type="text"
+              name="positionOffered"
+              placeholder=" "
+              onChange={formik.handleChange}
+              value={formik.values.positionOffered}
+              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer"
+            />
+            <label className="absolute left-3 top-3 text-gray-500 transition-all duration-200 peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black">
+              Position Offered
+            </label>
+          </div>
 
           {/* Job Type */}
-          <div className="flex flex-col">
-            <label className="mb-1 text-sm font-medium">Job Type</label>
-            <div className="flex items-center gap-6">
-              {["Internship", "Job"].map((type) => (
-                <label key={type} className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="jobType"
-                    value={type}
-                    checked={formik.values.jobType === type}
-                    onChange={formik.handleChange}
-                    className="appearance-none w-5 h-5 border-2 border-gray-400 rounded-full checked:border-[#FDA92D] checked:bg-[#FDA92D] focus:outline-none"
-                  />
-                  {type}
-                </label>
-              ))}
+          <div className="relative">
+            <div className="h-12  px-3 rounded-md flex items-center">
+              <div className="flex items-center gap-6">
+                {["Internship", "Job"].map((type) => (
+                  <label key={type} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="jobType"
+                      value={type}
+                      checked={formik.values.jobType === type}
+                      onChange={formik.handleChange}
+                      className="appearance-none w-5 h-5 border-2 border-black rounded-full focus:outline-none relative before:content-[''] before:absolute before:top-1/2 before:left-1/2 before:transform before:-translate-x-1/2 before:-translate-y-1/2 before:w-2.5 before:h-2.5 before:bg-[#FDA92D] before:rounded-full before:opacity-0 checked:before:opacity-100"
+                    />
+                    {type}
+                  </label>
+                ))}
+              </div>
             </div>
+            <label className="absolute -top-2 left-2 text-xs bg-white px-1 text-black">
+              Job Type
+            </label>
           </div>
 
           {/* Required Technology */}
-          <select
-            name="requiredTechnology"
-            onChange={formik.handleChange}
-            value={formik.values.requiredTechnology}
-            className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D]"
-          >
-            <option value="">Required Technology</option>
-            <option value="Java">Java</option>
-            <option value="React">React</option>
-            <option value="Node.js">Node.js</option>
-            <option value="Python">Python</option>
-          </select>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowTechDropdown(!showTechDropdown)}
+              className={`h-12 border px-3 rounded-md focus:outline-none focus:border-black  w-full text-left flex items-center justify-between peer ${showTechDropdown ? 'border-black' : 'border-gray-300'}`}
+            >
+              <span className={formik.values.requiredTechnology ? 'text-gray-900' : 'text-transparent'}>
+                {formik.values.requiredTechnology || ' '}
+              </span>
+              <span className="ml-2">▼</span>
+            </button>
+            <label className={`absolute left-3 transition-all duration-200 ${formik.values.requiredTechnology ? '-top-2 left-2 text-xs bg-white px-1 text-black' : 'top-3 text-gray-500'}`}>
+              Required Technology
+            </label>
+            {showTechDropdown && (
+              <div
+                className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden"
+                style={{
+                  background: `
+                    linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 40%),
+                    linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 40%),
+                    white
+                  `
+                }}
+              >
+                {['Java', 'React', 'Node.js', 'Python'].map((tech) => (
+                  <div
+                    key={tech}
+                    onClick={() => {
+                      formik.setFieldValue('requiredTechnology', tech);
+                      setShowTechDropdown(false);
+                    }}
+                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left"
+                  >
+                    {tech}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Interview Date & Time */}
           <div className="relative">
             <input
               type="text"
               name="interviewDate"
-              placeholder="Select Date & Time"
+              placeholder=" "
               value={`${formik.values.interviewDate}${formik.values.interviewTime ? ` at ${formik.values.interviewTime}` : ''}`}
               onClick={() => setShowDatePicker(!showDatePicker)}
               readOnly
-              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full cursor-pointer"
+              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full cursor-pointer peer"
             />
-            <FaCalendarAlt className="absolute right-3 top-3 text-[#FDA92D]" />
+            <label className={`absolute left-3 transition-all duration-200 ${formik.values.interviewDate ? '-top-2 left-2 text-xs bg-white px-1 text-black' : 'top-3 text-gray-500'}`}>
+              Select Date & Time
+            </label>
+            <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#FDA92D]" />
             {showDatePicker && (
-              <DatePickerComponent
-                selectedDate={formik.values.interviewDate}
-                selectedTime={formik.values.interviewTime}
-                onDateTimeSelect={(date, time) => {
-                  formik.setFieldValue('interviewDate', date);
-                  formik.setFieldValue('interviewTime', time);
-                  setShowDatePicker(false);
-                }}
-                onClose={() => setShowDatePicker(false)}
-              />
+              <div className="absolute top-full left-0 mt-2 z-50">
+                <DatePickerComponent
+                  selectedDate={formik.values.interviewDate}
+                  selectedTime={formik.values.interviewTime}
+                  onDateTimeSelect={(date, time) => {
+                    formik.setFieldValue('interviewDate', date);
+                    formik.setFieldValue('interviewTime', time);
+                    setShowDatePicker(false);
+                  }}
+                  onClose={() => setShowDatePicker(false)}
+                />
+              </div>
             )}
           </div>
 
           {/* Location */}
-          <input
-            type="text"
-            name="location"
-            placeholder="Company Location"
-            onChange={formik.handleChange}
-            value={formik.values.location}
-            className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D]"
-          />
+          <div className="relative">
+            <input
+              type="text"
+              name="location"
+              placeholder=" "
+              onChange={formik.handleChange}
+              value={formik.values.location}
+              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer"
+            />
+            <label className="absolute left-3 top-3 text-gray-500 transition-all duration-200 peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-[#FDA92D] peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">
+              Company Location
+            </label>
+          </div>
 
           {/* Submit Button */}
           <div className="col-span-2 mt-4">

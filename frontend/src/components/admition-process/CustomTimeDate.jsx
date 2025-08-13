@@ -296,7 +296,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="bg-brandYellow text-white px-6 py-2 rounded-md hover:bg-orange-600"
+                  className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-2">

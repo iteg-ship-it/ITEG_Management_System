@@ -5,6 +5,8 @@ import {
   Building2,
   Award,
 } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
 import admissionFlowBg from '../../assets/images/Group 880.jpg';
 import admittedFlowBg from '../../assets/images/Group 881.jpg';
 import placementFlowBg from '../../assets/images/Student_profile_2nd_bg.jpg';
@@ -414,7 +416,7 @@ const AdmissionDashboard = () => {
                 </div>
               </div>
             </div>
-            <div className="p-6">
+            {/* <div className="p-6">
               <div className="h-64">
                 <Chart
                   chartType="AreaChart"
@@ -439,8 +441,43 @@ const AdmissionDashboard = () => {
                   width="100%"
                   height="100%"
                 />
+                 
               </div>
-            </div>
+            </div> */}
+            <div className="p-6">
+  <div className="h-64">
+    <ResponsiveContainer width="100%" height="100%">
+      <AreaChart
+        data={placementFlowData.slice(1).map(([name, value]) => ({ name, value }))}
+        margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+      >
+        <defs>
+          <linearGradient id="greenGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#00FF00" stopOpacity={0.4} />
+            <stop offset="100%" stopColor="#00FF00" stopOpacity={0.05} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid stroke="#E5E7EB" vertical={false} />  
+        <XAxis
+          dataKey="name"
+          stroke="#6B7280"
+          fontSize={12}
+        />
+        <YAxis
+          stroke="#6B7280"
+          fontSize={12}
+        />
+        <Area
+          type="monotone"
+          dataKey="value"
+          stroke="#00FF00"
+          strokeWidth={2}
+          fill="url(#greenGradient)"
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  </div>
+</div>
           </div>
         </div>
 
