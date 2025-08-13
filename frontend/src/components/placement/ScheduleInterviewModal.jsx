@@ -16,7 +16,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
     companyName: Yup.string().required("Company name is required"),
     hrEmail: Yup.string().email("Invalid email").required("HR email is required"),
     contactNumber: Yup.string().required("Contact number is required"),
-    positionOffered: Yup.string().required("Position is required"),
+    positionOffered: Yup.string().required("Job profile is required"),
     requiredTechnology: Yup.string().required("Technology is required"),
     interviewDate: Yup.string().required("Interview date is required"),
     interviewTime: Yup.string().required("Interview time is required"),
@@ -37,6 +37,8 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
       jobType: "Internship",
     },
     validationSchema: interviewSchema,
+    validateOnChange: false,
+    validateOnBlur: false,
     onSubmit: async (values, actions) => {
       try {
         if (!studentId) {
@@ -44,20 +46,43 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
           return;
         }
 
-        console.log('Submitting data:', { studentId, values });
+        // Validate all fields are filled
+        const requiredFields = ['companyName', 'hrEmail', 'contactNumber', 'positionOffered', 'requiredTechnology', 'interviewDate', 'interviewTime', 'location'];
+        const emptyFields = requiredFields.filter(field => !values[field] || values[field].trim() === '');
+        
+        if (emptyFields.length > 0) {
+          toast.error(`Please fill in: ${emptyFields.join(', ')}`);
+          return;
+        }
 
-        await addInterviewRecord({
+        // Format data to match backend schema
+        const formattedData = {
+          companyName: values.companyName.trim(),
+          jobProfile: values.positionOffered.trim(), // Map positionOffered to jobProfile
+          scheduleDate: new Date(`${values.interviewDate}T${values.interviewTime}`).toISOString(), // Combine date and time
+          location: values.location.trim(),
+          hrEmail: values.hrEmail.trim(),
+          contactNumber: values.contactNumber.trim(),
+          requiredTechnology: values.requiredTechnology,
+          jobType: values.jobType,
+        };
+
+        console.log('Submitting formatted data:', { studentId, interviewData: formattedData });
+
+        const result = await addInterviewRecord({
           studentId,
-          interviewData: values,
+          interviewData: formattedData,
         }).unwrap();
 
+        console.log('Interview submission successful:', result);
         toast.success("Interview scheduled successfully!");
         actions.resetForm();
         onClose();
         if (onSuccess) onSuccess();
       } catch (err) {
         console.error("API Error:", err);
-        toast.error(err?.data?.message || "Failed to schedule interview");
+        const errorMessage = err?.data?.message || err?.message || "Failed to schedule interview";
+        toast.error(errorMessage);
       }
     },
   });
@@ -137,7 +162,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
             <input
               type="text"
               name="positionOffered"
-              placeholder="Position Offered *"
+              placeholder="Job Profile *"
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               value={formik.values.positionOffered}
