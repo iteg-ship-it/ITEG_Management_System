@@ -37,6 +37,7 @@ const PlacementReadyStudents = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [selectedRows, setSelectedRows] = useState([]);
 
   const tabs = ["Qualified Students", "Ongoing Interviews", "Selected Student"];
 
@@ -325,6 +326,9 @@ const PlacementReadyStudents = () => {
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
               filtersConfig={filtersConfig}
+              filteredData={getFilteredData()}
+              selectedRows={selectedRows}
+              allData={students}
             />
           </div>
         </div>
@@ -349,6 +353,7 @@ const PlacementReadyStudents = () => {
               + Add Interview
             </button>
           ) : null}
+          onSelectionChange={setSelectedRows}
           onRowClick={handleRowClick}
         />
 

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/prop-types */
 import { useParams, } from "react-router-dom";
 import { useState, useMemo } from "react";

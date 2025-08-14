@@ -351,6 +351,21 @@ export const authApi = createApi({
     }),
 
 
+    // Get student level interviews for history page
+    getStudentLevelInterviews: builder.query({
+      query: (studentId) => {
+        const endpoint = `${import.meta.env.VITE_GET_LEVEL_INTERVIEW_BY_ID}${studentId}`;
+        console.log('🎯 Level Interview History API Call:', {
+          endpoint,
+          studentId,
+          fullUrl: `${import.meta.env.VITE_API_URL}${endpoint}`
+        });
+        return {
+          url: endpoint,
+          method: "GET",
+        };
+      },
+    }),
 
 
 
@@ -373,6 +388,7 @@ export const authApi = createApi({
       }),
       invalidatesTags: ['PlacementStudent'],
       // Optimistic update for better UX
+      // eslint-disable-next-line no-unused-vars
       async onQueryStarted({ studentId, interviewData }, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
@@ -394,27 +410,26 @@ export const authApi = createApi({
       invalidatesTags: ['PlacementStudent'],
     }),
 
+    // Upload resume
+    uploadResume: builder.mutation({
+      query: ({ studentId, fileName, fileData }) => ({
+        url: import.meta.env.VITE_RESUME_UPLOAD,
+        method: "POST",
+        body: { studentId, fileName, fileData },
+      }),
+      invalidatesTags: (result, error, { studentId }) => [
+        { type: 'Student', id: studentId }
+      ],
+    }),
+
+
+
+
     getInterviewAttemptCount: builder.query({
       query: (studentId) => ({
         url: `${import.meta.env.VITE_GET_INTERVIEW_ATTEMPT}${studentId}`,
         method: "GET",
       }),
-    }),
-
-    // Get student level interviews for history page
-    getStudentLevelInterviews: builder.query({
-      query: (studentId) => {
-        const endpoint = `${import.meta.env.VITE_GET_LEVEL_INTERVIEW_BY_ID}${studentId}`;
-        console.log('🎯 Level Interview History API Call:', {
-          endpoint,
-          studentId,
-          fullUrl: `${import.meta.env.VITE_API_URL}${endpoint}`
-        });
-        return {
-          url: endpoint,
-          method: "GET",
-        };
-      },
     }),
 
 
@@ -451,5 +466,6 @@ export const {
   useLogoutMutation,
   useGetAllStudentsByLevelQuery,
   useGetInterviewAttemptCountQuery,
-  useGetStudentLevelInterviewsQuery
+  useGetStudentLevelInterviewsQuery,
+  useUploadResumeMutation
 } = authApi;

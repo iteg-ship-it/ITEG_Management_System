@@ -247,7 +247,7 @@ const AdmissionEditPage = () => {
                   onClick={() => setIsModalOpen(true)}
                   className="px-4 py-2 bg-[#FDA92D]  text-white rounded-md hover:bg-orange-600 transition"
                 >
-                  + Add Interview
+                  Add Interview
                 </button>
               </div>
 
@@ -350,7 +350,6 @@ const AdmissionEditPage = () => {
                     >
                       {isSubmitting ? (
                         <>
-                          <Loader inline={true} />
                           <span className="ml-2">Submitting...</span>
                         </>
                       ) : "Submit"}
