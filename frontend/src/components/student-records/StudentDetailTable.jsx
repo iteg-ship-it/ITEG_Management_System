@@ -251,7 +251,7 @@ const StudentDetailTable = () => {
                       : ""
                   }`}
                 >
-                  {tab === "Level's Cleared" ? "🎉 " + tab : tab}
+                  {tab === "Level's Cleared" ? "" + tab : tab}
                 </p>
               </div>
             ))}

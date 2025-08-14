@@ -108,7 +108,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
 
       // 🔥 Custom messages based on result
       if (values.result === "Pass") {
-        toast.success("🎉 Interview marked as *Pass*! Student moved to Final Round.");
+        toast.success(" Interview marked as *Pass*! Student moved to Final Round.");
       } else if (values.result === "Fail") {
         toast.warning("⚠️ Interview marked as *Fail*!");
       } else {
