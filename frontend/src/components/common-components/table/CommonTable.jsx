@@ -91,11 +91,11 @@ const CommonTable = ({
 
   return (
     <div className="w-full py-3">
-      <div className="pb-4 w-full">
-        <div className="overflow-x-auto max-w-full">
+      <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-200">
+        <div className="overflow-x-auto">
           <div ref={scrollRef} className="max-h-[60vh] overflow-y-auto custom-scrollbar">
             <table className="min-w-full text-sm">
-              <thead className="sticky  text-md top-0 bg-[--neutral-light]  text-gray-600 border-b shadow-sm">
+              <thead className="sticky text-md top-0 bg-[--neutral-light] text-gray-600 border-b shadow-sm z-10">
                 <tr>
                   <th className="px-4 py-3 text-start">
                     <input type="checkbox" className="h-4 w-4 text-black accent-[#1c252e] rounded-md"
@@ -108,7 +108,7 @@ const CommonTable = ({
                     <th key={key} className={`px-4 py-3 ${align === 'center' ? 'text-center' : 'text-start'}`}>{label}</th>
                   ))}
                   {editable && actionButton && (
-                    <th className="px-4 py-3 text-start">Action</th>
+                    <th className="px-4 py-3 text-start sticky right-0 bg-[--neutral-light] z-10">Action</th>
                   )}
                   {extraColumn && (
                     <th className="px-4 py-3 text-start">{extraColumn.header}</th>
@@ -153,14 +153,13 @@ const CommonTable = ({
                     ))}
                     {editable && actionButton && (
                       <td
-                        className="px-4 py-3 text-start"
+                        className="px-4 py-3 text-start sticky right-0 bg-white"
                         onClick={(e) => e.stopPropagation()} //prevent row click from firing
                       >
-                        <div className="inline-block hover:shadow-md transition cursor-pointer">
+                        <div className="inline-block hover:shadow-md transition cursor-pointer relative z-20">
                           {actionButton(row)}
                         </div>
                       </td>
-
                     )}
                     {extraColumn && (
                       <td className="px-4 py-3 text-start">
