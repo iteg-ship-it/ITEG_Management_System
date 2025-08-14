@@ -1,11 +1,12 @@
 /* eslint-disable react/prop-types */
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
-import { useGetAdmittedStudentsByIdQuery, useUpdateStudentImageMutation } from "../../redux/api/authApi";
+import { useGetAdmittedStudentsByIdQuery, useUpdateStudentImageMutation, useUploadResumeMutation } from "../../redux/api/authApi";
 import PermissionModal from "./PermissionModal";
 import PlacementModal from "./PlacementModal";
 import Loader from "../common-components/loader/Loader";
 import UpdateTechnologyModal from "./UpdateTechnologyModal";
+import { toast } from "react-toastify";
 
 
 // Icons & Images
@@ -31,6 +32,7 @@ export default function StudentProfile() {
   const navigate = useNavigate();
   const { data: studentData, isLoading, isError} = useGetAdmittedStudentsByIdQuery(id);
   const [updateStudentImage] = useUpdateStudentImageMutation();
+  const [uploadResume, { isLoading: isResumeUploading }] = useUploadResumeMutation();
   const [latestLevel, setLatestLevel] = useState("1A");
   const [isPermissionModalOpen, setPermissionModalOpen] = useState(false);
   const [isPlacedModalOpen, setPlacedModalOpen] = useState(false);
@@ -108,6 +110,72 @@ export default function StudentProfile() {
     fileInputRef.current?.click();
   };
 
+  const handleResumeUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (file.type !== 'application/pdf') {
+      toast.error('Please select a PDF file');
+      return;
+    }
+
+    // Validate file size (max 5MB to avoid server issues)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Resume size should be less than 5MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const base64Data = e.target.result;
+        // Remove the data:application/pdf;base64, prefix
+        const base64String = base64Data.split(',')[1];
+        
+        console.log('Uploading resume:', {
+          studentId: studentData._id,
+          fileName: file.name,
+          fileSize: file.size,
+          base64Length: base64String.length
+        });
+        
+        const payload = {
+          studentId: studentData._id,
+          fileName: file.name,
+          fileData: base64String
+        };
+        
+        console.log('API Payload:', payload);
+        
+        await uploadResume(payload).unwrap();
+        
+        toast.success('Resume uploaded successfully!');
+        
+      } catch (error) {
+        console.error('Full error object:', error);
+        console.error('Error status:', error?.status);
+        console.error('Error data:', error?.data);
+        
+        let errorMessage = 'Failed to upload resume';
+        if (error?.status === 500) {
+          errorMessage = 'Server error. Please try with a smaller file or contact support.';
+        } else if (error?.data?.message) {
+          errorMessage = error.data.message;
+        }
+        
+        toast.error(errorMessage);
+      }
+    };
+    
+    reader.onerror = () => {
+      console.error('Error reading file');
+      toast.error('Error reading file');
+    };
+    
+    reader.readAsDataURL(file);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
@@ -180,22 +248,38 @@ export default function StudentProfile() {
               backgroundSize: 'cover',
               backgroundPosition: 'center'
             }}></div>
-            <button
-              onClick={() => {
-                if (canChooseElective()) {
-                  console.log('Update Technology button clicked');
-                  setTechModalOpen(true);
-                }
-              }}
-              disabled={!canChooseElective()}
-              className={`absolute top-7 right-8 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg z-20 ${
-                canChooseElective() 
-                  ? 'bg-[var(--primary-darker)] hover:bg-[var(--primary-dark)] text-black font-extrabold cursor-pointer' 
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
-              }`}
-            >
-              Choose Elective
-            </button>
+            <div className="absolute top-7 right-8 flex gap-3 z-20">
+              <button
+                onClick={() => {
+                  if (canChooseElective()) {
+                    console.log('Update Technology button clicked');
+                    setTechModalOpen(true);
+                  }
+                }}
+                disabled={!canChooseElective()}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg ${
+                  canChooseElective() 
+                    ? 'bg-[var(--primary-darker)] hover:bg-[var(--primary-dark)] text-black font-extrabold cursor-pointer' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+                }`}
+              >
+                Choose Elective
+              </button>
+              <button
+                onClick={() => document.getElementById('resume-upload').click()}
+                disabled={isResumeUploading}
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg bg-blue-500 hover:bg-blue-600 text-white disabled:opacity-50"
+              >
+                {isResumeUploading ? 'Uploading...' : 'Upload Resume'}
+              </button>
+              <input
+                id="resume-upload"
+                type="file"
+                accept=".pdf"
+                onChange={handleResumeUpload}
+                className="hidden"
+              />
+            </div>
             <div className="relative px-3 sm:px-8 py-4 sm:py-12">
               <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
                 <div className="relative">
