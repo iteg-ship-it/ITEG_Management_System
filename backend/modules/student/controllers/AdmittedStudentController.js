@@ -73,7 +73,13 @@ exports.createAdmittedStudent = async (req, res) => {
 
 exports.getAllStudents = async (req, res) => {
   try {
-    const students = await AdmittedStudent.find();
+    const students = await AdmittedStudent.find({
+      $or: [
+        { permissionDetails: { $exists: false } },
+        { permissionDetails: null },
+        { permissionDetails: {} }
+      ]
+    });
     console.log("Fetched all students:", students.length);
     res.status(200).json(students);
   } catch (error) {
@@ -93,18 +99,23 @@ exports.getAllStudentsByLevel = async (req, res) => {
   try {
     const { levelNo } = req.params;
 
-    const students = await AdmittedStudent.aggregate([
-      {
-        $addFields: {
-          latestLevel: { $arrayElemAt: ["$level", -1] }
-        }
-      },
-      {
+const students = await AdmittedStudent.aggregate([
+  {
+    $addFields: {
+      latestLevel: { $arrayElemAt: ["$level", -1] }
+    }
+  },
+  {
         $match: {
-          "latestLevel.levelNo": levelNo
-        }
-      }
-    ]);
+          "latestLevel.levelNo": levelNo,
+          $or: [
+            { permissionDetails: { $exists: false } },
+            { permissionDetails: null },
+            { permissionDetails: {} }
+          ]
+    }
+  }
+]);
 
     if (!students || students.length === 0) {
       return res.status(404).json({ message: "No students found for this level" });
@@ -162,6 +173,7 @@ exports.createLevels = async (req, res) => {
     const { id } = req.params;
     const {
       levelNo,
+      Topic,
       Theoretical_Marks,
       Practical_Marks,
       Communication_Marks,
@@ -215,6 +227,7 @@ exports.createLevels = async (req, res) => {
     const newInterview = {
       levelNo: nextLevel,
       noOfAttempts: currentLevelAttempts.length + 1,
+      topic: Topic || "",
       Theoretical_Marks: Theoretical_Marks || 0,
       Practical_Marks: Practical_Marks || 0,
       Communication_Marks: Communication_Marks || 0,
@@ -227,8 +240,16 @@ exports.createLevels = async (req, res) => {
 
     student.level.push(newInterview);
 
-    // ✅ If the new result is "Pass", check if all levels are now passed
+    // ✅ Update currentLevel if pass
     if (newInterview.result === "Pass") {
+      const currentLevelIndex = LevelOrder.indexOf(newInterview.levelNo);
+      const nextLevelInOrder = LevelOrder[currentLevelIndex + 1];
+
+      if (nextLevelInOrder) {
+        student.currentLevel = nextLevelInOrder;
+      }
+
+      // Mark student ready if all levels are passed
       const allLevelsPassed = LevelOrder.every(level =>
         student.level.some(entry => entry.levelNo === level && entry.result === "Pass")
       );
@@ -248,12 +269,21 @@ exports.createLevels = async (req, res) => {
       }
 
 
-
+     
       if (allLevelsPassed) {
         student.readinessStatus = "Ready";
       }
+
+      // Send email after 1C passed
+      if (newInterview.levelNo === "1C" && student.email) {
+        await sendHTMLMail({
+          to: student.email,
+          studentName: student.firstName + " " + student.lastName,
+        });
+      }
     }
-    // // ✅ Send plain text email if admission confirmed
+
+    // Send fail email if applicable
     if (newInterview.result === "Fail" && student.email) {
       await sendEmail({
         to: student.email,
@@ -296,7 +326,7 @@ exports.getAllPermissionStudents = async (req, res) => {
   }
 };
 
-// Update a student's permissionDetails
+
 exports.updatePermissionStudent = async (req, res) => {
   try {
     const { studentId } = req.params;
@@ -307,7 +337,7 @@ exports.updatePermissionStudent = async (req, res) => {
       return res.status(400).json({ message: "Invalid image format. Must be Base64 string." });
     }
 
-    // Validate role
+    // Role validation
     if (!['super admin', 'admin', 'faculty'].includes(approved_by)) {
       return res.status(400).json({ message: "Invalid approver role." });
     }
@@ -317,8 +347,14 @@ exports.updatePermissionStudent = async (req, res) => {
       return res.status(404).json({ message: "Student not found" });
     }
 
+    // Upload base64 image to Cloudinary
+    const uploadResponse = await cloudinary.uploader.upload(imageURL, {
+      folder: "permission_applications", // Optional: organize uploads
+    });
+
+    // Store Cloudinary image URL
     student.permissionDetails = {
-      imageURL,
+      imageURL: uploadResponse.secure_url,
       remark,
       approved_by,
       uploadDate: new Date()
@@ -330,11 +366,13 @@ exports.updatePermissionStudent = async (req, res) => {
       message: "Permission updated successfully",
       student
     });
+
   } catch (error) {
     console.error("Update Permission Error:", error);
     res.status(500).json({ message: "Server Error", error });
   }
 };
+
 
 exports.updatePlacementInfo = async (req, res) => {
   try {
@@ -378,18 +416,18 @@ exports.getLevelWiseStudents = async (req, res) => {
   try {
     const { levelNo } = req.params;
 
-    const students = await AdmittedStudent.aggregate([
-      {
-        $addFields: {
-          latestLevel: { $arrayElemAt: ["$level", -1] }
-        }
-      },
-      {
-        $match: {
-          "latestLevel.levelNo": levelNo
-        }
-      }
-    ]);
+  const students = await AdmittedStudent.aggregate([
+  {
+    $match: {
+      currentLevel: levelNo,
+      $or: [
+        { permissionDetails: { $exists: false } },
+        { permissionDetails: null },
+        { permissionDetails: {} }
+      ]
+    }
+  }
+]);
 
     if (!students || students.length === 0) {
       return res.status(404).json({ message: "No students found for this level" });
@@ -402,45 +440,6 @@ exports.getLevelWiseStudents = async (req, res) => {
   }
 };
 
-// Update a student's permissionDetails
-exports.updatePermissionStudent = async (req, res) => {
-  try {
-    const { studentId } = req.params;
-    const { imageURL, remark, approved_by } = req.body;
-
-    // Base64 image validation
-    if (!/^data:image\/(png|jpeg|jpg);base64,/.test(imageURL)) {
-      return res.status(400).json({ message: "Invalid image format. Must be Base64 string." });
-    }
-
-    // Validate role
-    if (!['super admin', 'admin', 'faculty'].includes(approved_by)) {
-      return res.status(400).json({ message: "Invalid approver role." });
-    }
-
-    const student = await AdmittedStudent.findById(studentId);
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
-    }
-
-    student.permissionDetails = {
-      imageURL,
-      remark,
-      approved_by,
-      uploadDate: new Date()
-    };
-
-    await student.save();
-
-    res.status(200).json({
-      message: "Permission updated successfully",
-      student
-    });
-  } catch (error) {
-    console.error("Update Permission Error:", error);
-    res.status(500).json({ message: "Server Error", error });
-  }
-};
 
 
 
@@ -538,31 +537,53 @@ exports.getReadyStudent = async (req, res) => {
 
 // placement
 
+// Schedule Interview API
 exports.addInterviewRecord = async (req, res) => {
   try {
-    const studentId = req.params.id;
-    const newInterview = req.body;
+    const { studentId } = req.params;
+    const { companyName, jobProfile, location, status, scheduleDate, rounds, offerLetterURL, applicationLetterURL } = req.body;
 
-    const student = await AdmittedStudent.findById(studentId);
+    console.log("Searching for studentId:",  studentId );
 
+    // Validate required fields
+    if (!companyName || !jobProfile || !scheduleDate) {
+      return res.status(400).json({ message: "companyName, jobProfile, and scheduleDate are required." });
+    }
+
+    // Find the admitted student
+    const student = await AdmittedStudent.findById( studentId );
     if (!student) {
-      return res.status(404).json({ success: false, message: "Student not found" });
+      return res.status(404).json({ message: "Student not found" });
     }
 
-    if (student.readinessStatus !== "Ready") {
-      return res.status(400).json({ success: false, message: "Student is not eligible for interview. Status: Not Ready" });
-    }
+    // Prepare new interview record
+    const newInterview = {
+      companyName,
+      jobProfile,
+      location: location || "",
+      status: status || "Scheduled",
+      scheduleDate: new Date(scheduleDate),
+      rounds: Array.isArray(rounds) ? rounds : [], // must be array of {roundName, date, mode, feedback, result}
+      offerLetterURL: offerLetterURL || "",
+      applicationLetterURL: applicationLetterURL || ""
+    };
 
-    student.interviewRecord.push(newInterview);
+    // Push new interview into student's PlacementinterviewRecord
+    student.PlacementinterviewRecord.push(newInterview);
+
+    // Save changes
     await student.save();
 
-    res.status(201).json({ success: true, message: "Interview record added", data: student.interviewRecord });
+    res.status(201).json({
+      message: "Placement interview scheduled successfully",
+      interview: newInterview
+    });
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    console.error("Error scheduling interview:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
-
 
 
 exports.updateInterviewRecord = async (req, res) => {
@@ -651,66 +672,6 @@ exports.uploadResumeBase64 = async (req, res) => {
 };
 
 
-// exports.generatePlacementPost = async (req, res) => {
-//   try {
-//     const { studentId } = req.body;
-
-//     const student = await AdmittedStudent.findById(studentId);
-//     if (!student) return res.status(404).json({ message: 'Student not found' });
-
-//     const {
-//       name: studentName,
-//       profilePhoto,
-//       location: studentLocation,
-//       placedInfo
-//     } = student;
-
-//     if (!placedInfo || !placedInfo.companyName) {
-//       return res.status(400).json({ message: 'Placement info not available' });
-//     }
-
-//     const {
-//       companyName,
-//       salary,
-//       location: companyLocation,
-//       jobProfile,
-//       companyLogo,
-//       jobType
-//     } = placedInfo;
-
-//     // Paths
-//     const templatePath = path.join(__dirname, '../public/templates/Placement Template.jpg');
-//     const studentImgPath = path.join(__dirname, `../public/uploads/${path.basename(profilePhoto)}`);
-//     const companyLogoPath = path.join(__dirname, `../public/uploads/${path.basename(companyLogo)}`);
-//     const outputFileName = `${studentName.replace(/\s+/g, '_')}_post.jpg`;
-//     const outputPath = path.join(__dirname, `../public/posts/${outputFileName}`);
-
-//     // Compose the final image
-//     const finalImage = await sharp(templatePath)
-//       .composite([
-//         { input: studentImgPath, top: 300, left: 280 }, // Adjust positions
-//         { input: companyLogoPath, top: 620, left: 80 }
-//       ])
-//       .resize(1080, 1080)
-//       .jpeg()
-//       .toBuffer();
-
-//     fs.writeFileSync(outputPath, finalImage);
-
-//     res.status(200).json({
-//       message: 'Post generated successfully',
-//       imageUrl: `/posts/${outputFileName}`,
-//       student: studentName,
-//       company: companyName
-//     });
-
-//   } catch (error) {
-//     console.error("Error generating post:", error);
-//     res.status(500).json({ message: 'Server error', error });
-//   }
-// };
-
-
 exports.generatePlacementPost = async (req, res) => {
   try {
     const { studentId, studentImageBase64, companyLogoBase64 } = req.body;
@@ -763,3 +724,183 @@ exports.generatePlacementPost = async (req, res) => {
     res.status(500).json({ message: 'Server error', error });
   }
 };
+
+
+exports.updateTechnology = async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    const { techno } = req.body;
+
+    if (!techno) {
+      return res.status(400).json({ message: 'Technology field is required' });
+    }
+
+    // Step 1: Fetch student
+    const student = await AdmittedStudent.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // ✅ Step 2: Check if Level 2A is passed inside the level array
+    const hasPassedLevel2A = student.level?.some(
+      (lvl) => lvl.levelNo === '2A' && lvl.result === 'Pass'
+    );
+
+    if (!hasPassedLevel2A) {
+      return res.status(403).json({ message: 'Student must complete Level 2A before updating technology' });
+    }
+
+    // ✅ Step 3: Update techno field
+    student.techno = techno;
+    await student.save();
+
+    res.status(200).json({
+      message: 'Technology updated successfully',
+      student
+    });
+
+  } catch (error) {
+    console.error('Error updating technology:', error);
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+
+exports.updateStudentProfile = async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    const { image } = req.body;
+
+    if (!image) {
+      return res.status(400).json({ message: 'Image is required' });
+    }
+
+    // Validate base64 image format
+    if (!/^data:image\/(png|jpeg|jpg|gif);base64,/.test(image)) {
+      return res.status(400).json({ message: 'Invalid image format. Must be base64 encoded image.' });
+    }
+
+    const student = await AdmittedStudent.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // Upload image to Cloudinary
+    const uploadResponse = await cloudinary.uploader.upload(image, {
+      folder: 'student_profiles',
+      public_id: `student_${studentId}`,
+      overwrite: true
+    });
+
+    student.image = uploadResponse.secure_url; // Store Cloudinary URL
+    await student.save();
+
+    res.status(200).json({
+      message: 'Profile image updated successfully',
+      student
+    });
+
+  } catch (error) {
+    console.error('Error updating profile image:', error);
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+
+// exports.rescheduleInterview = async (req, res) => {
+//   try {
+//     const { studentId, interviewId } = req.params;
+//     const { newDate } = req.body;
+
+//     if (!newDate) {
+//       return res.status(400).json({ message: "New date is required." });
+//     }
+
+//     const updatedStudent = await AdmittedStudent.findOneAndUpdate(
+//       {
+//         _id: studentId,
+//         "PlacementinterviewRecord._id": interviewId
+//       },
+//       {
+//         $set: {
+//           "PlacementinterviewRecord.$.rescheduleDate": new Date(newDate),
+//           "PlacementinterviewRecord.$.status": "Rescheduled"
+//         }
+//       },
+//       { new: true }
+//     );
+
+//     if (!updatedStudent) {
+//       return res.status(404).json({ message: "Student or interview not found." });
+//     }
+
+//     res.status(200).json({
+//       message: "Interview rescheduled successfully.",
+//       updatedData: updatedStudent
+//     });
+
+//   } catch (error) {
+//     console.error("Error rescheduling interview:", error);
+//     res.status(500).json({ message: "Server error.", error: error.message });
+//   }
+// };
+
+
+exports.rescheduleInterview = async (req, res) => {
+  try {
+    const { studentId, interviewId } = req.params;
+    const { newDate } = req.body;
+
+    if (!newDate) {
+      return res.status(400).json({ message: "New date is required." });
+    }
+
+    const updatedStudent = await AdmittedStudent.findOneAndUpdate(
+      {
+        _id: studentId,
+        "interviewRecord._id": interviewId // ✅ match schema field
+      },
+      {
+        $set: {
+          "interviewRecord.$.rescheduleDate": new Date(newDate), // ✅ match schema field
+          "interviewRecord.$.status": "Rescheduled"
+        }
+      },
+      { new: true }
+    );
+
+    if (!updatedStudent) {
+      return res.status(404).json({ message: "Student or interview not found." });
+    }
+
+    res.status(200).json({
+      message: "Interview rescheduled successfully.",
+      updatedData: updatedStudent
+    });
+
+  } catch (error) {
+    console.error("Error rescheduling interview:", error);
+    res.status(500).json({ message: "Server error.", error: error.message });
+  }
+};
+
+
+// exports.countStudentInterviews = async (req, res) => {
+//   try {
+//     const { studentId } = req.params;
+
+//     // Count the number of interviews for this student
+//     const count = await AdmittedStudent.countDocuments({ studentId });
+
+//     res.status(200).json({
+//       studentId,
+//       totalInterviews: count
+//     });
+
+//   } catch (error) {
+//     console.error("Error counting interviews:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+
+

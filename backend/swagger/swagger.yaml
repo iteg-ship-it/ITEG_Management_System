@@ -256,6 +256,9 @@ components:
         noOfAttempts:
           type: integer
           default: 0
+        Topic:
+          type: string
+          example: "Java"
         marks:
           type: number
           default: 0
@@ -1935,7 +1938,7 @@ paths:
                     example: Server Error
 
   /api/admitted/students/update_permission_student/{studentId}:
-    put:
+    patch:
       summary: Update permission details of a student
       description: Updates the permission details of an admitted student using their student ID. Only accessible by Super Admin, Admin, or Faculty.
       tags:
@@ -2350,20 +2353,18 @@ paths:
 
 
 
-  /api/admitted/students/interviews/{id}:
+  /api/admitted/students/interviews/{studentId}:
     post:
+      summary: Schedule a placement interview for a student
       tags:
-        - Placement
-      summary: Add interview record for a student
-      description: Add a new interview record to a student's profile. The student must have readinessStatus = "Ready".
+        - Placement Interviews
       parameters:
-        - name: id
-          in: path
+        - in: path
+          name: studentId
           required: true
-          description: MongoDB ObjectId of the student
           schema:
             type: string
-            example: 665f6aaf4f55e5aaee6a1234
+          description: The MongoDB ObjectId of the admitted student
       requestBody:
         required: true
         content:
@@ -2372,66 +2373,153 @@ paths:
               type: object
               required:
                 - companyName
-                - interviewDate
-                - location
                 - jobProfile
+                - scheduleDate
               properties:
                 companyName:
                   type: string
-                  example: Infosys
-                interviewDate:
-                  type: string
-                  format: date
-                  example: 2025-06-15
-                remark:
-                  type: string
-                  example: "Performed well in technical round"
-                result:
-                  type: string
-                  enum: [Selected, Rejected, Pending]
-                  default: Pending
-                  example: Pending
-                location:
-                  type: string
-                  example: Pune
+                  example: "TCS"
                 jobProfile:
                   type: string
-                  example: Software Engineer Intern
+                  example: "Software Engineer"
+                location:
+                  type: string
+                  example: "Bengaluru"
+                status:
+                  type: string
+                  enum: ["Scheduled", "Rescheduled", "Ongoing", "Selected", "RejectedByStudent", "RejectedByCompany"]
+                  example: "Scheduled"
+                scheduleDate:
+                  type: string
+                  format: date-time
+                  example: "2025-08-15T09:30:00Z"
+                rounds:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - roundName
+                      - date
+                    properties:
+                      roundName:
+                        type: string
+                        example: "Technical Round"
+                      date:
+                        type: string
+                        format: date-time
+                        example: "2025-08-15T09:30:00Z"
+                      mode:
+                        type: string
+                        enum: ["Online", "Offline", "Telephonic"]
+                        example: "Online"
+                      feedback:
+                        type: string
+                        example: "Strong problem-solving skills"
+                      result:
+                        type: string
+                        enum: ["Passed", "Failed", "Pending"]
+                        example: "Pending"
       responses:
-        '201':
-          description: Interview record added successfully
+        "201":
+          description: Placement interview scheduled successfully
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
-                    example: true
                   message:
                     type: string
-                    example: Interview record added
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/InterviewRecord'
-        '400':
-          description: Student is not eligible (readinessStatus is not "Ready")
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: Student is not eligible for interview. Status: Not Ready
-        '404':
+                    example: Placement interview scheduled successfully
+                  interview:
+                    $ref: '#/components/schemas/InterviewRecord'
+        "400":
+          description: Missing required fields
+        "404":
           description: Student not found
-        '500':
+        "500":
           description: Server error
+
+    # post:
+    #   tags:
+    #     - Placement
+    #   summary: Add interview record for a student
+    #   description: Add a new interview record to a student's profile. The student must have readinessStatus = "Ready".
+    #   parameters:
+    #     - name: id
+    #       in: path
+    #       required: true
+    #       description: MongoDB ObjectId of the student
+    #       schema:
+    #         type: string
+    #         example: 665f6aaf4f55e5aaee6a1234
+    #   requestBody:
+    #     required: true
+    #     content:
+    #       application/json:
+    #         schema:
+    #           type: object
+    #           required:
+    #             - companyName
+    #             - interviewDate
+    #             - location
+    #             - jobProfile
+    #           properties:
+    #             companyName:
+    #               type: string
+    #               example: Infosys
+    #             interviewDate:
+    #               type: string
+    #               format: date
+    #               example: 2025-06-15
+    #             remark:
+    #               type: string
+    #               example: "Performed well in technical round"
+    #             result:
+    #               type: string
+    #               enum: [Selected, Rejected, Pending]
+    #               default: Pending
+    #               example: Pending
+    #             location:
+    #               type: string
+    #               example: Pune
+    #             jobProfile:
+    #               type: string
+    #               example: Software Engineer Intern
+    #   responses:
+    #     '201':
+    #       description: Interview record added successfully
+    #       content:
+    #         application/json:
+    #           schema:
+    #             type: object
+    #             properties:
+    #               success:
+    #                 type: boolean
+    #                 example: true
+    #               message:
+    #                 type: string
+    #                 example: Interview record added
+    #               data:
+    #                 type: array
+    #                 items:
+    #                   $ref: '#/components/schemas/InterviewRecord'
+    #     '400':
+    #       description: Student is not eligible (readinessStatus is not "Ready")
+    #       content:
+    #         application/json:
+    #           schema:
+    #             type: object
+    #             properties:
+    #               success:
+    #                 type: boolean
+    #                 example: false
+    #               message:
+    #                 type: string
+    #                 example: Student is not eligible for interview. Status: Not Ready
+    #     '404':
+    #       description: Student not found
+    #     '500':
+    #       description: Server error
 
 
 
@@ -2835,3 +2923,237 @@ paths:
         '500':
           description: Server error
 
+
+  /api/admitted/students/update_technology/{id}:
+    put:
+      summary: Update student's technology after Level 2A
+      description: Updates the 'techno' field of a student only if they have passed Level 2A.
+      tags:
+        - Admitted Student
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the student
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - techno
+              properties:
+                techno:
+                  type: string
+                  example: MERN Stack
+      responses:
+        '200':
+          description: Technology updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Technology updated successfully
+                  student:
+                    $ref: '#/components/schemas/AdmittedStudent'
+        '400':
+          description: Missing technology field
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Technology field is required
+        '403':
+          description: Level 2A not completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student must complete Level 2A before updating technology
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student not found
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server error
+                  error:
+                    type: string
+
+
+
+  /api/admitted/students/update/profile/{id}:
+    patch:
+      tags:
+        - Admitted Student
+      summary: Update student profile image
+      description: Upload a base64 image, store it on Cloudinary, and update the student record with the URL.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Student's ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  description: Base64 image string (must include prefix like data:image/png;base64,...)
+                  example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+      responses:
+        '200':
+          description: Successfully updated student image
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Profile image updated successfully
+                  student:
+                    $ref: '#/components/schemas/AdmittedStudent'
+        '400':
+          description: Bad Request - Missing or invalid image
+        '404':
+          description: Student not found
+        '500':
+          description: Internal Server Error
+ 
+  /api/admitted/students/reschedule/interview/{studentId}/{interviewId}:
+    patch:
+      tags:
+        - Placement
+      summary: Reschedule an interview
+      description: Reschedules a specific interview for a student and updates its status to "Rescheduled".
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: string
+          description: ID of the admitted student
+        - in: path
+          name: interviewId
+          required: true
+          schema:
+            type: string
+          description: ID of the interview record to be rescheduled
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - newDate
+              properties:
+                newDate:
+                  type: string
+                  format: date-time
+                  example: "2025-08-15T10:00:00.000Z"
+      responses:
+        "200":
+          description: Interview rescheduled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Interview rescheduled successfully.
+                  updatedData:
+                    type: object
+                    description: Updated student document with modified interview record
+        "400":
+          description: Bad Request - Missing or invalid date
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: New date is required.
+        "404":
+          description: Student or interview not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student or interview not found.
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server error.
+                  error:
+                    type: string
+                    example: Error message details
+
+  /api/admitted/students/count/{studentId}:
+    get:
+      summary: Count total placement interviews of a student
+      tags:
+        - Placement
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: string
+          description: ID of the student
+      responses:
+        "200":
+          description: Interview count fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  studentId:
+                    type: string
+                  totalInterviews:
+                    type: integer
+        "500":
+          description: Internal server error

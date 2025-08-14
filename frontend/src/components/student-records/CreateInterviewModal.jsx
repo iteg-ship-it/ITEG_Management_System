@@ -1,65 +1,235 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { useFormik } from 'formik';
+import { useEffect, useState } from 'react';
 import { useCreateLevelInterviewMutation } from '../../redux/api/authApi';
+import { Formik, Form, useFormikContext} from 'formik';
+import * as Yup from 'yup';
+// import CustomDatePicker from './CustomDatePicker';
+import DatePickerInput from "../datepickerInput/DatePickerInput";
+import TextInput from '../common-components/common-feild/TextInput';
+import SelectInput from '../common-components/common-feild/SelectInput';
+import { toast } from 'react-toastify';
+
 
 const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) => {
     const [createInterview, { isLoading }] = useCreateLevelInterviewMutation();
-
-    const formik = useFormik({
-        initialValues: {
-            Theoretical_Marks: '',
-            Practical_Marks: '',
-            Communication_Marks: '',
-            marks: '',
-            remark: '',
-            date: new Date().toISOString().substring(0, 10),
-            result: 'Pending',
-        },
-        onSubmit: async (values) => {
-            try {
-                await createInterview({
-                    id: studentId,
-                    data: values,
-                }).unwrap();
-
-                alert("Interview added successfully");
-
-                refetchStudents(); // 🔁 Refresh student list
-                formik.resetForm();
-                onClose();
-            } catch (err) {
-                console.error(err);
-                alert("Failed to add interview");
+    const [studentName, setStudentName] = useState("");
+    
+    // Get student name when modal opens
+    useEffect(() => {
+        if (isOpen && studentId) {
+            // Find student from localStorage or use a placeholder
+            const students = JSON.parse(localStorage.getItem("students") || "[]");
+            const student = students.find(s => s._id === studentId);
+            if (student) {
+                const fullName = `${student.firstName || ''} ${student.lastName || ''}`.trim();
+                setStudentName(fullName || "Student");
+            } else {
+                setStudentName("Student");
             }
-        },
+        }
+    }, [isOpen, studentId]);
+    
+    const initialValues = {
+        Theoretical_Marks: '',
+        Practical_Marks: '',
+        Communication_Marks: '',
+        marks: '',
+        remark: '',
+        date: new Date(),
+        result: 'Pending',
+    };
+    
+    const validationSchema = Yup.object().shape({
+        Theoretical_Marks: Yup.number()
+            .typeError('Must be a number')
+            .min(1, 'Enter between 1 to 10')
+            .max(10, 'Enter between 1 to 10')
+            .required('Required'),
+        Practical_Marks: Yup.number()
+            .typeError('Must be a number')
+            .min(1, 'Enter between 1 to 10')
+            .max(10, 'Enter between 1 to 10')
+            .required('Required'),
+        Communication_Marks: Yup.number()
+            .typeError('Must be a number')
+            .min(1, 'Enter between 1 to 10')
+            .max(10, 'Enter between 1 to 10')
+            .required('Required'),
+        marks: Yup.number().nullable(),
+        remark: Yup.string(),
+        date: Yup.date().required('Required'),
+        result: Yup.string().required('Required'),
     });
+    
+    const handleSubmit = async (values, { resetForm }) => {
+        try {
+            await createInterview({
+                id: studentId,
+                data: values,
+            }).unwrap();
+            
+            // Close form immediately
+            resetForm();
+            onClose();
+            
+            // Show success message after closing
+            const resultMessage = values.result === 'Pass' 
+                ? `Interview marked as Pass ✅` 
+                : values.result === 'Fail' 
+                ? `Interview marked as Fail ❌` 
+                : `Interview marked as Pending ⏳`;
+            
+            toast.success(resultMessage);
+            
+            // Refresh data in background
+            if (refetchStudents) {
+                refetchStudents();
+            }
+        } catch (err) {
+            console.error(err);
+            onClose();
+            toast.error(err?.data?.message || 'Failed to submit interview');
+        }
+    };
 
     if (!isOpen) return null;
-
+    
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl w-full max-w-lg shadow-lg p-8">
-                <h2 className="text-2xl font-semibold text-center text-orange-600 mb-6">Add Interview Round</h2>
-                <form onSubmit={formik.handleSubmit} className="grid gap-4">
-                    <input type="number" name="Theoretical_Marks" placeholder="Theoretical Marks" onChange={formik.handleChange} value={formik.values.Theoretical_Marks} className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" />
-                    <input type="number" name="Practical_Marks" placeholder="Practical Marks" onChange={formik.handleChange} value={formik.values.Practical_Marks} className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" />
-                    <input type="number" name="Communication_Marks" placeholder="Communication Marks" onChange={formik.handleChange} value={formik.values.Communication_Marks} className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" />
-                    <input type="number" name="marks" placeholder="Total Marks" onChange={formik.handleChange} value={formik.values.marks} className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" />
-                    <input type="text" name="remark" placeholder="Remark" onChange={formik.handleChange} value={formik.values.remark} className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" />
-                    <input type="date" name="date" onChange={formik.handleChange} value={formik.values.date} className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" />
-                    <select name="result" onChange={formik.handleChange} value={formik.values.result} className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400">
-                        <option value="Pass">Pass</option>
-                        <option value="Fail">Fail</option>
-                        <option value="Pending">Pending</option>
-                    </select>
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl py-4 px-6 w-full max-w-2xl relative">
+                <h2 className="text-xl font-bold text-center text-orange-500 mb-4">Technical Interview Form</h2>
+                
+                <Formik
+                    initialValues={initialValues}
+                    validationSchema={validationSchema}
+                    onSubmit={handleSubmit}
+                >
+                    {({ values, setFieldValue }) => (
+                        <Form className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <AutoMarksCalculator />
+                            
+                            {/* Interview Metadata */}
+                            <div className="col-span-2 text-sm font-semibold text-gray-600 mt-2">Interview Details</div>
+                            
+                            <div className="col-span-2 md:col-span-1">
+                                <div className="relative w-full">
+                                    <input 
+                                        type="text" 
+                                        value={studentName} 
+                                        disabled 
+                                        className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-black focus:ring-0 bg-gray-100 cursor-not-allowed transition-all duration-200" 
+                                        placeholder=" "
+                                    />
+                                    <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
+                                        Student Name <span className="text-black">*</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            {/* <div className="col-span-2 md:col-span-1">
+                                <label className="block text-sm font-medium text-gray-700">Date</label>
+                                <CustomDatePicker 
+                                    name="date" 
+                                    value={values.date}
+                                    onChange={(e) => {
+                                        const { name, value } = e;
+                                        setFieldValue(name, value);
+                                    }}
+                                />
+                                <ErrorMessage name="date" component="div" className="text-red-500 text-xs mt-1" />
+                            </div> */}
 
-                    <div className="flex justify-end gap-3 pt-2">
-                        <button type="button" onClick={() => { formik.resetForm(); onClose(); }} className="px-4 py-2 border rounded-lg hover:bg-gray-100 transition">Cancel</button>
-                        <button type="submit" disabled={isLoading} className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition disabled:opacity-50">
-                            {isLoading ? "Submitting..." : "Submit"}
-                        </button>
-                    </div>
-                </form>
+                            <DatePickerInput name="date" label="Select Date" />
+                            
+                            {/* Technical Knowledge */}
+                            <div className="col-span-2 text-sm font-semibold text-gray-600 mt-4 ">Technical Evaluation</div>
+                            
+                            <div className="col-span-2 md:col-span-1">
+                                <TextInput 
+                                    label="Theoretical Marks (1-10)" 
+                                    name="Theoretical_Marks" 
+                                    type="number"
+                                />
+                                {/* <p className="text-xs text-gray-500 mt-1">Enter marks between 1 to 10</p> */}
+                            </div>
+                            
+                            <div className="col-span-2 md:col-span-1">
+                                <TextInput 
+                                    label="Practical Marks (1-10)" 
+                                    name="Practical_Marks" 
+                                    type="number"
+                                />
+                                {/* <p className="text-xs text-gray-500 mt-1">Enter marks between 1 to 10</p> */}
+                            </div>
+                            
+                            <div className="col-span-2 md:col-span-1">
+                                <TextInput 
+                                    label="Communication Marks (1-10)" 
+                                    name="Communication_Marks" 
+                                    type="number"
+                                />
+                                {/* <p className="text-xs text-gray-500 mt-1">Enter marks between 1 to 10</p> */}
+                            </div>
+                            
+                            <div className="col-span-2 md:col-span-1">
+                                <TextInput 
+                                    label="Total Marks (Auto-calculated)" 
+                                    name="marks" 
+                                    type="number"
+                                    disabled
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Sum of all marks (Max: 30)</p>
+                            </div>
+                            
+                            {/* Summary & Decision */}
+                            <div className="col-span-2 text-sm font-semibold text-gray-600 mt-4">Summary & Decision</div>
+                            
+                            <div className="col-span-2 md:col-span-1">
+                                <SelectInput 
+                                    label="Result" 
+                                    name="result"
+                                    options={[
+                                        { value: "Pending", label: "Pending" },
+                                        { value: "Pass", label: "Pass" },
+                                        { value: "Fail", label: "Fail" }
+                                    ]}
+                                />
+                            </div>
+                            
+                            <div className="col-span-2">
+                                <TextInput 
+                                    label="Remark / Feedback" 
+                                    name="remark"
+                                />
+                            </div>
+                            
+                            <div className="col-span-2 flex justify-center mt-4 gap-4">
+                                <button 
+                                    type="button" 
+                                    onClick={() => onClose()} 
+                                    className="px-6 py-2 border rounded-lg hover:bg-gray-100 transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    type="submit" 
+                                    disabled={isLoading} 
+                                    className="bg-brandYellow text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition disabled:opacity-50"
+                                >
+                                    {isLoading ? "Submitting..." : "Submit"}
+                                </button>
+                            </div>
+                        </Form>
+                    )}
+                </Formik>
+                
+                <button
+                    onClick={onClose}
+                    className="absolute top-3 right-3 text-xl text-gray-400 hover:text-gray-700"
+                >
+                    &times;
+                </button>
             </div>
         </div>
     );
@@ -67,3 +237,22 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
 
 export default CreateInterviewModal;
 
+// Auto-calculate total marks
+const AutoMarksCalculator = () => {
+    const { values, setFieldValue } = useFormikContext();
+  
+    useEffect(() => {
+      // Get the current values and convert to numbers
+      const theoretical = parseFloat(values.Theoretical_Marks) || 0;
+      const practical = parseFloat(values.Practical_Marks) || 0;
+      const communication = parseFloat(values.Communication_Marks) || 0;
+      
+      // Calculate total
+      const total = theoretical + practical + communication;
+      
+      // Update the total marks field
+      setFieldValue("marks", total);
+    }, [values.Theoretical_Marks, values.Practical_Marks, values.Communication_Marks, setFieldValue]);
+  
+    return null;
+};

@@ -816,12 +816,12 @@ exports.googleAuthCallback = async (req, res) => {
         googleId: sub,
         email,
         name,
-        role: "admin",
+        role: "superadmin",
         profileImage: _json.picture || "https://via.placeholder.com/150",
       });
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
 

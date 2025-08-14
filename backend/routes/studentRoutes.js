@@ -49,7 +49,7 @@ router.patch("/update-placement/:id", verifyToken, checkRole(allowedRoles), stud
 
 router.get("/level/:levelNo", verifyToken, checkRole(allowedRoles), studentController.getLevelWiseStudents);
 
-router.post('/interviews/:id', studentController.addInterviewRecord );
+router.post('/interviews/:studentId', studentController.addInterviewRecord );
 
 router.patch('/update/interviews/:studentId/:interviewId', studentController.updateInterviewRecord);
 
@@ -57,5 +57,14 @@ router.patch('/update/interviews/:studentId/:interviewId', studentController.upd
 router.post('/upload_Resume_Base64', studentController.uploadResumeBase64);
 
 router.post('/generate', studentController.generatePlacementPost);
+
+router.patch('/update_technology/:id', studentController.updateTechnology);
+
+router.patch('/update/profile/:id', studentController.updateStudentProfile);
+
+router.patch("/reschedule/interview/:studentId/:interviewId/", studentController.rescheduleInterview);
+
+// router.get('/count/:studentId', studentController.countStudentInterviews);
+
 
 module.exports = router;

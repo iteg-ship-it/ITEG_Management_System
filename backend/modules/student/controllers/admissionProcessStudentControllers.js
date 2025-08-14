@@ -71,7 +71,7 @@ exports.updateAdmission = async (req, res) => {
       'prkey','firstName','lastName','fatherName',
       'studentMobile','gender',
       'address','village','stream','course',
-      'category','percent10', 'dob', 'aadharCard'
+      'category','percent10', 'dob'
     ];
     console.log('%c [ requiredFields ]-71', 'font-size:13px; background:pink; color:#bf2c9f;', requiredFields)
     for (let field of requiredFields) {
@@ -118,8 +118,8 @@ exports.updateAdmissionFlag = async (req, res, next) => {
     }
     // Find the student by prkey and update the admissionStatus
     const updatedStudent = await AdmissionProcess.findOneAndUpdate(
-      { prkey },
-      { admissionStatus },
+  { prkey: prkey },                    
+  { $set: { admissionStatus: admissionStatus } },
       { new: true }
     );
     // console.log(updatedStudent);
@@ -130,17 +130,17 @@ exports.updateAdmissionFlag = async (req, res, next) => {
         .status(404)
         .json({ message: "Student not found with the provided prkey" });
     }
-         req.updatedStudent = updatedStudent;
+    req.updatedStudent = updatedStudent;
 
 
          // // ✅ Send plain text email if admission confirmed
-         if (admissionStatus === true && updatedStudent.email) {
-          await sendEmail({
-            to: updatedStudent.email,
-            subject: 'Admission Confirmed',
-            text: `Hi ${updatedStudent.firstName},\n\nYour admission has been successfully confirmed.\n\nRegards,\nAdmission Office`,
-          });
-         }
+    if (admissionStatus === true && updatedStudent.email) {
+      await sendEmail({
+        to: updatedStudent.email,
+        subject: 'Admission Confirmed',
+        text: `Hi ${updatedStudent.firstName},\n\nYour admission has been successfully confirmed.\n\nRegards,\nAdmission Office`,
+      });
+    }
     // Now move to next controller
     next();
     // Call the next middleware or route handler
@@ -306,7 +306,7 @@ exports.createInterview = async (req, res) => {
       maths: maths || 0,
       reasoning: reasoning || 0,
       marks: marks || 0,
-      assignmentMarks: assignmentMarks || 0,
+      assignmentMarks: assignmentMarks || "",
       remark: remark || "",
       date: date || new Date(),
       created_by: created_by || "Unknown",

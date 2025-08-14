@@ -37,17 +37,22 @@ const Pagination = ({
   return (
     <div className="flex  items-center w-full py-5 flex-wrap gap-4 relative">
       {/* Search Box */}
-      <div className="flex border border-gray-300 rounded-md overflow-hidden w-full max-w-3xl h-12 bg-[var(--backgroundColor)]">
-        <div className="flex items-center px-3">
-          <Search className="w-4 h-4 text-gray-600" />
+      <div className="flex border border-gray-300 rounded-md overflow-hidden w-full max-w-3xl h-12 bg-[var(--backgroundColor)] relative">
+        <div className="flex items-center px-3 w-full">
+          <Search className="w-4 h-4 text-gray-600 flex-shrink-0" />
           <input
             type="text"
             placeholder="Search..."
-            className="outline-none border-none ring-0 focus:ring-0 px-2 py-2 w- h-9 text-sm text-gray-600 bg-[var(--backgroundColor)]"
+            className="outline-none border-none ring-0 focus:ring-0 px-2 py-2 w-full h-9 text-sm text-gray-600 bg-[var(--backgroundColor)]"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        {/* This invisible overlay makes the entire area clickable */}
+        <div
+          className="absolute inset-0 cursor-text"
+          onClick={() => document.querySelector('input[type="text"]').focus()}
+        ></div>
       </div>
 
       {/* Filters & Export Buttons */}
@@ -111,20 +116,23 @@ const Pagination = ({
                 <div className="absolute top-0 left-full ml-2 w-44 bg-white border rounded-md shadow-md p-2 space-y-1 z-30"
                 // style={{ background: "var(--diagonal-gradient)" }} // ✅ gradient fallback
                 >
-                  {options.map((opt) => (
-                    <label
-                      key={opt}
-                      className="flex items-center gap-2 cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selected.includes(opt)}
-                        onChange={() => toggleSelection(opt, setter, selected)}
-                        className="accent-green-500"
-                      />
-                      {opt}
-                    </label>
-                  ))}
+                  {options.map((opt) => {
+                    const value = typeof opt === "object" ? opt.value : opt;
+                    const label = typeof opt === "object" ? opt.label : opt;
+
+                    return (
+                      <label key={value} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selected.includes(value)}
+                          onChange={() => toggleSelection(value, setter, selected)}
+                          className="accent-green-500"
+                        />
+                        {label}
+                      </label>
+                    );
+                  })}
+
                 </div>
               )}
             </div>

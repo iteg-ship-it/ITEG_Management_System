@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import CryptoJS from "crypto-js";
 import { useLoginMutation } from "../../../redux/api/authApi";
+import Loader from "../loader/Loader";
 
 import ReusableForm from "../../../ReusableForm";
 import { loginValidationSchema } from "../../../validationSchema";
@@ -47,7 +48,9 @@ const LoginPage = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_LOGIN_WITH_GOOGLE}`;
+    window.location.href = `${import.meta.env.VITE_API_URL}${
+      import.meta.env.VITE_LOGIN_WITH_GOOGLE
+    }`;
   };
 
   const handleOtpLogin = () => {
@@ -55,7 +58,15 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100 " style={{ backgroundImage: `url(${bg})`, backgroundPosition: 'center', backgroundSize: 'cover' }}>
+    <div
+      className="flex justify-center items-center h-screen bg-gray-100 "
+      style={{
+        backgroundImage: `url(${bg})`,
+        backgroundPosition: "center",
+        backgroundSize: "cover",
+      }}
+    >
+      {isLoading && <Loader />}
       <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg">
         <ReusableForm
           initialValues={initialValues}
@@ -89,7 +100,7 @@ const LoginPage = () => {
 
               <button
                 type="submit"
-                className="w-full bg-orange-500 text-white py-3 rounded-full mt-4 hover:bg-orange-600 transition"
+                className="w-full bg-brandYellow text-white py-3 rounded-full mt-4 hover:bg-orange-600 transition relative"
                 disabled={isLoading}
               >
                 {isLoading ? "Logging in..." : "Sign in"}
@@ -101,7 +112,7 @@ const LoginPage = () => {
                 <hr className="flex-grow border-gray-300" />
               </div>
 
-              <div className="flex flex-col items-center space-y-4 px-5">
+              {/* <div className="flex flex-col items-center space-y-4 px-5">
                 <button
                   type="button"
                   onClick={handleGoogleLogin}
@@ -119,8 +130,34 @@ const LoginPage = () => {
                   <img className="h-6" src={mail} alt="OTP Login" />
                   <span className="text-sm font-medium text-gray-800">Login with Email OTP</span>
                 </button>
-              </div>
+              </div> */}
 
+              <div className="flex flex-col items-center space-y-4 px-5">
+                {/* Google Login Button */}
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  disabled
+                  className="flex w-full justify-center items-center space-x-3 bg-gray-100 shadow-md rounded-xl py-2.5 hover:shadow-lg transition border border-gray-300"
+                >
+                  <img className="h-5" src={googleLogo} alt="Google" />
+                  <span className="text-sm font-medium text-gray-800">
+                    Login With Google
+                  </span>
+                </button>
+
+                {/* OTP Login Button */}
+                <button
+                  type="button"
+                  onClick={handleOtpLogin}
+                  className="flex w-full justify-center items-center space-x-3 bg-white shadow-md rounded-xl py-2.5 hover:shadow-lg transition border border-gray-300"
+                >
+                  <img className="h-6" src={mail} alt="OTP Login" />
+                  <span className="text-sm font-medium text-gray-800">
+                    Login with Email OTP
+                  </span>
+                </button>
+              </div>
             </>
           )}
         </ReusableForm>
@@ -130,5 +167,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-
-

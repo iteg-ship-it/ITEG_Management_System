@@ -3,10 +3,8 @@ import { useState } from "react";
 import { Pencil } from "lucide-react";
 import { downloadCSV, downloadExcel, downloadPDF } from "../../utils/downloadHelpers";
 
-// eslint-disable-next-line react/prop-types
 const Table = ({ columns, data, searchable, filterable, editable, pagination }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  // eslint-disable-next-line react/prop-types
   const [visibleColumns, setVisibleColumns] = useState(columns.map((col) => col.key));
   const [showFilter, setShowFilter] = useState(false);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -14,7 +12,7 @@ const Table = ({ columns, data, searchable, filterable, editable, pagination }) 
   const [selectedRows, setSelectedRows] = useState([]);
 
   // Filtered & Paginated Data
-  // eslint-disable-next-line react/prop-types
+
   const filteredData = data.filter((row) =>
     Object.values(row).join(" ").toLowerCase().includes(searchTerm.toLowerCase())
   );

@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const levelSchema = new mongoose.Schema({
   levelNo: { type: String, default: "1A" }, // e.g., "Level 1"
   noOfAttempts: { type: Number, default: 0 },
+  Topic: { type: String, default: "" },
   Theoretical_Marks: { type: Number, default: 0 },
   Practical_Marks: { type: Number, default: 0 },
   Communication_Marks: { type: Number, default: 0 },
@@ -16,26 +17,45 @@ const levelSchema = new mongoose.Schema({
   }
 });
 
+
 const placedInfoSchema = new mongoose.Schema({
   companyName: { type: String, required: true },
   salary: { type: Number, required: true },
   location: { type: String, required: true },
   jobProfile: { type: String, required: true },
-  // companyLogo:{ type: String, required: true },
-  jobType:{type:String}
+  jobType: { type: String, enum: ['Internship', 'Full-Time', 'PPO'], default: 'Full-Time' },
+  offerLetterURL: { type: String },
+  applicationURL: { type: String }
 });
 
-const interviewRecordSchema = new mongoose.Schema({
+
+const interviewRoundSchema = new mongoose.Schema({
+  roundName: { type: String, required: true }, // e.g., "HR Round", "Technical Round"
+  date: { type: Date, required: true },
+  mode: { type: String, enum: ['Online', 'Offline', 'Telephonic'], default: 'Offline' },
+  feedback: { type: String, default: "" },
+  result: { type: String, enum: ['Passed', 'Failed', 'Pending'], default: 'Pending' }
+});
+
+const interviewRecord = new mongoose.Schema({
   companyName: { type: String, required: true },
-  interviewDate: { type: Date, required: true },
-  remark: { type: String, default: "" },
-  result: {
+  jobProfile: { type: String, required: true },
+  location: { type: String },
+  status: {
     type: String,
-    enum: ['Selected', 'Rejected', 'Pending'],
-    default: 'Pending'
+    enum: ['Scheduled', 'Rescheduled', 'Ongoing', 'Selected', 'RejectedByStudent', 'RejectedByCompany'],
+    default: 'Scheduled'
   },
-  location: { type: String, required: true },
-  jobProfile: { type: String, required: true }
+  scheduleDate: { type: Date, required: true },
+  rescheduleDate: { type: Date },
+  rounds: { type: [interviewRoundSchema], default: [] }, // Multiple rounds tracking
+  offerLetterURL: { type: String, default: "" },
+  applicationLetterURL: { type: String, default: "" },
+  internshipToJobUpdate: {
+    isIntern: { type: Boolean, default: false },
+    internshipEndDate:{ type: String, default: "" }, 
+    updatedJobProfile:  { type: String, default: "" }
+  }
 });
 
 const permissionSchema = new mongoose.Schema({
@@ -80,8 +100,9 @@ const AdmittedStudentSchema = new mongoose.Schema({
   percent12: { type: String },
   percent10: { type: String },
   year: { type: String, required: true, default: "first" },
-
+  
   // 📚 Academic & Activity
+  currentLevel: { type: String, default: "1A" }, // e.g., "Level 1
   level: { type: [levelSchema], default: [] },
 
   techno: { type: String, default: "" },
@@ -91,7 +112,7 @@ const AdmittedStudentSchema = new mongoose.Schema({
   placedInfo: { type: placedInfoSchema, default: null },
 
   // 🗓️ Interviews
-  interviewRecord: { type: [interviewRecordSchema], default: [] },
+  PlacementinterviewRecord: { type: [interviewRecord], default: [] },
 
   // Permission
   permissionDetails: { type: permissionSchema, default: null },

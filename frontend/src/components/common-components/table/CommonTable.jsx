@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 
 const CommonTable = ({
   columns,
@@ -13,10 +13,11 @@ const CommonTable = ({
   extraColumn,
   currentPage: parentPage,
   onPageChange,
+  onRowClick
 }) => {
   const [internalPage, setInternalPage] = useState(1);
   const scrollRef = useRef(null);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const currentPage = parentPage ?? internalPage;
   const setCurrentPage = onPageChange ?? setInternalPage;
@@ -70,13 +71,13 @@ const CommonTable = ({
     );
   };
 
-
+  // Scroll to top when page changes or search term changes
   useEffect(() => {
     scrollRef.current?.scrollTo({
-      top: scrollRef.current.scrollHeight,
+      top: 0,
       behavior: "smooth",
     });
-  }, [paginatedData]);
+  }, [currentPage, searchTerm]);
 
   return (
     <div className="w-full py-3">
@@ -107,8 +108,8 @@ const CommonTable = ({
               <tbody>
                 {paginatedData.map((row, rowIndex) => (
                   <tr key={rowIndex}
-                    className="hover:bg-gray-100 text-md border-b border-gray-200 transition cursor-pointer"
-                    onClick={() => navigate(`/admission/edit/${row._id}`)} // ⬅️ Navigation trigger
+                    className={`hover:bg-gray-100 text-md transition cursor-pointer border-b border-dashed border-gray-300`}
+                    onClick={() => onRowClick(row)} // ⬅️ Navigation trigger
                   >
                     <td className="px-4 py-3"
                       onClick={(e) => e.stopPropagation()} //Stop row click when clicking checkbox
@@ -142,8 +143,8 @@ const CommonTable = ({
                     ))}
                     {editable && actionButton && (
                       <td
-                          className="px-4 py-3 text-start"
-                          onClick={(e) => e.stopPropagation()} //prevent row click from firing
+                        className="px-4 py-3 text-start"
+                        onClick={(e) => e.stopPropagation()} //prevent row click from firing
                       >
                         <div className="inline-block hover:shadow-md transition cursor-pointer">
                           {actionButton(row)}

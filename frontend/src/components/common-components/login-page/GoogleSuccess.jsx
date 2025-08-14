@@ -9,20 +9,18 @@ const GoogleSuccess = () => {
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const token = queryParams.get("token");
-    const refreshToken = queryParams.get("refreshToken");
+    // const refreshToken = queryParams.get("refreshToken");
     const userId = queryParams.get("userId");
     const name = queryParams.get("name");
     const role = queryParams.get("role");
     const email = queryParams.get("email");
 
-    if (token && refreshToken && userId) {
-      // ✅ Encrypt tokens
+    if (token && userId) {
+      // ✅ Encrypt token
       const encryptedToken = CryptoJS.AES.encrypt(token, secretKey).toString();
-      const encryptedRefreshToken = CryptoJS.AES.encrypt(refreshToken, secretKey).toString();
 
-      // ✅ Save encrypted tokens
+      // ✅ Save encrypted token
       localStorage.setItem("token", encryptedToken);
-      localStorage.setItem("refreshToken", encryptedRefreshToken);
 
       // ✅ Save user as object
       const user = {

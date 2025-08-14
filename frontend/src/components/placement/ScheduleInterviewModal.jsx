@@ -63,14 +63,14 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId }) => {
                         placeholder="Company Name"
                         onChange={formik.handleChange}
                         value={formik.values.companyName}
-                        className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                        className="w-full h-12 border-2 border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:border-black transition-all duration-200"
                     />
                     <input
                         type="date"
                         name="interviewDate"
                         onChange={formik.handleChange}
                         value={formik.values.interviewDate}
-                        className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                        className="w-full h-12 border-2 border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:border-black transition-all duration-200"
                     />
                     {/* <input
                         type="text"
@@ -96,7 +96,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId }) => {
                         placeholder="Location"
                         onChange={formik.handleChange}
                         value={formik.values.location}
-                        className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                        className="w-full h-12 border-2 border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:border-black transition-all duration-200"
                     />
                     <input
                         type="text"
@@ -104,7 +104,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId }) => {
                         placeholder="Job Profile"
                         onChange={formik.handleChange}
                         value={formik.values.jobProfile}
-                        className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                        className="w-full h-12 border-2 border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:border-black transition-all duration-200"
                     />
 
                     <div className="flex justify-end gap-3 pt-2">

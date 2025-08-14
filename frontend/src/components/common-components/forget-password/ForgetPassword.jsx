@@ -50,7 +50,7 @@ export default function ForgetPassword() {
             )}
             <button
               type="submit"
-              className="w-full bg-orange-500 text-white py-3 rounded-full mt-2 hover:bg-orange-600 transition"
+              className="w-full bg-brandYellow text-white py-3 rounded-full mt-2 hover:bg-orange-600 transition"
               disabled={isLoading}
             >
               {isLoading ? "Sending..." : "Get Link"}
@@ -99,7 +99,7 @@ export default function ForgetPassword() {
 //               <button
 //                 onClick={navigate("/confirm-password")}
 //                 type="submit"
-//                 className="w-full bg-orange-500 text-white py-3 rounded-full mt-4 hover:bg-orange-600 transition"
+//                 className="w-full bg-brandYellow text-white py-3 rounded-full mt-4 hover:bg-orange-600 transition"
 //               >
 //                 Get Link
 //               </button>

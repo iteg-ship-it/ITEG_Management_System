@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { FiSettings, FiLogOut } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import profileImg from "../../../assets/images/profile-img.png";
+import Loader from "../loader/Loader";
 // import backIcon from "../../../assets/icons/back-icon.png";
 import { useLogoutMutation } from "../../../redux/api/authApi";
 import { toast } from "react-toastify";
@@ -11,6 +12,7 @@ import SettingsModal from "./SettingModal";
 const UserProfile = () => {
   const [open, setOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -18,6 +20,7 @@ const UserProfile = () => {
   const [logout] = useLogoutMutation();
   const handleLogout = async () => {
     try {
+      setIsLoggingOut(true);
       const userId = user?.id || user?._id;
       console.log("🔑 Initiating logout for user:", userId);
       const res = await logout({ id: userId }).unwrap();
@@ -29,6 +32,7 @@ const UserProfile = () => {
     } catch (err) {
       console.error("❌ Logout failed:", err?.data || err);
       toast.error(err?.data?.message || "Logout failed");
+      setIsLoggingOut(false);
     }
   };
 
@@ -44,6 +48,7 @@ const UserProfile = () => {
 
   return (
     <div className="relative w-full p-2 mb-2">
+      {isLoggingOut && <Loader />}
       <div className="relative" ref={dropdownRef}>
         <img
           src={user?.avatar || profileImg}
@@ -70,10 +75,20 @@ const UserProfile = () => {
             </button>
             <button
               onClick={handleLogout}
+              disabled={isLoggingOut}
               className="flex items-center w-full px-4 py-3 hover:bg-gray-100 text-sm"
             >
-              <FiLogOut className="mr-2" />
-              Logout
+              {isLoggingOut ? (
+                <>
+                  <FiLogOut className="mr-2" />
+                  Logging out...
+                </>
+              ) : (
+                <>
+                  <FiLogOut className="mr-2" />
+                  Logout
+                </>
+              )}
             </button>
           </div>
         )}

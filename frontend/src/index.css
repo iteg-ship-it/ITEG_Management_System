@@ -5,18 +5,19 @@
 :root {
   --background: #f2f7fc;
   --primary: #FDA92D;
-  --primary-light: #FED680;
-  --primary-dark: #B66816;
+  --primary-light: #f7d897;
+  --primary-dark: #FDA92D;
+  --primary-darker: #FFAB00;
   --secondary: #8E33FF;
   --secondary-light: #C684FF;
   --secondary-dark: #5119B7;
   --success: #22C55E;
   --success-light: #77ED8B;
   --success-dark: #118D57;
-  --warning: #FFAB00;
+  --warning: #FDA92D;
   --warning-light: #FFD666;
-  --warning-dark: #B76E00;
-  --error: #FF5630;
+  --warning-dark: #FDA92D;
+  --error: #FDA92D;
   --error-light: #FFCEC3;
   --error-dark: #B71D18;
   --info: #00B8D9;
@@ -31,7 +32,7 @@
  --text-color: #1C252E;
 }
 *{
-  font-family: poppins;
+  font-family: 'Inter', sans-serif;
 }
 /* Add to index.css or global.css */
 
@@ -57,8 +58,24 @@
   @apply border p-2 rounded-md w-full;
 }
 
-input {
-  @apply border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500;
+.field-standard {
+  @apply h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-black transition-all duration-200;
+}
+
+.field-standard:disabled {
+  @apply bg-gray-100 cursor-not-allowed;
+}
+
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="tel"], input[type="url"], input[type="date"], input[type="file"] {
+  @apply h-12 border-2 border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-black transition-all duration-200;
+}
+
+select:not([multiple]) {
+  @apply h-12 border-2 border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-black transition-all duration-200 bg-white;
+}
+
+textarea {
+  @apply border-2 border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-black transition-all duration-200;
 }
 
 @layer utilities {

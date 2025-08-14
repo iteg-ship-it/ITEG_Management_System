@@ -1,31 +1,34 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Pagination from "../common-components/pagination/Pagination";
 import {
   useAdmitedStudentsQuery,
-  // useGetAllStudentsByLevelQuery,
-  // useGetLevelNumberQuery
 } from "../../redux/api/authApi";
+import Loader from "../common-components/loader/Loader";
 import CommonTable from "../common-components/table/CommonTable";
-import edit from "../../assets/icons/edit-fill-icon.png";
-import interview from "../../assets/icons/interview-icon.png";
+// import edit from "../../assets/icons/edit-fill-icon.png";
+// import interview from "../../assets/icons/interview-icon.png";
 import CreateInterviewModal from "./CreateInterviewModal";
 
 const StudentDetailTable = () => {
   const { data = [], isLoading, refetch } = useAdmitedStudentsQuery();
   const location = useLocation();
-  const selectedLevel = location.state?.level || null;
-  // console.log(" StudentDetailTable ~ selectedLevel:", selectedLevel);
-  // const { data = [], isLoading, refetch } = useGetLevelNumberQuery(selectedLevel);
+  const selectedLevel = location.state?.level || "1A"; // Default to 1A if no level is selected
   const navigate = useNavigate();
-  console.log(" StudentDetailTable ~ data:", data);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTracks, setSelectedTracks] = useState([]);
   const [selectedResults, setSelectedResults] = useState([]);
-  const [selectedPercentages, setSelectedPercentages] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState(null);
+  const [activeTab, setActiveTab] = useState(`Level ${selectedLevel}`);
+
+  const levelTabs = ["Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C"];
+
+  // Update active tab when selectedLevel changes
+  useEffect(() => {
+    setActiveTab(`Level ${selectedLevel}`);
+  }, [selectedLevel]);
 
   const toTitleCase = (str) =>
     str
@@ -34,78 +37,98 @@ const StudentDetailTable = () => {
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
 
+  // Count students per level
+  // const studentCounts = useMemo(() => {
+  //   const counts = {};
+  //   data.forEach((student) => {
+  //     const passedLevels = (student.level || []).filter(
+  //       (lvl) => lvl.result === "Pass"
+  //     );
+  //     const latestLevel =
+  //       passedLevels.length > 0
+  //         ? passedLevels[passedLevels.length - 1].levelNo
+  //         : "1A";
+  //     counts[latestLevel] = (counts[latestLevel] || 0) + 1;
+  //   });
+  //   return counts;
+  // }, [data]);
+
+  // Dynamic track options from data
+  const dynamicTrackOptions = useMemo(() => {
+    return [...new Set(data.map((s) => toTitleCase(s.track || "")))].filter(Boolean);
+  }, [data]);
+
   const filtersConfig = [
     {
       title: "Track",
-      options: ["Harda", "Kannod", "Khategaon", "Nemawar"],
+      options: dynamicTrackOptions,
       selected: selectedTracks,
       setter: setSelectedTracks,
     },
     {
       title: "Result",
-      options: ["Pass", "Fail"],
+      options: ["Pass", "Fail", "Pending"],
       selected: selectedResults,
       setter: setSelectedResults,
     },
-    {
-      title: "Interview",
-      options: ["50-60%", "60-70%", "70-80%", "80-90%", "90-100%"],
-      selected: selectedPercentages,
-      setter: setSelectedPercentages,
-    },
   ];
 
-  const enhancedData = data.map((student) => {
-    const passedLevels = (student.level || []).filter(
-      (lvl) => lvl.result === "Pass"
-    );
-    const latestPassedLevel =
-      passedLevels.length > 0
-        ? passedLevels[passedLevels.length - 1].levelNo
-        : "1A";
+  // Use regular admitted students data
+  const currentData = data;
+  const currentLoading = isLoading;
+
+  const enhancedData = currentData.map((student) => {
+    // Get all level attempts grouped by levelNo
+    const levelAttempts = {};
+    (student.level || []).forEach(lvl => {
+      if (!levelAttempts[lvl.levelNo]) {
+        levelAttempts[lvl.levelNo] = [];
+      }
+      levelAttempts[lvl.levelNo].push(lvl);
+    });
+
+    // Check if the student has passed their current level
+    const currentLevel = student.currentLevel || "1A";
+    const currentLevelAttempts = levelAttempts[currentLevel] || [];
+
+    // Check if any attempt for the current level has a Pass result
+    const hasPassedCurrentLevel = currentLevelAttempts.some(lvl => lvl.result === "Pass");
 
     return {
       ...student,
-      latestLevel: latestPassedLevel,
+      latestLevel: currentLevel,
+      hasPassedCurrentLevel,
+      levelAttempts
     };
   });
 
   const filteredData = enhancedData.filter((student) => {
-    const matchesSearch =
-      searchTerm === "" ||
-      student.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    // Search term filter
+    const searchableValues = Object.values(student)
+      .map((val) => String(val ?? "").toLowerCase())
+      .join(" ");
+    if (!searchableValues.includes(searchTerm.toLowerCase())) return false;
 
-    const matchesTrack =
-      selectedTracks.length === 0 ||
-      selectedTracks.some(
-        (track) => track.toLowerCase() === (student.track || "").toLowerCase()
-      );
+    // Track filter
+    const track = toTitleCase(student.track || "");
+    const matchesTrack = selectedTracks.length === 0 || selectedTracks.includes(track);
 
-    const matchesResult =
-      selectedResults.length === 0 || selectedResults.includes(student.result);
+    // Result filter
+    const matchesResult = selectedResults.length === 0 ||
+      selectedResults.includes(student.result || "Pending");
 
-    const matchesPercentage =
-      selectedPercentages.length === 0 ||
-      selectedPercentages.some((range) => {
-        const [min, max] = range.split("-").map((v) => parseFloat(v));
-        return (
-          student.interviewPercentage >= min &&
-          student.interviewPercentage <= max
-        );
-      });
+    // Level filter - only show students whose current level matches the selected tab
+    const matchesLevel = student.currentLevel === selectedLevel;
 
-    const matchesLevel =
-      !selectedLevel || student.latestLevel === selectedLevel;
-
-    return (
-      matchesSearch &&
-      matchesTrack &&
-      matchesResult &&
-      matchesPercentage &&
-      matchesLevel
-    );
+    return matchesTrack && matchesResult && matchesLevel;
   });
+
+  const handleTabClick = (tab) => {
+    setActiveTab(tab);
+    // Extract level code from tab name (e.g., "Level 1A" -> "1A")
+    const levelCode = tab.replace("Level ", "");
+    navigate(`/student-detail-table`, { state: { level: levelCode } });
+  };
 
   const columns = [
     {
@@ -113,69 +136,117 @@ const StudentDetailTable = () => {
       label: "Full Name",
       render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
     },
-    { key: "fatherName", label: "Father's Name" },
+    {
+      key: "fatherName",
+      label: "Father's Name",
+      render: (row) => toTitleCase(row.fatherName || ""),
+    },
     { key: "studentMobile", label: "Mobile" },
-    { key: "course", label: "Course" },
-    { key: "latestLevel", label: "Level" },
-    { key: "village", label: "Village" },
+    {
+      key: "course",
+      label: "Course",
+      render: (row) => toTitleCase(row.course || ""),
+    },
+    {
+      key: "track",
+      label: "Bus Route",
+      render: (row) => toTitleCase(row.track || ""),
+    },
+    {
+      key: "attempts",
+      label: "Attempts",
+      render: (row) => {
+        // Get attempts for the current level from our pre-processed data
+        const currentLevelAttempts = row.levelAttempts?.[selectedLevel] || [];
+        return currentLevelAttempts.length || 0;
+      }
+    },
   ];
 
   const actionButton = (student) => (
-    <>
+    <div className="flex space-x-2">
       <button
-        onClick={() => {
+        onClick={(e) => {
+          e.stopPropagation();
           setSelectedStudentId(student._id);
+          // Store student data in localStorage for the modal to access
+          const students = JSON.parse(localStorage.getItem("students") || "[]");
+          if (!students.some(s => s._id === student._id)) {
+            localStorage.setItem("students", JSON.stringify([...students, student]));
+          }
           setShowModal(true);
         }}
-        className="px-3 py-1 rounded"
+        className="bg-orange-500 text-md text-white px-3 py-1 rounded"
       >
-        <img src={interview} alt="interview-icon" className="w-5 h-5" />
+        Take Interview
       </button>
-      <button
-        onClick={() =>
-          navigate(`/student-profile/${student._id}`, { state: { student } })
-        }
-        className="px-3 py-1 rounded"
-      >
-        <img src={edit} alt="edit-icon" className="w-5 h-5" />
-      </button>
-    </>
+    </div>
   );
+
+  // Show loader when data is loading
+  if (currentLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <>
-      {selectedLevel && (
-        <div>
-          <h1 className="text-2xl py-1 font-semibold">Students Record</h1>
+      <h1 className="text-2xl py-4 font-bold">Admitted Student WorkFlow</h1>
 
-         <div className="px-10 pb-5 text-md text-gray-700">
-          Showing students of <strong>Level {selectedLevel}</strong>
+      <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
+        <div className="px-6">
+          {/* Level Tabs */}
+          <div className="flex gap-6 mt-4 overflow-x-auto">
+            {levelTabs.map((tab) => (
+              <div key={tab}>
+                <p
+                  onClick={() => handleTabClick(tab)}
+                  className={`cursor-pointer text-md text-[var(--text-color)] pb-2 border-b-2 whitespace-nowrap ${activeTab === tab
+                      ? "border-[var(--text-color)] font-semibold"
+                      : "border-gray-200"
+                    }`}
+                >
+                  {tab}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex justify-between items-center flex-wrap gap-4 mt-4">
+            <Pagination
+              rowsPerPage={rowsPerPage}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              filtersConfig={filtersConfig}
+              filteredData={filteredData}
+            />
+          </div>
         </div>
-     </div>
-      )}
-      <div className="border bg-white shadow-sm rounded-lg px-5">
-        <Pagination
+
+        <CommonTable
+          data={filteredData}
+          columns={columns}
+          editable={true}
+          pagination={true}
           rowsPerPage={rowsPerPage}
-          setRowsPerPage={setRowsPerPage}
           searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          filtersConfig={filtersConfig}
+          actionButton={selectedLevel === "permission" ? null : actionButton}
+          onRowClick={(row) => {
+            // Set the source section to 'admitted' before navigating
+            localStorage.setItem("lastSection", "admitted");
+            navigate(`/student-profile/${row._id}`, { state: { student: row } });
+          }}
         />
       </div>
-      <CommonTable
-        columns={columns}
-        data={filteredData}
-        editable={true}
-        pagination={true}
-        rowsPerPage={rowsPerPage}
-        isLoading={isLoading}
-        actionButton={actionButton}
-      />
+
       <CreateInterviewModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         studentId={selectedStudentId}
-        refetchStudents={refetch} // 🔁 passed here
+        refetchStudents={refetch}
       />
     </>
   );
