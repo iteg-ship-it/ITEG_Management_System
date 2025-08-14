@@ -1,7 +1,7 @@
 import { Formik, Form } from "formik";
 
 import TextInput from "../common-feild/TextInput";
-import SelectInput from "../common-feild/SelectInput";
+import CustomDropdown from "../common-feild/CustomDropdown";
 import { signupValidationSchema } from "../../../validationSchema";
 import RadioGroup from "../common-feild/RadioGroup";
 
@@ -60,7 +60,7 @@ const SignupPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <TextInput label="First Name" name="firstName" />
             <TextInput label="Last Name" name="lastName" />
-            <SelectInput
+            <CustomDropdown
               label="Gender"
               name="gender"
               options={[
@@ -78,7 +78,7 @@ const SignupPage = () => {
               name="address"
               className="col-span-1 md:col-span-2"
             />
-            <SelectInput
+            <CustomDropdown
               label="Select Track"
               name="track"
               options={[

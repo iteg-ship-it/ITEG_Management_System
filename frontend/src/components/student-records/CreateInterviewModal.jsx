@@ -7,7 +7,7 @@ import * as Yup from 'yup';
 // import CustomDatePicker from './CustomDatePicker';
 import DatePickerInput from "../datepickerInput/DatePickerInput";
 import TextInput from '../common-components/common-feild/TextInput';
-import SelectInput from '../common-components/common-feild/SelectInput';
+import CustomDropdown from '../common-components/common-feild/CustomDropdown';
 import { toast } from 'react-toastify';
 
 
@@ -186,7 +186,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                             <div className="col-span-2 text-sm font-semibold text-gray-600 mt-4">Summary & Decision</div>
                             
                             <div className="col-span-2 md:col-span-1">
-                                <SelectInput 
+                                <CustomDropdown 
                                     label="Result" 
                                     name="result"
                                     options={[

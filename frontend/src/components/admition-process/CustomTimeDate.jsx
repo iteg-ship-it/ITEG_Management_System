@@ -10,7 +10,7 @@ import * as Yup from "yup";
 import { toast } from "react-toastify";
 
 import TextInput from "../common-components/common-feild/TextInput";
-import SelectInput from "../common-components/common-feild/SelectInput";
+import CustomDropdown from "../common-components/common-feild/CustomDropdown";
 import DatePickerInput from "../datepickerInput/DatePickerInput";
 import Loader from "../common-components/loader/Loader";
 
@@ -202,17 +202,17 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
               <div className="col-span-2 text-sm font-semibold text-gray-600">
                 Technical Knowledge & Aptitude
               </div>
-              <SelectInput
+              <CustomDropdown
                 name="maths"
                 label="Mathematics Marks"
                 options={fivePointOptions}
               />
-              <SelectInput
+              <CustomDropdown
                 name="subjectKnowlage"
                 label="Subjective Knowledge"
                 options={fivePointOptions}
               />
-              <SelectInput
+              <CustomDropdown
                 name="reasoning"
                 label="Reasoning Marks"
                 options={fivePointOptions}
@@ -221,22 +221,22 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
               <div className="col-span-2 text-sm font-semibold text-gray-600">
                 Candidate Behaviour & Soft Skill
               </div>
-              <SelectInput
+              <CustomDropdown
                 name="goal"
                 label="Goal Clarity"
                 options={behaviorOptions}
               />
-              <SelectInput
+              <CustomDropdown
                 name="sincerity"
                 label="Sincerity"
                 options={behaviorOptions}
               />
-              <SelectInput
+              <CustomDropdown
                 name="communication"
                 label="Communication Level"
                 options={behaviorOptions}
               />
-              <SelectInput
+              <CustomDropdown
                 name="confidence"
                 label="Confidence Level"
                 options={behaviorOptions}
@@ -250,7 +250,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
 
               {/* Assignment Marks Field + Conditional Message */}
               <div>
-                <SelectInput
+                <CustomDropdown
                   name="assignmentMarks"
                   label="Assignment Marks"
                   options={
@@ -277,7 +277,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
                 type="number"
                 disabled
               />
-              <SelectInput
+              <CustomDropdown
                 name="result"
                 label="Result"
                 options={[

@@ -467,6 +467,16 @@ const AdmissionDashboard = () => {
           stroke="#6B7280"
           fontSize={12}
         />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: 'white',
+            border: '1px solid #E5E7EB',
+            borderRadius: '8px',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+          }}
+          labelStyle={{ color: '#374151', fontWeight: 'bold' }}
+          itemStyle={{ color: '#00FF00' }}
+        />
         <Area
           type="monotone"
           dataKey="value"

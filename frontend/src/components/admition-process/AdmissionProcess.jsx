@@ -10,7 +10,7 @@ import Loader from "../common-components/loader/Loader";
 import * as Yup from "yup";
 import { Formik, Form } from "formik";
 import InputField from "../common-components/common-feild/InputField";
-import SelectInput from "../common-components/common-feild/SelectInput";
+import CustomDropdown from "../common-components/common-feild/CustomDropdown";
 import {
   useInterviewCreateMutation,
 } from "../../redux/api/authApi";
@@ -696,14 +696,14 @@ const StudentList = () => {
             >
               {() => (
                 <Form className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <SelectInput
+                  <CustomDropdown
                     label="Round"
                     name="round"
                     disabled
                     options={[{ value: "Second", label: "Final Round" }]}
                   />
                   <InputField label="Remark" name="remark" />
-                  <SelectInput
+                  <CustomDropdown
                     label="Result"
                     name="result"
                     options={[
