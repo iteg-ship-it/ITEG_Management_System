@@ -1,24 +1,43 @@
 /* eslint-disable react/prop-types */
 import { useState } from "react";
 import { useField } from "formik";
-import { Eye, EyeOff } from "lucide-react"; // Make sure lucide-react is installed
+import { Eye, EyeOff } from "lucide-react";
 
 const PasswordField = ({ name, password }) => {
   const [field, meta] = useField(name);
   const [showPassword, setShowPassword] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+
+  const hasValue = field.value && field.value.length > 0;
 
   return (
-    <div className="relative mb-2">
+    <div className="relative w-full">
       <input
         type={showPassword ? "text" : "password"}
         {...field}
-        placeholder={password}
-        className="w-full p-3 border rounded-2xl focus:outline-none bg-gray-100 focus:ring-2 pr-10"
+        onFocus={() => setIsFocused(true)}
+        onBlur={(e) => {
+          setIsFocused(false);
+          field.onBlur(e);
+        }}
+        placeholder=" "
+        className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 pr-10 focus:outline-none focus:border-[#FDA92D] transition-all duration-200"
       />
+      
+      <label
+        className={`
+          absolute left-3 bg-white px-1 transition-all duration-200
+          pointer-events-none
+          ${isFocused || hasValue
+            ? "text-xs -top-2 text-black"
+            : "text-gray-500 top-3"}
+        `}
+      >
+        {password}
+      </label>
 
-      {/* Eye toggle icon */}
       <div
-        className="absolute top-1/2 right-4 transform -translate-y-1/2 text-gray-500 cursor-pointer"
+        className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500 cursor-pointer"
         onClick={() => setShowPassword(!showPassword)}
       >
         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}

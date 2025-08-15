@@ -29,7 +29,7 @@ const SessionTimeoutModal = ({ isOpen, onContinue, onLogout }) => {
           </button>
           <button
             onClick={onContinue}
-            className="bg-brandYellow text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition-colors"
+            className="bg-[#FDA92D]  text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition-colors"
           >
             Continue Session
           </button>

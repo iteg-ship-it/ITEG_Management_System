@@ -209,7 +209,7 @@ const StudentDetailTable = () => {
           }
           setShowModal(true);
         }}
-        className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded"
+        className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
       >
         Take Interview
       </button>
@@ -251,7 +251,7 @@ const StudentDetailTable = () => {
                       : ""
                   }`}
                 >
-                  {tab === "Level's Cleared" ? "🎉 " + tab : tab}
+                  {tab === "Level's Cleared" ? "" + tab : tab}
                 </p>
               </div>
             ))}

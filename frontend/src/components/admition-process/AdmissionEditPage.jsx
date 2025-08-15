@@ -8,7 +8,7 @@ import {
   useInterviewCreateMutation,
 } from "../../redux/api/authApi";
 import InputField from "../common-components/common-feild/InputField";
-import SelectInput from "../common-components/common-feild/SelectInput";
+import CustomDropdown from "../common-components/common-feild/CustomDropdown";
 import { HiChevronUp, HiChevronDown} from "react-icons/hi";
 import Loader from "../common-components/loader/Loader";
 import * as Yup from "yup";
@@ -160,7 +160,7 @@ const AdmissionEditPage = () => {
                   onBlur={handleBlur}
                   disabled
                 />
-                <SelectInput
+                <CustomDropdown
                   name="gender"
                   label="Gender"
                   value={values.gender}
@@ -173,7 +173,7 @@ const AdmissionEditPage = () => {
                     { label: "Other", value: "other" },
                   ]}
                 />
-                <SelectInput
+                <CustomDropdown
                   name="track"
                   label="Track"
                   value={values.track}
@@ -245,7 +245,7 @@ const AdmissionEditPage = () => {
                 </h3>
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="px-4 py-2 bg-brandYellow text-white rounded-md hover:bg-orange-600 transition"
+                  className="px-4 py-2 bg-[#FDA92D]  text-white rounded-md hover:bg-orange-600 transition"
                 >
                   Add Interview
                 </button>
@@ -319,14 +319,14 @@ const AdmissionEditPage = () => {
             >
               {() => (
                 <Form className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <SelectInput
+                  <CustomDropdown
                     label="Round"
                     name="round"
                     disabled
                     options={[{ value: "Second", label: "Final Round" }]}
                   />
                   <InputField label="Remark" name="remark" />
-                  <SelectInput
+                  <CustomDropdown
                     label="Result"
                     name="result"
                     options={[
@@ -346,7 +346,7 @@ const AdmissionEditPage = () => {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="px-5 py-2 bg-brandYellow text-white rounded-md hover:bg-orange-600 transition disabled:opacity-50 flex items-center justify-center"
+                      className="px-5 py-2 bg-[#FDA92D]  text-white rounded-md hover:bg-orange-600 transition disabled:opacity-50 flex items-center justify-center"
                     >
                       {isSubmitting ? (
                         <>

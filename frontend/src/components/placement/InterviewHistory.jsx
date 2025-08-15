@@ -162,10 +162,13 @@ const InterviewHistory = () => {
                   <div className="flex justify-between items-center">
                     <div className="text-gray-800">
                       <h4 className="text-xl font-bold text-gray-900">{interview.companyName || "Company Name"}</h4>
-                      <p className="text-gray-600 text-sm font-medium">{interview.jobProfile || "Job Profile"}</p>
+                      <p className="text-gray-600 text-sm font-medium">{interview.positionOffered || interview.jobProfile || "Job Profile"}</p>
+                      <p className="text-gray-500 text-xs font-medium mt-1">
+                        Technology: <span className="text-gray-700 font-semibold">({interview.requiredTechnology || "Java"})</span>
+                      </p>
                     </div>
                     <div className="text-right">
-                      <div className="w-12 h-12 bg-brandYellow text-white hover:bg-orange-600 transition rounded-full flex items-center justify-center shadow-md">
+                      <div className="w-12 h-12 bg-[#FDA92D]  text-white hover:bg-orange-600 transition rounded-full flex items-center justify-center shadow-md">
                         <span className="text-white font-bold text-sm">{index + 1}</span>
                       </div>
                       <div className="text-xs text-gray-500 mt-1 font-medium">Interview</div>
@@ -175,10 +178,10 @@ const InterviewHistory = () => {
 
                 {/* Card Body */}
                 <div className="p-6 bg-white">
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="grid md:grid-cols-2 gap-6 md:divide-x md:divide-gray-200">
                     
                     {/* Left Column */}
-                    <div className="space-y-4">
+                    <div className="space-y-4 md:pr-6">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                           <span className="text-blue-600 text-lg">📅</span>
@@ -208,7 +211,7 @@ const InterviewHistory = () => {
                     </div>
 
                     {/* Right Column */}
-                    <div className="space-y-4">
+                    <div className="space-y-4 md:pl-6">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
                           <span className="text-purple-600 text-lg">🎯</span>
@@ -243,7 +246,7 @@ const InterviewHistory = () => {
                   </div>
                   <button
                     onClick={() => handleUpdateClick(interview)}
-                    className="bg-brandYellow text-white px-4 py-2 rounded-md hover:bg-orange-600 transition"
+                    className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-orange-600 transition"
                   >
                     Update Interview
                   </button>
@@ -294,7 +297,7 @@ const InterviewHistory = () => {
                 <button
                   onClick={handleUpdateSubmit}
                   disabled={isUpdating}
-                  className="px-4 py-2 bg-brandYellow text-white rounded-md hover:bg-orange-600 transition disabled:opacity-50"
+                  className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
                 >
                   {isUpdating ? "Submitting..." : "Save"}
                 </button>

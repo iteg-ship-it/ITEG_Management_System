@@ -1,7 +1,7 @@
 import { Formik, Form } from "formik";
 
 import TextInput from "../common-feild/TextInput";
-import SelectInput from "../common-feild/SelectInput";
+import CustomDropdown from "../common-feild/CustomDropdown";
 import { signupValidationSchema } from "../../../validationSchema";
 import RadioGroup from "../common-feild/RadioGroup";
 
@@ -60,7 +60,7 @@ const SignupPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <TextInput label="First Name" name="firstName" />
             <TextInput label="Last Name" name="lastName" />
-            <SelectInput
+            <CustomDropdown
               label="Gender"
               name="gender"
               options={[
@@ -78,7 +78,7 @@ const SignupPage = () => {
               name="address"
               className="col-span-1 md:col-span-2"
             />
-            <SelectInput
+            <CustomDropdown
               label="Select Track"
               name="track"
               options={[
@@ -115,15 +115,7 @@ const SignupPage = () => {
           <div className="mt-6 flex justify-end">
             <button
               type="submit"
-              className="w-40 bg-orange-600 font-bold text-xl text-white py-3 px-4 rounded-full 
-                   relative overflow-hidden transition-all duration-300 ease-in-out
-                   hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-700
-                   hover:scale-105 hover:shadow-[0_0_15px_rgba(255,127,0,0.6)]
-                   active:scale-95
-                   before:absolute before:top-0 before:left-0 before:w-full before:h-full 
-                   before:bg-white/10 before:scale-0 before:rounded-full
-                   hover:before:scale-150 hover:before:opacity-0
-                   before:transition-all before:duration-500"
+              className="w-40 bg-[#FDA92D]  font-bold text-xl text-white py-3 px-4 rounded-full hover:bg-[#FED680] active:bg-[#B66816] transition relative"
             >
               Submit
             </button>

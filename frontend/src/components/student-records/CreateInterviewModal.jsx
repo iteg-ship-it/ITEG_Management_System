@@ -7,7 +7,7 @@ import * as Yup from 'yup';
 // import CustomDatePicker from './CustomDatePicker';
 import DatePickerInput from "../datepickerInput/DatePickerInput";
 import TextInput from '../common-components/common-feild/TextInput';
-import SelectInput from '../common-components/common-feild/SelectInput';
+import CustomDropdown from '../common-components/common-feild/CustomDropdown';
 import { toast } from 'react-toastify';
 
 
@@ -118,11 +118,11 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                                         type="text" 
                                         value={studentName} 
                                         disabled 
-                                        className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-black focus:ring-0 bg-gray-100 cursor-not-allowed transition-all duration-200" 
+                                        className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 bg-gray-100 cursor-not-allowed transition-all duration-200" 
                                         placeholder=" "
                                     />
                                     <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
-                                        Student Name <span className="text-black">*</span>
+                                        Student Name
                                     </label>
                                 </div>
                             </div>
@@ -186,7 +186,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                             <div className="col-span-2 text-sm font-semibold text-gray-600 mt-4">Summary & Decision</div>
                             
                             <div className="col-span-2 md:col-span-1">
-                                <SelectInput 
+                                <CustomDropdown 
                                     label="Result" 
                                     name="result"
                                     options={[
@@ -215,7 +215,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                                 <button 
                                     type="submit" 
                                     disabled={isLoading} 
-                                    className="bg-brandYellow text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition disabled:opacity-50"
+                                    className="bg-[#FDA92D]  text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition disabled:opacity-50"
                                 >
                                     {isLoading ? "Submitting..." : "Submit"}
                                 </button>
