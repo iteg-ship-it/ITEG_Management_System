@@ -294,6 +294,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
 };
 
 // Custom Date Picker Component with Time Selection
+// eslint-disable-next-line no-unused-vars
 const DatePickerComponent = ({ selectedDate, selectedTime, onDateTimeSelect, onClose }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
