@@ -62,7 +62,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
         // Map frontend fields to backend expected fields
         const interviewData = {
           companyName: values.companyName,
-          jobProfile: values.positionOffered, // Backend expects jobProfile
+          jobProfile: values.jobProfile, // Use correct field name
           scheduleDate: combinedDateTime || values.interviewDate, // Backend expects scheduleDate with time
           hrEmail: values.hrEmail,
           contactNumber: values.contactNumber,
@@ -156,10 +156,10 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
           <div className="relative">
             <input
               type="text"
-              name="positionOffered"
+              name="jobProfile"
               placeholder=" "
               onChange={formik.handleChange}
-              value={formik.values.positionOffered}
+              value={formik.values.jobProfile}
               className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer"
             />
             <label className="absolute left-3 top-3 text-gray-500 transition-all duration-200 peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black">
