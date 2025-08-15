@@ -20,7 +20,7 @@ const InterviewHistory = () => {
   // Find specific student from the list
   const students = data?.data || [];
   const studentData = students.find(student => student._id === id);
-  const interviews = studentData?.interviewRecord || [];
+  const interviews = studentData?.PlacementinterviewRecord || [];
   
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [selectedInterview, setSelectedInterview] = useState(null);

@@ -20,9 +20,8 @@ const toTitleCase = (str) =>
 const PlacementReadyStudents = () => {
   const navigate = useNavigate();
   const { data = {}, isLoading, refetch } = useGetReadyStudentsForPlacementQuery(undefined, {
-    refetchOnMountOrArgChange: 30,
+    refetchOnMountOrArgChange: true, // Always refetch on mount
     refetchOnFocus: false,
-    // Remove aggressive polling
   });
   const students = data?.data || [];
 
@@ -39,7 +38,7 @@ const PlacementReadyStudents = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [selectedRows, setSelectedRows] = useState([]);
 
-  const tabs = ["Qualified Students", "Ongoing Interviews", "Selected Student"];
+  const tabs = ["Qualified Students", "Ongoing Interviews", "Selected Student", "Placed Student"];
 
   const dynamicTrackOptions = useMemo(() => {
     return [...new Set(students.map((s) => toTitleCase(s.track || "")))].filter(Boolean);
@@ -82,19 +81,23 @@ const PlacementReadyStudents = () => {
     // 🌐 Tab-specific filtering
     if (activeTab === "Ongoing Interviews") {
       filtered = filtered.filter(
-        (s) => Array.isArray(s.interviewRecord) && s.interviewRecord.length > 0
+        (s) => Array.isArray(s.PlacementinterviewRecord) && s.PlacementinterviewRecord.length > 0
       );
     } else if (activeTab === "Qualified Students") {
       filtered = filtered.filter(
-        (s) => !s.interviewRecord || s.interviewRecord.length === 0
+        (s) => !s.PlacementinterviewRecord || s.PlacementinterviewRecord.length === 0
       );
     } else if (activeTab === "Selected Student") {
       filtered = filtered.filter(
         (s) =>
-          Array.isArray(s.interviewRecord) &&
-          s.interviewRecord.some(
-            (rec) => rec.result?.toLowerCase() === "selected"
+          Array.isArray(s.PlacementinterviewRecord) &&
+          s.PlacementinterviewRecord.some(
+            (rec) => rec.status?.toLowerCase() === "selected"
           )
+      );
+    } else if (activeTab === "Placed Student") {
+      filtered = filtered.filter(
+        (s) => s.placedInfo && s.placedInfo.companyName
       );
     }
 
@@ -134,8 +137,8 @@ const PlacementReadyStudents = () => {
 
   // Helper function to get selected interview details
   const getSelectedInterviewDetails = (student) => {
-    const selectedInterview = student.interviewRecord?.find(
-      (interview) => interview.result?.toLowerCase() === "selected"
+    const selectedInterview = student.PlacementinterviewRecord?.find(
+      (interview) => interview.status?.toLowerCase() === "selected"
     );
     return selectedInterview || {};
   };
@@ -205,6 +208,50 @@ const PlacementReadyStudents = () => {
     //   label: "Course",
     //   render: (row) => toTitleCase(row.course),
     // },
+  ] : activeTab === "Placed Student" ? [
+    {
+      key: "profile",
+      label: "Full Name",
+      render: (row) => (
+        <div className="flex items-center gap-2">
+          <img
+            src={row.image || profile}
+            alt="avatar"
+            className="w-9 h-9 rounded-full object-cover"
+          />
+          <div className="flex flex-col">
+            <span className="font-medium text-gray-800">{`${row.firstName} ${row.lastName}`}</span>
+            <span className="text-xs text-gray-500">{row.email}</span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "fatherName",
+      label: "Father Name",
+      render: (row) => toTitleCase(row.fatherName),
+    },
+    {
+      key: "studentMobile",
+      label: "Mobile no.",
+      align: "center",
+      render: (row) => `+91 ${row.studentMobile}`,
+    },
+    {
+      key: "companyName",
+      label: "Company",
+      render: (row) => toTitleCase(row.placedInfo?.companyName || "N/A"),
+    },
+    {
+      key: "jobProfile",
+      label: "Role",
+      render: (row) => toTitleCase(row.placedInfo?.jobProfile || "N/A"),
+    },
+    {
+      key: "salary",
+      label: "Salary",
+      render: (row) => row.placedInfo?.salary ? `₹${row.placedInfo.salary}` : "N/A",
+    },
   ] : [
     {
       key: "profile",
@@ -341,7 +388,7 @@ const PlacementReadyStudents = () => {
           pagination={true}
           rowsPerPage={rowsPerPage}
           searchTerm={searchTerm}
-          actionButton={activeTab !== "Selected Student" ? (student) => (
+          actionButton={activeTab !== "Selected Student" && activeTab !== "Placed Student" ? (student) => (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -365,7 +412,12 @@ const PlacementReadyStudents = () => {
             setSelectedStudent(null);
           }}
           studentId={selectedStudent?._id}
-          onSuccess={() => refetch()}
+          onSuccess={async () => {
+            // Force refetch with cache invalidation
+            await refetch();
+            // Small delay to ensure backend has processed the data
+            setTimeout(() => refetch(), 500);
+          }}
         />
       </div>
     </>
