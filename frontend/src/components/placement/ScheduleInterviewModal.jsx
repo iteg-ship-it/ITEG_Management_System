@@ -21,9 +21,9 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
     companyName: Yup.string().required("Required"),
     hrEmail: Yup.string().email("Invalid email").required("Required"),
     contactNumber: Yup.string().required("Required"),
-    positionOffered: Yup.string().required("Required"),
+    jobProfile: Yup.string().required("Required"),
     requiredTechnology: Yup.string().required("Required"),
-    interviewDate: Yup.string().required("Required"),
+    scheduleDate: Yup.string().required("Required"),
     location: Yup.string().required("Required"),
     jobType: Yup.string().required("Required"),
   });
@@ -33,9 +33,9 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
       companyName: "",
       hrEmail: "",
       contactNumber: "",
-      positionOffered: "",
+      jobProfile: "",
       requiredTechnology: "",
-      interviewDate: "",
+      scheduleDate: "",
       location: "",
       jobType: "Internship",
     },
@@ -118,10 +118,10 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
           />
           <input
             type="text"
-            name="positionOffered"
-            placeholder="Position Offered"
+            name="jobProfile"
+            placeholder="Job Profile"
             onChange={formik.handleChange}
-            value={formik.values.positionOffered}
+            value={formik.values.jobProfile}
             className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D]"
           />
 
@@ -167,9 +167,9 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
           {/* Interview Date & Time */}
           <input
             type="datetime-local"
-            name="interviewDate"
+            name="scheduleDate"
             onChange={formik.handleChange}
-            value={formik.values.interviewDate}
+            value={formik.values.scheduleDate}
             className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full"
           />
 
