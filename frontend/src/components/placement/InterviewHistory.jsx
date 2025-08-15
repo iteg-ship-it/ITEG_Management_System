@@ -26,6 +26,7 @@ const InterviewHistory = () => {
   const [selectedInterview, setSelectedInterview] = useState(null);
   const [remark, setRemark] = useState("");
   const [result, setResult] = useState("Pending");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
   const [updateInterviewRecord, { isLoading: isUpdating }] = useUpdatePlacedInfoMutation();
   
@@ -264,27 +265,66 @@ const InterviewHistory = () => {
             <Dialog.Title className="text-xl font-semibold text-gray-800">Update Interview</Dialog.Title>
 
             <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700">Remark</label>
+              <div className="relative w-full">
                 <textarea
                   value={remark}
                   onChange={(e) => setRemark(e.target.value)}
                   rows={3}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-brandYellow"
+                  placeholder=" "
+                  className="peer w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200"
                 />
+                <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${
+                  remark ? "text-xs -top-2 text-black" : "text-gray-500 top-3"
+                }`}>
+                  Remark
+                </label>
               </div>
 
-              <div>
-                <label className="text-sm font-medium text-gray-700">Result</label>
-                <select
-                  value={result}
-                  onChange={(e) => setResult(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-brandYellow"
+              <div className="relative w-full">
+                <button
+                  type="button"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-[#FDA92D] focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200"
                 >
-                  <option value="Pending">Pending</option>
-                  <option value="Selected">Selected</option>
-                  <option value="Rejected">Rejected</option>
-                </select>
+                  <span className={result ? 'text-gray-900' : 'text-gray-400'}>
+                    {result || 'Select'}
+                  </span>
+                  <span className={`ml-2 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}>
+                    ▼
+                  </span>
+                </button>
+                
+                <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${
+                  result ? "text-xs -top-2 text-black" : "text-gray-500 top-3"
+                }`}>
+                  Result
+                </label>
+
+                {isDropdownOpen && (
+                  <div
+                    className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden border"
+                    style={{
+                      background: `
+                        linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 20%),
+                        linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 20%),
+                        white
+                      `
+                    }}
+                  >
+                    {['Pending', 'Selected', 'Rejected'].map((option) => (
+                      <div
+                        key={option}
+                        onClick={() => {
+                          setResult(option);
+                          setIsDropdownOpen(false);
+                        }}
+                        className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left transition-colors duration-150"
+                      >
+                        {option}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end space-x-3 pt-4">
