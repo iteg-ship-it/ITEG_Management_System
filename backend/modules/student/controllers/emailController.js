@@ -109,7 +109,7 @@ const sendHTMLMail = async ({ to, studentName }) => {
     const mailOptions = {
       from: `"ITEG Management System" <${process.env.EMAIL_USER}>`,
       to,
-      subject: "Congratulations! You cleared Level 1C Interview",
+      subject: "🎉Congratulations! You cleared Level 1C Interview",
       html: htmlContent,
       attachments: [{
         path: logoPath,
