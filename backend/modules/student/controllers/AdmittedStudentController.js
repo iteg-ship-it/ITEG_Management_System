@@ -607,13 +607,13 @@ exports.updateInterviewRecord = async (req, res) => {
       return res.status(404).json({ success: false, message: "Student not found" });
     }
 
-    const interview = student.interviewRecord.id(interviewId);
+    const interview = student.PlacementinterviewRecord.id(interviewId);
     if (!interview) {
       return res.status(404).json({ success: false, message: "Interview record not found" });
     }
 
     if (remark !== undefined) interview.remark = remark;
-    if (result !== undefined) interview.result = result;
+    if (result !== undefined) interview.status = result; // Using status field as per schema
 
     await student.save();
 
@@ -864,12 +864,12 @@ exports.rescheduleInterview = async (req, res) => {
     const updatedStudent = await AdmittedStudent.findOneAndUpdate(
       {
         _id: studentId,
-        "interviewRecord._id": interviewId // ✅ match schema field
+        "PlacementinterviewRecord._id": interviewId // ✅ match schema field
       },
       {
         $set: {
-          "interviewRecord.$.rescheduleDate": new Date(newDate), // ✅ match schema field
-          "interviewRecord.$.status": "Rescheduled"
+          "PlacementinterviewRecord.$.rescheduleDate": new Date(newDate), // ✅ match schema field
+          "PlacementinterviewRecord.$.status": "Rescheduled"
         }
       },
       { new: true }

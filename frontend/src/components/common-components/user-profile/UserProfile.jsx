@@ -125,7 +125,7 @@ const UserProfile = () => {
               <button
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="px-4 py-2 bg-brandYellow text-white rounded-md hover:bg-orange-600 transition disabled:opacity-50"
+                className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
               >
                 {isLoggingOut ? "Logging out..." : "OK"}
               </button>

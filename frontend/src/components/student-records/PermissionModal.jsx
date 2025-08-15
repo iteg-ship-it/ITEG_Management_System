@@ -172,7 +172,7 @@ const PermissionModal = ({ isOpen, onClose, studentId }) => {
                         <button
                             onClick={handleSubmit}
                             disabled={isSubmitting}
-                            className="bg-brandYellow text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="bg-[#FDA92D]  text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isSubmitting ? "Submitting..." : "Submit"}
                         </button>

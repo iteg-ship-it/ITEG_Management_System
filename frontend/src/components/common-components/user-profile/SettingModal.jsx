@@ -73,38 +73,58 @@ const SettingsModal = ({ user, onClose }) => {
 
                 <div className="px-8 py-6 bg-white">
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            placeholder="Name"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl"
-                        />
-                        <input
-                            type="text"
-                            name="position"
-                            value={formData.position}
-                            onChange={handleChange}
-                            placeholder="Position"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl"
-                        />
-                        <input
-                            type="text"
-                            name="role"
-                            value={formData.role}
-                            onChange={handleChange}
-                            placeholder="Role"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl"
-                        />
-                        <input
-                            type="text"
-                            name="department"
-                            value={formData.department}
-                            onChange={handleChange}
-                            placeholder="Department"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl"
-                        />
+                        <div className="relative">
+                            <input
+                                type="text"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                placeholder=" "
+                                className="peer h-12 w-full border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] transition-all duration-200"
+                            />
+                            <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${formData.name ? 'text-xs -top-2 text-black' : 'text-gray-500 top-3'}`}>
+                                Name
+                            </label>
+                        </div>
+                        <div className="relative">
+                            <input
+                                type="text"
+                                name="position"
+                                value={formData.position}
+                                onChange={handleChange}
+                                placeholder=" "
+                                className="peer h-12 w-full border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] transition-all duration-200"
+                            />
+                            <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${formData.position ? 'text-xs -top-2 text-black' : 'text-gray-500 top-3'}`}>
+                                Position
+                            </label>
+                        </div>
+                        <div className="relative">
+                            <input
+                                type="text"
+                                name="role"
+                                value={formData.role}
+                                onChange={handleChange}
+                                placeholder=" "
+                                className="peer h-12 w-full border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] transition-all duration-200"
+                            />
+                            <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${formData.role ? 'text-xs -top-2 text-black' : 'text-gray-500 top-3'}`}>
+                                Role
+                            </label>
+                        </div>
+                        <div className="relative">
+                            <input
+                                type="text"
+                                name="department"
+                                value={formData.department}
+                                onChange={handleChange}
+                                placeholder=" "
+                                className="peer h-12 w-full border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] transition-all duration-200"
+                            />
+                            <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${formData.department ? 'text-xs -top-2 text-black' : 'text-gray-500 top-3'}`}>
+                                Department
+                            </label>
+                        </div>
                         <label className="flex items-center space-x-3">
                             <input
                                 type="checkbox"
@@ -118,7 +138,7 @@ const SettingsModal = ({ user, onClose }) => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full mt-6 bg-brandYellow hover:bg-orange-600 text-white py-3 rounded-3xl font-medium focus:outline-none focus:ring-2 focus:ring-orange-400"
+                            className="w-full mt-6 bg-[#FDA92D]  hover:bg-[#FED680] active:bg-[#B66816] text-white py-3 rounded-3xl font-medium focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
                         >
                             {isLoading ? "Saving..." : "Save"}
                         </button>
@@ -203,7 +223,7 @@ export default SettingsModal;
 //                         <button
 //                             type="submit"
 //                             disabled={isLoading}
-//                             className="w-full mt-6 bg-brandYellow hover:bg-orange-600 text-white py-3 rounded-3xl font-medium focus:outline-none focus:ring-2 focus:ring-orange-400"
+//                             className="w-full mt-6 bg-[#FDA92D]  hover:bg-orange-600 text-white py-3 rounded-3xl font-medium focus:outline-none focus:ring-2 focus:ring-orange-400"
 //                         >
 //                             {isLoading ? "Saving..." : "Save"}
 //                         </button>

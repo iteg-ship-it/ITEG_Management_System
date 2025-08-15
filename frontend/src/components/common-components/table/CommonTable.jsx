@@ -24,6 +24,16 @@ const CommonTable = ({
   const setCurrentPage = onPageChange ?? setInternalPage;
   const [pageSize, setPageSize] = useState(rowsPerPage);
   const [selectedRows, setSelectedRows] = useState([]);
+  const [open, setOpen] = useState(false);
+  
+  const options = ["All", 5, 10, 25, 50];
+  
+  const handleSelect = (opt) => {
+    const selected = opt === "All" ? filteredData.length : opt;
+    setPageSize(selected);
+    setCurrentPage(1);
+    setOpen(false);
+  };
 
   useEffect(() => {
     setCurrentPage(1);
@@ -84,11 +94,11 @@ const CommonTable = ({
 
   return (
     <div className="w-full py-3">
-      <div className="pb-4 w-full">
-        <div className="overflow-x-auto max-w-full">
+      <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-200">
+        <div className="overflow-x-auto">
           <div ref={scrollRef} className="max-h-[60vh] overflow-y-auto custom-scrollbar">
             <table className="min-w-full text-sm">
-              <thead className="sticky  text-md top-0 bg-[--neutral-light]  text-gray-600 border-b shadow-sm">
+              <thead className="sticky text-md top-0 bg-[--neutral-light] text-gray-600 border-b shadow-sm z-10">
                 <tr>
                   <th className="px-4 py-3 text-center">
                     <div className="flex items-center justify-center">
@@ -103,7 +113,7 @@ const CommonTable = ({
                     <th key={key} className={`px-4 py-3 ${align === 'center' ? 'text-center' : 'text-start'}`}>{label}</th>
                   ))}
                   {editable && actionButton && (
-                    <th className="px-4 py-3 text-start">Action</th>
+                    <th className="px-4 py-3 text-start sticky right-0 bg-[--neutral-light] z-10">Action</th>
                   )}
                   {extraColumn && (
                     <th className="px-4 py-3 text-start">{extraColumn.header}</th>
@@ -114,7 +124,7 @@ const CommonTable = ({
                 {paginatedData.map((row, rowIndex) => (
                   <tr key={rowIndex}
                     className={`hover:bg-gray-100 text-md transition cursor-pointer border-b border-dashed border-gray-300`}
-                    onClick={() => onRowClick(row)} // ⬅️ Navigation trigger
+                    onClick={() => onRowClick && onRowClick(row)} // ⬅️ Navigation trigger
                   >
                     <td className="px-4 py-3 text-center"
                       onClick={(e) => e.stopPropagation()} //Stop row click when clicking checkbox
@@ -150,14 +160,13 @@ const CommonTable = ({
                     ))}
                     {editable && actionButton && (
                       <td
-                        className="px-4 py-3 text-start"
+                        className="px-4 py-3 text-start sticky right-0 bg-white"
                         onClick={(e) => e.stopPropagation()} //prevent row click from firing
                       >
-                        <div className="inline-block hover:shadow-md transition cursor-pointer">
+                        <div className="inline-block hover:shadow-md transition cursor-pointer relative z-20">
                           {actionButton(row)}
                         </div>
                       </td>
-
                     )}
                     {extraColumn && (
                       <td className="px-4 py-3 text-start">
@@ -171,7 +180,7 @@ const CommonTable = ({
           </div>
         </div>
 
-        {pagination && (
+        {/* {pagination && (
           <div className="flex justify-end items-center gap-6 px-6 py-4 border-t border-gray-200 bg-white rounded-b-2xl text-sm">
             <div className="flex items-center gap-2">
               <span className="text-gray-700 font-semibold">Rows Per Pages:</span>
@@ -217,7 +226,80 @@ const CommonTable = ({
               </button>
             </div>
           </div>
-        )}
+        )} */}
+       {pagination && (
+        <div className="flex justify-end items-center gap-6 px-6 py-4 border-t border-gray-200 bg-white rounded-b-2xl text-sm">
+          
+          {/* Rows Per Page */}
+          <div className="flex items-center gap-2 relative">
+            <span className="text-gray-700 font-semibold">Rows Per Pages:</span>
+
+            {/* Custom Dropdown */}
+            <div className="relative inline-block text-left">
+              <button
+                onClick={() => setOpen(!open)}
+                className={`px-3 py-1 border rounded-lg bg-white shadow-sm flex items-center justify-between w-20 ${open ? 'border-black' : 'border-gray-300'}`}
+              >
+                {pageSize === filteredData.length ? "All" : pageSize}
+                <span className="ml-2">▼</span>
+              </button>
+
+              {open && (
+                <div
+                  className="absolute bottom-full mb-1 w-20 rounded-xl shadow-lg z-10 overflow-hidden"
+                  style={{
+                    background: `
+                      linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 40%),
+                      linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 40%),
+                      white
+                    `
+                  }}
+                >
+                  <div>
+                    {options.map((opt) => (
+                      <div
+                        key={opt}
+                        onClick={() => handleSelect(opt)}
+                        className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-center"
+                      >
+                        {opt}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Page Info */}
+          <span className="text-gray-700 font-medium">
+            {filteredData.length === 0
+              ? "0"
+              : `${(currentPage - 1) * pageSize + 1} - ${Math.min(
+                  currentPage * pageSize,
+                  filteredData.length
+                )} of ${filteredData.length}`}
+          </span>
+
+          {/* Pagination Buttons */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              disabled={currentPage === 1}
+              className="w-7 h-7 flex items-center justify-center text-[var(--text-color)] disabled:opacity-40"
+            >
+              <span className="text-3xl">‹</span>
+            </button>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="w-7 h-7 text-md flex items-center justify-center text-[var(--text-color)] disabled:opacity-40"
+            >
+              <span className="text-3xl">›</span>
+            </button>
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );

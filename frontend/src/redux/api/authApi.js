@@ -387,12 +387,12 @@ export const authApi = createApi({
         body: interviewData,
       }),
       invalidatesTags: ['PlacementStudent'],
-      // Optimistic update for better UX
-      // eslint-disable-next-line no-unused-vars
+      // Force immediate cache invalidation
       async onQueryStarted({ studentId, interviewData }, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
-          // Only invalidate after successful mutation
+          // Invalidate all placement student queries
+          dispatch(authApi.util.invalidateTags(['PlacementStudent']));
         } catch {
           // Handle error if needed
         }
