@@ -11,6 +11,9 @@ import GoogleSuccess from './components/common-components/login-page/GoogleSucce
 import Layout from "./components/dashboard/Layout.jsx";
 import SessionTimeoutModal from "./components/common-components/SessionTimeoutModal";
 import { useSessionTimeout } from "./hooks/useSessionTimeout";
+import PageNotFound from "./components/common-components/error-pages/PageNotFound";
+import ServerError from "./components/common-components/error-pages/ServerError";
+import ErrorBoundary from "./components/common-components/ErrorBoundary";
 
 // ✅ Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -23,7 +26,8 @@ function App() {
 
   return (
     <>
-      <Router>
+      <ErrorBoundary>
+        <Router>
         <Routes>
           {/* ✅ Protected routes with sidebar */}
           <Route
@@ -48,9 +52,13 @@ function App() {
           <Route path="/forget-password" element={<ForgetPassword />} />
           <Route path="/otp-enter" element={<OtpEnter />} />
           <Route path="/google-success" element={<GoogleSuccess />} />
+          <Route path="/404" element={<PageNotFound />} />
+          <Route path="/server-error" element={<ServerError />} />
+          <Route path="*" element={<PageNotFound />} />
 
         </Routes>
-      </Router>
+        </Router>
+      </ErrorBoundary>
       
       <SessionTimeoutModal 
         isOpen={showModal}
