@@ -211,8 +211,9 @@ const InterviewHistory = () => {
   
   const handleRescheduleClick = (interview) => {
     setSelectedInterview({ studentId: id, ...interview });
-    if (interview.interviewDate) {
-      const date = new Date(interview.interviewDate);
+    const dateToUse = interview.scheduleDate || interview.interviewDate;
+    if (dateToUse) {
+      const date = new Date(dateToUse);
       setNewInterviewDate(date.toLocaleDateString('en-GB'));
       setNewInterviewTime(date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }));
     } else {
@@ -416,13 +417,13 @@ const InterviewHistory = () => {
                           </svg>
                         </div>
                         <div>
-                          <h4 className="text-xl font-bold text-gray-900 leading-tight">{interview.companyName || "Company Name"}</h4>
+                          <h4 className="text-xl font-bold text-gray-900 leading-tight">{interview.companyName}</h4>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
                               <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m-8 0V6a2 2 0 00-2 2v6" />
                               </svg>
-                              {interview.positionOffered || interview.jobProfile || "Job Profile"}
+                              {interview.jobProfile || interview.positionOffered}
                             </span>
                           </div>
                         </div>
@@ -434,7 +435,7 @@ const InterviewHistory = () => {
                           <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                           </svg>
-                          {interview.requiredTechnology || "Java"}
+                          {interview.requiredTechnology || studentData?.techno || "Not specified"}
                         </div>
                         
                         <div 
@@ -477,7 +478,7 @@ const InterviewHistory = () => {
                         <div>
                           <p className="text-sm text-gray-500 font-medium">Interview Date</p>
                           <p className="text-gray-800 font-semibold">
-                            {interview.interviewDate ? new Date(interview.interviewDate).toLocaleDateString('en-US', {
+                            {(interview.scheduleDate || interview.interviewDate) ? new Date(interview.scheduleDate || interview.interviewDate).toLocaleDateString('en-US', {
                               weekday: 'short',
                               year: 'numeric',
                               month: 'short',
@@ -502,7 +503,7 @@ const InterviewHistory = () => {
                         </div>
                         <div>
                           <p className="text-sm text-gray-500 font-medium">Location</p>
-                          <p className="text-gray-800 font-semibold">{interview.location || "Not specified"}</p>
+                          <p className="text-gray-800 font-semibold">{interview.location}</p>
                         </div>
                       </div>
                     </div>
@@ -515,7 +516,7 @@ const InterviewHistory = () => {
                         </div>
                         <div>
                           <p className="text-sm text-gray-500 font-medium">Result Status</p>
-                          {renderBadge(interview.status || interview.result)}
+                          {renderBadge(interview.result || interview.status || "Pending")}
                         </div>
                       </div>
 
@@ -527,7 +528,7 @@ const InterviewHistory = () => {
                           <p className="text-sm text-gray-500 font-medium mb-1">Remarks</p>
                           <div className="bg-gray-50 rounded-lg p-3 border">
                             <p className="text-gray-700 text-sm leading-relaxed">
-                              {interview.remark || "No specific remarks provided for this interview."}
+                              {interview.remark || interview.feedback || "No specific remarks provided for this interview."}
                             </p>
                           </div>
                         </div>
@@ -682,7 +683,7 @@ const InterviewHistory = () => {
                     <div className="flex justify-between items-start mb-3">
                       <div>
                         <h5 className="font-semibold text-lg text-gray-800">{round.displayRound}</h5>
-                        <p className="text-sm text-gray-600">{round.positionOffered || round.jobProfile || "Position"}</p>
+                        <p className="text-sm text-gray-600">{round.jobProfile || round.positionOffered || "Position"}</p>
                       </div>
                       <div className="text-right">
                         {renderBadge(round.result)}
@@ -693,7 +694,7 @@ const InterviewHistory = () => {
                       <div>
                         <span className="font-medium text-gray-600">Date:</span>
                         <p className="text-gray-800">
-                          {round.interviewDate ? new Date(round.interviewDate).toLocaleDateString('en-US', {
+                          {(round.scheduleDate || round.interviewDate) ? new Date(round.scheduleDate || round.interviewDate).toLocaleDateString('en-US', {
                             weekday: 'short',
                             year: 'numeric',
                             month: 'short',

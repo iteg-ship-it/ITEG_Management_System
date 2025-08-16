@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 
@@ -15,31 +16,25 @@ const TEXT_COLOR = "#4B4B4B";
 const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
   const [addInterviewRecord, { isLoading }] = useAddPlacementInterviewRecordMutation();
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTechDropdown, setShowTechDropdown] = useState(false);
+
 
   const interviewSchema = Yup.object().shape({
     companyName: Yup.string().required("Required"),
     hrEmail: Yup.string().email("Invalid email").required("Required"),
-    contactNumber: Yup.string().required("Required"),
-    jobProfile: Yup.string().required("Required"),
-    requiredTechnology: Yup.string().required("Required"),
-    interviewDate: Yup.string().required("Required"),
-    interviewTime: Yup.string().required("Required"),
+    hrContact: Yup.string().required("Required"),
     location: Yup.string().required("Required"),
-    jobType: Yup.string().required("Required"),
+    jobProfile: Yup.string().required("Required"),
+    scheduleDate: Yup.string().required("Required"),
   });
 
   const formik = useFormik({
     initialValues: {
       companyName: "",
       hrEmail: "",
-      contactNumber: "",
-      jobProfile: "",
-      requiredTechnology: "",
-      interviewDate: "",
-      interviewTime: "",
+      hrContact: "",
       location: "",
-      jobType: "Internship",
+      jobProfile: "",
+      scheduleDate: "",
     },
     validationSchema: interviewSchema,
     onSubmit: async (values, actions) => {
@@ -49,31 +44,36 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
           return;
         }
 
-        // Combine date and time for backend
-        let combinedDateTime = '';
-        if (values.interviewDate && values.interviewTime) {
-          // Convert DD/MM/YYYY format to YYYY-MM-DD and combine with time
-          const dateParts = values.interviewDate.split('/');
-          if (dateParts.length === 3) {
-            const formattedDate = `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}`;
-            combinedDateTime = `${formattedDate} ${values.interviewTime}`;
-          }
+        // Convert date format for backend
+        let scheduleDate = values.scheduleDate;
+        if (scheduleDate && scheduleDate.includes('at')) {
+          // Parse "DD/MM/YYYY at HH:MM AM/PM" format
+          const [datePart, timePart] = scheduleDate.split(' at ');
+          const [day, month, year] = datePart.split('/');
+          const [time, period] = timePart.split(' ');
+          const [hour, minute] = time.split(':');
+          
+          let hour24 = parseInt(hour);
+          if (period === 'PM' && hour24 !== 12) hour24 += 12;
+          if (period === 'AM' && hour24 === 12) hour24 = 0;
+          
+          const isoDate = new Date(year, month - 1, day, hour24, minute);
+          scheduleDate = isoDate.toISOString();
         }
 
-        // Map frontend fields to backend expected fields
+        // Create interview data according to API requirements
         const interviewData = {
           companyName: values.companyName,
-          jobProfile: values.jobProfile, // Use correct field name
-          scheduleDate: combinedDateTime || values.interviewDate, // Backend expects scheduleDate with time
           hrEmail: values.hrEmail,
-          contactNumber: values.contactNumber,
-          requiredTechnology: values.requiredTechnology,
+          hrContact: values.hrContact,
           location: values.location,
-          jobType: values.jobType
+          jobProfile: values.jobProfile,
+          scheduleDate: scheduleDate
         };
 
         console.log('Sending interview data:', interviewData);
 
+        // Call the placement controller createInterview endpoint
         await addInterviewRecord({
           studentId,
           interviewData,
@@ -95,7 +95,6 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
     if (!isOpen) {
       formik.resetForm();
       setShowDatePicker(false);
-      setShowTechDropdown(false);
     }
   }, [isOpen]);
 
@@ -121,7 +120,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
         </h2>
 
         <form onSubmit={formik.handleSubmit} className="grid grid-cols-2 gap-4 text-[15px]" style={{ color: TEXT_COLOR }}>
-          {/* Row 1 */}
+          {/* Company Name */}
           <div className="relative">
             <input
               type="text"
@@ -130,7 +129,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
               placeholder=" "
               onChange={formik.handleChange}
               value={formik.values.companyName}
-              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black  w-full peer"
+              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full peer"
             />
             <label 
               htmlFor="companyName"
@@ -139,6 +138,8 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
               Company Name
             </label>
           </div>
+
+          {/* HR Email */}
           <div className="relative">
             <input
               type="email"
@@ -153,28 +154,49 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
               htmlFor="hrEmail"
               className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
             >
-              Hr. Email
+              HR Email
             </label>
           </div>
 
-          {/* Row 2 */}
+          {/* HR Contact */}
           <div className="relative">
             <input
               type="text"
-              id="contactNumber"
-              name="contactNumber"
+              id="hrContact"
+              name="hrContact"
               placeholder=" "
               onChange={formik.handleChange}
-              value={formik.values.contactNumber}
+              value={formik.values.hrContact}
               className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full peer"
             />
             <label 
-              htmlFor="contactNumber"
+              htmlFor="hrContact"
               className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
             >
-              Contact Number
+              HR Contact
             </label>
           </div>
+
+          {/* Location */}
+          <div className="relative">
+            <input
+              type="text"
+              id="location"
+              name="location"
+              placeholder=" "
+              onChange={formik.handleChange}
+              value={formik.values.location}
+              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full peer"
+            />
+            <label 
+              htmlFor="location"
+              className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
+            >
+              Location
+            </label>
+          </div>
+
+          {/* Job Profile */}
           <div className="relative">
             <input
               type="text"
@@ -189,85 +211,17 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
               htmlFor="jobProfile"
               className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
             >
-              Position Offered
+              Job Profile
             </label>
           </div>
 
-          {/* Job Type */}
-          <div className="flex flex-col">
-            <label className="mb-1 text-sm font-medium">Job Type</label>
-            <div className="flex items-center gap-6">
-              {["Internship", "Job"].map((type) => (
-                <label key={type} className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="jobType"
-                    value={type}
-                    checked={formik.values.jobType === type}
-                    onChange={formik.handleChange}
-                    className="hidden"
-                  />
-                  <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                    formik.values.jobType === type 
-                      ? 'border-black bg-white' 
-                      : 'border-gray-300 bg-white'
-                  }`}>
-                    {formik.values.jobType === type && (
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#FDA92D]"></span>
-                    )}
-                  </span>
-                  {type}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Required Technology */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setShowTechDropdown(!showTechDropdown)}
-              className={`h-12 border px-3 rounded-md focus:outline-none focus:border-black w-full text-left flex items-center justify-between ${showTechDropdown ? 'border-black' : 'border-gray-300'}`}
-            >
-              <span className={formik.values.requiredTechnology ? 'text-gray-900' : 'text-gray-500'}>
-                {formik.values.requiredTechnology || 'Required Technology'}
-              </span>
-              <span className="ml-2">▼</span>
-            </button>
-            {showTechDropdown && (
-              <div
-                className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden"
-                style={{
-                  background: `
-                    linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 40%),
-                    linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 40%),
-                    white
-                  `
-                }}
-              >
-                {['Java', 'React', 'Node.js', 'Python'].map((tech) => (
-                  <div
-                    key={tech}
-                    onClick={() => {
-                      formik.setFieldValue('requiredTechnology', tech);
-                      setShowTechDropdown(false);
-                    }}
-                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left"
-                  >
-                    {tech}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Interview Date & Time */}
+          {/* Schedule Date */}
           <div className="relative">
             <input
               type="text"
-              name="interviewDate"
+              name="scheduleDate"
               placeholder="Select Date & Time"
-              value={`${formik.values.interviewDate}${formik.values.interviewTime ? ` at ${formik.values.interviewTime}` : ''}`}
+              value={formik.values.scheduleDate}
               onClick={() => setShowDatePicker(!showDatePicker)}
               readOnly
               className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full cursor-pointer"
@@ -275,31 +229,14 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
             <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#FDA92D]" />
             {showDatePicker && (
               <DatePickerComponent
-                selectedDate={formik.values.interviewDate}
-                selectedTime={formik.values.interviewTime}
-                onDateTimeSelect={(date, time) => {
-                  formik.setFieldValue('interviewDate', date);
-                  formik.setFieldValue('interviewTime', time);
+                selectedDate={formik.values.scheduleDate}
+                onDateTimeSelect={(dateTime) => {
+                  formik.setFieldValue('scheduleDate', dateTime);
                   setShowDatePicker(false);
                 }}
                 onClose={() => setShowDatePicker(false)}
               />
             )}
-          </div>
-
-          {/* Location */}
-          <div className="relative">
-            <input
-              type="text"
-              name="location"
-              placeholder=" "
-              onChange={formik.handleChange}
-              value={formik.values.location}
-              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full peer"
-            />
-            <label className="absolute left-3 top-3 text-gray-500 transition-all duration-200 peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">
-              Company Location
-            </label>
           </div>
 
           {/* Submit Button */}
@@ -321,10 +258,10 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
 
 // Custom Date Picker Component with Time Selection
 // eslint-disable-next-line no-unused-vars
-const DatePickerComponent = ({ selectedDate, selectedTime, onDateTimeSelect, onClose }) => {
+const DatePickerComponent = ({ selectedDate, onDateTimeSelect, onClose }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const [tempSelectedDate, setTempSelectedDate] = useState(selectedDate);
+  const [tempSelectedDate, setTempSelectedDate] = useState('');
   const [selectedHour, setSelectedHour] = useState('09');
   const [selectedMinute, setSelectedMinute] = useState('00');
   const [selectedPeriod, setSelectedPeriod] = useState('AM');
@@ -355,8 +292,11 @@ const DatePickerComponent = ({ selectedDate, selectedTime, onDateTimeSelect, onC
   };
 
   const handleConfirm = () => {
-    const timeString = `${selectedHour}:${selectedMinute} ${selectedPeriod}`;
-    onDateTimeSelect(tempSelectedDate, timeString);
+    if (tempSelectedDate) {
+      const timeString = `${selectedHour}:${selectedMinute} ${selectedPeriod}`;
+      const dateTimeString = `${tempSelectedDate} at ${timeString}`;
+      onDateTimeSelect(dateTimeString);
+    }
   };
 
   const renderCalendar = () => {
