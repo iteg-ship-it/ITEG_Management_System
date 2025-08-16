@@ -858,12 +858,12 @@ exports.rescheduleInterview = async (req, res) => {
     const updatedStudent = await AdmittedStudent.findOneAndUpdate(
       {
         _id: studentId,
-        "interviewRecord._id": interviewId // ✅ match schema field
+        "PlacementinterviewRecord._id": interviewId
       },
       {
         $set: {
-          "interviewRecord.$.rescheduleDate": new Date(newDate), // ✅ match schema field
-          "interviewRecord.$.status": "Rescheduled"
+          "PlacementinterviewRecord.$.scheduleDate": new Date(newDate),
+          "PlacementinterviewRecord.$.status": "Rescheduled"
         }
       },
       { new: true }

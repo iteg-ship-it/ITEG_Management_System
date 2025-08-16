@@ -2376,7 +2376,7 @@ paths:
         '500':
           description: Server error
 
-  /api/admitted/students/interviews/{studentId}/{interviewId}/add-round:
+  /api/admitted/students/interviews/{studentId}/{interviewId}/add_round:
     post:
       summary: 3. Add Interview Round
       description: Add multiple rounds to existing interview
@@ -2470,7 +2470,7 @@ paths:
         '500':
           description: Server error
 
-  /api/admitted/students/selected-students:
+  /api/admitted/students/selected_students:
     get:
       summary: 5. Get Selected Students
       description: Get students selected but not yet placed
@@ -2504,7 +2504,7 @@ paths:
         '500':
           description: Server error
 
-  /api/admitted/students/confirm-placement:
+  /api/admitted/students/confirm_placement:
     post:
       summary: 6. Confirm Placement
       description: Move selected student to placed status
@@ -2544,7 +2544,7 @@ paths:
         '500':
           description: Server error
 
-  /api/admitted/students/placed-students:
+  /api/admitted/students/placed_students:
     get:
       summary: 7. Get Placed Students
       description: Get all students with confirmed placements
@@ -2580,7 +2580,7 @@ paths:
         '500':
           description: Server error
 
-  /api/admitted/students/placement-post:
+  /api/admitted/students/placement_post:
     post:
       summary: 8. Create Placement Post
       description: Generate placement post from placed students
@@ -2629,7 +2629,7 @@ paths:
         '500':
           description: Server error
 
-  /api/admitted/students/update-job-type:
+  /api/admitted/students/update_job_type:
     patch:
       summary: 9. Update Job Type
       description: Update job type from Internship to Full-Time/PPO

@@ -82,27 +82,47 @@ exports.updateInterviewStatus = async (req, res) => {
 
 // 3. ADD INTERVIEW ROUND
 exports.addInterviewRound = async (req, res) => {
+  let hasResponded = false;
+  
   try {
     const { studentId, interviewId } = req.params;
     const { roundName, date, mode, feedback, result } = req.body;
 
     const student = await AdmittedStudent.findById(studentId);
+    if (!student) {
+      hasResponded = true;
+      return res.status(404).json({ message: "Student not found" });
+    }
+
     const interview = student.PlacementinterviewRecord.id(interviewId);
+    if (!interview) {
+      hasResponded = true;
+      return res.status(404).json({ message: "Interview not found" });
+    }
 
-    if (!interview) return res.status(404).json({ message: "Interview not found" });
-
-    interview.rounds.push({
+    const newRound = {
       roundName: roundName || `Round ${interview.rounds.length + 1}`,
       date: new Date(date),
       mode: mode || 'Offline',
       feedback: feedback || '',
       result: result || 'Pending'
-    });
+    };
 
+    interview.rounds.push(newRound);
     await student.save();
-    res.json({ success: true, message: "Interview round added", data: interview });
+    
+    if (!hasResponded) {
+      hasResponded = true;
+      res.json({ 
+        success: true, 
+        message: "Interview round added", 
+        data: newRound
+      });
+    }
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    if (!hasResponded) {
+      res.status(500).json({ success: false, error: error.message });
+    }
   }
 };
 
