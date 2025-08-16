@@ -19,7 +19,6 @@ const EmailField = () => {
                   setIsFocused(false);
                   field.onBlur(e);
                 }}
-                placeholder=" "
                 className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-[#FDA92D] transition-all duration-200"
               />
               <label

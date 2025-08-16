@@ -408,6 +408,18 @@ export const authApi = createApi({
         body: data,
       }),
       invalidatesTags: ['PlacementStudent'],
+      // Force immediate cache invalidation and refetch
+      async onQueryStarted({ studentId, interviewId, ...data }, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          // Invalidate all placement student queries to force refetch
+          dispatch(authApi.util.invalidateTags(['PlacementStudent']));
+          // Also invalidate specific student data
+          dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
+        } catch (error) {
+          console.error('Failed to update interview record:', error);
+        }
+      },
     }),
 
     // Upload resume

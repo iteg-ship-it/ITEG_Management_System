@@ -12,9 +12,10 @@ const InterviewHistory = () => {
   const navigate = useNavigate();
   
   const { data, isLoading, isError, error, refetch } = useGetReadyStudentsForPlacementQuery(undefined, {
-    refetchOnMountOrArgChange: 30,
-    refetchOnFocus: false,
-    // Remove aggressive polling
+    refetchOnMountOrArgChange: true, // Always refetch on mount
+    refetchOnFocus: true, // Refetch when window gains focus
+    refetchOnReconnect: true, // Refetch on network reconnect
+    // Force fresh data for interview updates
   });
   
   // Find specific student from the list
@@ -38,22 +39,36 @@ const InterviewHistory = () => {
   
   const handleUpdateSubmit = async () => {
     try {
-      await updateInterviewRecord({
+      const response = await updateInterviewRecord({
         studentId: selectedInterview.studentId,
         interviewId: selectedInterview._id,
         remark,
-        result,
+        status: result, // Send as 'status' instead of 'result'
       }).unwrap();
       
       toast.success("Interview updated successfully");
       setIsUpdateModalOpen(false);
-      // Force multiple refetches to ensure data consistency
+      
+      // Force immediate refetch with multiple attempts
       await refetch();
-      setTimeout(() => refetch(), 500);
-      setTimeout(() => refetch(), 1000);
+      
+      // Additional refetches with delays to ensure backend has processed the update
+      setTimeout(async () => {
+        await refetch();
+      }, 300);
+      
+      setTimeout(async () => {
+        await refetch();
+      }, 800);
+      
+      // Final refetch after 1.5 seconds
+      setTimeout(async () => {
+        await refetch();
+      }, 1500);
+      
     } catch (err) {
-      console.error(err);
-      toast.error("Failed to update interview");
+      console.error('Update failed:', err);
+      toast.error(err?.data?.message || "Failed to update interview");
     }
   };
   
@@ -62,6 +77,7 @@ const InterviewHistory = () => {
     switch (status) {
       case "Selected":
         return <span className={`${base} bg-green-100 text-green-700`}><CheckCircle className="w-4 h-4" />Selected</span>;
+      case "Reject":
       case "Rejected":
         return <span className={`${base} bg-red-100 text-red-700`}><XCircle className="w-4 h-4" />Rejected</span>;
       default:
@@ -286,7 +302,7 @@ const InterviewHistory = () => {
                 >
                   <option value="Pending">Pending</option>
                   <option value="Selected">Selected</option>
-                  <option value="Rejected">Rejected</option>
+                  <option value="Reject">Rejected</option>
                 </select>
               </div>
 
