@@ -522,3 +522,52 @@ exports.getPlacementDocuments = async (req, res) => {
     });
   }
 };
+
+// Get student interview history with company details
+exports.getStudentInterviewHistory = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    const student = await AdmittedStudent.findById(studentId)
+      .populate('PlacementinterviewRecord.companyRef')
+      .select('firstName lastName PlacementinterviewRecord');
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    const interviewHistory = student.PlacementinterviewRecord.map(interview => ({
+      _id: interview._id,
+      jobProfile: interview.jobProfile,
+      status: interview.status,
+      statusRemark: interview.statusRemark,
+      scheduleDate: interview.scheduleDate,
+      rescheduleDate: interview.rescheduleDate,
+      rounds: interview.rounds,
+      company: interview.companyRef ? {
+        _id: interview.companyRef._id,
+        companyName: interview.companyRef.companyName,
+        location: interview.companyRef.location,
+        companyLogo: interview.companyRef.companyLogo,
+        hrEmail: interview.companyRef.hrEmail,
+        hrContact: interview.companyRef.hrContact
+      } : null
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: {
+        studentName: `${student.firstName} ${student.lastName}`,
+        totalInterviews: interviewHistory.length,
+        interviews: interviewHistory
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: "Server error", 
+      error: error.message 
+    });
+  }
+};
