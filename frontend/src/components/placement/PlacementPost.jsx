@@ -1,4 +1,6 @@
 import { useAdmitedStudentsQuery } from "../../redux/api/authApi";
+import placementTemplate from "../../assets/images/ITEG_Placement_Post.jpg";
+import PageNavbar from "../common-components/navbar/PageNavbar";
 
 const PlacementPost = () => {
   console.log("PlacementPost component loaded");
@@ -12,17 +14,10 @@ const PlacementPost = () => {
   // Loading state
   if (isLoading) {
     return (
-      <div style={{ 
-        padding: "24px", 
-        backgroundColor: "#f8fafc", 
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center"
-      }}>
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "2rem", marginBottom: "16px" }}>⏳</div>
-          <p style={{ fontSize: "1.1rem", color: "#64748b" }}>Loading placement stories...</p>
+      <div className="p-6 bg-slate-50 min-h-screen flex justify-center items-center">
+        <div className="text-center">
+          <div className="text-3xl mb-4">⏳</div>
+          <p className="text-lg text-slate-500">Loading placement stories...</p>
         </div>
       </div>
     );
@@ -31,268 +26,83 @@ const PlacementPost = () => {
   // Error state
   if (error) {
     return (
-      <div style={{ 
-        padding: "24px", 
-        backgroundColor: "#f8fafc", 
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center"
-      }}>
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "2rem", marginBottom: "16px" }}>❌</div>
-          <p style={{ fontSize: "1.1rem", color: "#ef4444" }}>Error loading placement data</p>
+      <div className="p-6 bg-slate-50 min-h-screen flex justify-center items-center">
+        <div className="text-center">
+          <div className="text-3xl mb-4">❌</div>
+          <p className="text-lg text-red-500">Error loading placement data</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ 
-      padding: "24px", 
-      minHeight: "100vh" 
-    }}>
+    <div className="p-2 min-h-screen">
       {/* Header */}
-      <div style={{ 
-        textAlign: "center", 
-        marginBottom: "32px"
-      }}>
-        <h1 style={{ 
-          fontSize: "2.5rem", 
-          fontWeight: "bold", 
-          color: "#1a202c",
-          marginBottom: "8px"
-        }}>
-          🎉 Placement Success Stories
-        </h1>
-        <p style={{ 
-          fontSize: "1.1rem", 
-          color: "#64748b"
-        }}>
-          Celebrating our students achievements and career milestones
-        </p>
-      </div>
+   <PageNavbar
+        title="Placement Post" 
+        subtitle="Placed students post and details"
+        showBackButton={false}
+      />
 
       {/* Empty state when no placed students */}
       {placedStudents.length === 0 ? (
-        <div style={{
-          textAlign: "center",
-          padding: "60px 20px",
-          background: "white",
-          borderRadius: "16px",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-          maxWidth: "600px",
-          margin: "0 auto"
-        }}>
-          <div style={{ fontSize: "4rem", marginBottom: "16px" }}>🎓</div>
-          <h3 style={{ fontSize: "1.5rem", fontWeight: "600", color: "#4b5563", marginBottom: "8px" }}>
+        <div className="text-center py-15 px-5 bg-white rounded-2xl shadow-lg max-w-2xl mx-auto">
+          <div className="text-6xl mb-4">🎓</div>
+          <h3 className="text-2xl font-semibold text-gray-600 mb-2">
             No Placement Stories Yet
           </h3>
-          <p style={{ color: "#6b7280", fontSize: "1.1rem" }}>
+          <p className="text-gray-500 text-lg">
             Success stories will appear here as students get placed
           </p>
         </div>
       ) : (
-        /* Cards Grid - 3 cards per row */
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(450px, 1fr))",
-          gap: "24px",
-          maxWidth: "1400px",
-          margin: "0 auto"
-        }}>
-        {placedStudents.map((student) => (
-          <div
-            key={student.id}
-            style={{
-              backgroundColor: "white",
-              borderRadius: "16px",
-              overflow: "hidden",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-              border: "1px solid #e2e8f0",
-              position: "relative"
-            }}
-          >
-            {/* Top logos section */}
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "16px 20px 8px 20px"
-            }}>
-              <div style={{
-                width: "60px",
-                height: "40px",
-                backgroundColor: "#f3f4f6",
-                borderRadius: "8px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "0.75rem",
-                fontWeight: "bold",
-                color: "#374151"
-              }}>
-                SSISM
-              </div>
-              <div style={{
-                width: "50px",
-                height: "30px",
-                backgroundColor: "#FDA92D",
-                borderRadius: "6px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "0.7rem",
-                fontWeight: "bold",
-                color: "white"
-              }}>
-                ITEG
-              </div>
-            </div>
+        /* Cards Grid - Responsive */
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 max-w-full mx-auto">
+          {placedStudents.map((student) => (
+            <div
+              key={student.id}
+              className="bg-cover bg-center bg-no-repeat rounded-2xl overflow-hidden shadow-lg border border-slate-200 relative aspect-square w-full"
+              style={{
+                backgroundImage: `url(${placementTemplate})`
+              }}
+            >
+              {/* Content wrapper */}
+              <div className="relative h-full flex flex-col">
 
-            {/* Congratulations heading */}
-            <div style={{ textAlign: "center", padding: "0 20px" }}>
-              <h2 style={{
-                fontSize: "1.25rem",
-                fontWeight: "bold",
-                color: "#1e40af",
-                marginBottom: "4px"
-              }}>
-                Congratulations
-              </h2>
-              <p style={{
-                fontSize: "0.875rem",
-                color: "#6b7280",
-                marginBottom: "16px"
-              }}>
-                We are proud to announce that our ITEG student
-              </p>
-            </div>
-
-            {/* Student photo */}
-            <div style={{
-              display: "flex",
-              justifyContent: "center",
-              marginBottom: "16px"
-            }}>
-              <div style={{
-                borderRadius: "50%",
-                padding: "3px",
-                background: "#f97316"
-              }}>
-                <img
-                  src={student.image || student.profileImage || "https://via.placeholder.com/100x100/e2e8f0/64748b?text=Student"}
-                  alt={`${student.firstName} ${student.lastName}`}
-                  style={{
-                    width: "100px",
-                    height: "100px",
-                    borderRadius: "50%",
-                    objectFit: "cover",
-                    border: "3px solid white"
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Student details */}
-            <div style={{ textAlign: "center", padding: "0 20px" }}>
-              <h3 style={{
-                fontSize: "1.125rem",
-                fontWeight: "bold",
-                color: "#1e40af",
-                marginBottom: "4px"
-              }}>
-                {student.firstName} {student.lastName}
-              </h3>
-              <p style={{
-                fontSize: "0.875rem",
-                color: "#374151",
-                marginBottom: "2px"
-              }}>
-                {student.address}
-              </p>
-              <p style={{
-                fontSize: "0.875rem",
-                color: "#374151",
-                marginBottom: "16px"
-              }}>
-                {student.course}
-              </p>
-            </div>
-
-            {/* Placement info */}
-            <div style={{ textAlign: "center", padding: "0 20px 20px 20px" }}>
-              <p style={{
-                fontSize: "0.875rem",
-                color: "#374151",
-                marginBottom: "8px"
-              }}>
-                got placed as a{" "}
-                <span style={{ fontWeight: "bold" }}>{student.placedInfo.jobProfile}</span> in
-              </p>
-              
-              {/* Company info */}
-              <div style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                marginBottom: "16px"
-              }}>
-                <div style={{
-                  width: "24px",
-                  height: "16px",
-                  backgroundColor: "#2563eb",
-                  borderRadius: "4px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "0.6rem",
-                  fontWeight: "bold",
-                  color: "white"
-                }}>
-                  CO
+                {/* Student photo - centered in card */}
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+                  <div className="rounded-full p-1 bg-orange-600 shadow-lg">
+                    <img
+                      src={student.image || student.profileImage || "https://via.placeholder.com/120x120/e2e8f0/64748b?text=Student"}
+                      alt={`${student.firstName} ${student.lastName}`}
+                      className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-full object-cover border-4 border-white"
+                    />
+                  </div>
                 </div>
-                <div style={{ textAlign: "left" }}>
-                  <div style={{
-                    color: "#2563eb",
-                    fontWeight: "600",
-                    fontSize: "0.875rem",
-                    lineHeight: "1.2"
-                  }}>
+
+                {/* Student details - positioned at bottom */}
+                <div className="absolute bottom-0 left-1 right-1 text-center rounded-lg p-1 sm:p-2 shadow-sm">
+                  <h3 className="text-xs sm:text-sm lg:text-base font-bold text-grey-800 mb-1 leading-tight">
+                    {student.firstName} {student.lastName}
+                  </h3>
+               
+                  <p className="text-xs sm:text-sm text-gray-700 mb-2 leading-tight">
+                    <span className="font-bold text-blue-800">{student.placedInfo.jobProfile}</span> at
+                  </p>
+                  <div className="text-xs sm:text-sm lg:text-base font-bold text-blue-600 mb-1 leading-tight">
                     {student.placedInfo.companyName}
                   </div>
-                  <div style={{
-                    color: "#6b7280",
-                    fontSize: "0.75rem"
-                  }}>
+                  <div className="text-xs sm:text-sm text-green-600 font-semibold leading-tight">
                     {student.placedInfo.location} • ₹{(student.placedInfo.salary / 100000).toFixed(1)} LPA
                   </div>
                 </div>
               </div>
-
-              {/* Background college image placeholder */}
-              <div style={{
-                width: "100%",
-                height: "60px",
-                backgroundColor: "#f3f4f6",
-                borderRadius: "8px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "0.75rem",
-                color: "#9ca3af",
-                opacity: 0.7
-              }}>
-                Campus Background
-              </div>
             </div>
-          </div>
-        ))}
+          ))}
         </div>
       )}
     </div>
   );
 };
 
-export default PlacementPost;
+export default PlacementPost;  
