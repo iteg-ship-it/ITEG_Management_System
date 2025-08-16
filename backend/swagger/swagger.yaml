@@ -2095,6 +2095,10 @@ paths:
                     type: string
                     example: Server Error
 
+
+
+
+
   /api/user/get/{id}:
     get:
       summary: Get user details by ID
@@ -2167,138 +2171,11 @@ paths:
                     example: Error stack or message
 
 
-  /api/admitted/students/Ready_Students:
-    get:
-      summary: Get all admitted students who are ready
-      tags:
-        - Placement
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Successfully fetched all ready students
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Ready students fetched successfully.
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/AdmittedStudent'
-        '404':
-          description: No ready students found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: No students found with readinessStatus 'Ready'.
-        '500':
-          description: Server error while fetching students
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Failed to fetch ready students.
-                  error:
-                    type: string
 
 
 
-  /api/admitted/students/interviews/{studentId}:
-    post:
-      summary: Schedule a placement interview for a student
-      tags:
-        - Placement Interviews
-      parameters:
-        - in: path
-          name: studentId
-          required: true
-          schema:
-            type: string
-          description: The MongoDB ObjectId of the admitted student
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - companyName
-                - jobProfile
-                - scheduleDate
-              properties:
-                companyName:
-                  type: string
-                  example: "TCS"
-                jobProfile:
-                  type: string
-                  example: "Software Engineer"
-                location:
-                  type: string
-                  example: "Bengaluru"
-                status:
-                  type: string
-                  enum: ["Scheduled", "Rescheduled", "Ongoing", "Selected", "RejectedByStudent", "RejectedByCompany"]
-                  example: "Scheduled"
-                scheduleDate:
-                  type: string
-                  format: date-time
-                  example: "2025-08-15T09:30:00Z"
-                rounds:
-                  type: array
-                  items:
-                    type: object
-                    required:
-                      - roundName
-                      - date
-                    properties:
-                      roundName:
-                        type: string
-                        example: "Technical Round"
-                      date:
-                        type: string
-                        format: date-time
-                        example: "2025-08-15T09:30:00Z"
-                      mode:
-                        type: string
-                        enum: ["Online", "Offline", "Telephonic"]
-                        example: "Online"
-                      feedback:
-                        type: string
-                        example: "Strong problem-solving skills"
-                      result:
-                        type: string
-                        enum: ["Passed", "Failed", "Pending"]
-                        example: "Pending"
-      responses:
-        "201":
-          description: Placement interview scheduled successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Placement interview scheduled successfully
-                  interview:
-                    $ref: '#/components/schemas/InterviewRecord'
-        "400":
-          description: Missing required fields
-        "404":
-          description: Student not found
-        "500":
-          description: Server error
+
+
 
     # post:
     #   tags:
@@ -2385,44 +2262,223 @@ paths:
 
 
 
-  /api/admitted/students/update/interviews/{studentId}/{interviewId}:
-    patch:
+
+
+
+
+
+
+
+
+
+
+
+  # ===== PLACEMENT WORKFLOW APIs =====
+  
+  /api/admitted/students/interviews/{id}:
+    post:
+      summary: 1. Create/Schedule Interview
+      description: Schedule interview for ready student with company details
       tags:
-        - Placement
-      summary: Update interview record for a student
-      description: Update the `remark` and/or `result` of a specific interview in a student's interview record.
+        - Placement Workflow
       parameters:
-        - name: studentId
+        - name: id
           in: path
           required: true
-          description: MongoDB ObjectId of the student
+          description: Student ID
           schema:
             type: string
-            example: 665f6aaf4f55e5aaee6a1234
-        - name: interviewId
-          in: path
-          required: true
-          description: MongoDB ObjectId of the interview record
-          schema:
-            type: string
-            example: 682c08b600d3e1245aa7cd71
+            example: "64a1b2c3d4e5f6789012345"
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required:
+                - companyName
+                - hrEmail
+                - location
+                - jobProfile
+                - scheduleDate
               properties:
-                remark:
+                companyName:
                   type: string
-                  example: "Good communication skills and confidence"
-                result:
+                  example: "TechCorp Solutions"
+                hrEmail:
                   type: string
-                  enum: [Selected, Rejected, Pending]
+                  format: email
+                  example: "hr@techcorp.com"
+                hrContact:
+                  type: string
+                  description: Optional - HR contact number
+                  example: "+91-9876543210"
+                location:
+                  type: string
+                  example: "Bangalore, India"
+                jobProfile:
+                  type: string
+                  example: "Software Developer"
+                scheduleDate:
+                  type: string
+                  format: date-time
+                  example: "2024-01-20T10:00:00Z"
+      responses:
+        '201':
+          description: Interview scheduled successfully
+        '400':
+          description: Missing required fields or student not ready
+        '500':
+          description: Server error
+
+  /api/admitted/students/update/interviews/{studentId}/{interviewId}:
+    patch:
+      summary: 2. Update Interview Status
+      description: Update interview status (Ongoing/Pending/Reschedule/Selected/Rejected)
+      tags:
+        - Placement Workflow
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "64a1b2c3d4e5f6789012345"
+        - name: interviewId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "64a1b2c3d4e5f6789012346"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [Scheduled, Rescheduled, Ongoing, Selected, RejectedByStudent, RejectedByCompany]
                   example: "Selected"
+                rescheduleDate:
+                  type: string
+                  format: date-time
+                  description: Required if status is Rescheduled
+                  example: "2024-01-25T10:00:00Z"
       responses:
         '200':
-          description: Interview record updated successfully
+          description: Interview status updated successfully
+        '404':
+          description: Student or interview not found
+        '500':
+          description: Server error
+
+  /api/admitted/students/interviews/{studentId}/{interviewId}/add_round:
+    post:
+      summary: 3. Add Interview Round
+      description: Add multiple rounds to existing interview
+      tags:
+        - Placement Workflow
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "64a1b2c3d4e5f6789012345"
+        - name: interviewId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "64a1b2c3d4e5f6789012346"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - date
+              properties:
+                roundName:
+                  type: string
+                  example: "Technical Round"
+                date:
+                  type: string
+                  format: date-time
+                  example: "2024-01-22T14:00:00Z"
+                mode:
+                  type: string
+                  enum: [Online, Offline, Telephonic]
+                  default: Offline
+                  example: "Online"
+                feedback:
+                  type: string
+                  example: "Good technical skills"
+                result:
+                  type: string
+                  enum: [Passed, Failed, Pending]
+                  default: Pending
+                  example: "Passed"
+      responses:
+        '200':
+          description: Interview round added successfully
+        '404':
+          description: Interview not found
+        '500':
+          description: Server error
+
+  /api/admitted/students/Ready_Students:
+    get:
+      summary: 4. Get Ready Students
+      description: Get all students ready for placement interviews
+      tags:
+        - Placement Workflow
+      responses:
+        '200':
+          description: List of ready students
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Ready students fetched successfully"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        firstName:
+                          type: string
+                        lastName:
+                          type: string
+                        course:
+                          type: string
+                        readinessStatus:
+                          type: string
+                          example: "Ready"
+        '404':
+          description: No ready students found
+        '500':
+          description: Server error
+
+  /api/admitted/students/selected_students:
+    get:
+      summary: 5. Get Selected Students
+      description: Get students selected but not yet placed
+      tags:
+        - Placement Workflow
+      responses:
+        '200':
+          description: List of selected students
           content:
             application/json:
               schema:
@@ -2431,41 +2487,34 @@ paths:
                   success:
                     type: boolean
                     example: true
-                  message:
-                    type: string
-                    example: Interview record updated successfully
                   data:
-                    type: object
-                    properties:
-                      _id:
-                        type: string
-                        example: 682c08b600d3e1245aa7cd71
-                      companyName:
-                        type: string
-                        example: TCS
-                      interviewDate:
-                        type: string
-                        format: date
-                        example: 2025-06-10
-                      remark:
-                        type: string
-                        example: Good communication skills and confidence
-                      result:
-                        type: string
-                        example: Selected
-        '400':
-          description: Invalid input (e.g. missing result or remark)
-        '404':
-          description: Student or interview record not found
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        name:
+                          type: string
+                        course:
+                          type: string
+                        selectedInterviews:
+                          type: array
+                          description: Interviews with Selected status
         '500':
           description: Server error
 
-
-  /api/admitted/students/upload_Resume_Base64:
+  /api/admitted/students/confirm_placement:
     post:
-      summary: Upload student resume as Base64
+      summary: 6. Confirm Placement (Auto-detect Interview or Direct)
+      description: |
+        Automatically confirms student placement by detecting the type:
+        1. **Interview-based**: Auto-detects if student has selected interview with matching jobProfile
+        2. **Direct placement**: When no matching selected interview found, requires companyRef
+        
+        The API automatically fills companyRef and interviewRecordId when interview is detected.
       tags:
-        - Placement
+        - Placement Workflow
       requestBody:
         required: true
         content:
@@ -2474,24 +2523,54 @@ paths:
               type: object
               required:
                 - studentId
-                - fileName
-                - fileData
+                - companyName
+                - salary
+                - location
+                - jobProfile
               properties:
                 studentId:
                   type: string
-                  description: MongoDB ObjectId of the student
-                  example: "60d9f8c19c2f4f0021a7b123"
-                fileName:
+                  description: ID of the student
+                  example: "64a1b2c3d4e5f6789012345"
+                companyName:
                   type: string
-                  description: Name of the file (e.g. "resume.pdf")
-                  example: "resume.pdf"
-                fileData:
+                  description: "Name of the company"
+                  example: "TechCorp Solutions"
+                salary:
+                  type: number
+                  description: "Salary amount"
+                  example: 500000
+                location:
                   type: string
-                  description: Base64 encoded file data (with or without Data URI prefix)
-                  example: "JVBERi0xLjQKJfbk..."
+                  description: "Job location"
+                  example: "Bangalore, India"
+                jobProfile:
+                  type: string
+                  description: "Job position/profile (used to match with interview records)"
+                  example: "Software Developer"
+                jobType:
+                  type: string
+                  enum: [Internship, Full-Time, PPO]
+                  default: Full-Time
+                  description: "Type of job"
+                  example: "Full-Time"
+                joiningDate:
+                  type: string
+                  format: date
+                  description: "Optional - Joining date"
+                  example: "2024-07-01"
+                offerLetter:
+                  type: string
+                  description: "Optional - Base64 encoded offer letter file (PDF/Image)"
+                  example: "data:application/pdf;base64,JVBERi0xLjQKJcOkw7zDssO..."
+                application:
+                  type: string
+                  description: "Optional - Base64 encoded application file (PDF/Image)"
+                  example: "data:application/pdf;base64,JVBERi0xLjQKJcOkw7zDssO..."
+
       responses:
         '200':
-          description: Resume uploaded successfully
+          description: Student placement confirmed successfully
           content:
             application/json:
               schema:
@@ -2502,38 +2581,32 @@ paths:
                     example: true
                   message:
                     type: string
-                    example: "Resume uploaded successfully"
-                  resumeURL:
-                    type: string
-                    example: "https://res.cloudinary.com/demo/raw/upload/v1623762345/student-resumes/resume.pdf"
+                    example: "Student placement confirmed successfully"
+                  data:
+                    type: object
+                    description: "Placement information"
         '400':
-          description: Missing parameters or bad request
+          description: Missing required fields, student already placed, or interview not in selected state
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
-                    example: false
                   message:
                     type: string
-                    example: "Missing studentId, fileName, or fileData"
+                    example: "Missing required fields: studentId, companyName, salary, location, jobProfile"
         '404':
-          description: Student not found
+          description: Student, company, or interview not found
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
-                    example: false
                   message:
                     type: string
                     example: "Student not found"
         '500':
-          description: Server error during upload
+          description: Server error
           content:
             application/json:
               schema:
@@ -2542,12 +2615,136 @@ paths:
                   success:
                     type: boolean
                     example: false
-                  message:
-                    type: string
-                    example: "Server Error"
                   error:
                     type: string
-                    example: "Error details here"
+                    example: "Server error message"
+
+  /api/admitted/students/placed_students:
+    get:
+      summary: 7. Get Placed Students
+      description: Get all students with confirmed placements
+      tags:
+        - Placement Workflow
+      responses:
+        '200':
+          description: List of placed students
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        firstName:
+                          type: string
+                        lastName:
+                          type: string
+                        course:
+                          type: string
+                        placedInfo:
+                          type: object
+                          description: Final placement details
+        '500':
+          description: Server error
+
+  /api/admitted/students/placement_post:
+    post:
+      summary: 8. Create Placement Post
+      description: Generate placement post from placed students
+      tags:
+        - Placement Workflow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - studentId
+                - position
+                - companyName
+                - headOffice
+              properties:
+                studentId:
+                  type: string
+                  description: ID of placed student
+                  example: "64a1b2c3d4e5f6789012345"
+                position:
+                  type: string
+                  example: "Software Developer"
+                companyName:
+                  type: string
+                  example: "TechCorp Solutions"
+                companyLogo:
+                  type: string
+                  description: Base64 company logo (updates existing company)
+                  example: "data:image/png;base64,..."
+                headOffice:
+                  type: string
+                  example: "Bangalore, India"
+                studentImage:
+                  type: string
+                  description: Optional - uses profile image if not provided
+                  example: "data:image/jpeg;base64,..."
+      responses:
+        '200':
+          description: Placement post created successfully
+        '400':
+          description: Missing required fields or student not placed
+        '404':
+          description: Student not found
+        '500':
+          description: Server error
+
+  /api/admitted/students/update_job_type:
+    patch:
+      summary: 9. Update Job Type
+      description: Update job type from Internship to Full-Time/PPO
+      tags:
+        - Placement Workflow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - studentId
+                - interviewId
+                - newJobType
+              properties:
+                studentId:
+                  type: string
+                  example: "64a1b2c3d4e5f6789012345"
+                interviewId:
+                  type: string
+                  example: "64a1b2c3d4e5f6789012346"
+                newJobType:
+                  type: string
+                  enum: [Internship, Full-Time, PPO]
+                  example: "Full-Time"
+                newJobProfile:
+                  type: string
+                  example: "Senior Software Developer"
+                internshipEndDate:
+                  type: string
+                  format: date
+                  example: "2024-06-30"
+      responses:
+        '200':
+          description: Job type updated successfully
+        '404':
+          description: Student or interview not found
+        '500':
+          description: Server error
 
 
   /api/admitted/students/update_technology/{id}:
@@ -2783,3 +2980,89 @@ paths:
                     type: integer
         "500":
           description: Internal server error
+
+  /api/admitted/students/upload_Resume_Base64:
+    post:
+      summary: Upload Student Resume (Base64)
+      description: Upload student resume as Base64 encoded data to Cloudinary and update student record. Supports PDF, DOC, and DOCX files.
+      tags:
+        - Placement Workflow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [studentId, fileName, fileData]
+              properties:
+                studentId:
+                  type: string
+                  description: ID of the student
+                  example: "64a1b2c3d4e5f6789012345"
+                fileName:
+                  type: string
+                  description: Name of the file with extension
+                  example: "john_doe_resume.pdf"
+                fileData:
+                  type: string
+                  description: Base64 encoded file data (with or without data URL prefix)
+                  example: "data:application/pdf;base64,JVBERi0xLjQKJcOkw7zDssO..."
+      responses:
+        '200':
+          description: Resume uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Resume uploaded successfully"
+                  resumeURL:
+                    type: string
+                    example: "https://res.cloudinary.com/example/raw/upload/v1234567890/student-resumes/resume.pdf"
+        '400':
+          description: Bad request - Missing required fields or invalid file type
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Invalid file type. Only PDF, DOC, and DOCX files are allowed."
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Student not found"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Server Error"
+                  error:
+                    type: string
+                    example: "File upload failed"

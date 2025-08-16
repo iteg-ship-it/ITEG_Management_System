@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
 const studentController = require("../modules/student/controllers/AdmittedStudentController");
+const placementController = require("../modules/student/controllers/placementController");
 
 const upload = require('backend/config/multerConfig');
 
@@ -32,6 +33,28 @@ router.get("/permission_students", verifyToken, checkRole(allowedRoles), student
 );
 
 router.patch("/update_permission_student/:studentId", verifyToken, checkRole(allowedRoles), studentController.updatePermissionStudent);
+
+// Placement Workflow Routes (before /:id route) - Keep original URLs
+// 1. Interview Management
+router.post('/interviews/:id', placementController.createInterview); // Keep original URL
+router.patch('/update/interviews/:studentId/:interviewId', placementController.updateInterviewStatus);
+router.post('/interviews/:studentId/:interviewId/add_round', verifyToken, checkRole(allowedRoles), placementController.addInterviewRound);
+
+// 2. Student Lists
+router.get('/selected_students', verifyToken, checkRole(allowedRoles), placementController.getSelectedStudents);
+router.get('/Ready_Students', verifyToken, checkRole(allowedRoles), studentController.getReadyStudent); // Keep original
+router.get('/placed_students', verifyToken, checkRole(allowedRoles), placementController.getPlacedStudents);
+
+// 3. Placement Management
+router.post('/confirm_placement', verifyToken, checkRole(allowedRoles), placementController.confirmPlacement);
+router.patch('/update_job_type', verifyToken, checkRole(allowedRoles), placementController.updateJobType);
+router.post('/placement_post', verifyToken, checkRole(allowedRoles), placementController.createPlacementPost);
+
+// 4. Company & Document Management
+router.get('/companies', verifyToken, checkRole(allowedRoles), placementController.getAllCompanies);
+router.get('/companies/:companyName', verifyToken, checkRole(allowedRoles), placementController.getCompanyByName);
+router.post('/placement_documents', verifyToken, checkRole(allowedRoles), placementController.uploadPlacementDocuments);
+router.get('/placement_documents/:studentId', verifyToken, checkRole(allowedRoles), placementController.getPlacementDocuments);
 
 router.get("/:id", verifyToken, checkRole(allowedRoles), studentController.getStudentById);
 

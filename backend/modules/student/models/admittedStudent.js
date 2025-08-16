@@ -19,11 +19,15 @@ const levelSchema = new mongoose.Schema({
 
 
 const placedInfoSchema = new mongoose.Schema({
+  companyRef: { type: mongoose.Schema.Types.ObjectId, ref: "Company", required: true },
+  interviewRecordId: { type: mongoose.Schema.Types.ObjectId }, // Which interview led to placement
   companyName: { type: String, required: true },
   salary: { type: Number, required: true },
   location: { type: String, required: true },
   jobProfile: { type: String, required: true },
   jobType: { type: String, enum: ['Internship', 'Full-Time', 'PPO'], default: 'Full-Time' },
+  joiningDate: { type: Date },
+  placedDate: { type: Date, default: Date.now },
   offerLetterURL: { type: String },
   applicationURL: { type: String }
 });
@@ -38,25 +42,22 @@ const interviewRoundSchema = new mongoose.Schema({
 });
 
 const interviewRecord = new mongoose.Schema({
-  companyName: { type: String, required: true },
+  companyRef: {type: mongoose.Schema.Types.ObjectId,
+    ref:"Company",
+     required: false
+  },
   jobProfile: { type: String, required: true },
-  location: { type: String },
+  
   status: {
     type: String,
     enum: ['Scheduled', 'Rescheduled', 'Ongoing', 'Selected', 'RejectedByStudent', 'RejectedByCompany'],
     default: 'Scheduled'
   },
+  statusRemark: { type: String, default: "" },
   scheduleDate: { type: Date, required: true },
   rescheduleDate: { type: Date },
   rounds: { type: [interviewRoundSchema], default: [] }, // Multiple rounds tracking
-  remark: { type: String, default: "" },
-  offerLetterURL: { type: String, default: "" },
-  applicationLetterURL: { type: String, default: "" },
-  internshipToJobUpdate: {
-    isIntern: { type: Boolean, default: false },
-    internshipEndDate:{ type: String, default: "" }, 
-    updatedJobProfile:  { type: String, default: "" }
-  }
+  
 });
 
 const permissionSchema = new mongoose.Schema({
@@ -125,6 +126,12 @@ const AdmittedStudentSchema = new mongoose.Schema({
     default: 'Not Ready'
   },
   resumeURL: { type: String, default: "" },
+
+  // 📄 Placement Documents (after placement)
+  offerLetter: { type: String, default: "" }, // Base64 image/PDF
+  commitmentApplication: { type: String, default: "" }, // Base64 image
+  documentsUploadedBy: { type: String, default: "" },
+  documentsUploadedAt: { type: Date }
 
 }, { timestamps: true });
 
