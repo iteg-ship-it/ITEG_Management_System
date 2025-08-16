@@ -8,7 +8,6 @@ import Loader from "../common-components/loader/Loader";
 import UpdateTechnologyModal from "./UpdateTechnologyModal";
 import { toast } from "react-toastify";
 
-
 // Icons & Images
 import profilePlaceholder from "../../assets/images/profile-img.png";
 import attendence from "../../assets/icons/attendence-card-icon.png";
@@ -19,18 +18,16 @@ import company from "../../assets/icons/company-icon.png";
 import position from "../../assets/icons/position-icon.png";
 import loca from "../../assets/icons/location-icon.png";
 import date from "../../assets/icons/calendar-icon.png";
+import download from "../../assets/icons/download-icon.png";
 import studentProfileBg from "../../assets/images/Student_profile_2nd_bg.jpg";
 import { HiArrowNarrowLeft } from "react-icons/hi";
 import { IoCamera } from "react-icons/io5";
-
-
-
 import { Chart } from "react-google-charts";
 
 export default function StudentProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: studentData, isLoading, isError} = useGetAdmittedStudentsByIdQuery(id);
+  const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
   const [updateStudentImage] = useUpdateStudentImageMutation();
   const [uploadResume, { isLoading: isResumeUploading }] = useUploadResumeMutation();
   const [latestLevel, setLatestLevel] = useState("1A");
@@ -80,15 +77,15 @@ export default function StudentProfile() {
       try {
         const base64Image = e.target.result;
         console.log('Uploading image for student ID:', studentData._id);
-        
+
         // Update student image via RTK Query
         const result = await updateStudentImage({
           id: studentData._id,
           image: base64Image
         }).unwrap();
-        
+
         console.log('Image upload successful:', result);
-        
+
       } catch (error) {
         console.error('Error uploading image:', error);
         alert(`Failed to upload image: ${error.data?.message || error.message || 'Unknown error'}`);
@@ -96,13 +93,13 @@ export default function StudentProfile() {
         setIsImageUploading(false);
       }
     };
-    
+
     reader.onerror = () => {
       console.error('Error reading file');
       alert('Error reading file');
       setIsImageUploading(false);
     };
-    
+
     reader.readAsDataURL(file);
   };
 
@@ -132,47 +129,47 @@ export default function StudentProfile() {
         const base64Data = e.target.result;
         // Remove the data:application/pdf;base64, prefix
         const base64String = base64Data.split(',')[1];
-        
+
         console.log('Uploading resume:', {
           studentId: studentData._id,
           fileName: file.name,
           fileSize: file.size,
           base64Length: base64String.length
         });
-        
+
         const payload = {
           studentId: studentData._id,
           fileName: file.name,
           fileData: base64String
         };
-        
+
         console.log('API Payload:', payload);
-        
+
         await uploadResume(payload).unwrap();
-        
+
         toast.success('Resume uploaded successfully!');
-        
+
       } catch (error) {
         console.error('Full error object:', error);
         console.error('Error status:', error?.status);
         console.error('Error data:', error?.data);
-        
+
         let errorMessage = 'Failed to upload resume';
         if (error?.status === 500) {
           errorMessage = 'Server error. Please try with a smaller file or contact support.';
         } else if (error?.data?.message) {
           errorMessage = error.data.message;
         }
-        
+
         toast.error(errorMessage);
       }
     };
-    
+
     reader.onerror = () => {
       console.error('Error reading file');
       toast.error('Error reading file');
     };
-    
+
     reader.readAsDataURL(file);
   };
 
@@ -209,6 +206,11 @@ export default function StudentProfile() {
   const hasPlacement = studentData.placedinfo && studentData.placedinfo !== null && typeof studentData.placedinfo === 'object' && Object.keys(studentData.placedinfo).length > 0;
   const placementStatus = hasPlacement ? "Placed" : "Not Placed";
 
+  // Debug student data to check resume field
+  console.log('Student Data:', studentData);
+  console.log('Resume field:', studentData.resume);
+  console.log('Has resume:', !!studentData.resume);
+
   return (
     <div className="min-h-screen bg-white">
       {/* Professional Header */}
@@ -243,7 +245,7 @@ export default function StudentProfile() {
         {/* Hero Section with Student Info */}
         <div className="bg-white rounded-2xl overflow-hidden mb-8" style={{ boxShadow: '0 0 25px 8px rgba(0, 0, 0, 0.10)' }}>
           <div className="relative">
-            <div className="absolute inset-0" style={{ 
+            <div className="absolute inset-0" style={{
               backgroundImage: `url(${studentProfileBg})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center'
@@ -257,11 +259,10 @@ export default function StudentProfile() {
                   }
                 }}
                 disabled={!canChooseElective()}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg ${
-                  canChooseElective() 
-                    ? 'bg-[var(--primary-darker)] hover:bg-[var(--primary-dark)] text-black font-extrabold cursor-pointer' 
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg ${canChooseElective()
+                    ? 'bg-[var(--primary-darker)] hover:bg-[var(--primary-dark)] text-black font-extrabold cursor-pointer'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
-                }`}
+                  }`}
               >
                 Choose Elective
               </button>
@@ -290,7 +291,7 @@ export default function StudentProfile() {
                       className="w-full h-full object-cover rounded-full"
                     />
                   </div>
-                  <div 
+                  <div
                     className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full shadow-md flex items-center justify-center cursor-pointer hover:shadow-lg transition-shadow"
                     onClick={triggerImageUpload}
                     style={{ transform: 'translate(-25%, -25%)' }}
@@ -299,7 +300,7 @@ export default function StudentProfile() {
                       <div className="w-4 h-4 sm:w-3 sm:h-3 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
                     ) : (
                       <IoCamera
- className="w-5 h-5 sm:w-7 sm:h-6 text-gray-700 hover:text-gray-900" />
+                        className="w-5 h-5 sm:w-7 sm:h-6 text-gray-700 hover:text-gray-900" />
                     )}
                   </div>
                   {/* Hidden file input */}
@@ -329,17 +330,17 @@ export default function StudentProfile() {
 
         {/* Key Performance Metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6 mb-4 sm:mb-8">
-          <ProfessionalMetricCard 
-            icon={attendence} 
-            title="Attendance Rate" 
-            value="93%" 
+          <ProfessionalMetricCard
+            icon={attendence}
+            title="Attendance Rate"
+            value="93%"
             bgColor="#FDA92D"
             description="Monthly average"
           />
-          <ProfessionalMetricCard 
-            icon={level} 
-            title="Level History" 
-            value={latestLevel} 
+          <ProfessionalMetricCard
+            icon={level}
+            title="Level History"
+            value={latestLevel}
             bgColor="#8E33FF"
             description="Academic progress"
             onClick={() => navigate(`/student/${id}/level-interviews`)}
@@ -369,8 +370,8 @@ export default function StudentProfile() {
           {/* Attendance Analytics */}
           <div className="lg:col-span-2">
             <div className={`transition-all duration-500 ${isYearView ? 'hidden' : 'block'}`}>
-              <AnalyticsCard 
-                title="Attendance Analytics" 
+              <AnalyticsCard
+                title="Attendance Analytics"
                 subtitle="Monthly performance tracking with trends"
                 icon="📊"
                 showButton={true}
@@ -386,11 +387,11 @@ export default function StudentProfile() {
                       chartArea: { width: '85%', height: '75%' },
                       colors: ['#22C55E', '#FDA92D', '#EF4444'],
                       bar: { groupWidth: '60%' },
-                      hAxis: { 
+                      hAxis: {
                         textStyle: { color: '#6B7280', fontSize: 11 },
                         gridlines: { color: 'transparent' }
                       },
-                      vAxis: { 
+                      vAxis: {
                         textStyle: { color: '#6B7280', fontSize: 11 },
                         gridlines: { color: '#F3F4F6' }
                       },
@@ -403,95 +404,95 @@ export default function StudentProfile() {
               </AnalyticsCard>
             </div>
             <div className={`transition-all duration-500 ${isYearView ? 'block' : 'hidden'}`}>
-                <AnalyticsCard 
-                  title="Attendance Analytics" 
-                  subtitle="Yearly performance overview"
-                  icon="📊"
-                  showButton={true}
-                  buttonText="Monthly"
-                  onButtonClick={() => setIsYearView(!isYearView)}
-                >
-                  <div className="h-48 sm:h-80 flex items-center justify-center gap-8">
-                    <div className="relative w-80 h-80">
-                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 200 200" opacity={0.7}>
-                        {/* 2022 - Innermost ring */}
-                        <circle cx="100" cy="100" r="40" fill="none" stroke="#F8F9FA" strokeWidth="8" />
-                        <circle cx="100" cy="100" r="40" fill="none" stroke="#B66816" strokeWidth="8" 
-                                strokeDasharray={`${92 * 2.51} 251`} strokeLinecap="round" />
-                        
-                        {/* 2023 - Middle ring */}
-                        <circle cx="100" cy="100" r="60" fill="none" stroke="#F8F9FA" strokeWidth="8" />
-                        <circle cx="100" cy="100" r="60" fill="none" stroke="#FDA92D" strokeWidth="8" 
-                                strokeDasharray={`${88 * 3.77} 377`} strokeLinecap="round" />
-                        
-                        {/* 2024 - Outermost ring */}
-                        <circle cx="100" cy="100" r="80" fill="none" stroke="#F8F9FA" strokeWidth="8" />
-                        <circle cx="100" cy="100" r="80" fill="none" stroke="#FED680" strokeWidth="8" 
-                                strokeDasharray={`${65 * 5.03} 503`} strokeLinecap="round" />
-                      </svg>
-                      
-                      {/* Center Text */}
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <div className="text-2xl font-bold text-gray-800">82%</div>
-                        <div className="text-xs text-gray-500">Average</div>
+              <AnalyticsCard
+                title="Attendance Analytics"
+                subtitle="Yearly performance overview"
+                icon="📊"
+                showButton={true}
+                buttonText="Monthly"
+                onButtonClick={() => setIsYearView(!isYearView)}
+              >
+                <div className="h-48 sm:h-80 flex items-center justify-center gap-8">
+                  <div className="relative w-80 h-80">
+                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 200 200" opacity={0.7}>
+                      {/* 2022 - Innermost ring */}
+                      <circle cx="100" cy="100" r="40" fill="none" stroke="#F8F9FA" strokeWidth="8" />
+                      <circle cx="100" cy="100" r="40" fill="none" stroke="#B66816" strokeWidth="8"
+                        strokeDasharray={`${92 * 2.51} 251`} strokeLinecap="round" />
+
+                      {/* 2023 - Middle ring */}
+                      <circle cx="100" cy="100" r="60" fill="none" stroke="#F8F9FA" strokeWidth="8" />
+                      <circle cx="100" cy="100" r="60" fill="none" stroke="#FDA92D" strokeWidth="8"
+                        strokeDasharray={`${88 * 3.77} 377`} strokeLinecap="round" />
+
+                      {/* 2024 - Outermost ring */}
+                      <circle cx="100" cy="100" r="80" fill="none" stroke="#F8F9FA" strokeWidth="8" />
+                      <circle cx="100" cy="100" r="80" fill="none" stroke="#FED680" strokeWidth="8"
+                        strokeDasharray={`${65 * 5.03} 503`} strokeLinecap="round" />
+                    </svg>
+
+                    {/* Center Text */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <div className="text-2xl font-bold text-gray-800">82%</div>
+                      <div className="text-xs text-gray-500">Average</div>
+                    </div>
+
+                    {/* Year Labels */}
+                    <div className="absolute inset-0">
+                      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-600">2024</div>
+                      <div className="absolute top-12 left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-600">2023</div>
+                      <div className="absolute top-20 left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-600">2022</div>
+                    </div>
+                  </div>
+
+                  {/* Progress Rate Indicator */}
+                  <div className="bg-white rounded-lg p-4" style={{ boxShadow: '0 0 18px 5px rgba(0, 0, 0, 0.08)' }}>
+                    <h4 className="text-sm font-semibold text-gray-800 mb-4">Progress Rate</h4>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-600">2024</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-16 h-2 bg-gray-200 rounded-full">
+                            <div className="h-2 bg-orange-200 rounded-full" style={{ width: '65%' }}></div>
+                          </div>
+                          <span className="text-xs font-medium text-gray-700">65%</span>
+                        </div>
                       </div>
-                      
-                      {/* Year Labels */}
-                      <div className="absolute inset-0">
-                        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-600">2024</div>
-                        <div className="absolute top-12 left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-600">2023</div>
-                        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-600">2022</div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-600">2023</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-16 h-2 bg-gray-200 rounded-full">
+                            <div className="h-2 bg-orange-300 rounded-full" style={{ width: '88%' }}></div>
+                          </div>
+                          <span className="text-xs font-medium text-gray-700">88%</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-600">2022</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-16 h-2 bg-gray-200 rounded-full">
+                            <div className="h-2 bg-orange-400 rounded-full" style={{ width: '92%' }}></div>
+                          </div>
+                          <span className="text-xs font-medium text-gray-700">92%</span>
+                        </div>
                       </div>
                     </div>
-                    
-                    {/* Progress Rate Indicator */}
-                    <div className="bg-white rounded-lg p-4" style={{ boxShadow: '0 0 18px 5px rgba(0, 0, 0, 0.08)' }}>
-                      <h4 className="text-sm font-semibold text-gray-800 mb-4">Progress Rate</h4>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-600">2024</span>
-                          <div className="flex items-center gap-2">
-                            <div className="w-16 h-2 bg-gray-200 rounded-full">
-                              <div className="h-2 bg-orange-200 rounded-full" style={{ width: '65%' }}></div>
-                            </div>
-                            <span className="text-xs font-medium text-gray-700">65%</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-600">2023</span>
-                          <div className="flex items-center gap-2">
-                            <div className="w-16 h-2 bg-gray-200 rounded-full">
-                              <div className="h-2 bg-orange-300 rounded-full" style={{ width: '88%' }}></div>
-                            </div>
-                            <span className="text-xs font-medium text-gray-700">88%</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-600">2022</span>
-                          <div className="flex items-center gap-2">
-                            <div className="w-16 h-2 bg-gray-200 rounded-full">
-                              <div className="h-2 bg-orange-400 rounded-full" style={{ width: '92%' }}></div>
-                            </div>
-                            <span className="text-xs font-medium text-gray-700">92%</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-4 pt-3 border-t border-gray-100">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500">Trend</span>
-                          <span className="text-xs font-medium text-red-600">↓ -4.5%</span>
-                        </div>
+                    <div className="mt-4 pt-3 border-t border-gray-100">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500">Trend</span>
+                        <span className="text-xs font-medium text-red-600">↓ -4.5%</span>
                       </div>
                     </div>
                   </div>
-                </AnalyticsCard>
+                </div>
+              </AnalyticsCard>
             </div>
           </div>
 
           {/* Progress Overview */}
           <div>
-            <AnalyticsCard 
-              title="Progress Overview" 
+            <AnalyticsCard
+              title="Progress Overview"
               subtitle="Academic achievements"
               icon="🎯"
             >
@@ -505,10 +506,10 @@ export default function StudentProfile() {
         </div>
 
         {/* Detailed Information Sections */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 mb-4 sm:mb-8">
           {/* Placement Information */}
-          <DetailSection 
-            title="Placement Information" 
+          <DetailSection
+            title="Placement Information"
             subtitle="Current placement status and company details"
             icon="🏢"
           >
@@ -526,35 +527,35 @@ export default function StudentProfile() {
           </DetailSection>
 
           {/* Permission Details */}
-          <DetailSection 
-            title="Permission Management" 
+          <DetailSection
+            title="Permission Management"
             subtitle="Recent requests and approval status"
             icon="📋"
           >
             <div className="space-y-4">
-              <DetailRow 
-                icon={date} 
-                label="Last Request" 
-                value={studentData?.permissionDetails?.uploadDate 
-                  ? new Date(studentData.permissionDetails.uploadDate).toLocaleDateString() 
-                  : "No recent requests"} 
+              <DetailRow
+                icon={date}
+                label="Last Request"
+                value={studentData?.permissionDetails?.uploadDate
+                  ? new Date(studentData.permissionDetails.uploadDate).toLocaleDateString()
+                  : "No recent requests"}
               />
-              <DetailRow 
-                icon={permission} 
-                label="Reason" 
-                value={studentData?.permissionDetails?.remark || "N/A"} 
+              <DetailRow
+                icon={permission}
+                label="Reason"
+                value={studentData?.permissionDetails?.remark || "N/A"}
               />
-              <DetailRow 
-                icon={permission} 
-                label="Approved By" 
-                value={studentData?.permissionDetails?.approved_by || "N/A"} 
+              <DetailRow
+                icon={permission}
+                label="Approved By"
+                value={studentData?.permissionDetails?.approved_by || "N/A"}
               />
               {studentData?.permissionDetails?.imageURL && (
                 <div className="mt-4">
                   <p className="text-xs text-black uppercase tracking-wide font-medium mb-2">Signature</p>
-                  <img 
-                    src={studentData.permissionDetails.imageURL} 
-                    alt="Permission Signature" 
+                  <img
+                    src={studentData.permissionDetails.imageURL}
+                    alt="Permission Signature"
                     className="h-20 object-contain border rounded shadow"
                   />
                 </div>
@@ -564,6 +565,90 @@ export default function StudentProfile() {
                   <span className="text-sm font-medium text-gray-700">Current Status</span>
                   <StatusBadge status={hasPermission ? "Approved" : "No Permission"} />
                 </div>
+              </div>
+            </div>
+          </DetailSection>
+        </div>
+
+        {/* Resume and Additional Info Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 mb-4 sm:mb-8">
+          {/* Resume Card */}
+          <DetailSection
+            title="Resume"
+            subtitle="Student's uploaded resume document"
+            icon="📄"
+          >
+            <div className="space-y-4">
+              {studentData.resumeURL ? (
+                <div>
+                  {/* Resume Header */}
+                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-t-lg border border-blue-200 border-b-0">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <span className="text-blue-600 text-sm">📄</span>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-blue-900">{studentData.resumeURL.split('/').pop().split('-').slice(1).join('-') || 'Resume.pdf'}</p>
+                        <p className="text-xs text-blue-600">Resume document</p>
+                      </div>
+                    </div>
+                    <a
+                      href={studentData.resumeURL}
+                      download
+                      className="px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs font-medium rounded transition-colors flex items-center"
+                    >
+                      <img src={download} />
+
+                    </a>
+                  </div>
+                  {/* Embedded PDF */}
+                  <div className="border border-blue-200 rounded-b-lg overflow-hidden bg-gray-50">
+                    <iframe
+                      src={`https://docs.google.com/viewer?url=${encodeURIComponent(studentData.resumeURL)}&embedded=true`}
+                      className="w-full h-80 sm:h-96"
+                      title="Student Resume"
+                      frameBorder="0"
+                      allowFullScreen
+                    >
+                      <div className="p-4 text-center">
+                        <p className="text-gray-600 mb-2 text-sm">PDF viewing not supported.</p>
+                        <a
+                          href={studentData.resumeURL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
+                        >
+                          Open PDF
+                        </a>
+                      </div>
+                    </iframe>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
+                  <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <span className="text-gray-400 text-xl">📄</span>
+                  </div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">No Resume Uploaded</p>
+                  <p className="text-xs text-gray-500">Student has not uploaded a resume yet</p>
+                </div>
+              )}
+            </div>
+          </DetailSection>
+
+          {/* Additional Information Card */}
+          <DetailSection
+            title="Additional Information"
+            subtitle="Extra details and notes"
+            icon="📝"
+          >
+            <div className="space-y-4">
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
+                <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <span className="text-gray-400 text-xl">📝</span>
+                </div>
+                <p className="text-sm font-medium text-gray-600 mb-1">No Additional Information</p>
+                <p className="text-xs text-gray-500">Additional details will appear here</p>
               </div>
             </div>
           </DetailSection>
@@ -583,7 +668,7 @@ export default function StudentProfile() {
         studentData={studentData}
         studentId={studentData._id}
       />
-            <UpdateTechnologyModal
+      <UpdateTechnologyModal
         isOpen={isTechModalOpen}
         onClose={() => setTechModalOpen(false)}
         studentId={studentData._id}
@@ -609,11 +694,11 @@ const ContactCard = ({ icon, label, value }) => (
 
 // Professional Metric Card with Advanced Styling
 const ProfessionalMetricCard = ({ icon, title, value, bgColor, description, onClick }) => (
-  <div 
+  <div
     className="group relative bg-white rounded-xl overflow-hidden cursor-pointer"
     style={{ boxShadow: '0 0 20px 5px rgba(0, 0, 0, 0.08)' }}
     onClick={onClick}
-    // style={{ backgroundColor: bg }}
+  // style={{ backgroundColor: bg }}
   >
 
     <div className="relative p-2 sm:p-6">
@@ -623,8 +708,8 @@ const ProfessionalMetricCard = ({ icon, title, value, bgColor, description, onCl
           <h3 className="text-sm sm:text-xl lg:text-2xl font-bold mb-0.5 sm:mb-1" style={{ color: bgColor }}>{value}</h3>
           <p className="text-xs text-black hidden sm:block">{description}</p>
         </div>
-        <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm" 
-             style={{ backgroundColor: `${bgColor}90` }}>
+        <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm"
+          style={{ backgroundColor: `${bgColor}90` }}>
           <img src={icon} className="h-3 w-3 sm:h-6 sm:w-6" alt={title} />
         </div>
       </div>
@@ -670,7 +755,7 @@ const ProgressMetric = ({ title, value, total, color, suffix = '' }) => {
         <span className="text-sm font-bold text-black">{value}{suffix}/{total}{suffix}</span>
       </div>
       <div className="w-full bg-gray-200 rounded-full h-2">
-        <div 
+        <div
           className="h-2 rounded-full transition-all duration-500 ease-out"
           style={{ width: `${percentage}%`, backgroundColor: color }}
         ></div>
@@ -713,14 +798,14 @@ const DetailRow = ({ icon, label, value }) => (
 // Status Badge Component
 const StatusBadge = ({ status }) => {
   const getStatusStyle = (status) => {
-    switch(status?.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case 'approved': return 'bg-green-100 text-green-800 border-green-200';
       case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'rejected': return 'bg-red-100 text-red-800 border-red-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
-  
+
   return (
     <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusStyle(status)}`}>
       {status || 'No Status'}
