@@ -1,5 +1,6 @@
 import { useAdmitedStudentsQuery } from "../../redux/api/authApi";
 import placementTemplate from "../../assets/images/ITEG_Placement_Post.jpg";
+import PageNavbar from "../common-components/navbar/PageNavbar";
 
 const PlacementPost = () => {
   console.log("PlacementPost component loaded");
@@ -35,16 +36,13 @@ const PlacementPost = () => {
   }
 
   return (
-    <div className="p-6 min-h-screen">
+    <div className="p-2 min-h-screen">
       {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">
-          🎉 Placement Success Stories
-        </h1>
-        <p className="text-lg text-slate-500">
-          Celebrating our students achievements and career milestones
-        </p>
-      </div>
+   <PageNavbar
+        title="Placement Post" 
+        subtitle="Placed students post and details"
+        showBackButton={false}
+      />
 
       {/* Empty state when no placed students */}
       {placedStudents.length === 0 ? (
