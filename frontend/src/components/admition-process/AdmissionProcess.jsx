@@ -516,7 +516,7 @@ const StudentList = () => {
             }}
             className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
           >
-            Add Interview
+            Take Interview
           </button>
         </div>
       );

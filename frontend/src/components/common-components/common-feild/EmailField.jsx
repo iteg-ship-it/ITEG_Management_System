@@ -1,40 +1,28 @@
+/* eslint-disable no-unused-vars */
 import { Field, ErrorMessage } from "formik";
 import { useState } from "react";
 
 const EmailField = () => {
-  const [isFocused, setIsFocused] = useState(false);
-
   return (
-    <div className="relative w-full">
+    <div className="relative">
       <Field name="email">
-        {({ field }) => {
-          const hasValue = !!field.value;
-          return (
-            <>
-              <input
-                {...field}
-                type="email"
-                onFocus={() => setIsFocused(true)}
-                onBlur={(e) => {
-                  setIsFocused(false);
-                  field.onBlur(e);
-                }}
-                className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-[#FDA92D] transition-all duration-200"
-              />
-              <label
-                className={`
-                  absolute left-3 bg-white px-1 transition-all duration-200
-                  pointer-events-none
-                  ${isFocused || hasValue
-                    ? "text-xs -top-2 text-black"
-                    : "text-gray-500 top-3"}
-                `}
-              >
-                Email
-              </label>
-            </>
-          );
-        }}
+        {({ field }) => (
+          <>
+            <input
+              {...field}
+              id="email"
+              type="email"
+              placeholder=" "
+              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full peer autofill-detect"
+            />
+            <label
+              htmlFor="email"
+              className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
+            >
+              Email
+            </label>
+          </>
+        )}
       </Field>
       <ErrorMessage
         name="email"

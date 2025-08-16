@@ -96,3 +96,22 @@ textarea {
   }
 }
 
+
+/* Auto-fill styling fixes */
+.autofill-detect:-webkit-autofill,
+.autofill-detect:-webkit-autofill:hover,
+.autofill-detect:-webkit-autofill:focus,
+.autofill-detect:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  -webkit-text-fill-color: #000 !important;
+}
+
+/* Float label when auto-fill is detected */
+.autofill-detect:-webkit-autofill ~ label {
+  top: -0.5rem !important;
+  left: 0.5rem !important;
+  font-size: 0.75rem !important;
+  color: #000 !important;
+  background: white !important;
+  padding: 0 4px !important;
+}

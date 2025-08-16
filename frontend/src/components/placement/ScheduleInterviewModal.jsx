@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 
 import { useFormik } from "formik";
@@ -6,7 +7,7 @@ import { useAddPlacementInterviewRecordMutation } from "../../redux/api/authApi"
 import { toast } from "react-toastify";
 import { IoClose } from "react-icons/io5";
 import { FaCalendarAlt } from "react-icons/fa";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const PRIMARY_COLOR = "#FDA92D";
 const TEXT_COLOR = "#4B4B4B";
@@ -89,6 +90,15 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
     },
   });
 
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      formik.resetForm();
+      setShowDatePicker(false);
+      setShowTechDropdown(false);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -115,26 +125,34 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
           <div className="relative">
             <input
               type="text"
+              id="companyName"
               name="companyName"
               placeholder=" "
               onChange={formik.handleChange}
               value={formik.values.companyName}
-              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer"
+              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black  w-full peer"
             />
-            <label className="absolute left-3 top-3 text-gray-500 transition-all duration-200 peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black">
+            <label 
+              htmlFor="companyName"
+              className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
+            >
               Company Name
             </label>
           </div>
           <div className="relative">
             <input
               type="email"
+              id="hrEmail"
               name="hrEmail"
               placeholder=" "
               onChange={formik.handleChange}
               value={formik.values.hrEmail}
-              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer"
+              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full peer"
             />
-            <label className="absolute left-3 top-3 text-gray-500 transition-all duration-200 peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black">
+            <label 
+              htmlFor="hrEmail"
+              className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
+            >
               Hr. Email
             </label>
           </div>
@@ -143,26 +161,34 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
           <div className="relative">
             <input
               type="text"
+              id="contactNumber"
               name="contactNumber"
               placeholder=" "
               onChange={formik.handleChange}
               value={formik.values.contactNumber}
-              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer"
+              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full peer"
             />
-            <label className="absolute left-3 top-3 text-gray-500 transition-all duration-200 peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black">
+            <label 
+              htmlFor="contactNumber"
+              className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
+            >
               Contact Number
             </label>
           </div>
           <div className="relative">
             <input
               type="text"
+              id="jobProfile"
               name="jobProfile"
               placeholder=" "
               onChange={formik.handleChange}
               value={formik.values.jobProfile}
-              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer"
+              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full peer"
             />
-            <label className="absolute left-3 top-3 text-gray-500 transition-all duration-200 peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black">
+            <label 
+              htmlFor="jobProfile"
+              className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
+            >
               Position Offered
             </label>
           </div>
@@ -201,7 +227,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
             <button
               type="button"
               onClick={() => setShowTechDropdown(!showTechDropdown)}
-              className={`h-12 border px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full text-left flex items-center justify-between ${showTechDropdown ? 'border-[#FDA92D]' : 'border-gray-300'}`}
+              className={`h-12 border px-3 rounded-md focus:outline-none focus:border-black w-full text-left flex items-center justify-between ${showTechDropdown ? 'border-black' : 'border-gray-300'}`}
             >
               <span className={formik.values.requiredTechnology ? 'text-gray-900' : 'text-gray-500'}>
                 {formik.values.requiredTechnology || 'Required Technology'}
@@ -244,7 +270,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
               value={`${formik.values.interviewDate}${formik.values.interviewTime ? ` at ${formik.values.interviewTime}` : ''}`}
               onClick={() => setShowDatePicker(!showDatePicker)}
               readOnly
-              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full cursor-pointer"
+              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full cursor-pointer"
             />
             <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#FDA92D]" />
             {showDatePicker && (
@@ -269,9 +295,9 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
               placeholder=" "
               onChange={formik.handleChange}
               value={formik.values.location}
-              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer"
+              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full peer"
             />
-            <label className="absolute left-3 top-3 text-gray-500 transition-all duration-200 peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-[#FDA92D] peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">
+            <label className="absolute left-3 top-3 text-gray-500 transition-all duration-200 peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">
               Company Location
             </label>
           </div>
