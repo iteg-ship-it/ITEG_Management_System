@@ -5,6 +5,7 @@ import Loader from "../common-components/loader/Loader";
 import { Dialog } from "@headlessui/react";
 import { toast } from "react-toastify";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
+import { FaCalendarAlt } from "react-icons/fa";
 import PageNavbar from "../common-components/navbar/PageNavbar";
 
 const InterviewHistory = () => {
@@ -23,9 +24,13 @@ const InterviewHistory = () => {
   const interviews = studentData?.PlacementinterviewRecord || [];
   
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [selectedInterview, setSelectedInterview] = useState(null);
   const [remark, setRemark] = useState("");
   const [result, setResult] = useState("Pending");
+  const [newInterviewDate, setNewInterviewDate] = useState("");
+  const [newInterviewTime, setNewInterviewTime] = useState("");
+  const [showRescheduleDatePicker, setShowRescheduleDatePicker] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
   const [updateInterviewRecord, { isLoading: isUpdating }] = useUpdatePlacedInfoMutation();
@@ -35,6 +40,19 @@ const InterviewHistory = () => {
     setRemark(interview.remark || "");
     setResult(interview.result || "Pending");
     setIsUpdateModalOpen(true);
+  };
+  
+  const handleRescheduleClick = (interview) => {
+    setSelectedInterview({ studentId: id, ...interview });
+    if (interview.interviewDate) {
+      const date = new Date(interview.interviewDate);
+      setNewInterviewDate(date.toLocaleDateString('en-GB'));
+      setNewInterviewTime(date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }));
+    } else {
+      setNewInterviewDate("");
+      setNewInterviewTime("");
+    }
+    setIsRescheduleModalOpen(true);
   };
   
   const handleUpdateSubmit = async () => {
@@ -52,6 +70,34 @@ const InterviewHistory = () => {
     } catch (err) {
       console.error(err);
       toast.error("Failed to update interview");
+    }
+  };
+  
+  const handleRescheduleSubmit = async () => {
+    try {
+      // Combine date and time for backend
+      let combinedDateTime = '';
+      if (newInterviewDate && newInterviewTime) {
+        const dateParts = newInterviewDate.split('/');
+        if (dateParts.length === 3) {
+          const formattedDate = `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}`;
+          combinedDateTime = `${formattedDate} ${newInterviewTime}`;
+        }
+      }
+      
+      await updateInterviewRecord({
+        studentId: selectedInterview.studentId,
+        interviewId: selectedInterview._id,
+        interviewDate: combinedDateTime || newInterviewDate,
+      }).unwrap();
+      
+      toast.success("Interview rescheduled successfully");
+      setIsRescheduleModalOpen(false);
+      setShowRescheduleDatePicker(false);
+      await refetch();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to reschedule interview");
     }
   };
   
@@ -197,6 +243,12 @@ const InterviewHistory = () => {
                               day: 'numeric'
                             }) : "Not specified"}
                           </p>
+                          <button
+                            onClick={() => handleRescheduleClick(interview)}
+                            className="mt-2 text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded hover:bg-blue-200 transition"
+                          >
+                            Reschedule
+                          </button>
                         </div>
                       </div>
 
@@ -346,7 +398,242 @@ const InterviewHistory = () => {
           </Dialog.Panel>
         </div>
       </Dialog>
+
+      {/* Reschedule Modal */}
+      <Dialog open={isRescheduleModalOpen} onClose={() => setIsRescheduleModalOpen(false)} className="fixed z-50 inset-0">
+        <div className="flex items-center justify-center min-h-screen px-4 bg-black bg-opacity-30">
+          <Dialog.Panel className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-5">
+            <Dialog.Title className="text-xl font-semibold text-gray-800">Reschedule Interview</Dialog.Title>
+
+            <div className="space-y-4">
+              <div className="relative w-full">
+                <input
+                  type="text"
+                  placeholder="Select Date & Time"
+                  value={`${newInterviewDate}${newInterviewTime ? ` at ${newInterviewTime}` : ''}`}
+                  onClick={() => setShowRescheduleDatePicker(!showRescheduleDatePicker)}
+                  readOnly
+                  className="peer w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200 cursor-pointer"
+                />
+                <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#FDA92D]" />
+                <label className="absolute left-3 bg-white px-1 text-xs -top-2 text-black pointer-events-none">
+                  New Interview Date & Time
+                </label>
+                {showRescheduleDatePicker && (
+                  <DatePickerComponent
+                    selectedDate={newInterviewDate}
+                    selectedTime={newInterviewTime}
+                    onDateTimeSelect={(date, time) => {
+                      setNewInterviewDate(date);
+                      setNewInterviewTime(time);
+                      setShowRescheduleDatePicker(false);
+                    }}
+                    onClose={() => setShowRescheduleDatePicker(false)}
+                  />
+                )}
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  onClick={() => setIsRescheduleModalOpen(false)}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRescheduleSubmit}
+                  disabled={isUpdating || !newInterviewDate || !newInterviewTime}
+                  className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-orange-600 transition"
+                >
+                  {isUpdating ? "Rescheduling..." : "Reschedule"}
+                </button>
+              </div>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
     </>
+  );
+};
+
+// Custom Date Picker Component with Time Selection
+const DatePickerComponent = ({ selectedDate, selectedTime, onDateTimeSelect, onClose }) => {
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [tempSelectedDate, setTempSelectedDate] = useState(selectedDate);
+  const [selectedHour, setSelectedHour] = useState('09');
+  const [selectedMinute, setSelectedMinute] = useState('00');
+  const [selectedPeriod, setSelectedPeriod] = useState('AM');
+
+  const months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ];
+
+  const hours = Array.from({ length: 12 }, (_, i) => {
+    const hour = i + 1;
+    return hour.toString().padStart(2, '0');
+  });
+
+  const minutes = ['00', '15', '30', '45'];
+
+  const getDaysInMonth = (month, year) => {
+    return new Date(year, month + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (month, year) => {
+    return new Date(year, month, 1).getDay();
+  };
+
+  const formatDate = (day) => {
+    const date = new Date(currentYear, currentMonth, day);
+    return date.toLocaleDateString('en-GB');
+  };
+
+  const handleConfirm = () => {
+    const timeString = `${selectedHour}:${selectedMinute} ${selectedPeriod}`;
+    onDateTimeSelect(tempSelectedDate, timeString);
+  };
+
+  const renderCalendar = () => {
+    const daysInMonth = getDaysInMonth(currentMonth, currentYear);
+    const firstDay = getFirstDayOfMonth(currentMonth, currentYear);
+    const days = [];
+
+    for (let i = 0; i < firstDay; i++) {
+      days.push(<div key={`empty-${i}`} className="h-8"></div>);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = formatDate(day);
+      const isSelected = tempSelectedDate === dateStr;
+      const isToday = new Date().toDateString() === new Date(currentYear, currentMonth, day).toDateString();
+
+      days.push(
+        <button
+          key={day}
+          onClick={() => setTempSelectedDate(dateStr)}
+          className={`h-8 w-8 rounded-full text-sm font-medium transition-colors ${
+            isSelected
+              ? 'bg-[#FDA92D] text-white'
+              : isToday
+              ? 'bg-orange-100 text-[#FDA92D]'
+              : 'hover:bg-orange-50 text-gray-700'
+          }`}
+        >
+          {day}
+        </button>
+      );
+    }
+
+    return days;
+  };
+
+  return (
+    <div className="absolute bottom-full left-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-3 w-72 max-h-96 overflow-y-auto sm:w-80 sm:p-4">
+      {/* Calendar Header */}
+      <div className="flex items-center justify-between mb-4">
+        <button
+          onClick={() => {
+            if (currentMonth === 0) {
+              setCurrentMonth(11);
+              setCurrentYear(currentYear - 1);
+            } else {
+              setCurrentMonth(currentMonth - 1);
+            }
+          }}
+          className="p-1 hover:bg-gray-100 rounded"
+        >
+          ←
+        </button>
+        <div className="font-semibold text-gray-700">
+          {months[currentMonth]} {currentYear}
+        </div>
+        <button
+          onClick={() => {
+            if (currentMonth === 11) {
+              setCurrentMonth(0);
+              setCurrentYear(currentYear + 1);
+            } else {
+              setCurrentMonth(currentMonth + 1);
+            }
+          }}
+          className="p-1 hover:bg-gray-100 rounded"
+        >
+          →
+        </button>
+      </div>
+
+      {/* Days of week */}
+      <div className="grid grid-cols-7 gap-1 mb-2">
+        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+          <div key={day} className="h-8 flex items-center justify-center text-xs font-medium text-gray-500">
+            {day}
+          </div>
+        ))}
+      </div>
+
+      {/* Calendar grid */}
+      <div className="grid grid-cols-7 gap-1 mb-4">
+        {renderCalendar()}
+      </div>
+
+      {/* Time Selection */}
+      {tempSelectedDate && (
+        <div className="border-t pt-4">
+          <div className="text-center mb-3">
+            <h4 className="font-semibold text-gray-700">Select Time</h4>
+          </div>
+          
+          <div className="flex justify-center items-center space-x-2 mb-4">
+            <select
+              value={selectedHour}
+              onChange={(e) => setSelectedHour(e.target.value)}
+              className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-[#FDA92D]"
+            >
+              {hours.map(hour => (
+                <option key={hour} value={hour}>{hour}</option>
+              ))}
+            </select>
+            <span className="font-bold text-gray-600">:</span>
+            <select
+              value={selectedMinute}
+              onChange={(e) => setSelectedMinute(e.target.value)}
+              className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-[#FDA92D]"
+            >
+              {minutes.map(minute => (
+                <option key={minute} value={minute}>{minute}</option>
+              ))}
+            </select>
+            <select
+              value={selectedPeriod}
+              onChange={(e) => setSelectedPeriod(e.target.value)}
+              className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-[#FDA92D]"
+            >
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
+          </div>
+        </div>
+      )}
+
+      {/* Action buttons */}
+      <div className="flex justify-end space-x-2">
+        <button
+          onClick={onClose}
+          className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleConfirm}
+          disabled={!tempSelectedDate}
+          className="px-3 py-1 text-sm bg-[#FDA92D] text-white rounded hover:opacity-90 disabled:opacity-50"
+        >
+          Confirm
+        </button>
+      </div>
+    </div>
   );
 };
 

@@ -6,32 +6,20 @@ import { Eye, EyeOff } from "lucide-react";
 const PasswordField = ({ name, password }) => {
   const [field, meta] = useField(name);
   const [showPassword, setShowPassword] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
-
-  const hasValue = field.value && field.value.length > 0;
 
   return (
-    <div className="relative w-full">
+    <div className="relative">
       <input
         type={showPassword ? "text" : "password"}
         {...field}
-        onFocus={() => setIsFocused(true)}
-        onBlur={(e) => {
-          setIsFocused(false);
-          field.onBlur(e);
-        }}
+        id="password"
         placeholder=" "
-        className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 pr-10 focus:outline-none focus:border-[#FDA92D] transition-all duration-200"
+        className="h-12 border border-gray-300 px-3 pr-10 rounded-md focus:outline-none focus:border-black w-full peer autofill-detect"
       />
       
       <label
-        className={`
-          absolute left-3 bg-white px-1 transition-all duration-200
-          pointer-events-none
-          ${isFocused || hasValue
-            ? "text-xs -top-2 text-black"
-            : "text-gray-500 top-3"}
-        `}
+        htmlFor="password"
+        className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
       >
         {password}
       </label>

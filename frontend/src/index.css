@@ -2,97 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #f2f7fc;
-  --primary: #FDA92D;
-  --primary-light: #f7d897;
-  --primary-dark: #FDA92D;
-  --primary-darker: #FFAB00;
-  --secondary: #8E33FF;
-  --secondary-light: #C684FF;
-  --secondary-dark: #5119B7;
-  --success: #22C55E;
-  --success-light: #77ED8B;
-  --success-dark: #118D57;
-  --warning: #FDA92D;
-  --warning-light: #FFD666;
-  --warning-dark: #FDA92D;
-  --error: #FDA92D;
-  --error-light: #FFCEC3;
-  --error-dark: #B71D18;
-  --info: #00B8D9;
-  --info-light: #61F3F3;
-  --info-dark: #006C9C;
-  --neutral:#F4F6F8;
-  --neutral-light: #DFE3E8;
-  --neutral-dark: #C4CDD5;
-  --neutral-darker:#919EAB;
-  --diagonal-gradient: linear-gradient(45deg, #b1ddefe4 0%, #FFFFFF 33%, #FFFFFF 66%, #e3c2c178 100%);
- --backgroundColor: #FCFDFD;
- --text-color: #1C252E;
-}
-*{
-  font-family: 'Inter', sans-serif;
-}
-/* Add to index.css or global.css */
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+/* Auto-fill styling fixes */
+.autofill-detect:-webkit-autofill,
+.autofill-detect:-webkit-autofill:hover,
+.autofill-detect:-webkit-autofill:focus,
+.autofill-detect:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  -webkit-text-fill-color: #000 !important;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
+/* Float label when auto-fill is detected */
+.autofill-detect:-webkit-autofill ~ label {
+  top: -0.5rem !important;
+  left: 0.5rem !important;
+  font-size: 0.75rem !important;
+  color: #000 !important;
+  background: white !important;
+  padding: 0 4px !important;
 }
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.input {
-  @apply border p-2 rounded-md w-full;
-}
-
-.field-standard {
-  @apply h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-black transition-all duration-200;
-}
-
-.field-standard:disabled {
-  @apply bg-gray-100 cursor-not-allowed;
-}
-
-input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="tel"], input[type="url"], input[type="date"], input[type="file"] {
-  @apply h-12 border-2 border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-black transition-all duration-200;
-}
-
-select:not([multiple]) {
-  @apply h-12 border-2 border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-black transition-all duration-200 bg-white;
-}
-
-textarea {
-  @apply border-2 border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-black transition-all duration-200;
-}
-
-@layer utilities {
-  .animate-fadeIn {
-    animation: fadeIn 0.3s ease-in-out;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-}
-
