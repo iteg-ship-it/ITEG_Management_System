@@ -628,7 +628,7 @@ exports.updateInterviewRecord = async (req, res) => {
 
 
 
-// Upload from Base64 encoded string via JSON
+// Upload Resume Base64 API
 exports.uploadResumeBase64 = async (req, res) => {
   const { studentId, fileName, fileData } = req.body;
 

@@ -44,7 +44,7 @@ const interviewRoundSchema = new mongoose.Schema({
 const interviewRecord = new mongoose.Schema({
   companyRef: {type: mongoose.Schema.Types.ObjectId,
     ref:"Company",
-     required: true
+     required: false
   },
   jobProfile: { type: String, required: true },
   
@@ -56,13 +56,7 @@ const interviewRecord = new mongoose.Schema({
   scheduleDate: { type: Date, required: true },
   rescheduleDate: { type: Date },
   rounds: { type: [interviewRoundSchema], default: [] }, // Multiple rounds tracking
-  offerLetterURL: { type: String, default: "" },
-  applicationLetterURL: { type: String, default: "" },
-  internshipToJobUpdate: {
-    isIntern: { type: Boolean, default: false },
-    internshipEndDate:{ type: String, default: "" }, 
-    updatedJobProfile:  { type: String, default: "" }
-  }
+  
 });
 
 const permissionSchema = new mongoose.Schema({

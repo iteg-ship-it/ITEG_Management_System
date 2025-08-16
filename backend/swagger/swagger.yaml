@@ -2506,8 +2506,13 @@ paths:
 
   /api/admitted/students/confirm-placement:
     post:
-      summary: 6. Confirm Placement
-      description: Move selected student to placed status
+      summary: 6. Confirm Placement (Auto-detect Interview or Direct)
+      description: |
+        Automatically confirms student placement by detecting the type:
+        1. **Interview-based**: Auto-detects if student has selected interview with matching jobProfile
+        2. **Direct placement**: When no matching selected interview found, requires companyRef
+        
+        The API automatically fills companyRef and interviewRecordId when interview is detected.
       tags:
         - Placement Workflow
       requestBody:
@@ -2518,31 +2523,101 @@ paths:
               type: object
               required:
                 - studentId
-                - interviewId
+                - companyName
+                - salary
+                - location
+                - jobProfile
               properties:
                 studentId:
                   type: string
+                  description: ID of the student
                   example: "64a1b2c3d4e5f6789012345"
-                interviewId:
+                companyName:
                   type: string
-                  description: ID of the selected interview record
-                  example: "64a1b2c3d4e5f6789012346"
+                  description: "Name of the company"
+                  example: "TechCorp Solutions"
                 salary:
                   type: number
+                  description: "Salary amount"
                   example: 500000
+                location:
+                  type: string
+                  description: "Job location"
+                  example: "Bangalore, India"
+                jobProfile:
+                  type: string
+                  description: "Job position/profile (used to match with interview records)"
+                  example: "Software Developer"
+                jobType:
+                  type: string
+                  enum: [Internship, Full-Time, PPO]
+                  default: Full-Time
+                  description: "Type of job"
+                  example: "Full-Time"
                 joiningDate:
                   type: string
                   format: date
+                  description: "Optional - Joining date"
                   example: "2024-07-01"
+                offerLetter:
+                  type: string
+                  description: "Optional - Base64 encoded offer letter file (PDF/Image)"
+                  example: "data:application/pdf;base64,JVBERi0xLjQKJcOkw7zDssO..."
+                application:
+                  type: string
+                  description: "Optional - Base64 encoded application file (PDF/Image)"
+                  example: "data:application/pdf;base64,JVBERi0xLjQKJcOkw7zDssO..."
+
       responses:
         '200':
           description: Student placement confirmed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Student placement confirmed successfully"
+                  data:
+                    type: object
+                    description: "Placement information"
         '400':
-          description: Interview not in selected state
+          description: Missing required fields, student already placed, or interview not in selected state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Missing required fields: studentId, companyName, salary, location, jobProfile"
         '404':
-          description: Student or interview not found
+          description: Student, company, or interview not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Student not found"
         '500':
           description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Server error message"
 
   /api/admitted/students/placed-students:
     get:
@@ -2905,3 +2980,89 @@ paths:
                     type: integer
         "500":
           description: Internal server error
+
+  /api/admitted/students/upload_Resume_Base64:
+    post:
+      summary: Upload Student Resume (Base64)
+      description: Upload student resume as Base64 encoded data to Cloudinary and update student record. Supports PDF, DOC, and DOCX files.
+      tags:
+        - Placement Workflow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [studentId, fileName, fileData]
+              properties:
+                studentId:
+                  type: string
+                  description: ID of the student
+                  example: "64a1b2c3d4e5f6789012345"
+                fileName:
+                  type: string
+                  description: Name of the file with extension
+                  example: "john_doe_resume.pdf"
+                fileData:
+                  type: string
+                  description: Base64 encoded file data (with or without data URL prefix)
+                  example: "data:application/pdf;base64,JVBERi0xLjQKJcOkw7zDssO..."
+      responses:
+        '200':
+          description: Resume uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Resume uploaded successfully"
+                  resumeURL:
+                    type: string
+                    example: "https://res.cloudinary.com/example/raw/upload/v1234567890/student-resumes/resume.pdf"
+        '400':
+          description: Bad request - Missing required fields or invalid file type
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Invalid file type. Only PDF, DOC, and DOCX files are allowed."
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Student not found"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Server Error"
+                  error:
+                    type: string
+                    example: "File upload failed"
