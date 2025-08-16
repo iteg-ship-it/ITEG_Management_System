@@ -34,8 +34,23 @@ router.get("/permission_students", verifyToken, checkRole(allowedRoles), student
 
 router.patch("/update_permission_student/:studentId", verifyToken, checkRole(allowedRoles), studentController.updatePermissionStudent);
 
-// Placement Routes (before /:id route)
+// Placement Workflow Routes (before /:id route) - Keep original URLs
+// 1. Interview Management
+router.post('/interviews/:id', placementController.createInterview); // Keep original URL
+router.patch('/update/interviews/:studentId/:interviewId', placementController.updateInterviewStatus);
+router.post('/interviews/:studentId/:interviewId/add-round', verifyToken, checkRole(allowedRoles), placementController.addInterviewRound);
+
+// 2. Student Lists
+router.get('/selected-students', verifyToken, checkRole(allowedRoles), placementController.getSelectedStudents);
+router.get('/Ready_Students', verifyToken, checkRole(allowedRoles), studentController.getReadyStudent); // Keep original
+router.get('/placed-students', verifyToken, checkRole(allowedRoles), placementController.getPlacedStudents);
+
+// 3. Placement Management
+router.post('/confirm-placement', verifyToken, checkRole(allowedRoles), placementController.confirmPlacement);
+router.patch('/update-job-type', verifyToken, checkRole(allowedRoles), placementController.updateJobType);
 router.post('/placement-post', verifyToken, checkRole(allowedRoles), placementController.createPlacementPost);
+
+// 4. Company & Document Management
 router.get('/companies', verifyToken, checkRole(allowedRoles), placementController.getAllCompanies);
 router.get('/companies/:companyName', verifyToken, checkRole(allowedRoles), placementController.getCompanyByName);
 router.post('/placement-documents', verifyToken, checkRole(allowedRoles), placementController.uploadPlacementDocuments);

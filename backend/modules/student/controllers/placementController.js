@@ -1,7 +1,213 @@
 const AdmittedStudent = require("../models/admittedStudent");
 const Company = require("../models/company");
 
-// Create placement post data
+// 1. CREATE/SCHEDULE INTERVIEW (from Ready Students) - Using original URL pattern
+exports.createInterview = async (req, res) => {
+  try {
+    const studentId = req.params.id; // From URL parameter
+    const { companyName, hrEmail, hrContact, location, jobProfile, scheduleDate } = req.body;
+
+    if (!companyName || !hrEmail || !location || !jobProfile || !scheduleDate) {
+      return res.status(400).json({ 
+        message: "Missing required fields: companyName, hrEmail, location, jobProfile, scheduleDate" 
+      });
+    }
+
+    const student = await AdmittedStudent.findById(studentId);
+    if (!student || student.readinessStatus !== 'Ready') {
+      return res.status(400).json({ message: "Student not ready for placement" });
+    }
+
+    // Find or create company
+    let company = await Company.findOne({ companyName });
+    if (!company) {
+      // Create new company with HR details (logo will be added during post creation)
+      company = new Company({ 
+        companyName, 
+        hrEmail, 
+        hrContact: hrContact || "", // Optional field
+        location 
+      });
+      await company.save();
+    }
+
+    // Create interview record with company reference
+    const newInterview = {
+      companyRef: company._id,
+      jobProfile,
+      status: 'Scheduled',
+      scheduleDate: new Date(scheduleDate),
+      rounds: []
+    };
+
+    student.PlacementinterviewRecord.push(newInterview);
+    await student.save();
+
+    res.status(201).json({ 
+      success: true, 
+      message: "Interview scheduled successfully",
+      data: {
+        interview: newInterview,
+        company: company
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// 2. UPDATE INTERVIEW STATUS (Ongoing/Pending/Reschedule/Cancel)
+exports.updateInterviewStatus = async (req, res) => {
+  try {
+    const { studentId, interviewId } = req.params;
+    const { status, rescheduleDate } = req.body;
+
+    const student = await AdmittedStudent.findById(studentId);
+    if (!student) return res.status(404).json({ message: "Student not found" });
+
+    const interview = student.PlacementinterviewRecord.id(interviewId);
+    if (!interview) return res.status(404).json({ message: "Interview not found" });
+
+    interview.status = status;
+    if (status === 'Rescheduled' && rescheduleDate) {
+      interview.rescheduleDate = new Date(rescheduleDate);
+    }
+
+    await student.save();
+    res.json({ success: true, message: "Interview status updated", data: interview });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// 3. ADD INTERVIEW ROUND
+exports.addInterviewRound = async (req, res) => {
+  try {
+    const { studentId, interviewId } = req.params;
+    const { roundName, date, mode, feedback, result } = req.body;
+
+    const student = await AdmittedStudent.findById(studentId);
+    const interview = student.PlacementinterviewRecord.id(interviewId);
+
+    if (!interview) return res.status(404).json({ message: "Interview not found" });
+
+    interview.rounds.push({
+      roundName: roundName || `Round ${interview.rounds.length + 1}`,
+      date: new Date(date),
+      mode: mode || 'Offline',
+      feedback: feedback || '',
+      result: result || 'Pending'
+    });
+
+    await student.save();
+    res.json({ success: true, message: "Interview round added", data: interview });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// 4. GET SELECTED STUDENTS (Not yet placed)
+exports.getSelectedStudents = async (req, res) => {
+  try {
+    const students = await AdmittedStudent.find({
+      "PlacementinterviewRecord.status": "Selected",
+      placedInfo: null
+    }).populate('PlacementinterviewRecord.companyRef');
+
+    const selectedStudents = students.map(student => ({
+      _id: student._id,
+      name: `${student.firstName} ${student.lastName}`,
+      course: student.course,
+      selectedInterviews: student.PlacementinterviewRecord.filter(interview => 
+        interview.status === 'Selected'
+      )
+    }));
+
+    res.json({ success: true, data: selectedStudents });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// 5. CONFIRM PLACEMENT (Move Selected to Placed)
+exports.confirmPlacement = async (req, res) => {
+  try {
+    const { studentId, interviewId, salary, joiningDate } = req.body;
+
+    const student = await AdmittedStudent.findById(studentId).populate('PlacementinterviewRecord.companyRef');
+    const selectedInterview = student.PlacementinterviewRecord.id(interviewId);
+
+    if (!selectedInterview || selectedInterview.status !== 'Selected') {
+      return res.status(400).json({ message: "Interview not in selected state" });
+    }
+
+    // Get company details
+    const company = await Company.findById(selectedInterview.companyRef);
+
+    // Create final placement record
+    student.placedInfo = {
+      companyRef: selectedInterview.companyRef,
+      interviewRecordId: selectedInterview._id,
+      companyName: company.companyName,
+      salary: salary || 0,
+      location: company.headOffice,
+      jobProfile: selectedInterview.jobProfile,
+      jobType: 'Full-Time',
+      joiningDate: joiningDate ? new Date(joiningDate) : null
+    };
+
+    await student.save();
+    res.json({ success: true, message: "Student placement confirmed" });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// 6. GET PLACED STUDENTS
+exports.getPlacedStudents = async (req, res) => {
+  try {
+    const placedStudents = await AdmittedStudent.find({
+      placedInfo: { $ne: null }
+    }).populate('placedInfo.companyRef');
+
+    res.json({ success: true, data: placedStudents });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// 7. UPDATE JOB TYPE (Internship to Full-Time/PPO)
+exports.updateJobType = async (req, res) => {
+  try {
+    const { studentId, interviewId, newJobType, newJobProfile, internshipEndDate } = req.body;
+
+    const student = await AdmittedStudent.findById(studentId);
+    if (!student) return res.status(404).json({ message: "Student not found" });
+
+    const interview = student.PlacementinterviewRecord.id(interviewId);
+    if (!interview) return res.status(404).json({ message: "Interview not found" });
+
+    // Update internship to job conversion
+    interview.internshipToJobUpdate = {
+      isIntern: newJobType === 'Internship',
+      internshipEndDate: internshipEndDate || '',
+      updatedJobProfile: newJobProfile || interview.jobProfile
+    };
+
+    // If student is placed, update placedInfo as well
+    if (student.placedInfo && student.placedInfo.interviewRecordId.toString() === interviewId) {
+      student.placedInfo.jobType = newJobType;
+      student.placedInfo.jobProfile = newJobProfile || student.placedInfo.jobProfile;
+    }
+
+    await student.save();
+    res.json({ success: true, message: "Job type updated successfully", data: interview });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// 8. CREATE PLACEMENT POST (from Placed Students)
 exports.createPlacementPost = async (req, res) => {
   try {
     console.log("Request body:", req.body);

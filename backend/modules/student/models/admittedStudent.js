@@ -19,11 +19,15 @@ const levelSchema = new mongoose.Schema({
 
 
 const placedInfoSchema = new mongoose.Schema({
+  companyRef: { type: mongoose.Schema.Types.ObjectId, ref: "Company", required: true },
+  interviewRecordId: { type: mongoose.Schema.Types.ObjectId }, // Which interview led to placement
   companyName: { type: String, required: true },
   salary: { type: Number, required: true },
   location: { type: String, required: true },
   jobProfile: { type: String, required: true },
   jobType: { type: String, enum: ['Internship', 'Full-Time', 'PPO'], default: 'Full-Time' },
+  joiningDate: { type: Date },
+  placedDate: { type: Date, default: Date.now },
   offerLetterURL: { type: String },
   applicationURL: { type: String }
 });
