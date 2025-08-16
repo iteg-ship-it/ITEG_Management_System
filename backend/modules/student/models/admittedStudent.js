@@ -49,6 +49,7 @@ const interviewRecord = new mongoose.Schema({
   scheduleDate: { type: Date, required: true },
   rescheduleDate: { type: Date },
   rounds: { type: [interviewRoundSchema], default: [] }, // Multiple rounds tracking
+  remark: { type: String, default: "" },
   offerLetterURL: { type: String, default: "" },
   applicationLetterURL: { type: String, default: "" },
   internshipToJobUpdate: {

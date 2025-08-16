@@ -32,7 +32,7 @@ const InterviewHistory = () => {
   const handleUpdateClick = (interview) => {
     setSelectedInterview({ studentId: id, ...interview });
     setRemark(interview.remark || "");
-    setResult(interview.result || "Pending");
+    setResult(interview.status || interview.result || "Pending");
     setIsUpdateModalOpen(true);
   };
   
@@ -47,7 +47,10 @@ const InterviewHistory = () => {
       
       toast.success("Interview updated successfully");
       setIsUpdateModalOpen(false);
+      // Force multiple refetches to ensure data consistency
       await refetch();
+      setTimeout(() => refetch(), 500);
+      setTimeout(() => refetch(), 1000);
     } catch (err) {
       console.error(err);
       toast.error("Failed to update interview");
@@ -218,7 +221,7 @@ const InterviewHistory = () => {
                         </div>
                         <div>
                           <p className="text-sm text-gray-500 font-medium">Result Status</p>
-                          {renderBadge(interview.result)}
+                          {renderBadge(interview.status || interview.result)}
                         </div>
                       </div>
 

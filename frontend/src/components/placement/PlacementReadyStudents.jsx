@@ -81,7 +81,9 @@ const PlacementReadyStudents = () => {
     // 🌐 Tab-specific filtering
     if (activeTab === "Ongoing Interviews") {
       filtered = filtered.filter(
-        (s) => Array.isArray(s.PlacementinterviewRecord) && s.PlacementinterviewRecord.length > 0
+        (s) => Array.isArray(s.PlacementinterviewRecord) && 
+        s.PlacementinterviewRecord.length > 0 &&
+        !s.PlacementinterviewRecord.some((rec) => rec.status?.toLowerCase() === "selected")
       );
     } else if (activeTab === "Qualified Students") {
       filtered = filtered.filter(
@@ -135,12 +137,16 @@ const PlacementReadyStudents = () => {
     });
   };
 
-  // Helper function to get selected interview details
+  // Helper function to get latest selected interview details
   const getSelectedInterviewDetails = (student) => {
-    const selectedInterview = student.PlacementinterviewRecord?.find(
+    const selectedInterviews = student.PlacementinterviewRecord?.filter(
       (interview) => interview.status?.toLowerCase() === "selected"
-    );
-    return selectedInterview || {};
+    ) || [];
+    
+    if (selectedInterviews.length === 0) return {};
+    
+    // Return the last selected interview (most recently added to array)
+    return selectedInterviews[selectedInterviews.length - 1];
   };
 
   const columns = activeTab === "Selected Student" ? [
@@ -327,7 +333,7 @@ const PlacementReadyStudents = () => {
   }, []);
 
   const handleRowClick = (student) => {
-    if (activeTab === "Ongoing Interviews") {
+    if (activeTab === "Ongoing Interviews" || activeTab === "Selected Student") {
       navigate(`/interview-history/${student._id}`);
     }
   };
@@ -388,7 +394,7 @@ const PlacementReadyStudents = () => {
           pagination={true}
           rowsPerPage={rowsPerPage}
           searchTerm={searchTerm}
-          actionButton={activeTab !== "Selected Student" && activeTab !== "Placed Student" ? (student) => (
+          actionButton={activeTab !== "Placed Student" ? (student) => (
             <button
               onClick={(e) => {
                 e.stopPropagation();
