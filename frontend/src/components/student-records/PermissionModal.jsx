@@ -13,6 +13,7 @@ const PermissionModal = ({ isOpen, onClose, studentId }) => {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [currentUser, setCurrentUser] = useState("");
+    const [showApproverDropdown, setShowApproverDropdown] = useState(false);
 
     const [updatePermission] = useUpdatePermissionMutation();
 
@@ -90,11 +91,16 @@ const PermissionModal = ({ isOpen, onClose, studentId }) => {
                         <div className="relative w-full">
                             <input
                                 type="text"
+                                id="requestedBy"
                                 value={currentUser}
                                 readOnly
-                                className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight bg-gray-50 text-gray-700 cursor-not-allowed"
+                                className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full peer bg-gray-50 text-gray-700 cursor-not-allowed"
+                                placeholder=" "
                             />
-                            <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
+                            <label 
+                                htmlFor="requestedBy"
+                                className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
+                            >
                                 Requested By
                             </label>
                         </div>
@@ -103,42 +109,100 @@ const PermissionModal = ({ isOpen, onClose, studentId }) => {
                     {/* Approver Role */}
                     <div className="col-span-2 md:col-span-1">
                         <div className="relative w-full">
-                            <select
-                                value={permissionData.approved_by}
-                                onChange={(e) =>
-                                    setPermissionData((prev) => ({ ...prev, approved_by: e.target.value }))
-                                }
-                                className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-black focus:ring-0 transition-all duration-200"
+                            <button
+                                type="button"
+                                onClick={() => setShowApproverDropdown(!showApproverDropdown)}
+                                className={`h-12 border px-3 rounded-md focus:outline-none focus:border-black w-full text-left flex items-center justify-between ${showApproverDropdown ? 'border-black' : 'border-gray-300'}`}
                             >
-                                <option value="super admin">Super Admin</option>
-                                <option value="admin">Admin</option>
-                                <option value="faculty">Faculty</option>
-                            </select>
-                            <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
+                                <span className={permissionData.approved_by ? 'text-gray-900' : 'text-gray-500'}>
+                                    {permissionData.approved_by || 'Select Approver'}
+                                </span>
+                                <span className="ml-2">▼</span>
+                            </button>
+                            <label className="absolute left-3 -top-2 text-xs bg-white px-1 text-black pointer-events-none">
                                 Approved By <span className="text-red-500">*</span>
                             </label>
+                            {showApproverDropdown && (
+                                <div
+                                    className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-10 overflow-hidden border"
+                                    style={{
+                                        background: `
+                                            linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 20%),
+                                            linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 20%),
+                                            white
+                                        `
+                                    }}
+                                >
+                                    {['super admin', 'admin', 'faculty'].map((option) => (
+                                        <div
+                                            key={option}
+                                            onClick={() => {
+                                                setPermissionData((prev) => ({ ...prev, approved_by: option }));
+                                                setShowApproverDropdown(false);
+                                            }}
+                                            className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left transition-colors duration-150 capitalize"
+                                        >
+                                            {option}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    {/* Image Upload */}
-                    <div className="col-span-2 md:col-span-1">
+                    {/* Signature Upload */}
+                    <div className="col-span-2">
                         <div className="relative w-full">
+                            <div 
+                                onClick={() => document.getElementById('uploadSignature').click()}
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={(e) => {
+                                    e.preventDefault();
+                                    const files = e.dataTransfer.files;
+                                    if (files.length > 0) {
+                                        handleImageUpload({ target: { files } });
+                                    }
+                                }}
+                                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-gray-400 transition-colors duration-200 bg-gray-50"
+                            >
+                                <div className="flex flex-col items-center space-y-2">
+                                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                    </svg>
+                                    <div>
+                                        <span className="text-blue-600 font-medium">Choose application file</span>
+                                        <span className="text-gray-500"> or drag and drop</span>
+                                    </div>
+                                    <div className="text-xs text-gray-400">
+                                        PDF, DOC, DOCX
+                                    </div>
+                                </div>
+                                {permissionData.imageURL && (
+                                    <div className="mt-2 text-green-600 text-sm">
+                                        ✓ File uploaded successfully
+                                    </div>
+                                )}
+                            </div>
                             <input
                                 type="file"
-                                accept="image/*"
+                                id="uploadSignature"
+                                accept="image/*,.pdf,.doc,.docx"
                                 onChange={handleImageUpload}
-                                className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-black focus:ring-0 transition-all duration-200"
+                                className="hidden"
                             />
-                            <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
+                            <label className="absolute left-3 -top-2 text-xs bg-white px-1 text-black pointer-events-none">
                                 Upload Signature <span className="text-red-500">*</span>
                             </label>
                         </div>
                         {permissionData.imageURL && (
-                            <img
-                                src={permissionData.imageURL}
-                                alt="Preview"
-                                className="mt-3 h-28 object-contain border rounded shadow"
-                            />
+                            <div className="mt-3 p-2 border rounded-lg bg-gray-50">
+                                <img
+                                    src={permissionData.imageURL}
+                                    alt="Signature Preview"
+                                    className="h-20 w-full object-contain rounded"
+                                />
+                                <p className="text-xs text-gray-600 text-center mt-1">Signature Preview</p>
+                            </div>
                         )}
                     </div>
 
@@ -147,14 +211,18 @@ const PermissionModal = ({ isOpen, onClose, studentId }) => {
                         <div className="relative w-full">
                             <textarea
                                 rows={3}
+                                id="remark"
                                 value={permissionData.remark}
                                 onChange={(e) =>
                                     setPermissionData((prev) => ({ ...prev, remark: e.target.value }))
                                 }
-                                className="peer h-20 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-black focus:ring-0 transition-all duration-200 resize-none"
+                                className="h-20 border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:border-black w-full peer resize-none"
                                 placeholder=" "
                             />
-                            <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
+                            <label 
+                                htmlFor="remark"
+                                className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
+                            >
                                 Remark / Reason
                             </label>
                         </div>

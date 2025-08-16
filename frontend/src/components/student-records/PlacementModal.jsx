@@ -36,14 +36,18 @@ const PlacementModal = ({ isOpen, onClose, studentId }) => {
             <div className="relative w-full">
               <input
                 type="text"
+                id="companyName"
                 value={placementData.companyName}
                 onChange={(e) =>
                   setPlacementData((prev) => ({ ...prev, companyName: e.target.value }))
                 }
-                className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200"
+                className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full peer"
                 placeholder=" "
               />
-              <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
+              <label 
+                htmlFor="companyName"
+                className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
+              >
                 Company Name
               </label>
             </div>
@@ -54,14 +58,18 @@ const PlacementModal = ({ isOpen, onClose, studentId }) => {
             <div className="relative w-full">
               <input
                 type="text"
+                id="jobProfile"
                 value={placementData.jobProfile}
                 onChange={(e) =>
                   setPlacementData((prev) => ({ ...prev, jobProfile: e.target.value }))
                 }
-                className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200"
+                className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full peer"
                 placeholder=" "
               />
-              <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
+              <label 
+                htmlFor="jobProfile"
+                className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
+              >
                 Job Profile
               </label>
             </div>
@@ -72,14 +80,18 @@ const PlacementModal = ({ isOpen, onClose, studentId }) => {
             <div className="relative w-full">
               <input
                 type="text"
+                id="salary"
                 value={placementData.salary}
                 onChange={(e) =>
                   setPlacementData((prev) => ({ ...prev, salary: e.target.value }))
                 }
-                className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200"
+                className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full peer"
                 placeholder=" "
               />
-              <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
+              <label 
+                htmlFor="salary"
+                className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
+              >
                 Salary
               </label>
             </div>
@@ -90,14 +102,18 @@ const PlacementModal = ({ isOpen, onClose, studentId }) => {
             <div className="relative w-full">
               <input
                 type="text"
+                id="location"
                 value={placementData.location}
                 onChange={(e) =>
                   setPlacementData((prev) => ({ ...prev, location: e.target.value }))
                 }
-                className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200"
+                className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full peer"
                 placeholder=" "
               />
-              <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
+              <label 
+                htmlFor="location"
+                className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
+              >
                 Location
               </label>
             </div>
