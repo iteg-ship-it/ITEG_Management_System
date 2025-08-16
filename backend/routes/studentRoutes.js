@@ -55,6 +55,7 @@ router.get('/companies', verifyToken, checkRole(allowedRoles), placementControll
 router.get('/companies/:companyName', verifyToken, checkRole(allowedRoles), placementController.getCompanyByName);
 router.post('/placement_documents', verifyToken, checkRole(allowedRoles), placementController.uploadPlacementDocuments);
 router.get('/placement_documents/:studentId', verifyToken, checkRole(allowedRoles), placementController.getPlacementDocuments);
+router.get('/interview_history/:studentId', verifyToken, checkRole(allowedRoles), placementController.getStudentInterviewHistory);
 
 router.get("/:id", verifyToken, checkRole(allowedRoles), studentController.getStudentById);
 

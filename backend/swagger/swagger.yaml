@@ -2981,6 +2981,140 @@ paths:
         "500":
           description: Internal server error
 
+  /api/admitted/students/interview_history/{studentId}:
+    get:
+      summary: Get student's placement interview history with company details
+      description: Retrieve all placement interview records for a specific student with populated company information
+      tags:
+        - Placement Workflow
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          description: ID of the student
+          schema:
+            type: string
+            example: "64a1b2c3d4e5f6789012345"
+      responses:
+        '200':
+          description: Interview history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      studentName:
+                        type: string
+                        example: "John Doe"
+                      totalInterviews:
+                        type: integer
+                        example: 3
+                      interviews:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                              example: "64a1b2c3d4e5f6789012346"
+                            jobProfile:
+                              type: string
+                              example: "Software Developer"
+                            status:
+                              type: string
+                              enum: [Scheduled, Rescheduled, Ongoing, Selected, RejectedByStudent, RejectedByCompany]
+                              example: "Selected"
+                            statusRemark:
+                              type: string
+                              example: "Good performance"
+                            scheduleDate:
+                              type: string
+                              format: date-time
+                              example: "2024-01-20T10:00:00Z"
+                            rescheduleDate:
+                              type: string
+                              format: date-time
+                              nullable: true
+                              example: null
+                            rounds:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  roundName:
+                                    type: string
+                                    example: "Technical Round"
+                                  date:
+                                    type: string
+                                    format: date-time
+                                    example: "2024-01-20T10:00:00Z"
+                                  mode:
+                                    type: string
+                                    enum: [Online, Offline, Telephonic]
+                                    example: "Online"
+                                  feedback:
+                                    type: string
+                                    example: "Strong coding skills"
+                                  result:
+                                    type: string
+                                    enum: [Passed, Failed, Pending]
+                                    example: "Passed"
+                            company:
+                              type: object
+                              nullable: true
+                              properties:
+                                _id:
+                                  type: string
+                                  example: "64a1b2c3d4e5f6789012347"
+                                companyName:
+                                  type: string
+                                  example: "TechCorp Solutions"
+                                location:
+                                  type: string
+                                  example: "Bangalore, India"
+                                companyLogo:
+                                  type: string
+                                  example: "https://cloudinary.com/logo.png"
+                                hrEmail:
+                                  type: string
+                                  format: email
+                                  example: "hr@techcorp.com"
+                                hrContact:
+                                  type: string
+                                  example: "+91-9876543210"
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Student not found"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Server error"
+                  error:
+                    type: string
+                    example: "Error message details"
+
   /api/admitted/students/upload_Resume_Base64:
     post:
       summary: Upload Student Resume (Base64)
