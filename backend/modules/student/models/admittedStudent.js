@@ -44,7 +44,7 @@ const interviewRoundSchema = new mongoose.Schema({
 const interviewRecord = new mongoose.Schema({
   companyRef: {type: mongoose.Schema.Types.ObjectId,
     ref:"Company",
-     required: true
+     required: false
   },
   jobProfile: { type: String, required: true },
   
@@ -57,7 +57,6 @@ const interviewRecord = new mongoose.Schema({
   scheduleDate: { type: Date, required: true },
   rescheduleDate: { type: Date },
   rounds: { type: [interviewRoundSchema], default: [] }, // Multiple rounds tracking
-  
   
 });
 

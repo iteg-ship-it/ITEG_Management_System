@@ -3,7 +3,7 @@ const AdmittedStudent = require("../models/admittedStudent");
 const { sendHTMLMail } = require("./emailController");
 
 const { sendEmail } = require('./emailController');
-const cloudinary = require('backend/config/cloudinaryConfig');
+const cloudinary = require('../../../config/cloudinaryConfig');
 
 const path = require('path');
 const fs = require('fs');
@@ -628,7 +628,7 @@ exports.updateInterviewRecord = async (req, res) => {
 
 
 
-// Upload from Base64 encoded string via JSON
+// Upload Resume Base64 API
 exports.uploadResumeBase64 = async (req, res) => {
   const { studentId, fileName, fileData } = req.body;
 
@@ -640,16 +640,39 @@ exports.uploadResumeBase64 = async (req, res) => {
   }
 
   try {
+    // Validate file extension
+    const allowedExtensions = ['.pdf', '.doc', '.docx'];
+    const fileExtension = fileName.toLowerCase().substring(fileName.lastIndexOf('.'));
+    
+    if (!allowedExtensions.includes(fileExtension)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid file type. Only PDF, DOC, and DOCX files are allowed."
+      });
+    }
+
     const student = await AdmittedStudent.findById(studentId);
     if (!student) {
       return res.status(404).json({ success: false, message: "Student not found" });
     }
 
+    // Clean base64 data (remove data URL prefix if present)
+    let cleanBase64Data = fileData;
+    if (fileData.includes(',')) {
+      cleanBase64Data = fileData.split(',')[1];
+    }
+
+    // Determine MIME type based on file extension
+    let mimeType = 'application/pdf';
+    if (fileExtension === '.doc') mimeType = 'application/msword';
+    if (fileExtension === '.docx') mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
     // Upload to Cloudinary
-    const cloudinaryUpload = await cloudinary.uploader.upload(`data:application/pdf;base64,${fileData}`,  {
+    const cloudinaryUpload = await cloudinary.uploader.upload(`data:${mimeType};base64,${cleanBase64Data}`, {
       folder: 'student-resumes',
       resource_type: 'raw',
-      public_id: Date.now() + '-' + fileName.split('.')[0]
+      public_id: `${Date.now()}-${fileName.split('.')[0]}`,
+      format: fileExtension.substring(1) // Remove the dot from extension
     });
 
     student.resumeURL = cloudinaryUpload.secure_url;
@@ -663,6 +686,16 @@ exports.uploadResumeBase64 = async (req, res) => {
 
   } catch (error) {
     console.error("Upload Error:", error);
+    
+    // Handle specific Cloudinary errors
+    if (error.http_code) {
+      return res.status(400).json({
+        success: false,
+        message: "File upload failed",
+        error: error.message
+      });
+    }
+
     return res.status(500).json({
       success: false,
       message: "Server Error",

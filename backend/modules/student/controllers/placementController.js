@@ -1,5 +1,6 @@
 const AdmittedStudent = require("../models/admittedStudent");
 const Company = require("../models/company");
+const cloudinary = require('../../../config/cloudinaryConfig');
 
 // 1. CREATE/SCHEDULE INTERVIEW (from Ready Students) - Using original URL pattern
 exports.createInterview = async (req, res) => {
@@ -149,35 +150,113 @@ exports.getSelectedStudents = async (req, res) => {
   }
 };
 
-// 5. CONFIRM PLACEMENT (Move Selected to Placed)
+// 5. CONFIRM PLACEMENT (Auto-detect interview-based or direct placement)
 exports.confirmPlacement = async (req, res) => {
   try {
-    const { studentId, interviewId, salary, joiningDate } = req.body;
+    const { 
+      studentId, 
+      companyName, 
+      salary, 
+      location, 
+      jobProfile, 
+      jobType = 'Full-Time',
+      joiningDate,
+      offerLetter,
+      application
+    } = req.body;
 
-    const student = await AdmittedStudent.findById(studentId).populate('PlacementinterviewRecord.companyRef');
-    const selectedInterview = student.PlacementinterviewRecord.id(interviewId);
-
-    if (!selectedInterview || selectedInterview.status !== 'Selected') {
-      return res.status(400).json({ message: "Interview not in selected state" });
+    if (!studentId || !companyName || !salary || !location || !jobProfile) {
+      return res.status(400).json({ 
+        message: "Missing required fields: studentId, companyName, salary, location, jobProfile" 
+      });
     }
 
-    // Get company details
-    const company = await Company.findById(selectedInterview.companyRef);
+    const student = await AdmittedStudent.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
 
-    // Create final placement record
+    if (student.placedInfo) {
+      return res.status(400).json({ message: "Student is already placed" });
+    }
+
+    // Handle file URLs - try Cloudinary upload or store as-is
+    let offerLetterURL = offerLetter || null;
+    let applicationURL = application || null;
+
+    if (offerLetter && offerLetter.startsWith('data:')) {
+      try {
+        const offerResult = await cloudinary.uploader.upload(offerLetter, {
+          folder: 'placement-documents/offer-letters',
+          resource_type: 'auto'
+        });
+        offerLetterURL = offerResult.secure_url;
+      } catch (error) {
+        // If Cloudinary fails, keep the original data
+        offerLetterURL = offerLetter;
+      }
+    }
+
+    if (application && application.startsWith('data:')) {
+      try {
+        const appResult = await cloudinary.uploader.upload(application, {
+          folder: 'placement-documents/applications', 
+          resource_type: 'auto'
+        });
+        applicationURL = appResult.secure_url;
+      } catch (error) {
+        // If Cloudinary fails, keep the original data
+        applicationURL = application;
+      }
+    }
+
+    // Auto-detect interview or direct placement
+    const selectedInterview = student.PlacementinterviewRecord.find(interview => 
+      interview.status === 'Selected' && interview.jobProfile === jobProfile
+    );
+
+    let companyRef;
+    let interviewRecordId = null;
+
+    if (selectedInterview) {
+      companyRef = selectedInterview.companyRef;
+      interviewRecordId = selectedInterview._id;
+    } else {
+      let company = await Company.findOne({ companyName });
+      if (!company) {
+        company = new Company({
+          companyName,
+          headOffice: location,
+          hrEmail: "",
+          hrContact: ""
+        });
+        await company.save();
+      }
+      companyRef = company._id;
+    }
+
     student.placedInfo = {
-      companyRef: selectedInterview.companyRef,
-      interviewRecordId: selectedInterview._id,
-      companyName: company.companyName,
-      salary: salary || 0,
-      location: company.headOffice,
-      jobProfile: selectedInterview.jobProfile,
-      jobType: 'Full-Time',
-      joiningDate: joiningDate ? new Date(joiningDate) : null
+      companyRef,
+      interviewRecordId,
+      companyName,
+      salary,
+      location,
+      jobProfile,
+      jobType,
+      joiningDate: joiningDate ? new Date(joiningDate) : null,
+      offerLetterURL,
+      applicationURL
     };
 
     await student.save();
-    res.json({ success: true, message: "Student placement confirmed" });
+
+    res.json({ 
+      success: true, 
+      message: selectedInterview ? 
+        "Student placement confirmed from interview process" : 
+        "Student placement confirmed directly",
+      data: student.placedInfo
+    });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
