@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useGetReadyStudentsForPlacementQuery, useUpdatePlacedInfoMutation } from "../../redux/api/authApi";
