@@ -160,24 +160,34 @@ exports.confirmPlacement = async (req, res) => {
       return res.status(400).json({ message: "Student is already placed" });
     }
 
-    // Handle Cloudinary uploads
-    let offerLetterURL = null;
-    let applicationURL = null;
+    // Handle file URLs - try Cloudinary upload or store as-is
+    let offerLetterURL = offerLetter || null;
+    let applicationURL = application || null;
 
     if (offerLetter && offerLetter.startsWith('data:')) {
-      const offerResult = await cloudinary.uploader.upload(offerLetter, {
-        folder: 'placement-documents/offer-letters',
-        resource_type: 'auto'
-      });
-      offerLetterURL = offerResult.secure_url;
+      try {
+        const offerResult = await cloudinary.uploader.upload(offerLetter, {
+          folder: 'placement-documents/offer-letters',
+          resource_type: 'auto'
+        });
+        offerLetterURL = offerResult.secure_url;
+      } catch (error) {
+        // If Cloudinary fails, keep the original data
+        offerLetterURL = offerLetter;
+      }
     }
 
     if (application && application.startsWith('data:')) {
-      const appResult = await cloudinary.uploader.upload(application, {
-        folder: 'placement-documents/applications', 
-        resource_type: 'auto'
-      });
-      applicationURL = appResult.secure_url;
+      try {
+        const appResult = await cloudinary.uploader.upload(application, {
+          folder: 'placement-documents/applications', 
+          resource_type: 'auto'
+        });
+        applicationURL = appResult.secure_url;
+      } catch (error) {
+        // If Cloudinary fails, keep the original data
+        applicationURL = application;
+      }
     }
 
     // Auto-detect interview or direct placement
