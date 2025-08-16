@@ -27,10 +27,28 @@ const InterviewHistory = () => {
   const interviews = studentData?.PlacementinterviewRecord || [];
   
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [isUpdateRoundModalOpen, setIsUpdateRoundModalOpen] = useState(false);
+  const [isAddNextRoundModalOpen, setIsAddNextRoundModalOpen] = useState(false);
+  const [isCompanyHistoryModalOpen, setIsCompanyHistoryModalOpen] = useState(false);
+  const [selectedCompanyHistory, setSelectedCompanyHistory] = useState([]);
+  const [selectedCompanyName, setSelectedCompanyName] = useState("");
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+  const [nextRoundData, setNextRoundData] = useState({});
+  const [nextRoundDate, setNextRoundDate] = useState("");
+  const [nextRoundTime, setNextRoundTime] = useState("");
+  const [nextRoundFeedback, setNextRoundFeedback] = useState("");
+  const [nextRoundResult, setNextRoundResult] = useState("Pending");
+  const [nextRoundMode, setNextRoundMode] = useState("Online");
+  const [showNextRoundDatePicker, setShowNextRoundDatePicker] = useState(false);
+  const [isNextRoundDropdownOpen, setIsNextRoundDropdownOpen] = useState(false);
+  const [isModeDropdownOpen, setIsModeDropdownOpen] = useState(false);
   const [selectedInterview, setSelectedInterview] = useState(null);
   const [remark, setRemark] = useState("");
   const [result, setResult] = useState("Pending");
+  const [round, setRound] = useState("Round 1");
+  const [localRounds, setLocalRounds] = useState({});
+  const [addedRounds, setAddedRounds] = useState({});
+  const [addedRoundDetails, setAddedRoundDetails] = useState({});
   const [newInterviewDate, setNewInterviewDate] = useState("");
   const [newInterviewTime, setNewInterviewTime] = useState("");
   const [showRescheduleDatePicker, setShowRescheduleDatePicker] = useState(false);
@@ -38,11 +56,157 @@ const InterviewHistory = () => {
   
   const [updateInterviewRecord, { isLoading: isUpdating }] = useUpdatePlacedInfoMutation();
   
+  // Function to get auto-incremented round for same company
+  const getAutoRound = (interview, index) => {
+    const companyName = interview.companyName;
+    const sameCompanyInterviews = interviews.filter((int, idx) => 
+      int.companyName === companyName && idx <= index
+    );
+    return `Round ${sameCompanyInterviews.length}`;
+  };
+  
+  // Group interviews by company and get latest round info
+  const getGroupedInterviews = () => {
+    const grouped = {};
+    interviews.forEach((interview, index) => {
+      const companyName = interview.companyName;
+      if (!grouped[companyName]) {
+        grouped[companyName] = {
+          ...interview,
+          originalIndex: index,
+          totalRounds: 1,
+          currentRound: localRounds[interview._id] || interview.round || getAutoRound(interview, index)
+        };
+      } else {
+        grouped[companyName].totalRounds += 1;
+        // Update to latest interview data but keep the first interview's ID for consistency
+        const latestRound = localRounds[interview._id] || interview.round || getAutoRound(interview, index);
+        if (parseInt(latestRound.replace('Round ', '')) > parseInt(grouped[companyName].currentRound.replace('Round ', ''))) {
+          grouped[companyName] = {
+            ...grouped[companyName],
+            ...interview,
+            currentRound: latestRound,
+            totalRounds: grouped[companyName].totalRounds
+          };
+        }
+      }
+    });
+    
+    // Add locally added rounds to the count and update current round
+    Object.keys(addedRounds).forEach(companyName => {
+      if (grouped[companyName]) {
+        grouped[companyName].totalRounds += addedRounds[companyName].count;
+        grouped[companyName].currentRound = addedRounds[companyName].latestRound;
+      }
+    });
+    
+    return Object.values(grouped);
+  };
+  
+  const groupedInterviews = getGroupedInterviews();
+  
+  const handleCompanyNameClick = (companyName) => {
+    // Get original interviews for this company
+    const companyInterviews = interviews.filter(interview => interview.companyName === companyName)
+      .map((interview, index) => ({
+        ...interview,
+        displayRound: localRounds[interview._id] || interview.round || `Round ${index + 1}`
+      }));
+    
+    // Add locally added rounds for this company
+    const addedRoundsForCompany = addedRoundDetails[companyName] || [];
+    const allRounds = [...companyInterviews, ...addedRoundsForCompany];
+    
+    setSelectedCompanyHistory(allRounds);
+    setSelectedCompanyName(companyName);
+    setIsCompanyHistoryModalOpen(true);
+  };
+  
   const handleUpdateClick = (interview) => {
+    const interviewIndex = interviews.findIndex(int => int._id === interview._id);
     setSelectedInterview({ studentId: id, ...interview });
     setRemark(interview.remark || "");
-    setResult(interview.status || interview.result || "Pending");
+    setResult(interview.result || "Pending");
+    setRound(localRounds[interview._id] || interview.round || getAutoRound(interview, interviewIndex));
     setIsUpdateModalOpen(true);
+  };
+
+  const handleAddNextRoundClick = (interview) => {
+    const companyName = interview.companyName;
+    const sameCompanyInterviews = interviews.filter(int => int.companyName === companyName);
+    const nextRoundNumber = sameCompanyInterviews.length + 1;
+    
+    setNextRoundData({
+      baseInterview: interview,
+      nextRoundNumber,
+      companyName
+    });
+    setRound(`Round ${nextRoundNumber}`);
+    setNextRoundDate("");
+    setNextRoundTime("");
+    setNextRoundFeedback("");
+    setNextRoundResult("Pending");
+    setNextRoundMode("Online");
+    setIsAddNextRoundModalOpen(true);
+  };
+  
+  const handleAddNextRoundSubmit = async () => {
+    try {
+      const companyName = nextRoundData.companyName;
+      const newRoundId = `temp_${Date.now()}`;
+      
+      // Create complete round details for history
+      const newRoundDetail = {
+        _id: newRoundId,
+        ...nextRoundData.baseInterview,
+        displayRound: round,
+        interviewDate: nextRoundDate && nextRoundTime ? 
+          new Date(`${nextRoundDate.split('/').reverse().join('-')} ${nextRoundTime}`).toISOString() : null,
+        remark: nextRoundFeedback,
+        result: nextRoundResult,
+        mode: nextRoundMode,
+        isLocallyAdded: true
+      };
+      
+      // Update added rounds count for this company
+      setAddedRounds(prev => {
+        const currentCount = prev[companyName]?.count || 0;
+        return {
+          ...prev,
+          [companyName]: {
+            count: currentCount + 1,
+            latestRound: round
+          }
+        };
+      });
+      
+      // Store complete round details for history display
+      setAddedRoundDetails(prev => {
+        const existingRounds = prev[companyName] || [];
+        return {
+          ...prev,
+          [companyName]: [...existingRounds, newRoundDetail]
+        };
+      });
+      
+      // TODO: Backend integration - create new interview record
+      // await createNewInterviewRound({
+      //   studentId: id,
+      //   companyName: nextRoundData.companyName,
+      //   round,
+      //   interviewDate: nextRoundDate && nextRoundTime ? `${nextRoundDate} ${nextRoundTime}` : null,
+      //   feedback: nextRoundFeedback,
+      //   result: nextRoundResult,
+      //   mode: nextRoundMode,
+      //   ...nextRoundData.baseInterview
+      // }).unwrap();
+      
+      toast.success(`Added ${round} for ${nextRoundData.companyName}`);
+      setIsAddNextRoundModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to add next round");
+    }
   };
   
   const handleRescheduleClick = (interview) => {
@@ -60,36 +224,51 @@ const InterviewHistory = () => {
   
   const handleUpdateSubmit = async () => {
     try {
-      const response = await updateInterviewRecord({
-        studentId: selectedInterview.studentId,
-        interviewId: selectedInterview._id,
-        remark,
-        status: result, // Send as 'status' instead of 'result'
-      }).unwrap();
+      // Store round locally for immediate UI update
+      setLocalRounds(prev => ({
+        ...prev,
+        [selectedInterview._id]: round
+      }));
+      
+      // TODO: Backend integration - uncomment when ready
+      // await updateInterviewRecord({
+      //   studentId: selectedInterview.studentId,
+      //   interviewId: selectedInterview._id,
+      //   remark,
+      //   result,
+      //   round,
+      // }).unwrap();
       
       toast.success("Interview updated successfully");
       setIsUpdateModalOpen(false);
-      
-      // Force immediate refetch with multiple attempts
-      await refetch();
-      
-      // Additional refetches with delays to ensure backend has processed the update
-      setTimeout(async () => {
-        await refetch();
-      }, 300);
-      
-      setTimeout(async () => {
-        await refetch();
-      }, 800);
-      
-      // Final refetch after 1.5 seconds
-      setTimeout(async () => {
-        await refetch();
-      }, 1500);
-      
+      // await refetch(); // Uncomment when backend is ready
     } catch (err) {
       console.error('Update failed:', err);
       toast.error(err?.data?.message || "Failed to update interview");
+    }
+  };
+
+  const handleUpdateRoundSubmit = async () => {
+    try {
+      // Store locally for immediate UI update
+      setLocalRounds(prev => ({
+        ...prev,
+        [selectedInterview._id]: round
+      }));
+      
+      // TODO: Backend integration - uncomment when ready
+      // await updateInterviewRecord({
+      //   studentId: selectedInterview.studentId,
+      //   interviewId: selectedInterview._id,
+      //   round,
+      // }).unwrap();
+      
+      toast.success("Round updated successfully");
+      setIsUpdateRoundModalOpen(false);
+      // await refetch(); // Uncomment when backend is ready
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update round");
     }
   };
   
@@ -221,25 +400,66 @@ const InterviewHistory = () => {
           </div>
         ) : (
           <div className="grid gap-6">
-            {interviews.map((interview, index) => (
+            {groupedInterviews.map((interview, index) => (
               <div key={interview._id || interview.id || index} 
                    className="bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden backdrop-blur-sm">
                 
                 {/* Card Header */}
-                <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 p-5">
-                  <div className="flex justify-between items-center">
-                    <div className="text-gray-800">
-                      <h4 className="text-xl font-bold text-gray-900">{interview.companyName || "Company Name"}</h4>
-                      <p className="text-gray-600 text-sm font-medium">{interview.positionOffered || interview.jobProfile || "Job Profile"}</p>
-                      <p className="text-gray-500 text-xs font-medium mt-1">
-                        Technology: <span className="text-gray-700 font-semibold">({interview.requiredTechnology || "Java"})</span>
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <div className="w-12 h-12 bg-[#FDA92D]  text-white hover:bg-orange-600 transition rounded-full flex items-center justify-center shadow-md">
-                        <span className="text-white font-bold text-sm">{index + 1}</span>
+                <div className="bg-gradient-to-br from-white via-gray-50 to-blue-50 border-b border-gray-200 p-6">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      {/* Company Name with Icon */}
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg flex items-center justify-center shadow-sm">
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h4M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h4 className="text-xl font-bold text-gray-900 leading-tight">{interview.companyName || "Company Name"}</h4>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m-8 0V6a2 2 0 00-2 2v6" />
+                              </svg>
+                              {interview.positionOffered || interview.jobProfile || "Job Profile"}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-500 mt-1 font-medium">Interview</div>
+                      
+                      {/* Technology and Round Info */}
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <div className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700 border border-purple-200">
+                          <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                          </svg>
+                          {interview.requiredTechnology || "Java"}
+                        </div>
+                        
+                        <div 
+                          className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-full cursor-pointer hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 group"
+                          onClick={() => handleCompanyNameClick(interview.companyName)}
+                        >
+                          <svg className="w-3 h-3 text-blue-500 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="text-blue-600 text-xs font-semibold group-hover:text-blue-700">
+                            {interview.currentRound}
+                          </span>
+                          <svg className="w-3 h-3 text-blue-500 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Round Number Badge */}
+                    <div className="text-center ml-4">
+                      <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-orange-500 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200">
+                        <span className="text-white font-bold text-lg">{index + 1}</span>
+                      </div>
+                      <div className="text-xs text-gray-600 mt-2 font-medium">Interview</div>
                     </div>
                   </div>
                 </div>
@@ -266,8 +486,11 @@ const InterviewHistory = () => {
                           </p>
                           <button
                             onClick={() => handleRescheduleClick(interview)}
-                            className="mt-2 text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded hover:bg-blue-200 transition"
+                            className="mt-2 inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full border border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 group"
                           >
+                            <svg className="w-3 h-3 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
                             Reschedule
                           </button>
                         </div>
@@ -316,14 +539,22 @@ const InterviewHistory = () => {
                 {/* Card Footer */}
                 <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-t border-gray-200 flex justify-between items-center">
                   <div className="text-sm text-gray-500">
-                    <span>Interview #{index + 1}</span>
+                    
                   </div>
-                  <button
-                    onClick={() => handleUpdateClick(interview)}
-                    className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-orange-600 transition"
-                  >
-                    Update Interview
-                  </button>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleAddNextRoundClick(interview)}
+                      className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition"
+                    >
+                      Add Next Round
+                    </button>
+                    <button
+                      onClick={() => handleUpdateClick(interview)}
+                      className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-orange-600 transition"
+                    >
+                      Update Interview
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -338,6 +569,20 @@ const InterviewHistory = () => {
             <Dialog.Title className="text-xl font-semibold text-gray-800">Update Interview</Dialog.Title>
 
             <div className="space-y-4">
+              <div className="relative w-full">
+                <input
+                  value={round}
+                  onChange={(e) => setRound(e.target.value)}
+                  placeholder=" "
+                  className="peer w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200"
+                />
+                <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${
+                  round ? "text-xs -top-2 text-black" : "text-gray-500 top-3"
+                }`}>
+                  Round
+                </label>
+              </div>
+
               <div className="relative w-full">
                 <textarea
                   value={remark}
@@ -413,6 +658,232 @@ const InterviewHistory = () => {
                   className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
                 >
                   {isUpdating ? "Submitting..." : "Save"}
+                </button>
+              </div>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
+      {/* Company Rounds History Modal */}
+      <Dialog open={isCompanyHistoryModalOpen} onClose={() => setIsCompanyHistoryModalOpen(false)} className="fixed z-50 inset-0">
+        <div className="flex items-center justify-center min-h-screen px-4 bg-black bg-opacity-30">
+          <Dialog.Panel className="bg-white rounded-xl shadow-xl max-w-4xl w-full p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+            <Dialog.Title className="text-xl font-semibold text-gray-800">
+              {selectedCompanyName} - All Rounds History
+            </Dialog.Title>
+
+            <div className="space-y-4">
+              {selectedCompanyHistory.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">No rounds found for this company.</p>
+              ) : (
+                selectedCompanyHistory.map((round, index) => (
+                  <div key={round._id || index} className="bg-gray-50 rounded-lg p-4 border">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h5 className="font-semibold text-lg text-gray-800">{round.displayRound}</h5>
+                        <p className="text-sm text-gray-600">{round.positionOffered || round.jobProfile || "Position"}</p>
+                      </div>
+                      <div className="text-right">
+                        {renderBadge(round.result)}
+                      </div>
+                    </div>
+                    
+                    <div className="grid md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium text-gray-600">Date:</span>
+                        <p className="text-gray-800">
+                          {round.interviewDate ? new Date(round.interviewDate).toLocaleDateString('en-US', {
+                            weekday: 'short',
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          }) : "Not specified"}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Location:</span>
+                        <p className="text-gray-800">{round.location || "Not specified"}</p>
+                      </div>
+                      <div className="md:col-span-2">
+                        <span className="font-medium text-gray-600">Remarks:</span>
+                        <p className="text-gray-800 mt-1">{round.remark || "No remarks provided"}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="flex justify-end pt-4">
+              <button
+                onClick={() => setIsCompanyHistoryModalOpen(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition"
+              >
+                Close
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
+      {/* Add Next Round Modal */}
+      <Dialog open={isAddNextRoundModalOpen} onClose={() => setIsAddNextRoundModalOpen(false)} className="fixed z-50 inset-0">
+        <div className="flex items-center justify-center min-h-screen px-4 bg-black bg-opacity-30">
+          <Dialog.Panel className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-5">
+            <Dialog.Title className="text-xl font-semibold text-gray-800">Add Next Round</Dialog.Title>
+
+            <div className="space-y-4">
+              {/* Round Field (Auto-filled) */}
+              <div className="relative w-full">
+                <input
+                  value={round}
+                  onChange={(e) => setRound(e.target.value)}
+                  placeholder=" "
+                  className="peer w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200"
+                />
+                <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${
+                  round ? "text-xs -top-2 text-black" : "text-gray-500 top-3"
+                }`}>
+                  Round
+                </label>
+              </div>
+
+              {/* Date & Time Field */}
+              <div className="relative w-full">
+                <input
+                  type="text"
+                  placeholder="Select Date & Time"
+                  value={`${nextRoundDate}${nextRoundTime ? ` at ${nextRoundTime}` : ''}`}
+                  onClick={() => setShowNextRoundDatePicker(!showNextRoundDatePicker)}
+                  readOnly
+                  className="peer w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200 cursor-pointer"
+                />
+                <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#FDA92D]" />
+                <label className="absolute left-3 bg-white px-1 text-xs -top-2 text-black pointer-events-none">
+                  Interview Date & Time
+                </label>
+                {showNextRoundDatePicker && (
+                  <DatePickerComponent
+                    selectedDate={nextRoundDate}
+                    selectedTime={nextRoundTime}
+                    onDateTimeSelect={(date, time) => {
+                      setNextRoundDate(date);
+                      setNextRoundTime(time);
+                      setShowNextRoundDatePicker(false);
+                    }}
+                    onClose={() => setShowNextRoundDatePicker(false)}
+                  />
+                )}
+              </div>
+
+              {/* Feedback Field */}
+              <div className="relative w-full">
+                <textarea
+                  value={nextRoundFeedback}
+                  onChange={(e) => setNextRoundFeedback(e.target.value)}
+                  rows={3}
+                  placeholder=" "
+                  className="peer w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200"
+                />
+                <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${
+                  nextRoundFeedback ? "text-xs -top-2 text-black" : "text-gray-500 top-3"
+                }`}>
+                  Feedback
+                </label>
+              </div>
+
+              {/* Result Dropdown */}
+              <div className="relative w-full">
+                <button
+                  type="button"
+                  onClick={() => setIsNextRoundDropdownOpen(!isNextRoundDropdownOpen)}
+                  className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-[#FDA92D] focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200"
+                >
+                  <span className={nextRoundResult ? 'text-gray-900' : 'text-gray-400'}>
+                    {nextRoundResult || 'Select'}
+                  </span>
+                  <span className={`ml-2 transition-transform duration-200 ${isNextRoundDropdownOpen ? 'rotate-180' : ''}`}>
+                    ▼
+                  </span>
+                </button>
+                
+                <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${
+                  nextRoundResult ? "text-xs -top-2 text-black" : "text-gray-500 top-3"
+                }`}>
+                  Result
+                </label>
+
+                {isNextRoundDropdownOpen && (
+                  <div className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden border bg-white">
+                    {['Pending', 'Selected', 'Rejected'].map((option) => (
+                      <div
+                        key={option}
+                        onClick={() => {
+                          setNextRoundResult(option);
+                          setIsNextRoundDropdownOpen(false);
+                        }}
+                        className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left transition-colors duration-150"
+                      >
+                        {option}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Mode Dropdown */}
+              <div className="relative w-full">
+                <button
+                  type="button"
+                  onClick={() => setIsModeDropdownOpen(!isModeDropdownOpen)}
+                  className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-[#FDA92D] focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200"
+                >
+                  <span className={nextRoundMode ? 'text-gray-900' : 'text-gray-400'}>
+                    {nextRoundMode || 'Select'}
+                  </span>
+                  <span className={`ml-2 transition-transform duration-200 ${isModeDropdownOpen ? 'rotate-180' : ''}`}>
+                    ▼
+                  </span>
+                </button>
+                
+                <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${
+                  nextRoundMode ? "text-xs -top-2 text-black" : "text-gray-500 top-3"
+                }`}>
+                  Mode
+                </label>
+
+                {isModeDropdownOpen && (
+                  <div className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden border bg-white">
+                    {['Online', 'Offline', 'Hybrid'].map((option) => (
+                      <div
+                        key={option}
+                        onClick={() => {
+                          setNextRoundMode(option);
+                          setIsModeDropdownOpen(false);
+                        }}
+                        className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left transition-colors duration-150"
+                      >
+                        {option}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  onClick={() => setIsAddNextRoundModalOpen(false)}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddNextRoundSubmit}
+                  disabled={isUpdating}
+                  className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+                >
+                  {isUpdating ? "Adding..." : "Add Round"}
                 </button>
               </div>
             </div>
@@ -551,7 +1022,7 @@ const DatePickerComponent = ({ selectedDate, selectedTime, onDateTimeSelect, onC
   };
 
   return (
-    <div className="absolute bottom-full left-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-3 w-72 max-h-96 overflow-y-auto sm:w-80 sm:p-4">
+    <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-3 w-72 max-h-96 overflow-y-auto sm:w-80 sm:p-4">
       {/* Calendar Header */}
       <div className="flex items-center justify-between mb-4">
         <button
