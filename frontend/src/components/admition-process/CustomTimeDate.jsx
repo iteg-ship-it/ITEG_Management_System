@@ -10,7 +10,7 @@ import * as Yup from "yup";
 import { toast } from "react-toastify";
 
 import TextInput from "../common-components/common-feild/TextInput";
-import SelectInput from "../common-components/common-feild/SelectInput";
+import CustomDropdown from "../common-components/common-feild/CustomDropdown";
 import DatePickerInput from "../datepickerInput/DatePickerInput";
 import Loader from "../common-components/loader/Loader";
 
@@ -108,7 +108,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
 
       // 🔥 Custom messages based on result
       if (values.result === "Pass") {
-        toast.success("🎉 Interview marked as *Pass*! Student moved to Final Round.");
+        toast.success(" Interview marked as *Pass*! Student moved to Final Round.");
       } else if (values.result === "Fail") {
         toast.warning("⚠️ Interview marked as *Fail*!");
       } else {
@@ -117,6 +117,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
 
       // Force immediate data refresh
       await refetch?.();
+      await refetchInterviewData?.();
       resetForm();
       onClose();
     } catch (err) {
@@ -201,17 +202,17 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
               <div className="col-span-2 text-sm font-semibold text-gray-600">
                 Technical Knowledge & Aptitude
               </div>
-              <SelectInput
+              <CustomDropdown
                 name="maths"
                 label="Mathematics Marks"
                 options={fivePointOptions}
               />
-              <SelectInput
+              <CustomDropdown
                 name="subjectKnowlage"
                 label="Subjective Knowledge"
                 options={fivePointOptions}
               />
-              <SelectInput
+              <CustomDropdown
                 name="reasoning"
                 label="Reasoning Marks"
                 options={fivePointOptions}
@@ -220,22 +221,22 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
               <div className="col-span-2 text-sm font-semibold text-gray-600">
                 Candidate Behaviour & Soft Skill
               </div>
-              <SelectInput
+              <CustomDropdown
                 name="goal"
                 label="Goal Clarity"
                 options={behaviorOptions}
               />
-              <SelectInput
+              <CustomDropdown
                 name="sincerity"
                 label="Sincerity"
                 options={behaviorOptions}
               />
-              <SelectInput
+              <CustomDropdown
                 name="communication"
                 label="Communication Level"
                 options={behaviorOptions}
               />
-              <SelectInput
+              <CustomDropdown
                 name="confidence"
                 label="Confidence Level"
                 options={behaviorOptions}
@@ -249,7 +250,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
 
               {/* Assignment Marks Field + Conditional Message */}
               <div>
-                <SelectInput
+                <CustomDropdown
                   name="assignmentMarks"
                   label="Assignment Marks"
                   options={
@@ -276,7 +277,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
                 type="number"
                 disabled
               />
-              <SelectInput
+              <CustomDropdown
                 name="result"
                 label="Result"
                 options={[
@@ -295,7 +296,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="bg-brandYellow text-white px-6 py-2 rounded-md hover:bg-orange-600"
+                  className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-2">

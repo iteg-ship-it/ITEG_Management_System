@@ -53,6 +53,7 @@ const interviewRecord = new mongoose.Schema({
     enum: ['Scheduled', 'Rescheduled', 'Ongoing', 'Selected', 'RejectedByStudent', 'RejectedByCompany'],
     default: 'Scheduled'
   },
+  statusRemark: { type: String, default: "" },
   scheduleDate: { type: Date, required: true },
   rescheduleDate: { type: Date },
   rounds: { type: [interviewRoundSchema], default: [] }, // Multiple rounds tracking

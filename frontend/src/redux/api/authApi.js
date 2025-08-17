@@ -71,18 +71,10 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
     );
 
     if (refreshResult?.data) {
-      const {
-        token: newToken,
-        refreshToken: newRefreshToken,
-        role,
-      } = refreshResult.data;
+      const { accessToken } = refreshResult.data;
 
-      // Store encrypted tokens
-      localStorage.setItem("token", encrypt(newToken));
-      localStorage.setItem("refreshToken", encrypt(newRefreshToken));
-      localStorage.setItem("role", role);
-
-      api.dispatch(setCredentials({ token: newToken, role }));
+      // Store encrypted token
+      localStorage.setItem("token", encrypt(accessToken));
 
       // Retry original query
       result = await rawBaseQuery(args, api, extraOptions);
@@ -101,7 +93,12 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithAutoRefresh,
-  tagTypes: ['Student'],
+  tagTypes: ['Student', 'PlacementStudent'],
+  // Global configuration for better caching
+  keepUnusedDataFor: 300, // 5 minutes default cache
+  refetchOnMountOrArgChange: 30, // Only refetch if data is older than 30 seconds
+  refetchOnFocus: false, // Disable refetch on window focus
+  refetchOnReconnect: true, // Refetch on network reconnect
   endpoints: (builder) => ({
     login: builder.mutation({
       query: (credentials) => ({
@@ -211,6 +208,8 @@ export const authApi = createApi({
         url: import.meta.env.VITE_GET_ALL_STUDENTS,
         method: "GET",
       }),
+      providesTags: ['Student'],
+      keepUnusedDataFor: 300, // 5 minutes cache
     }),
 
     getAllStudentsByLevel: builder.query({
@@ -238,6 +237,7 @@ export const authApi = createApi({
           "Content-Type": "application/json",
         },
       }),
+      invalidatesTags: ['Student'],
     }),
 
     // get interview detail of student by id
@@ -246,6 +246,9 @@ export const authApi = createApi({
         url: `${import.meta.env.VITE_INTERVIEW_DETAIL}${id}`,
         method: "GET",
       }),
+      providesTags: (result, error, id) => [
+        { type: 'Student', id }
+      ],
     }),
 
     // ---------admitted students-------------
@@ -256,6 +259,8 @@ export const authApi = createApi({
         url: import.meta.env.VITE_GET_ADMITTED_STUDENTS,
         method: "GET",
       }),
+      providesTags: ['Student'],
+      keepUnusedDataFor: 300, // 5 minutes cache
     }),
 
     // create level interview
@@ -336,7 +341,7 @@ export const authApi = createApi({
 
     updateStudentImage: builder.mutation({
       query: ({ id, image }) => ({
-        url: `/admitted/students/update/${id}`,
+        url: `/admitted/students/update/profile/${id}`,
         method: "PATCH",
         body: { image },
       }),
@@ -346,6 +351,21 @@ export const authApi = createApi({
     }),
 
 
+    // Get student level interviews for history page
+    getStudentLevelInterviews: builder.query({
+      query: (studentId) => {
+        const endpoint = `${import.meta.env.VITE_GET_LEVEL_INTERVIEW_BY_ID}${studentId}`;
+        console.log('🎯 Level Interview History API Call:', {
+          endpoint,
+          studentId,
+          fullUrl: `${import.meta.env.VITE_API_URL}${endpoint}`
+        });
+        return {
+          url: endpoint,
+          method: "GET",
+        };
+      },
+    }),
 
 
 
@@ -356,6 +376,8 @@ export const authApi = createApi({
         url: import.meta.env.VITE_GET_READY_STUDENTS_FOR_PLACEMENT,
         method: "GET",
       }),
+      providesTags: ['PlacementStudent'],
+      keepUnusedDataFor: 300, // Keep data for 5 minutes
     }),
 
     addPlacementInterviewRecord: builder.mutation({
@@ -364,6 +386,17 @@ export const authApi = createApi({
         method: "POST",
         body: interviewData,
       }),
+      invalidatesTags: ['PlacementStudent'],
+      // Force immediate cache invalidation
+      async onQueryStarted({ studentId, interviewData }, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          // Invalidate all placement student queries
+          dispatch(authApi.util.invalidateTags(['PlacementStudent']));
+        } catch {
+          // Handle error if needed
+        }
+      },
     }),
 
 
@@ -374,19 +407,39 @@ export const authApi = createApi({
         method: "PATCH",
         body: data,
       }),
+      invalidatesTags: ['PlacementStudent'],
+      // Force immediate cache invalidation and refetch
+      async onQueryStarted({ studentId, interviewId, ...data }, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          // Invalidate all placement student queries to force refetch
+          dispatch(authApi.util.invalidateTags(['PlacementStudent']));
+          // Also invalidate specific student data
+          dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
+        } catch (error) {
+          console.error('Failed to update interview record:', error);
+        }
+      },
     }),
+
+    // Upload resume
+    uploadResume: builder.mutation({
+      query: ({ studentId, fileName, fileData }) => ({
+        url: import.meta.env.VITE_RESUME_UPLOAD,
+        method: "POST",
+        body: { studentId, fileName, fileData },
+      }),
+      invalidatesTags: (result, error, { studentId }) => [
+        { type: 'Student', id: studentId }
+      ],
+    }),
+
+
+
 
     getInterviewAttemptCount: builder.query({
       query: (studentId) => ({
         url: `${import.meta.env.VITE_GET_INTERVIEW_ATTEMPT}${studentId}`,
-        method: "GET",
-      }),
-    }),
-
-    // Get student level interviews for history page
-    getStudentLevelInterviews: builder.query({
-      query: (studentId) => ({
-        url: `${import.meta.env.VITE_GET_LEVEL_INTERVIEW_BY_ID}${studentId}`,
         method: "GET",
       }),
     }),
@@ -425,5 +478,6 @@ export const {
   useLogoutMutation,
   useGetAllStudentsByLevelQuery,
   useGetInterviewAttemptCountQuery,
-  useGetStudentLevelInterviewsQuery
+  useGetStudentLevelInterviewsQuery,
+  useUploadResumeMutation
 } = authApi;

@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 
 // Admission process components
 // import AdmissionDashboard from "../admition-process/AdmissionDashboard";
+import AdmissionDashboard from "../admition-process/AdmissionDashboard";
 import AdmissionProcess from "../admition-process/AdmissionProcess";
 import AdmissionEditPage from "../admition-process/AdmissionEditPage";
 import AdmissionInterviewDetails from "../admition-process/AdmissionInterviewDetails";
@@ -19,10 +20,12 @@ import PlacementReadyStudents from "../placement/PlacementReadyStudents";
 import StudentPermission from "../student-records/StudentPermission";
 import PlacementRecords from "../placement/PlacementRecords";
 import PlacementPost from "../placement/PlacementPost";
+import InterviewHistory from "../placement/InterviewHistory";
 
 const routes = [
-  // { path: "/", element: <AdmissionDashboard /> },
-  { path: "/", element: <AdmissionProcess /> },
+  { path: "/", element: <AdmissionDashboard /> },
+  // { path: "/", element: <AdmissionProcess /> },
+  { path: "/admission-process", element: <AdmissionProcess /> },
   { path: "/admission/edit/:id", element: <AdmissionEditPage /> },
   { path: "/admission-record", element: <AdmissionRecords /> },
   { path: "/interview-detail/:id", element: <AdmissionInterviewDetails /> },
@@ -38,6 +41,7 @@ const routes = [
   { path: "/readiness-status", element: <PlacementReadyStudents /> },
   { path: "/placement-interview-record", element: <PlacementRecords /> },
   { path: "/placement-post", element: <PlacementPost /> },
+  { path: "/interview-history/:id", element: <InterviewHistory /> },
 ];
 
 const Dashboard = () => (

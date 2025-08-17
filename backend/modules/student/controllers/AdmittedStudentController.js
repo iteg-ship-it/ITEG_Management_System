@@ -79,7 +79,7 @@ exports.getAllStudents = async (req, res) => {
         { permissionDetails: null },
         { permissionDetails: {} }
       ]
-    });
+    }).sort({ updatedAt: -1 });
     console.log("Fetched all students:", students.length);
     res.status(200).json(students);
   } catch (error) {
@@ -114,6 +114,9 @@ const students = await AdmittedStudent.aggregate([
             { permissionDetails: {} }
           ]
     }
+  },
+  {
+    $sort: { updatedAt: -1 }
   }
 ]);
 
@@ -313,7 +316,7 @@ Best wishes`,
 // Get all students with permissionDetails granted
 exports.getAllPermissionStudents = async (req, res) => {
   try {
-    const students = await AdmittedStudent.find({ permissionDetails: { $ne: null } }).select('-password');
+    const students = await AdmittedStudent.find({ permissionDetails: { $ne: null } }).select('-password').sort({ updatedAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -426,6 +429,9 @@ exports.getLevelWiseStudents = async (req, res) => {
         { permissionDetails: {} }
       ]
     }
+  },
+  {
+    $sort: { updatedAt: -1 }
   }
 ]);
 
@@ -512,7 +518,7 @@ exports.updateAdmittedStudent = async (req, res) => {
 exports.getReadyStudent = async (req, res) => {
   try {
     // Find all students whose readinessStatus is "Ready"
-    const readyStudents = await AdmittedStudent.find({ readinessStatus: 'Ready' });
+    const readyStudents = await AdmittedStudent.find({ readinessStatus: 'Ready' }).sort({ updatedAt: -1 });
 
     if (readyStudents.length === 0) {
       return res.status(404).json({ message: "No students found with readinessStatus 'Ready'." });
@@ -601,13 +607,13 @@ exports.updateInterviewRecord = async (req, res) => {
       return res.status(404).json({ success: false, message: "Student not found" });
     }
 
-    const interview = student.interviewRecord.id(interviewId);
+    const interview = student.PlacementinterviewRecord.id(interviewId);
     if (!interview) {
       return res.status(404).json({ success: false, message: "Interview record not found" });
     }
 
     if (remark !== undefined) interview.remark = remark;
-    if (result !== undefined) interview.result = result;
+    if (result !== undefined) interview.status = result; // Using status field as per schema
 
     await student.save();
 
@@ -891,12 +897,12 @@ exports.rescheduleInterview = async (req, res) => {
     const updatedStudent = await AdmittedStudent.findOneAndUpdate(
       {
         _id: studentId,
-        "interviewRecord._id": interviewId // ✅ match schema field
+        "PlacementinterviewRecord._id": interviewId
       },
       {
         $set: {
-          "interviewRecord.$.rescheduleDate": new Date(newDate), // ✅ match schema field
-          "interviewRecord.$.status": "Rescheduled"
+          "PlacementinterviewRecord.$.scheduleDate": new Date(newDate),
+          "PlacementinterviewRecord.$.status": "Rescheduled"
         }
       },
       { new: true }

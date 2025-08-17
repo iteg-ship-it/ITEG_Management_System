@@ -9,6 +9,7 @@ import CommonTable from "../common-components/table/CommonTable";
 // import edit from "../../assets/icons/edit-fill-icon.png";
 // import interview from "../../assets/icons/interview-icon.png";
 import CreateInterviewModal from "./CreateInterviewModal";
+import PageNavbar from "../common-components/navbar/PageNavbar";
 
 const StudentDetailTable = () => {
   const { data = [], isLoading, refetch } = useAdmitedStudentsQuery();
@@ -22,12 +23,17 @@ const StudentDetailTable = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [activeTab, setActiveTab] = useState(`Level ${selectedLevel}`);
+  const [selectedRows, setSelectedRows] = useState([]);
 
-  const levelTabs = ["Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C"];
+  const levelTabs = ["Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C", "Level's Cleared"];
 
   // Update active tab when selectedLevel changes
   useEffect(() => {
-    setActiveTab(`Level ${selectedLevel}`);
+    if (selectedLevel === "cleared") {
+      setActiveTab("Level's Cleared");
+    } else {
+      setActiveTab(`Level ${selectedLevel}`);
+    }
   }, [selectedLevel]);
 
   const toTitleCase = (str) =>
@@ -117,17 +123,35 @@ const StudentDetailTable = () => {
     const matchesResult = selectedResults.length === 0 ||
       selectedResults.includes(student.result || "Pending");
 
-    // Level filter - only show students whose current level matches the selected tab
-    const matchesLevel = student.currentLevel === selectedLevel;
+    // Level filter
+    let matchesLevel;
+    if (activeTab === "Level's Cleared") {
+      // Show students who have passed Level 2C
+      const level2CAttempts = student.levelAttempts?.["2C"] || [];
+      matchesLevel = level2CAttempts.some(lvl => lvl.result === "Pass");
+    } else if (selectedLevel === "2C") {
+      // For Level 2C tab, exclude students who have passed Level 2C
+      const level2CAttempts = student.levelAttempts?.["2C"] || [];
+      const hasPassedLevel2C = level2CAttempts.some(lvl => lvl.result === "Pass");
+      matchesLevel = student.currentLevel === selectedLevel && !hasPassedLevel2C;
+    } else {
+      // For other tabs, show students whose current level matches the selected tab
+      matchesLevel = student.currentLevel === selectedLevel;
+    }
 
     return matchesTrack && matchesResult && matchesLevel;
   });
 
   const handleTabClick = (tab) => {
     setActiveTab(tab);
-    // Extract level code from tab name (e.g., "Level 1A" -> "1A")
-    const levelCode = tab.replace("Level ", "");
-    navigate(`/student-detail-table`, { state: { level: levelCode } });
+    if (tab === "Level's Cleared") {
+      // For Level's Cleared tab, don't navigate with level state
+      navigate(`/student-detail-table`, { state: { level: "cleared" } });
+    } else {
+      // Extract level code from tab name (e.g., "Level 1A" -> "1A")
+      const levelCode = tab.replace("Level ", "");
+      navigate(`/student-detail-table`, { state: { level: levelCode } });
+    }
   };
 
   const columns = [
@@ -141,7 +165,7 @@ const StudentDetailTable = () => {
       label: "Father's Name",
       render: (row) => toTitleCase(row.fatherName || ""),
     },
-    { key: "studentMobile", label: "Mobile" },
+    { key: "studentMobile", label: "Mobile No.", align: "center" },
     {
       key: "course",
       label: "Course",
@@ -152,15 +176,24 @@ const StudentDetailTable = () => {
       label: "Bus Route",
       render: (row) => toTitleCase(row.track || ""),
     },
-    {
+    ...(activeTab !== "Level's Cleared" ? [{
       key: "attempts",
       label: "Attempts",
+      align: "center",
       render: (row) => {
-        // Get attempts for the current level from our pre-processed data
         const currentLevelAttempts = row.levelAttempts?.[selectedLevel] || [];
         return currentLevelAttempts.length || 0;
       }
-    },
+    }] : []),
+    ...(activeTab === "Level's Cleared" ? [{
+      key: "clearedDate",
+      label: "Level 2C Cleared Date",
+      render: (row) => {
+        const level2CAttempts = row.levelAttempts?.["2C"] || [];
+        const passedAttempt = level2CAttempts.find(lvl => lvl.result === "Pass");
+        return passedAttempt?.date ? new Date(passedAttempt.date).toLocaleDateString() : "N/A";
+      }
+    }] : []),
   ];
 
   const actionButton = (student) => (
@@ -176,7 +209,7 @@ const StudentDetailTable = () => {
           }
           setShowModal(true);
         }}
-        className="bg-orange-500 text-md text-white px-3 py-1 rounded"
+        className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
       >
         Take Interview
       </button>
@@ -194,7 +227,11 @@ const StudentDetailTable = () => {
 
   return (
     <>
-      <h1 className="text-2xl py-4 font-bold">Admitted Student WorkFlow</h1>
+      <PageNavbar 
+        title="Admitted Student WorkFlow" 
+        subtitle="Track student progress through different levels"
+        showBackButton={false}
+      />
 
       <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
         <div className="px-6">
@@ -204,12 +241,17 @@ const StudentDetailTable = () => {
               <div key={tab}>
                 <p
                   onClick={() => handleTabClick(tab)}
-                  className={`cursor-pointer text-md text-[var(--text-color)] pb-2 border-b-2 whitespace-nowrap ${activeTab === tab
-                      ? "border-[var(--text-color)] font-semibold"
-                      : "border-gray-200"
-                    }`}
+                  className={`cursor-pointer text-md pb-2 border-b-2 whitespace-nowrap ${
+                    activeTab === tab
+                      ? "border-[var(--text-color)] font-semibold text-[var(--text-color)]"
+                      : "border-gray-200 text-[var(--text-color)]"
+                  } ${
+                    tab === "Level's Cleared" 
+                      ? "text-green-600 font-medium" + (activeTab === tab ? " border-green-600" : "")
+                      : ""
+                  }`}
                 >
-                  {tab}
+                  {tab === "Level's Cleared" ? "" + tab : tab}
                 </p>
               </div>
             ))}
@@ -222,6 +264,8 @@ const StudentDetailTable = () => {
               setSearchTerm={setSearchTerm}
               filtersConfig={filtersConfig}
               filteredData={filteredData}
+              selectedRows={selectedRows}
+              allData={data}
             />
           </div>
         </div>
@@ -233,7 +277,8 @@ const StudentDetailTable = () => {
           pagination={true}
           rowsPerPage={rowsPerPage}
           searchTerm={searchTerm}
-          actionButton={selectedLevel === "permission" ? null : actionButton}
+          actionButton={selectedLevel === "permission" || activeTab === "Level's Cleared" ? null : actionButton}
+          onSelectionChange={setSelectedRows}
           onRowClick={(row) => {
             // Set the source section to 'admitted' before navigating
             localStorage.setItem("lastSection", "admitted");

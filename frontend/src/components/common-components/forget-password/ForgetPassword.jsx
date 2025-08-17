@@ -32,16 +32,19 @@ export default function ForgetPassword() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
+            <div className="relative">
               <input
                 type="email"
                 id="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 h-12 block w-full rounded-xl border-gray-300 shadow-sm focus:ring-orange-500 focus:border-orange-500"
-                placeholder="Email"
+                className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-[#FDA92D] transition-all duration-200"
+                placeholder=" "
               />
+              <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${email ? 'text-xs -top-2 text-black' : 'text-gray-500 top-3'}`}>
+                Email
+              </label>
             </div>
             {isError && (
               <div className="text-red-600 text-sm">
@@ -50,7 +53,7 @@ export default function ForgetPassword() {
             )}
             <button
               type="submit"
-              className="w-full bg-brandYellow text-white py-3 rounded-full mt-2 hover:bg-orange-600 transition"
+              className="w-full bg-[#FDA92D]  text-white py-3 rounded-full mt-2 hover:bg-[#FED680] active:bg-[#B66816] transition"
               disabled={isLoading}
             >
               {isLoading ? "Sending..." : "Get Link"}
@@ -99,7 +102,7 @@ export default function ForgetPassword() {
 //               <button
 //                 onClick={navigate("/confirm-password")}
 //                 type="submit"
-//                 className="w-full bg-brandYellow text-white py-3 rounded-full mt-4 hover:bg-orange-600 transition"
+//                 className="w-full bg-[#FDA92D]  text-white py-3 rounded-full mt-4 hover:bg-orange-600 transition"
 //               >
 //                 Get Link
 //               </button>

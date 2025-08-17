@@ -108,12 +108,37 @@
 
 import { Field, ErrorMessage } from "formik";
 import { useState } from "react";
+import tableRowDropdownImg from "../../../assets/images/table-row-dropdown.png";
 
 const SelectInput = ({ name, label, options, className = "", disabled = false }) => {
   const [isFocused, setIsFocused] = useState(false);
 
   return (
     <div className={`relative w-full ${className}`}>
+      <style>
+        {`
+          select option,
+          select[name] option,
+          select[id] option {
+            background-color: rgba(173, 216, 230, 0.3) !important;
+            background-image: linear-gradient(135deg, rgba(173, 216, 230, 0.4), rgba(255, 182, 193, 0.4)) !important;
+            padding: 10px !important;
+            color: #333 !important;
+            border: none !important;
+            margin: 1px 0 !important;
+          }
+          select option:hover,
+          select option:focus {
+            background-color: rgba(173, 216, 230, 0.5) !important;
+            background-image: linear-gradient(135deg, rgba(173, 216, 230, 0.6), rgba(255, 182, 193, 0.6)) !important;
+          }
+          select option:checked,
+          select option:selected {
+            background-color: rgba(173, 216, 230, 0.7) !important;
+            background-image: linear-gradient(135deg, rgba(173, 216, 230, 0.8), rgba(255, 182, 193, 0.8)) !important;
+          }
+        `}
+      </style>
       <Field name={name}>
         {({ field }) => {
           const hasValue = field.value !== "";
@@ -129,9 +154,9 @@ const SelectInput = ({ name, label, options, className = "", disabled = false })
                   field.onBlur(e);
                 }}
                 className={`
-                  peer h-12 w-full border-2 border-gray-300 rounded-md
-                  px-3 py-2 bg-white leading-tight
-                  focus:outline-none focus:border-black 
+                  peer h-12 w-full border border-gray-300 rounded-md
+                  px-3 py-2 leading-tight bg-white
+                  focus:outline-none focus:border-[#FDA92D] 
                   focus:ring-0 appearance-none
                   ${disabled ? "bg-gray-100 cursor-not-allowed" : ""}
                   transition-all duration-200
@@ -152,10 +177,10 @@ const SelectInput = ({ name, label, options, className = "", disabled = false })
                   pointer-events-none
                   ${isFocused || hasValue
                     ? "text-xs -top-2 text-black"
-                    : "text-gray-400 top-2"}
+                    : "text-gray-500 top-3"}
                 `}
               >
-                {label} <span className="text-black">*</span>
+                {label}
               </label>
             </div>
           );

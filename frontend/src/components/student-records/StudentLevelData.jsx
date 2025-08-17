@@ -6,6 +6,7 @@ import { useState, useMemo } from "react";
 import { IoSearchOutline } from "react-icons/io5";
 import CommonTable from "../common-components/table/CommonTable";
 import Pagination from "../common-components/pagination/Pagination";
+import PageNavbar from "../common-components/navbar/PageNavbar";
 
 const toTitleCase = (str) =>
   str
@@ -138,7 +139,10 @@ const StudentLevelData = () => {
 
   return (
     <>
-      <h1 className="text-3xl py-4 font-bold">Student Level Progress</h1>
+      <PageNavbar 
+        title="Student Level Progress" 
+        subtitle="Detailed level-wise student performance analytics"
+      />
       <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
         <div className="px-6">
           {/* Level Tabs */}

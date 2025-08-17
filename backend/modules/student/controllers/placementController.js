@@ -83,27 +83,47 @@ exports.updateInterviewStatus = async (req, res) => {
 
 // 3. ADD INTERVIEW ROUND
 exports.addInterviewRound = async (req, res) => {
+  let hasResponded = false;
+  
   try {
     const { studentId, interviewId } = req.params;
     const { roundName, date, mode, feedback, result } = req.body;
 
     const student = await AdmittedStudent.findById(studentId);
+    if (!student) {
+      hasResponded = true;
+      return res.status(404).json({ message: "Student not found" });
+    }
+
     const interview = student.PlacementinterviewRecord.id(interviewId);
+    if (!interview) {
+      hasResponded = true;
+      return res.status(404).json({ message: "Interview not found" });
+    }
 
-    if (!interview) return res.status(404).json({ message: "Interview not found" });
-
-    interview.rounds.push({
+    const newRound = {
       roundName: roundName || `Round ${interview.rounds.length + 1}`,
       date: new Date(date),
       mode: mode || 'Offline',
       feedback: feedback || '',
       result: result || 'Pending'
-    });
+    };
 
+    interview.rounds.push(newRound);
     await student.save();
-    res.json({ success: true, message: "Interview round added", data: interview });
+    
+    if (!hasResponded) {
+      hasResponded = true;
+      res.json({ 
+        success: true, 
+        message: "Interview round added", 
+        data: newRound
+      });
+    }
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    if (!hasResponded) {
+      res.status(500).json({ success: false, error: error.message });
+    }
   }
 };
 
@@ -492,6 +512,55 @@ exports.getPlacementDocuments = async (req, res) => {
     res.status(200).json({
       success: true,
       data: student
+    });
+
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: "Server error", 
+      error: error.message 
+    });
+  }
+};
+
+// Get student interview history with company details
+exports.getStudentInterviewHistory = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    const student = await AdmittedStudent.findById(studentId)
+      .populate('PlacementinterviewRecord.companyRef')
+      .select('firstName lastName PlacementinterviewRecord');
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    const interviewHistory = student.PlacementinterviewRecord.map(interview => ({
+      _id: interview._id,
+      jobProfile: interview.jobProfile,
+      status: interview.status,
+      statusRemark: interview.statusRemark,
+      scheduleDate: interview.scheduleDate,
+      rescheduleDate: interview.rescheduleDate,
+      rounds: interview.rounds,
+      company: interview.companyRef ? {
+        _id: interview.companyRef._id,
+        companyName: interview.companyRef.companyName,
+        location: interview.companyRef.location,
+        companyLogo: interview.companyRef.companyLogo,
+        hrEmail: interview.companyRef.hrEmail,
+        hrContact: interview.companyRef.hrContact
+      } : null
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: {
+        studentName: `${student.firstName} ${student.lastName}`,
+        totalInterviews: interviewHistory.length,
+        interviews: interviewHistory
+      }
     });
 
   } catch (error) {

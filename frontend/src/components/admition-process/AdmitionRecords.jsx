@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import back from "../../assets/icons/back-icon.png";
 import del from "../../assets/icons/delete-icon.png";
 import edit from "../../assets/icons/edit-icon.png";
 import { IoSearchOutline } from "react-icons/io5";
+import PageNavbar from "../common-components/navbar/PageNavbar";
 
 const allStudents = [
   {
@@ -110,22 +110,13 @@ const AdmitionRecords = () => {
 
   return (
     <>
-      <div className="w-full flex justify-end px-4">
-      </div>
+      <PageNavbar 
+        title={`${selectedLocation} Registration`} 
+        subtitle="View and manage location-wise student registrations"
+      />
       <div className="p-5 w-[80vw] ">
         <div className="bg-white h-50 p-9 rounded-lg">
           <div className=" ">
-            <div className="flex items-center mb-6">
-              <img
-                className="w-5 cursor-pointer"
-                src={back}
-                alt="back"
-                onClick={() => navigate(-1)}
-              />
-              <h2 className="text-2xl font-semibold ml-4">
-                {selectedLocation} Registration
-              </h2>
-            </div>
 
             <div className="flex justify-between items-center mb-4">
               <div className="flex gap-4">

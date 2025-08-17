@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useVerifyOtpMutation } from "../../../redux/api/authApi";
 import { toast, ToastContainer } from "react-toastify";
@@ -15,8 +15,24 @@ const OtpEnter = () => {
   const [otp, setOtp] = useState(Array(6).fill(""));
   const [verifyOtp, { isLoading }] = useVerifyOtpMutation();
   const [status, setStatus] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
 
   const secretKey = "ITEG@123"; // Same AES encryption key as LoginPage
+
+  // Timer effect
+  useEffect(() => {
+    if (timeLeft > 0) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [timeLeft]);
+
+  // Format time as MM:SS
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
 
   const handleChange = (value, index) => {
     if (!/^\d?$/.test(value)) return;
@@ -77,9 +93,17 @@ const OtpEnter = () => {
           className=" h-20 mx-auto mb-4"
         />
         <h2 className="text-xl font-bold text-gray-800 mb-2">Verify Your Email Address</h2>
-        <p className="text-gray-500 text-sm mb-6">
+        <p className="text-gray-500 text-sm mb-2">
           Please enter the 6-digit OTP sent to your email.
         </p>
+        <div className="mb-4">
+          <p className="text-gray-500 text-sm font-medium">
+            OTP Valid for 5 min
+          </p>
+          <p className="text-gray-600 text-lg font-bold">
+            {formatTime(timeLeft)}
+          </p>
+        </div>
 
         <div className="flex justify-center space-x-2 mb-4">
           {otp.map((digit, idx) => (
@@ -109,7 +133,7 @@ const OtpEnter = () => {
         <button
           onClick={handleVerify}
           disabled={isLoading}
-          className="mt-6 w-full bg-orange-400 hover:bg-brandYellow text-white py-2 rounded-full font-semibold text-lg"
+          className="mt-6 w-full bg-orange-400 hover:bg-[#FDA92D]  text-white py-2 rounded-full font-semibold text-lg"
         >
           {isLoading ? "Verifying..." : "Verify Email"}
         </button>

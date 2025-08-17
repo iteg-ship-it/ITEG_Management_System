@@ -10,11 +10,12 @@ import Loader from "../common-components/loader/Loader";
 import * as Yup from "yup";
 import { Formik, Form } from "formik";
 import InputField from "../common-components/common-feild/InputField";
-import SelectInput from "../common-components/common-feild/SelectInput";
+import CustomDropdown from "../common-components/common-feild/CustomDropdown";
 import {
   useInterviewCreateMutation,
 } from "../../redux/api/authApi";
 import { toast } from "react-toastify";
+import PageNavbar from "../common-components/navbar/PageNavbar";
 
 
 const toTitleCase = (str) =>
@@ -28,7 +29,6 @@ const StudentList = () => {
   const { data = [], isLoading, error, refetch } = useGetAllStudentsQuery(undefined, {
     refetchOnMountOrArgChange: true,
     refetchOnFocus: true,
-    pollingInterval: 5000, // Poll every 5 seconds
   });
   const [rowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
@@ -38,6 +38,7 @@ const StudentList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [AddInterviwModalOpen, setAddInterviwModalOpen] = useState(false);
   const [id, setId] = useState(null);
+  const [selectedRows, setSelectedRows] = useState([]);
   const navigate = useNavigate();
 
   const location = useLocation();
@@ -54,11 +55,6 @@ const StudentList = () => {
   const [trackFilterTab1, setTrackFilterTab1] = useState([]);
   const [resultFilterTab2, setResultFilterTab2] = useState([]);
   const [statusFilterTab3, setStatusFilterTab3] = useState([]);
-
-  // dynamically extract unique options
-  // const dynamicTrackOptions = useMemo(() => {
-  //   return [...new Set(data.map((s) => toTitleCase(s.track || "")))].filter(Boolean);
-  // }, [data]);
 
   // dynamic unique options across data
   const dynamicTrackOptions = useMemo(() => {
@@ -124,12 +120,6 @@ const StudentList = () => {
         selected: trackFilterTab1,
         setter: setTrackFilterTab1,
       },
-      // {
-      //   title: "Result",
-      //   options: dynamicResultOptions,
-      //   selected: resultFilterTab2,
-      //   setter: setResultFilterTab2,
-      // },
     ],
     Results: [
       {
@@ -160,8 +150,6 @@ const StudentList = () => {
     } else if (savedTab) {
       setActiveTab(savedTab);
     }
-    // Refresh data when component mounts or URL changes
-    refetch();
   }, [location.search, refetch]);
 
   // Auto-refresh data when window gains focus
@@ -171,7 +159,6 @@ const StudentList = () => {
     return () => window.removeEventListener('focus', handleFocus);
   }, [refetch]);
 
-  // ✅ Loader: Show full screen while data is loading
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
@@ -180,7 +167,6 @@ const StudentList = () => {
     );
   }
 
-  // ✅ Error state
   if (error) {
     return <p className="text-center text-red-500">Error fetching students.</p>;
   }
@@ -191,6 +177,7 @@ const StudentList = () => {
       (a, b) => new Date(b.date) - new Date(a.date)
     )[0]?.result;
   };
+  
   const handleInterviewSubmit = async (values, { resetForm }) => {
     try {
       const response = await createInterview({ ...values, studentId: id }).unwrap();
@@ -203,8 +190,6 @@ const StudentList = () => {
       toast.error(err?.data?.message || "Failed to create interview");
     }
   };
-
-
 
   const matchTabCondition = (student) => {
     const latestResult = getLatestInterviewResult(student.interviews);
@@ -219,8 +204,6 @@ const StudentList = () => {
           (!hasInterviews || firstRound.length === 0)
         );
       case "Technical Round":
-        // Only show students who have failed the technical round
-        // Don't show students who have passed
         return (
           firstRound.length > 0 &&
           !firstRound.some((i) => i.result === "Pass") &&
@@ -287,8 +270,6 @@ const StudentList = () => {
   const handleTabClick = (tab) => {
     setActiveTab(tab);
     localStorage.setItem("admissionActiveTab", tab);
-    // Refresh data when switching tabs
-    refetch();
   };
 
   const scheduleButton = (student) => {
@@ -296,7 +277,6 @@ const StudentList = () => {
       student?.interviews?.filter((item) => item.round === "First") || [];
     setSelectedStudentId(student._id);
     setAtemendNumber(numberOfAttempted.length);
-    // Store student name in localStorage for the interview form
     localStorage.setItem("currentInterviewStudent", JSON.stringify({
       name: `${student.firstName} ${student.lastName}`,
       id: student._id
@@ -308,13 +288,11 @@ const StudentList = () => {
     setSelectedStudentId(null);
     setAtemendNumber(null);
     setIsModalOpen(false);
-    // Refresh data when modal closes
-    refetch();
   };
 
   const handleGetOnlineMarks = (onlineTest = {}) => {
     const result = onlineTest?.result;
-    const classes = "px-3 py-1 rounded-xl text-sm font-medium";
+    const classes = "px-3 py-1 rounded-md text-sm font-medium";
     switch (result) {
       case "Pass":
         return (
@@ -345,7 +323,7 @@ const StudentList = () => {
   const handleGetStatus = (interviews = []) => {
     const roundData = interviews?.filter((i) => i?.round === "First");
     const result = roundData?.[roundData.length - 1]?.result;
-    const classes = "px-3 py-1 rounded-xl text-sm font-medium";
+    const classes = "px-3 py-1 rounded-md text-sm font-medium";
     switch (result) {
       case "Pass":
         return (
@@ -392,7 +370,7 @@ const StudentList = () => {
           label: "Father's Name",
           render: (row) => toTitleCase(row.fatherName),
         },
-        { key: "studentMobile", label: "Mobile" },
+        { key: "studentMobile", label: "Mobile No.", align: "center" },
         {
           key: "subject12",
           label: "12th Subject",
@@ -406,6 +384,7 @@ const StudentList = () => {
         {
           key: "marks",
           label: "Marks",
+          align: "center",
           render: (row) => row.onlineTest?.marks || "0",
         },
         {
@@ -417,9 +396,9 @@ const StudentList = () => {
       actionButton = (row) => (
         <button
           onClick={() => scheduleButton(row)}
-          className="bg-orange-500 text-md text-white px-3 py-1 rounded"
+          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
         >
-          Take interview
+          Take Interview
         </button>
       );
       break;
@@ -436,7 +415,7 @@ const StudentList = () => {
           label: "Father's Name",
           render: (row) => toTitleCase(row.fatherName),
         },
-        { key: "studentMobile", label: "Mobile" },
+        { key: "studentMobile", label: "Mobile No.", align: "center" },
         {
           key: "course",
           label: "Course",
@@ -460,20 +439,16 @@ const StudentList = () => {
               <span className="text-xs text-gray-500">(1st Round)</span>
             </div>
           ),
+          align: "center",
           render: (row) => handleGetMarks(row.interviews),
         },
-        // {
-        //   key: "techStatus",
-        //   label: "Status of Tech",
-        //   render: (row) => handleGetStatus(row.interviews),
-        // },
       ];
       actionButton = (row) => (
         <button
           onClick={() => scheduleButton(row)}
-          className="bg-orange-500 text-md text-white px-3 py-1 rounded"
+          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
         >
-          Take interview
+          Take Interview
         </button>
       );
       break;
@@ -490,7 +465,7 @@ const StudentList = () => {
           label: "Father's Name",
           render: (row) => toTitleCase(row.fatherName),
         },
-        { key: "studentMobile", label: "Mobile" },
+        { key: "studentMobile", label: "Mobile No.", align: "center" },
         {
           key: "course",
           label: "Course",
@@ -514,6 +489,7 @@ const StudentList = () => {
               <span className="text-xs text-gray-500">(Tech Round)</span>
             </div>
           ),
+          align: "center",
           render: (row) => handleGetMarks(row.interviews),
         },
         {
@@ -524,6 +500,7 @@ const StudentList = () => {
               <span className="text-xs text-gray-500">(1st Round)</span>
             </div>
           ),
+          align: "center",
           render: (row) => {
             const firstRoundAttempts = row.interviews?.filter((i) => i.round === "First") || [];
             return firstRoundAttempts.length;
@@ -537,9 +514,9 @@ const StudentList = () => {
               setAddInterviwModalOpen(true)
               setId(row._id)
             }}
-            className="bg-orange-500 text-md text-white px-3 py-1 rounded"
+            className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
           >
-            Add Interview
+            Take Interview
           </button>
         </div>
       );
@@ -557,7 +534,7 @@ const StudentList = () => {
           label: "Father's Name",
           render: (row) => toTitleCase(row.fatherName),
         },
-        { key: "studentMobile", label: "Mobile" },
+        { key: "studentMobile", label: "Mobile No.", align: "center" },
         {
           key: "stream",
           label: "Subject",
@@ -621,7 +598,7 @@ const StudentList = () => {
           label: "Father's Name",
           render: (row) => toTitleCase(row.fatherName),
         },
-        { key: "studentMobile", label: "Mobile" },
+        { key: "studentMobile", label: "Mobile No.", align: "center" },
         {
           key: "subject12",
           label: "12th Subject",
@@ -646,18 +623,13 @@ const StudentList = () => {
       break;
   }
 
-  {
-    isLoading && (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader />
-      </div>
-    );
-  }
-  if (error) return <p>Error fetching students.</p>;
-
   return (
     <>
-      <h1 className="text-2xl py-4 font-bold">Admission Process</h1>
+      <PageNavbar 
+        title="Admission Process" 
+        subtitle="Manage student admission workflow and interviews"
+        showBackButton={false}
+      />
       <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
         <div className="px-6">
           <div className="flex gap-6 mt-4">
@@ -681,6 +653,8 @@ const StudentList = () => {
               setSearchTerm={setSearchTerm}
               filtersConfig={filtersConfig}
               filteredData={filteredData}
+              selectedRows={selectedRows}
+              allData={data}
             />
           </div>
         </div>
@@ -692,8 +666,8 @@ const StudentList = () => {
           rowsPerPage={rowsPerPage}
           searchTerm={searchTerm}
           actionButton={actionButton}
+          onSelectionChange={setSelectedRows}
           onRowClick={(row) => {
-            // Set the source section to 'admission' before navigating
             localStorage.setItem("lastSection", "admission");
             navigate(`/admission/edit/${row._id}`, { state: { student: row } });
           }}
@@ -726,14 +700,14 @@ const StudentList = () => {
             >
               {() => (
                 <Form className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <SelectInput
+                  <CustomDropdown
                     label="Round"
                     name="round"
                     disabled
                     options={[{ value: "Second", label: "Final Round" }]}
                   />
                   <InputField label="Remark" name="remark" />
-                  <SelectInput
+                  <CustomDropdown
                     label="Result"
                     name="result"
                     options={[
@@ -753,7 +727,7 @@ const StudentList = () => {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="px-5 py-2 bg-brandYellow text-white rounded-md hover:bg-orange-600 transition disabled:opacity-50"
+                      className="px-5 py-2 bg-[#FDA92D]  text-white rounded-md hover:bg-orange-600 transition disabled:opacity-50"
                     >
                       {isSubmitting ? "Submitting..." : "Submit"}
                     </button>
@@ -775,4 +749,3 @@ const StudentList = () => {
 };
 
 export default StudentList;
-
