@@ -157,7 +157,11 @@ const PlacementPost = () => {
                       <img
                         src={student.image || student.profileImage || "https://via.placeholder.com/120x120/e2e8f0/64748b?text=Student"}
                         alt={`${student.firstName} ${student.lastName}`}
-                        className="w-12 h-12 xs:w-16 xs:h-16 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 xl:w-36 xl:h-36 rounded-full object-cover border-2 sm:border-4 border-white"
+                        className="rounded-full object-cover border-2 sm:border-4 border-white"
+                        style={{
+                          width: 'clamp(3rem, 8vw, 9rem)',
+                          height: 'clamp(3rem, 8vw, 9rem)'
+                        }}
                       />
                     </div>
                   </div>
