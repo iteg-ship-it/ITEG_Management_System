@@ -47,6 +47,12 @@ const rawBaseQuery = fetchBaseQuery({
 const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
   let result = await rawBaseQuery(args, api, extraOptions);
 
+  // Handle server errors (5xx)
+  if (result?.error?.status >= 500) {
+    window.location.href = "/server-error";
+    return result;
+  }
+
   if (result?.error?.status === 401) {
     console.warn("Token expired. Attempting refresh...");
 

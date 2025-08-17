@@ -4,7 +4,7 @@ const ServerError = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4 -mt-16">
       {/* Heading */}
       <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">
         Sorry, server error!
