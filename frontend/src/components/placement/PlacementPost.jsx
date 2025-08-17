@@ -1,15 +1,58 @@
+import { useState } from "react";
 import { useAdmitedStudentsQuery } from "../../redux/api/authApi";
 import placementTemplate from "../../assets/images/ITEG_Placement_Post.jpg";
 import PageNavbar from "../common-components/navbar/PageNavbar";
+import CreatePostModal from "./CreatePostModal";
 
 const PlacementPost = () => {
   console.log("PlacementPost component loaded");
+  const [isCreatePostModalOpen, setCreatePostModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
   // Get admitted students data from API
   const { data: admittedStudents, isLoading, error } = useAdmitedStudentsQuery();
 
   // Filter only placed students (those with placedInfo)
   const placedStudents = admittedStudents?.filter(student => student.placedInfo !== null) || [];
+
+  // Download post function
+  const downloadPost = async (student) => {
+    try {
+      // Import html2canvas dynamically
+      const html2canvas = (await import('html2canvas')).default;
+      
+      // Find the specific card element
+      const cardElements = document.querySelectorAll('[data-student-id]');
+      let targetCard = null;
+      
+      cardElements.forEach(card => {
+        if (card.getAttribute('data-student-id') === student._id) {
+          targetCard = card;
+        }
+      });
+      
+      if (!targetCard) {
+        console.error('Card element not found');
+        return;
+      }
+      
+      // Capture the card element
+      const canvas = await html2canvas(targetCard, {
+        useCORS: true,
+        allowTaint: true,
+        scale: 2,
+        backgroundColor: null
+      });
+      
+      // Convert to JPG and download
+      const link = document.createElement('a');
+      link.download = `${student.firstName}_${student.lastName}_placement_post.jpg`;
+      link.href = canvas.toDataURL('image/jpeg', 0.9);
+      link.click();
+    } catch (error) {
+      console.error('Error downloading post:', error);
+    }
+  };
 
   // Loading state
   if (isLoading) {
@@ -79,6 +122,7 @@ const PlacementPost = () => {
             {placedStudents.map((student, index) => (
               <div
                 key={student.id || index}
+                data-student-id={student._id}
                 className="bg-cover bg-center bg-no-repeat rounded-xl sm:rounded-2xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 border border-slate-200 relative w-full"
                 style={{
                   backgroundImage: `url(${placementTemplate})`,
@@ -115,12 +159,48 @@ const PlacementPost = () => {
                       {student.placedInfo.location} • ₹{(student.placedInfo.salary / 100000).toFixed(1)} LPA
                     </div>
                   </div>
+
+                  {/* Action Buttons */}
+                  <div className="absolute top-2 right-2 flex gap-1 z-20">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        console.log('Create Post button clicked for:', student.firstName);
+                        setSelectedStudent(student);
+                        setCreatePostModalOpen(true);
+                        console.log('Modal should open now');
+                      }}
+                      className="bg-[#FDA92D] hover:bg-orange-600 text-white px-2 py-1 rounded text-xs font-medium transition-colors shadow-lg"
+                    >
+                      Create Post
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        downloadPost(student);
+                      }}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium transition-colors shadow-lg"
+                    >
+                      Download
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Create Post Modal */}
+      <CreatePostModal
+        isOpen={isCreatePostModalOpen}
+        onClose={() => setCreatePostModalOpen(false)}
+        student={selectedStudent}
+        onSuccess={() => {
+          // Refresh data or show success message
+          console.log('Post created successfully');
+        }}
+      />
     </div>
   );
 };

@@ -645,17 +645,66 @@ export default function StudentProfile() {
           {/* Additional Information Card */}
           <DetailSection
             title="Additional Information"
-            subtitle="Extra details and notes"
+            subtitle="Placement documents and additional details"
             icon="📝"
           >
             <div className="space-y-4">
-              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
-                <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <span className="text-gray-400 text-xl">📝</span>
+              {/* Offer Letter */}
+              {studentData.placedInfo?.offerLetterURL ? (
+                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                      <span className="text-green-600 text-sm">📄</span>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-green-900">Offer Letter</p>
+                      <p className="text-xs text-green-600">Placement document</p>
+                    </div>
+                  </div>
+                  <a
+                    href={studentData.placedInfo.offerLetterURL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition-colors flex items-center"
+                  >
+                    <img src={download} alt="Download" className="w-3 h-3" />
+                  </a>
                 </div>
-                <p className="text-sm font-medium text-gray-600 mb-1">No Additional Information</p>
-                <p className="text-xs text-gray-500">Additional details will appear here</p>
-              </div>
+              ) : null}
+              
+              {/* Application */}
+              {studentData.placedInfo?.applicationURL ? (
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <span className="text-blue-600 text-sm">📋</span>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-blue-900">Application</p>
+                      <p className="text-xs text-blue-600">Placement document</p>
+                    </div>
+                  </div>
+                  <a
+                    href={studentData.placedInfo.applicationURL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded transition-colors flex items-center"
+                  >
+                    <img src={download} alt="Download" className="w-3 h-3" />
+                  </a>
+                </div>
+              ) : null}
+              
+              {/* Show message if no documents */}
+              {!studentData.placedInfo?.offerLetterURL && !studentData.placedInfo?.applicationURL && (
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">
+                  <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <span className="text-gray-400 text-xl">📝</span>
+                  </div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">No Additional Documents</p>
+                  <p className="text-xs text-gray-500">Placement documents will appear here</p>
+                </div>
+              )}
             </div>
           </DetailSection>
         </div>

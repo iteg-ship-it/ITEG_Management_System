@@ -500,6 +500,35 @@ export const authApi = createApi({
       },
     }),
 
+    // Confirm placement
+    confirmPlacement: builder.mutation({
+      query: (data) => ({
+        url: `/admitted/students/confirm_placement`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['PlacementStudent', 'Student'],
+      async onQueryStarted(data, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(authApi.util.invalidateTags(['PlacementStudent']));
+          dispatch(authApi.util.invalidateTags(['Student']));
+        } catch (error) {
+          console.error('Failed to confirm placement:', error);
+        }
+      },
+    }),
+
+    // Create placement post
+    createPlacementPost: builder.mutation({
+      query: (data) => ({
+        url: `admitted/students/placement_post`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['PlacementStudent'],
+    }),
+
   }),
 });
 
@@ -537,5 +566,7 @@ export const {
   useUploadResumeMutation,
   useGetInterviewHistoryQuery,
   useRescheduleInterviewMutation,
-  useAddInterviewRoundMutation
+  useAddInterviewRoundMutation,
+  useConfirmPlacementMutation,
+  useCreatePlacementPostMutation
 } = authApi;
