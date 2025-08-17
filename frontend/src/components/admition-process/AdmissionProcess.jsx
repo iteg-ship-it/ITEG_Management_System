@@ -658,6 +658,7 @@ const StudentList = () => {
               filteredData={filteredData}
               selectedRows={selectedRows}
               allData={data}
+              sectionName={activeTab.replace(/\s+/g, '').toLowerCase()}
             />
           </div>
         </div>
