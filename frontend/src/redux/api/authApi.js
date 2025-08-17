@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 // src/features/api/authApi.js
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import CryptoJS from "crypto-js";
