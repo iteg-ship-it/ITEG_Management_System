@@ -21,6 +21,7 @@ import StudentPermission from "../student-records/StudentPermission";
 import PlacementRecords from "../placement/PlacementRecords";
 import PlacementPost from "../placement/PlacementPost";
 import InterviewHistory from "../placement/InterviewHistory";
+import PageNotFound from "../common-components/error-pages/PageNotFound";
 
 const routes = [
   { path: "/", element: <AdmissionDashboard /> },
@@ -49,6 +50,8 @@ const Dashboard = () => (
     {routes.map(({ path, element }, index) => (
       <Route key={index} path={path} element={element} />
     ))}
+    {/* Catch-all route for invalid paths when logged in */}
+    <Route path="*" element={<PageNotFound />} />
   </Routes>
 );
 
