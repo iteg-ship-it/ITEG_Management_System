@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useGetInterviewHistoryQuery, useGetReadyStudentsForPlacementQuery, useUpdatePlacedInfoMutation, useRescheduleInterviewMutation } from "../../redux/api/authApi";
+import { useGetInterviewHistoryQuery, useGetReadyStudentsForPlacementQuery, useUpdatePlacedInfoMutation, useRescheduleInterviewMutation, useAddInterviewRoundMutation } from "../../redux/api/authApi";
 import Loader from "../common-components/loader/Loader";
 import { Dialog } from "@headlessui/react";
 import { toast } from "react-toastify";
@@ -15,14 +15,14 @@ const InterviewHistory = () => {
   const navigate = useNavigate();
   
   // Get interview history with company data
-  const { data: historyData, isLoading: historyLoading, isError: historyError } = useGetInterviewHistoryQuery(id, {
+  const { data: historyData, isLoading: historyLoading, isError: historyError, refetch: refetchHistory } = useGetInterviewHistoryQuery(id, {
     refetchOnMountOrArgChange: true,
     refetchOnFocus: true, 
     refetchOnReconnect: true,
   });
   
   // Get student data from Ready Students API
-  const { data: studentsData, isLoading: studentsLoading, isError: studentsError, refetch } = useGetReadyStudentsForPlacementQuery(undefined, {
+  const { data: studentsData, isLoading: studentsLoading, isError: studentsError, refetch: refetchStudents } = useGetReadyStudentsForPlacementQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
   
@@ -65,7 +65,7 @@ const InterviewHistory = () => {
   const [isModeDropdownOpen, setIsModeDropdownOpen] = useState(false);
   const [selectedInterview, setSelectedInterview] = useState(null);
   const [remark, setRemark] = useState("");
-  const [result, setResult] = useState("Pending");
+  const [result, setResult] = useState("Scheduled");
   const [round, setRound] = useState("Round 1");
   const [localRounds, setLocalRounds] = useState({});
   const [addedRounds, setAddedRounds] = useState({});
@@ -77,6 +77,7 @@ const InterviewHistory = () => {
   
   const [updateInterviewRecord, { isLoading: isUpdating }] = useUpdatePlacedInfoMutation();
   const [rescheduleInterview, { isLoading: isRescheduling }] = useRescheduleInterviewMutation();
+  const [addInterviewRound, { isLoading: isAddingRound }] = useAddInterviewRoundMutation();
   
   // Show all interviews as individual cards
   const displayInterviews = interviews || [];
@@ -90,9 +91,7 @@ const InterviewHistory = () => {
   
   const handleUpdateClick = (interview) => {
     setSelectedInterview({ studentId: id, ...interview });
-    setRemark(interview.remark || "");
-    setResult(interview.result || "Pending");
-    setRound(interview.round || "Round 1");
+    setResult(interview.status || "Scheduled");
     setIsUpdateModalOpen(true);
   };
 
@@ -101,7 +100,10 @@ const InterviewHistory = () => {
       baseInterview: interview,
       companyName: interview.companyName
     });
-    setRound("Round 2");
+    // Set default round name based on existing rounds count
+    const existingRoundsCount = interview.rounds?.length || 0;
+    const nextRoundNumber = existingRoundsCount + 1;
+    setRound(`Round ${nextRoundNumber}`);
     setNextRoundDate("");
     setNextRoundTime("");
     setNextRoundFeedback("");
@@ -112,60 +114,34 @@ const InterviewHistory = () => {
   
   const handleAddNextRoundSubmit = async () => {
     try {
-      const companyName = nextRoundData.companyName;
-      const newRoundId = `temp_${Date.now()}`;
-      
-      // Create complete round details for history
-      const newRoundDetail = {
-        _id: newRoundId,
-        ...nextRoundData.baseInterview,
-        displayRound: round,
-        interviewDate: nextRoundDate && nextRoundTime ? 
-          new Date(`${nextRoundDate.split('/').reverse().join('-')} ${nextRoundTime}`).toISOString() : null,
-        remark: nextRoundFeedback,
-        result: nextRoundResult,
+      // Prepare the data for the API call
+      const roundData = {
+        roundName: round,
+        date: nextRoundDate && nextRoundTime ? 
+          new Date(`${nextRoundDate.split('/').reverse().join('-')} ${nextRoundTime}`).toISOString() : new Date().toISOString(),
         mode: nextRoundMode,
-        isLocallyAdded: true
+        feedback: nextRoundFeedback,
+        result: nextRoundResult
       };
-      
-      // Update added rounds count for this company
-      setAddedRounds(prev => {
-        const currentCount = prev[companyName]?.count || 0;
-        return {
-          ...prev,
-          [companyName]: {
-            count: currentCount + 1,
-            latestRound: round
-          }
-        };
-      });
-      
-      // Store complete round details for history display
-      setAddedRoundDetails(prev => {
-        const existingRounds = prev[companyName] || [];
-        return {
-          ...prev,
-          [companyName]: [...existingRounds, newRoundDetail]
-        };
-      });
-      
-      // TODO: Backend integration - create new interview record
-      // await createNewInterviewRound({
-      //   studentId: id,
-      //   companyName: nextRoundData.companyName,
-      //   round,
-      //   interviewDate: nextRoundDate && nextRoundTime ? `${nextRoundDate} ${nextRoundTime}` : null,
-      //   feedback: nextRoundFeedback,
-      //   result: nextRoundResult,
-      //   mode: nextRoundMode,
-      //   ...nextRoundData.baseInterview
-      // }).unwrap();
+
+      // Call the backend API
+      await addInterviewRound({
+        studentId: id,
+        interviewId: nextRoundData.baseInterview._id,
+        ...roundData
+      }).unwrap();
       
       toast.success(`Added ${round} for ${nextRoundData.companyName}`);
       setIsAddNextRoundModalOpen(false);
+      
+      // Refetch both APIs to show the new round
+      await Promise.all([
+        refetchHistory(),
+        refetchStudents()
+      ]);
     } catch (err) {
-      console.error(err);
-      toast.error("Failed to add next round");
+      console.error('Failed to add next round:', err);
+      toast.error(err?.data?.message || "Failed to add next round");
     }
   };
   
@@ -185,24 +161,19 @@ const InterviewHistory = () => {
   
   const handleUpdateSubmit = async () => {
     try {
-      // Store round locally for immediate UI update
-      setLocalRounds(prev => ({
-        ...prev,
-        [selectedInterview._id]: round
-      }));
-      
-      // TODO: Backend integration - uncomment when ready
-      // await updateInterviewRecord({
-      //   studentId: selectedInterview.studentId,
-      //   interviewId: selectedInterview._id,
-      //   remark,
-      //   result,
-      //   round,
-      // }).unwrap();
+      await updateInterviewRecord({
+        studentId: selectedInterview.studentId,
+        interviewId: selectedInterview._id,
+        status: result,
+      }).unwrap();
       
       toast.success("Interview updated successfully");
       setIsUpdateModalOpen(false);
-      // await refetch(); // Uncomment when backend is ready
+      // Refetch both APIs to get updated data
+      await Promise.all([
+        refetchHistory(),
+        refetchStudents()
+      ]);
     } catch (err) {
       console.error('Update failed:', err);
       toast.error(err?.data?.message || "Failed to update interview");
@@ -256,7 +227,11 @@ const InterviewHistory = () => {
       toast.success("Interview rescheduled successfully");
       setIsRescheduleModalOpen(false);
       setShowRescheduleDatePicker(false);
-      await refetch();
+      // Refetch both APIs to show updated schedule
+      await Promise.all([
+        refetchHistory(),
+        refetchStudents()
+      ]);
     } catch (err) {
       console.error(err);
       toast.error("Failed to reschedule interview");
@@ -268,11 +243,16 @@ const InterviewHistory = () => {
     switch (status) {
       case "Selected":
         return <span className={`${base} bg-green-100 text-green-700`}><CheckCircle className="w-4 h-4" />Selected</span>;
+      case "Passed":
+        return <span className={`${base} bg-green-100 text-green-700`}><CheckCircle className="w-4 h-4" />Passed</span>;
       case "Reject":
       case "Rejected":
-        return <span className={`${base} bg-red-100 text-red-700`}><XCircle className="w-4 h-4" />Rejected</span>;
+      case "Failed":
+        return <span className={`${base} bg-red-100 text-red-700`}><XCircle className="w-4 h-4" />Failed</span>;
+      case "Pending":
+        return null; // Don't show pending status
       default:
-        return <span className={`${base} bg-yellow-100 text-yellow-700`}><Clock className="w-4 h-4" />Pending</span>;
+        return null; // Don't show any badge for unknown status
     }
   };
 
@@ -390,7 +370,7 @@ const InterviewHistory = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                           <span className="text-blue-600 text-xs font-semibold group-hover:text-blue-700">
-                            {interview.round || `Round ${index + 1}`}
+                            View Interview History
                           </span>
                           <svg className="w-3 h-3 text-blue-500 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -460,7 +440,25 @@ const InterviewHistory = () => {
                         </div>
                         <div>
                           <p className="text-sm text-gray-500 font-medium">Result Status</p>
-                          {renderBadge(interview.result || interview.status || "Pending")}
+                          <div className="mt-1">
+                            {interview.status ? (
+                              <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
+                                interview.status === 'Selected' ? 'bg-green-100 text-green-700' :
+                                interview.status === 'RejectedByCompany' || interview.status === 'RejectedByStudent' ? 'bg-red-100 text-red-700' :
+                                interview.status === 'Ongoing' ? 'bg-blue-100 text-blue-700' :
+                                interview.status === 'Rescheduled' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {interview.status === 'RejectedByCompany' ? 'Rejected by Company' :
+                                 interview.status === 'RejectedByStudent' ? 'Rejected by Student' :
+                                 interview.status}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
+                                Scheduled
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
@@ -472,7 +470,15 @@ const InterviewHistory = () => {
                           <p className="text-sm text-gray-500 font-medium mb-1">Remarks</p>
                           <div className="bg-gray-50 rounded-lg p-3 border">
                             <p className="text-gray-700 text-sm leading-relaxed">
-                              {interview.remark || interview.feedback || "No specific remarks provided for this interview."}
+                              {(() => {
+                                // Get last round feedback if available
+                                const lastRoundFeedback = interview.rounds && interview.rounds.length > 0 
+                                  ? interview.rounds[interview.rounds.length - 1]?.feedback 
+                                  : null;
+                                
+                                // Show statusRemark first, then last round feedback, or default message
+                                return interview.statusRemark || lastRoundFeedback || "No specific remarks provided for this interview.";
+                              })()} 
                             </p>
                           </div>
                         </div>
@@ -491,7 +497,7 @@ const InterviewHistory = () => {
                       onClick={() => handleAddNextRoundClick(interview)}
                       className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition"
                     >
-                      Add Next Round
+                      Add Round
                     </button>
                     <button
                       onClick={() => handleUpdateClick(interview)}
@@ -515,35 +521,6 @@ const InterviewHistory = () => {
 
             <div className="space-y-4">
               <div className="relative w-full">
-                <input
-                  value={round}
-                  onChange={(e) => setRound(e.target.value)}
-                  placeholder=" "
-                  className="peer w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200"
-                />
-                <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${
-                  round ? "text-xs -top-2 text-black" : "text-gray-500 top-3"
-                }`}>
-                  Round
-                </label>
-              </div>
-
-              <div className="relative w-full">
-                <textarea
-                  value={remark}
-                  onChange={(e) => setRemark(e.target.value)}
-                  rows={3}
-                  placeholder=" "
-                  className="peer w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200"
-                />
-                <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${
-                  remark ? "text-xs -top-2 text-black" : "text-gray-500 top-3"
-                }`}>
-                  Remark
-                </label>
-              </div>
-
-              <div className="relative w-full">
                 <button
                   type="button"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -560,7 +537,7 @@ const InterviewHistory = () => {
                 <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${
                   result ? "text-xs -top-2 text-black" : "text-gray-500 top-3"
                 }`}>
-                  Result
+                  Status
                 </label>
 
                 {isDropdownOpen && (
@@ -574,7 +551,7 @@ const InterviewHistory = () => {
                       `
                     }}
                   >
-                    {['Pending', 'Selected', 'Rejected'].map((option) => (
+                    {['Scheduled', 'Rescheduled', 'Ongoing', 'Selected', 'RejectedByStudent', 'RejectedByCompany'].map((option) => (
                       <div
                         key={option}
                         onClick={() => {
@@ -612,61 +589,157 @@ const InterviewHistory = () => {
 
       {/* Company Rounds History Modal */}
       <Dialog open={isCompanyHistoryModalOpen} onClose={() => setIsCompanyHistoryModalOpen(false)} className="fixed z-50 inset-0">
-        <div className="flex items-center justify-center min-h-screen px-4 bg-black bg-opacity-30">
-          <Dialog.Panel className="bg-white rounded-xl shadow-xl max-w-4xl w-full p-6 space-y-5 max-h-[80vh] overflow-y-auto">
-            <Dialog.Title className="text-xl font-semibold text-gray-800">
-              {selectedCompanyName} - All Rounds History
-            </Dialog.Title>
-
-            <div className="space-y-4">
-              {selectedCompanyHistory.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">No rounds found for this company.</p>
-              ) : (
-                selectedCompanyHistory.map((round, index) => (
-                  <div key={round._id || index} className="bg-gray-50 rounded-lg p-4 border">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h5 className="font-semibold text-lg text-gray-800">{round.round || `Round ${index + 1}`}</h5>
-                        <p className="text-sm text-gray-600">{round.jobProfile || round.positionOffered || "Position"}</p>
-                      </div>
-                      <div className="text-right">
-                        {renderBadge(round.result)}
-                      </div>
-                    </div>
-                    
-                    <div className="grid md:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="font-medium text-gray-600">Date:</span>
-                        <p className="text-gray-800">
-                          {(round.scheduleDate || round.interviewDate) ? new Date(round.scheduleDate || round.interviewDate).toLocaleDateString('en-US', {
-                            weekday: 'short',
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                          }) : "Not specified"}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Location:</span>
-                        <p className="text-gray-800">{round.location || "Not specified"}</p>
-                      </div>
-                      <div className="md:col-span-2">
-                        <span className="font-medium text-gray-600">Remarks:</span>
-                        <p className="text-gray-800 mt-1">{round.remark || "No remarks provided"}</p>
-                      </div>
-                    </div>
+        <div className="flex items-center justify-center min-h-screen px-4 bg-black bg-opacity-50">
+          <Dialog.Panel className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden">
+            {/* Modal Header */}
+            <div className="bg-white px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h4M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
                   </div>
-                ))
-              )}
+                  <div>
+                    <Dialog.Title className="text-xl font-bold text-gray-900">
+                      {selectedCompanyName}
+                    </Dialog.Title>
+                    <p className="text-gray-600 text-sm">Complete Interview History</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsCompanyHistoryModalOpen(false)}
+                  className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
-            <div className="flex justify-end pt-4">
-              <button
-                onClick={() => setIsCompanyHistoryModalOpen(false)}
-                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition"
-              >
-                Close
-              </button>
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              {selectedCompanyHistory.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Interview History</h3>
+                  <p className="text-gray-500">No interviews found for this company.</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {selectedCompanyHistory.map((interview, interviewIndex) => (
+                    <div key={interview._id || interviewIndex} className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+
+                      
+                      {/* Interview Card Body */}
+                      <div className="p-6">
+                        {/* Rounds Timeline */}
+                        <div className="mb-6">
+                          <div className="flex items-center gap-2 mb-4">
+                            <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
+                              <svg className="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            </div>
+                            <h4 className="font-semibold text-gray-800">Interview Rounds</h4>
+                            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                              {interview.rounds?.length || 0} rounds
+                            </span>
+                          </div>
+                          
+                          {interview.rounds && interview.rounds.length > 0 ? (
+                            <div className="space-y-4">
+                              {interview.rounds.map((round, roundIndex) => (
+                                <div key={roundIndex} className="relative">
+                                  {/* Timeline Line */}
+                                  {roundIndex < interview.rounds.length - 1 && (
+                                    <div className="absolute left-6 top-12 w-0.5 h-8 bg-gray-200"></div>
+                                  )}
+                                  
+                                  <div className="flex gap-4">
+                                    {/* Timeline Dot */}
+                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-sm ${
+                                      round.result === 'Passed' ? 'bg-green-500' :
+                                      round.result === 'Failed' ? 'bg-red-500' :
+                                      'bg-gray-400'
+                                    }`}>
+                                      {roundIndex + 1}
+                                    </div>
+                                    
+                                    {/* Round Content */}
+                                    <div className="flex-1 bg-white border border-gray-200 rounded-lg p-4">
+                                      <div className="flex items-start justify-between mb-3">
+                                        <div>
+                                          <h5 className="font-medium text-gray-900">{round.roundName || `Round ${roundIndex + 1}`}</h5>
+                                          <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
+                                            <span>📅 {round.date ? new Date(round.date).toLocaleDateString('en-US', {
+                                              month: 'short',
+                                              day: 'numeric',
+                                              year: 'numeric'
+                                            }) : "Date not specified"}</span>
+                                            <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+                                              {round.mode || "Offline"}
+                                            </span>
+                                          </div>
+                                        </div>
+                                        <div>
+                                          {renderBadge(round.result)}
+                                        </div>
+                                      </div>
+                                      
+                                      {round.feedback && (
+                                        <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                                          <p className="text-sm text-gray-700 leading-relaxed">
+                                            <span className="font-medium text-gray-900">Feedback: </span>
+                                            {round.feedback}
+                                          </p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center py-8 bg-gray-50 rounded-lg">
+                              <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              </div>
+                              <p className="text-gray-500 text-sm">No rounds conducted yet</p>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Interview Remarks */}
+                        {(interview.statusRemark || interview.remark) && (
+                          <div className="border-t border-gray-200 pt-4">
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                              <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                  </svg>
+                                </div>
+                                <div>
+                                  <h6 className="font-medium text-blue-900 mb-1">Overall Interview Remarks</h6>
+                                  <p className="text-blue-800 text-sm leading-relaxed">{interview.statusRemark || interview.remark}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </Dialog.Panel>
         </div>
@@ -676,7 +749,7 @@ const InterviewHistory = () => {
       <Dialog open={isAddNextRoundModalOpen} onClose={() => setIsAddNextRoundModalOpen(false)} className="fixed z-50 inset-0">
         <div className="flex items-center justify-center min-h-screen px-4 bg-black bg-opacity-30">
           <Dialog.Panel className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-5">
-            <Dialog.Title className="text-xl font-semibold text-gray-800">Add Next Round</Dialog.Title>
+            <Dialog.Title className="text-xl font-semibold text-gray-800">Add Round</Dialog.Title>
 
             <div className="space-y-4">
               {/* Round Field (Auto-filled) */}
@@ -761,7 +834,7 @@ const InterviewHistory = () => {
 
                 {isNextRoundDropdownOpen && (
                   <div className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden border bg-white">
-                    {['Pending', 'Selected', 'Rejected'].map((option) => (
+                    {['Pending', 'Passed', 'Failed'].map((option) => (
                       <div
                         key={option}
                         onClick={() => {
@@ -825,10 +898,10 @@ const InterviewHistory = () => {
                 </button>
                 <button
                   onClick={handleAddNextRoundSubmit}
-                  disabled={isUpdating}
+                  disabled={isAddingRound}
                   className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
                 >
-                  {isUpdating ? "Adding..." : "Add Round"}
+                  {isAddingRound ? "Adding..." : "Add Round"}
                 </button>
               </div>
             </div>
