@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useGetReadyStudentsForPlacementQuery, useUpdatePlacedInfoMutation } from "../../redux/api/authApi";
+import { useGetInterviewHistoryQuery, useGetReadyStudentsForPlacementQuery, useUpdatePlacedInfoMutation, useRescheduleInterviewMutation } from "../../redux/api/authApi";
 import Loader from "../common-components/loader/Loader";
 import { Dialog } from "@headlessui/react";
 import { toast } from "react-toastify";
@@ -14,17 +14,38 @@ const InterviewHistory = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   
-  const { data, isLoading, isError, error, refetch } = useGetReadyStudentsForPlacementQuery(undefined, {
-    refetchOnMountOrArgChange: true, // Always refetch on mount
-    refetchOnFocus: true, // Refetch when window gains focus
-    refetchOnReconnect: true, // Refetch on network reconnect
-    // Force fresh data for interview updates
+  // Get interview history with company data
+  const { data: historyData, isLoading: historyLoading, isError: historyError } = useGetInterviewHistoryQuery(id, {
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true, 
+    refetchOnReconnect: true,
   });
   
-  // Find specific student from the list
-  const students = data?.data || [];
-  const studentData = students.find(student => student._id === id);
-  const interviews = studentData?.PlacementinterviewRecord || [];
+  // Get student data from Ready Students API
+  const { data: studentsData, isLoading: studentsLoading, isError: studentsError, refetch } = useGetReadyStudentsForPlacementQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
+  
+  // Combine data from both APIs
+  const isLoading = historyLoading || studentsLoading;
+  const isError = historyError && studentsError;
+  const error = historyError || studentsError;
+  
+  // Get student data from Ready Students API
+  const students = studentsData?.data || [];
+  const studentData = students.find(student => student._id === id) || {};
+  
+  // Get interviews with company data from Interview History API
+  const interviews = historyData?.data?.interviews || [];
+  
+  console.log('🔍 History API:', historyData);
+  console.log('🔍 Students API:', studentsData);
+  console.log('🔍 Student Data:', studentData);
+  console.log('🔍 Interviews:', interviews);
+  if (interviews.length > 0) {
+    console.log('🔍 First Interview:', interviews[0]);
+    console.log('🔍 Company Data:', interviews[0]?.company);
+  }
   
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isUpdateRoundModalOpen, setIsUpdateRoundModalOpen] = useState(false);
@@ -55,93 +76,32 @@ const InterviewHistory = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
   const [updateInterviewRecord, { isLoading: isUpdating }] = useUpdatePlacedInfoMutation();
+  const [rescheduleInterview, { isLoading: isRescheduling }] = useRescheduleInterviewMutation();
   
-  // Function to get auto-incremented round for same company
-  const getAutoRound = (interview, index) => {
-    const companyName = interview.companyName;
-    const sameCompanyInterviews = interviews.filter((int, idx) => 
-      int.companyName === companyName && idx <= index
-    );
-    return `Round ${sameCompanyInterviews.length}`;
-  };
-  
-  // Group interviews by company and get latest round info
-  const getGroupedInterviews = () => {
-    const grouped = {};
-    interviews.forEach((interview, index) => {
-      const companyName = interview.companyName;
-      if (!grouped[companyName]) {
-        grouped[companyName] = {
-          ...interview,
-          originalIndex: index,
-          totalRounds: 1,
-          currentRound: localRounds[interview._id] || interview.round || getAutoRound(interview, index)
-        };
-      } else {
-        grouped[companyName].totalRounds += 1;
-        // Update to latest interview data but keep the first interview's ID for consistency
-        const latestRound = localRounds[interview._id] || interview.round || getAutoRound(interview, index);
-        if (parseInt(latestRound.replace('Round ', '')) > parseInt(grouped[companyName].currentRound.replace('Round ', ''))) {
-          grouped[companyName] = {
-            ...grouped[companyName],
-            ...interview,
-            currentRound: latestRound,
-            totalRounds: grouped[companyName].totalRounds
-          };
-        }
-      }
-    });
-    
-    // Add locally added rounds to the count and update current round
-    Object.keys(addedRounds).forEach(companyName => {
-      if (grouped[companyName]) {
-        grouped[companyName].totalRounds += addedRounds[companyName].count;
-        grouped[companyName].currentRound = addedRounds[companyName].latestRound;
-      }
-    });
-    
-    return Object.values(grouped);
-  };
-  
-  const groupedInterviews = getGroupedInterviews();
+  // Show all interviews as individual cards
+  const displayInterviews = interviews || [];
   
   const handleCompanyNameClick = (companyName) => {
-    // Get original interviews for this company
-    const companyInterviews = interviews.filter(interview => interview.companyName === companyName)
-      .map((interview, index) => ({
-        ...interview,
-        displayRound: localRounds[interview._id] || interview.round || `Round ${index + 1}`
-      }));
-    
-    // Add locally added rounds for this company
-    const addedRoundsForCompany = addedRoundDetails[companyName] || [];
-    const allRounds = [...companyInterviews, ...addedRoundsForCompany];
-    
-    setSelectedCompanyHistory(allRounds);
+    const companyInterviews = interviews.filter(interview => interview.company?.companyName === companyName);
+    setSelectedCompanyHistory(companyInterviews);
     setSelectedCompanyName(companyName);
     setIsCompanyHistoryModalOpen(true);
   };
   
   const handleUpdateClick = (interview) => {
-    const interviewIndex = interviews.findIndex(int => int._id === interview._id);
     setSelectedInterview({ studentId: id, ...interview });
     setRemark(interview.remark || "");
     setResult(interview.result || "Pending");
-    setRound(localRounds[interview._id] || interview.round || getAutoRound(interview, interviewIndex));
+    setRound(interview.round || "Round 1");
     setIsUpdateModalOpen(true);
   };
 
   const handleAddNextRoundClick = (interview) => {
-    const companyName = interview.companyName;
-    const sameCompanyInterviews = interviews.filter(int => int.companyName === companyName);
-    const nextRoundNumber = sameCompanyInterviews.length + 1;
-    
     setNextRoundData({
       baseInterview: interview,
-      nextRoundNumber,
-      companyName
+      companyName: interview.companyName
     });
-    setRound(`Round ${nextRoundNumber}`);
+    setRound("Round 2");
     setNextRoundDate("");
     setNextRoundTime("");
     setNextRoundFeedback("");
@@ -274,6 +234,8 @@ const InterviewHistory = () => {
   };
   
   const handleRescheduleSubmit = async () => {
+    if (isRescheduling) return; // Prevent duplicate calls
+    
     try {
       // Combine date and time for backend
       let combinedDateTime = '';
@@ -285,10 +247,10 @@ const InterviewHistory = () => {
         }
       }
       
-      await updateInterviewRecord({
+      await rescheduleInterview({
         studentId: selectedInterview.studentId,
         interviewId: selectedInterview._id,
-        interviewDate: combinedDateTime || newInterviewDate,
+        newDate: combinedDateTime || newInterviewDate,
       }).unwrap();
       
       toast.success("Interview rescheduled successfully");
@@ -344,25 +306,7 @@ const InterviewHistory = () => {
       />
 
       {/* Student Info */}
-      {/* {studentData && (
-        <div className="bg-gray-50 rounded-lg p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div>
-              <span className="font-semibold text-gray-600">Student Name:</span>
-              <p className="text-gray-800">{studentData.firstName} {studentData.lastName}</p>
-            </div>
-            <div>
-              <span className="font-semibold text-gray-600">Track:</span>
-              <p className="text-gray-800">{studentData.track || 'N/A'}</p>
-            </div>
-            <div>
-              <span className="font-semibold text-gray-600">Technology:</span>
-              <p className="text-gray-800">{studentData.techno || 'N/A'}</p>
-            </div>
-          </div>
-        </div>
-      )} */}
-      {studentData && (
+      {studentData && studentData._id && (
   <div className="bg-gray-50 rounded-lg p-4 mb-6">
     <div className="flex justify-between items-center">
       <div className="grid grid-cols-1 md:grid-cols-3 divide-x divide-gray-300 text-sm flex-1">
@@ -401,7 +345,7 @@ const InterviewHistory = () => {
           </div>
         ) : (
           <div className="grid gap-6">
-            {groupedInterviews.map((interview, index) => (
+            {displayInterviews.map((interview, index) => (
               <div key={interview._id || interview.id || index} 
                    className="bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden backdrop-blur-sm">
                 
@@ -417,13 +361,13 @@ const InterviewHistory = () => {
                           </svg>
                         </div>
                         <div>
-                          <h4 className="text-xl font-bold text-gray-900 leading-tight">{interview.companyName}</h4>
+                          <h4 className="text-xl font-bold text-gray-900 leading-tight">{interview.company?.companyName || 'Company Name'}</h4>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
                               <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m-8 0V6a2 2 0 00-2 2v6" />
                               </svg>
-                              {interview.jobProfile || interview.positionOffered}
+                              {interview.jobProfile || interview.positionOffered || interview.position || 'Job Profile'}
                             </span>
                           </div>
                         </div>
@@ -440,13 +384,13 @@ const InterviewHistory = () => {
                         
                         <div 
                           className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-full cursor-pointer hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 group"
-                          onClick={() => handleCompanyNameClick(interview.companyName)}
+                          onClick={() => handleCompanyNameClick(interview.company?.companyName)}
                         >
                           <svg className="w-3 h-3 text-blue-500 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                           <span className="text-blue-600 text-xs font-semibold group-hover:text-blue-700">
-                            {interview.currentRound}
+                            {interview.round || `Round ${index + 1}`}
                           </span>
                           <svg className="w-3 h-3 text-blue-500 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -503,7 +447,7 @@ const InterviewHistory = () => {
                         </div>
                         <div>
                           <p className="text-sm text-gray-500 font-medium">Location</p>
-                          <p className="text-gray-800 font-semibold">{interview.location}</p>
+                          <p className="text-gray-800 font-semibold">{interview.company?.location || 'Location not specified'}</p>
                         </div>
                       </div>
                     </div>
@@ -682,7 +626,7 @@ const InterviewHistory = () => {
                   <div key={round._id || index} className="bg-gray-50 rounded-lg p-4 border">
                     <div className="flex justify-between items-start mb-3">
                       <div>
-                        <h5 className="font-semibold text-lg text-gray-800">{round.displayRound}</h5>
+                        <h5 className="font-semibold text-lg text-gray-800">{round.round || `Round ${index + 1}`}</h5>
                         <p className="text-sm text-gray-600">{round.jobProfile || round.positionOffered || "Position"}</p>
                       </div>
                       <div className="text-right">
@@ -935,10 +879,10 @@ const InterviewHistory = () => {
                 </button>
                 <button
                   onClick={handleRescheduleSubmit}
-                  disabled={isUpdating || !newInterviewDate || !newInterviewTime}
+                  disabled={isRescheduling || !newInterviewDate || !newInterviewTime}
                   className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-orange-600 transition"
                 >
-                  {isUpdating ? "Rescheduling..." : "Reschedule"}
+                  {isRescheduling ? "Rescheduling..." : "Reschedule"}
                 </button>
               </div>
             </div>

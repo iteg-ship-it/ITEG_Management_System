@@ -444,6 +444,35 @@ export const authApi = createApi({
       }),
     }),
 
+    // Get interview history for placement students
+    getInterviewHistory: builder.query({
+      query: (studentId) => ({
+        url: `admitted/students/interview_history/${studentId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, studentId) => [
+        { type: 'PlacementStudent', id: studentId }
+      ],
+    }),
+
+    // Reschedule interview
+    rescheduleInterview: builder.mutation({
+      query: ({ studentId, interviewId, ...data }) => ({
+        url: `admitted/students/reschedule/interview/${studentId}/${interviewId}`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ['PlacementStudent'],
+      async onQueryStarted({ studentId, interviewId, ...data }, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(authApi.util.invalidateTags(['PlacementStudent']));
+          dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
+        } catch (error) {
+          console.error('Failed to reschedule interview:', error);
+        }
+      },
+    }),
 
   }),
 });
@@ -479,5 +508,7 @@ export const {
   useGetAllStudentsByLevelQuery,
   useGetInterviewAttemptCountQuery,
   useGetStudentLevelInterviewsQuery,
-  useUploadResumeMutation
+  useUploadResumeMutation,
+  useGetInterviewHistoryQuery,
+  useRescheduleInterviewMutation
 } = authApi;
