@@ -595,11 +595,12 @@ exports.addInterviewRecord = async (req, res) => {
 exports.updateInterviewRecord = async (req, res) => {
   try {
     const { studentId, interviewId } = req.params;
-    const { remark, result } = req.body;
+    const { status } = req.body;
 
-    const validResults = ['Selected', 'Rejected', 'Pending'];
-    if (result && !validResults.includes(result)) {
-      return res.status(400).json({ success: false, message: "Invalid result value" });
+    const validStatuses = ['Scheduled', 'Rescheduled', 'Ongoing', 'Selected', 'RejectedByStudent', 'RejectedByCompany'];
+    
+    if (!status || !validStatuses.includes(status)) {
+      return res.status(400).json({ success: false, message: "Valid status is required" });
     }
 
     const student = await AdmittedStudent.findById(studentId);
@@ -612,9 +613,7 @@ exports.updateInterviewRecord = async (req, res) => {
       return res.status(404).json({ success: false, message: "Interview record not found" });
     }
 
-    if (remark !== undefined) interview.remark = remark;
-    if (result !== undefined) interview.status = result; // Using status field as per schema
-
+    interview.status = status;
     await student.save();
 
     res.status(200).json({

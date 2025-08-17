@@ -474,6 +474,25 @@ export const authApi = createApi({
       },
     }),
 
+    // Add interview round
+    addInterviewRound: builder.mutation({
+      query: ({ studentId, interviewId, ...data }) => ({
+        url: `admitted/students/interviews/${studentId}/${interviewId}/add_round`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['PlacementStudent'],
+      async onQueryStarted({ studentId, interviewId, ...data }, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(authApi.util.invalidateTags(['PlacementStudent']));
+          dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
+        } catch (error) {
+          console.error('Failed to add interview round:', error);
+        }
+      },
+    }),
+
   }),
 });
 
@@ -510,5 +529,6 @@ export const {
   useGetStudentLevelInterviewsQuery,
   useUploadResumeMutation,
   useGetInterviewHistoryQuery,
-  useRescheduleInterviewMutation
+  useRescheduleInterviewMutation,
+  useAddInterviewRoundMutation
 } = authApi;
