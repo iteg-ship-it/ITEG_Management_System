@@ -68,8 +68,22 @@ const InterviewHistory = () => {
   const [result, setResult] = useState("Pending");
   const [round, setRound] = useState("Round 1");
   const [localRounds, setLocalRounds] = useState({});
-  const [addedRounds, setAddedRounds] = useState({});
-  const [addedRoundDetails, setAddedRoundDetails] = useState({});
+  const [addedRounds, setAddedRounds] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`addedRounds_${id}`);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+  const [addedRoundDetails, setAddedRoundDetails] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`addedRoundDetails_${id}`);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
   const [newInterviewDate, setNewInterviewDate] = useState("");
   const [newInterviewTime, setNewInterviewTime] = useState("");
   const [showRescheduleDatePicker, setShowRescheduleDatePicker] = useState(false);
@@ -83,7 +97,10 @@ const InterviewHistory = () => {
   
   const handleCompanyNameClick = (companyName) => {
     const companyInterviews = interviews.filter(interview => interview.company?.companyName === companyName);
-    setSelectedCompanyHistory(companyInterviews);
+    // Add locally added rounds for this company to the modal
+    const addedRoundsForCompany = addedRoundDetails[companyName] || [];
+    const allCompanyRounds = [...companyInterviews, ...addedRoundsForCompany];
+    setSelectedCompanyHistory(allCompanyRounds);
     setSelectedCompanyName(companyName);
     setIsCompanyHistoryModalOpen(true);
   };
@@ -97,11 +114,18 @@ const InterviewHistory = () => {
   };
 
   const handleAddNextRoundClick = (interview) => {
+    const companyName = interview.company?.companyName;
+    
+    // Calculate next round number based on existing rounds + added rounds
+    const baseRoundNumber = parseInt(interview.round?.replace('Round ', '') || '1');
+    const addedCount = addedRounds[companyName]?.count || 0;
+    const nextRoundNumber = baseRoundNumber + addedCount + 1;
+    
     setNextRoundData({
       baseInterview: interview,
-      companyName: interview.companyName
+      companyName: companyName
     });
-    setRound("Round 2");
+    setRound(`Round ${nextRoundNumber}`);
     setNextRoundDate("");
     setNextRoundTime("");
     setNextRoundFeedback("");
@@ -119,34 +143,42 @@ const InterviewHistory = () => {
       const newRoundDetail = {
         _id: newRoundId,
         ...nextRoundData.baseInterview,
-        displayRound: round,
+        round: round,
+        jobProfile: nextRoundData.baseInterview.jobProfile || nextRoundData.baseInterview.positionOffered,
+        scheduleDate: nextRoundDate && nextRoundTime ? 
+          new Date(`${nextRoundDate.split('/').reverse().join('-')} ${nextRoundTime}`).toISOString() : null,
         interviewDate: nextRoundDate && nextRoundTime ? 
           new Date(`${nextRoundDate.split('/').reverse().join('-')} ${nextRoundTime}`).toISOString() : null,
         remark: nextRoundFeedback,
         result: nextRoundResult,
         mode: nextRoundMode,
+        company: nextRoundData.baseInterview.company,
         isLocallyAdded: true
       };
       
       // Update added rounds count for this company
       setAddedRounds(prev => {
         const currentCount = prev[companyName]?.count || 0;
-        return {
+        const newAddedRounds = {
           ...prev,
           [companyName]: {
             count: currentCount + 1,
             latestRound: round
           }
         };
+        localStorage.setItem(`addedRounds_${id}`, JSON.stringify(newAddedRounds));
+        return newAddedRounds;
       });
       
       // Store complete round details for history display
       setAddedRoundDetails(prev => {
         const existingRounds = prev[companyName] || [];
-        return {
+        const newRoundDetails = {
           ...prev,
           [companyName]: [...existingRounds, newRoundDetail]
         };
+        localStorage.setItem(`addedRoundDetails_${id}`, JSON.stringify(newRoundDetails));
+        return newRoundDetails;
       });
       
       // TODO: Backend integration - create new interview record
@@ -161,7 +193,7 @@ const InterviewHistory = () => {
       //   ...nextRoundData.baseInterview
       // }).unwrap();
       
-      toast.success(`Added ${round} for ${nextRoundData.companyName}`);
+      toast.success(`Added ${round} for ${companyName}`);
       setIsAddNextRoundModalOpen(false);
     } catch (err) {
       console.error(err);
@@ -312,15 +344,15 @@ const InterviewHistory = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 divide-x divide-gray-300 text-sm flex-1">
         <div className="pr-4">
           <span className="font-semibold text-gray-600">Student Name:</span>
-          <p className="text-gray-800">{studentData.firstName} {studentData.lastName}</p>
+          <p className="text-gray-800 font-bold">{studentData.firstName} {studentData.lastName}</p>
         </div>
         <div className="px-4">
           <span className="font-semibold text-gray-600">Track:</span>
-          <p className="text-gray-800">{studentData.track || 'N/A'}</p>
+          <p className="text-gray-800 font-bold">{studentData.track || 'N/A'}</p>
         </div>
         <div className="pl-4">
           <span className="font-semibold text-gray-600">Technology:</span>
-          <p className="text-gray-800">{studentData.techno || 'N/A'}</p>
+          <p className="text-gray-800 font-bold">{studentData.techno || 'N/A'}</p>
         </div>
       </div>
       <button
@@ -347,7 +379,13 @@ const InterviewHistory = () => {
           <div className="grid gap-6">
             {displayInterviews.map((interview, index) => (
               <div key={interview._id || interview.id || index} 
-                   className="bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden backdrop-blur-sm">
+                   onClick={() => {
+                     const companyName = interview.company?.companyName || 'Unknown Company';
+                     navigate(`/interview-history-details/${encodeURIComponent(companyName)}`, {
+                       state: { studentId: id }
+                     });
+                   }}
+                   className="bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden backdrop-blur-sm cursor-pointer">
                 
                 {/* Card Header */}
                 <div className="bg-gradient-to-br from-white via-gray-50 to-blue-50 border-b border-gray-200 p-6">
@@ -382,19 +420,19 @@ const InterviewHistory = () => {
                           {interview.requiredTechnology || studentData?.techno || "Not specified"}
                         </div>
                         
-                        <div 
-                          className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-full cursor-pointer hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 group"
-                          onClick={() => handleCompanyNameClick(interview.company?.companyName)}
-                        >
-                          <svg className="w-3 h-3 text-blue-500 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-full transition-all duration-200">
+                          <svg className="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          <span className="text-blue-600 text-xs font-semibold group-hover:text-blue-700">
-                            {interview.round || `Round ${index + 1}`}
+                          <span className="text-blue-600 text-xs font-semibold">
+                            {(() => {
+                              const companyName = interview.company?.companyName;
+                              const addedCount = addedRounds[companyName]?.count || 0;
+                              const baseRoundNumber = parseInt(interview.round?.replace('Round ', '') || '1');
+                              const currentRoundNumber = baseRoundNumber + addedCount;
+                              return `Round ${currentRoundNumber}`;
+                            })()}
                           </span>
-                          <svg className="w-3 h-3 text-blue-500 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
                         </div>
                       </div>
                     </div>
@@ -430,7 +468,10 @@ const InterviewHistory = () => {
                             }) : "Not specified"}
                           </p>
                           <button
-                            onClick={() => handleRescheduleClick(interview)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRescheduleClick(interview);
+                            }}
                             className="mt-2 inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full border border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 group"
                           >
                             <svg className="w-3 h-3 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -460,7 +501,22 @@ const InterviewHistory = () => {
                         </div>
                         <div>
                           <p className="text-sm text-gray-500 font-medium">Result Status</p>
-                          {renderBadge(interview.result || interview.status || "Pending")}
+                          {(() => {
+                            // Get latest status from localStorage
+                            try {
+                              const companyStatus = localStorage.getItem(`companyStatus_${id}`);
+                              if (companyStatus) {
+                                const parsed = JSON.parse(companyStatus);
+                                const companyKey = interview.company?.companyName;
+                                if (parsed[companyKey]?.latestResult) {
+                                  return renderBadge(parsed[companyKey].latestResult);
+                                }
+                              }
+                            } catch (e) {
+                              console.error('Error reading company status:', e);
+                            }
+                            return renderBadge(interview.result || interview.status || "Pending");
+                          })()}
                         </div>
                       </div>
 
@@ -488,13 +544,19 @@ const InterviewHistory = () => {
                   </div>
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => handleAddNextRoundClick(interview)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddNextRoundClick(interview);
+                      }}
                       className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition"
                     >
                       Add Next Round
                     </button>
                     <button
-                      onClick={() => handleUpdateClick(interview)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleUpdateClick(interview);
+                      }}
                       className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-orange-600 transition"
                     >
                       Update Interview
@@ -679,18 +741,17 @@ const InterviewHistory = () => {
             <Dialog.Title className="text-xl font-semibold text-gray-800">Add Next Round</Dialog.Title>
 
             <div className="space-y-4">
-              {/* Round Field (Auto-filled) */}
+              {/* Round Field (Auto-filled and Disabled) */}
               <div className="relative w-full">
                 <input
                   value={round}
-                  onChange={(e) => setRound(e.target.value)}
+                  readOnly
+                  disabled
                   placeholder=" "
-                  className="peer w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200"
+                  className="peer w-full border border-gray-300 rounded-md px-3 py-2 leading-tight bg-gray-100 text-gray-600 cursor-not-allowed transition-all duration-200"
                 />
-                <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${
-                  round ? "text-xs -top-2 text-black" : "text-gray-500 top-3"
-                }`}>
-                  Round
+                <label className="absolute left-3 bg-white px-1 text-xs -top-2 text-gray-600 pointer-events-none">
+                  Round (Auto-generated)
                 </label>
               </div>
 
