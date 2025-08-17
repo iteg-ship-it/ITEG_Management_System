@@ -512,6 +512,16 @@ export const authApi = createApi({
       },
     }),
 
+    // Create placement post
+    createPlacementPost: builder.mutation({
+      query: (data) => ({
+        url: `admitted/students/placement_post`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['PlacementStudent'],
+    }),
+
   }),
 });
 
@@ -550,5 +560,6 @@ export const {
   useGetInterviewHistoryQuery,
   useRescheduleInterviewMutation,
   useAddInterviewRoundMutation,
-  useConfirmPlacementMutation
+  useConfirmPlacementMutation,
+  useCreatePlacementPostMutation
 } = authApi;

@@ -517,8 +517,10 @@ exports.updateAdmittedStudent = async (req, res) => {
 
 exports.getReadyStudent = async (req, res) => {
   try {
-    // Find all students whose readinessStatus is "Ready"
-    const readyStudents = await AdmittedStudent.find({ readinessStatus: 'Ready' }).sort({ updatedAt: -1 });
+    // Find all students whose readinessStatus is "Ready" and populate company data
+    const readyStudents = await AdmittedStudent.find({ readinessStatus: 'Ready' })
+      .populate('PlacementinterviewRecord.companyRef')
+      .sort({ updatedAt: -1 });
 
     if (readyStudents.length === 0) {
       return res.status(404).json({ message: "No students found with readinessStatus 'Ready'." });

@@ -2,6 +2,7 @@
 /* eslint-disable react/prop-types */
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { toast } from "react-toastify";
 import { useUpdateTechnologyMutation } from "../../redux/api/authApi"; // RTK mutation
 
 const UpdateTechnologyModal = ({ isOpen, onClose, studentId }) => {
@@ -19,17 +20,17 @@ const UpdateTechnologyModal = ({ isOpen, onClose, studentId }) => {
         onSubmit: async (values, actions) => {
             try {
                 if (!studentId) {
-                    alert("Student ID missing!");
+                    toast.error("Student ID missing!");
                     return;
                 }
 
                 await updateTechnology({ id: studentId, techno: values.techno }).unwrap();
-                alert("Technology updated successfully ✅");
+                toast.success("Technology updated successfully!");
                 actions.resetForm();
                 onClose();
             } catch (err) {
                 console.error("Error updating technology", err);
-                alert(err?.data?.message || "Update failed ❌");
+                toast.error(err?.data?.message || "Update failed");
             }
         },
     });
