@@ -23,6 +23,7 @@ const StudentDetailTable = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [activeTab, setActiveTab] = useState(`Level ${selectedLevel}`);
+  const [selectedRows, setSelectedRows] = useState([]);
 
   const levelTabs = ["Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C", "Level's Cleared"];
 
@@ -208,7 +209,7 @@ const StudentDetailTable = () => {
           }
           setShowModal(true);
         }}
-        className="bg-orange-500 text-md text-white px-3 py-1 rounded"
+        className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
       >
         Take Interview
       </button>
@@ -250,7 +251,7 @@ const StudentDetailTable = () => {
                       : ""
                   }`}
                 >
-                  {tab === "Level's Cleared" ? "🎉 " + tab : tab}
+                  {tab === "Level's Cleared" ? "" + tab : tab}
                 </p>
               </div>
             ))}
@@ -263,6 +264,8 @@ const StudentDetailTable = () => {
               setSearchTerm={setSearchTerm}
               filtersConfig={filtersConfig}
               filteredData={filteredData}
+              selectedRows={selectedRows}
+              allData={data}
             />
           </div>
         </div>
@@ -275,6 +278,7 @@ const StudentDetailTable = () => {
           rowsPerPage={rowsPerPage}
           searchTerm={searchTerm}
           actionButton={selectedLevel === "permission" || activeTab === "Level's Cleared" ? null : actionButton}
+          onSelectionChange={setSelectedRows}
           onRowClick={(row) => {
             // Set the source section to 'admitted' before navigating
             localStorage.setItem("lastSection", "admitted");

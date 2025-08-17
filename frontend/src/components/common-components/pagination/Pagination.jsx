@@ -17,6 +17,8 @@ const Pagination = ({
   setSearchTerm,
   filtersConfig,
   filteredData,
+  selectedRows = [],
+  allData = [],
 }) => {
   const [showFilter, setShowFilter] = useState(false);
   const [downloadDropdown, setDownloadDropdown] = useState(false);
@@ -77,12 +79,37 @@ const Pagination = ({
             Export
           </button>
           {downloadDropdown && (
-            <div className="absolute top-10 left-0 border bg-white rounded-md shadow-md w-40 z-20"
-            // style={{ background: "var(--diagonal-gradient)" }} // ✅ gradient fallback
+            <div
+              className="absolute top-10 left-0 border rounded-xl shadow-lg w-40 z-20"
+              style={{
+                background: `
+                  linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 40%),
+                  linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 40%),
+                  white
+                `
+              }}
             >
-              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { downloadCSV(filteredData); setDownloadDropdown(false); }}>Download CSV</button>
-              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { downloadExcel(filteredData); setDownloadDropdown(false); }}>Download Excel</button>
-              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { downloadPDF(filteredData); setDownloadDropdown(false); }}>Download PDF</button>
+              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { 
+                const dataToExport = selectedRows.length > 0 
+                  ? allData.filter(row => selectedRows.includes(row._id))
+                  : filteredData;
+                downloadCSV(dataToExport); 
+                setDownloadDropdown(false); 
+              }}>Download CSV</button>
+              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { 
+                const dataToExport = selectedRows.length > 0 
+                  ? allData.filter(row => selectedRows.includes(row._id))
+                  : filteredData;
+                downloadExcel(dataToExport); 
+                setDownloadDropdown(false); 
+              }}>Download Excel</button>
+              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { 
+                const dataToExport = selectedRows.length > 0 
+                  ? allData.filter(row => selectedRows.includes(row._id))
+                  : filteredData;
+                downloadPDF(dataToExport); 
+                setDownloadDropdown(false); 
+              }}>Download PDF</button>
             </div>
           )}
         </div>
@@ -93,9 +120,14 @@ const Pagination = ({
       {showFilter && (
         <div
           ref={filterRef}
-          className="absolute top-16 left-[40vw] bg-white border rounded-md shadow-md w-48 z-20 p-2 text-sm"
-        // style={{ background: "var(--diagonal-gradient)" }} // ✅ gradient fallback
-
+          className="absolute top-16 left-[40vw] border   rounded-xl shadow-lg w-48 z-20 p-2 text-sm"
+          style={{
+            background: `
+              linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 20%),
+              linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 20%),
+              white
+            `
+          }}
         >
           {filtersConfig.map(({ title, options, selected, setter }) => (
             <div key={title} className="relative">
@@ -113,8 +145,15 @@ const Pagination = ({
               </div>
 
               {expandedSection === title && (
-                <div className="absolute top-0 left-full ml-2 w-44 bg-white border rounded-md shadow-md p-2 space-y-1 z-30"
-                // style={{ background: "var(--diagonal-gradient)" }} // ✅ gradient fallback
+                <div
+                  className="absolute top-0 left-full ml-2 w-44 border   rounded-xl shadow-lg p-2 space-y-1 z-30"
+                  style={{
+                    background: `
+                      linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 40%),
+                      linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 40%),
+                      white
+                    `
+                  }}
                 >
                   {options.map((opt) => {
                     const value = typeof opt === "object" ? opt.value : opt;
@@ -126,7 +165,7 @@ const Pagination = ({
                           type="checkbox"
                           checked={selected.includes(value)}
                           onChange={() => toggleSelection(value, setter, selected)}
-                          className="accent-green-500"
+                          className="accent-black"
                         />
                         {label}
                       </label>

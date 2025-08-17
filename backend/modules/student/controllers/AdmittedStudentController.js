@@ -3,7 +3,7 @@ const AdmittedStudent = require("../models/admittedStudent");
 const { sendHTMLMail } = require("./emailController");
 
 const { sendEmail } = require('./emailController');
-const cloudinary = require('backend/config/cloudinaryConfig');
+const cloudinary = require('../../../config/cloudinaryConfig');
 
 const path = require('path');
 const fs = require('fs');
@@ -176,6 +176,7 @@ exports.createLevels = async (req, res) => {
     const { id } = req.params;
     const {
       levelNo,
+      Topic,
       Theoretical_Marks,
       Practical_Marks,
       Communication_Marks,
@@ -229,6 +230,7 @@ exports.createLevels = async (req, res) => {
     const newInterview = {
       levelNo: nextLevel,
       noOfAttempts: currentLevelAttempts.length + 1,
+      topic: Topic || "",
       Theoretical_Marks: Theoretical_Marks || 0,
       Practical_Marks: Practical_Marks || 0,
       Communication_Marks: Communication_Marks || 0,
@@ -515,8 +517,10 @@ exports.updateAdmittedStudent = async (req, res) => {
 
 exports.getReadyStudent = async (req, res) => {
   try {
-    // Find all students whose readinessStatus is "Ready"
-    const readyStudents = await AdmittedStudent.find({ readinessStatus: 'Ready' }).sort({ updatedAt: -1 });
+    // Find all students whose readinessStatus is "Ready" and populate company data
+    const readyStudents = await AdmittedStudent.find({ readinessStatus: 'Ready' })
+      .populate('PlacementinterviewRecord.companyRef')
+      .sort({ updatedAt: -1 });
 
     if (readyStudents.length === 0) {
       return res.status(404).json({ message: "No students found with readinessStatus 'Ready'." });
@@ -541,41 +545,64 @@ exports.getReadyStudent = async (req, res) => {
 
 // placement
 
+// Schedule Interview API
 exports.addInterviewRecord = async (req, res) => {
   try {
-    const studentId = req.params.id;
-    const newInterview = req.body;
+    const { studentId } = req.params;
+    const { companyName, jobProfile, location, status, scheduleDate, rounds, offerLetterURL, applicationLetterURL } = req.body;
 
-    const student = await AdmittedStudent.findById(studentId);
+    console.log("Searching for studentId:",  studentId );
 
+    // Validate required fields
+    if (!companyName || !jobProfile || !scheduleDate) {
+      return res.status(400).json({ message: "companyName, jobProfile, and scheduleDate are required." });
+    }
+
+    // Find the admitted student
+    const student = await AdmittedStudent.findById( studentId );
     if (!student) {
-      return res.status(404).json({ success: false, message: "Student not found" });
+      return res.status(404).json({ message: "Student not found" });
     }
 
-    if (student.readinessStatus !== "Ready") {
-      return res.status(400).json({ success: false, message: "Student is not eligible for interview. Status: Not Ready" });
-    }
+    // Prepare new interview record
+    const newInterview = {
+      companyName,
+      jobProfile,
+      location: location || "",
+      status: status || "Scheduled",
+      scheduleDate: new Date(scheduleDate),
+      rounds: Array.isArray(rounds) ? rounds : [], // must be array of {roundName, date, mode, feedback, result}
+      offerLetterURL: offerLetterURL || "",
+      applicationLetterURL: applicationLetterURL || ""
+    };
 
-    student.interviewRecord.push(newInterview);
+    // Push new interview into student's PlacementinterviewRecord
+    student.PlacementinterviewRecord.push(newInterview);
+
+    // Save changes
     await student.save();
 
-    res.status(201).json({ success: true, message: "Interview record added", data: student.interviewRecord });
+    res.status(201).json({
+      message: "Placement interview scheduled successfully",
+      interview: newInterview
+    });
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    console.error("Error scheduling interview:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
-
 
 
 exports.updateInterviewRecord = async (req, res) => {
   try {
     const { studentId, interviewId } = req.params;
-    const { remark, result } = req.body;
+    const { status } = req.body;
 
-    const validResults = ['Selected', 'Rejected', 'Pending'];
-    if (result && !validResults.includes(result)) {
-      return res.status(400).json({ success: false, message: "Invalid result value" });
+    const validStatuses = ['Scheduled', 'Rescheduled', 'Ongoing', 'Selected', 'RejectedByStudent', 'RejectedByCompany'];
+    
+    if (!status || !validStatuses.includes(status)) {
+      return res.status(400).json({ success: false, message: "Valid status is required" });
     }
 
     const student = await AdmittedStudent.findById(studentId);
@@ -583,14 +610,12 @@ exports.updateInterviewRecord = async (req, res) => {
       return res.status(404).json({ success: false, message: "Student not found" });
     }
 
-    const interview = student.interviewRecord.id(interviewId);
+    const interview = student.PlacementinterviewRecord.id(interviewId);
     if (!interview) {
       return res.status(404).json({ success: false, message: "Interview record not found" });
     }
 
-    if (remark !== undefined) interview.remark = remark;
-    if (result !== undefined) interview.result = result;
-
+    interview.status = status;
     await student.save();
 
     res.status(200).json({
@@ -610,7 +635,7 @@ exports.updateInterviewRecord = async (req, res) => {
 
 
 
-// Upload from Base64 encoded string via JSON
+// Upload Resume Base64 API
 exports.uploadResumeBase64 = async (req, res) => {
   const { studentId, fileName, fileData } = req.body;
 
@@ -622,16 +647,39 @@ exports.uploadResumeBase64 = async (req, res) => {
   }
 
   try {
+    // Validate file extension
+    const allowedExtensions = ['.pdf', '.doc', '.docx'];
+    const fileExtension = fileName.toLowerCase().substring(fileName.lastIndexOf('.'));
+    
+    if (!allowedExtensions.includes(fileExtension)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid file type. Only PDF, DOC, and DOCX files are allowed."
+      });
+    }
+
     const student = await AdmittedStudent.findById(studentId);
     if (!student) {
       return res.status(404).json({ success: false, message: "Student not found" });
     }
 
+    // Clean base64 data (remove data URL prefix if present)
+    let cleanBase64Data = fileData;
+    if (fileData.includes(',')) {
+      cleanBase64Data = fileData.split(',')[1];
+    }
+
+    // Determine MIME type based on file extension
+    let mimeType = 'application/pdf';
+    if (fileExtension === '.doc') mimeType = 'application/msword';
+    if (fileExtension === '.docx') mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
     // Upload to Cloudinary
-    const cloudinaryUpload = await cloudinary.uploader.upload(`data:application/pdf;base64,${fileData}`,  {
+    const cloudinaryUpload = await cloudinary.uploader.upload(`data:${mimeType};base64,${cleanBase64Data}`, {
       folder: 'student-resumes',
       resource_type: 'raw',
-      public_id: Date.now() + '-' + fileName.split('.')[0]
+      public_id: `${Date.now()}-${fileName.split('.')[0]}`,
+      format: fileExtension.substring(1) // Remove the dot from extension
     });
 
     student.resumeURL = cloudinaryUpload.secure_url;
@@ -645,6 +693,16 @@ exports.uploadResumeBase64 = async (req, res) => {
 
   } catch (error) {
     console.error("Upload Error:", error);
+    
+    // Handle specific Cloudinary errors
+    if (error.http_code) {
+      return res.status(400).json({
+        success: false,
+        message: "File upload failed",
+        error: error.message
+      });
+    }
+
     return res.status(500).json({
       success: false,
       message: "Server Error",
@@ -787,5 +845,102 @@ exports.updateStudentProfile = async (req, res) => {
     res.status(500).json({ message: 'Server error', error });
   }
 };
+
+
+// exports.rescheduleInterview = async (req, res) => {
+//   try {
+//     const { studentId, interviewId } = req.params;
+//     const { newDate } = req.body;
+
+//     if (!newDate) {
+//       return res.status(400).json({ message: "New date is required." });
+//     }
+
+//     const updatedStudent = await AdmittedStudent.findOneAndUpdate(
+//       {
+//         _id: studentId,
+//         "PlacementinterviewRecord._id": interviewId
+//       },
+//       {
+//         $set: {
+//           "PlacementinterviewRecord.$.rescheduleDate": new Date(newDate),
+//           "PlacementinterviewRecord.$.status": "Rescheduled"
+//         }
+//       },
+//       { new: true }
+//     );
+
+//     if (!updatedStudent) {
+//       return res.status(404).json({ message: "Student or interview not found." });
+//     }
+
+//     res.status(200).json({
+//       message: "Interview rescheduled successfully.",
+//       updatedData: updatedStudent
+//     });
+
+//   } catch (error) {
+//     console.error("Error rescheduling interview:", error);
+//     res.status(500).json({ message: "Server error.", error: error.message });
+//   }
+// };
+
+
+exports.rescheduleInterview = async (req, res) => {
+  try {
+    const { studentId, interviewId } = req.params;
+    const { newDate } = req.body;
+
+    if (!newDate) {
+      return res.status(400).json({ message: "New date is required." });
+    }
+
+    const updatedStudent = await AdmittedStudent.findOneAndUpdate(
+      {
+        _id: studentId,
+        "PlacementinterviewRecord._id": interviewId
+      },
+      {
+        $set: {
+          "PlacementinterviewRecord.$.scheduleDate": new Date(newDate),
+          "PlacementinterviewRecord.$.status": "Rescheduled"
+        }
+      },
+      { new: true }
+    );
+
+    if (!updatedStudent) {
+      return res.status(404).json({ message: "Student or interview not found." });
+    }
+
+    res.status(200).json({
+      message: "Interview rescheduled successfully.",
+      updatedData: updatedStudent
+    });
+
+  } catch (error) {
+    console.error("Error rescheduling interview:", error);
+    res.status(500).json({ message: "Server error.", error: error.message });
+  }
+};
+
+
+// exports.countStudentInterviews = async (req, res) => {
+//   try {
+//     const { studentId } = req.params;
+
+//     // Count the number of interviews for this student
+//     const count = await AdmittedStudent.countDocuments({ studentId });
+
+//     res.status(200).json({
+//       studentId,
+//       totalInterviews: count
+//     });
+
+//   } catch (error) {
+//     console.error("Error counting interviews:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
 
 

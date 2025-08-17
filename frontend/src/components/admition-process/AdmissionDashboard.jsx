@@ -3,9 +3,10 @@ import {
   GraduationCap, 
   Eye,
   Building2,
-  Award,
-  RefreshCw
+  Award
 } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
 import admissionFlowBg from '../../assets/images/Group 880.jpg';
 import admittedFlowBg from '../../assets/images/Group 881.jpg';
 import placementFlowBg from '../../assets/images/Student_profile_2nd_bg.jpg';
@@ -126,22 +127,14 @@ const AdmissionDashboard = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Calculate placed students from placement data
-  const placedStudents = Array.isArray(placementStudents) ? 
-    placementStudents.filter(student => 
-      student.interviewRecord?.some(interview => interview.result === 'Selected')
-    ).length : 0;
+  // Calculate placed students from admitted students data
+  const placedStudents = Array.isArray(admittedStudents) ? 
+    admittedStudents.filter(student => student.placedInfo !== null).length : 0;
 
-  // Calculate trends based on actual data ratios
-  const calculateTrend = (current, total) => {
-    if (total === 0) return '0%';
-    const percentage = ((current / total) * 100).toFixed(1);
-    return `${percentage}%`;
-  };
-
-  const admissionRate = admittedStudents.length > 0 ? calculateTrend(admittedStudents.length, allStudents.length) : '0%';
-  const placementRate = placementStudents.length > 0 ? calculateTrend(placedStudents, placementStudents.length) : '0%';
-  const enrollmentGrowth = allStudents.length > 0 ? `+${Math.min(Math.round(allStudents.length / 10), 15)}%` : '0%';
+  // Calculate trends based on actual data counts
+  const admissionRate = `${admittedStudents.length}/${allStudents.length}`;
+  const placementRate = `${placedStudents}/${placementStudents.length}`;
+  const enrollmentGrowth = `+${allStudents.length}`;
 
   const statsCards = [
     {
@@ -170,12 +163,18 @@ const AdmissionDashboard = () => {
     },
   ];
 
-  // Simple admission flow data - only 3 categories
+  // Calculate real admission flow data
+  const totalRegistered = allStudents.length;
+  const admitted = admittedStudents.length;
+  const underReview = totalRegistered - admitted; // Remaining students who are not yet admitted
+  const interviewed = allStudents.filter(student => student.interviewRecord && student.interviewRecord.length > 0).length;
+  
   const admissionFlowData = [
     ['Status', 'Count'],
-    ['Applied', allStudents.length],
-    ['Admitted', admittedStudents.length],
-    ['Placed', placedStudents]
+    ['Registered', totalRegistered],
+    ['Under Review', underReview],
+    ['Interviewed', interviewed],
+    ['Admitted', admitted]
   ];
 
   // Calculate current level-wise data from admitted students
@@ -215,11 +214,11 @@ const AdmissionDashboard = () => {
   // Calculate real placement flow data
   const readyForPlacement = placementStudents.length;
   const interviewScheduled = placementStudents.filter(student => 
-    student.interviewRecord && student.interviewRecord.length > 0
+    student.PlacementinterviewRecord && student.PlacementinterviewRecord.length > 0
   ).length;
   const interviewCompleted = placementStudents.filter(student => 
-    student.interviewRecord && student.interviewRecord.some(interview => 
-      interview.result && interview.result !== 'Pending'
+    student.PlacementinterviewRecord && student.PlacementinterviewRecord.some(interview => 
+      interview.status && interview.status !== 'Scheduled' && interview.status !== 'Pending'
     )
   ).length;
   
@@ -231,14 +230,13 @@ const AdmissionDashboard = () => {
     ['Successfully Placed', placedStudents]
   ];
 
-  // Calculate top companies from placement data
+  // Calculate top companies from placed students data
   const companyStats = {};
-  placementStudents.forEach(student => {
-    (student.interviewRecord || []).forEach(interview => {
-      if (interview.result === 'Selected') {
-        companyStats[interview.companyName] = (companyStats[interview.companyName] || 0) + 1;
-      }
-    });
+  admittedStudents.forEach(student => {
+    if (student.placedInfo && student.placedInfo.companyName) {
+      const companyName = student.placedInfo.companyName;
+      companyStats[companyName] = (companyStats[companyName] || 0) + 1;
+    }
   });
 
   const topCompanies = Object.entries(companyStats)
@@ -429,7 +427,7 @@ const AdmissionDashboard = () => {
                 </div>
               </div>
             </div>
-            <div className="p-6">
+            {/* <div className="p-6">
               <div className="h-64">
                 <Chart
                   chartType="AreaChart"
@@ -454,8 +452,53 @@ const AdmissionDashboard = () => {
                   width="100%"
                   height="100%"
                 />
+                 
               </div>
-            </div>
+            </div> */}
+            <div className="p-6">
+  <div className="h-64">
+    <ResponsiveContainer width="100%" height="100%">
+      <AreaChart
+        data={placementFlowData.slice(1).map(([name, value]) => ({ name, value }))}
+        margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+      >
+        <defs>
+          <linearGradient id="greenGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#00FF00" stopOpacity={0.4} />
+            <stop offset="100%" stopColor="#00FF00" stopOpacity={0.05} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid stroke="#E5E7EB" vertical={false} />  
+        <XAxis
+          dataKey="name"
+          stroke="#6B7280"
+          fontSize={12}
+        />
+        <YAxis
+          stroke="#6B7280"
+          fontSize={12}
+        />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: 'white',
+            border: '1px solid #E5E7EB',
+            borderRadius: '8px',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+          }}
+          labelStyle={{ color: '#374151', fontWeight: 'bold' }}
+          itemStyle={{ color: '#00FF00' }}
+        />
+        <Area
+          type="monotone"
+          dataKey="value"
+          stroke="#00FF00"
+          strokeWidth={2}
+          fill="url(#greenGradient)"
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  </div>
+</div>
           </div>
         </div>
 
@@ -522,7 +565,7 @@ const AdmissionDashboard = () => {
                 <GraduationCap className="w-5 h-5" />
                 <span className="font-medium">Admission Process</span>
               </Link>
-              <Link to="/placement-interview-record" className="flex items-center space-x-3 p-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all transform hover:scale-105">
+              <Link to="/readiness-status" className="flex items-center space-x-3 p-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all transform hover:scale-105">
                 <Building2 className="w-5 h-5" />
                 <span className="font-medium">Placement Records</span>
               </Link>

@@ -27,9 +27,9 @@ const DatePickerInput = ({ label, name, className = '', disabled = false }) => {
         onBlur={() => setIsFocused(false)}
         maxDate={new Date()} // Restrict to today or earlier
         dateFormat="dd/MM/yyyy" // UI Format
-        className={`peer h-12 w-full border border-[var(--text-color)] rounded-md px-3 pt-5 pb-2
-          leading-tight focus:outline-none focus:border-[var(--text-color)]
-          ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}
+        className={`peer h-12 w-full border border-gray-300 rounded-md px-3 pt-5 pb-2
+          leading-tight focus:outline-none focus:border-[#FDA92D]
+          ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''} transition-all duration-200
         `}
         disabled={disabled}
         placeholderText="Select Date"
@@ -39,11 +39,12 @@ const DatePickerInput = ({ label, name, className = '', disabled = false }) => {
         className={`
           absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none
           ${isFocused || hasValue
-            ? 'text-xs -top-2 text-[var(--text-color)]'
-            : 'text-gray-400 top-3.5'}
+            ? 'text-xs -top-2 text-black'
+            : 'text-gray-500 top-3.5'
+          }
         `}
       >
-        {label} <span className="text-[var(--text-color)]">*</span>
+        {label}
       </label>
 
       <ErrorMessage name={name} component="p" className="text-red-500 text-sm font-semibold mt-1" />

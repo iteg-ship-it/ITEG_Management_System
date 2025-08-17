@@ -352,6 +352,21 @@ export const authApi = createApi({
     }),
 
 
+    // Get student level interviews for history page
+    getStudentLevelInterviews: builder.query({
+      query: (studentId) => {
+        const endpoint = `${import.meta.env.VITE_GET_LEVEL_INTERVIEW_BY_ID}${studentId}`;
+        console.log('🎯 Level Interview History API Call:', {
+          endpoint,
+          studentId,
+          fullUrl: `${import.meta.env.VITE_API_URL}${endpoint}`
+        });
+        return {
+          url: endpoint,
+          method: "GET",
+        };
+      },
+    }),
 
 
 
@@ -373,11 +388,12 @@ export const authApi = createApi({
         body: interviewData,
       }),
       invalidatesTags: ['PlacementStudent'],
-      // Optimistic update for better UX
+      // Force immediate cache invalidation
       async onQueryStarted({ studentId, interviewData }, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
-          // Only invalidate after successful mutation
+          // Invalidate all placement student queries
+          dispatch(authApi.util.invalidateTags(['PlacementStudent']));
         } catch {
           // Handle error if needed
         }
@@ -393,7 +409,34 @@ export const authApi = createApi({
         body: data,
       }),
       invalidatesTags: ['PlacementStudent'],
+      // Force immediate cache invalidation and refetch
+      async onQueryStarted({ studentId, interviewId, ...data }, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          // Invalidate all placement student queries to force refetch
+          dispatch(authApi.util.invalidateTags(['PlacementStudent']));
+          // Also invalidate specific student data
+          dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
+        } catch (error) {
+          console.error('Failed to update interview record:', error);
+        }
+      },
     }),
+
+    // Upload resume
+    uploadResume: builder.mutation({
+      query: ({ studentId, fileName, fileData }) => ({
+        url: import.meta.env.VITE_RESUME_UPLOAD,
+        method: "POST",
+        body: { studentId, fileName, fileData },
+      }),
+      invalidatesTags: (result, error, { studentId }) => [
+        { type: 'Student', id: studentId }
+      ],
+    }),
+
+
+
 
     getInterviewAttemptCount: builder.query({
       query: (studentId) => ({
@@ -402,22 +445,83 @@ export const authApi = createApi({
       }),
     }),
 
-    // Get student level interviews for history page
-    getStudentLevelInterviews: builder.query({
-      query: (studentId) => {
-        const endpoint = `${import.meta.env.VITE_GET_LEVEL_INTERVIEW_BY_ID}${studentId}`;
-        console.log('🎯 Level Interview History API Call:', {
-          endpoint,
-          studentId,
-          fullUrl: `${import.meta.env.VITE_API_URL}${endpoint}`
-        });
-        return {
-          url: endpoint,
-          method: "GET",
-        };
+    // Get interview history for placement students
+    getInterviewHistory: builder.query({
+      query: (studentId) => ({
+        url: `admitted/students/interview_history/${studentId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, studentId) => [
+        { type: 'PlacementStudent', id: studentId }
+      ],
+    }),
+
+    // Reschedule interview
+    rescheduleInterview: builder.mutation({
+      query: ({ studentId, interviewId, ...data }) => ({
+        url: `admitted/students/reschedule/interview/${studentId}/${interviewId}`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ['PlacementStudent'],
+      async onQueryStarted({ studentId, interviewId, ...data }, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(authApi.util.invalidateTags(['PlacementStudent']));
+          dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
+        } catch (error) {
+          console.error('Failed to reschedule interview:', error);
+        }
       },
     }),
 
+    // Add interview round
+    addInterviewRound: builder.mutation({
+      query: ({ studentId, interviewId, ...data }) => ({
+        url: `admitted/students/interviews/${studentId}/${interviewId}/add_round`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['PlacementStudent'],
+      async onQueryStarted({ studentId, interviewId, ...data }, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(authApi.util.invalidateTags(['PlacementStudent']));
+          dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
+        } catch (error) {
+          console.error('Failed to add interview round:', error);
+        }
+      },
+    }),
+
+    // Confirm placement
+    confirmPlacement: builder.mutation({
+      query: (data) => ({
+        url: `/admitted/students/confirm_placement`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['PlacementStudent', 'Student'],
+      async onQueryStarted(data, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(authApi.util.invalidateTags(['PlacementStudent']));
+          dispatch(authApi.util.invalidateTags(['Student']));
+        } catch (error) {
+          console.error('Failed to confirm placement:', error);
+        }
+      },
+    }),
+
+    // Create placement post
+    createPlacementPost: builder.mutation({
+      query: (data) => ({
+        url: `admitted/students/placement_post`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['PlacementStudent'],
+    }),
 
   }),
 });
@@ -452,5 +556,11 @@ export const {
   useLogoutMutation,
   useGetAllStudentsByLevelQuery,
   useGetInterviewAttemptCountQuery,
-  useGetStudentLevelInterviewsQuery
+  useGetStudentLevelInterviewsQuery,
+  useUploadResumeMutation,
+  useGetInterviewHistoryQuery,
+  useRescheduleInterviewMutation,
+  useAddInterviewRoundMutation,
+  useConfirmPlacementMutation,
+  useCreatePlacementPostMutation
 } = authApi;

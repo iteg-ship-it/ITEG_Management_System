@@ -10,7 +10,7 @@ import Loader from "../common-components/loader/Loader";
 import * as Yup from "yup";
 import { Formik, Form } from "formik";
 import InputField from "../common-components/common-feild/InputField";
-import SelectInput from "../common-components/common-feild/SelectInput";
+import CustomDropdown from "../common-components/common-feild/CustomDropdown";
 import {
   useInterviewCreateMutation,
 } from "../../redux/api/authApi";
@@ -38,6 +38,7 @@ const StudentList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [AddInterviwModalOpen, setAddInterviwModalOpen] = useState(false);
   const [id, setId] = useState(null);
+  const [selectedRows, setSelectedRows] = useState([]);
   const navigate = useNavigate();
 
   const location = useLocation();
@@ -149,6 +150,9 @@ const StudentList = () => {
     } else if (savedTab) {
       setActiveTab(savedTab);
     }
+    
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
   }, [location.search, refetch]);
 
   // Auto-refresh data when window gains focus
@@ -291,7 +295,7 @@ const StudentList = () => {
 
   const handleGetOnlineMarks = (onlineTest = {}) => {
     const result = onlineTest?.result;
-    const classes = "px-3 py-1 rounded-xl text-sm font-medium";
+    const classes = "px-3 py-1 rounded-md text-sm font-medium";
     switch (result) {
       case "Pass":
         return (
@@ -322,7 +326,7 @@ const StudentList = () => {
   const handleGetStatus = (interviews = []) => {
     const roundData = interviews?.filter((i) => i?.round === "First");
     const result = roundData?.[roundData.length - 1]?.result;
-    const classes = "px-3 py-1 rounded-xl text-sm font-medium";
+    const classes = "px-3 py-1 rounded-md text-sm font-medium";
     switch (result) {
       case "Pass":
         return (
@@ -395,7 +399,7 @@ const StudentList = () => {
       actionButton = (row) => (
         <button
           onClick={() => scheduleButton(row)}
-          className="bg-orange-500 text-md text-white px-3 py-1 rounded"
+          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
         >
           Take Interview
         </button>
@@ -445,7 +449,7 @@ const StudentList = () => {
       actionButton = (row) => (
         <button
           onClick={() => scheduleButton(row)}
-          className="bg-orange-500 text-md text-white px-3 py-1 rounded"
+          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
         >
           Take Interview
         </button>
@@ -513,9 +517,9 @@ const StudentList = () => {
               setAddInterviwModalOpen(true)
               setId(row._id)
             }}
-            className="bg-orange-500 text-md text-white px-3 py-1 rounded"
+            className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
           >
-            Add Interview
+            Take Interview
           </button>
         </div>
       );
@@ -652,6 +656,8 @@ const StudentList = () => {
               setSearchTerm={setSearchTerm}
               filtersConfig={filtersConfig}
               filteredData={filteredData}
+              selectedRows={selectedRows}
+              allData={data}
             />
           </div>
         </div>
@@ -663,6 +669,7 @@ const StudentList = () => {
           rowsPerPage={rowsPerPage}
           searchTerm={searchTerm}
           actionButton={actionButton}
+          onSelectionChange={setSelectedRows}
           onRowClick={(row) => {
             localStorage.setItem("lastSection", "admission");
             navigate(`/admission/edit/${row._id}`, { state: { student: row } });
@@ -696,14 +703,14 @@ const StudentList = () => {
             >
               {() => (
                 <Form className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <SelectInput
+                  <CustomDropdown
                     label="Round"
                     name="round"
                     disabled
                     options={[{ value: "Second", label: "Final Round" }]}
                   />
                   <InputField label="Remark" name="remark" />
-                  <SelectInput
+                  <CustomDropdown
                     label="Result"
                     name="result"
                     options={[
@@ -723,7 +730,7 @@ const StudentList = () => {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="px-5 py-2 bg-brandYellow text-white rounded-md hover:bg-orange-600 transition disabled:opacity-50"
+                      className="px-5 py-2 bg-[#FDA92D]  text-white rounded-md hover:bg-orange-600 transition disabled:opacity-50"
                     >
                       {isSubmitting ? "Submitting..." : "Submit"}
                     </button>

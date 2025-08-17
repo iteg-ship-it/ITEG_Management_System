@@ -2,6 +2,7 @@
 /* eslint-disable react/prop-types */
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { toast } from "react-toastify";
 import { useUpdateTechnologyMutation } from "../../redux/api/authApi"; // RTK mutation
 
 const UpdateTechnologyModal = ({ isOpen, onClose, studentId }) => {
@@ -19,17 +20,17 @@ const UpdateTechnologyModal = ({ isOpen, onClose, studentId }) => {
         onSubmit: async (values, actions) => {
             try {
                 if (!studentId) {
-                    alert("Student ID missing!");
+                    toast.error("Student ID missing!");
                     return;
                 }
 
                 await updateTechnology({ id: studentId, techno: values.techno }).unwrap();
-                alert("Technology updated successfully ✅");
+                toast.success("Technology updated successfully!");
                 actions.resetForm();
                 onClose();
             } catch (err) {
                 console.error("Error updating technology", err);
-                alert(err?.data?.message || "Update failed ❌");
+                toast.error(err?.data?.message || "Update failed");
             }
         },
     });
@@ -50,11 +51,11 @@ const UpdateTechnologyModal = ({ isOpen, onClose, studentId }) => {
                                 name="techno"
                                 value={formik.values.techno}
                                 onChange={formik.handleChange}
-                                className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-black focus:ring-0 transition-all duration-200"
+                                className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200"
                                 placeholder=" "
                             />
                             <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
-                                Technology <span className="text-red-500">*</span>
+                                Technology
                             </label>
                         </div>
                         {formik.touched.techno && formik.errors.techno && (
@@ -76,7 +77,7 @@ const UpdateTechnologyModal = ({ isOpen, onClose, studentId }) => {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="bg-brandYellow text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="bg-[#FDA92D]  text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isLoading ? "Updating..." : "Update"}
                             </button>
