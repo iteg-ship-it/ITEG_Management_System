@@ -18,7 +18,7 @@ import ErrorBoundary from "./components/common-components/ErrorBoundary";
 // ✅ Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
-  return token ? children : <Navigate to="/404" replace />;
+  return token ? children : <Navigate to="/login" replace />;
 };
 
 function App() {
@@ -29,6 +29,9 @@ function App() {
       <ErrorBoundary>
         <Router>
           <Routes>
+            {/* Root route - redirect to login */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            
             {/*  Public routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/otp-verification" element={<OtpVerification />} />
