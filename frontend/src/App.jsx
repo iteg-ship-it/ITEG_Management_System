@@ -29,9 +29,6 @@ function App() {
       <ErrorBoundary>
         <Router>
           <Routes>
-            {/* Root route - redirect to login */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            
             {/*  Public routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/otp-verification" element={<OtpVerification />} />
