@@ -168,6 +168,7 @@ const StudentPermission = () => {
                 setSearchTerm={setSearchTerm}
                 filtersConfig={filtersConfig}
                 filteredData={filteredData}
+                sectionName="permissionstudents"
               />
             </div>
           </div>

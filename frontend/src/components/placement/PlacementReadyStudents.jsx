@@ -405,6 +405,7 @@ const PlacementReadyStudents = () => {
               filteredData={getFilteredData()}
               selectedRows={selectedRows}
               allData={students}
+              sectionName={activeTab.replace(/\s+/g, '').toLowerCase()}
             />
           </div>
         </div>

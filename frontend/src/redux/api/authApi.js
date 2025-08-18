@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 // src/features/api/authApi.js
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import CryptoJS from "crypto-js";
@@ -45,6 +46,12 @@ const rawBaseQuery = fetchBaseQuery({
 //  Auto-refresh logic
 const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
   let result = await rawBaseQuery(args, api, extraOptions);
+
+  // Handle server errors (5xx)
+  if (result?.error?.status >= 500) {
+    window.location.href = "/server-error";
+    return result;
+  }
 
   if (result?.error?.status === 401) {
     console.warn("Token expired. Attempting refresh...");
