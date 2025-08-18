@@ -11,7 +11,7 @@ import GoogleSuccess from './components/common-components/login-page/GoogleSucce
 import Layout from "./components/dashboard/Layout.jsx";
 import SessionTimeoutModal from "./components/common-components/SessionTimeoutModal";
 import { useSessionTimeout } from "./hooks/useSessionTimeout";
-import PageNotFound from "./components/common-components/error-pages/PageNotFound";
+
 import ServerError from "./components/common-components/error-pages/ServerError";
 import ErrorBoundary from "./components/common-components/ErrorBoundary";
 
@@ -40,7 +40,6 @@ function App() {
             <Route path="/otp-enter" element={<OtpEnter />} />
             <Route path="/google-success" element={<GoogleSuccess />} />
             <Route path="/server-error" element={<ServerError />} />
-            <Route path="/404" element={<PageNotFound />} />
 
             {/* ✅ Protected routes with sidebar */}
             <Route
