@@ -40,6 +40,11 @@ const CommonTable = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm]);
 
+  useEffect(() => {
+    setPageSize(rowsPerPage);
+    setCurrentPage(1);
+  }, [data, rowsPerPage]);
+
   const filteredData = useMemo(() => {
     const term = searchTerm.toLowerCase();
     return data.filter((row) =>
@@ -95,10 +100,9 @@ const CommonTable = ({
   return (
     <div className="w-full py-3">
       <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-200">
-        <div className="overflow-x-auto">
-          <div ref={scrollRef} className="max-h-[60vh] overflow-y-auto custom-scrollbar">
+        <div ref={scrollRef} className="overflow-x-auto rounded-t-2xl max-h-[60vh] overflow-y-overlay custom-scrollbar">
             <table className="min-w-full text-sm">
-              <thead className="sticky text-md top-0 bg-[--neutral-light] text-gray-600 border-b shadow-sm z-10">
+              <thead className="bg-[--neutral-light] text-gray-600 shadow-sm sticky top-0 z-10">
                 <tr>
                   <th className="px-4 py-3 text-center">
                     <div className="flex items-center justify-center">
@@ -110,17 +114,17 @@ const CommonTable = ({
                   </th>
                   <th className="px-4 py-3 text-center">S.No</th>
                   {columns.map(({ key, label, align }) => (
-                    <th key={key} className={`px-4 py-3 ${align === 'center' ? 'text-center' : 'text-start'}`}>{label}</th>
+                    <th key={key} className={`px-4 py-3 ${align === 'center' ? 'text-center' : 'text-left'}`}>{label}</th>
                   ))}
                   {editable && actionButton && (
-                    <th className="px-4 py-3 text-start sticky right-0 bg-[--neutral-light] z-10">Action</th>
+                    <th className="px-4 py-3 text-left">Action</th>
                   )}
                   {extraColumn && (
-                    <th className="px-4 py-3 text-start">{extraColumn.header}</th>
+                    <th className="px-4 py-3 text-left">{extraColumn.header}</th>
                   )}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="bg-white">
                 {paginatedData.map((row, rowIndex) => (
                   <tr key={rowIndex}
                     className={`hover:bg-gray-100 text-md transition cursor-pointer border-b border-dashed border-gray-300`}
@@ -142,7 +146,7 @@ const CommonTable = ({
                       {(currentPage - 1) * pageSize + rowIndex + 1}
                     </td>
                     {columns.map(({ key, render, align }) => (
-                      <td key={key} className={`px-4 py-3 ${align === 'center' ? 'text-center' : 'text-start'} text-gray-700`}>
+                      <td key={key} className={`px-4 py-3 ${align === 'center' ? 'text-center' : 'text-left'} text-gray-700`}>
                         {render ? (
                           render(row)
                         ) : key === "profile" ? (
@@ -160,7 +164,7 @@ const CommonTable = ({
                     ))}
                     {editable && actionButton && (
                       <td
-                        className="px-4 py-3 text-start sticky right-0 bg-white"
+                        className="px-4 py-3 text-left sticky right-0"
                         onClick={(e) => e.stopPropagation()} //prevent row click from firing
                       >
                         <div className="inline-block hover:shadow-md transition cursor-pointer relative z-20">
@@ -169,7 +173,7 @@ const CommonTable = ({
                       </td>
                     )}
                     {extraColumn && (
-                      <td className="px-4 py-3 text-start">
+                      <td className="px-4 py-3 text-left">
                         {extraColumn.render?.(row)}
                       </td>
                     )}
@@ -177,7 +181,6 @@ const CommonTable = ({
                 ))}
               </tbody>
             </table>
-          </div>
         </div>
 
         {/* {pagination && (

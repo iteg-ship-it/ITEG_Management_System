@@ -35,7 +35,7 @@ const Section = ({ title, children }) => {
 const MetricCard = ({ icon, label, value, isTotal = false }) => (
   <div className={`${isTotal ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'} border rounded-xl p-4 hover:shadow-md transition-shadow`}>
     <div className="flex items-center justify-between mb-2">
-      <span className="text-lg">{icon}</span>
+      <div className="flex items-center justify-center">{icon}</div>
       <span className={`text-2xl font-bold ${isTotal ? 'text-red-600' : 'text-gray-800'}`}>
         {value || 'N/A'}
       </span>
@@ -356,14 +356,14 @@ const AdmissionEditPage = () => {
                           </div>
                           
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <MetricCard icon="💬" label="COMMUNICATION" value={item.communication} />
-                            <MetricCard icon="🔥" label="CONFIDENCE" value={item.confidence} />
-                            <MetricCard icon="📚" label="SUBJECT KNOWLEDGE" value={item.subjectKnowlage} />
-                            <MetricCard icon="🔢" label="MATHEMATICS" value={item.maths} />
-                            <MetricCard icon="🧠" label="REASONING" value={item.reasoning} />
-                            <MetricCard icon="✅" label="SINCERITY" value={item.sincerity} />
-                            <MetricCard icon="🎯" label="GOAL CLARITY" value={item.goal} />
-                            <MetricCard icon="🏆" label="TOTAL MARKS" value={item.marks} isTotal={true} />
+                            <MetricCard icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>} label="COMMUNICATION" value={item.communication} />
+                            <MetricCard icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" /></svg>} label="CONFIDENCE" value={item.confidence} />
+                            <MetricCard icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>} label="SUBJECT KNOWLEDGE" value={item.subjectKnowlage} />
+                            <MetricCard icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg>} label="MATHEMATICS" value={item.maths} />
+                            <MetricCard icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>} label="REASONING" value={item.reasoning} />
+                            <MetricCard icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} label="SINCERITY" value={item.sincerity} />
+                            <MetricCard icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" /></svg>} label="GOAL CLARITY" value={item.goal} />
+                            <MetricCard icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>} label="TOTAL MARKS" value={item.marks} isTotal={true} />
                           </div>
                         </div>
 

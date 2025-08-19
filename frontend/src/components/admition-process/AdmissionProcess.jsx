@@ -296,13 +296,13 @@ const StudentList = () => {
     switch (result) {
       case "Pass":
         return (
-          <span className="inline-block px-2 py-1 rounded-md text-[#118D57] bg-[#22C55E]/20 text-sm font-medium">
+          <span className="inline-block px-2 py-1 rounded-md text-[#118D57] bg-[#22C55E]/20 text-sm font-bold">
             Pass
           </span>
         );
       case "Fail":
         return (
-          <span className="inline-block px-2 py-1 rounded-md bg-[#FFCEC3] text-[#D32F2F] text-sm font-medium">
+          <span className="inline-block px-2 py-1 rounded-md bg-[#FFCEC3] text-[#D32F2F] text-sm font-bold">
             Fail
           </span>
         );
@@ -327,13 +327,13 @@ const StudentList = () => {
     switch (result) {
       case "Pass":
         return (
-          <span className="inline-block px-2 py-1 rounded-md text-[#118D57] bg-[#22C55E]/20 text-sm font-medium">
+          <span className="inline-block px-2 py-1 rounded-md text-[#118D57] bg-[#22C55E]/20 text-sm font-bold">
             Pass
           </span>
         );
       case "Fail":
         return (
-          <span className="inline-block px-2 py-1 rounded-md bg-[#FFCEC3] text-[#D32F2F] text-sm font-medium">
+          <span className="inline-block px-2 py-1 rounded-md bg-[#FFCEC3] text-[#D32F2F] text-sm font-bold">
             Fail
           </span>
         );
