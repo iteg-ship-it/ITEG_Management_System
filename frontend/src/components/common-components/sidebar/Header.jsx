@@ -1,26 +1,46 @@
 import logo from '../../../assets/images/doulLogo.png';
+import defaultProfile from '../../../assets/images/profile-img.png';
 import UserProfile from '../user-profile/UserProfile';
 import { Plus, X } from 'lucide-react';
 import { useState } from 'react';
+import { useSignupMutation } from '../../../redux/api/authApi';
 
 const Header = () => {
     const userRole = localStorage.getItem('role');
     const [showModal, setShowModal] = useState(false);
+    const [signup, { isLoading }] = useSignupMutation();
     const [formData, setFormData] = useState({
         name: '',
+        profileImage: '',
         email: '',
-        department: ''
+        password: '',
+        mobileNo: '',
+        adharCard: '',
+        department: '',
+        position: '',
+        role: 'faculty'
     });
 
     const handleAddFaculty = () => {
         setShowModal(true);
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Faculty data:', formData);
-        setShowModal(false);
-        setFormData({ name: '', email: '', department: '' });
+        
+        const facultyData = {
+            ...formData,
+            profileImage: formData.profileImage || defaultProfile
+        };
+        
+        try {
+            const result = await signup(facultyData).unwrap();
+            alert('Faculty added successfully!');
+            setShowModal(false);
+            setFormData({ name: '', profileImage: '', email: '', password: '', mobileNo: '', adharCard: '', department: '', position: '', role: 'faculty' });
+        } catch (error) {
+            alert(error?.data?.message || 'Error adding faculty');
+        }
     };
 
     const handleInputChange = (e) => {
@@ -50,7 +70,7 @@ const Header = () => {
 
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
+                    <div className="bg-white rounded-lg p-6 w-[500px] max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-xl font-semibold">Add Faculty</h2>
                             <button
@@ -61,52 +81,125 @@ const Header = () => {
                             </button>
                         </div>
                         
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={handleSubmit} className="space-y-3">
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Name</label>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleInputChange}
+                                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[var(--primary)]"
+                                        required
+                                    />
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Email</label>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleInputChange}
+                                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[var(--primary)]"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Password</label>
+                                    <input
+                                        type="password"
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleInputChange}
+                                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[var(--primary)]"
+                                        required
+                                    />
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Mobile No</label>
+                                    <input
+                                        type="tel"
+                                        name="mobileNo"
+                                        value={formData.mobileNo}
+                                        onChange={handleInputChange}
+                                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[var(--primary)]"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            
                             <div>
-                                <label className="block text-sm font-medium mb-1">Name</label>
+                                <label className="block text-sm font-medium mb-1">Adhar Card</label>
                                 <input
                                     type="text"
-                                    name="name"
-                                    value={formData.name}
+                                    name="adharCard"
+                                    value={formData.adharCard}
                                     onChange={handleInputChange}
                                     className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[var(--primary)]"
+                                    maxLength="12"
                                     required
                                 />
                             </div>
                             
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Department</label>
+                                    <select
+                                        name="department"
+                                        value={formData.department}
+                                        onChange={handleInputChange}
+                                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[var(--primary)]"
+                                        required
+                                    >
+                                        <option value="">Select Department</option>
+                                        <option value="ITEG">ITEG</option>
+                                        <option value="MEG">MEG</option>
+                                        <option value="BEG">BEG</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Position</label>
+                                    <select
+                                        name="position"
+                                        value={formData.position}
+                                        onChange={handleInputChange}
+                                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[var(--primary)]"
+                                        required
+                                    >
+                                        <option value="">Select Position</option>
+                                        <option value="Assistant Professor">Assistant Professor</option>
+                                        <option value="Associate Professor">Associate Professor</option>
+                                        <option value="Professor">Professor</option>
+                                        <option value="Lecturer">Lecturer</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
                             <div>
-                                <label className="block text-sm font-medium mb-1">Email</label>
+                                <label className="block text-sm font-medium mb-1">Profile Image URL</label>
                                 <input
-                                    type="email"
-                                    name="email"
-                                    value={formData.email}
+                                    type="url"
+                                    name="profileImage"
+                                    value={formData.profileImage}
                                     onChange={handleInputChange}
                                     className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[var(--primary)]"
-                                    required
+                                    placeholder="https://example.com/image.jpg"
                                 />
-                            </div>
-                            
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Department</label>
-                                <select
-                                    name="department"
-                                    value={formData.department}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[var(--primary)]"
-                                    required
-                                >
-                                    <option value="">Select Department</option>
-                                    <option value="ITEG">ITEG</option>
-                                    <option value="MEG">MEG</option>
-                                    <option value="BEG">BEG</option>
-                                </select>
                             </div>
                             
                             <button
                                 type="submit"
-                                className="w-full py-2 bg-[var(--primary)] text-white rounded-md hover:bg-[var(--primary-darker)] transition-colors font-medium"
+                                disabled={isLoading}
+                                className="w-full py-2 bg-[var(--primary)] text-white rounded-md hover:bg-[var(--primary-darker)] transition-colors font-medium mt-4 disabled:opacity-50"
                             >
-                                Submit
+                                {isLoading ? 'Adding Faculty...' : 'Submit'}
                             </button>
                         </form>
                     </div>

@@ -130,6 +130,14 @@ export const authApi = createApi({
         }
       },
     }),
+    
+    signup: builder.mutation({
+      query: (userData) => ({
+        url: import.meta.env.VITE_SIGNUP_ENDPOINT || '/api/auth/signup',
+        method: "POST",
+        body: userData,
+      }),
+    }),
     // ---- Create User API ----
     updateUser: builder.mutation({
       query: ({ id, data }) => ({
@@ -534,6 +542,7 @@ export const authApi = createApi({
 
 export const {
   useLoginMutation,
+  useSignupMutation,
   useLoginWithGoogleMutation,
   useUpdateUserMutation,
   useForgetPasswordMutation,
