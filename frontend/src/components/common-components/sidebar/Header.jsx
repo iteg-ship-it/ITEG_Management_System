@@ -34,7 +34,7 @@ const Header = () => {
         };
         
         try {
-            const result = await signup(facultyData).unwrap();
+            await signup(facultyData).unwrap();
             alert('Faculty added successfully!');
             setShowModal(false);
             setFormData({ name: '', profileImage: '', email: '', password: '', mobileNo: '', adharCard: '', department: '', position: '', role: 'faculty' });
