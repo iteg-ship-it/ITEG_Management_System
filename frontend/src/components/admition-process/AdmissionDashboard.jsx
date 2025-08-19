@@ -9,7 +9,6 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 import admissionFlowBg from '../../assets/images/Group 880.jpg';
 import admittedFlowBg from '../../assets/images/Group 881.jpg';
-import placementFlowBg from '../../assets/images/Student_profile_2nd_bg.jpg';
 import { 
   useGetAllStudentsQuery,
   useAdmitedStudentsQuery,
@@ -31,22 +30,19 @@ const FlowSwapCard = () => {
       title: 'Admission Module',
       description: 'Manage the complete student admission journey — from application to final selection, all in one place.',
       icon: '📝',
-      color: '#3B82F6',
-      backgroundImage: admissionFlowBg
+      color: '#3B82F6'
     },
     {
       title: 'Admitted Module', 
       description: 'Track academic progress, attendance, and performance of students enrolled in ITEG seamlessly.',
       icon: '🎓',
-      color: '#8B5CF6',
-      backgroundImage: admittedFlowBg
+      color: '#8B5CF6'
     },
     {
       title: 'Placements Module',
       description: 'Control, manage, and monitor placement drives and interview records with full visibility.',
       icon: '💼', 
-      color: '#10B981',
-      backgroundImage: placementFlowBg
+      color: '#10B981'
     }
   ];
 
@@ -66,12 +62,11 @@ const FlowSwapCard = () => {
   return (
     <div className="bg-white rounded-2xl overflow-hidden h-full" style={{ boxShadow: '0 0 25px 8px rgba(0, 0, 0, 0.10)' }}>
       <div className="relative h-full">
+        {/* Fixed admitted flow background */}
         <div 
-          className={`absolute inset-0 transition-all duration-500 ease-in-out ${
-            isTransitioning ? 'opacity-90 scale-105' : 'opacity-100 scale-100'
-          }`}
+          className="absolute inset-0"
           style={{ 
-            backgroundImage: `url(${currentFlow.backgroundImage})`,
+            backgroundImage: `url(${admittedFlowBg})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center'
           }}
@@ -129,7 +124,7 @@ const AdmissionDashboard = () => {
 
   // Calculate placed students from admitted students data
   const placedStudents = Array.isArray(admittedStudents) ? 
-    admittedStudents.filter(student => student.placedInfo !== null).length : 0;
+    admittedStudents.filter(student => student.placedInfo && student.placedInfo !== null && typeof student.placedInfo === 'object' && Object.keys(student.placedInfo).length > 0).length : 0;
 
   // Calculate trends based on actual data counts
   const admissionRate = `${admittedStudents.length}/${allStudents.length}`;
@@ -138,7 +133,7 @@ const AdmissionDashboard = () => {
 
   const statsCards = [
     {
-      title: 'Total Enrolled',
+      title: 'Total Registered',
       value: allStudents.length,
       subtitle: 'Admission students',
       icon: Users,
@@ -226,7 +221,7 @@ const AdmissionDashboard = () => {
     ['Stage', 'Students'],
     ['Ready for Placement', readyForPlacement],
     ['Interview Scheduled', interviewScheduled],
-    ['Interview Completed', interviewCompleted],
+    ['Selected Students', interviewCompleted],
     ['Successfully Placed', placedStudents]
   ];
 
@@ -557,13 +552,13 @@ const AdmissionDashboard = () => {
           </div>
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Link to="/student-dashboard" className="flex items-center space-x-3 p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105">
-                <Eye className="w-5 h-5" />
-                <span className="font-medium">View Students</span>
-              </Link>
-              <Link to="/admission-process" className="flex items-center space-x-3 p-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105">
+              <Link to="/admission-process" className="flex items-center space-x-3 p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105">
                 <GraduationCap className="w-5 h-5" />
                 <span className="font-medium">Admission Process</span>
+              </Link>
+              <Link to="/student-dashboard" className="flex items-center space-x-3 p-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105">
+                <Eye className="w-5 h-5" />
+                <span className="font-medium">Level wise Student</span>
               </Link>
               <Link to="/readiness-status" className="flex items-center space-x-3 p-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all transform hover:scale-105">
                 <Building2 className="w-5 h-5" />

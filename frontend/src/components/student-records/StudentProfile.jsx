@@ -203,7 +203,7 @@ export default function StudentProfile() {
   const permissionStatus = hasPermission ? "Yes" : "No";
 
   // Check placement status
-  const hasPlacement = studentData.placedinfo && studentData.placedinfo !== null && typeof studentData.placedinfo === 'object' && Object.keys(studentData.placedinfo).length > 0;
+  const hasPlacement = studentData.placedInfo && studentData.placedInfo !== null && typeof studentData.placedInfo === 'object' && Object.keys(studentData.placedInfo).length > 0;
   const placementStatus = hasPlacement ? "Placed" : "Not Placed";
 
   // Debug student data to check resume field
@@ -514,12 +514,12 @@ export default function StudentProfile() {
             icon="🏢"
           >
             <div className="space-y-4">
-              <DetailRow icon={company} label="Company" value={studentData.company} />
-              <DetailRow icon={position} label="Position" value={studentData.position} />
-              <DetailRow icon={loca} label="Location" value={studentData.location} />
-              <DetailRow icon={date} label="Joining Date" value={studentData.placementDate} />
+              <DetailRow icon={company} label="Company" value={studentData.placedInfo?.companyName} />
+              <DetailRow icon={position} label="Position" value={studentData.placedInfo?.jobProfile} />
+              <DetailRow icon={loca} label="Location" value={studentData.placedInfo?.location} />
+              <DetailRow icon={date} label="Joining Date" value={studentData.placedInfo?.joiningDate ? new Date(studentData.placedInfo.joiningDate).toLocaleDateString() : null} />
             </div>
-            {!studentData.company && (
+            {!studentData.placedInfo?.companyName && (
               <div className="mt-6 p-4 bg-yellow-50 rounded-lg" style={{ boxShadow: '0 0 15px 4px rgba(0, 0, 0, 0.06)' }}>
                 <p className="text-sm text-yellow-800">No placement information available yet.</p>
               </div>
