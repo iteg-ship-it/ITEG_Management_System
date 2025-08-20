@@ -50,9 +50,7 @@ const InterviewHistory = () => {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isUpdateRoundModalOpen, setIsUpdateRoundModalOpen] = useState(false);
   const [isAddNextRoundModalOpen, setIsAddNextRoundModalOpen] = useState(false);
-  const [isCompanyHistoryModalOpen, setIsCompanyHistoryModalOpen] = useState(false);
-  const [selectedCompanyHistory, setSelectedCompanyHistory] = useState([]);
-  const [selectedCompanyName, setSelectedCompanyName] = useState("");
+
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [nextRoundData, setNextRoundData] = useState({});
   const [nextRoundDate, setNextRoundDate] = useState("");
@@ -82,12 +80,7 @@ const InterviewHistory = () => {
   // Show all interviews as individual cards
   const displayInterviews = interviews || [];
   
-  const handleCompanyNameClick = (companyName) => {
-    const companyInterviews = interviews.filter(interview => interview.company?.companyName === companyName);
-    setSelectedCompanyHistory(companyInterviews);
-    setSelectedCompanyName(companyName);
-    setIsCompanyHistoryModalOpen(true);
-  };
+
   
   const handleUpdateClick = (interview) => {
     setSelectedInterview({ studentId: id, ...interview });
@@ -358,7 +351,7 @@ const InterviewHistory = () => {
                     {/* View History Button */}
                     <button 
                       className="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 border border-orange-200 rounded-lg cursor-pointer hover:bg-orange-100 hover:border-orange-300 transition-all duration-200 group ml-6"
-                      onClick={() => handleCompanyNameClick(interview.company?.companyName)}
+                      onClick={() => navigate(`/interview-rounds-history/${id}/${interview._id}`)}
                     >
                       <svg className="w-4 h-4 text-orange-500 group-hover:text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -589,175 +582,7 @@ const InterviewHistory = () => {
         </div>
       </Dialog>
 
-      {/* Company Rounds History Modal */}
-      <Dialog open={isCompanyHistoryModalOpen} onClose={() => setIsCompanyHistoryModalOpen(false)} className="fixed z-50 inset-0">
-        <div className="flex items-center justify-center min-h-screen px-4 bg-black bg-opacity-50">
-          {(() => {
-            const totalRounds = selectedCompanyHistory.reduce((total, interview) => {
-              return total + (interview.rounds?.length || 0);
-            }, 0);
-            
-            const getModalSize = () => {
-              if (totalRounds === 0) return 'max-w-2xl';
-              if (totalRounds === 1) return 'max-w-3xl';
-              if (totalRounds === 2) return 'max-w-4xl';
-              if (totalRounds <= 4) return 'max-w-5xl';
-              return 'max-w-6xl';
-            };
-            
-            return (
-              <Dialog.Panel className={`bg-white rounded-2xl shadow-2xl ${getModalSize()} w-full max-h-[90vh] overflow-hidden`}>
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-orange-50 to-yellow-50 px-6 py-5 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-sm">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h4M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                  </div>
-                  <div>
-                    <Dialog.Title className="text-2xl font-bold text-gray-900">
-                      {selectedCompanyName}
-                    </Dialog.Title>
-                    <p className="text-gray-600 text-sm mt-1">Complete Interview History & Rounds</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setIsCompanyHistoryModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-600 p-2 hover:bg-white hover:bg-opacity-80 rounded-lg transition-all duration-200"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
 
-            {/* Modal Body */}
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-              {selectedCompanyHistory.length === 0 ? (
-                <div className="text-center py-16">
-                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">No Interview History</h3>
-                  <p className="text-gray-500">No interviews found for this company.</p>
-                </div>
-              ) : (
-                <div className="space-y-8">
-                  {selectedCompanyHistory.map((interview, interviewIndex) => (
-                    <div key={interview._id || interviewIndex} className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                      
-
-
-                      {/* Interview Card Body */}
-                      <div className="p-6">
-                        {/* Rounds Grid - Half and Half Layout */}
-                        <div className="mb-6">
-                          <div className="flex items-center gap-3 mb-6">
-                            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                              <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                            </div>
-                            <h4 className="text-lg font-semibold text-gray-800">Interview Rounds</h4>
-                            <span className="px-3 py-1 bg-orange-100 text-orange-700 text-sm rounded-full font-medium">
-                              {interview.rounds?.length || 0} rounds
-                            </span>
-                          </div>
-                          
-                          {interview.rounds && interview.rounds.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {interview.rounds.map((round, roundIndex) => (
-                                <div key={roundIndex} className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                                  <div className="mb-3">
-                                    {/* Round Info */}
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-start justify-between mb-2">
-                                        <h5 className="font-medium text-gray-900 truncate">{round.roundName || `Round ${roundIndex + 1}`}</h5>
-                                        {renderBadge(round.result)}
-                                      </div>
-                                      
-                                      <div className="space-y-2 text-sm text-gray-600">
-                                        <div className="flex items-center gap-2">
-                                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 4V7m6 0v4M6 20h12a2 2 0 002-2V10a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                          </svg>
-                                          <span>{round.date ? new Date(round.date).toLocaleDateString('en-US', {
-                                            month: 'short',
-                                            day: 'numeric',
-                                            year: 'numeric'
-                                          }) : "Date not specified"}</span>
-                                        </div>
-                                        
-                                        <div className="flex items-center gap-2">
-                                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                          </svg>
-                                          <span className="px-2 py-1 bg-white text-gray-700 rounded text-xs border">
-                                            {round.mode || "Offline"}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  
-                                  {round.feedback && (
-                                    <div className="mt-3 p-3 bg-white rounded-lg border">
-                                      <p className="text-sm text-gray-700 leading-relaxed">
-                                        <span className="font-medium text-gray-900">Feedback: </span>
-                                        {round.feedback}
-                                      </p>
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
-                              <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                              </div>
-                              <h5 className="text-lg font-medium text-gray-900 mb-2">No Rounds Conducted</h5>
-                              <p className="text-gray-500 text-sm">This interview session has no rounds recorded yet.</p>
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Interview Remarks */}
-                        {(interview.statusRemark || interview.remark) && (
-                          <div className="border-t border-gray-200 pt-6">
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                              <div className="flex items-start gap-3">
-                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                                  </svg>
-                                </div>
-                                <div>
-                                  <h6 className="font-semibold text-blue-900 mb-2">Overall Interview Remarks</h6>
-                                  <p className="text-blue-800 text-sm leading-relaxed">{interview.statusRemark || interview.remark}</p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-              </Dialog.Panel>
-            );
-          })()}
-        </div>
-      </Dialog>
 
       {/* Add Next Round Modal */}
       <Dialog open={isAddNextRoundModalOpen} onClose={() => setIsAddNextRoundModalOpen(false)} className="fixed z-50 inset-0">
