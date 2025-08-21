@@ -54,7 +54,7 @@ const Header = () => {
                     <img src={logo} alt="SSISM Logo" className="h-20 md:h-24" />
                 </div>
                 <div className="flex items-center gap-4">
-                    {userRole === 'admin' && (
+                    {userRole === 'superadmin' && "admin" && (
                         <button
                             onClick={handleAddFaculty}
                             className="flex items-center gap-3 px-5 py-3 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-darker)] transition-colors text-sm font-medium"
@@ -182,16 +182,32 @@ const Header = () => {
                                 </div>
                             </div>
                             
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Profile Image URL</label>
-                                <input
-                                    type="url"
-                                    name="profileImage"
-                                    value={formData.profileImage}
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[var(--primary)]"
-                                    placeholder="https://example.com/image.jpg"
-                                />
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Profile Image URL</label>
+                                    <input
+                                        type="url"
+                                        name="profileImage"
+                                        value={formData.profileImage}
+                                        onChange={handleInputChange}
+                                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[var(--primary)]"
+                                        placeholder="https://example.com/image.jpg"
+                                    />
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Role</label>
+                                    <select
+                                        name="role"
+                                        value={formData.role}
+                                        onChange={handleInputChange}
+                                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[var(--primary)]"
+                                        required
+                                    >
+                                        <option value="faculty">Faculty</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </div>
                             </div>
                             
                             <button
