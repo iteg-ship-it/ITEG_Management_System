@@ -355,7 +355,7 @@ const AdmissionDashboard = () => {
                   options={{
                     backgroundColor: 'transparent',
                     chartArea: { width: '90%', height: '85%' },
-                    colors: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444'],
+                    colors: ['#FDA92D', '#22C55E', '#8E33FF', '#00B8D9'],
                     legend: { position: 'bottom', textStyle: { color: '#6B7280', fontSize: 10 } },
                     pieSliceText: 'value',
                     pieSliceTextStyle: { color: 'white', fontSize: 12 }
@@ -388,7 +388,7 @@ const AdmissionDashboard = () => {
                   options={{
                     backgroundColor: 'transparent',
                     chartArea: { width: '85%', height: '75%' },
-                    colors: ['#8B5CF6'],
+                    colors: ['#1E40AF', '#3B82F6', '#60A5FA', '#93C5FD', '#DBEAFE', '#EFF6FF'],
                     bar: { groupWidth: '60%' },
                     hAxis: { 
                       textStyle: { color: '#6B7280', fontSize: 10 },
