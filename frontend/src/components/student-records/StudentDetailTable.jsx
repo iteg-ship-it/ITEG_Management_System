@@ -19,7 +19,6 @@ const StudentDetailTable = () => {
   const [rowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTracks, setSelectedTracks] = useState([]);
-  const [selectedResults, setSelectedResults] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [activeTab, setActiveTab] = useState(`Level ${selectedLevel}`);
@@ -59,12 +58,19 @@ const StudentDetailTable = () => {
   //   return counts;
   // }, [data]);
 
-  // Dynamic track options from data
+  // Dynamic options from data
   const dynamicTrackOptions = useMemo(() => {
     return [...new Set(data.map((s) => toTitleCase(s.track || "")))].filter(Boolean);
   }, [data]);
 
-  const filtersConfig = [
+  const dynamicCourseOptions = useMemo(() => {
+    return [...new Set(data.map((s) => (s.course || "").toUpperCase()))].filter(Boolean);
+  }, [data]);
+
+  const [selectedCourses, setSelectedCourses] = useState([]);
+  const [selectedAttempts, setSelectedAttempts] = useState([]);
+
+  const filtersConfig = activeTab === "Level's Cleared" ? [
     {
       title: "Track",
       options: dynamicTrackOptions,
@@ -72,10 +78,29 @@ const StudentDetailTable = () => {
       setter: setSelectedTracks,
     },
     {
-      title: "Result",
-      options: ["Pass", "Fail", "Pending"],
-      selected: selectedResults,
-      setter: setSelectedResults,
+      title: "Course",
+      options: dynamicCourseOptions,
+      selected: selectedCourses,
+      setter: setSelectedCourses,
+    },
+  ] : [
+    {
+      title: "Track",
+      options: dynamicTrackOptions,
+      selected: selectedTracks,
+      setter: setSelectedTracks,
+    },
+    {
+      title: "Course",
+      options: dynamicCourseOptions,
+      selected: selectedCourses,
+      setter: setSelectedCourses,
+    },
+    {
+      title: "Attempts",
+      options: ["1", "2", "3", "4+"],
+      selected: selectedAttempts,
+      setter: setSelectedAttempts,
     },
   ];
 
@@ -119,9 +144,20 @@ const StudentDetailTable = () => {
     const track = toTitleCase(student.track || "");
     const matchesTrack = selectedTracks.length === 0 || selectedTracks.includes(track);
 
-    // Result filter
-    const matchesResult = selectedResults.length === 0 ||
-      selectedResults.includes(student.result || "Pending");
+    // Course filter
+    const course = (student.course || "").toUpperCase();
+    const matchesCourse = selectedCourses.length === 0 || selectedCourses.includes(course);
+
+    // Attempts filter (only for non-cleared tabs)
+    let matchesAttempts = true;
+    if (activeTab !== "Level's Cleared") {
+      const currentLevelAttempts = student.levelAttempts?.[selectedLevel] || [];
+      const attemptCount = currentLevelAttempts.length;
+      matchesAttempts = selectedAttempts.length === 0 || selectedAttempts.some(filter => {
+        if (filter === "4+") return attemptCount >= 4;
+        return attemptCount.toString() === filter;
+      });
+    }
 
     // Level filter
     let matchesLevel;
@@ -139,7 +175,7 @@ const StudentDetailTable = () => {
       matchesLevel = student.currentLevel === selectedLevel;
     }
 
-    return matchesTrack && matchesResult && matchesLevel;
+    return matchesTrack && matchesCourse && matchesAttempts && matchesLevel;
   });
 
   const handleTabClick = (tab) => {
@@ -169,7 +205,7 @@ const StudentDetailTable = () => {
     {
       key: "course",
       label: "Course",
-      render: (row) => toTitleCase(row.course || ""),
+      render: (row) => (row.course || "").toUpperCase(),
     },
     {
       key: "track",
@@ -266,6 +302,7 @@ const StudentDetailTable = () => {
               filteredData={filteredData}
               selectedRows={selectedRows}
               allData={data}
+              sectionName={activeTab === "Level's Cleared" ? "levelscleared" : `level${selectedLevel}`}
             />
           </div>
         </div>

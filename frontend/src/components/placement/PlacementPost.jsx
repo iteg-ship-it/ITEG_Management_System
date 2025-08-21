@@ -1,9 +1,20 @@
+import { useState } from "react";
 import { useAdmitedStudentsQuery } from "../../redux/api/authApi";
 import placementTemplate from "../../assets/images/ITEG_Placement_Post.jpg";
 import PageNavbar from "../common-components/navbar/PageNavbar";
+import CreatePostModal from "./CreatePostModal";
 
 const PlacementPost = () => {
   console.log("PlacementPost component loaded");
+  const [isCreatePostModalOpen, setCreatePostModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+
+  // Helper function to capitalize first letter
+  const toTitleCase = (str) => {
+    return str?.toLowerCase().split(' ').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+  };
 
   // Get admitted students data from API
   const { data: admittedStudents, isLoading, error } = useAdmitedStudentsQuery();
@@ -11,12 +22,52 @@ const PlacementPost = () => {
   // Filter only placed students (those with placedInfo)
   const placedStudents = admittedStudents?.filter(student => student.placedInfo !== null) || [];
 
+  // Download post function
+  const downloadPost = async (student) => {
+    try {
+      // Import html2canvas dynamically
+      const html2canvas = (await import('html2canvas')).default;
+      // import PlacementPost from './PlacementPost';
+
+      // Find the specific card element
+      const cardElements = document.querySelectorAll('[data-student-id]');
+      let targetCard = null;
+
+      cardElements.forEach(card => {
+        if (card.getAttribute('data-student-id') === student._id) {
+          targetCard = card;
+        }
+      });
+
+      if (!targetCard) {
+        console.error('Card element not found');
+        return;
+      }
+
+      // Capture the card element
+      const canvas = await html2canvas(targetCard, {
+        useCORS: true,
+        allowTaint: true,
+        scale: 2,
+        backgroundColor: null
+      });
+
+      // Convert to JPG and download
+      const link = document.createElement('a');
+      link.download = `${student.firstName}_${student.lastName}_placement_post.jpg`;
+      link.href = canvas.toDataURL('image/jpeg', 0.9);
+      link.click();
+    } catch (error) {
+      console.error('Error downloading post:', error);
+    }
+  };
+
   // Loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <PageNavbar
-          title="Placement Post" 
+          title="Placement Post"
           subtitle="Loading..."
           showBackButton={false}
         />
@@ -35,7 +86,7 @@ const PlacementPost = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <PageNavbar
-          title="Placement Post" 
+          title="Placement Post"
           subtitle="Error occurred"
           showBackButton={false}
         />
@@ -54,7 +105,7 @@ const PlacementPost = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <PageNavbar
-        title="Placement Post" 
+        title="Placement Post"
         subtitle="Placed students post and details"
         showBackButton={false}
       />
@@ -75,16 +126,28 @@ const PlacementPost = () => {
           </div>
         ) : (
           /* Cards Grid - Fully Responsive */
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-">
             {placedStudents.map((student, index) => (
               <div
                 key={student.id || index}
+                data-student-id={student._id}
                 className="bg-cover bg-center bg-no-repeat rounded-xl sm:rounded-2xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 border border-slate-200 relative w-full"
                 style={{
                   backgroundImage: `url(${placementTemplate})`,
-                  aspectRatio: '1/1'
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center center',
+                  backgroundRepeat: 'no-repeat',
+                  aspectRatio: '1/1',
+                  minHeight: '100%'
                 }}
               >
+                {/* Bottom gradient border */}
+                <div 
+                  className="absolute bottom-0 left-0 right-0 h-1.5 rounded-b-xl sm:rounded-b-2xl"
+                  style={{
+                    background: 'linear-gradient(to right, #FDA92D 60%, #DC2626 40%)'
+                  }}
+                ></div>
                 {/* Content wrapper */}
                 <div className="relative h-full flex flex-col">
 
@@ -94,26 +157,58 @@ const PlacementPost = () => {
                       <img
                         src={student.image || student.profileImage || "https://via.placeholder.com/120x120/e2e8f0/64748b?text=Student"}
                         alt={`${student.firstName} ${student.lastName}`}
-                        className="w-12 h-12 xs:w-16 xs:h-16 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 xl:w-36 xl:h-36 rounded-full object-cover border-2 sm:border-4 border-white"
+                        className="rounded-full object-cover border-2 sm:border-4 border-white"
+                        style={{
+                          width: 'clamp(3rem, 8vw, 9rem)',
+                          height: 'clamp(3rem, 8vw, 9rem)'
+                        }}
                       />
                     </div>
                   </div>
 
                   {/* Student details - positioned at bottom */}
-                  <div className="absolute bottom-0 left-0 right-0 text-center rounded-b-xl sm:rounded-b-2xl p-1 xs:p-2 sm:p-3 bg-gradient-to-t from-black/60 to-transparent">
-                    <h3 className="text-xs xs:text-sm sm:text-base md:text-lg font-bold text-white mb-1 leading-tight drop-shadow-lg">
-                      {student.firstName} {student.lastName}
+                  <div className="absolute bottom-0 left-0 right-0 text-center rounded-b-xl sm:rounded-b-2xl p-2 sm:p-4">
+                    <h3 className="text-sm sm:text-lg font-bold text-blue-800 mb-1">
+                      {toTitleCase(student.firstName)} {toTitleCase(student.lastName)}
                     </h3>
-                 
-                    <p className="text-xs xs:text-xs sm:text-sm text-white/90 mb-1 leading-tight drop-shadow">
-                      <span className="font-bold text-blue-200">{student.placedInfo.jobProfile}</span> at
+                    <p className="text-xs sm:text-sm text-gray-700 mb-1">
+                      {student.village || 'Address'}, {student.district || 'District'}
                     </p>
-                    <div className="text-xs xs:text-sm sm:text-base font-bold text-blue-100 mb-1 leading-tight drop-shadow">
-                      {student.placedInfo.companyName}
+                    <p className="text-xs sm:text-sm text-gray-800 mb-1 font-medium">
+                      {student.course || 'Course'}
+                    </p>
+                    <p className="text-xs sm:text-sm text-black font-semibold mb-1">
+                      {student.placedInfo.jobProfile}
+                    </p>
+                    <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-gray-800">
+                      <span className="text-lg">🏢</span>
+                      <span className="font-bold">{student.placedInfo.companyName}</span>
                     </div>
-                    <div className="text-xs xs:text-xs sm:text-sm text-green-200 font-semibold leading-tight drop-shadow">
-                      {student.placedInfo.location} • ₹{(student.placedInfo.salary / 100000).toFixed(1)} LPA
-                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="absolute top-2 right-2 flex gap-1 z-20">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        console.log('Create Post button clicked for:', student.firstName);
+                        setSelectedStudent(student);
+                        setCreatePostModalOpen(true);
+                        console.log('Modal should open now');
+                      }}
+                      className="bg-[#FDA92D] hover:bg-orange-600 text-white px-2 py-1 rounded text-xs font-medium transition-colors shadow-lg"
+                    >
+                      Create Post
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        downloadPost(student);
+                      }}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium transition-colors shadow-lg"
+                    >
+                      Download
+                    </button>
                   </div>
                 </div>
               </div>
@@ -121,6 +216,17 @@ const PlacementPost = () => {
           </div>
         )}
       </div>
+
+      {/* Create Post Modal */}
+      <CreatePostModal
+        isOpen={isCreatePostModalOpen}
+        onClose={() => setCreatePostModalOpen(false)}
+        student={selectedStudent}
+        onSuccess={() => {
+          // Refresh data or show success message
+          console.log('Post created successfully');
+        }}
+      />
     </div>
   );
 };

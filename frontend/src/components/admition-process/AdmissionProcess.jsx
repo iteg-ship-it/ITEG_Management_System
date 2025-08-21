@@ -150,6 +150,9 @@ const StudentList = () => {
     } else if (savedTab) {
       setActiveTab(savedTab);
     }
+    
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
   }, [location.search, refetch]);
 
   // Auto-refresh data when window gains focus
@@ -655,6 +658,7 @@ const StudentList = () => {
               filteredData={filteredData}
               selectedRows={selectedRows}
               allData={data}
+              sectionName={activeTab.replace(/\s+/g, '').toLowerCase()}
             />
           </div>
         </div>

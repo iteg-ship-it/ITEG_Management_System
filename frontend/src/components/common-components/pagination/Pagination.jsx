@@ -19,6 +19,7 @@ const Pagination = ({
   filteredData,
   selectedRows = [],
   allData = [],
+  sectionName = "data",
 }) => {
   const [showFilter, setShowFilter] = useState(false);
   const [downloadDropdown, setDownloadDropdown] = useState(false);
@@ -93,21 +94,21 @@ const Pagination = ({
                 const dataToExport = selectedRows.length > 0 
                   ? allData.filter(row => selectedRows.includes(row._id))
                   : filteredData;
-                downloadCSV(dataToExport); 
+                downloadCSV(dataToExport, `${sectionName}.csv`); 
                 setDownloadDropdown(false); 
               }}>Download CSV</button>
               <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { 
                 const dataToExport = selectedRows.length > 0 
                   ? allData.filter(row => selectedRows.includes(row._id))
                   : filteredData;
-                downloadExcel(dataToExport); 
+                downloadExcel(dataToExport, `${sectionName}.xlsx`); 
                 setDownloadDropdown(false); 
               }}>Download Excel</button>
               <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { 
                 const dataToExport = selectedRows.length > 0 
                   ? allData.filter(row => selectedRows.includes(row._id))
                   : filteredData;
-                downloadPDF(dataToExport); 
+                downloadPDF(dataToExport, `${sectionName}.pdf`); 
                 setDownloadDropdown(false); 
               }}>Download PDF</button>
             </div>

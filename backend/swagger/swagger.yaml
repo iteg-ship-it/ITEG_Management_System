@@ -2019,14 +2019,13 @@ paths:
                     example: Server Error
 
   /api/admitted/students/update-placement/{id}:
-    put:
+    patch:
       summary: Update placement information for a student
       description: |
-        Allows only **superadmin** and **admin** to update the placement information 
-        (even if student has not cleared Level 2C).  
-        Placement info includes company name, salary, location, and job profile.
+        Updates placement information and automatically creates/finds company record.
+        Also updates interview status from 'Selected' to 'Placed' for matching company.
       tags:
-        - Admitted Student
+        - Placement Workflow
       parameters:
         - in: path
           name: id
@@ -2043,16 +2042,16 @@ paths:
               properties:
                 companyName:
                   type: string
-                  example: Infosys
+                  example: "TechCorp Solutions"
                 salary:
                   type: number
-                  example: 400000
+                  example: 500000
                 location:
                   type: string
-                  example: Pune
+                  example: "Bangalore, India"
                 jobProfile:
                   type: string
-                  example: Software Developer
+                  example: "Software Developer"
               required:
                 - companyName
                 - salary
@@ -2068,22 +2067,45 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Placement information updated successfully.
+                    example: "Placement information updated successfully."
                   placedInfo:
                     type: object
                     properties:
+                      companyRef:
+                        type: string
+                        example: "64a1b2c3d4e5f6789012347"
                       companyName:
                         type: string
-                        example: Infosys
+                        example: "TechCorp Solutions"
                       salary:
                         type: number
-                        example: 400000
+                        example: 500000
                       location:
                         type: string
-                        example: Pune
+                        example: "Bangalore, India"
                       jobProfile:
                         type: string
-                        example: Software Developer
+                        example: "Software Developer"
+        '400':
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "All fields are required: companyName, salary, location, jobProfile"
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Student not found"
         '500':
           description: Server Error
           content:
@@ -2093,7 +2115,10 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Server Error
+                    example: "Server Error"
+                  error:
+                    type: string
+                    example: "Error message details"
 
 
 

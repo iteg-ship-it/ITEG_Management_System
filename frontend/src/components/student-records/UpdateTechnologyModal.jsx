@@ -20,7 +20,7 @@ const UpdateTechnologyModal = ({ isOpen, onClose, studentId }) => {
         onSubmit: async (values, actions) => {
             try {
                 if (!studentId) {
-                    alert("Student ID missing!");
+                    toast.error("Student ID missing!");
                     return;
                 }
 
@@ -30,7 +30,7 @@ const UpdateTechnologyModal = ({ isOpen, onClose, studentId }) => {
                 onClose();
             } catch (err) {
                 console.error("Error updating technology", err);
-                alert(err?.data?.message || "Update failed ❌");
+                toast.error(err?.data?.message || "Update failed");
             }
         },
     });

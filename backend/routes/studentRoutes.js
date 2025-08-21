@@ -4,7 +4,7 @@ const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
 const studentController = require("../modules/student/controllers/AdmittedStudentController");
 const placementController = require("../modules/student/controllers/placementController");
 
-const upload = require('backend/config/multerConfig');
+const upload = require('../config/multerConfig');
 
 const allowedRoles = ["superadmin", "faculty", "admin"];
 
@@ -46,7 +46,7 @@ router.get('/Ready_Students', verifyToken, checkRole(allowedRoles), studentContr
 router.get('/placed_students', verifyToken, checkRole(allowedRoles), placementController.getPlacedStudents);
 
 // 3. Placement Management
-router.post('/confirm_placement', verifyToken, checkRole(allowedRoles), placementController.confirmPlacement);
+router.post('/confirm_placement', verifyToken, checkRole(allowedRoles), upload.fields([{ name: 'applicationFile', maxCount: 1 }, { name: 'offerLetterFile', maxCount: 1 }]), placementController.confirmPlacement);
 router.patch('/update_job_type', verifyToken, checkRole(allowedRoles), placementController.updateJobType);
 router.post('/placement_post', verifyToken, checkRole(allowedRoles), placementController.createPlacementPost);
 

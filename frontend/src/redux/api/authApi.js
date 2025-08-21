@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 // src/features/api/authApi.js
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import CryptoJS from "crypto-js";
@@ -45,6 +46,12 @@ const rawBaseQuery = fetchBaseQuery({
 //  Auto-refresh logic
 const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
   let result = await rawBaseQuery(args, api, extraOptions);
+
+  // Handle server errors (5xx)
+  if (result?.error?.status >= 500) {
+    window.location.href = "/server-error";
+    return result;
+  }
 
   if (result?.error?.status === 401) {
     console.warn("Token expired. Attempting refresh...");
@@ -122,6 +129,14 @@ export const authApi = createApi({
           dispatch(logout());
         }
       },
+    }),
+    
+    signup: builder.mutation({
+      query: (userData) => ({
+        url: import.meta.env.VITE_SIGNUP_ENDPOINT || '/api/auth/signup',
+        method: "POST",
+        body: userData,
+      }),
     }),
     // ---- Create User API ----
     updateUser: builder.mutation({
@@ -474,11 +489,60 @@ export const authApi = createApi({
       },
     }),
 
+    // Add interview round
+    addInterviewRound: builder.mutation({
+      query: ({ studentId, interviewId, ...data }) => ({
+        url: `admitted/students/interviews/${studentId}/${interviewId}/add_round`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['PlacementStudent'],
+      async onQueryStarted({ studentId, interviewId, ...data }, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(authApi.util.invalidateTags(['PlacementStudent']));
+          dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
+        } catch (error) {
+          console.error('Failed to add interview round:', error);
+        }
+      },
+    }),
+
+    // Confirm placement
+    confirmPlacement: builder.mutation({
+      query: (data) => ({
+        url: `/admitted/students/confirm_placement`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['PlacementStudent', 'Student'],
+      async onQueryStarted(data, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(authApi.util.invalidateTags(['PlacementStudent']));
+          dispatch(authApi.util.invalidateTags(['Student']));
+        } catch (error) {
+          console.error('Failed to confirm placement:', error);
+        }
+      },
+    }),
+
+    // Create placement post
+    createPlacementPost: builder.mutation({
+      query: (data) => ({
+        url: `admitted/students/placement_post`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['PlacementStudent'],
+    }),
+
   }),
 });
 
 export const {
   useLoginMutation,
+  useSignupMutation,
   useLoginWithGoogleMutation,
   useUpdateUserMutation,
   useForgetPasswordMutation,
@@ -510,5 +574,8 @@ export const {
   useGetStudentLevelInterviewsQuery,
   useUploadResumeMutation,
   useGetInterviewHistoryQuery,
-  useRescheduleInterviewMutation
+  useRescheduleInterviewMutation,
+  useAddInterviewRoundMutation,
+  useConfirmPlacementMutation,
+  useCreatePlacementPostMutation
 } = authApi;
