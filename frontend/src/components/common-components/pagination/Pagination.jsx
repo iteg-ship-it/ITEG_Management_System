@@ -80,7 +80,7 @@ const Pagination = ({
           </button>
           {downloadDropdown && (
             <div
-              className="absolute top-10 left-0 border rounded-xl shadow-lg w-40 z-20"
+              className="absolute top-10 left-0 border rounded-xl shadow-lg w-40 z-[9999]"
               style={{
                 background: `
                   linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 40%),
@@ -120,7 +120,7 @@ const Pagination = ({
       {showFilter && (
         <div
           ref={filterRef}
-          className="absolute top-16 left-[40vw] border   rounded-xl shadow-lg w-48 z-20 p-2 text-sm"
+          className="absolute top-16 left-[40vw] border   rounded-xl shadow-lg w-48 z-[9999] p-2 text-sm"
           style={{
             background: `
               linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 20%),
@@ -146,7 +146,7 @@ const Pagination = ({
 
               {expandedSection === title && (
                 <div
-                  className="absolute top-0 left-full ml-2 w-44 border   rounded-xl shadow-lg p-2 space-y-1 z-30"
+                  className="absolute top-0 left-full ml-2 w-44 border   rounded-xl shadow-lg p-2 space-y-1 z-[9999]"
                   style={{
                     background: `
                       linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 40%),

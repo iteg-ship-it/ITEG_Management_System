@@ -427,7 +427,7 @@ export default function StudentProfile() {
 
                       {/* 2024 - Outermost ring */}
                       <circle cx="100" cy="100" r="80" fill="none" stroke="#F8F9FA" strokeWidth="8" />
-                      <circle cx="100" cy="100" r="80" fill="none" stroke="#FED680" strokeWidth="8"
+                      <circle cx="100" cy="100" r="80" fill="none" stroke="#ED9A21" strokeWidth="8"
                         strokeDasharray={`${65 * 5.03} 503`} strokeLinecap="round" />
                     </svg>
 

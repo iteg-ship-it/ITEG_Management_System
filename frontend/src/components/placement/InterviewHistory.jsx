@@ -557,7 +557,7 @@ const InterviewHistory = () => {
                         e.stopPropagation();
                         handleAddNextRoundClick(interview);
                       }}
-                      className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition"
+                      className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#ED9A21] active:bg-[#B66816] transition"
                     >
                       Add Next Round
                     </button>
@@ -590,7 +590,7 @@ const InterviewHistory = () => {
                   value={round}
                   onChange={(e) => setRound(e.target.value)}
                   placeholder=" "
-                  className="peer w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200"
+                  className="peer w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-black focus:ring-0 transition-all duration-200"
                 />
                 <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${
                   round ? "text-xs -top-2 text-black" : "text-gray-500 top-3"
@@ -605,11 +605,9 @@ const InterviewHistory = () => {
                   onChange={(e) => setRemark(e.target.value)}
                   rows={3}
                   placeholder=" "
-                  className="peer w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200"
+                  className="peer w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-black focus:ring-0 transition-all duration-200"
                 />
-                <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${
-                  remark ? "text-xs -top-2 text-black" : "text-gray-500 top-3"
-                }`}>
+                <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-gray-500 top-3 peer-focus:text-xs peer-focus:-top-2 peer-focus:text-black peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:text-black">
                   Remark
                 </label>
               </div>
@@ -618,7 +616,7 @@ const InterviewHistory = () => {
                 <button
                   type="button"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-[#FDA92D] focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200"
+                  className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-black focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200"
                 >
                   <span className={result ? 'text-gray-900' : 'text-gray-400'}>
                     {result || 'Select'}
@@ -671,7 +669,7 @@ const InterviewHistory = () => {
                 <button
                   onClick={handleUpdateSubmit}
                   disabled={isUpdating}
-                  className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+                  className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#ED9A21] active:bg-[#B66816] transition relative"
                 >
                   {isUpdating ? "Submitting..." : "Save"}
                 </button>
@@ -896,7 +894,7 @@ const InterviewHistory = () => {
                 <button
                   onClick={handleAddNextRoundSubmit}
                   disabled={isUpdating}
-                  className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+                  className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#ED9A21] active:bg-[#B66816] transition relative"
                 >
                   {isUpdating ? "Adding..." : "Add Round"}
                 </button>

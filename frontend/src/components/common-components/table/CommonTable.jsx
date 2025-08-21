@@ -99,10 +99,10 @@ const CommonTable = ({
 
   return (
     <div className="w-full py-3">
-      <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-200">
-        <div ref={scrollRef} className="overflow-x-auto rounded-t-2xl max-h-[60vh] overflow-y-overlay custom-scrollbar">
+      <div className="w-full bg-white">
+        <div ref={scrollRef} className="overflow-x-auto max-h-[60vh] overflow-y-overlay custom-scrollbar">
             <table className="min-w-full text-sm">
-              <thead className="bg-[--neutral-light] text-gray-600 shadow-sm sticky top-0 z-10">
+              <thead className="bg-[--neutral-light] text-gray-600 shadow-sm sticky top-0 z-50">
                 <tr>
                   <th className="px-4 py-3 text-center">
                     <div className="flex items-center justify-center">
@@ -184,7 +184,7 @@ const CommonTable = ({
         </div>
 
         {/* {pagination && (
-          <div className="flex justify-end items-center gap-6 px-6 py-4 border-t border-gray-200 bg-white rounded-b-2xl text-sm">
+          <div className="flex justify-end items-center gap-6 px-6 py-4 bg-white rounded-b-2xl text-sm">
             <div className="flex items-center gap-2">
               <span className="text-gray-700 font-semibold">Rows Per Pages:</span>
               <select
@@ -241,7 +241,7 @@ const CommonTable = ({
             <div className="relative inline-block text-left">
               <button
                 onClick={() => setOpen(!open)}
-                className={`px-3 py-1 border rounded-lg bg-white shadow-sm flex items-center justify-between w-20 ${open ? 'border-black' : 'border-gray-300'}`}
+                className={`px-3 py-1 rounded-lg bg-white flex items-center justify-between w-20 ${open ? 'border border-black shadow-sm' : ''}`}
               >
                 {pageSize === filteredData.length ? "All" : pageSize}
                 <span className="ml-2">▼</span>

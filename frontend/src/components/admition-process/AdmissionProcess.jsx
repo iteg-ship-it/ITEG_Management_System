@@ -396,7 +396,7 @@ const StudentList = () => {
       actionButton = (row) => (
         <button
           onClick={() => scheduleButton(row)}
-          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#ED9A21] active:bg-[#B66816] transition relative"
         >
           Take Interview
         </button>
@@ -446,7 +446,7 @@ const StudentList = () => {
       actionButton = (row) => (
         <button
           onClick={() => scheduleButton(row)}
-          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#ED9A21] active:bg-[#B66816] transition relative"
         >
           Take Interview
         </button>
@@ -514,7 +514,7 @@ const StudentList = () => {
               setAddInterviwModalOpen(true)
               setId(row._id)
             }}
-            className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+            className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#ED9A21] active:bg-[#B66816] transition relative"
           >
             Take Interview
           </button>
