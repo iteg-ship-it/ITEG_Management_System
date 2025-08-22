@@ -218,7 +218,7 @@ const PlacementReadyStudents = () => {
             setSelectedStudent(row);
             setIsModalOpen(true);
           }}
-          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#ED9A21] active:bg-[#B66816] transition relative"
         >
           + Add Interview
         </button>
@@ -234,7 +234,7 @@ const PlacementReadyStudents = () => {
             setSelectedStudentForPlacement(row);
             setIsConfirmPlacementModalOpen(true);
           }}
-          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#ED9A21] active:bg-[#B66816] transition relative"
         >
           Confirm Placement
         </button>
@@ -300,7 +300,7 @@ const PlacementReadyStudents = () => {
             setSelectedStudentForPost(row);
             setIsCreatePostModalOpen(true);
           }}
-          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#ED9A21] active:bg-[#B66816] transition relative"
         >
           Create Post
         </button>
@@ -425,7 +425,7 @@ const PlacementReadyStudents = () => {
                 setSelectedStudent(student);
                 setIsModalOpen(true);
               }}
-              className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+              className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#ED9A21] active:bg-[#B66816] transition relative"
             >
               + Add Interview
             </button>

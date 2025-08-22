@@ -299,13 +299,13 @@ const StudentList = () => {
     switch (result) {
       case "Pass":
         return (
-          <span className="inline-block px-2 py-1 rounded-md text-[#118D57] bg-[#22C55E]/20 text-sm font-medium">
+          <span className="inline-block px-2 py-1 rounded-md text-[#118D57] bg-[#22C55E]/20 text-sm font-bold">
             Pass
           </span>
         );
       case "Fail":
         return (
-          <span className="inline-block px-2 py-1 rounded-md bg-[#FFCEC3] text-[#D32F2F] text-sm font-medium">
+          <span className="inline-block px-2 py-1 rounded-md bg-[#FFCEC3] text-[#D32F2F] text-sm font-bold">
             Fail
           </span>
         );
@@ -330,13 +330,13 @@ const StudentList = () => {
     switch (result) {
       case "Pass":
         return (
-          <span className="inline-block px-2 py-1 rounded-md text-[#118D57] bg-[#22C55E]/20 text-sm font-medium">
+          <span className="inline-block px-2 py-1 rounded-md text-[#118D57] bg-[#22C55E]/20 text-sm font-bold">
             Pass
           </span>
         );
       case "Fail":
         return (
-          <span className="inline-block px-2 py-1 rounded-md bg-[#FFCEC3] text-[#D32F2F] text-sm font-medium">
+          <span className="inline-block px-2 py-1 rounded-md bg-[#FFCEC3] text-[#D32F2F] text-sm font-bold">
             Fail
           </span>
         );
@@ -399,7 +399,7 @@ const StudentList = () => {
       actionButton = (row) => (
         <button
           onClick={() => scheduleButton(row)}
-          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#ED9A21] active:bg-[#B66816] transition relative"
         >
           Take Interview
         </button>
@@ -449,7 +449,7 @@ const StudentList = () => {
       actionButton = (row) => (
         <button
           onClick={() => scheduleButton(row)}
-          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#ED9A21] active:bg-[#B66816] transition relative"
         >
           Take Interview
         </button>
@@ -510,31 +510,19 @@ const StudentList = () => {
           },
         },
       ];
-      actionButton = (row) => {
-        const userRole = localStorage.getItem('role');
-        const isSuperAdmin = userRole === 'superadmin';
-        
-        return (
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => {
-                if (isSuperAdmin) {
-                  setAddInterviwModalOpen(true)
-                  setId(row._id)
-                }
-              }}
-              disabled={!isSuperAdmin}
-              className={`text-md px-3 py-1 rounded-md transition relative ${
-                isSuperAdmin 
-                  ? 'bg-[#FDA92D] text-white hover:bg-[#FED680] active:bg-[#B66816] cursor-pointer'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              Take Interview
-            </button>
-          </div>
-        );
-      };
+      actionButton = (row) => (
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => {
+              setAddInterviwModalOpen(true)
+              setId(row._id)
+            }}
+            className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#ED9A21] active:bg-[#B66816] transition relative"
+          >
+            Take Interview
+          </button>
+        </div>
+      );
       break;
 
     case "Results":
