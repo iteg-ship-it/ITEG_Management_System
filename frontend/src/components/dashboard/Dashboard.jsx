@@ -1,7 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 
 // Admission process components
-// import AdmissionDashboard from "../admition-process/AdmissionDashboard";
 import AdmissionDashboard from "../admition-process/AdmissionDashboard";
 import AdmissionProcess from "../admition-process/AdmissionProcess";
 import AdmissionEditPage from "../admition-process/AdmissionEditPage";
@@ -26,7 +25,6 @@ import PageNotFound from "../common-components/error-pages/PageNotFound";
 
 const routes = [
   { path: "/", element: <AdmissionDashboard /> },
-  // { path: "/", element: <AdmissionProcess /> },
   { path: "/admission-process", element: <AdmissionProcess /> },
   { path: "/admission/edit/:id", element: <AdmissionEditPage /> },
   { path: "/admission-record", element: <AdmissionRecords /> },
