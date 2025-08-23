@@ -19,10 +19,11 @@ import PlacementReadyStudents from "../placement/PlacementReadyStudents";
 import StudentPermission from "../student-records/StudentPermission";
 import PlacementRecords from "../placement/PlacementRecords";
 import PlacementPost from "../placement/PlacementPost";
+import CompanyDetail from "../placement/CompanyDetail";
 import InterviewHistory from "../placement/InterviewHistory";
 import InterviewRoundsHistory from "../placement/InterviewRoundsHistory";
 import PageNotFound from "../common-components/error-pages/PageNotFound";
-import ProtectedRoute from './../common-components/protected-route/ProtectedRoute';
+import ProtectedRoute from '../common-components/protected-route/ProtectedRoute';
 
 // Role-based route configuration
 const adminRoutes = [
@@ -43,6 +44,7 @@ const facultyRoutes = [
   { path: "/student-permission", element: <StudentPermission />, roles: ["superadmin", "admin", "faculty"] },
   { path: "/readiness-status", element: <PlacementReadyStudents />, roles: ["superadmin", "admin", "faculty"] },
   { path: "/placement-interview-record", element: <PlacementRecords />, roles: ["superadmin", "admin", "faculty"] },
+  { path: "/company-details", element: <CompanyDetail />, roles: ["superadmin", "admin", "faculty"] },
   { path: "/placement-post", element: <PlacementPost />, roles: ["superadmin", "admin", "faculty"] },
   { path: "/interview-history/:id", element: <InterviewHistory />, roles: ["superadmin", "admin", "faculty"] },
   { path: "/interview-rounds-history/:studentId/:interviewId", element: <InterviewRoundsHistory />, roles: ["superadmin", "admin", "faculty"] },

@@ -24,7 +24,7 @@ const Sidebar = ({ children }) => {
     if (path === "/student-dashboard" || path === "/student-detail-table" || path.startsWith("/student/") || path === "/student-permission") {
       openMenus.push(1);
     }
-    if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post" || path.startsWith("/interview-history/")) {
+    if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post" || path === "/company-details" || path.startsWith("/interview-history/")) {
       openMenus.push(2);
     }
     if (path.startsWith("/student-profile/")) {
@@ -49,7 +49,7 @@ const Sidebar = ({ children }) => {
       newOpenMenus.push(1);
       localStorage.setItem("lastSection", "admitted");
     }
-    if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post" || path.startsWith("/interview-history/")) {
+    if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post" || path === "/company-details" || path.startsWith("/interview-history/")) {
       newOpenMenus.push(2);
     }
     if (path.startsWith("/student-profile/")) {
@@ -131,7 +131,7 @@ const Sidebar = ({ children }) => {
       roles: ["superadmin", "admin", "faculty"],
       subMenu: [
         { name: "Placement Candidates", path: "/readiness-status" },
-        // { name: "Interview Record", path: "/placement-interview-record" },
+        { name: "Company Details", path: "/company-details" },
         { name: "Placed Students", path: "/placement-post" },
       ],
     },
