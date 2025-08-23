@@ -1,8 +1,9 @@
 /* eslint-disable react/prop-types */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUpdateUserMutation } from "../../../redux/api/authApi";
 import { toast } from "react-toastify";
 import profileImg from "../../../assets/images/profile-img.png";
+import FaceRegistration from "../../face-auth/FaceRegistration";
 
 const SettingsModal = ({ user, onClose }) => {
     const [formData, setFormData] = useState({
@@ -12,8 +13,26 @@ const SettingsModal = ({ user, onClose }) => {
         department: user?.department || "",
         isActive: user?.isActive ?? true, // Keep boolean state intact
     });
+    const [showFaceRegistration, setShowFaceRegistration] = useState(false);
+    const [hasFaceRegistered, setHasFaceRegistered] = useState(false);
 
     const [updateUser, { isLoading }] = useUpdateUserMutation();
+
+    useEffect(() => {
+        checkFaceRegistration();
+    }, []);
+
+    const checkFaceRegistration = async () => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL.replace('/api', '')}/api/face-auth/check-face/${user?.email}`);
+            const data = await response.json();
+            if (data.success) {
+                setHasFaceRegistered(data.hasFaceRegistered);
+            }
+        } catch (error) {
+            console.error('Error checking face registration:', error);
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -135,6 +154,22 @@ const SettingsModal = ({ user, onClose }) => {
                             <span className="text-sm">Active</span>
                         </label>
 
+                        <div className="border-t pt-4">
+                            <h3 className="text-sm font-medium text-gray-700 mb-3">Face Recognition</h3>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-600">
+                                    {hasFaceRegistered ? 'Face registered ✓' : 'No face registered'}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowFaceRegistration(true)}
+                                    className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200"
+                                >
+                                    {hasFaceRegistered ? 'Update Face' : 'Register Face'}
+                                </button>
+                            </div>
+                        </div>
+
                         <button
                             type="submit"
                             disabled={isLoading}
@@ -145,6 +180,18 @@ const SettingsModal = ({ user, onClose }) => {
                     </form>
                 </div>
             </div>
+            
+            {showFaceRegistration && (
+                <FaceRegistration
+                    userEmail={user?.email}
+                    onClose={() => setShowFaceRegistration(false)}
+                    onSuccess={() => {
+                        setShowFaceRegistration(false);
+                        setHasFaceRegistered(true);
+                        toast.success('Face registered successfully!');
+                    }}
+                />
+            )}
         </div>
     );
 };

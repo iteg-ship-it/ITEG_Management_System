@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import CryptoJS from "crypto-js";
 import { useLoginMutation } from "../../../redux/api/authApi";
 import Loader from "../loader/Loader";
+import FaceLogin from "../../face-auth/FaceLogin";
 
 import ReusableForm from "../../../ReusableForm";
 import { loginValidationSchema } from "../../../validationSchema";
@@ -19,6 +20,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [loginError, setLoginError] = useState("");
   const [login, { isLoading }] = useLoginMutation();
+  const [showFaceLogin, setShowFaceLogin] = useState(false);
 
   const secretKey = "ITEG@123";
 
@@ -55,6 +57,15 @@ const LoginPage = () => {
 
   const handleOtpLogin = () => {
     navigate("/otp-verification");
+  };
+
+  const handleFaceLogin = () => {
+    setShowFaceLogin(true);
+  };
+
+  const handleFaceLoginSuccess = () => {
+    setShowFaceLogin(false);
+    navigate("/", { replace: true });
   };
 
   return (
@@ -133,16 +144,15 @@ const LoginPage = () => {
               </div> */}
 
               <div className="flex flex-col items-center space-y-4 px-5">
-                {/* Google Login Button */}
+                {/* Face Login Button */}
                 <button
                   type="button"
-                  onClick={handleGoogleLogin}
-                  disabled
-                  className="flex w-full justify-center items-center space-x-3 bg-gray-100 shadow-md rounded-xl py-2.5 hover:shadow-lg transition border border-gray-300"
+                  onClick={handleFaceLogin}
+                  className="flex w-full justify-center items-center space-x-3 bg-white shadow-md rounded-xl py-2.5 hover:shadow-lg transition border border-gray-300"
                 >
-                  <img className="h-5" src={googleLogo} alt="Google" />
+                  <span className="text-xl">👤</span>
                   <span className="text-sm font-medium text-gray-800">
-                    Login With Google
+                    Login with Face Recognition
                   </span>
                 </button>
 
@@ -157,11 +167,31 @@ const LoginPage = () => {
                     Login with Email OTP
                   </span>
                 </button>
+
+                {/* Google Login Button */}
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  disabled
+                  className="flex w-full justify-center items-center space-x-3 bg-gray-100 shadow-md rounded-xl py-2.5 hover:shadow-lg transition border border-gray-300"
+                >
+                  <img className="h-5" src={googleLogo} alt="Google" />
+                  <span className="text-sm font-medium text-gray-800">
+                    Login With Google
+                  </span>
+                </button>
               </div>
             </>
           )}
         </ReusableForm>
       </div>
+      
+      {showFaceLogin && (
+        <FaceLogin
+          onLoginSuccess={handleFaceLoginSuccess}
+          onClose={() => setShowFaceLogin(false)}
+        />
+      )}
     </div>
   );
 };
