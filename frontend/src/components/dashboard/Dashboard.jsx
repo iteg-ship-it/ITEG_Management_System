@@ -1,6 +1,4 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import ProtectedRoute from "../common-components/ProtectedRoute";
-
 // Admission process components
 // import AdmissionDashboard from "../admition-process/AdmissionDashboard";
 import AdmissionDashboard from "../admition-process/AdmissionDashboard";
@@ -24,6 +22,7 @@ import PlacementPost from "../placement/PlacementPost";
 import InterviewHistory from "../placement/InterviewHistory";
 import InterviewRoundsHistory from "../placement/InterviewRoundsHistory";
 import PageNotFound from "../common-components/error-pages/PageNotFound";
+import ProtectedRoute from './../common-components/protected-route/ProtectedRoute';
 
 // Role-based route configuration
 const adminRoutes = [

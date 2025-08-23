@@ -179,8 +179,6 @@ const Pagination = ({
           ))}
         </div>
       )}
-
-
     </div>
   );
 };

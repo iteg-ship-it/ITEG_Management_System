@@ -9,11 +9,10 @@ import 'react-toastify/dist/ReactToastify.css';
 import OtpEnter from "./components/common-components/otp-verfication/OtpEnter";
 import GoogleSuccess from './components/common-components/login-page/GoogleSuccess.jsx';
 import Layout from "./components/dashboard/Layout.jsx";
-import SessionTimeoutModal from "./components/common-components/SessionTimeoutModal";
 import { useSessionTimeout } from "./hooks/useSessionTimeout";
-
 import ServerError from "./components/common-components/error-pages/ServerError";
-import ErrorBoundary from "./components/common-components/ErrorBoundary";
+import ErrorBoundary from './components/common-components/protected-route/ErrorBoundary';
+import SessionTimeoutModal from './components/common-components/user-profile/SessionTimeoutModal';
 
 // ✅ Protected Route Component
 const ProtectedRoute = ({ children }) => {
