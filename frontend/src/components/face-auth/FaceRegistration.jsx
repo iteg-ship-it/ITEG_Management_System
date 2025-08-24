@@ -208,7 +208,7 @@ const FaceRegistration = ({ email, onRegistrationSuccess, onClose }) => {
       <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full mx-4 border border-gray-100">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-[#FDA92D] rounded-full flex items-center justify-center">
               <span className="text-white text-xl">📷</span>
             </div>
             <h2 className="text-2xl font-bold text-gray-800">Register Face</h2>
@@ -227,12 +227,12 @@ const FaceRegistration = ({ email, onRegistrationSuccess, onClose }) => {
         <div className="space-y-6">
           {!modelsLoaded ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#FDA92D] border-t-transparent mx-auto mb-4"></div>
               <p className="text-gray-600 font-medium">Loading Face Recognition...</p>
             </div>
           ) : (
             <>
-              <div className="relative overflow-hidden rounded-xl border-4 border-gradient-to-r from-blue-500 to-purple-600 shadow-lg">
+              <div className="relative overflow-hidden rounded-xl border-4 border-[#FDA92D] shadow-lg">
                 <video
                   ref={videoRef}
                   autoPlay
@@ -256,7 +256,7 @@ const FaceRegistration = ({ email, onRegistrationSuccess, onClose }) => {
                   )}
                 </div>
                 
-                <div className="absolute top-4 right-4 bg-blue-500 bg-opacity-90 text-white px-3 py-1 rounded-full text-sm font-medium">
+                <div className="absolute top-4 right-4 bg-[#FDA92D] bg-opacity-90 text-white px-3 py-1 rounded-full text-sm font-medium">
                   {capturedFaces.length}/3 Captured
                 </div>
               </div>
@@ -265,7 +265,7 @@ const FaceRegistration = ({ email, onRegistrationSuccess, onClose }) => {
                 {!isCapturing ? (
                   <button
                     onClick={startCamera}
-                    className="w-full bg-blue-500 text-white py-3 rounded-full hover:bg-blue-600 transition"
+                    className="w-full bg-[#FDA92D] text-white py-3 rounded-full hover:bg-[#FED680] transition"
                   >
                     📹 Start Camera
                   </button>
@@ -278,7 +278,7 @@ const FaceRegistration = ({ email, onRegistrationSuccess, onClose }) => {
                       <button
                         onClick={captureFace}
                         disabled={isLoading || !faceDetected || capturedFaces.length >= 3}
-                        className="flex-1 bg-blue-500 text-white py-3 rounded-full hover:bg-blue-600 transition disabled:opacity-50"
+                        className="flex-1 bg-[#FDA92D] text-white py-3 rounded-full hover:bg-[#FED680] transition disabled:opacity-50"
                       >
                         {isLoading ? '📸 Capturing...' : '📸 Capture Face'}
                       </button>

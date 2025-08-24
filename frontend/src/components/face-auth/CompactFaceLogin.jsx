@@ -324,14 +324,14 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
               ref={videoRef}
               autoPlay
               muted
-              className="w-48 h-36 mx-auto rounded-lg border-2 border-blue-500"
+              className="w-48 h-36 mx-auto rounded-lg border-2 border-[#FDA92D]"
             />
           </div>
         )}
         
         {/* Face ID Icon */}
         <div className="mb-4">
-          <div className="w-20 h-20 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+          <div className="w-20 h-20 mx-auto bg-[#FDA92D] rounded-full flex items-center justify-center shadow-lg">
             {getStatusIcon()}
           </div>
         </div>
@@ -344,7 +344,7 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
         {status === 'scanning' && (
           <div className="mb-4">
             <div className="w-full bg-gray-200 rounded-full h-1">
-              <div className="bg-blue-500 h-1 rounded-full animate-pulse" style={{ width: '70%' }}></div>
+              <div className="bg-[#FDA92D] h-1 rounded-full animate-pulse" style={{ width: '70%' }}></div>
             </div>
           </div>
         )}
@@ -354,7 +354,7 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
           {status === 'ready' && (
             <button
               onClick={startFaceDetection}
-              className="bg-blue-500 text-white px-6 py-2 rounded-full hover:bg-blue-600 transition-colors"
+              className="bg-[#FDA92D] text-white px-6 py-2 rounded-full hover:bg-[#FED680] transition-colors"
             >
               Start Face ID
             </button>

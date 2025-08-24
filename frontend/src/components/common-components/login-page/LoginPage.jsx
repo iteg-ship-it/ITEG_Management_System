@@ -15,7 +15,7 @@ import PasswordField from "../common-feild/PasswordField";
 
 import logo from "../../../assets/images/logo-ssism.png";
 import bg from "../../../assets/images/bgImg.png";
-import googleLogo from "../../../assets/icons/devicon_google.jpg";
+import googleLogo from "../../../assets/icons/google-icon.png";
 import mail from "../../../assets/icons/gmail-icon.png";
 
 const LoginPage = () => {
@@ -137,11 +137,11 @@ const LoginPage = () => {
                 <button
                   type="button"
                   onClick={handleFaceLogin}
-                  className="flex w-full justify-center items-center space-x-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md rounded-xl py-3 hover:shadow-lg transition transform hover:scale-105"
+                  className="flex w-full justify-center items-center space-x-3 bg-white shadow-md rounded-xl py-2.5 hover:shadow-lg transition border border-gray-300"
                 >
-                  <span className="text-xl">👤</span>
-                  <span className="text-sm font-medium">
-                    Face ID
+                  <span className="text-sm">👤</span>
+                  <span className="text-sm font-medium text-gray-800">
+                   Login with Face ID
                   </span>
                 </button>
 
@@ -151,7 +151,7 @@ const LoginPage = () => {
                   onClick={handleOtpLogin}
                   className="flex w-full justify-center items-center space-x-3 bg-white shadow-md rounded-xl py-2.5 hover:shadow-lg transition border border-gray-300"
                 >
-                  <img className="h-6" src={mail} alt="OTP Login" />
+                  <img className="h-5" src={mail} alt="OTP Login" />
                   <span className="text-sm font-medium text-gray-800">
                     Login with Email OTP
                   </span>
