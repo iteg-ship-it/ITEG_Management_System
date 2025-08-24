@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect, useCallback } from 'react';
 import * as faceapi from 'face-api.js';
@@ -34,7 +35,6 @@ const FaceRegistration = ({ email, onRegistrationSuccess, onClose }) => {
       
       setModelsLoaded(true);
     } catch (error) {
-      console.error('Error loading models:', error);
       toast.error('Failed to load face recognition models');
     } finally {
       setIsLoading(false);
@@ -67,7 +67,7 @@ const FaceRegistration = ({ email, onRegistrationSuccess, onClose }) => {
         if (ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
       }
     } catch (error) {
-      console.error('Face detection error:', error);
+      // Silent error handling
     }
   }, [modelsLoaded]);
 
@@ -99,7 +99,6 @@ const FaceRegistration = ({ email, onRegistrationSuccess, onClose }) => {
         startFaceDetection();
       };
     } catch (error) {
-      console.error('Error accessing camera:', error);
       toast.error('Failed to access camera. Please check permissions.');
     }
   };
@@ -143,7 +142,6 @@ const FaceRegistration = ({ email, onRegistrationSuccess, onClose }) => {
         await registerFaces([...capturedFaces, faceDescriptor]);
       }
     } catch (error) {
-      console.error('Face capture error:', error);
       toast.error('Failed to capture face');
     } finally {
       setIsLoading(false);
@@ -177,7 +175,7 @@ const FaceRegistration = ({ email, onRegistrationSuccess, onClose }) => {
         faceDescriptor: avgDescriptor 
       };
       
-      console.log('🚀 Registering face for:', registrationEmail);
+      // Registering face for user
 
       const response = await fetch('http://localhost:5000/api/face-auth/register-face', {
         method: 'POST',

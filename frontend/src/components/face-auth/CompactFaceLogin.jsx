@@ -13,10 +13,8 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
   const streamRef = useRef(null);
 
   useEffect(() => {
-    console.log('🚀 CompactFaceLogin mounted, loading models...');
     loadModels();
     return () => {
-      console.log('🧹 CompactFaceLogin unmounting, stopping camera...');
       stopCamera();
     };
   }, []);
@@ -24,12 +22,9 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
   // Additional cleanup when component closes
   useEffect(() => {
     return () => {
-      console.log('🔄 Component cleanup - ensuring camera is stopped');
-      
       // Stop stream from ref
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => {
-          console.log('⏹️ Cleanup: stopping track from ref:', track.kind);
           track.stop();
         });
         streamRef.current = null;
@@ -39,7 +34,6 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
       if (videoRef.current && videoRef.current.srcObject) {
         const tracks = videoRef.current.srcObject.getTracks();
         tracks.forEach(track => {
-          console.log('⏹️ Cleanup: stopping track from video:', track.kind);
           track.stop();
         });
         videoRef.current.srcObject = null;
@@ -49,38 +43,19 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
 
   const loadModels = async () => {
     try {
-      console.log('📦 Loading face recognition models...');
       setIsLoading(true);
       setStatus('initializing');
       
       const MODEL_URL = '/models';
-      console.log('📂 Model URL:', MODEL_URL);
       
-      console.log('⏳ Loading TinyFaceDetector...');
       await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-      console.log('✅ TinyFaceDetector loaded');
-      
-      console.log('⏳ Loading FaceLandmark68Net...');
       await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-      console.log('✅ FaceLandmark68Net loaded');
-      
-      console.log('⏳ Loading FaceRecognitionNet...');
       await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-      console.log('✅ FaceRecognitionNet loaded');
       
-      console.log('🎉 ALL MODELS LOADED SUCCESSFULLY!');
       setModelsLoaded(true);
       setStatus('ready');
       
-      // Models loaded successfully
-      console.log('✅ Models loaded, ready for Face ID');
-      
     } catch (error) {
-      console.error('❌ Error loading models:', error);
-      console.error('Error details:', error.message);
-      
-      // Models failed to load
-      console.log('⚠️ Models failed to load');
       setStatus('ready');
       
     } finally {
@@ -90,8 +65,6 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
 
   const startCamera = async () => {
     try {
-      console.log('🎥 Starting camera...');
-      
       // Stop any existing camera first
       stopCamera();
       
@@ -108,18 +81,14 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        console.log('📹 Camera stream set to video element');
-        console.log('📹 Stream tracks:', stream.getTracks().length);
         
         return new Promise((resolve) => {
           videoRef.current.onloadedmetadata = () => {
-            console.log('✅ Camera ready, dimensions:', videoRef.current.videoWidth, 'x', videoRef.current.videoHeight);
             resolve();
           };
         });
       }
     } catch (error) {
-      console.error('❌ Camera error:', error);
       toast.error('Camera access denied');
       setStatus('failed');
       setTimeout(() => {
@@ -130,13 +99,9 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
   };
 
   const stopCamera = () => {
-    console.log('🛑 Stopping camera...');
-    
     // Stop stream from ref first
     if (streamRef.current) {
-      console.log('📹 Stopping stream from ref...');
       streamRef.current.getTracks().forEach(track => {
-        console.log('⏹️ Stopping track from ref:', track.kind);
         track.stop();
       });
       streamRef.current = null;
@@ -145,9 +110,7 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
     // Stop stream from video element
     if (videoRef.current && videoRef.current.srcObject) {
       const tracks = videoRef.current.srcObject.getTracks();
-      console.log('📹 Found', tracks.length, 'tracks in video element');
       tracks.forEach(track => {
-        console.log('⏹️ Stopping track from video:', track.kind);
         track.stop();
       });
       videoRef.current.srcObject = null;
@@ -157,16 +120,12 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
     if (videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
-      console.log('✅ Video element reset');
     }
-    
-    console.log('✅ Camera stop process completed');
   };
 
 
   
   const startFaceDetection = async () => {
-    console.log('🎥 Starting face detection with camera...');
     setStatus('scanning');
     
     try {
@@ -179,7 +138,6 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
       }, 2000);
       
     } catch (error) {
-      console.error('❌ Face detection error:', error);
       setStatus('failed');
       toast.error('Face detection failed');
       setTimeout(() => {
@@ -194,8 +152,6 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
       if (!videoRef.current || !modelsLoaded) {
         throw new Error('Camera or models not ready');
       }
-      
-      console.log('🔍 Detecting face in video...');
       
       // Detect face with landmarks and descriptor
       const detection = await faceapi
@@ -213,8 +169,6 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
         return;
       }
       
-      console.log('✅ Face detected! Authenticating...');
-      
       const response = await fetch('http://localhost:5000/api/face-auth/login-face', {
         method: 'POST',
         headers: {
@@ -224,7 +178,6 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
       });
 
       const data = await response.json();
-      console.log('🔥 Face Auth Response:', data);
 
       if (data.success) {
         const secretKey = "ITEG@123";
@@ -241,7 +194,6 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
         toast.success(`🎉 Face ID Success! Welcome ${data.user.name}!`);
         
         // Stop camera immediately
-        console.log('🛑 Stopping camera before navigation...');
         stopCamera();
         
         setTimeout(() => {
@@ -249,7 +201,6 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
         }, 1000);
       } else {
         setStatus('failed');
-        console.error('❌ Face authentication failed:', data.message);
         
         if (data.message && data.message.includes('not recognized')) {
           toast.error('❌ Face not recognized! Only registered users can login.');
@@ -270,7 +221,6 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
         }, 3000);
       }
     } catch (error) {
-      console.error('❌ Face authentication error:', error);
       setStatus('failed');
       toast.error('❌ Face authentication failed!');
       setTimeout(() => {
@@ -364,7 +314,6 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
         {/* Cancel button */}
         <button
           onClick={() => {
-            console.log('❌ Cancel button clicked');
             stopCamera();
             onClose();
           }}
