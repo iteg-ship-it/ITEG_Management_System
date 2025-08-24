@@ -1,15 +1,18 @@
-/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import * as faceapi from 'face-api.js';
 import { toast } from 'react-toastify';
 
-const FaceRegistration = ({ userEmail, onClose, onSuccess }) => {
+const FaceRegistration = ({ email, onRegistrationSuccess, onClose }) => {
+  
   const [isLoading, setIsLoading] = useState(false);
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [faceDetected, setFaceDetected] = useState(false);
+  const [capturedFaces, setCapturedFaces] = useState([]);
   const videoRef = useRef();
   const canvasRef = useRef();
+  const detectionInterval = useRef();
 
   useEffect(() => {
     loadModels();
@@ -30,7 +33,6 @@ const FaceRegistration = ({ userEmail, onClose, onSuccess }) => {
       ]);
       
       setModelsLoaded(true);
-      toast.success('Face recognition models loaded');
     } catch (error) {
       console.error('Error loading models:', error);
       toast.error('Failed to load face recognition models');
@@ -39,31 +41,83 @@ const FaceRegistration = ({ userEmail, onClose, onSuccess }) => {
     }
   };
 
+  const detectFace = useCallback(async () => {
+    if (!modelsLoaded || !videoRef.current) return;
+
+    try {
+      const detections = await faceapi
+        .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks();
+
+      if (detections) {
+        setFaceDetected(true);
+        const canvas = canvasRef.current;
+        const displaySize = { width: videoRef.current.videoWidth, height: videoRef.current.videoHeight };
+        faceapi.matchDimensions(canvas, displaySize);
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.strokeStyle = '#10B981';
+        ctx.lineWidth = 3;
+        const box = detections.detection.box;
+        ctx.strokeRect(box.x, box.y, box.width, box.height);
+      } else {
+        setFaceDetected(false);
+        const ctx = canvasRef.current?.getContext('2d');
+        if (ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      }
+    } catch (error) {
+      console.error('Face detection error:', error);
+    }
+  }, [modelsLoaded]);
+
+  const startFaceDetection = useCallback(() => {
+    if (detectionInterval.current) clearInterval(detectionInterval.current);
+    detectionInterval.current = setInterval(detectFace, 100);
+  }, [detectFace]);
+
+  const stopFaceDetection = useCallback(() => {
+    if (detectionInterval.current) {
+      clearInterval(detectionInterval.current);
+      detectionInterval.current = null;
+    }
+  }, []);
+
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { width: 640, height: 480 } 
+        video: { 
+          width: { ideal: 640 }, 
+          height: { ideal: 480 },
+          facingMode: 'user'
+        } 
       });
       videoRef.current.srcObject = stream;
       setIsCapturing(true);
+      
+      videoRef.current.onloadedmetadata = () => {
+        startFaceDetection();
+      };
     } catch (error) {
       console.error('Error accessing camera:', error);
-      toast.error('Failed to access camera');
+      toast.error('Failed to access camera. Please check permissions.');
     }
   };
 
   const stopCamera = () => {
+    stopFaceDetection();
     if (videoRef.current && videoRef.current.srcObject) {
       const tracks = videoRef.current.srcObject.getTracks();
       tracks.forEach(track => track.stop());
       videoRef.current.srcObject = null;
     }
     setIsCapturing(false);
+    setFaceDetected(false);
   };
 
-  const registerFace = async () => {
-    if (!modelsLoaded || !videoRef.current) {
-      toast.error('Camera or models not ready');
+  const captureFace = async () => {
+    if (!modelsLoaded || !videoRef.current || !faceDetected) {
+      toast.error('Please position your face clearly in the camera');
       return;
     }
 
@@ -76,35 +130,74 @@ const FaceRegistration = ({ userEmail, onClose, onSuccess }) => {
         .withFaceDescriptor();
 
       if (!detections) {
-        toast.error('No face detected. Please position your face clearly in the camera.');
+        toast.error('No face detected during capture');
         return;
       }
 
       const faceDescriptor = Array.from(detections.descriptor);
+      setCapturedFaces(prev => [...prev, faceDescriptor]);
+      
+      toast.success(`Face ${capturedFaces.length + 1}/3 captured successfully!`);
+      
+      if (capturedFaces.length >= 2) {
+        await registerFaces([...capturedFaces, faceDescriptor]);
+      }
+    } catch (error) {
+      console.error('Face capture error:', error);
+      toast.error('Failed to capture face');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL.replace('/api', '')}/api/face-auth/register-face`, {
+  const registerFaces = async (faces) => {
+    try {
+      setIsLoading(true);
+      
+      // Validate email prop
+      if (!email || email.trim() === '') {
+        toast.error('Please provide a valid email for face registration');
+        return;
+      }
+      
+      // Average the face descriptors for better accuracy
+      const avgDescriptor = new Array(128).fill(0);
+      faces.forEach(face => {
+        face.forEach((val, idx) => {
+          avgDescriptor[idx] += val;
+        });
+      });
+      avgDescriptor.forEach((val, idx) => {
+        avgDescriptor[idx] = val / faces.length;
+      });
+
+      const registrationEmail = email.trim();
+      const payload = { 
+        email: registrationEmail, 
+        faceDescriptor: avgDescriptor 
+      };
+      
+      console.log('🚀 Registering face for:', registrationEmail);
+
+      const response = await fetch('http://localhost:5000/api/face-auth/register-face', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          email: userEmail, 
-          faceDescriptor 
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        toast.success('Face registered successfully!');
+        toast.success('Face registered successfully! You can now use face login.');
         stopCamera();
-        onSuccess();
+        onRegistrationSuccess();
       } else {
         toast.error(data.message || 'Face registration failed');
       }
     } catch (error) {
-      console.error('Face registration error:', error);
-      toast.error('Face registration failed');
+      toast.error('Face registration failed: ' + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -115,10 +208,10 @@ const FaceRegistration = ({ userEmail, onClose, onSuccess }) => {
       <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full mx-4 border border-gray-100">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-[#FDA92D] to-[#FED680] rounded-full flex items-center justify-center">
-              <span className="text-white text-xl">🔒</span>
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+              <span className="text-white text-xl">📷</span>
             </div>
-            <h2 className="text-2xl font-bold text-gray-800">Face Registration</h2>
+            <h2 className="text-2xl font-bold text-gray-800">Register Face</h2>
           </div>
           <button
             onClick={() => {
@@ -131,55 +224,72 @@ const FaceRegistration = ({ userEmail, onClose, onSuccess }) => {
           </button>
         </div>
 
-        <div className="space-y-4">
-          <p className="text-sm text-gray-600">
-            Position your face clearly in the camera and click "Register Face" to enable face login.
-          </p>
-
+        <div className="space-y-6">
           {!modelsLoaded ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-              <p>Loading face recognition models...</p>
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
+              <p className="text-gray-600 font-medium">Loading Face Recognition...</p>
             </div>
           ) : (
             <>
-              <div className="relative">
+              <div className="relative overflow-hidden rounded-xl border-4 border-gradient-to-r from-blue-500 to-purple-600 shadow-lg">
                 <video
                   ref={videoRef}
                   autoPlay
                   muted
-                  className="w-full h-64 bg-gray-200 rounded-lg object-cover"
+                  className="w-full h-80 bg-gradient-to-br from-gray-100 to-gray-200 object-cover"
                 />
                 <canvas
                   ref={canvasRef}
-                  className="absolute top-0 left-0 w-full h-full"
+                  className="absolute top-0 left-0 w-full h-full pointer-events-none"
                 />
+                
+                <div className="absolute top-4 left-4 flex gap-2">
+                  <div className="bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${isCapturing ? 'bg-red-500 animate-pulse' : 'bg-gray-400'}`}></div>
+                    {isCapturing ? 'Live' : 'Offline'}
+                  </div>
+                  {faceDetected && (
+                    <div className="bg-green-500 bg-opacity-90 text-white px-3 py-1 rounded-full text-sm font-medium">
+                      ✓ Face Detected
+                    </div>
+                  )}
+                </div>
+                
+                <div className="absolute top-4 right-4 bg-blue-500 bg-opacity-90 text-white px-3 py-1 rounded-full text-sm font-medium">
+                  {capturedFaces.length}/3 Captured
+                </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="text-center space-y-4">
                 {!isCapturing ? (
                   <button
                     onClick={startCamera}
-                    className="flex-1 bg-[#FDA92D] text-white py-3 rounded-full hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+                    className="w-full bg-blue-500 text-white py-3 rounded-full hover:bg-blue-600 transition"
                   >
-                    Start Camera
+                    📹 Start Camera
                   </button>
                 ) : (
-                  <>
-                    <button
-                      onClick={registerFace}
-                      disabled={isLoading}
-                      className="flex-1 bg-[#FDA92D] text-white py-3 rounded-full hover:bg-[#FED680] active:bg-[#B66816] transition relative disabled:opacity-50"
-                    >
-                      {isLoading ? 'Processing...' : 'Register Face'}
-                    </button>
-                    <button
-                      onClick={stopCamera}
-                      className="px-4 py-3 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition relative"
-                    >
-                      Stop
-                    </button>
-                  </>
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-600">
+                      Capture your face from 3 different angles for better recognition
+                    </p>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={captureFace}
+                        disabled={isLoading || !faceDetected || capturedFaces.length >= 3}
+                        className="flex-1 bg-blue-500 text-white py-3 rounded-full hover:bg-blue-600 transition disabled:opacity-50"
+                      >
+                        {isLoading ? '📸 Capturing...' : '📸 Capture Face'}
+                      </button>
+                      <button
+                        onClick={stopCamera}
+                        className="px-6 py-3 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition"
+                      >
+                        ❌ Cancel
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
             </>

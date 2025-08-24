@@ -42,61 +42,90 @@ class FaceAuthController {
   // Login using face recognition
   static async loginWithFace(req, res) {
     try {
+      console.log('Face login request received');
       const { faceDescriptor } = req.body;
 
       if (!faceDescriptor) {
+        console.log('No face descriptor provided');
         return res.status(400).json({
           success: false,
           message: 'Face descriptor is required'
         });
       }
 
+      console.log('Face descriptor length:', faceDescriptor.length);
+      
       const users = await User.find({ faceDescriptor: { $exists: true, $ne: null } });
+      console.log('Found users with face descriptors:', users.length);
 
       if (users.length === 0) {
+        console.log('No registered faces found');
         return res.status(404).json({
           success: false,
-          message: 'No registered faces found'
+          message: 'No registered faces found. Please register your face first.'
         });
       }
 
       let matchedUser = null;
-      let minDistance = 0.35; // Even more strict threshold for security
+      let minDistance = 0.4; // Stricter threshold for better security
+      let bestDistance = Infinity;
 
       for (const user of users) {
         if (user.faceDescriptor) {
           const distance = FaceAuthController.calculateDistance(faceDescriptor, user.faceDescriptor);
-          console.log(`Face distance for ${user.email}: ${distance}`);
-          if (distance < minDistance) {
-            minDistance = distance;
-            matchedUser = user;
+          console.log(`🔍 Face distance for ${user.email}: ${distance}`);
+          console.log(`📊 Threshold: ${minDistance}`);
+          
+          if (distance < bestDistance) {
+            bestDistance = distance;
+            if (distance < minDistance) {
+              matchedUser = user;
+              console.log(`✅ Valid match: ${user.email} with distance ${distance}`);
+            } else {
+              console.log(`❌ Distance ${distance} exceeds threshold ${minDistance} for ${user.email}`);
+            }
           }
         }
       }
       
-      console.log(`Best match distance: ${minDistance}`);
+      console.log(`Best match distance: ${bestDistance}`);
+      console.log(`Threshold: ${minDistance}`);
+      console.log(`Match found: ${!!matchedUser}`);
 
       if (!matchedUser) {
+        console.log(`❌ Face authentication failed. Best distance: ${bestDistance}, Required: < ${minDistance}`);
         return res.status(401).json({
           success: false,
-          message: 'Face not recognized'
+          message: `Face not recognized. Please ensure you are the registered user and position your face clearly in the camera.`
         });
       }
+      
+      console.log(`✅ Face authentication successful for ${matchedUser.email} with distance ${bestDistance}`);
 
       const token = jwt.sign(
         { 
-          userId: matchedUser._id, 
+          id: matchedUser._id, 
           email: matchedUser.email,
           role: matchedUser.role 
         },
         process.env.JWT_SECRET,
-        { expiresIn: '24h' }
+        { expiresIn: '2h' }
       );
+
+      const refreshToken = jwt.sign(
+        { id: matchedUser._id, role: matchedUser.role },
+        process.env.JWT_SECRET,
+        { expiresIn: '4h' }
+      );
+
+      matchedUser.refreshToken = refreshToken;
+      await matchedUser.save();
 
       res.status(200).json({
         success: true,
         message: 'Face login successful',
         token,
+        refreshToken,
         user: {
           id: matchedUser._id,
           email: matchedUser.email,
@@ -117,15 +146,26 @@ class FaceAuthController {
   }
 
   static calculateDistance(descriptor1, descriptor2) {
-    if (!descriptor1 || !descriptor2 || descriptor1.length !== descriptor2.length) {
+    if (!descriptor1 || !descriptor2) {
+      console.log('❌ Missing descriptors');
+      return 1;
+    }
+    
+    if (descriptor1.length !== descriptor2.length) {
+      console.log(`❌ Length mismatch: ${descriptor1.length} vs ${descriptor2.length}`);
       return 1;
     }
 
+    console.log(`📊 Calculating distance between descriptors of length ${descriptor1.length}`);
+
     let sum = 0;
     for (let i = 0; i < descriptor1.length; i++) {
-      sum += Math.pow(descriptor1[i] - descriptor2[i], 2);
+      const diff = descriptor1[i] - descriptor2[i];
+      sum += diff * diff;
     }
-    return Math.sqrt(sum);
+    const distance = Math.sqrt(sum);
+    console.log(`📏 Final calculated distance: ${distance}`);
+    return distance;
   }
 
   static async checkFaceRegistration(req, res) {

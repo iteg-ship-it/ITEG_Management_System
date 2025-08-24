@@ -1,9 +1,11 @@
+/* eslint-disable no-unused-vars */
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import CryptoJS from "crypto-js";
 import { useLoginMutation } from "../../../redux/api/authApi";
 import Loader from "../loader/Loader";
-import FaceLogin from "../../face-auth/FaceLogin";
+import CompactFaceLogin from "../../face-auth/CompactFaceLogin";
+import { toast } from 'react-toastify';
 
 import ReusableForm from "../../../ReusableForm";
 import { loginValidationSchema } from "../../../validationSchema";
@@ -21,6 +23,7 @@ const LoginPage = () => {
   const [loginError, setLoginError] = useState("");
   const [login, { isLoading }] = useLoginMutation();
   const [showFaceLogin, setShowFaceLogin] = useState(false);
+
 
   const secretKey = "ITEG@123";
 
@@ -67,6 +70,12 @@ const LoginPage = () => {
     setShowFaceLogin(false);
     navigate("/", { replace: true });
   };
+
+  const handleFaceLoginClose = () => {
+    setShowFaceLogin(false);
+  };
+
+
 
   return (
     <div
@@ -123,36 +132,16 @@ const LoginPage = () => {
                 <hr className="flex-grow border-gray-300" />
               </div>
 
-              {/* <div className="flex flex-col items-center space-y-4 px-5">
-                <button
-                  type="button"
-                  onClick={handleGoogleLogin}
-                  className="flex border items-center w-[120%] justify-center space-x-4 bg-white shadow-md rounded-xl py-2 hover:shadow-lg transition"
-                >
-                  <img className="h-5" src={googleLogo} alt="Google" />
-                  <span className="text-sm font-medium text-gray-800">Login With Google</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleOtpLogin}
-                  className="flex border items-center w-[120%] justify-center space-x-4 bg-white shadow-md rounded-xl py-2 hover:shadow-lg transition"
-                >
-                  <img className="h-6" src={mail} alt="OTP Login" />
-                  <span className="text-sm font-medium text-gray-800">Login with Email OTP</span>
-                </button>
-              </div> */}
-
               <div className="flex flex-col items-center space-y-4 px-5">
-                {/* Face Login Button */}
+                {/* Face ID Button - Android/iOS Style */}
                 <button
                   type="button"
                   onClick={handleFaceLogin}
-                  className="flex w-full justify-center items-center space-x-3 bg-white shadow-md rounded-xl py-2.5 hover:shadow-lg transition border border-gray-300"
+                  className="flex w-full justify-center items-center space-x-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md rounded-xl py-3 hover:shadow-lg transition transform hover:scale-105"
                 >
                   <span className="text-xl">👤</span>
-                  <span className="text-sm font-medium text-gray-800">
-                    Login with Face Recognition
+                  <span className="text-sm font-medium">
+                    Face ID
                   </span>
                 </button>
 
@@ -187,11 +176,17 @@ const LoginPage = () => {
       </div>
       
       {showFaceLogin && (
-        <FaceLogin
+        <CompactFaceLogin
           onLoginSuccess={handleFaceLoginSuccess}
-          onClose={() => setShowFaceLogin(false)}
+          onClose={handleFaceLoginClose}
+          onNoFaceRegistered={() => {
+            setShowFaceLogin(false);
+            toast.error('Face not registered! Please login first with email/password to register your face.');
+          }}
         />
       )}
+      
+
     </div>
   );
 };

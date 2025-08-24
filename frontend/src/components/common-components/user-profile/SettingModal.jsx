@@ -183,13 +183,13 @@ const SettingsModal = ({ user, onClose }) => {
             
             {showFaceRegistration && (
                 <FaceRegistration
-                    userEmail={user?.email}
-                    onClose={() => setShowFaceRegistration(false)}
-                    onSuccess={() => {
+                    email={user?.email}
+                    onRegistrationSuccess={() => {
                         setShowFaceRegistration(false);
                         setHasFaceRegistered(true);
                         toast.success('Face registered successfully!');
                     }}
+                    onClose={() => setShowFaceRegistration(false)}
                 />
             )}
         </div>

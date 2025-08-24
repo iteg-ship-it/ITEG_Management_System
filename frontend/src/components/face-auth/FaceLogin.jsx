@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import * as faceapi from 'face-api.js';
 import { toast } from 'react-toastify';
 import CryptoJS from 'crypto-js';
@@ -8,8 +8,12 @@ const FaceLogin = ({ onLoginSuccess, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [faceDetected, setFaceDetected] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const videoRef = useRef();
   const canvasRef = useRef();
+  const detectionInterval = useRef();
 
   useEffect(() => {
     loadModels();
@@ -41,33 +45,104 @@ const FaceLogin = ({ onLoginSuccess, onClose }) => {
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { width: 640, height: 480 } 
+        video: { 
+          width: { ideal: 640 }, 
+          height: { ideal: 480 },
+          facingMode: 'user'
+        } 
       });
       videoRef.current.srcObject = stream;
       setIsCapturing(true);
+      
+      videoRef.current.onloadedmetadata = () => {
+        startFaceDetection();
+      };
     } catch (error) {
       console.error('Error accessing camera:', error);
-      toast.error('Failed to access camera');
+      toast.error('Failed to access camera. Please check permissions.');
     }
   };
 
   const stopCamera = () => {
+    stopFaceDetection();
     if (videoRef.current && videoRef.current.srcObject) {
       const tracks = videoRef.current.srcObject.getTracks();
       tracks.forEach(track => track.stop());
       videoRef.current.srcObject = null;
     }
     setIsCapturing(false);
+    setFaceDetected(false);
+    setCountdown(0);
   };
 
+  const detectFace = useCallback(async () => {
+    if (!modelsLoaded || !videoRef.current) return;
+
+    try {
+      const detections = await faceapi
+        .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks();
+
+      if (detections) {
+        setFaceDetected(true);
+        // Draw face detection box
+        const canvas = canvasRef.current;
+        const displaySize = { width: videoRef.current.videoWidth, height: videoRef.current.videoHeight };
+        faceapi.matchDimensions(canvas, displaySize);
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw green box around detected face
+        ctx.strokeStyle = '#10B981';
+        ctx.lineWidth = 3;
+        const box = detections.detection.box;
+        ctx.strokeRect(box.x, box.y, box.width, box.height);
+      } else {
+        setFaceDetected(false);
+        const ctx = canvasRef.current?.getContext('2d');
+        if (ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      }
+    } catch (error) {
+      console.error('Face detection error:', error);
+    }
+  }, [modelsLoaded]);
+
+  const startFaceDetection = useCallback(() => {
+    if (detectionInterval.current) clearInterval(detectionInterval.current);
+    detectionInterval.current = setInterval(detectFace, 100);
+  }, [detectFace]);
+
+  const stopFaceDetection = useCallback(() => {
+    if (detectionInterval.current) {
+      clearInterval(detectionInterval.current);
+      detectionInterval.current = null;
+    }
+  }, []);
+
   const captureAndLogin = async () => {
-    if (!modelsLoaded || !videoRef.current) {
-      toast.error('Camera or models not ready');
+    if (!modelsLoaded || !videoRef.current || !faceDetected) {
+      toast.error('Please position your face clearly in the camera');
+      return;
+    }
+
+    if (attempts >= 3) {
+      toast.error('Maximum attempts reached. Please try again later.');
+      stopCamera();
+      onClose();
       return;
     }
 
     try {
       setIsLoading(true);
+      setAttempts(prev => prev + 1);
+      
+      // Start countdown
+      setCountdown(3);
+      for (let i = 3; i > 0; i--) {
+        setCountdown(i);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      setCountdown(0);
       
       const detections = await faceapi
         .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
@@ -75,11 +150,11 @@ const FaceLogin = ({ onLoginSuccess, onClose }) => {
         .withFaceDescriptor();
 
       if (!detections) {
-        toast.error('No face detected. Please position your face clearly in the camera.');
+        toast.error('No face detected during capture. Please try again.');
         return;
       }
 
-      // Liveness detection - check for real face vs photo
+      // Enhanced liveness detection
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       canvas.width = videoRef.current.videoWidth;
@@ -89,18 +164,27 @@ const FaceLogin = ({ onLoginSuccess, onClose }) => {
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const pixels = imageData.data;
       
-      // Check for pixel variation (photos have less variation)
+      // Multiple liveness checks
       let variation = 0;
+      let brightness = 0;
       for (let i = 0; i < pixels.length; i += 4) {
         const r = pixels[i];
         const g = pixels[i + 1];
         const b = pixels[i + 2];
         variation += Math.abs(r - g) + Math.abs(g - b) + Math.abs(b - r);
+        brightness += (r + g + b) / 3;
       }
       
       const avgVariation = variation / (pixels.length / 4);
-      if (avgVariation < 10) {
-        toast.error('Please use live camera, not a photo!');
+      const avgBrightness = brightness / (pixels.length / 4);
+      
+      if (avgVariation < 15) {
+        toast.error('Liveness check failed. Please use live camera!');
+        return;
+      }
+      
+      if (avgBrightness < 30 || avgBrightness > 220) {
+        toast.error('Poor lighting conditions. Please adjust lighting.');
         return;
       }
 
@@ -129,15 +213,15 @@ const FaceLogin = ({ onLoginSuccess, onClose }) => {
         
         const roleText = data.user.role === 'superadmin' ? 'Super Admin' : 
                         data.user.role === 'admin' ? 'Admin' : 'Faculty';
-        toast.success(`Face login successful! Welcome ${data.user.name} (${roleText})`);
+        toast.success(`🎉 Face login successful! Welcome ${data.user.name} (${roleText})`);
         stopCamera();
         onLoginSuccess(data.user);
       } else {
-        toast.error(data.message || 'Face not recognized');
+        toast.error(data.message || `Face not recognized (Attempt ${attempts}/3)`);
       }
     } catch (error) {
       console.error('Face login error:', error);
-      toast.error('Face login failed');
+      toast.error('Face login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -185,11 +269,37 @@ const FaceLogin = ({ onLoginSuccess, onClose }) => {
                 />
                 <canvas
                   ref={canvasRef}
-                  className="absolute top-0 left-0 w-full h-full"
+                  className="absolute top-0 left-0 w-full h-full pointer-events-none"
                 />
-                <div className="absolute top-4 left-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm font-medium">
-                  🔴 Live Camera
+                
+                {/* Status indicators */}
+                <div className="absolute top-4 left-4 flex gap-2">
+                  <div className="bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${isCapturing ? 'bg-red-500 animate-pulse' : 'bg-gray-400'}`}></div>
+                    {isCapturing ? 'Live' : 'Offline'}
+                  </div>
+                  {faceDetected && (
+                    <div className="bg-green-500 bg-opacity-90 text-white px-3 py-1 rounded-full text-sm font-medium">
+                      ✓ Face Detected
+                    </div>
+                  )}
                 </div>
+                
+                {/* Countdown overlay */}
+                {countdown > 0 && (
+                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <div className="text-6xl font-bold text-white animate-pulse">
+                      {countdown}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Face detection guide */}
+                {isCapturing && !faceDetected && (
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-yellow-500 bg-opacity-90 text-white px-4 py-2 rounded-full text-sm font-medium">
+                    📍 Position your face in the camera
+                  </div>
+                )}
               </div>
 
               <div className="text-center space-y-4">
@@ -202,20 +312,25 @@ const FaceLogin = ({ onLoginSuccess, onClose }) => {
                   </button>
                 ) : (
                   <div className="space-y-3">
-                    <div className="flex gap-3">
-                      <button
-                        onClick={captureAndLogin}
-                        disabled={isLoading}
-                        className="flex-1 bg-[#FDA92D] text-white py-3 rounded-full hover:bg-[#FED680] active:bg-[#B66816] transition relative disabled:opacity-50"
-                      >
-                        {isLoading ? '🔄 Processing...' : '✅ Authenticate'}
-                      </button>
-                      <button
-                        onClick={stopCamera}
-                        className="px-6 py-3 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition relative"
-                      >
-                        ❌ Cancel
-                      </button>
+                    <div className="space-y-3">
+                      <div className="text-center text-sm text-gray-600">
+                        Attempts: {attempts}/3 {faceDetected ? '• Face Ready ✓' : '• Position Face'}
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={captureAndLogin}
+                          disabled={isLoading || !faceDetected || attempts >= 3}
+                          className="flex-1 bg-[#FDA92D] text-white py-3 rounded-full hover:bg-[#FED680] active:bg-[#B66816] transition relative disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isLoading ? '🔄 Processing...' : countdown > 0 ? `📸 ${countdown}` : '🔐 Authenticate'}
+                        </button>
+                        <button
+                          onClick={stopCamera}
+                          className="px-6 py-3 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition relative"
+                        >
+                          ❌ Cancel
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
