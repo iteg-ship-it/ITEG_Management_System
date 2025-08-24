@@ -344,3 +344,4 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
 };
 
 export default CompactFaceLogin;
+
