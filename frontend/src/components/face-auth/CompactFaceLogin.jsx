@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect } from 'react';
 import * as faceapi from 'face-api.js';
@@ -68,13 +69,19 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
       // Stop any existing camera first
       stopCamera();
       
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          width: { ideal: 320 }, 
-          height: { ideal: 240 },
-          facingMode: 'user'
-        } 
-      });
+      // Mobile-optimized camera settings
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      const constraints = {
+        video: {
+          width: { ideal: isMobile ? 480 : 320 },
+          height: { ideal: isMobile ? 640 : 240 },
+          facingMode: 'user',
+          frameRate: { ideal: 15, max: 30 }
+        }
+      };
+      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       
       // Store stream reference
       streamRef.current = stream;
@@ -153,9 +160,19 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
         throw new Error('Camera or models not ready');
       }
       
+      console.log('🔍 Detecting face in video...');
+      
+      // Mobile-optimized face detection
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      const detectionOptions = new faceapi.TinyFaceDetectorOptions({
+        inputSize: isMobile ? 224 : 416,
+        scoreThreshold: isMobile ? 0.3 : 0.5
+      });
+      
       // Detect face with landmarks and descriptor
       const detection = await faceapi
-        .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
+        .detectSingleFace(videoRef.current, detectionOptions)
         .withFaceLandmarks()
         .withFaceDescriptor();
       
