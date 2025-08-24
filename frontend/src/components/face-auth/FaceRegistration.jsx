@@ -45,8 +45,16 @@ const FaceRegistration = ({ email, onRegistrationSuccess, onClose }) => {
     if (!modelsLoaded || !videoRef.current) return;
 
     try {
+      // Mobile-optimized face detection
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      const detectionOptions = new faceapi.TinyFaceDetectorOptions({
+        inputSize: isMobile ? 224 : 416,
+        scoreThreshold: isMobile ? 0.3 : 0.5
+      });
+      
       const detections = await faceapi
-        .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
+        .detectSingleFace(videoRef.current, detectionOptions)
         .withFaceLandmarks();
 
       if (detections) {
@@ -85,13 +93,19 @@ const FaceRegistration = ({ email, onRegistrationSuccess, onClose }) => {
 
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          width: { ideal: 640 }, 
-          height: { ideal: 480 },
-          facingMode: 'user'
-        } 
-      });
+      // Mobile-optimized camera settings
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      const constraints = {
+        video: {
+          width: { ideal: isMobile ? 480 : 640 },
+          height: { ideal: isMobile ? 640 : 480 },
+          facingMode: 'user',
+          frameRate: { ideal: 15, max: 30 }
+        }
+      };
+      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       videoRef.current.srcObject = stream;
       setIsCapturing(true);
       
@@ -124,8 +138,16 @@ const FaceRegistration = ({ email, onRegistrationSuccess, onClose }) => {
     try {
       setIsLoading(true);
       
+      // Mobile-optimized face detection for capture
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      const detectionOptions = new faceapi.TinyFaceDetectorOptions({
+        inputSize: isMobile ? 224 : 416,
+        scoreThreshold: isMobile ? 0.3 : 0.5
+      });
+      
       const detections = await faceapi
-        .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
+        .detectSingleFace(videoRef.current, detectionOptions)
         .withFaceLandmarks()
         .withFaceDescriptor();
 
