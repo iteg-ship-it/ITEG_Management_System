@@ -112,7 +112,7 @@ const PlacementPost = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Header */}
       <PageNavbar
         title="Placement Post"
@@ -120,7 +120,7 @@ const PlacementPost = () => {
         showBackButton={false}
       />
 
-      <div className="px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6">
+      <div className="">
         {/* Empty state when no placed students */}
         {placedStudents.length === 0 ? (
           <div className="flex justify-center items-center min-h-96">

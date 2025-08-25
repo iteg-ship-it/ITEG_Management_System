@@ -102,7 +102,7 @@ const CommonTable = ({
       <div className="w-full bg-white">
         <div ref={scrollRef} className="overflow-x-auto max-h-[60vh] overflow-y-overlay custom-scrollbar">
             <table className="min-w-full text-sm">
-              <thead className="bg-[--neutral-light] text-gray-600 shadow-sm sticky top-0 z-50">
+              <thead className="bg-[--neutral-light] text-gray-600 shadow-sm sticky top-0 z-10">
                 <tr>
                   <th className="px-4 py-3 text-center">
                     <div className="flex items-center justify-center">

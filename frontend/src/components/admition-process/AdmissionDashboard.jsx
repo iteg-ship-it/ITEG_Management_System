@@ -283,7 +283,7 @@ const AdmissionDashboard = () => {
         }
       />
           
-      <div className="px-2 sm:px-6 py-2 sm:py-4">
+      {/* <div className=""> */}
         {/* Welcome Section with Flow Cards */}
         <div className="flex gap-6 mb-8 h-80">
           {/* Welcome Card - 60% width */}
@@ -579,7 +579,7 @@ const AdmissionDashboard = () => {
             </div>
           </div>
         </div>
-      </div>
+      {/* </div> */}
     </div>
   );
 };
