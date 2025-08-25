@@ -399,9 +399,29 @@ exports.createPlacementPost = async (req, res) => {
 };
 
 // Get all companies
+// exports.getAllCompanies = async (req, res) => {
+//   try {
+//     const companies = await Company.find().select('companyName companyLogo headOffice');
+//     res.status(200).json({
+//       success: true,
+//       data: companies
+//     });
+//   } catch (error) {
+//     console.error("Error fetching companies:", error);
+//     res.status(500).json({ 
+//       success: false, 
+//       message: "Server error", 
+//       error: error.message 
+//     });
+//   }
+// };
+
+
 exports.getAllCompanies = async (req, res) => {
   try {
-    const companies = await Company.find().select('companyName companyLogo headOffice');
+    // Fetch all companies with all schema fields
+    const companies = await Company.find();  
+
     res.status(200).json({
       success: true,
       data: companies
@@ -415,6 +435,7 @@ exports.getAllCompanies = async (req, res) => {
     });
   }
 };
+
 
 // Get company by name
 exports.getCompanyByName = async (req, res) => {
