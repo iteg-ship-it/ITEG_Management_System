@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useGetAllCompaniesQuery } from '../../redux/api/authApi';
 import Loader from '../common-components/loader/Loader';
 import PageNavbar from '../common-components/navbar/PageNavbar';
@@ -6,10 +7,17 @@ import CommonTable from '../common-components/table/CommonTable';
 import Pagination from '../common-components/pagination/Pagination';
 
 const CompanyDetail = () => {
+  const navigate = useNavigate();
   const { data, isLoading, error } = useGetAllCompaniesQuery();
   const companies = data?.data || data || [];
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRows, setSelectedRows] = useState([]);
+
+  const handleRowClick = (company) => {
+    navigate(`/placement/company/${company._id}`, {
+      state: { companyName: company.companyName }
+    });
+  };
 
   const columns = [
     {
@@ -21,19 +29,35 @@ const CompanyDetail = () => {
             <img src={row.companyLogo} alt={row.companyName} className="w-8 h-8 rounded-full object-cover" />
           ) : (
             <div className="w-6 h-6 bg-gradient-to-br from-orange-400 to-yellow-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-medium text-sm-center">
+              <span className="text-white font-medium text-sm">
                 {row.companyName?.charAt(0)?.toUpperCase() || 'C'}
               </span>
             </div>
           )}
           <div className="flex flex-col">
-            <span className="font-medium text-gray-800">{`${row.companyName}`}</span>
+            <span className="font-medium text-gray-800">{row.companyName}</span>
           </div>
         </div>
       ),
     },
-
-
+    {
+      key: "hrEmail",
+      label: "HR Email",
+    },
+    {
+      key: "hrContact",
+      label: "HR Contact",
+      render: (row) => row.hrContact || 'N/A',
+    },
+    {
+      key: "location",
+      label: "Location",
+    },
+    {
+      key: "createdAt",
+      label: "Created Date",
+      render: (row) => new Date(row.createdAt).toLocaleDateString(),
+    },
   ];
 
   if (isLoading) {
@@ -82,6 +106,7 @@ const CompanyDetail = () => {
             pagination={true}
             rowsPerPage={10}
             onSelectionChange={setSelectedRows}
+            onRowClick={handleRowClick}
           />
         )}
       </div>

@@ -18,6 +18,7 @@ import StudentPermission from "../student-records/StudentPermission";
 import PlacementRecords from "../placement/PlacementRecords";
 import PlacementPost from "../placement/PlacementPost";
 import CompanyDetail from "../placement/CompanyDetail";
+import PlacedStudents from "../placement/PlacedStudents";
 import InterviewHistory from "../placement/InterviewHistory";
 import InterviewRoundsHistory from "../placement/InterviewRoundsHistory";
 import PageNotFound from "../common-components/error-pages/PageNotFound";
@@ -42,6 +43,7 @@ const facultyRoutes = [
   { path: "/readiness-status", element: <PlacementReadyStudents />, roles: ["superadmin", "admin", "faculty"] },
   { path: "/placement-interview-record", element: <PlacementRecords />, roles: ["superadmin", "admin", "faculty"] },
   { path: "/company-details", element: <CompanyDetail />, roles: ["superadmin", "admin", "faculty"] },
+  { path: "/placement/company/:companyId", element: <PlacedStudents />, roles: ["superadmin", "admin", "faculty"] },
   { path: "/placement-post", element: <PlacementPost />, roles: ["superadmin", "admin", "faculty"] },
   { path: "/interview-history/:id", element: <InterviewHistory />, roles: ["superadmin", "admin", "faculty"] },
   { path: "/interview-rounds-history/:studentId/:interviewId", element: <InterviewRoundsHistory />, roles: ["superadmin", "admin", "faculty"] },
