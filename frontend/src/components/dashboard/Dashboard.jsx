@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import AdmissionDashboard from "../admition-process/AdmissionDashboard";
 import AdmissionProcess from "../admition-process/AdmissionProcess";
 import AdmissionEditPage from "../admition-process/AdmissionEditPage";
-import AdmissionInterviewDetails from "../admition-process/AdmissionInterviewDetails";
+// import AdmissionInterviewDetails from "../admition-process/AdmissionInterviewDetails";
 
 // Student records components
 import StudentDashboard from "../student-records/StudentDashboard";
@@ -29,7 +29,7 @@ const adminRoutes = [
   { path: "/", element: <AdmissionDashboard />, roles: ["superadmin", "admin"] },
   { path: "/admission-process", element: <AdmissionProcess />, roles: ["superadmin", "admin"] },
   { path: "/admission/edit/:id", element: <AdmissionEditPage />, roles: ["superadmin", "admin"] },
-  { path: "/interview-detail/:id", element: <AdmissionInterviewDetails />, roles: ["superadmin", "admin"] },
+  // { path: "/interview-detail/:id", element: <AdmissionInterviewDetails />, roles: ["superadmin", "admin"] },
 ];
 
 const facultyRoutes = [
@@ -53,34 +53,34 @@ const allRoutes = [...adminRoutes, ...facultyRoutes];
 
 const Dashboard = () => {
   const userRole = localStorage.getItem('role');
-  
+
   return (
     <Routes>
       {/* Redirect faculty from root to student dashboard */}
-      <Route 
-        path="/" 
+      <Route
+        path="/"
         element={
-          userRole === 'faculty' ? 
-          <Navigate to="/student-dashboard" replace /> : 
-          <ProtectedRoute allowedRoles={["superadmin", "admin"]}>
-            <AdmissionDashboard />
-          </ProtectedRoute>
-        } 
+          userRole === 'faculty' ?
+            <Navigate to="/student-dashboard" replace /> :
+            <ProtectedRoute allowedRoles={["superadmin", "admin"]}>
+              <AdmissionDashboard />
+            </ProtectedRoute>
+        }
       />
-      
+
       {/* Protected routes */}
       {allRoutes.map(({ path, element, roles }, index) => (
-        <Route 
-          key={index} 
-          path={path} 
+        <Route
+          key={index}
+          path={path}
           element={
             <ProtectedRoute allowedRoles={roles}>
               {element}
             </ProtectedRoute>
-          } 
+          }
         />
       ))}
-      
+
       {/* Catch-all route for invalid paths when logged in */}
       <Route path="*" element={<PageNotFound />} />
     </Routes>
