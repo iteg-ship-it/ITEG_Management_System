@@ -39,10 +39,12 @@ class FaceAuthController {
     }
   }
 
-  // Login using face recognition
+  // Login using face recognition - Mobile Optimized
   static async loginWithFace(req, res) {
     try {
       const { faceDescriptor } = req.body;
+      const userAgent = req.headers['user-agent'] || '';
+      const isMobile = /Mobile|Android|iPhone|iPad/i.test(userAgent);
 
       if (!faceDescriptor) {
         return res.status(400).json({
@@ -58,11 +60,11 @@ class FaceAuthController {
         });
       }
       
-      // Get users with face descriptors
+      // Optimized query for mobile performance
       const users = await User.find(
         { faceDescriptor: { $exists: true, $ne: null } },
         { email: 1, faceDescriptor: 1, role: 1, name: 1, position: 1, department: 1, _id: 1 }
-      );
+      ).limit(50); // Limit for mobile performance
 
       if (users.length === 0) {
         return res.status(404).json({
@@ -72,10 +74,14 @@ class FaceAuthController {
       }
 
       let matchedUser = null;
-      let minDistance = 0.4; // Stricter threshold for security
+      // Adaptive threshold based on device
+      let minDistance = isMobile ? 0.32 : 0.35; // Stricter for mobile
       let bestDistance = Infinity;
       
-      console.log('🔍 Starting face matching with', users.length, 'registered users');
+      // Production logging (reduced for performance)
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🔍 Starting face matching with', users.length, 'registered users');
+      }
 
       // Strict face matching with multiple validations
       for (const user of users) {
@@ -88,11 +94,18 @@ class FaceAuthController {
             }
             
             const distance = FaceAuthController.calculateDistanceFast(faceDescriptor, user.faceDescriptor);
-            console.log(`📏 Distance for ${user.email}: ${distance.toFixed(4)} (threshold: ${minDistance})`);
             
-            // Additional validation: distance should be reasonable
-            if (distance > 10) {
-              console.log(`⚠️ Skipping ${user.email}: Distance too high ${distance.toFixed(4)}`);
+            // Development logging only
+            if (process.env.NODE_ENV !== 'production') {
+              console.log(`📏 Distance for ${user.email}: ${distance.toFixed(4)} (threshold: ${minDistance})`);
+            }
+            
+            // Mobile-specific validation
+            const maxDistance = isMobile ? 3 : 5;
+            if (distance > maxDistance) {
+              if (process.env.NODE_ENV !== 'production') {
+                console.log(`⚠️ Skipping ${user.email}: Distance ${distance.toFixed(4)} > ${maxDistance} (mobile: ${isMobile})`);
+              }
               continue;
             }
             
@@ -100,7 +113,9 @@ class FaceAuthController {
               bestDistance = distance;
               if (distance < minDistance) {
                 matchedUser = user;
-                console.log(`✅ Match found: ${user.email} with distance ${distance.toFixed(4)}`);
+                if (process.env.NODE_ENV !== 'production') {
+                  console.log(`✅ Match found: ${user.email} with distance ${distance.toFixed(4)}`);
+                }
                 break; // Early exit on first good match
               }
             }
@@ -111,12 +126,15 @@ class FaceAuthController {
         }
       }
 
-      console.log(`🎯 Best match distance: ${bestDistance.toFixed(4)}, Required: < ${minDistance}`);
+      // Production logging
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`🎯 Best match distance: ${bestDistance.toFixed(4)}, Required: < ${minDistance}`);
+      }
       
       if (!matchedUser) {
         return res.status(401).json({
           success: false,
-          message: `Face not recognized. Distance: ${bestDistance.toFixed(4)}, Required: < ${minDistance}`
+          message: 'Face not recognized. Please ensure you are a registered user.'
         });
       }
 

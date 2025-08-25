@@ -44,12 +44,15 @@ const FaceLogin = ({ onLoginSuccess, onClose }) => {
 
   const startCamera = async () => {
     try {
+      // Mobile-optimized camera settings
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
-          width: { ideal: 480 }, // Reduced resolution for better performance
-          height: { ideal: 360 },
+          width: { ideal: isMobile ? 320 : 480 },
+          height: { ideal: isMobile ? 240 : 360 },
           facingMode: 'user',
-          frameRate: { ideal: 15, max: 20 } // Lower frame rate for better performance
+          frameRate: { ideal: isMobile ? 10 : 15, max: isMobile ? 15 : 20 }
         } 
       });
       videoRef.current.srcObject = stream;
@@ -151,11 +154,13 @@ const FaceLogin = ({ onLoginSuccess, onClose }) => {
       }
       setCountdown(0);
       
-      // Optimized face capture with faster settings
+      // Mobile-optimized face capture
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
       const detections = await faceapi
         .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions({
-          inputSize: 416, // Balanced size for accuracy and speed
-          scoreThreshold: 0.3
+          inputSize: isMobile ? 224 : 320, // Smaller for mobile
+          scoreThreshold: isMobile ? 0.4 : 0.3 // Stricter for mobile
         }))
         .withFaceLandmarks()
         .withFaceDescriptor();

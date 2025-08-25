@@ -75,10 +75,10 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
       
       const constraints = {
         video: {
-          width: { ideal: 320 }, // Smaller for faster processing
-          height: { ideal: 240 },
+          width: { ideal: isMobile ? 240 : 320 },
+          height: { ideal: isMobile ? 180 : 240 },
           facingMode: 'user',
-          frameRate: { ideal: 10, max: 15 } // Lower frame rate for better performance
+          frameRate: { ideal: isMobile ? 8 : 10, max: isMobile ? 12 : 15 }
         }
       };
       
@@ -167,8 +167,8 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       
       const detectionOptions = new faceapi.TinyFaceDetectorOptions({
-        inputSize: 224, // Smaller input for faster processing
-        scoreThreshold: 0.3 // Lower threshold for better detection
+        inputSize: isMobile ? 160 : 224, // Even smaller for mobile
+        scoreThreshold: isMobile ? 0.4 : 0.3 // Stricter for mobile security
       });
       
       // Detect face with landmarks and descriptor
