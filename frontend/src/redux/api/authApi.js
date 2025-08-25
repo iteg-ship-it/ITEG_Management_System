@@ -352,6 +352,18 @@ export const authApi = createApi({
           body: { techno },
         };
       },
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'Student', id }
+      ],
+      async onQueryStarted({ id, techno }, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          // Invalidate specific student data to force refetch
+          dispatch(authApi.util.invalidateTags([{ type: 'Student', id }]));
+        } catch (error) {
+          console.error('Failed to update technology:', error);
+        }
+      },
     }),
 
     updateStudentImage: builder.mutation({
