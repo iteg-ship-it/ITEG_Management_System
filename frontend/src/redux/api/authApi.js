@@ -130,7 +130,7 @@ export const authApi = createApi({
         }
       },
     }),
-    
+
     signup: builder.mutation({
       query: (userData) => ({
         url: import.meta.env.VITE_SIGNUP_ENDPOINT || '/api/auth/signup',
@@ -558,6 +558,17 @@ export const authApi = createApi({
       providesTags: ['Company'],
     }),
 
+    // Get placed students by company ID
+    getPlacedStudentsByCompany: builder.query({
+      query: (companyId) => ({
+        url: `/admitted/students/companies/placed_students/${companyId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, companyId) => [
+        { type: 'PlacementStudent', id: companyId }
+      ],
+    }),
+
   }),
 });
 
@@ -599,5 +610,6 @@ export const {
   useAddInterviewRoundMutation,
   useConfirmPlacementMutation,
   useCreatePlacementPostMutation,
-  useGetAllCompaniesQuery
+  useGetAllCompaniesQuery,
+  useGetPlacedStudentsByCompanyQuery
 } = authApi;

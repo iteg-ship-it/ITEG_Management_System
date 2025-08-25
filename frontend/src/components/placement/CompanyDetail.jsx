@@ -1,9 +1,64 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useGetAllCompaniesQuery } from '../../redux/api/authApi';
 import Loader from '../common-components/loader/Loader';
+import PageNavbar from '../common-components/navbar/PageNavbar';
+import CommonTable from '../common-components/table/CommonTable';
+import Pagination from '../common-components/pagination/Pagination';
 
 const CompanyDetail = () => {
+  const navigate = useNavigate();
   const { data, isLoading, error } = useGetAllCompaniesQuery();
   const companies = data?.data || data || [];
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRows, setSelectedRows] = useState([]);
+
+  const handleRowClick = (company) => {
+    navigate(`/placement/company/${company._id}`, {
+      state: { companyName: company.companyName }
+    });
+  };
+
+  const columns = [
+    {
+      key: "profile",
+      label: "Company Name",
+      render: (row) => (
+        <div className="flex items-center gap-2">
+          {row.companyLogo ? (
+            <img src={row.companyLogo} alt={row.companyName} className="w-8 h-8 rounded-full object-cover" />
+          ) : (
+            <div className="w-6 h-6 bg-gradient-to-br from-orange-400 to-yellow-500 rounded-full flex items-center justify-center">
+              <span className="text-white font-medium text-sm">
+                {row.companyName?.charAt(0)?.toUpperCase() || 'C'}
+              </span>
+            </div>
+          )}
+          <div className="flex flex-col">
+            <span className="font-medium text-gray-800">{row.companyName}</span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "hrEmail",
+      label: "HR Email",
+    },
+    {
+      key: "hrContact",
+      label: "HR Contact",
+      render: (row) => row.hrContact || 'N/A',
+    },
+    {
+      key: "location",
+      label: "Location",
+    },
+    {
+      key: "createdAt",
+      label: "Created Date",
+      render: (row) => new Date(row.createdAt).toLocaleDateString(),
+    },
+  ];
 
   if (isLoading) {
     return (
@@ -22,37 +77,39 @@ const CompanyDetail = () => {
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Company Details</h1>
-        <p className="text-gray-600 mt-1">Total Companies: {companies.length}</p>
-      </div>
-      
-      {companies.length === 0 ? (
-        <p className="text-center text-gray-500">No companies found.</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {companies.map((company) => (
-            <div key={company._id} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-200 hover:border-blue-300">
-              <div className="flex flex-col items-center text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
-                  {company.companyLogo ? (
-                    <img src={company.companyLogo} alt={company.companyName} className="w-full h-full rounded-full object-cover" />
-                  ) : (
-                    <span className="text-white font-bold text-xl">
-                      {company.companyName?.charAt(0)?.toUpperCase() || 'C'}
-                    </span>
-                  )}
-                </div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">{company.companyName}</h3>
-                <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                  ID: {company._id.slice(-8)}
-                </div>
-              </div>
-            </div>
-          ))}
+    <div className="min-h-screen bg-white">
+      <PageNavbar
+        title="Company Details"
+        subtitle="Manage and track company information"
+        showBackButton={false}
+      />
+      <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
+
+        <div className="flex px-6 justify-between items-center flex-wrap gap-4">
+          <Pagination
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            allData={companies}
+            selectedRows={selectedRows}
+            sectionName="companies"
+            filtersConfig={[]}
+          />
         </div>
-      )}
+
+        {companies.length === 0 ? (
+          <p className="text-center text-gray-500">No companies found.</p>
+        ) : (
+          <CommonTable
+            columns={columns}
+            data={companies}
+            searchTerm={searchTerm}
+            pagination={true}
+            rowsPerPage={10}
+            onSelectionChange={setSelectedRows}
+            onRowClick={handleRowClick}
+          />
+        )}
+      </div>
     </div>
   );
 };

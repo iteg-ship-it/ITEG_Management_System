@@ -250,7 +250,7 @@ export default function StudentProfile() {
     <div className="min-h-screen bg-white">
       {/* Professional Header */}
       <div className="sticky top-0 z-10">
-        <div className="px-6 py-4">
+        <div className="py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
@@ -276,7 +276,7 @@ export default function StudentProfile() {
         </div>
       </div>
 
-      <div className="px-2 sm:px-6 py-2 sm:py-4">
+      <div className="py-2 sm:py-4">
         {/* Hero Section with Student Info */}
         <div className="bg-white rounded-2xl overflow-hidden mb-8" style={{ boxShadow: '0 0 25px 8px rgba(0, 0, 0, 0.10)' }}>
           <div className="relative">
@@ -295,8 +295,8 @@ export default function StudentProfile() {
                 }}
                 disabled={!canChooseElective()}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg ${canChooseElective()
-                    ? 'bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-black font-extrabold cursor-pointer'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+                  ? 'bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-black font-extrabold cursor-pointer'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
                   }`}
               >
                 Choose Elective
@@ -707,7 +707,7 @@ export default function StudentProfile() {
                   </a>
                 </div>
               ) : null}
-              
+
               {/* Application */}
               {studentData.placedInfo?.applicationURL ? (
                 <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
@@ -730,7 +730,7 @@ export default function StudentProfile() {
                   </a>
                 </div>
               ) : null}
-              
+
               {/* Show message if no documents */}
               {!studentData.placedInfo?.offerLetterURL && !studentData.placedInfo?.applicationURL && (
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 text-center">

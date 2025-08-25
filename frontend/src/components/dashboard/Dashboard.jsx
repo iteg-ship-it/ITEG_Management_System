@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import AdmissionDashboard from "../admition-process/AdmissionDashboard";
 import AdmissionProcess from "../admition-process/AdmissionProcess";
 import AdmissionEditPage from "../admition-process/AdmissionEditPage";
-import AdmissionInterviewDetails from "../admition-process/AdmissionInterviewDetails";
+// import AdmissionInterviewDetails from "../admition-process/AdmissionInterviewDetails";
 
 // Student records components
 import StudentDashboard from "../student-records/StudentDashboard";
@@ -18,6 +18,7 @@ import StudentPermission from "../student-records/StudentPermission";
 import PlacementRecords from "../placement/PlacementRecords";
 import PlacementPost from "../placement/PlacementPost";
 import CompanyDetail from "../placement/CompanyDetail";
+import PlacedStudents from "../placement/PlacedStudents";
 import InterviewHistory from "../placement/InterviewHistory";
 import InterviewRoundsHistory from "../placement/InterviewRoundsHistory";
 import PageNotFound from "../common-components/error-pages/PageNotFound";
@@ -28,7 +29,7 @@ const adminRoutes = [
   { path: "/", element: <AdmissionDashboard />, roles: ["superadmin", "admin"] },
   { path: "/admission-process", element: <AdmissionProcess />, roles: ["superadmin", "admin"] },
   { path: "/admission/edit/:id", element: <AdmissionEditPage />, roles: ["superadmin", "admin"] },
-  { path: "/interview-detail/:id", element: <AdmissionInterviewDetails />, roles: ["superadmin", "admin"] },
+  // { path: "/interview-detail/:id", element: <AdmissionInterviewDetails />, roles: ["superadmin", "admin"] },
 ];
 
 const facultyRoutes = [
@@ -42,6 +43,7 @@ const facultyRoutes = [
   { path: "/readiness-status", element: <PlacementReadyStudents />, roles: ["superadmin", "admin", "faculty"] },
   { path: "/placement-interview-record", element: <PlacementRecords />, roles: ["superadmin", "admin", "faculty"] },
   { path: "/company-details", element: <CompanyDetail />, roles: ["superadmin", "admin", "faculty"] },
+  { path: "/placement/company/:companyId", element: <PlacedStudents />, roles: ["superadmin", "admin", "faculty"] },
   { path: "/placement-post", element: <PlacementPost />, roles: ["superadmin", "admin", "faculty"] },
   { path: "/interview-history/:id", element: <InterviewHistory />, roles: ["superadmin", "admin", "faculty"] },
   { path: "/interview-rounds-history/:studentId/:interviewId", element: <InterviewRoundsHistory />, roles: ["superadmin", "admin", "faculty"] },
@@ -51,34 +53,34 @@ const allRoutes = [...adminRoutes, ...facultyRoutes];
 
 const Dashboard = () => {
   const userRole = localStorage.getItem('role');
-  
+
   return (
     <Routes>
       {/* Redirect faculty from root to student dashboard */}
-      <Route 
-        path="/" 
+      <Route
+        path="/"
         element={
-          userRole === 'faculty' ? 
-          <Navigate to="/student-dashboard" replace /> : 
-          <ProtectedRoute allowedRoles={["superadmin", "admin"]}>
-            <AdmissionDashboard />
-          </ProtectedRoute>
-        } 
+          userRole === 'faculty' ?
+            <Navigate to="/student-dashboard" replace /> :
+            <ProtectedRoute allowedRoles={["superadmin", "admin"]}>
+              <AdmissionDashboard />
+            </ProtectedRoute>
+        }
       />
-      
+
       {/* Protected routes */}
       {allRoutes.map(({ path, element, roles }, index) => (
-        <Route 
-          key={index} 
-          path={path} 
+        <Route
+          key={index}
+          path={path}
           element={
             <ProtectedRoute allowedRoles={roles}>
               {element}
             </ProtectedRoute>
-          } 
+          }
         />
       ))}
-      
+
       {/* Catch-all route for invalid paths when logged in */}
       <Route path="*" element={<PageNotFound />} />
     </Routes>
