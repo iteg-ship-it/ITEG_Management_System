@@ -1,11 +1,15 @@
+import { useState } from 'react';
 import { useGetAllCompaniesQuery } from '../../redux/api/authApi';
 import Loader from '../common-components/loader/Loader';
 import PageNavbar from '../common-components/navbar/PageNavbar';
 import CommonTable from '../common-components/table/CommonTable';
+import Pagination from '../common-components/pagination/Pagination';
 
 const CompanyDetail = () => {
   const { data, isLoading, error } = useGetAllCompaniesQuery();
   const companies = data?.data || data || [];
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRows, setSelectedRows] = useState([]);
 
   const columns = [
     {
@@ -14,10 +18,10 @@ const CompanyDetail = () => {
       render: (row) => (
         <div className="flex items-center gap-2">
           {row.companyLogo ? (
-            <img src={row.companyLogo} alt={row.companyName} className="w-10 h-10 rounded-full object-cover" />
+            <img src={row.companyLogo} alt={row.companyName} className="w-8 h-8 rounded-full object-cover" />
           ) : (
-            <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-yellow-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-sm">
+            <div className="w-6 h-6 bg-gradient-to-br from-orange-400 to-yellow-500 rounded-full flex items-center justify-center">
+              <span className="text-white font-medium text-sm-center">
                 {row.companyName?.charAt(0)?.toUpperCase() || 'C'}
               </span>
             </div>
@@ -50,25 +54,37 @@ const CompanyDetail = () => {
 
   return (
     <div className="min-h-screen bg-white">
-       <PageNavbar
+      <PageNavbar
         title="Company Details"
         subtitle="Manage and track company information"
         showBackButton={false}
       />
+      <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
 
-            <div className="flex justify-between items-center flex-wrap gap-4">
+        <div className="flex px-6 justify-between items-center flex-wrap gap-4">
+          <Pagination
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            allData={companies}
+            selectedRows={selectedRows}
+            sectionName="companies"
+            filtersConfig={[]}
+          />
+        </div>
 
         {companies.length === 0 ? (
-        <p className="text-center text-gray-500">No companies found.</p>
-      ) : (
-        <CommonTable
-          columns={columns}
-          data={companies}
-          pagination={true}
-          rowsPerPage={10}
-        />
-      )}
-</div>
+          <p className="text-center text-gray-500">No companies found.</p>
+        ) : (
+          <CommonTable
+            columns={columns}
+            data={companies}
+            searchTerm={searchTerm}
+            pagination={true}
+            rowsPerPage={10}
+            onSelectionChange={setSelectedRows}
+          />
+        )}
+      </div>
     </div>
   );
 };
