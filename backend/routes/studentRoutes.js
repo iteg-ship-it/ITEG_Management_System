@@ -82,5 +82,8 @@ router.patch("/reschedule/interview/:studentId/:interviewId/", studentController
 
 // router.get('/count/:studentId', studentController.countStudentInterviews);
 
+router.get("/companies/placed_students/:companyId", placementController.getPlacedStudentsByCompany);
+
+
 
 module.exports = router;

@@ -592,3 +592,42 @@ exports.getStudentInterviewHistory = async (req, res) => {
     });
   }
 };
+
+
+
+exports.getPlacedStudentsByCompany = async (req, res) => {
+  try {
+    const { companyId } = req.params;
+
+    // check if company exists
+    const company = await Company.findById(companyId);
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: "Company not found"
+      });
+    }
+
+    // find all students who have placedInfo with this companyRef
+    const students = await AdmittedStudent.find({ 
+      "placedInfo.companyRef": companyId 
+    })
+    .select("firstName lastName email studentMobile course stream placedInfo")
+    .populate("placedInfo.companyRef", "companyName companyLogo location");
+
+    res.status(200).json({
+      success: true,
+      company: company.companyName,
+      totalPlaced: students.length,
+      students
+    });
+
+  } catch (error) {
+    console.error("Error fetching placed students:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
+    });
+  }
+};
