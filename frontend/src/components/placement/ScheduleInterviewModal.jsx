@@ -226,7 +226,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
               readOnly
               className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full cursor-pointer"
             />
-            <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#FDA92D]" />
+            <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700" />
             {showDatePicker && (
               <DatePickerComponent
                 selectedDate={formik.values.scheduleDate}

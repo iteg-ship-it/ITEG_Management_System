@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-key */
 import { 
   Users, 
   GraduationCap, 
@@ -9,6 +10,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 import admissionFlowBg from '../../assets/images/Group 880.jpg';
 import admittedFlowBg from '../../assets/images/Group 881.jpg';
+// import placementFlowBg from '../../assets/images/Group 882.jpg';
 import { 
   useGetAllStudentsQuery,
   useAdmitedStudentsQuery,
@@ -29,20 +31,24 @@ const FlowSwapCard = () => {
     {
       title: 'Admission Module',
       description: 'Manage the complete student admission journey — from application to final selection, all in one place.',
-      icon: '📝',
-      color: '#3B82F6'
+      icon: <svg className="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
+      color: '#3B82F6',
+      backgroundImage: admissionFlowBg
     },
     {
       title: 'Admitted Module', 
       description: 'Track academic progress, attendance, and performance of students enrolled in ITEG seamlessly.',
-      icon: '🎓',
-      color: '#8B5CF6'
+      icon: <svg className="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg>,
+      color: '#8B5CF6',
+      backgroundImage: admittedFlowBg
     },
     {
       title: 'Placements Module',
       description: 'Control, manage, and monitor placement drives and interview records with full visibility.',
-      icon: '💼', 
-      color: '#10B981'
+      icon: <svg className="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0H8m8 0v2a2 2 0 01-2 2H10a2 2 0 01-2-2V6m8 0H8" /></svg>, 
+      color: '#10B981',
+      // backgroundImage: 
+      
     }
   ];
 
@@ -76,7 +82,7 @@ const FlowSwapCard = () => {
         }`}>
           <div className="text-center">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-white/20 backdrop-blur-md border border-white/30">
-              <span className="text-3xl">{currentFlow.icon}</span>
+              <div className="text-white">{currentFlow.icon}</div>
             </div>
             <h3 className="text-2xl font-bold mb-3 text-white">
               {currentFlow.title}
@@ -240,7 +246,13 @@ const AdmissionDashboard = () => {
     .map(([name, placements], index) => ({
       name,
       placements,
-      logo: ['🔍', '🪟', '📦', '👥', '🍎'][index] || '🏢'
+      logo: [
+        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>,
+        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
+        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>,
+        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" /></svg>,
+        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h4M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+      ][index] || <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h4M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
     }));
 
   if (studentsLoading || admittedLoading || placementLoading) {
@@ -271,7 +283,7 @@ const AdmissionDashboard = () => {
         }
       />
           
-      <div className="px-2 sm:px-6 py-2 sm:py-4">
+      {/* <div className=""> */}
         {/* Welcome Section with Flow Cards */}
         <div className="flex gap-6 mb-8 h-80">
           {/* Welcome Card - 60% width */}
@@ -339,7 +351,7 @@ const AdmissionDashboard = () => {
             <div className="px-6 py-4 border-b-2 border-gray-200 shadow-sm bg-white">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-100">
-                  <span className="text-lg">📝</span>
+                  <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">Admission Flow</h3>
@@ -372,7 +384,7 @@ const AdmissionDashboard = () => {
             <div className="px-6 py-4 border-b-2 border-gray-200 shadow-sm bg-white">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-100">
-                  <span className="text-lg">🎓</span>
+                  <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg>
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">Admitted Flow</h3>
@@ -414,7 +426,7 @@ const AdmissionDashboard = () => {
             <div className="px-6 py-4 border-b-2 border-gray-200 shadow-sm bg-white">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-100">
-                  <span className="text-lg">💼</span>
+                  <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0H8m8 0v2a2 2 0 01-2 2H10a2 2 0 01-2-2V6m8 0H8" /></svg>
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">Placement Flow</h3>
@@ -502,7 +514,7 @@ const AdmissionDashboard = () => {
           <div className="px-6 py-4 border-b-2 border-gray-200 shadow-sm bg-white">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-100">
-                <span className="text-lg">🏢</span>
+                <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h4M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
               </div>
               <div>
                 <h3 className="text-lg font-bold text-gray-900">Top Placement Partners</h3>
@@ -513,9 +525,9 @@ const AdmissionDashboard = () => {
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               {topCompanies.length > 0 ? topCompanies.map((company, index) => (
-                <div key={index} className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors border border-gray-200">
+                <div key={`${company.name}-${index}`} className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors border border-gray-200">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-lg">
+                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
                       {company.logo}
                     </div>
                     <div>
@@ -542,7 +554,7 @@ const AdmissionDashboard = () => {
           <div className="px-6 py-4 border-b-2 border-gray-200 shadow-sm bg-white">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-100">
-                <span className="text-lg">⚡</span>
+                <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
               </div>
               <div>
                 <h3 className="text-lg font-bold text-gray-900">Quick Actions</h3>
@@ -567,7 +579,7 @@ const AdmissionDashboard = () => {
             </div>
           </div>
         </div>
-      </div>
+      {/* </div> */}
     </div>
   );
 };

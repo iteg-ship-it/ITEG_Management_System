@@ -1,5 +1,4 @@
-import React from 'react';
-
+/* eslint-disable react/prop-types */
 const SessionTimeoutModal = ({ isOpen, onContinue, onLogout }) => {
   if (!isOpen) return null;
 

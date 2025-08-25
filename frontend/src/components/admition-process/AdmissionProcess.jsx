@@ -510,19 +510,31 @@ const StudentList = () => {
           },
         },
       ];
-      actionButton = (row) => (
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => {
-              setAddInterviwModalOpen(true)
-              setId(row._id)
-            }}
-            className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
-          >
-            Take Interview
-          </button>
-        </div>
-      );
+      actionButton = (row) => {
+        const userRole = localStorage.getItem('role');
+        const isSuperAdmin = userRole === 'superadmin';
+        
+        return (
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => {
+                if (isSuperAdmin) {
+                  setAddInterviwModalOpen(true)
+                  setId(row._id)
+                }
+              }}
+              disabled={!isSuperAdmin}
+              className={`text-md px-3 py-1 rounded-md transition relative ${
+                isSuperAdmin 
+                  ? 'bg-[#FDA92D] text-white hover:bg-[#FED680] active:bg-[#B66816] cursor-pointer'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              Take Interview
+            </button>
+          </div>
+        );
+      };
       break;
 
     case "Results":
@@ -753,3 +765,4 @@ const StudentList = () => {
 };
 
 export default StudentList;
+

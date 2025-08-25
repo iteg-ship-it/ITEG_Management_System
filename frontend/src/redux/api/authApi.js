@@ -130,6 +130,14 @@ export const authApi = createApi({
         }
       },
     }),
+    
+    signup: builder.mutation({
+      query: (userData) => ({
+        url: import.meta.env.VITE_SIGNUP_ENDPOINT || '/api/auth/signup',
+        method: "POST",
+        body: userData,
+      }),
+    }),
     // ---- Create User API ----
     updateUser: builder.mutation({
       query: ({ id, data }) => ({
@@ -522,11 +530,20 @@ export const authApi = createApi({
     // Create placement post
     createPlacementPost: builder.mutation({
       query: (data) => ({
-        url: `admitted/students/placement_post`,
+        url: `/admitted/students/placement_post`,
         method: "POST",
         body: data,
       }),
       invalidatesTags: ['PlacementStudent'],
+    }),
+
+    // Get all companies
+    getAllCompanies: builder.query({
+      query: () => ({
+        url: '/admitted/students/companies',
+        method: "GET",
+      }),
+      providesTags: ['Company'],
     }),
 
   }),
@@ -534,6 +551,7 @@ export const authApi = createApi({
 
 export const {
   useLoginMutation,
+  useSignupMutation,
   useLoginWithGoogleMutation,
   useUpdateUserMutation,
   useForgetPasswordMutation,
@@ -568,5 +586,6 @@ export const {
   useRescheduleInterviewMutation,
   useAddInterviewRoundMutation,
   useConfirmPlacementMutation,
-  useCreatePlacementPostMutation
+  useCreatePlacementPostMutation,
+  useGetAllCompaniesQuery
 } = authApi;

@@ -115,7 +115,7 @@ const SignupPage = () => {
           <div className="mt-6 flex justify-end">
             <button
               type="submit"
-              className="w-40 bg-[#FDA92D]  font-bold text-xl text-white py-3 px-4 rounded-full hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+              className="w-40 bg-[#FDA92D]  font-bold text-xl text-white py-3 px-4 rounded-full hover:bg-[#ED9A21] active:bg-[#B66816] transition relative"
             >
               Submit
             </button>

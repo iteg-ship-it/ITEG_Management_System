@@ -173,7 +173,7 @@ const SettingsModal = ({ user, onClose }) => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full mt-6 bg-[#FDA92D]  hover:bg-[#FED680] active:bg-[#B66816] text-white py-3 rounded-3xl font-medium focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
+                            className="w-full mt-6 bg-[#FDA92D]  hover:bg-[#ED9A21] active:bg-[#B66816] text-white py-3 rounded-3xl font-medium focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
                         >
                             {isLoading ? "Saving..." : "Save"}
                         </button>

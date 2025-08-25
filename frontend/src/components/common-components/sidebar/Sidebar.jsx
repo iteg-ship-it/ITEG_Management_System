@@ -140,6 +140,7 @@ const Sidebar = ({ children }) => {
       roles: ["superadmin", "admin", "faculty"],
       subMenu: [
         { name: "Placement Candidates", path: "/readiness-status" },
+        { name: "Company Details", path: "/company-details" },
         { name: "Placed Students", path: "/placement-post" },
       ],
     },
