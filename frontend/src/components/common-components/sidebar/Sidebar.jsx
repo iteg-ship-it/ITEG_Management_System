@@ -81,6 +81,9 @@ const Sidebar = ({ children }) => {
   const isSubMenuActive = (subPath) => {
     const path = location.pathname;
 
+    // if (subPath === "/") {
+    //   return path === "/" || path.startsWith("/admission/") || path.startsWith("/interview-detail/") || path === "/admission-record";
+    // }
     if (subPath === "/") {
       return path === "/";
     }

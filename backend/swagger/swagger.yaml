@@ -3225,3 +3225,109 @@ paths:
                   error:
                     type: string
                     example: "File upload failed"
+  
+
+
+  /api/admitted/students/companies:
+    get:
+      summary: Get all companies
+      description: Retrieve all companies with full details
+      tags:
+        - Company
+      responses:
+        '200':
+          description: List of all companies
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Company'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Server error
+                  error:
+                    type: string
+                    example: Internal server error
+
+
+  /api/admitted/students/companies/placed_students/{companyId}:
+    get:
+      summary: Get all placed students by company
+      description: Retrieve all students who are placed in the selected company.
+      tags:
+        - Company
+      parameters:
+        - name: companyId
+          in: path
+          required: true
+          description: The ID of the company
+          schema:
+            type: string
+            example: 64fdb61e7b9a1a1234567890
+      responses:
+        '200':
+          description: List of placed students for the given company
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  company:
+                    type: string
+                    example: TCS Pvt Ltd
+                  totalPlaced:
+                    type: integer
+                    example: 3
+                  students:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PlacedStudent'
+        '404':
+          description: Company not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Company not found
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Server error
+                  error:
+                    type: string
+                    example: Internal server error

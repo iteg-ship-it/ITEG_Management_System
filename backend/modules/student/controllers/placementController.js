@@ -407,9 +407,29 @@ exports.createPlacementPost = async (req, res) => {
 };
 
 // Get all companies
+// exports.getAllCompanies = async (req, res) => {
+//   try {
+//     const companies = await Company.find().select('companyName companyLogo headOffice');
+//     res.status(200).json({
+//       success: true,
+//       data: companies
+//     });
+//   } catch (error) {
+//     console.error("Error fetching companies:", error);
+//     res.status(500).json({ 
+//       success: false, 
+//       message: "Server error", 
+//       error: error.message 
+//     });
+//   }
+// };
+
+
 exports.getAllCompanies = async (req, res) => {
   try {
-    const companies = await Company.find().select('companyName companyLogo headOffice');
+    // Fetch all companies with all schema fields
+    const companies = await Company.find();  
+
     res.status(200).json({
       success: true,
       data: companies
@@ -423,6 +443,7 @@ exports.getAllCompanies = async (req, res) => {
     });
   }
 };
+
 
 // Get company by name
 exports.getCompanyByName = async (req, res) => {
@@ -576,6 +597,45 @@ exports.getStudentInterviewHistory = async (req, res) => {
       success: false, 
       message: "Server error", 
       error: error.message 
+    });
+  }
+};
+
+
+
+exports.getPlacedStudentsByCompany = async (req, res) => {
+  try {
+    const { companyId } = req.params;
+
+    // check if company exists
+    const company = await Company.findById(companyId);
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: "Company not found"
+      });
+    }
+
+    // find all students who have placedInfo with this companyRef
+    const students = await AdmittedStudent.find({ 
+      "placedInfo.companyRef": companyId 
+    })
+    .select("firstName lastName email studentMobile course stream placedInfo")
+    .populate("placedInfo.companyRef", "companyName companyLogo location");
+
+    res.status(200).json({
+      success: true,
+      company: company.companyName,
+      totalPlaced: students.length,
+      students
+    });
+
+  } catch (error) {
+    console.error("Error fetching placed students:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
     });
   }
 };
