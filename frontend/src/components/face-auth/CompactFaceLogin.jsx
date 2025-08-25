@@ -75,10 +75,10 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
       
       const constraints = {
         video: {
-          width: { ideal: isMobile ? 480 : 320 },
-          height: { ideal: isMobile ? 640 : 240 },
+          width: { ideal: 320 }, // Smaller for faster processing
+          height: { ideal: 240 },
           facingMode: 'user',
-          frameRate: { ideal: 15, max: 30 }
+          frameRate: { ideal: 10, max: 15 } // Lower frame rate for better performance
         }
       };
       
@@ -140,10 +140,10 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
       // Start camera first
       await startCamera();
       
-      // Wait for camera to be ready
+      // Reduced wait time for faster response
       setTimeout(async () => {
         await detectAndAuthenticate();
-      }, 2000);
+      }, 1000);
       
     } catch (error) {
       setStatus('failed');
@@ -167,8 +167,8 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       
       const detectionOptions = new faceapi.TinyFaceDetectorOptions({
-        inputSize: isMobile ? 224 : 416,
-        scoreThreshold: isMobile ? 0.3 : 0.5
+        inputSize: 224, // Smaller input for faster processing
+        scoreThreshold: 0.3 // Lower threshold for better detection
       });
       
       // Detect face with landmarks and descriptor

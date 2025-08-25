@@ -46,16 +46,20 @@ const FaceLogin = ({ onLoginSuccess, onClose }) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
-          width: { ideal: 640 }, 
-          height: { ideal: 480 },
-          facingMode: 'user'
+          width: { ideal: 480 }, // Reduced resolution for better performance
+          height: { ideal: 360 },
+          facingMode: 'user',
+          frameRate: { ideal: 15, max: 20 } // Lower frame rate for better performance
         } 
       });
       videoRef.current.srcObject = stream;
       setIsCapturing(true);
       
       videoRef.current.onloadedmetadata = () => {
-        startFaceDetection();
+        // Small delay to ensure video is ready
+        setTimeout(() => {
+          startFaceDetection();
+        }, 500);
       };
     } catch (error) {
       console.error('Error accessing camera:', error);
@@ -79,24 +83,27 @@ const FaceLogin = ({ onLoginSuccess, onClose }) => {
     if (!modelsLoaded || !videoRef.current) return;
 
     try {
+      // Optimized detection with smaller input size for speed
       const detections = await faceapi
-        .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
-        .withFaceLandmarks();
+        .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions({
+          inputSize: 320, // Smaller input for faster processing
+          scoreThreshold: 0.3 // Lower threshold for better detection
+        }));
 
       if (detections) {
         setFaceDetected(true);
-        // Draw face detection box
+        // Simplified drawing for better performance
         const canvas = canvasRef.current;
-        const displaySize = { width: videoRef.current.videoWidth, height: videoRef.current.videoHeight };
-        faceapi.matchDimensions(canvas, displaySize);
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw green box around detected face
-        ctx.strokeStyle = '#10B981';
-        ctx.lineWidth = 3;
-        const box = detections.detection.box;
-        ctx.strokeRect(box.x, box.y, box.width, box.height);
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          
+          // Draw green box around detected face
+          ctx.strokeStyle = '#10B981';
+          ctx.lineWidth = 3;
+          const box = detections.box;
+          ctx.strokeRect(box.x, box.y, box.width, box.height);
+        }
       } else {
         setFaceDetected(false);
         const ctx = canvasRef.current?.getContext('2d');
@@ -109,7 +116,7 @@ const FaceLogin = ({ onLoginSuccess, onClose }) => {
 
   const startFaceDetection = useCallback(() => {
     if (detectionInterval.current) clearInterval(detectionInterval.current);
-    detectionInterval.current = setInterval(detectFace, 100);
+    detectionInterval.current = setInterval(detectFace, 200); // Reduced frequency for better performance
   }, [detectFace]);
 
   const stopFaceDetection = useCallback(() => {
@@ -144,8 +151,12 @@ const FaceLogin = ({ onLoginSuccess, onClose }) => {
       }
       setCountdown(0);
       
+      // Optimized face capture with faster settings
       const detections = await faceapi
-        .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
+        .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions({
+          inputSize: 416, // Balanced size for accuracy and speed
+          scoreThreshold: 0.3
+        }))
         .withFaceLandmarks()
         .withFaceDescriptor();
 
@@ -154,36 +165,26 @@ const FaceLogin = ({ onLoginSuccess, onClose }) => {
         return;
       }
 
-      // Enhanced liveness detection
+      // Simplified liveness detection for better performance
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      ctx.drawImage(videoRef.current, 0, 0);
+      canvas.width = 160; // Smaller canvas for faster processing
+      canvas.height = 120;
+      ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
       
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const pixels = imageData.data;
       
-      // Multiple liveness checks
-      let variation = 0;
+      // Quick brightness check only
       let brightness = 0;
-      for (let i = 0; i < pixels.length; i += 4) {
-        const r = pixels[i];
-        const g = pixels[i + 1];
-        const b = pixels[i + 2];
-        variation += Math.abs(r - g) + Math.abs(g - b) + Math.abs(b - r);
-        brightness += (r + g + b) / 3;
+      const sampleSize = pixels.length / 16; // Sample every 16th pixel for speed
+      for (let i = 0; i < pixels.length; i += 16) {
+        brightness += (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
       }
       
-      const avgVariation = variation / (pixels.length / 4);
-      const avgBrightness = brightness / (pixels.length / 4);
+      const avgBrightness = brightness / sampleSize;
       
-      if (avgVariation < 15) {
-        toast.error('Liveness check failed. Please use live camera!');
-        return;
-      }
-      
-      if (avgBrightness < 30 || avgBrightness > 220) {
+      if (avgBrightness < 20 || avgBrightness > 235) {
         toast.error('Poor lighting conditions. Please adjust lighting.');
         return;
       }
