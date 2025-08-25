@@ -5,7 +5,6 @@ import AdmissionDashboard from "../admition-process/AdmissionDashboard";
 import AdmissionProcess from "../admition-process/AdmissionProcess";
 import AdmissionEditPage from "../admition-process/AdmissionEditPage";
 import AdmissionInterviewDetails from "../admition-process/AdmissionInterviewDetails";
-import AdmissionRecords from "../admition-process/AdmitionRecords";
 
 // Student records components
 import StudentDashboard from "../student-records/StudentDashboard";
@@ -30,7 +29,6 @@ const adminRoutes = [
   { path: "/", element: <AdmissionDashboard />, roles: ["superadmin", "admin"] },
   { path: "/admission-process", element: <AdmissionProcess />, roles: ["superadmin", "admin"] },
   { path: "/admission/edit/:id", element: <AdmissionEditPage />, roles: ["superadmin", "admin"] },
-  { path: "/admission-record", element: <AdmissionRecords />, roles: ["superadmin", "admin"] },
   { path: "/interview-detail/:id", element: <AdmissionInterviewDetails />, roles: ["superadmin", "admin"] },
 ];
 
