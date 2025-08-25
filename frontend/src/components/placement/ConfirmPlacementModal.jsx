@@ -48,9 +48,12 @@ const ConfirmPlacementModal = ({ isOpen, onClose, student, onSuccess }) => {
       placementData.append('studentId', student?._id);
       
       // Add form fields
-      Object.keys(formData).forEach(key => {
-        placementData.append(key, formData[key]);
-      });
+      placementData.append('companyName', formData.companyName);
+      placementData.append('salary', formData.salary);
+      placementData.append('location', formData.location);
+      placementData.append('jobProfile', formData.jobProfile);
+      placementData.append('jobType', formData.jobType);
+      placementData.append('joiningDate', formData.joiningDate);
       
       // Add files
       placementData.append('applicationFile', applicationFile);

@@ -89,7 +89,7 @@ const InterviewRoundsHistory = () => {
 
       <div className="px-6 py-6">
         {/* Student & Company Info Card */}
-        <div className="bg-white rounded-2xl overflow-hidden mb-8" style={{ boxShadow: '0 0 25px 8px rgba(0, 0, 0, 0.10)' }}>
+        <div className="bg-white rounded-2xl overflow-hidden mb-8" style={{ boxShadow: '0 0 15px 3px rgba(0, 0, 0, 0.06)' }}>
           <div className="bg-gradient-to-r from-orange-50 to-yellow-50 px-6 py-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-6">
@@ -140,7 +140,7 @@ const InterviewRoundsHistory = () => {
         </div>
 
         {/* Interview Rounds Section */}
-        <div className="bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 0 25px 8px rgba(0, 0, 0, 0.10)' }}>
+        <div className="bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 0 15px 3px rgba(0, 0, 0, 0.06)' }}>
           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -235,7 +235,7 @@ const InterviewRoundsHistory = () => {
 
         {/* Overall Interview Remarks */}
         {(selectedInterview.statusRemark || selectedInterview.remark) && (
-          <div className="mt-8 bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 0 25px 8px rgba(0, 0, 0, 0.10)' }}>
+          <div className="mt-8 bg-white rounded-2xl overflow-hidden" style={{ boxShadow: '0 0 15px 3px rgba(0, 0, 0, 0.06)' }}>
             <div className="px-6 py-4 border-b border-gray-200 bg-blue-50">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">

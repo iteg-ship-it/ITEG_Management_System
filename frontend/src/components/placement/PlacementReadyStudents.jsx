@@ -358,6 +358,8 @@ const PlacementReadyStudents = () => {
   const handleRowClick = (student) => {
     if (activeTab === "Ongoing Interviews" || activeTab === "Selected Student") {
       navigate(`/interview-history/${student._id}`);
+    } else if (activeTab === "Placed Student") {
+      navigate(`/student-profile/${student._id}`);
     }
   };
 

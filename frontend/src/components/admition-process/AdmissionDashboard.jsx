@@ -18,7 +18,7 @@ import {
 } from '../../redux/api/authApi';
 import Loader from '../common-components/loader/Loader';
 import { Chart } from 'react-google-charts';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import PageNavbar from '../common-components/navbar/PageNavbar';
 
@@ -31,21 +31,21 @@ const FlowSwapCard = () => {
     {
       title: 'Admission Module',
       description: 'Manage the complete student admission journey — from application to final selection, all in one place.',
-      icon: <svg className="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
+      icon: <svg className="w-8 h-8" fill="none" stroke="#3B82F6" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>,
       color: '#3B82F6',
       backgroundImage: admissionFlowBg
     },
     {
       title: 'Admitted Module', 
       description: 'Track academic progress, attendance, and performance of students enrolled in ITEG seamlessly.',
-      icon: <svg className="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg>,
+      icon: <svg className="w-8 h-8" fill="none" stroke="#8B5CF6" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg>,
       color: '#8B5CF6',
       backgroundImage: admittedFlowBg
     },
     {
       title: 'Placements Module',
       description: 'Control, manage, and monitor placement drives and interview records with full visibility.',
-      icon: <svg className="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0H8m8 0v2a2 2 0 01-2 2H10a2 2 0 01-2-2V6m8 0H8" /></svg>, 
+      icon: <svg className="w-8 h-8" fill="none" stroke="#10B981" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m-8 0V6a2 2 0 00-2 2v6" /></svg>, 
       color: '#10B981',
       // backgroundImage: 
       
@@ -82,7 +82,7 @@ const FlowSwapCard = () => {
         }`}>
           <div className="text-center">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-white/20 backdrop-blur-md border border-white/30">
-              <div className="text-white">{currentFlow.icon}</div>
+              <div style={{ color: currentFlow.color }}>{currentFlow.icon}</div>
             </div>
             <h3 className="text-2xl font-bold mb-3 text-white">
               {currentFlow.title}
@@ -112,6 +112,7 @@ const FlowSwapCard = () => {
 };
 
 const AdmissionDashboard = () => {
+  const navigate = useNavigate();
   const { data: allStudentsData, isLoading: studentsLoading } = useGetAllStudentsQuery();
   const { data: admittedData, isLoading: admittedLoading } = useAdmitedStudentsQuery();
   const { data: placementData, isLoading: placementLoading } = useGetReadyStudentsForPlacementQuery();
@@ -231,21 +232,30 @@ const AdmissionDashboard = () => {
     ['Successfully Placed', placedStudents]
   ];
 
-  // Calculate top companies from placed students data
+  // Calculate top companies from placed students data with company IDs
   const companyStats = {};
   admittedStudents.forEach(student => {
-    if (student.placedInfo && student.placedInfo.companyName) {
+    if (student.placedInfo && student.placedInfo.companyName && student.placedInfo.companyRef) {
       const companyName = student.placedInfo.companyName;
-      companyStats[companyName] = (companyStats[companyName] || 0) + 1;
+      const companyId = student.placedInfo.companyRef;
+      
+      if (!companyStats[companyName]) {
+        companyStats[companyName] = {
+          id: companyId,
+          count: 0
+        };
+      }
+      companyStats[companyName].count += 1;
     }
   });
 
   const topCompanies = Object.entries(companyStats)
-    .sort(([,a], [,b]) => b - a)
+    .sort(([,a], [,b]) => b.count - a.count)
     .slice(0, 5)
-    .map(([name, placements], index) => ({
+    .map(([name, data], index) => ({
       name,
-      placements,
+      id: data.id,
+      placements: data.count,
       logo: [
         <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>,
         <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
@@ -525,7 +535,13 @@ const AdmissionDashboard = () => {
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               {topCompanies.length > 0 ? topCompanies.map((company, index) => (
-                <div key={`${company.name}-${index}`} className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors border border-gray-200">
+                <div 
+                  key={`${company.name}-${index}`} 
+                  className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors border border-gray-200 cursor-pointer hover:shadow-md"
+                  onClick={() => navigate(`/placement/company/${company.id}`, {
+                    state: { companyName: company.name }
+                  })}
+                >
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
                       {company.logo}

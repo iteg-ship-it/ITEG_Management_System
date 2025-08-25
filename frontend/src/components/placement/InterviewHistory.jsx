@@ -389,13 +389,7 @@ const InterviewHistory = () => {
           <div className="space-y-6">
             {displayInterviews.map((interview, index) => (
               <div key={interview._id || interview.id || index} 
-                   onClick={() => {
-                     const companyName = interview.company?.companyName || 'Unknown Company';
-                     navigate(`/interview-history-details/${encodeURIComponent(companyName)}`, {
-                       state: { studentId: id }
-                     });
-                   }}
-                   className="bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden backdrop-blur-sm cursor-pointer">
+                   className="bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden backdrop-blur-sm">
                 
                 {/* Card Header */}
                 <div className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200 p-6">
@@ -451,7 +445,10 @@ const InterviewHistory = () => {
                     {/* View History Button */}
                     <button 
                       className="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 border border-orange-200 rounded-lg cursor-pointer hover:bg-orange-100 hover:border-orange-300 transition-all duration-200 group ml-6"
-                      onClick={() => navigate(`/interview-rounds-history/${id}/${interview._id}`)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/interview-rounds-history/${id}/${interview._id}`);
+                      }}
                     >
                       <svg className="w-4 h-4 text-orange-500 group-hover:text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />

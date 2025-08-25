@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { useGetPlacedStudentsByCompanyQuery } from '../../redux/api/authApi';
 import Loader from '../common-components/loader/Loader';
@@ -10,6 +10,11 @@ const PlacedStudents = () => {
   const { companyId } = useParams();
   const location = useLocation();
   const companyName = location.state?.companyName || 'Company';
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const { data, isLoading, error } = useGetPlacedStudentsByCompanyQuery(companyId);
   const students = data?.students || [];

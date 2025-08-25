@@ -526,6 +526,7 @@ export const authApi = createApi({
         url: `/admitted/students/confirm_placement`,
         method: "POST",
         body: data,
+        formData: true,
       }),
       invalidatesTags: ['PlacementStudent', 'Student'],
       async onQueryStarted(data, { dispatch, queryFulfilled }) {

@@ -9,13 +9,17 @@ import DatePickerInput from "../datepickerInput/DatePickerInput";
 import TextInput from '../common-components/common-feild/TextInput';
 import CustomDropdown from '../common-components/common-feild/CustomDropdown';
 import { toast } from 'react-toastify';
+import InterviewSuccessModal from './InterviewSuccessModal';
 
 
-const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) => {
+const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents, interviewLevel }) => {
     const [createInterview, { isLoading }] = useCreateLevelInterviewMutation();
     const [studentName, setStudentName] = useState("");
+    const [currentLevel, setCurrentLevel] = useState("");
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [interviewResult, setInterviewResult] = useState(null);
     
-    // Get student name when modal opens
+    // Get student name and current level when modal opens
     useEffect(() => {
         if (isOpen && studentId) {
             // Find student from localStorage or use a placeholder
@@ -24,8 +28,15 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
             if (student) {
                 const fullName = `${student.firstName || ''} ${student.lastName || ''}`.trim();
                 setStudentName(fullName || "Student");
+                
+                // Use the interview level passed from parent component
+                const actualCurrentLevel = interviewLevel || student.currentLevel || "1A";
+                setCurrentLevel(actualCurrentLevel);
+                
+                console.log('Student:', student.firstName, 'Current Level:', actualCurrentLevel);
             } else {
                 setStudentName("Student");
+                setCurrentLevel("1A");
             }
         }
     }, [isOpen, studentId]);
@@ -62,6 +73,21 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
         result: Yup.string().required('Required'),
     });
     
+    const getNextLevel = (current, result) => {
+        if (result !== 'Pass') return current;
+        
+        const levelProgression = {
+            '1A': '1B',
+            '1B': '1C', 
+            '1C': '2A',
+            '2A': '2B',
+            '2B': '2C',
+            '2C': 'Completed'
+        };
+        
+        return levelProgression[current] || current;
+    };
+
     const handleSubmit = async (values, { resetForm }) => {
         try {
             await createInterview({
@@ -69,18 +95,19 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                 data: values,
             }).unwrap();
             
-            // Close form immediately
+            // Store interview result for success modal
+            const nextLevel = getNextLevel(currentLevel, values.result);
+            setInterviewResult({
+                studentName,
+                currentLevel,
+                nextLevel,
+                result: values.result
+            });
+            
+            // Show success modal first, then close form
+            setShowSuccessModal(true);
             resetForm();
             onClose();
-            
-            // Show success message after closing
-            const resultMessage = values.result === 'Pass' 
-                ? `Interview marked as Pass ✅` 
-                : values.result === 'Fail' 
-                ? `Interview marked as Fail ❌` 
-                : `Interview marked as Pending ⏳`;
-            
-            toast.success(resultMessage);
             
             // Refresh data in background
             if (refetchStudents) {
@@ -93,12 +120,27 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
         }
     };
 
-    if (!isOpen) return null;
+    if (!isOpen) return (
+        <>
+            {/* Success Modal - Show even when main modal is closed */}
+            {showSuccessModal && (
+                <InterviewSuccessModal
+                    isOpen={showSuccessModal}
+                    onClose={() => setShowSuccessModal(false)}
+                    studentName={interviewResult?.studentName}
+                    currentLevel={interviewResult?.currentLevel}
+                    nextLevel={interviewResult?.nextLevel}
+                    result={interviewResult?.result}
+                />
+            )}
+        </>
+    );
     
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl py-4 px-6 w-full max-w-2xl relative">
-                <h2 className="text-xl font-bold text-center text-orange-500 mb-4">Technical Interview Form</h2>
+        <>
+            <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+                <div className="bg-white rounded-xl py-4 px-6 w-full max-w-2xl relative">
+                    <h2 className="text-xl font-bold text-center text-orange-500 mb-4">Technical Interview Form</h2>
                 
                 <Formik
                     initialValues={initialValues}
@@ -224,14 +266,27 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents }) =
                     )}
                 </Formik>
                 
-                <button
-                    onClick={onClose}
-                    className="absolute top-3 right-3 text-xl text-gray-400 hover:text-gray-700"
-                >
-                    &times;
-                </button>
+                    <button
+                        onClick={onClose}
+                        className="absolute top-3 right-3 text-xl text-gray-400 hover:text-gray-700"
+                    >
+                        &times;
+                    </button>
+                </div>
             </div>
-        </div>
+            
+            {/* Success Modal - Always rendered */}
+            {showSuccessModal && (
+                <InterviewSuccessModal
+                    isOpen={showSuccessModal}
+                    onClose={() => setShowSuccessModal(false)}
+                    studentName={interviewResult?.studentName}
+                    currentLevel={interviewResult?.currentLevel}
+                    nextLevel={interviewResult?.nextLevel}
+                    result={interviewResult?.result}
+                />
+            )}
+        </>
     );
 };
 

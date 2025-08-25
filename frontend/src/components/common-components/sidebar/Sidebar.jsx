@@ -25,11 +25,11 @@ const Sidebar = ({ children }) => {
       openMenus.push(1);
     }
     // Admitted menu (index 2)
-    if (path === "/student-dashboard" || path === "/student-detail-table" || path.startsWith("/student/") || path === "/student-permission") {
+    if (path === "/student-dashboard" || path === "/student-detail-table" || path.startsWith("/student/") || path === "/student-permission" || path.startsWith("/student-profile/")) {
       openMenus.push(2);
     }
     // Placements menu (index 3)
-    if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post" || path.startsWith("/interview-history/")) {
+    if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post" || path.startsWith("/interview-history/") || path === "/company-details" || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/")) {
       openMenus.push(3);
     }
     if (path.startsWith("/student-profile/")) {
@@ -59,7 +59,7 @@ const Sidebar = ({ children }) => {
       localStorage.setItem("lastSection", "admitted");
     }
     // Placements menu (index 3)
-    if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post" || path.startsWith("/interview-history/")) {
+    if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post" || path.startsWith("/interview-history/") || path === "/company-details" || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/")) {
       newOpenMenus.push(3);
     }
     if (path.startsWith("/student-profile/")) {
@@ -93,7 +93,7 @@ const Sidebar = ({ children }) => {
     }
 
     if (subPath === "/student-dashboard") {
-      return path === "/student-dashboard" || path === "/student-detail-table" || path.startsWith("/student-profile/");
+      return path === "/student-dashboard" || path === "/student-detail-table" || path.startsWith("/student-profile/") || path.includes("/level-interviews");
     }
 
     if (subPath === "/student-permission") {
@@ -101,7 +101,11 @@ const Sidebar = ({ children }) => {
     }
 
     if (subPath === "/readiness-status") {
-      return path === "/readiness-status" || path.startsWith("/interview-history/");
+      return path === "/readiness-status" || path.startsWith("/interview-history/") || path.startsWith("/interview-rounds-history/");
+    }
+
+    if (subPath === "/company-details") {
+      return path === "/company-details" || path.startsWith("/placement/");
     }
 
     if (subPath === "/placement-post") {

@@ -329,6 +329,7 @@ const StudentDetailTable = () => {
         onClose={() => setShowModal(false)}
         studentId={selectedStudentId}
         refetchStudents={refetch}
+        interviewLevel={selectedLevel}
       />
     </>
   );
