@@ -17,9 +17,7 @@ const Sidebar = ({ children }) => {
     const openMenus = [];
 
     // Dashboard menu (index 0)
-    if (path === "/") {
-      openMenus.push(0);
-    }
+
     // Admissions menu (index 1)
     if (path === "/admission-process" || path.startsWith("/admission/") || path.startsWith("/interview-detail/") || path === "/admission-record") {
       openMenus.push(1);
@@ -45,9 +43,7 @@ const Sidebar = ({ children }) => {
     const newOpenMenus = [];
 
     // Dashboard menu (index 0)
-    if (path === "/") {
-      newOpenMenus.push(0);
-    }
+
     // Admissions menu (index 1)
     if (path === "/admission-process" || path.startsWith("/admission/") || path.startsWith("/interview-detail/") || path === "/admission-record") {
       newOpenMenus.push(1);
@@ -88,6 +84,12 @@ const Sidebar = ({ children }) => {
       return path === "/";
     }
 
+    if (subPath === "/attendance-details") {
+      return path === "/attendance-details";
+    }
+
+
+
     if (subPath === "/admission-process") {
       return path === "/admission-process" || path.startsWith("/admission/") || path.startsWith("/interview-detail/") || path === "/admission-record";
     }
@@ -122,6 +124,8 @@ const Sidebar = ({ children }) => {
       roles: ["superadmin", "admin", "faculty"],
       subMenu: [
         { name: "Dashboard", path: "/" },
+        { name: "Attendance Details", path: "/attendance-details" },
+
       ],
     },
     {
