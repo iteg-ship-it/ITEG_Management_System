@@ -151,6 +151,7 @@ exports.getSelectedStudents = async (req, res) => {
 };
 
 // 5. CONFIRM PLACEMENT (Auto-detect interview-based or direct placement)
+
 exports.confirmPlacement = async (req, res) => {
   try {
     const { 
@@ -180,33 +181,33 @@ exports.confirmPlacement = async (req, res) => {
       return res.status(400).json({ message: "Student is already placed" });
     }
 
-    // Handle file URLs - try Cloudinary upload or store as-is
-    let offerLetterURL = offerLetter || null;
-    let applicationURL = application || null;
+    // ✅ Always upload to Cloudinary if data provided
+    let offerLetterURL = null;
+    let applicationURL = null;
 
-    if (offerLetter && offerLetter.startsWith('data:')) {
+    if (offerLetter) {
       try {
         const offerResult = await cloudinary.uploader.upload(offerLetter, {
           folder: 'placement-documents/offer-letters',
-          resource_type: 'auto'
+          resource_type: 'auto',
+          public_id: `${studentId}_offer_${Date.now()}`
         });
         offerLetterURL = offerResult.secure_url;
       } catch (error) {
-        // If Cloudinary fails, keep the original data
-        offerLetterURL = offerLetter;
+        return res.status(500).json({ success: false, message: "Error uploading offer letter", error: error.message });
       }
     }
 
-    if (application && application.startsWith('data:')) {
+    if (application) {
       try {
         const appResult = await cloudinary.uploader.upload(application, {
-          folder: 'placement-documents/applications', 
-          resource_type: 'auto'
+          folder: 'placement-documents/applications',
+          resource_type: 'auto',
+          public_id: `${studentId}_application_${Date.now()}`
         });
         applicationURL = appResult.secure_url;
       } catch (error) {
-        // If Cloudinary fails, keep the original data
-        applicationURL = application;
+        return res.status(500).json({ success: false, message: "Error uploading application", error: error.message });
       }
     }
 
@@ -257,10 +258,13 @@ exports.confirmPlacement = async (req, res) => {
         "Student placement confirmed directly",
       data: student.placedInfo
     });
+
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+
+
 
 // 6. GET PLACED STUDENTS
 exports.getPlacedStudents = async (req, res) => {
