@@ -631,11 +631,7 @@ exports.updateInterviewRecord = async (req, res) => {
 
 
 
-
-
-
-// Upload Resume Base64 API
-exports.uploadResumeBase64 = async (req, res) => {
+exports.uploadResumeBase64= async (req, res) => {
   const { studentId, fileName, fileData } = req.body;
 
   if (!studentId || !fileName || !fileData) {
@@ -646,69 +642,143 @@ exports.uploadResumeBase64 = async (req, res) => {
   }
 
   try {
-    // Validate file extension
-    const allowedExtensions = ['.pdf', '.doc', '.docx'];
-    const fileExtension = fileName.toLowerCase().substring(fileName.lastIndexOf('.'));
-    
-    if (!allowedExtensions.includes(fileExtension)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid file type. Only PDF, DOC, and DOCX files are allowed."
-      });
-    }
-
-    const student = await AdmittedStudent.findById(studentId);
-    if (!student) {
-      return res.status(404).json({ success: false, message: "Student not found" });
-    }
-
-    // Clean base64 data (remove data URL prefix if present)
-    let cleanBase64Data = fileData;
-    if (fileData.includes(',')) {
-      cleanBase64Data = fileData.split(',')[1];
-    }
-
-    // Determine MIME type based on file extension
-    let mimeType = 'application/pdf';
-    if (fileExtension === '.doc') mimeType = 'application/msword';
-    if (fileExtension === '.docx') mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-
-    // Upload to Cloudinary
-    const cloudinaryUpload = await cloudinary.uploader.upload(`data:${mimeType};base64,${cleanBase64Data}`, {
-      folder: 'student-resumes',
-      resource_type: 'raw',
-      public_id: `${Date.now()}-${fileName.split('.')[0]}`,
-      format: fileExtension.substring(1) // Remove the dot from extension
+    // Upload Base64 file to Cloudinary
+    const uploadResponse = await cloudinary.uploader.upload(fileData, {
+      folder: "student_resumes",
+      resource_type: "auto", // handles pdf/doc/image automatically
+      public_id: fileName.split(".")[0], // optional custom name
     });
 
-    student.resumeURL = cloudinaryUpload.secure_url;
-    await student.save();
+    // Save the Cloudinary URL in DB
+    const updatedStudent = await AdmittedStudent.findByIdAndUpdate(
+      studentId,
+      { resumeURL: uploadResponse.secure_url },
+      { new: true }
+    );
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: "Resume uploaded successfully",
-      resumeURL: cloudinaryUpload.secure_url
+      resumeURL: uploadResponse.secure_url,
+      student: updatedStudent
     });
 
   } catch (error) {
-    console.error("Upload Error:", error);
-    
-    // Handle specific Cloudinary errors
-    if (error.http_code) {
-      return res.status(400).json({
-        success: false,
-        message: "File upload failed",
-        error: error.message
-      });
-    }
-
-    return res.status(500).json({
+    console.error("Upload error:", error);
+    res.status(500).json({
       success: false,
-      message: "Server Error",
+      message: "Error uploading resume",
       error: error.message
     });
   }
 };
+
+
+
+// exports.uploadResumeBase64 = async (req, res) => {
+//   const { studentId, fileName, fileData } = req.body;
+
+//   if (!studentId || !fileName || !fileData) {
+//     return res.status(400).json({
+//       success: false,
+//       message: "Missing studentId, fileName, or fileData"
+//     });
+//   }
+
+//   try {
+//     // Ensure prefix is there
+//     const base64Pdf =
+//       fileData.startsWith("data:application/pdf;base64,")
+//         ? fileData
+//         : `data:application/pdf;base64,${fileData}`;
+
+//     // Upload to Cloudinary
+//     const result = await cloudinary.uploader.upload(base64Pdf, {
+//       folder: "student_resumes",
+//       resource_type: "raw",
+//       public_id: `${studentId}_${Date.now()}`
+//     });
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Resume uploaded successfully",
+//       url: result.secure_url
+//     });
+//   } catch (error) {
+//     return res.status(500).json({
+//       success: false,
+//       message: "Error uploading resume",
+//       error: error.message
+//     });
+//   }
+// };
+
+
+
+// 
+
+// exports.uploadResumeBase64 = async (req, res) => {
+//   const { studentId, fileName, fileData } = req.body;
+
+//   if (!studentId || !fileName || !fileData) {
+//     return res.status(400).json({
+//       success: false,
+//       message: "Missing studentId, fileName, or fileData"
+//     });
+//   }
+
+//   try {
+//     // ✅ Ensure PDF base64 prefix
+//     const base64Pdf = fileData.startsWith("data:application/pdf;base64,")
+//       ? fileData
+//       : `data:application/pdf;base64,${fileData}`;
+
+//     // ✅ Upload to Cloudinary
+//     // const result = await cloudinary.uploader.upload(base64Pdf, {
+//     //   folder: "student_resumes",
+//     //   resource_type: "raw",
+//     //   public_id: `${studentId}_${Date.now()}`
+//     // });
+
+// //     const result = await cloudinary.uploader.upload(base64Pdf, {
+// //   folder: "student_resumes",
+// //   resource_type: "auto",   // let Cloudinary detect it’s a PDF
+// //   public_id: `${studentId}_${Date.now()}`
+// // });
+
+// //     // ✅ Return URLs
+// //     return res.status(200).json({
+// //       success: true,
+// //       message: "Resume uploaded successfully",
+// //       url: result.secure_url, // original Cloudinary URL
+// //       viewUrl: result.secure_url.replace("/upload/", "/upload/"), // open in browser
+// //       downloadUrl: result.secure_url.replace("/upload/", "/upload/fl_attachment/") // force download
+// //     });
+
+// const result = await cloudinary.uploader.upload(base64Pdf, {
+//   folder: "student_resumes",
+//   resource_type: "auto",   // detect automatically (PDF will be served correctly)
+//   public_id: `${studentId}_${Date.now()}`
+// });
+
+// // ✅ Return URLs
+// return res.status(200).json({
+//   success: true,
+//   message: "Resume uploaded successfully",
+//   url: result.secure_url, // direct PDF link
+//   viewUrl: result.secure_url, // open in browser
+//   downloadUrl: result.secure_url.replace("/upload/", "/upload/fl_attachment/") // force download
+//  });
+//   } catch (error) {
+//     return res.status(500).json({
+//       success: false,
+//       message: "Error uploading resume",
+//       error: error.message
+//     });
+//   }
+// };
+
+
 
 
 exports.generatePlacementPost = async (req, res) => {
