@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import { IoClose } from "react-icons/io5";
 import { FaCalendarAlt } from "react-icons/fa";
 import { useState, useEffect } from "react";
+import { buttonStyles } from "../../styles/buttonStyles";
 
 const PRIMARY_COLOR = "#FDA92D";
 const TEXT_COLOR = "#4B4B4B";
@@ -244,8 +245,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 rounded-md text-white hover:opacity-90 transition disabled:opacity-50"
-              style={{ backgroundColor: PRIMARY_COLOR }}
+              className={`w-full h-12 rounded-md disabled:opacity-50 ${buttonStyles.primary}`}
             >
               {isLoading ? "Submitting..." : "Submit"}
             </button>
@@ -420,17 +420,11 @@ const DatePickerComponent = ({ selectedDate, onDateTimeSelect, onClose }) => {
       )}
 
       {/* Action buttons */}
-      <div className="flex justify-end space-x-2">
-        <button
-          onClick={onClose}
-          className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
-        >
-          Cancel
-        </button>
+      <div className="flex justify-end">
         <button
           onClick={handleConfirm}
           disabled={!tempSelectedDate}
-          className="px-3 py-1 text-sm bg-[#FDA92D] text-white rounded hover:opacity-90 disabled:opacity-50"
+          className="w-full px-3 py-2 text-sm bg-[#FDA92D] text-white rounded hover:opacity-90 disabled:opacity-50"
         >
           Confirm
         </button>

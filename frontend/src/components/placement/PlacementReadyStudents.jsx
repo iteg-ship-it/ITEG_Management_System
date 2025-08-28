@@ -10,6 +10,7 @@ import ConfirmPlacementModal from "./ConfirmPlacementModal";
 import CreatePostModal from "./CreatePostModal";
 import profile from "../../assets/images/profileImgDummy.jpeg";
 import PageNavbar from "../common-components/navbar/PageNavbar";
+import { buttonStyles } from "../../styles/buttonStyles";
 
 // Capitalize function
 const toTitleCase = (str) =>
@@ -218,7 +219,7 @@ const PlacementReadyStudents = () => {
             setSelectedStudent(row);
             setIsModalOpen(true);
           }}
-          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#ED9A21] active:bg-[#B66816] transition relative"
+          className={buttonStyles.primary}
         >
           + Add Interview
         </button>
@@ -234,7 +235,7 @@ const PlacementReadyStudents = () => {
             setSelectedStudentForPlacement(row);
             setIsConfirmPlacementModalOpen(true);
           }}
-          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#ED9A21] active:bg-[#B66816] transition relative"
+          className={buttonStyles.primary}
         >
           Confirm Placement
         </button>
@@ -300,7 +301,7 @@ const PlacementReadyStudents = () => {
             setSelectedStudentForPost(row);
             setIsCreatePostModalOpen(true);
           }}
-          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#ED9A21] active:bg-[#B66816] transition relative"
+          className={buttonStyles.primary}
         >
           Create Post
         </button>
@@ -427,7 +428,7 @@ const PlacementReadyStudents = () => {
                 setSelectedStudent(student);
                 setIsModalOpen(true);
               }}
-              className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#ED9A21] active:bg-[#B66816] transition relative"
+              className={buttonStyles.primary}
             >
               + Add Interview
             </button>

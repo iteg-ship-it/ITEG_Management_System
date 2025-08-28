@@ -4,6 +4,7 @@ import { IoClose, IoCloudUploadOutline, IoDocumentTextOutline } from "react-icon
 import { useConfirmPlacementMutation } from "../../redux/api/authApi";
 import { toast } from "react-toastify";
 import CustomDatePicker from "../student-records/CustomDatePicker";
+import { buttonStyles } from "../../styles/buttonStyles";
 
 const PRIMARY_COLOR = "#FDA92D";
 const TEXT_COLOR = "#4B4B4B";
@@ -352,8 +353,7 @@ const ConfirmPlacementModal = ({ isOpen, onClose, student, onSuccess }) => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-12 rounded-md text-white hover:opacity-90 transition disabled:opacity-50"
-              style={{ backgroundColor: PRIMARY_COLOR }}
+              className={`w-full h-12 rounded-md transition disabled:opacity-50 ${buttonStyles.primary}`}
             >
               {isSubmitting ? "Confirming..." : "Confirm Placement"}
             </button>

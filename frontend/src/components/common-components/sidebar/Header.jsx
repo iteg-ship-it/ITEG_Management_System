@@ -1,13 +1,15 @@
+/* eslint-disable no-unused-vars */
 import logo from '../../../assets/images/doulLogo.png';
 import defaultProfile from '../../../assets/images/profile-img.png';
 import UserProfile from '../user-profile/UserProfile';
-import { Plus, X } from 'lucide-react';
+import { X, Upload } from 'lucide-react';
 import { useState } from 'react';
 import { useSignupMutation } from '../../../redux/api/authApi';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import InputField from '../common-feild/InputField';
 import CustomDropdown from '../common-feild/CustomDropdown';
+import { buttonStyles } from '../../../styles/buttonStyles';
 
 const validationSchema = Yup.object({
     name: Yup.string().required('Name is required'),
@@ -23,6 +25,7 @@ const validationSchema = Yup.object({
 const Header = () => {
     const userRole = localStorage.getItem('role');
     const [showModal, setShowModal] = useState(false);
+    const [selectedImage, setSelectedImage] = useState(null);
     const [signup, { isLoading }] = useSignupMutation();
 
     const initialValues = {
@@ -41,6 +44,18 @@ const Header = () => {
         setShowModal(true);
     };
 
+    const handleImageUpload = (file, setFieldValue) => {
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const base64Image = e.target.result;
+            setFieldValue('profileImage', base64Image);
+            setSelectedImage(file);
+        };
+        reader.readAsDataURL(file);
+    };
+
     const handleSubmit = async (values, { resetForm }) => {
         const facultyData = {
             ...values,
@@ -52,6 +67,7 @@ const Header = () => {
             alert('Faculty added successfully!');
             setShowModal(false);
             resetForm();
+            setSelectedImage(null);
         } catch (error) {
             alert(error?.data?.message || 'Error adding faculty');
         }
@@ -67,11 +83,13 @@ const Header = () => {
                     {userRole === 'admin' && (
                         <button
                             onClick={handleAddFaculty}
-                            className="flex items-center gap-3 px-5 py-3 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-darker)] transition-colors text-sm font-medium"
+                            className={`px-5 py-3 text-sm font-medium ${buttonStyles.primary}`}
                             title="Add Member"
                         >
-                            <Plus size={20} />
-                            <span className="hidden w-max sm:inline">Add Member</span>
+                            <span className="hidden sm:flex sm:items-center sm:gap-1">
+                                <span>Add</span>
+                                <span>Member</span>
+                            </span>
                         </button>
                     )}
                     <UserProfile />
@@ -84,7 +102,10 @@ const Header = () => {
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-xl font-semibold">Add Member</h2>
                             <button
-                                onClick={() => setShowModal(false)}
+                                onClick={() => {
+                                    setShowModal(false);
+                                    setSelectedImage(null);
+                                }}
                                 className="text-gray-500 hover:text-gray-700"
                             >
                                 <X size={20} />
@@ -96,7 +117,7 @@ const Header = () => {
                             validationSchema={validationSchema}
                             onSubmit={handleSubmit}
                         >
-                            {() => (
+                            {({ setFieldValue }) => (
                                 <Form className="space-y-3">
                                     <div className="grid grid-cols-2 gap-3">
                                         <InputField label="Name" name="name" />
@@ -133,7 +154,33 @@ const Header = () => {
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-3">
-                                        <InputField label="Profile Image URL" name="profileImage" type="url" />
+                                        <div>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => {
+                                                    const file = e.target.files[0];
+                                                    if (file) {
+                                                        handleImageUpload(file, setFieldValue);
+                                                    }
+                                                }}
+                                                className="hidden"
+                                                id="image-upload"
+                                            />
+                                            <label
+                                                htmlFor="image-upload"
+                                                className={`flex items-center justify-center gap-2 w-full px-3 py-3 border rounded-md cursor-pointer transition-colors h-12 ${
+                                                    selectedImage 
+                                                        ? 'border-green-300 bg-green-50 hover:bg-green-100' 
+                                                        : 'border-gray-300 hover:bg-gray-50'
+                                                }`}
+                                            >
+                                                <Upload size={16} />
+                                                <span className="text-sm">
+                                                    {selectedImage ? 'Image Uploaded' : 'Choose File'}
+                                                </span>
+                                            </label>
+                                        </div>
                                         <CustomDropdown
                                             label="Role"
                                             name="role"
@@ -149,7 +196,7 @@ const Header = () => {
                                         <button
                                             type="submit"
                                             disabled={isLoading}
-                                            className="w-full py-3 bg-[var(--primary)] text-white rounded-md hover:bg-[var(--primary-darker)] transition-colors font-medium disabled:opacity-50"
+                                            className={`w-full py-3 font-medium disabled:opacity-50 ${buttonStyles.primary}`}
                                         >
                                             {isLoading ? 'Adding Member...' : 'Submit'}
                                         </button>

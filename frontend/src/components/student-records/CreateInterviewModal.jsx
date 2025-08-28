@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from 'react';
@@ -10,6 +11,7 @@ import TextInput from '../common-components/common-feild/TextInput';
 import CustomDropdown from '../common-components/common-feild/CustomDropdown';
 import { toast } from 'react-toastify';
 import InterviewSuccessModal from './InterviewSuccessModal';
+import { buttonStyles } from '../../styles/buttonStyles';
 
 
 const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents, interviewLevel }) => {
@@ -246,18 +248,11 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents, int
                                 />
                             </div>
                             
-                            <div className="col-span-2 flex justify-center mt-4 gap-4">
-                                <button 
-                                    type="button" 
-                                    onClick={() => onClose()} 
-                                    className="px-6 py-2 border rounded-lg hover:bg-gray-100 transition"
-                                >
-                                    Cancel
-                                </button>
+                            <div className="col-span-2 mt-4">
                                 <button 
                                     type="submit" 
                                     disabled={isLoading} 
-                                    className="bg-[#FDA92D]  text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition disabled:opacity-50"
+                                    className={`w-full py-3 rounded-lg disabled:opacity-50 ${buttonStyles.primary}`}
                                 >
                                     {isLoading ? "Submitting..." : "Submit"}
                                 </button>

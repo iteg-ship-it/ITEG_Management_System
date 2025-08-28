@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useUpdatePlacementMutation } from "../../redux/api/authApi";
 import { toast } from "react-toastify";
+import { buttonStyles } from "../../styles/buttonStyles";
 
 const PlacementModal = ({ isOpen, onClose, studentId }) => {
   const [placementData, setPlacementData] = useState({
@@ -119,17 +120,11 @@ const PlacementModal = ({ isOpen, onClose, studentId }) => {
             </div>
           </div>
           
-          {/* Action Buttons */}
-          <div className="col-span-2 flex justify-center mt-4 gap-4">
-            <button
-              onClick={onClose}
-              className="px-6 py-2 border rounded-lg hover:bg-gray-100 transition"
-            >
-              Cancel
-            </button>
+          {/* Submit Button */}
+          <div className="col-span-2 mt-4">
             <button
               onClick={handleSubmit}
-              className="bg-[#FDA92D]  text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition"
+              className={`w-full py-3 rounded-lg transition ${buttonStyles.primary}`}
             >
               Update
             </button>

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useGetAllStudentsQuery } from "../../redux/api/authApi";
 import CommonTable from "../common-components/table/CommonTable";
 import { useEffect, useState, useMemo } from "react";
@@ -16,6 +17,7 @@ import {
 } from "../../redux/api/authApi";
 import { toast } from "react-toastify";
 import PageNavbar from "../common-components/navbar/PageNavbar";
+import { buttonStyles } from "../../styles/buttonStyles";
 
 
 const toTitleCase = (str) =>
@@ -399,7 +401,7 @@ const StudentList = () => {
       actionButton = (row) => (
         <button
           onClick={() => scheduleButton(row)}
-          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+          className={`text-md ${buttonStyles.primary}`}
         >
           Take Interview
         </button>
@@ -449,7 +451,7 @@ const StudentList = () => {
       actionButton = (row) => (
         <button
           onClick={() => scheduleButton(row)}
-          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+          className={`text-md ${buttonStyles.primary}`}
         >
           Take Interview
         </button>
@@ -524,10 +526,10 @@ const StudentList = () => {
                 }
               }}
               disabled={!isSuperAdmin}
-              className={`text-md px-3 py-1 rounded-md transition relative ${
+              className={`text-md ${
                 isSuperAdmin 
-                  ? 'bg-[#FDA92D] text-white hover:bg-[#FED680] active:bg-[#B66816] cursor-pointer'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  ? buttonStyles.primary + ' cursor-pointer'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed px-3 py-1 rounded-md transition'
               }`}
             >
               Take Interview
@@ -732,22 +734,15 @@ const StudentList = () => {
                       { value: "Pending", label: "Pending" },
                     ]}
                   />
-                  <div className="md:col-span-2 flex justify-end space-x-3 mt-4">
-                    <button
-                      type="button"
-                      onClick={() => setAddInterviwModalOpen(false)}
-                      className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="px-5 py-2 bg-[#FDA92D]  text-white rounded-md hover:bg-orange-600 transition disabled:opacity-50"
-                    >
-                      {isSubmitting ? "Submitting..." : "Submit"}
-                    </button>
-                  </div>
+                  <div className="col-span-2 mt-4">
+                                <button 
+                                    type="submit" 
+                                    disabled={isLoading} 
+                                    className={`w-full py-3 rounded-lg disabled:opacity-50 ${buttonStyles.primary}`}
+                                >
+                                    {isLoading ? "Submitting..." : "Submit"}
+                                </button>
+                            </div>
                 </Form>
               )}
             </Formik>
