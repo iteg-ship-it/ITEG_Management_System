@@ -44,16 +44,29 @@ const Header = () => {
         setShowModal(true);
     };
 
-    const handleImageUpload = (file, setFieldValue) => {
+    const handleImageUpload = async (file, setFieldValue) => {
         if (!file) return;
         
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const base64Image = e.target.result;
-            setFieldValue('profileImage', base64Image);
-            setSelectedImage(file);
-        };
-        reader.readAsDataURL(file);
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        try {
+            // Replace with your actual image upload API endpoint
+            const response = await fetch('/api/upload-image', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                setFieldValue('profileImage', data.imageUrl);
+                setSelectedImage(file);
+            } else {
+                alert('Failed to upload image');
+            }
+        } catch (error) {
+            alert('Error uploading image');
+        }
     };
 
     const handleSubmit = async (values, { resetForm }) => {
@@ -67,7 +80,6 @@ const Header = () => {
             alert('Faculty added successfully!');
             setShowModal(false);
             resetForm();
-            setSelectedImage(null);
         } catch (error) {
             alert(error?.data?.message || 'Error adding faculty');
         }
@@ -169,15 +181,11 @@ const Header = () => {
                                             />
                                             <label
                                                 htmlFor="image-upload"
-                                                className={`flex items-center justify-center gap-2 w-full px-3 py-3 border rounded-md cursor-pointer transition-colors h-12 ${
-                                                    selectedImage 
-                                                        ? 'border-green-300 bg-green-50 hover:bg-green-100' 
-                                                        : 'border-gray-300 hover:bg-gray-50'
-                                                }`}
+                                                className="flex items-center justify-center gap-2 w-full px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 transition-colors"
                                             >
                                                 <Upload size={16} />
                                                 <span className="text-sm">
-                                                    {selectedImage ? 'Image Uploaded' : 'Choose File'}
+                                                    {selectedImage ? selectedImage.name : 'Upload Image'}
                                                 </span>
                                             </label>
                                         </div>
