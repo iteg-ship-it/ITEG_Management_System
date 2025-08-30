@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import { useState, useEffect } from "react";
 import { useUpdateTechnologyMutation } from "../../redux/api/authApi";
 import CustomDropdown from "../common-components/common-feild/CustomDropdown";
+import { buttonStyles } from "../../styles/buttonStyles";
 
 const UpdateTechnologyModal = ({ isOpen, onClose, studentId }) => {
     const [updateTechnology, { isLoading }] = useUpdateTechnologyMutation();
@@ -135,23 +136,12 @@ const TechnologyForm = ({ initialValues, techSchema, handleSubmit, techOptions, 
                                 </div>
                             )}
                             
-                            {/* Action Buttons */}
-                            <div className="flex justify-center mt-4 gap-4">
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        resetForm();
-                                        setShowCustomInput(false);
-                                        onClose();
-                                    }}
-                                    className="px-6 py-2 border rounded-lg hover:bg-gray-100 transition"
-                                >
-                                    Cancel
-                                </button>
+                            {/* Submit Button */}
+                            <div className="mt-4">
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className="bg-[#FDA92D] hover:bg-[#E6941A] text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                                    className={`w-full py-3 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${buttonStyles.primary}`}
                                 >
                                     {isLoading ? "Updating..." : "Update"}
                                 </button>

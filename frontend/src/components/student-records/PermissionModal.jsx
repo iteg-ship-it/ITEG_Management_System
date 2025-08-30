@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useUpdatePermissionMutation } from "../../redux/api/authApi";
 import { toast } from "react-toastify";
 import imageCompression from "browser-image-compression";
+import { buttonStyles } from "../../styles/buttonStyles";
 
 const PermissionModal = ({ isOpen, onClose, studentId }) => {
     const [permissionData, setPermissionData] = useState({
@@ -228,19 +229,12 @@ const PermissionModal = ({ isOpen, onClose, studentId }) => {
                         </div>
                     </div>
                     
-                    {/* Action Buttons */}
-                    <div className="col-span-2 flex justify-center mt-4 gap-4">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-6 py-2 border rounded-lg hover:bg-gray-100 transition"
-                        >
-                            Cancel
-                        </button>
+                    {/* Submit Button */}
+                    <div className="col-span-2 mt-4">
                         <button
                             onClick={handleSubmit}
                             disabled={isSubmitting}
-                            className="bg-[#FDA92D]  text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            className={`w-full py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed ${buttonStyles.primary}`}
                         >
                             {isSubmitting ? "Submitting..." : "Submit"}
                         </button>

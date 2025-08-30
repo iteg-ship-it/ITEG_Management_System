@@ -14,6 +14,7 @@ import Loader from "../common-components/loader/Loader";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
 import PageNavbar from "../common-components/navbar/PageNavbar";
+import { buttonStyles } from "../../styles/buttonStyles";
 
 const Section = ({ title, children }) => {
   const [open, setOpen] = useState(true);
@@ -294,7 +295,7 @@ const AdmissionEditPage = () => {
                     {interviews.length >= 2 && (
                       <button
                         onClick={() => setIsModalOpen(true)}
-                        className="px-6 py-3 bg-gradient-to-r from-[#FDA92D] to-orange-500 text-white rounded-xl hover:from-orange-500 hover:to-orange-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium flex items-center space-x-2"
+                        className={`px-6 py-3 rounded-xl font-medium flex items-center space-x-2 ${buttonStyles.primary}`}
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -435,18 +436,11 @@ const AdmissionEditPage = () => {
                         { value: "Pending", label: "Pending" },
                       ]}
                     />
-                    <div className="md:col-span-2 flex justify-end space-x-3 mt-4">
-                      <button
-                        type="button"
-                        onClick={() => setIsModalOpen(false)}
-                        className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition"
-                      >
-                        Cancel
-                      </button>
+                    <div className="md:col-span-2 mt-4">
                       <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="px-5 py-2 bg-[#FDA92D] text-white rounded-md hover:bg-orange-600 transition disabled:opacity-50 flex items-center justify-center"
+                        className={`w-full py-3 rounded-md transition disabled:opacity-50 flex items-center justify-center ${buttonStyles.primary}`}
                       >
                         {isSubmitting ? (
                           <>

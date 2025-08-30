@@ -11,6 +11,7 @@ import { loginValidationSchema } from "../../../validationSchema";
 
 import EmailField from "../common-feild/EmailField";
 import PasswordField from "../common-feild/PasswordField";
+import { buttonStyles } from "../../../styles/buttonStyles";
 
 import logo from "../../../assets/images/logo-ssism.png";
 import bg from "../../../assets/images/bgImg.png";
@@ -119,7 +120,7 @@ const LoginPage = () => {
 
               <button
                 type="submit"
-                className="w-full bg-[#FDA92D]  text-white py-3 rounded-full mt-4 hover:bg-[#ED9A21] active:bg-[#B66816] transition relative"
+                className={`w-full py-3 rounded-full mt-4 ${buttonStyles.primary}`}
                 disabled={isLoading}
               >
                 {isLoading ? "Logging in..." : "Sign in"}

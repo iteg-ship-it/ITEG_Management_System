@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetInterviewHistoryQuery, useGetReadyStudentsForPlacementQuery } from "../../redux/api/authApi";
 import Loader from "../common-components/loader/Loader";
@@ -75,7 +74,7 @@ const InterviewRoundsHistory = () => {
                 className="group flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 text-gray-700 hover:text-gray-900"
               >
                 <HiArrowNarrowLeft className="text-lg group-hover:-translate-x-1 transition-transform" />
-                <span className="text-sm font-medium">Back to Interview History</span>
+                <span className="text-sm font-medium">Back</span>
               </button>
               <div className="h-8 w-px bg-gray-300"></div>
               <div>

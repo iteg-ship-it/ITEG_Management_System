@@ -10,6 +10,7 @@ import CommonTable from "../common-components/table/CommonTable";
 // import interview from "../../assets/icons/interview-icon.png";
 import CreateInterviewModal from "./CreateInterviewModal";
 import PageNavbar from "../common-components/navbar/PageNavbar";
+import { buttonStyles } from "../../styles/buttonStyles";
 
 const StudentDetailTable = () => {
   const { data = [], isLoading, refetch } = useAdmitedStudentsQuery();
@@ -245,7 +246,7 @@ const StudentDetailTable = () => {
           }
           setShowModal(true);
         }}
-        className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#ED9A21] active:bg-[#B66816] transition relative"
+        className={buttonStyles.primary}
       >
         Take Interview
       </button>

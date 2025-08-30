@@ -23,16 +23,21 @@ import InterviewHistory from "../placement/InterviewHistory";
 import InterviewRoundsHistory from "../placement/InterviewRoundsHistory";
 import PageNotFound from "../common-components/error-pages/PageNotFound";
 import ProtectedRoute from '../common-components/protected-route/ProtectedRoute';
+import AttendanceDetails from "../dashboard/AttendanceDetails";
+
 
 // Role-based route configuration
 const adminRoutes = [
   { path: "/", element: <AdmissionDashboard />, roles: ["superadmin", "admin"] },
+  { path: "/attendance-details", element: <AttendanceDetails />, roles: ["superadmin", "admin"] },
   { path: "/admission-process", element: <AdmissionProcess />, roles: ["superadmin", "admin"] },
   { path: "/admission/edit/:id", element: <AdmissionEditPage />, roles: ["superadmin", "admin"] },
   // { path: "/interview-detail/:id", element: <AdmissionInterviewDetails />, roles: ["superadmin", "admin"] },
 ];
 
 const facultyRoutes = [
+  { path: "/attendance-details", element: <AttendanceDetails />, roles: ["superadmin", "admin", "faculty"] },
+
   { path: "/student-dashboard", element: <StudentDashboard />, roles: ["superadmin", "admin", "faculty"] },
   { path: "/student-detail-table", element: <StudentDetailTable />, roles: ["superadmin", "admin", "faculty"] },
   { path: "/student/edit/:id", element: <StudentEditPage />, roles: ["superadmin", "admin", "faculty"] },
