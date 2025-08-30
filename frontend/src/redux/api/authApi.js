@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 // src/features/api/authApi.js
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import CryptoJS from "crypto-js";
@@ -45,6 +46,19 @@ const rawBaseQuery = fetchBaseQuery({
 //  Auto-refresh logic
 const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
   let result = await rawBaseQuery(args, api, extraOptions);
+
+  const isExternalAttendanceAPI = result?.error && 
+    (args.headers?.['x-api-key'] === import.meta.env.VITE_ITEG_ATTENDANCE_API_KEY ||
+     (typeof args.url === 'string' && args.url.includes(import.meta.env.VITE_ITEG_ATTENDANCE_API_URL)));
+     
+  if (isExternalAttendanceAPI) {
+    return result;
+  }
+
+  if (result?.error?.status >= 500) {
+    window.location.href = "/server-error";
+    return result;
+  }
 
   if (result?.error?.status === 401) {
     console.warn("Token expired. Attempting refresh...");
@@ -123,6 +137,14 @@ export const authApi = createApi({
         }
       },
     }),
+
+    signup: builder.mutation({
+      query: (userData) => ({
+        url: import.meta.env.VITE_SIGNUP_ENDPOINT || '/api/auth/signup',
+        method: "POST",
+        body: userData,
+      }),
+    }),
     // ---- Create User API ----
     updateUser: builder.mutation({
       query: ({ id, data }) => ({
@@ -133,15 +155,11 @@ export const authApi = createApi({
     }),
     //-- Logout API ----
     logout: builder.mutation({
-      query: ({ id }) => {
-        console.log("🚀 Sending logout request with ID:", id); // ✅ Log payload
-
-        return {
-          url: import.meta.env.VITE_LOGOUT_ENDPOINT,
-          method: "POST",
-          body: { id }, // ✅ this will match req.body.id in backend
-        };
-      },
+      query: ({ id }) => ({
+        url: import.meta.env.VITE_LOGOUT_ENDPOINT,
+        method: "POST",
+        body: { id },
+      }),
     }),
 
     // Refresh token
@@ -337,6 +355,18 @@ export const authApi = createApi({
           body: { techno },
         };
       },
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'Student', id }
+      ],
+      async onQueryStarted({ id, techno }, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          // Invalidate specific student data to force refetch
+          dispatch(authApi.util.invalidateTags([{ type: 'Student', id }]));
+        } catch (error) {
+  
+        }
+      },
     }),
 
     updateStudentImage: builder.mutation({
@@ -355,11 +385,7 @@ export const authApi = createApi({
     getStudentLevelInterviews: builder.query({
       query: (studentId) => {
         const endpoint = `${import.meta.env.VITE_GET_LEVEL_INTERVIEW_BY_ID}${studentId}`;
-        console.log('🎯 Level Interview History API Call:', {
-          endpoint,
-          studentId,
-          fullUrl: `${import.meta.env.VITE_API_URL}${endpoint}`
-        });
+
         return {
           url: endpoint,
           method: "GET",
@@ -417,7 +443,7 @@ export const authApi = createApi({
           // Also invalidate specific student data
           dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
         } catch (error) {
-          console.error('Failed to update interview record:', error);
+
         }
       },
     }),
@@ -444,12 +470,171 @@ export const authApi = createApi({
       }),
     }),
 
+    // Get interview history for placement students
+    getInterviewHistory: builder.query({
+      query: (studentId) => ({
+        url: `admitted/students/interview_history/${studentId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, studentId) => [
+        { type: 'PlacementStudent', id: studentId }
+      ],
+    }),
+
+    // Reschedule interview
+    rescheduleInterview: builder.mutation({
+      query: ({ studentId, interviewId, ...data }) => ({
+        url: `admitted/students/reschedule/interview/${studentId}/${interviewId}`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ['PlacementStudent'],
+      async onQueryStarted({ studentId, interviewId, ...data }, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(authApi.util.invalidateTags(['PlacementStudent']));
+          dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
+        } catch (error) {
+
+        }
+      },
+    }),
+
+    // Add interview round
+    addInterviewRound: builder.mutation({
+      query: ({ studentId, interviewId, ...data }) => ({
+        url: `admitted/students/interviews/${studentId}/${interviewId}/add_round`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['PlacementStudent'],
+      async onQueryStarted({ studentId, interviewId, ...data }, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(authApi.util.invalidateTags(['PlacementStudent']));
+          dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
+        } catch (error) {
+
+        }
+      },
+    }),
+
+    // Confirm placement
+    confirmPlacement: builder.mutation({
+      query: (data) => ({
+        url: `/admitted/students/confirm_placement`,
+        method: "POST",
+        body: data,
+        formData: true,
+      }),
+      invalidatesTags: ['PlacementStudent', 'Student'],
+      async onQueryStarted(data, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(authApi.util.invalidateTags(['PlacementStudent']));
+          dispatch(authApi.util.invalidateTags(['Student']));
+        } catch (error) {
+
+        }
+      },
+    }),
+
+    // Create placement post
+    createPlacementPost: builder.mutation({
+      query: (data) => ({
+        url: `/admitted/students/placement_post`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['PlacementStudent'],
+    }),
+
+    // Get all companies
+    getAllCompanies: builder.query({
+      query: () => ({
+        url: '/admitted/students/companies',
+        method: "GET",
+      }),
+      providesTags: ['Company'],
+    }),
+
+    // Get placed students by company ID
+    getPlacedStudentsByCompany: builder.query({
+      query: (companyId) => ({
+        url: `/admitted/students/companies/placed_students/${companyId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, companyId) => [
+        { type: 'PlacementStudent', id: companyId }
+      ],
+    }),
+
+    // Get ITEG attendance data
+    getItegAttendance: builder.query({
+      query: ({ dateFrom, dateTo }) => {
+        const params = new URLSearchParams();
+        if (dateFrom) params.append('dateFrom', dateFrom);
+        if (dateTo) params.append('dateTo', dateTo);
+        
+        return {
+          url: `${import.meta.env.VITE_ITEG_ATTENDANCE_API_URL}${import.meta.env.VITE_ITEG_ATTENDANCE_ENDPOINT}?${params.toString()}`,
+          method: "GET",
+          headers: {
+            'x-api-key': import.meta.env.VITE_ITEG_ATTENDANCE_API_KEY
+          }
+        };
+      },
+      providesTags: ['ItegAttendance'],
+      keepUnusedDataFor: 300,
+    }),
+
+    // Get ITEG student attendance details
+    getItegStudentAttendance: builder.query({
+      query: ({ year, dateFrom, dateTo }) => {
+        const params = new URLSearchParams();
+        if (dateFrom) params.append('dateFrom', dateFrom);
+        if (dateTo) params.append('dateTo', dateTo);
+        
+        return {
+          url: `${import.meta.env.VITE_ITEG_ATTENDANCE_API_URL}${import.meta.env.VITE_ITEG_ATTENDANCE_STUDENTS_ENDPOINT}/${year}?${params.toString()}`,
+          method: "GET",
+          headers: {
+            'x-api-key': import.meta.env.VITE_ITEG_ATTENDANCE_API_KEY
+          }
+        };
+      },
+      providesTags: ['ItegStudentAttendance'],
+      keepUnusedDataFor: 300,
+    }),
+
+
+
+    // Get student attendance calendar
+    getStudentAttendanceCalendar: builder.query({
+      query: ({ stdId, dateFrom, dateTo }) => {
+        const params = new URLSearchParams();
+        params.append('stdId', stdId);
+        params.append('dateFrom', dateFrom);
+        params.append('dateTo', dateTo);
+        
+        return {
+          url: `${import.meta.env.VITE_ITEG_ATTENDANCE_API_URL}/student-attendance-calendar?${params.toString()}`,
+          method: "GET",
+          headers: {
+            'x-api-key': import.meta.env.VITE_ITEG_ATTENDANCE_API_KEY
+          }
+        };
+      },
+      providesTags: ['StudentCalendar'],
+      keepUnusedDataFor: 300,
+    }),
 
   }),
 });
 
 export const {
   useLoginMutation,
+  useSignupMutation,
   useLoginWithGoogleMutation,
   useUpdateUserMutation,
   useForgetPasswordMutation,
@@ -479,5 +664,16 @@ export const {
   useGetAllStudentsByLevelQuery,
   useGetInterviewAttemptCountQuery,
   useGetStudentLevelInterviewsQuery,
-  useUploadResumeMutation
+  useUploadResumeMutation,
+  useGetInterviewHistoryQuery,
+  useRescheduleInterviewMutation,
+  useAddInterviewRoundMutation,
+  useConfirmPlacementMutation,
+  useCreatePlacementPostMutation,
+  useGetAllCompaniesQuery,
+  useGetPlacedStudentsByCompanyQuery,
+  useGetItegAttendanceQuery,
+  useGetItegStudentAttendanceQuery,
+
+  useGetStudentAttendanceCalendarQuery
 } = authApi;

@@ -3,22 +3,27 @@ import { useNavigate, Link } from "react-router-dom";
 import CryptoJS from "crypto-js";
 import { useLoginMutation } from "../../../redux/api/authApi";
 import Loader from "../loader/Loader";
+import CompactFaceLogin from "../../face-auth/CompactFaceLogin";
+import { toast } from 'react-toastify';
 
 import ReusableForm from "../../../ReusableForm";
 import { loginValidationSchema } from "../../../validationSchema";
 
 import EmailField from "../common-feild/EmailField";
 import PasswordField from "../common-feild/PasswordField";
+import { buttonStyles } from "../../../styles/buttonStyles";
 
 import logo from "../../../assets/images/logo-ssism.png";
 import bg from "../../../assets/images/bgImg.png";
-import googleLogo from "../../../assets/icons/devicon_google.jpg";
+import googleLogo from "../../../assets/icons/google-icon.png";
 import mail from "../../../assets/icons/gmail-icon.png";
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const [loginError, setLoginError] = useState("");
   const [login, { isLoading }] = useLoginMutation();
+  const [showFaceLogin, setShowFaceLogin] = useState(false);
+
 
   const secretKey = "ITEG@123";
 
@@ -56,6 +61,21 @@ const LoginPage = () => {
   const handleOtpLogin = () => {
     navigate("/otp-verification");
   };
+
+  const handleFaceLogin = () => {
+    setShowFaceLogin(true);
+  };
+
+  const handleFaceLoginSuccess = () => {
+    setShowFaceLogin(false);
+    navigate("/", { replace: true });
+  };
+
+  const handleFaceLoginClose = () => {
+    setShowFaceLogin(false);
+  };
+
+
 
   return (
     <div
@@ -100,7 +120,7 @@ const LoginPage = () => {
 
               <button
                 type="submit"
-                className="w-full bg-[#FDA92D]  text-white py-3 rounded-full mt-4 hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+                className={`w-full py-3 rounded-full mt-4 ${buttonStyles.primary}`}
                 disabled={isLoading}
               >
                 {isLoading ? "Logging in..." : "Sign in"}
@@ -112,27 +132,31 @@ const LoginPage = () => {
                 <hr className="flex-grow border-gray-300" />
               </div>
 
-              {/* <div className="flex flex-col items-center space-y-4 px-5">
+              <div className="flex flex-col items-center space-y-4 px-5">
+                {/* Face ID Button - Android/iOS Style */}
                 <button
                   type="button"
-                  onClick={handleGoogleLogin}
-                  className="flex border items-center w-[120%] justify-center space-x-4 bg-white shadow-md rounded-xl py-2 hover:shadow-lg transition"
+                  onClick={handleFaceLogin}
+                  className="flex w-full justify-center items-center space-x-3 bg-white shadow-md rounded-xl py-2.5 hover:shadow-lg transition border border-gray-300"
                 >
-                  <img className="h-5" src={googleLogo} alt="Google" />
-                  <span className="text-sm font-medium text-gray-800">Login With Google</span>
+                  <span className="text-sm">👤</span>
+                  <span className="text-sm font-medium text-gray-800">
+                   Login with Face ID
+                  </span>
                 </button>
 
+                {/* OTP Login Button */}
                 <button
                   type="button"
                   onClick={handleOtpLogin}
-                  className="flex border items-center w-[120%] justify-center space-x-4 bg-white shadow-md rounded-xl py-2 hover:shadow-lg transition"
+                  className="flex w-full justify-center items-center space-x-3 bg-white shadow-md rounded-xl py-2.5 hover:shadow-lg transition border border-gray-300"
                 >
-                  <img className="h-6" src={mail} alt="OTP Login" />
-                  <span className="text-sm font-medium text-gray-800">Login with Email OTP</span>
+                  <img className="h-5" src={mail} alt="OTP Login" />
+                  <span className="text-sm font-medium text-gray-800">
+                    Login with Email OTP
+                  </span>
                 </button>
-              </div> */}
 
-              <div className="flex flex-col items-center space-y-4 px-5">
                 {/* Google Login Button */}
                 <button
                   type="button"
@@ -145,23 +169,24 @@ const LoginPage = () => {
                     Login With Google
                   </span>
                 </button>
-
-                {/* OTP Login Button */}
-                <button
-                  type="button"
-                  onClick={handleOtpLogin}
-                  className="flex w-full justify-center items-center space-x-3 bg-white shadow-md rounded-xl py-2.5 hover:shadow-lg transition border border-gray-300"
-                >
-                  <img className="h-6" src={mail} alt="OTP Login" />
-                  <span className="text-sm font-medium text-gray-800">
-                    Login with Email OTP
-                  </span>
-                </button>
               </div>
             </>
           )}
         </ReusableForm>
       </div>
+      
+      {showFaceLogin && (
+        <CompactFaceLogin
+          onLoginSuccess={handleFaceLoginSuccess}
+          onClose={handleFaceLoginClose}
+          onNoFaceRegistered={() => {
+            setShowFaceLogin(false);
+            toast.error('Face not registered! Please login first with email/password to register your face.');
+          }}
+        />
+      )}
+      
+
     </div>
   );
 };

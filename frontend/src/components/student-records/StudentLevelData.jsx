@@ -170,6 +170,7 @@ const StudentLevelData = () => {
               setSearchTerm={setSearchTerm}
               filtersConfig={filtersConfig}
               filteredData={filteredData}
+              sectionName={activeTab.replace(/\s+/g, '').toLowerCase()}
             />
           </div>
         </div>

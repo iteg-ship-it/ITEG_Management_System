@@ -1,5 +1,6 @@
 const AdmissionProcess = require("../models/admissionProcessStudent");
 const AdmittedStudent = require("../models/admittedStudent");
+const Company = require("../models/company");
 const { sendHTMLMail } = require("./emailController");
 
 const { sendEmail } = require('./emailController');
@@ -380,18 +381,52 @@ exports.updatePermissionStudent = async (req, res) => {
 exports.updatePlacementInfo = async (req, res) => {
   try {
     const { id } = req.params;
-    const student = await AdmittedStudent.findById(id);
     const { companyName, salary, location, jobProfile } = req.body;
-    student.placedInfo = { companyName, salary, location, jobProfile };
+
+    if (!companyName || !salary || !location || !jobProfile) {
+      return res.status(400).json({ message: "All fields are required: companyName, salary, location, jobProfile" });
+    }
+
+    const student = await AdmittedStudent.findById(id);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    // Find or create company
+    let company = await Company.findOne({ companyName });
+    if (!company) {
+      company = new Company({ 
+        companyName, 
+        location,
+        hrEmail: "hr@" + companyName.toLowerCase().replace(/\s+/g, '') + ".com"
+      });
+      await company.save();
+    }
+
+    student.placedInfo = { 
+      companyRef: company._id,
+      companyName, 
+      salary, 
+      location, 
+      jobProfile 
+    };
+
+    // Update interview status from Selected to Placed (if any)
+    student.PlacementinterviewRecord.forEach(interview => {
+      if (interview.status === 'Selected' && interview.companyRef && interview.companyRef.toString() === company._id.toString()) {
+        interview.status = 'Placed';
+      }
+    });
 
     await student.save();
+    
     return res.status(200).json({
       message: "Placement information updated successfully.",
       placedInfo: student.placedInfo
     });
   } catch (error) {
     console.error("Error updating placement info:", error);
-    return res.status(500).json({ message: "Server Error", error });
+    return res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 
@@ -595,11 +630,12 @@ exports.addInterviewRecord = async (req, res) => {
 exports.updateInterviewRecord = async (req, res) => {
   try {
     const { studentId, interviewId } = req.params;
-    const { remark, result } = req.body;
+    const { status } = req.body;
 
-    const validResults = ['Selected', 'Rejected', 'Pending'];
-    if (result && !validResults.includes(result)) {
-      return res.status(400).json({ success: false, message: "Invalid result value" });
+    const validStatuses = ['Scheduled', 'Rescheduled', 'Ongoing', 'Selected', 'RejectedByStudent', 'RejectedByCompany'];
+    
+    if (!status || !validStatuses.includes(status)) {
+      return res.status(400).json({ success: false, message: "Valid status is required" });
     }
 
     const student = await AdmittedStudent.findById(studentId);

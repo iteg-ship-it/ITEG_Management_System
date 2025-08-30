@@ -13,6 +13,7 @@ import TextInput from "../common-components/common-feild/TextInput";
 import CustomDropdown from "../common-components/common-feild/CustomDropdown";
 import DatePickerInput from "../datepickerInput/DatePickerInput";
 import Loader from "../common-components/loader/Loader";
+import { buttonStyles } from "../../styles/buttonStyles";
 
 const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
   console.log("activeTab", activeTab);
@@ -292,21 +293,20 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
                 className="col-span-2"
               />
 
-              <div className="col-span-2 flex justify-center mt-4">
+              <div className="col-span-2 mt-4">
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+                  className={`w-full py-3 text-md rounded-md transition relative disabled:opacity-50 ${buttonStyles.primary}`}
                 >
                   {isLoading ? (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center gap-2">
                       <Loader />
                       <span>Submitting...</span>
                     </div>
                   ) : (
                     "Submit"
                   )}
-
                 </button>
               </div>
             </Form>

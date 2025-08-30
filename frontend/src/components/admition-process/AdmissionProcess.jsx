@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useGetAllStudentsQuery } from "../../redux/api/authApi";
 import CommonTable from "../common-components/table/CommonTable";
 import { useEffect, useState, useMemo } from "react";
@@ -16,6 +17,7 @@ import {
 } from "../../redux/api/authApi";
 import { toast } from "react-toastify";
 import PageNavbar from "../common-components/navbar/PageNavbar";
+import { buttonStyles } from "../../styles/buttonStyles";
 
 
 const toTitleCase = (str) =>
@@ -150,6 +152,9 @@ const StudentList = () => {
     } else if (savedTab) {
       setActiveTab(savedTab);
     }
+    
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
   }, [location.search, refetch]);
 
   // Auto-refresh data when window gains focus
@@ -396,7 +401,7 @@ const StudentList = () => {
       actionButton = (row) => (
         <button
           onClick={() => scheduleButton(row)}
-          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+          className={`text-md ${buttonStyles.primary}`}
         >
           Take Interview
         </button>
@@ -446,7 +451,7 @@ const StudentList = () => {
       actionButton = (row) => (
         <button
           onClick={() => scheduleButton(row)}
-          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+          className={`text-md ${buttonStyles.primary}`}
         >
           Take Interview
         </button>
@@ -507,19 +512,31 @@ const StudentList = () => {
           },
         },
       ];
-      actionButton = (row) => (
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => {
-              setAddInterviwModalOpen(true)
-              setId(row._id)
-            }}
-            className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
-          >
-            Take Interview
-          </button>
-        </div>
-      );
+      actionButton = (row) => {
+        const userRole = localStorage.getItem('role');
+        const isSuperAdmin = userRole === 'superadmin';
+        
+        return (
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => {
+                if (isSuperAdmin) {
+                  setAddInterviwModalOpen(true)
+                  setId(row._id)
+                }
+              }}
+              disabled={!isSuperAdmin}
+              className={`text-md ${
+                isSuperAdmin 
+                  ? buttonStyles.primary + ' cursor-pointer'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed px-3 py-1 rounded-md transition'
+              }`}
+            >
+              Take Interview
+            </button>
+          </div>
+        );
+      };
       break;
 
     case "Results":
@@ -655,6 +672,7 @@ const StudentList = () => {
               filteredData={filteredData}
               selectedRows={selectedRows}
               allData={data}
+              sectionName={activeTab.replace(/\s+/g, '').toLowerCase()}
             />
           </div>
         </div>
@@ -716,22 +734,15 @@ const StudentList = () => {
                       { value: "Pending", label: "Pending" },
                     ]}
                   />
-                  <div className="md:col-span-2 flex justify-end space-x-3 mt-4">
-                    <button
-                      type="button"
-                      onClick={() => setAddInterviwModalOpen(false)}
-                      className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="px-5 py-2 bg-[#FDA92D]  text-white rounded-md hover:bg-orange-600 transition disabled:opacity-50"
-                    >
-                      {isSubmitting ? "Submitting..." : "Submit"}
-                    </button>
-                  </div>
+                  <div className="col-span-2 mt-4">
+                                <button 
+                                    type="submit" 
+                                    disabled={isLoading} 
+                                    className={`w-full py-3 rounded-lg disabled:opacity-50 ${buttonStyles.primary}`}
+                                >
+                                    {isLoading ? "Submitting..." : "Submit"}
+                                </button>
+                            </div>
                 </Form>
               )}
             </Formik>

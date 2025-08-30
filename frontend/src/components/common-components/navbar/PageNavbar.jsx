@@ -1,16 +1,16 @@
 /* eslint-disable react/prop-types */
 import { HiArrowNarrowLeft } from "react-icons/hi";
 
-const PageNavbar = ({ 
-  title, 
-  subtitle, 
+const PageNavbar = ({
+  title,
+  subtitle,
   onBack = () => window.history.back(),
   rightContent = null,
-  showBackButton = true 
+  showBackButton = true
 }) => {
   return (
     <div className="sticky top-0 z-10">
-      <div className="px-6 py-4">
+      <div className="px-1 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             {showBackButton && (

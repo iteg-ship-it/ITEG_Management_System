@@ -53,7 +53,7 @@ export default function ForgetPassword() {
             )}
             <button
               type="submit"
-              className="w-full bg-[#FDA92D]  text-white py-3 rounded-full mt-2 hover:bg-[#FED680] active:bg-[#B66816] transition"
+              className="w-full bg-[#FDA92D]  text-white py-3 rounded-full mt-2 hover:bg-[#ED9A21] active:bg-[#B66816] transition"
               disabled={isLoading}
             >
               {isLoading ? "Sending..." : "Get Link"}

@@ -1,51 +1,106 @@
+/* eslint-disable react/prop-types */
 import { useState } from "react";
 import { IoClose, IoCloudUploadOutline, IoDocumentTextOutline } from "react-icons/io5";
+import { useConfirmPlacementMutation } from "../../redux/api/authApi";
+import { toast } from "react-toastify";
+import CustomDatePicker from "../student-records/CustomDatePicker";
+import { buttonStyles } from "../../styles/buttonStyles";
 
 const PRIMARY_COLOR = "#FDA92D";
 const TEXT_COLOR = "#4B4B4B";
 
 const ConfirmPlacementModal = ({ isOpen, onClose, student, onSuccess }) => {
+  const [formData, setFormData] = useState({
+    companyName: "",
+    salary: "",
+    location: "",
+    jobProfile: "",
+    jobType: "",
+    joiningDate: ""
+  });
   const [applicationFile, setApplicationFile] = useState(null);
   const [offerLetterFile, setOfferLetterFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confirmPlacement] = useConfirmPlacementMutation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!applicationFile || !offerLetterFile) {
-      alert("Please upload both Application and Offer Letter files");
+      toast.error("Please upload both Application and Offer Letter files");
       return;
+    }
+
+    // Validate required fields
+    const requiredFields = ['companyName', 'salary', 'location', 'jobProfile', 'jobType', 'joiningDate'];
+    for (const field of requiredFields) {
+      if (!formData[field]) {
+        toast.error(`Please fill in ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
+        return;
+      }
     }
 
     setIsSubmitting(true);
     
     try {
-      // Here you would implement the API call to confirm placement
-      console.log("Confirming placement for student:", student?._id);
-      console.log("Application file:", applicationFile);
-      console.log("Offer letter file:", offerLetterFile);
+      const placementData = new FormData();
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Add studentId
+      placementData.append('studentId', student?._id);
       
+      // Add form fields
+      placementData.append('companyName', formData.companyName);
+      placementData.append('salary', formData.salary);
+      placementData.append('location', formData.location);
+      placementData.append('jobProfile', formData.jobProfile);
+      placementData.append('jobType', formData.jobType);
+      placementData.append('joiningDate', formData.joiningDate);
+      
+      // Add files
+      placementData.append('applicationFile', applicationFile);
+      placementData.append('offerLetterFile', offerLetterFile);
+      
+      await confirmPlacement(placementData).unwrap();
+      
+      toast.success("Placement confirmed successfully!");
       onSuccess?.();
       onClose();
       
       // Reset form
+      setFormData({
+        companyName: "",
+        salary: "",
+        location: "",
+        jobProfile: "",
+        jobType: "",
+        joiningDate: ""
+      });
       setApplicationFile(null);
       setOfferLetterFile(null);
     } catch (error) {
       console.error("Error confirming placement:", error);
-      alert("Error confirming placement. Please try again.");
+      toast.error(error?.data?.message || "Error confirming placement. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleClose = () => {
+    setFormData({
+      companyName: "",
+      salary: "",
+      location: "",
+      jobProfile: "",
+      jobType: "",
+      joiningDate: ""
+    });
     setApplicationFile(null);
     setOfferLetterFile(null);
     onClose();
+  };
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   if (!isOpen) return null;
@@ -84,6 +139,123 @@ const ConfirmPlacementModal = ({ isOpen, onClose, student, onSuccess }) => {
         )}
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 text-[15px]" style={{ color: TEXT_COLOR }}>
+          {/* Company Name */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="relative">
+              <input
+                type="text"
+                id="companyName"
+                value={formData.companyName}
+                onChange={(e) => handleInputChange('companyName', e.target.value)}
+                className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer"
+                placeholder=" "
+                required
+              />
+              <label 
+                htmlFor="companyName"
+                className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
+              >
+                Company Name *
+              </label>
+            </div>
+
+            {/* Salary */}
+            <div className="relative">
+              <input
+                type="number"
+                id="salary"
+                value={formData.salary}
+                onChange={(e) => handleInputChange('salary', e.target.value)}
+                className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer"
+                placeholder=" "
+                required
+              />
+              <label 
+                htmlFor="salary"
+                className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
+              >
+                Salary *
+              </label>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Location */}
+            <div className="relative">
+              <input
+                type="text"
+                id="location"
+                value={formData.location}
+                onChange={(e) => handleInputChange('location', e.target.value)}
+                className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer"
+                placeholder=" "
+                required
+              />
+              <label 
+                htmlFor="location"
+                className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
+              >
+                Location *
+              </label>
+            </div>
+
+            {/* Job Profile */}
+            <div className="relative">
+              <input
+                type="text"
+                id="jobProfile"
+                value={formData.jobProfile}
+                onChange={(e) => handleInputChange('jobProfile', e.target.value)}
+                className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer"
+                placeholder=" "
+                required
+              />
+              <label 
+                htmlFor="jobProfile"
+                className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
+              >
+                Job Profile *
+              </label>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Job Type */}
+            <div className="relative">
+              <select
+                id="jobType"
+                value={formData.jobType}
+                onChange={(e) => handleInputChange('jobType', e.target.value)}
+                className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer bg-white"
+                required
+              >
+                <option value="">Select Job Type</option>
+                <option value="Full-Time">Full-Time</option>
+                <option value="Part-Time">Part-Time</option>
+                <option value="Contract">Contract</option>
+                <option value="Internship">Internship</option>
+              </select>
+              <label 
+                htmlFor="jobType"
+                className="absolute left-3 -top-2 text-xs bg-white px-1 text-black"
+              >
+                Job Type *
+              </label>
+            </div>
+
+            {/* Joining Date */}
+            <div className="relative">
+              <CustomDatePicker
+                name="joiningDate"
+                value={formData.joiningDate}
+                onChange={({ name, value }) => handleInputChange(name, value)}
+                allowFuture={true}
+              />
+              <label className="absolute left-3 -top-2 text-xs bg-white px-1 text-black">
+                Joining Date *
+              </label>
+            </div>
+          </div>
           {/* Application Upload */}
           <div className="relative">
             <label className="block text-sm font-medium mb-2" style={{ color: TEXT_COLOR }}>
@@ -181,8 +353,7 @@ const ConfirmPlacementModal = ({ isOpen, onClose, student, onSuccess }) => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-12 rounded-md text-white hover:opacity-90 transition disabled:opacity-50"
-              style={{ backgroundColor: PRIMARY_COLOR }}
+              className={`w-full h-12 rounded-md transition disabled:opacity-50 ${buttonStyles.primary}`}
             >
               {isSubmitting ? "Confirming..." : "Confirm Placement"}
             </button>

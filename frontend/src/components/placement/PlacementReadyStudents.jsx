@@ -7,8 +7,10 @@ import Loader from "../common-components/loader/Loader";
 import CommonTable from "../common-components/table/CommonTable";
 import ScheduleInterviewModal from "./ScheduleInterviewModal";
 import ConfirmPlacementModal from "./ConfirmPlacementModal";
+import CreatePostModal from "./CreatePostModal";
 import profile from "../../assets/images/profileImgDummy.jpeg";
 import PageNavbar from "../common-components/navbar/PageNavbar";
+import { buttonStyles } from "../../styles/buttonStyles";
 
 // Capitalize function
 const toTitleCase = (str) =>
@@ -43,6 +45,8 @@ const PlacementReadyStudents = () => {
   const [selectedRows, setSelectedRows] = useState([]);
   const [isConfirmPlacementModalOpen, setIsConfirmPlacementModalOpen] = useState(false);
   const [selectedStudentForPlacement, setSelectedStudentForPlacement] = useState(null);
+  const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
+  const [selectedStudentForPost, setSelectedStudentForPost] = useState(null);
 
   const tabs = ["Qualified Students", "Ongoing Interviews", "Selected Student", "Placed Student"];
 
@@ -189,7 +193,12 @@ const PlacementReadyStudents = () => {
       label: "Company",
       render: (row) => {
         const selectedInterview = getSelectedInterviewDetails(row);
-        return toTitleCase(selectedInterview.companyName || "N/A");
+        // Try multiple ways to get company name
+        const companyName = selectedInterview.companyName || 
+                           selectedInterview.company?.companyName ||
+                           selectedInterview.companyRef?.companyName ||
+                           "N/A";
+        return toTitleCase(companyName);
       },
     },
     {
@@ -210,7 +219,7 @@ const PlacementReadyStudents = () => {
             setSelectedStudent(row);
             setIsModalOpen(true);
           }}
-          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+          className={buttonStyles.primary}
         >
           + Add Interview
         </button>
@@ -226,7 +235,7 @@ const PlacementReadyStudents = () => {
             setSelectedStudentForPlacement(row);
             setIsConfirmPlacementModalOpen(true);
           }}
-          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+          className={buttonStyles.primary}
         >
           Confirm Placement
         </button>
@@ -289,9 +298,10 @@ const PlacementReadyStudents = () => {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            console.log('Create post for student:', row._id);
+            setSelectedStudentForPost(row);
+            setIsCreatePostModalOpen(true);
           }}
-          className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+          className={buttonStyles.primary}
         >
           Create Post
         </button>
@@ -349,6 +359,8 @@ const PlacementReadyStudents = () => {
   const handleRowClick = (student) => {
     if (activeTab === "Ongoing Interviews" || activeTab === "Selected Student") {
       navigate(`/interview-history/${student._id}`);
+    } else if (activeTab === "Placed Student") {
+      navigate(`/student-profile/${student._id}`);
     }
   };
 
@@ -396,6 +408,7 @@ const PlacementReadyStudents = () => {
               filteredData={getFilteredData()}
               selectedRows={selectedRows}
               allData={students}
+              sectionName={activeTab.replace(/\s+/g, '').toLowerCase()}
             />
           </div>
         </div>
@@ -415,7 +428,7 @@ const PlacementReadyStudents = () => {
                 setSelectedStudent(student);
                 setIsModalOpen(true);
               }}
-              className="bg-[#FDA92D] text-md text-white px-3 py-1 rounded-md hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+              className={buttonStyles.primary}
             >
               + Add Interview
             </button>
@@ -453,6 +466,19 @@ const PlacementReadyStudents = () => {
             await refetch();
             // Small delay to ensure backend has processed the data
             setTimeout(() => refetch(), 500);
+          }}
+        />
+
+        {/* Create Post Modal */}
+        <CreatePostModal
+          isOpen={isCreatePostModalOpen}
+          onClose={() => {
+            setIsCreatePostModalOpen(false);
+            setSelectedStudentForPost(null);
+          }}
+          student={selectedStudentForPost}
+          onSuccess={() => {
+            console.log('Post created successfully');
           }}
         />
       </div>

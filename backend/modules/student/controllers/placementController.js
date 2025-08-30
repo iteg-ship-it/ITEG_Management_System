@@ -161,14 +161,22 @@ exports.confirmPlacement = async (req, res) => {
       location, 
       jobProfile, 
       jobType = 'Full-Time',
-      joiningDate,
-      offerLetter,
-      application
+      joiningDate
     } = req.body;
+
+    // Get uploaded files
+    const applicationFile = req.files?.applicationFile?.[0];
+    const offerLetterFile = req.files?.offerLetterFile?.[0];
 
     if (!studentId || !companyName || !salary || !location || !jobProfile) {
       return res.status(400).json({ 
         message: "Missing required fields: studentId, companyName, salary, location, jobProfile" 
+      });
+    }
+
+    if (!applicationFile || !offerLetterFile) {
+      return res.status(400).json({ 
+        message: "Both application file and offer letter file are required" 
       });
     }
 

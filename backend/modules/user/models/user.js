@@ -16,6 +16,7 @@ const UserSchema = new mongoose.Schema({
   resetPasswordExpires: { type: Date },
   resetTokenUsed: { type: Boolean, default: false },
   googleId: { type: String },
+  faceDescriptor: { type: Array },
  
 
 

@@ -1,6 +1,6 @@
 // File: components/Pagination.jsx
 /* eslint-disable react/prop-types */
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Search, ChevronRight } from "lucide-react";
 import { FaFilter } from "react-icons/fa";
 import { BsFillCloudDownloadFill } from "react-icons/bs";
@@ -16,9 +16,9 @@ const Pagination = ({
   searchTerm,
   setSearchTerm,
   filtersConfig,
-  filteredData,
-  selectedRows = [],
   allData = [],
+  selectedRows = [],
+  sectionName = "data",
 }) => {
   const [showFilter, setShowFilter] = useState(false);
   const [downloadDropdown, setDownloadDropdown] = useState(false);
@@ -27,17 +27,37 @@ const Pagination = ({
   const filterRef = useRef(null);
   const downloadRef = useRef(null);
 
+  // ✅ Search logic (skip number fields)
+  const filteredData = useMemo(() => {
+    if (!searchTerm) return allData;
+
+    return allData.filter((row) =>
+      Object.values(row).some((val) => {
+        if (val == null) return false;
+
+        // 🚫 Ignore numbers (roll no, phone, ids etc.)
+        if (typeof val === "number") return false;
+
+        // ✅ Match only string fields
+        return String(val).toLowerCase().includes(searchTerm.toLowerCase());
+      })
+    );
+  }, [allData, searchTerm]);
+
+  // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!filterRef.current?.contains(e.target)) setShowFilter(false);
-      if (!downloadRef.current?.contains(e.target)) setDownloadDropdown(false);
+      if (!downloadRef.current?.contains(e.target))
+        setDownloadDropdown(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
-    <div className="flex  items-center w-full py-5 flex-wrap gap-4 relative">
+    <div className="flex items-center w-full py-5 flex-wrap gap-4 relative">
       {/* Search Box */}
       <div className="flex border border-gray-300 rounded-md overflow-hidden w-full max-w-3xl h-12 bg-[var(--backgroundColor)] relative">
         <div className="flex items-center px-3 w-full">
@@ -50,10 +70,12 @@ const Pagination = ({
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        {/* This invisible overlay makes the entire area clickable */}
+        {/* Overlay to focus input on click */}
         <div
           className="absolute inset-0 cursor-text"
-          onClick={() => document.querySelector('input[type="text"]').focus()}
+          onClick={() =>
+            document.querySelector('input[type="text"]').focus()
+          }
         ></div>
       </div>
 
@@ -75,113 +97,144 @@ const Pagination = ({
             className="flex items-center gap-1 text-md text-gray-700 hover:text-black"
           >
             <BsFillCloudDownloadFill className="text-md" />
-
             Export
           </button>
           {downloadDropdown && (
             <div
-              className="absolute top-10 left-0 border rounded-xl shadow-lg w-40 z-20"
+              className="absolute top-10 left-0 border rounded-xl shadow-lg w-40 z-[9999]"
               style={{
                 background: `
                   linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 40%),
                   linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 40%),
                   white
-                `
+                `,
               }}
             >
-              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { 
-                const dataToExport = selectedRows.length > 0 
-                  ? allData.filter(row => selectedRows.includes(row._id))
-                  : filteredData;
-                downloadCSV(dataToExport); 
-                setDownloadDropdown(false); 
-              }}>Download CSV</button>
-              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { 
-                const dataToExport = selectedRows.length > 0 
-                  ? allData.filter(row => selectedRows.includes(row._id))
-                  : filteredData;
-                downloadExcel(dataToExport); 
-                setDownloadDropdown(false); 
-              }}>Download Excel</button>
-              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm" onClick={() => { 
-                const dataToExport = selectedRows.length > 0 
-                  ? allData.filter(row => selectedRows.includes(row._id))
-                  : filteredData;
-                downloadPDF(dataToExport); 
-                setDownloadDropdown(false); 
-              }}>Download PDF</button>
+              <button
+                className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                onClick={() => {
+                  const dataToExport =
+                    selectedRows.length > 0
+                      ? allData.filter((row) =>
+                        selectedRows.includes(row._id)
+                      )
+                      : filteredData;
+                  downloadCSV(dataToExport, `${sectionName}.csv`);
+                  setDownloadDropdown(false);
+                }}
+              >
+                Download CSV
+              </button>
+              <button
+                className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                onClick={() => {
+                  const dataToExport =
+                    selectedRows.length > 0
+                      ? allData.filter((row) =>
+                        selectedRows.includes(row._id)
+                      )
+                      : filteredData;
+                  downloadExcel(dataToExport, `${sectionName}.xlsx`);
+                  setDownloadDropdown(false);
+                }}
+              >
+                Download Excel
+              </button>
+              <button
+                className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                onClick={() => {
+                  const dataToExport =
+                    selectedRows.length > 0
+                      ? allData.filter((row) =>
+                        selectedRows.includes(row._id)
+                      )
+                      : filteredData;
+                  downloadPDF(dataToExport, `${sectionName}.pdf`);
+                  setDownloadDropdown(false);
+                }}
+              >
+                Download PDF
+              </button>
             </div>
           )}
         </div>
-
       </div>
 
       {/* Filter Dropdown */}
       {showFilter && (
         <div
           ref={filterRef}
-          className="absolute top-16 left-[40vw] border   rounded-xl shadow-lg w-48 z-20 p-2 text-sm"
+          className="absolute top-16 left-[40vw] border rounded-xl shadow-lg w-48 z-[9999] p-2 text-sm"
           style={{
             background: `
               linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 20%),
               linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 20%),
               white
-            `
+            `,
           }}
         >
           {filtersConfig.map(({ title, options, selected, setter }) => (
             <div key={title} className="relative">
               <div
                 onClick={() =>
-                  setExpandedSection(expandedSection === title ? null : title)
+                  setExpandedSection(
+                    expandedSection === title ? null : title
+                  )
                 }
                 className="flex justify-between items-center cursor-pointer hover:bg-gray-100 px-2 py-1 rounded"
               >
                 <span>{title}</span>
                 <ChevronRight
                   size={14}
-                  className={expandedSection === title ? "rotate-90" : ""}
+                  className={
+                    expandedSection === title ? "rotate-90" : ""
+                  }
                 />
               </div>
 
               {expandedSection === title && (
                 <div
-                  className="absolute top-0 left-full ml-2 w-44 border   rounded-xl shadow-lg p-2 space-y-1 z-30"
+                  className="absolute top-0 left-full ml-2 w-44 border rounded-xl shadow-lg p-2 space-y-1 z-[9999]"
                   style={{
                     background: `
                       linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 40%),
                       linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 40%),
                       white
-                    `
+                    `,
                   }}
                 >
                   {options.map((opt) => {
-                    const value = typeof opt === "object" ? opt.value : opt;
-                    const label = typeof opt === "object" ? opt.label : opt;
+                    const value =
+                      typeof opt === "object" ? opt.value : opt;
+                    const label =
+                      typeof opt === "object" ? opt.label : opt;
 
                     return (
-                      <label key={value} className="flex items-center gap-2 cursor-pointer">
+                      <label
+                        key={value}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
                         <input
                           type="checkbox"
                           checked={selected.includes(value)}
-                          onChange={() => toggleSelection(value, setter, selected)}
+                          onChange={() =>
+                            toggleSelection(value, setter, selected)
+                          }
                           className="accent-black"
                         />
                         {label}
                       </label>
                     );
                   })}
-
                 </div>
               )}
             </div>
           ))}
         </div>
       )}
-
-
     </div>
   );
 };
 
 export default Pagination;
+

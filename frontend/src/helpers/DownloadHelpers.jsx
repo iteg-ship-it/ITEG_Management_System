@@ -4,12 +4,12 @@ import autoTable from "jspdf-autotable";
 
 export const downloadCSV = (data, filename = "data.csv") => {
   if (!data?.length) return;
-  const keys = ["firstName", "fatherName", "studentMobile", "track", "village", "stream"];
-  const headers = keys.map(k => k.toUpperCase());
+  const keys = ["firstName", "lastName", "fatherName", "motherName", "studentMobile", "email", "course", "stream", "percentage", "track", "village", "district", "state", "pincode"];
+  const headers = ["FIRST NAME", "LAST NAME", "FATHER NAME", "MOTHER NAME", "STUDENT MOBILE", "EMAIL", "COURSE", "STREAM", "PERCENTAGE", "TRACK", "VILLAGE", "DISTRICT", "STATE", "PINCODE"];
   const rows = [
     ["S.NO", ...headers].join(","),
     ...data.map((row, i) => {
-      const rowData = [i + 1, ...keys.map(k => `"${(row[k] || "").toString().replace(/"/g, '""')}"`)]; 
+      const rowData = [i + 1, ...keys.map(k => `"${(row[k] || "").toString().replace(/"/g, '""')}"`)];
       return rowData.join(",");
     })
   ];
@@ -24,11 +24,12 @@ export const downloadCSV = (data, filename = "data.csv") => {
 
 export const downloadExcel = (data, filename = "data.xlsx") => {
   if (!data?.length) return;
-  const keys = ["firstName", "fatherName", "studentMobile", "track", "village", "stream"];
+  const keys = ["firstName", "lastName", "fatherName", "motherName", "studentMobile", "email", "course", "stream", "percentage", "track", "village", "district", "state", "pincode"];
   const formattedData = data.map((row, i) => {
     const newRow = { "S.NO": i + 1 };
-    keys.forEach(key => {
-      newRow[key.toUpperCase()] = row[key] || "";
+    const headerNames = ["FIRST NAME", "LAST NAME", "FATHER NAME", "MOTHER NAME", "STUDENT MOBILE", "EMAIL", "COURSE", "STREAM", "PERCENTAGE", "TRACK", "VILLAGE", "DISTRICT", "STATE", "PINCODE"];
+    keys.forEach((key, index) => {
+      newRow[headerNames[index]] = row[key] || "";
     });
     return newRow;
   });
@@ -40,15 +41,19 @@ export const downloadExcel = (data, filename = "data.xlsx") => {
 
 export const downloadPDF = (data, filename = "data.pdf") => {
   if (!data?.length) return;
-  const keys = ["firstName", "fatherName", "studentMobile", "track", "village", "stream"];
+  const keys = ["firstName", "lastName", "fatherName", "studentMobile", "course", "stream", "track", "village"];
 
   const doc = new jsPDF();
   autoTable(doc, {
-    head: [["#", ...keys.map((k) => k.toUpperCase())]],
+    head: [["#", "FIRST NAME", "LAST NAME", "FATHER NAME", "MOBILE", "COURSE", "STREAM", "TRACK", "VILLAGE"]],
     body: data.map((row, i) => [
       i + 1,
       ...keys.map((k) => row[k] ?? ""),
     ]),
+    styles: {
+      fontSize: 8,
+      cellPadding: 2
+    }
   });
   doc.save(filename);
 };

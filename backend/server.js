@@ -72,6 +72,10 @@ app.use("/api/admitted/students/webhook", webhookRoutes);
 // in your main server.js / app.js
 app.use('/api/user/otp', otpRoutes);
 
+// face authentication routes
+const faceAuthRoutes = require('./routes/faceAuthRoutes');
+app.use('/api/face-auth', faceAuthRoutes);
+
 // passport.js
 app.use(passport.initialize());
 
