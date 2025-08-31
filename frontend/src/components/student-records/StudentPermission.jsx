@@ -95,7 +95,22 @@ const StudentPermission = () => {
     {
       key: "requested_by",
       label: "Approved By",
-      render: (row) => row.permissionDetails?.requested_by || "N/A",
+      render: (row) => {
+        const approvedBy = row.permissionDetails?.approved_by || row.permissionDetails?.requested_by;
+        if (!approvedBy) return "N/A";
+        
+        // If it's an object with name property
+        if (typeof approvedBy === 'object' && approvedBy.name) {
+          return toTitleCase(approvedBy.name);
+        }
+        
+        // If it's a string
+        if (typeof approvedBy === 'string') {
+          return toTitleCase(approvedBy);
+        }
+        
+        return "N/A";
+      },
     },
   ];
 

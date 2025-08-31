@@ -174,7 +174,7 @@ const ConfirmPlacementModal = ({ isOpen, onClose, student, onSuccess }) => {
                 htmlFor="salary"
                 className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
               >
-                Salary *
+                Yearly Salary *
               </label>
             </div>
           </div>

@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+// /* eslint-disable no-unused-vars */
 import logo from '../../../assets/images/doulLogo.png';
 import defaultProfile from '../../../assets/images/profile-img.png';
 import UserProfile from '../user-profile/UserProfile';
@@ -13,7 +13,10 @@ import { buttonStyles } from '../../../styles/buttonStyles';
 
 const validationSchema = Yup.object({
     name: Yup.string().required('Name is required'),
-    email: Yup.string().email('Invalid email').required('Email is required'),
+    email: Yup.string()
+        .email('Invalid email')
+        .matches(/^[a-zA-Z0-9._%+-]+@ssism\.org$/, 'Email must be from @ssism.org domain')
+        .required('Email is required'),
     password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
     mobileNo: Yup.string().matches(/^[0-9]{10}$/, 'Mobile number must be 10 digits').required('Mobile number is required'),
     adharCard: Yup.string().matches(/^[0-9]{12}$/, 'Adhar card must be 12 digits').required('Adhar card is required'),
@@ -44,35 +47,24 @@ const Header = () => {
         setShowModal(true);
     };
 
-    const handleImageUpload = async (file, setFieldValue) => {
+    const handleImageUpload = (file, setFieldValue) => {
         if (!file) return;
         
-        const formData = new FormData();
-        formData.append('image', file);
-        
-        try {
-            // Replace with your actual image upload API endpoint
-            const response = await fetch('/api/upload-image', {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                setFieldValue('profileImage', data.imageUrl);
-                setSelectedImage(file);
-            } else {
-                alert('Failed to upload image');
-            }
-        } catch (error) {
-            alert('Error uploading image');
-        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            setFieldValue('profileImage', e.target.result);
+            setSelectedImage(file);
+        };
+        reader.readAsDataURL(file);
     };
 
     const handleSubmit = async (values, { resetForm }) => {
         const facultyData = {
             ...values,
-            profileImage: values.profileImage || defaultProfile
+            profileImage: values.profileImage || defaultProfile,
+            isActive: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
         };
 
         try {
@@ -80,8 +72,11 @@ const Header = () => {
             alert('Faculty added successfully!');
             setShowModal(false);
             resetForm();
+            setSelectedImage(null);
         } catch (error) {
-            alert(error?.data?.message || 'Error adding faculty');
+            console.error('Signup error:', error);
+            const errorMessage = error?.data?.message || error?.message || 'Error adding faculty';
+            alert(errorMessage);
         }
     };
 
@@ -166,7 +161,7 @@ const Header = () => {
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-3">
-                                        <div>
+                                        <div className="relative w-full">
                                             <input
                                                 type="file"
                                                 accept="image/*"
@@ -181,12 +176,15 @@ const Header = () => {
                                             />
                                             <label
                                                 htmlFor="image-upload"
-                                                className="flex items-center justify-center gap-2 w-full px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 transition-colors"
+                                                className="flex items-center justify-center gap-2 w-full h-12 px-3 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 transition-colors"
                                             >
                                                 <Upload size={16} />
                                                 <span className="text-sm">
                                                     {selectedImage ? selectedImage.name : 'Upload Image'}
                                                 </span>
+                                            </label>
+                                            <label className="absolute left-3 -top-2 bg-white px-1 text-xs text-black pointer-events-none">
+                                                Profile Image
                                             </label>
                                         </div>
                                         <CustomDropdown

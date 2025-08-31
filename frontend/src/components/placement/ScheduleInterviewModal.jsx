@@ -22,7 +22,9 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
   const interviewSchema = Yup.object().shape({
     companyName: Yup.string().required("Required"),
     hrEmail: Yup.string().email("Invalid email").required("Required"),
-    hrContact: Yup.string().required("Required"),
+    hrContact: Yup.string()
+      .matches(/^[0-9]{10}$/, "Must be exactly 10 digits")
+      .required("Required"),
     location: Yup.string().required("Required"),
     jobProfile: Yup.string().required("Required"),
     scheduleDate: Yup.string().required("Required"),
@@ -162,12 +164,14 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
           {/* HR Contact */}
           <div className="relative">
             <input
-              type="text"
+              type="tel"
               id="hrContact"
               name="hrContact"
               placeholder=" "
               onChange={formik.handleChange}
               value={formik.values.hrContact}
+              maxLength={10}
+              pattern="[0-9]{10}"
               className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full peer"
             />
             <label 
@@ -176,6 +180,9 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
             >
               HR Contact
             </label>
+            {formik.touched.hrContact && formik.errors.hrContact && (
+              <div className="text-red-500 text-xs mt-1">{formik.errors.hrContact}</div>
+            )}
           </div>
 
           {/* Location */}
