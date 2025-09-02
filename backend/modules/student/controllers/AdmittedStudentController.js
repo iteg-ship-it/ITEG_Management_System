@@ -960,22 +960,49 @@ exports.rescheduleInterview = async (req, res) => {
 };
 
 
-// exports.countStudentInterviews = async (req, res) => {
-//   try {
-//     const { studentId } = req.params;
+exports.updateStudentEmail = async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    const { email } = req.body;
 
-//     // Count the number of interviews for this student
-//     const count = await AdmittedStudent.countDocuments({ studentId });
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
 
-//     res.status(200).json({
-//       studentId,
-//       totalInterviews: count
-//     });
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
 
-//   } catch (error) {
-//     console.error("Error counting interviews:", error);
-//     res.status(500).json({ message: "Internal server error" });
-//   }
-// };
+    const student = await AdmittedStudent.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // Check if email already exists for another student
+    const existingStudent = await AdmittedStudent.findOne({ email, _id: { $ne: studentId } });
+    if (existingStudent) {
+      return res.status(409).json({ message: 'Email already exists for another student' });
+    }
+
+    student.email = email;
+    await student.save();
+
+    res.status(200).json({
+      message: 'Email updated successfully',
+      student: {
+        _id: student._id,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        email: student.email
+      }
+    });
+
+  } catch (error) {
+    console.error('Error updating email:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
 
 

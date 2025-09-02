@@ -2898,6 +2898,109 @@ paths:
           description: Student not found
         '500':
           description: Internal Server Error
+
+  /api/admitted/students/update/email/{id}:
+    patch:
+      tags:
+        - Admitted Student
+      summary: Update student email address
+      description: Update the email address of an admitted student with validation and duplicate checking.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Student's ID
+          schema:
+            type: string
+            example: "64a1b2c3d4e5f6789012345"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: New email address for the student
+                  example: "newemail@example.com"
+      responses:
+        '200':
+          description: Email updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Email updated successfully"
+                  student:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: "64a1b2c3d4e5f6789012345"
+                      firstName:
+                        type: string
+                        example: "John"
+                      lastName:
+                        type: string
+                        example: "Doe"
+                      email:
+                        type: string
+                        example: "newemail@example.com"
+        '400':
+          description: Bad Request - Missing email or invalid format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid email format"
+        '401':
+          description: Unauthorized - Missing or invalid token
+        '403':
+          description: Forbidden - Insufficient permissions
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Student not found"
+        '409':
+          description: Conflict - Email already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Email already exists for another student"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Server error"
+                  error:
+                    type: string
  
   /api/admitted/students/reschedule/interview/{studentId}/{interviewId}:
     patch:

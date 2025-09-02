@@ -79,6 +79,8 @@ router.patch('/update_technology/:id', studentController.updateTechnology);
 
 router.patch('/update/profile/:id', studentController.updateStudentProfile);
 
+router.patch('/update/email/:id', verifyToken, checkRole(allowedRoles), studentController.updateStudentEmail);
+
 router.patch("/reschedule/interview/:studentId/:interviewId/", studentController.rescheduleInterview);
 
 // router.get('/count/:studentId', studentController.countStudentInterviews);
