@@ -51,8 +51,8 @@ const AttendanceChart = () => {
     if (!attendanceData?.data?.summary) return [];
     const { totalMaleStudents, totalFemaleStudents } = attendanceData.data.summary;
     return [
-      { name: 'Male Students', value: totalMaleStudents, fill: '#3B82F6' },
-      { name: 'Female Students', value: totalFemaleStudents, fill: '#EC4899' }
+      { name: 'Male Students', value: totalMaleStudents, fill: '#60A5FA' },
+      { name: 'Female Students', value: totalFemaleStudents, fill: '#F472B6' }
     ];
   }, [attendanceData]);
 
@@ -103,13 +103,13 @@ const AttendanceChart = () => {
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
           <p className="font-semibold text-gray-900">{label}</p>
-          <p className="text-sm text-blue-600">
+          <p className="text-sm" style={{ color: '#A78BFA' }}>
             Overall: <span className="font-medium">{data.attendance}%</span>
           </p>
-          <p className="text-sm text-blue-500">
+          <p className="text-sm" style={{ color: '#60A5FA' }}>
             Male: <span className="font-medium">{data.male}%</span>
           </p>
-          <p className="text-sm text-pink-500">
+          <p className="text-sm" style={{ color: '#F472B6' }}>
             Female: <span className="font-medium">{data.female}%</span>
           </p>
           <p className="text-sm text-gray-600">
@@ -283,9 +283,9 @@ const AttendanceChart = () => {
                         tickFormatter={(value) => `${value}%`}
                       />
                       <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="attendance" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="attendance" fill="#A78BFA" radius={[4, 4, 0, 0]} />
                       <Bar dataKey="male" fill="#60A5FA" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="female" fill="#EC4899" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="female" fill="#F472B6" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -356,11 +356,11 @@ const AttendanceChart = () => {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">Male:</span>
-                          <span className="font-medium text-blue-600">{yearData.maleStudentPercent}</span>
+                          <span className="font-medium" style={{ color: '#60A5FA' }}>{yearData.maleStudentPercent}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">Female:</span>
-                          <span className="font-medium text-pink-600">{yearData.femaleStudentPercent}</span>
+                          <span className="font-medium" style={{ color: '#F472B6' }}>{yearData.femaleStudentPercent}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">Total Attendance:</span>
