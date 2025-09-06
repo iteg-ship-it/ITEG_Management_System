@@ -3,11 +3,19 @@ import { useAdmitedStudentsQuery } from "../../redux/api/authApi";
 import placementTemplate from "../../assets/images/ITEG_Placement_Post.jpg";
 import PageNavbar from "../common-components/navbar/PageNavbar";
 import CreatePostModal from "./CreatePostModal";
+import CommonTable from "../common-components/table/CommonTable";
+import Loader from "../common-components/loader/Loader";
+import profile from "../../assets/images/profileImgDummy.jpeg";
+import Pagination from "../common-components/pagination/Pagination";
 
 const PlacementPost = () => {
   console.log("PlacementPost component loaded");
   const [isCreatePostModalOpen, setCreatePostModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [viewMode, setViewMode] = useState('grid');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTracks, setSelectedTracks] = useState([]);
+  const [selectedSubjects, setSelectedSubjects] = useState([]);
 
   // Helper function to capitalize first letter
   const toTitleCase = (str) => {
@@ -20,7 +28,43 @@ const PlacementPost = () => {
   const { data: admittedStudents, isLoading, error } = useAdmitedStudentsQuery();
 
   // Filter only placed students (those with placedInfo)
-  const placedStudents = admittedStudents?.filter(student => student.placedInfo !== null) || [];
+  const allPlacedStudents = admittedStudents?.filter(student => student.placedInfo !== null) || [];
+
+  // Dynamic filter options
+  const dynamicTrackOptions = [...new Set(allPlacedStudents.map(s => toTitleCase(s.track || "")))].filter(Boolean);
+  const dynamicSubjectOptions = [...new Set(allPlacedStudents.map(s => toTitleCase(s.course || "")))].filter(Boolean);
+
+  // Filter configuration for Pagination
+  const filtersConfig = [
+    {
+      title: "Track",
+      options: dynamicTrackOptions,
+      selected: selectedTracks,
+      setter: setSelectedTracks,
+    },
+    {
+      title: "Subject",
+      options: dynamicSubjectOptions,
+      selected: selectedSubjects,
+      setter: setSelectedSubjects,
+    },
+  ];
+
+  // Apply filters to get final data
+  const placedStudents = allPlacedStudents.filter((student) => {
+    const track = toTitleCase(student.track || "");
+    const subject = toTitleCase(student.course || "");
+
+    const trackMatch = selectedTracks.length === 0 || selectedTracks.includes(track);
+    const subjectMatch = selectedSubjects.length === 0 || selectedSubjects.includes(subject);
+
+    const searchMatch = searchTerm.trim() === "" ||
+      `${student.firstName} ${student.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.placedInfo?.companyName?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    return trackMatch && subjectMatch && searchMatch;
+  });
 
   // Download post function
   const downloadPost = async (student) => {
@@ -82,10 +126,7 @@ const PlacementPost = () => {
           showBackButton={false}
         />
         <div className="flex justify-center items-center h-96">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-base sm:text-lg text-slate-500">Loading placement stories...</p>
-          </div>
+          <Loader />
         </div>
       </div>
     );
@@ -118,9 +159,47 @@ const PlacementPost = () => {
         title="Placement Post"
         subtitle="Placed students post and details"
         showBackButton={false}
+        rightContent={
+          <div className="bg-gray-100 p-1 rounded-lg">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`px-2 py-2 rounded-md transition-colors ${viewMode === 'grid'
+                ? 'bg-orange-600 text-white'
+                : 'text-gray-600 hover:text-gray-800'
+                }`}
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              className={`px-2 py-2 rounded-md transition-colors ${viewMode === 'table'
+                ? 'bg-orange-600 text-white'
+                : 'text-gray-600 hover:text-gray-800'
+                }`}
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        }
       />
 
-      <div className="">
+      <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
+        {/* Pagination Controls - Show in both modes */}
+        <div className="px-6">
+          <Pagination
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            filtersConfig={filtersConfig}
+            allData={allPlacedStudents}
+            selectedRows={[]}
+            sectionName="placement-posts"
+          />
+        </div>
+
         {/* Empty state when no placed students */}
         {placedStudents.length === 0 ? (
           <div className="flex justify-center items-center min-h-96">
@@ -134,6 +213,59 @@ const PlacementPost = () => {
               </p>
             </div>
           </div>
+        ) : viewMode === 'table' ? (
+          /* Table View */
+          <CommonTable
+            columns={[
+              {
+                key: "profile",
+                label: "Student",
+                render: (row) => (
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={row.image || profile}
+                      alt="Profile"
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                    <div>
+                      <div className="font-medium">
+                        {toTitleCase(row.firstName)} {toTitleCase(row.lastName)}
+                      </div>
+                      <div className="text-sm text-gray-500">{row.email}</div>
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                key: "course",
+                label: "Course",
+                render: (row) => row.course || 'N/A',
+              },
+              {
+                key: "location",
+                label: "Location",
+                render: (row) => row.village || 'N/A',
+              },
+              {
+                key: "company",
+                label: "Company",
+                render: (row) => toTitleCase(row.placedInfo?.companyName || 'N/A'),
+              },
+              {
+                key: "position",
+                label: "Position",
+                render: (row) => toTitleCase(row.placedInfo?.jobProfile || 'N/A'),
+              },
+              {
+                key: "salary",
+                label: "Salary",
+                render: (row) => row.placedInfo?.salary ? `₹${(row.placedInfo.salary / 100000).toFixed(1)} LPA` : 'N/A',
+              },
+            ]}
+            data={placedStudents}
+            pagination={true}
+            rowsPerPage={10}
+          />
         ) : (
           /* Cards Grid - Fully Responsive */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-">
@@ -241,7 +373,60 @@ const PlacementPost = () => {
           console.log('Post created successfully');
         }}
       />
-    </div>
+
+      {/* Responsive Cards with Circular Images - Only show in grid mode */}
+      {
+        viewMode === 'grid' && (
+          <div className="mt-8 px-4">
+            <h2 className="text-2xl font-bold text-center mb-6">Our Success Stories</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {placedStudents.map((student, index) => (
+                <div
+                  key={student._id || index}
+                  className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 text-center border border-gray-100"
+                >
+                  {/* Circular Image */}
+                  <div className="flex justify-center mb-4">
+                    <div className="relative">
+                      <img
+                        src={student.image || student.profileImage || "https://via.placeholder.com/120x120/e2e8f0/64748b?text=Student"}
+                        alt={`${student.firstName} ${student.lastName}`}
+                        className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full object-cover border-4 border-orange-500 shadow-md"
+                      />
+                      <div className="absolute -bottom-1 -right-1 bg-green-500 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center">
+                        <span className="text-white text-xs">✓</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Student Info */}
+                  <h3 className="text-lg font-bold text-gray-800 mb-2">
+                    {toTitleCase(student.firstName)} {toTitleCase(student.lastName)}
+                  </h3>
+
+                  <p className="text-sm text-gray-600 mb-1">
+                    {student.course || 'Course'}
+                  </p>
+
+                  <p className="text-xs text-gray-500 mb-3">
+                    {student.village || 'Location'}
+                  </p>
+
+                  <div className="border-t pt-3">
+                    <p className="text-sm font-semibold text-blue-600 mb-1">
+                      {student.placedInfo?.jobProfile || 'Position'}
+                    </p>
+                    <p className="text-sm font-bold text-gray-800">
+                      {student.placedInfo?.companyName || 'Company'}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      }
+    </div >
   );
 };
 

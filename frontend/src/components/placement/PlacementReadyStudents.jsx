@@ -203,6 +203,7 @@ const PlacementReadyStudents = () => {
       align: "center",
       render: (row) => `+91 ${row.studentMobile}`,
     },
+
     {
       key: "companyName",
       label: "Company",
@@ -347,10 +348,16 @@ const PlacementReadyStudents = () => {
       render: (row) => `+91 ${row.studentMobile}`,
     },
     {
+      key: "track",
+      label: "Track",
+      render: (row) => toTitleCase(row.track || "N/A"),
+    },
+    {
       key: "techno",
       label: "Technology",
       render: (row) => toTitleCase(row.techno),
     },
+
   ];
 
   const handleTabClick = (tab) => {
@@ -400,8 +407,8 @@ const PlacementReadyStudents = () => {
                 key={tab}
                 onClick={() => handleTabClick(tab)}
                 className={`cursor-pointer text-md text-[var(--text-color)] pb-2 border-b-2 ${activeTab === tab
-                    ? "border-[var(--text-color)] font-semibold"
-                    : "border-gray-200"
+                  ? "border-[var(--text-color)] font-semibold"
+                  : "border-gray-200"
                   }`}
               >
                 {tab}
