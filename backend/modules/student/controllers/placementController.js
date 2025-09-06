@@ -151,6 +151,7 @@ exports.getSelectedStudents = async (req, res) => {
 };
 
 // 5. CONFIRM PLACEMENT (Auto-detect interview-based or direct placement)
+
 exports.confirmPlacement = async (req, res) => {
   try {
     const { 
@@ -188,34 +189,34 @@ exports.confirmPlacement = async (req, res) => {
       return res.status(400).json({ message: "Student is already placed" });
     }
 
-    // Upload files to Cloudinary
+    // ✅ Always upload to Cloudinary if data provided
     let offerLetterURL = null;
     let applicationURL = null;
 
-    try {
-      // Convert buffer to base64 for Cloudinary upload
-      const offerBase64 = `data:${offerLetterFile.mimetype};base64,${offerLetterFile.buffer.toString('base64')}`;
-      const appBase64 = `data:${applicationFile.mimetype};base64,${applicationFile.buffer.toString('base64')}`;
+    if (offerLetter) {
+      try {
+        const offerResult = await cloudinary.uploader.upload(offerLetter, {
+          folder: 'placement-documents/offer-letters',
+          resource_type: 'auto',
+          public_id: `${studentId}_offer_${Date.now()}`
+        });
+        offerLetterURL = offerResult.secure_url;
+      } catch (error) {
+        return res.status(500).json({ success: false, message: "Error uploading offer letter", error: error.message });
+      }
+    }
 
-      // Upload offer letter
-      const offerResult = await cloudinary.uploader.upload(offerBase64, {
-        folder: 'placement-documents/offer-letters',
-        resource_type: 'auto'
-      });
-      offerLetterURL = offerResult.secure_url;
-
-      // Upload application
-      const appResult = await cloudinary.uploader.upload(appBase64, {
-        folder: 'placement-documents/applications', 
-        resource_type: 'auto'
-      });
-      applicationURL = appResult.secure_url;
-    } catch (uploadError) {
-      return res.status(500).json({ 
-        success: false, 
-        message: "Failed to upload documents", 
-        error: uploadError.message 
-      });
+    if (application) {
+      try {
+        const appResult = await cloudinary.uploader.upload(application, {
+          folder: 'placement-documents/applications',
+          resource_type: 'auto',
+          public_id: `${studentId}_application_${Date.now()}`
+        });
+        applicationURL = appResult.secure_url;
+      } catch (error) {
+        return res.status(500).json({ success: false, message: "Error uploading application", error: error.message });
+      }
     }
 
     // Auto-detect interview or direct placement
@@ -265,10 +266,13 @@ exports.confirmPlacement = async (req, res) => {
         "Student placement confirmed directly",
       data: student.placedInfo
     });
+
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+
+
 
 // 6. GET PLACED STUDENTS
 exports.getPlacedStudents = async (req, res) => {
