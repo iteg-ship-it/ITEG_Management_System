@@ -1,11 +1,13 @@
 import { useState, useMemo } from 'react';
 import { useGetItegStudentAttendanceQuery } from '../../redux/api/authApi';
-import { FiCalendar, FiFilter, FiEye, FiArrowLeft } from 'react-icons/fi';
+import { FiCalendar, FiFilter, FiEye} from 'react-icons/fi';
+import { BsPersonFill, BsPersonFillCheck } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 import PageNavbar from '../common-components/navbar/PageNavbar';
 import AttendanceCalendarModal from './AttendanceCalendarModal';
 import AttendanceApiError from '../common-components/error-pages/AttendanceApiError';
 import { useAttendanceErrorHandler } from '../../hooks/useAttendanceErrorHandler';
+import { buttonStyles } from '../../styles/buttonStyles';
 
 // Helper function to get current week dates
 const getCurrentWeekDates = () => {
@@ -116,7 +118,7 @@ const AttendanceDetails = () => {
   const years = [{ value: 'All', label: 'All Year' }, { value: 'I', label: 'I Year' }, { value: 'II', label: 'II Year' }, { value: 'III', label: 'III Year' }];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--backgroundColor)]">
       <PageNavbar 
         title="ITEG Attendance Details" 
         subtitle="Detailed attendance records and analytics"
@@ -126,7 +128,7 @@ const AttendanceDetails = () => {
 
       <div className="p-6">
         {/* Filters Section */}
-        <div className="bg-white rounded-xl p-6 mb-6 shadow-sm">
+        <div className="bg-[var(--backgroundColor)] border rounded-lg p-6 mb-6 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
             <FiFilter className="w-5 h-5 text-gray-600" />
             <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
@@ -140,7 +142,7 @@ const AttendanceDetails = () => {
                 value={filters.dateFrom}
                 max={new Date().toISOString().split('T')[0]}
                 onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-[#FDA92D]"
               />
             </div>
             
@@ -152,7 +154,7 @@ const AttendanceDetails = () => {
                 min={filters.dateFrom}
                 max={new Date().toISOString().split('T')[0]}
                 onChange={(e) => handleFilterChange('dateTo', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-[#FDA92D]"
               />
             </div>
             
@@ -161,7 +163,7 @@ const AttendanceDetails = () => {
               <select
                 value={filters.year}
                 onChange={(e) => handleFilterChange('year', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-[#FDA92D]"
               >
                 {years.map(year => (
                   <option key={year.value} value={year.value}>{year.label}</option>
@@ -174,7 +176,7 @@ const AttendanceDetails = () => {
               <select
                 value={filters.gender}
                 onChange={(e) => handleFilterChange('gender', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-[#FDA92D]"
               >
                 <option value="">All</option>
                 <option value="male">Male</option>
@@ -194,7 +196,7 @@ const AttendanceDetails = () => {
                     gender: ''
                   });
                 }}
-                className="w-full h-10 px-4 py-2 bg-gray-500 text-white rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors"
+                className="w-full bg-[#FDA92D] text-white px-3 py-3 rounded-md hover:bg-[#ED9A21] active:bg-[#B66816] transition-all duration-200"
               >
                 Reset
               </button>
@@ -226,7 +228,7 @@ const AttendanceDetails = () => {
                   <p className="text-sm font-medium text-green-900">Male Students</p>
                   <p className="text-2xl font-bold text-green-600">{overallStats.maleStudents}</p>
                 </div>
-                <FiEye className="w-8 h-8 text-green-500" />
+                <BsPersonFill className="w-8 h-8 text-green-500" />
               </div>
             </div>
             
@@ -236,7 +238,7 @@ const AttendanceDetails = () => {
                   <p className="text-sm font-medium text-pink-900">Female Students</p>
                   <p className="text-2xl font-bold text-pink-600">{overallStats.femaleStudents}</p>
                 </div>
-                <FiEye className="w-8 h-8 text-pink-500" />
+                <BsPersonFillCheck className="w-8 h-8 text-pink-500" />
               </div>
             </div>
             
@@ -253,7 +255,7 @@ const AttendanceDetails = () => {
         )}
 
         {/* Table Section */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-[var(--backgroundColor)] border rounded-lg shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900">Student Attendance Records</h3>
             <div className="flex justify-between items-center">
@@ -334,7 +336,7 @@ const AttendanceDetails = () => {
                               setSelectedStudent(student);
                               setIsModalOpen(true);
                             }}
-                            className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
+                            className={`inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${buttonStyles.primary}`}
                           >
                             <FiCalendar className="w-3 h-3 mr-1" />
                             View Calendar
@@ -350,52 +352,30 @@ const AttendanceDetails = () => {
           
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-700">
-                  Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredData.length)} of {filteredData.length} results
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-                  
-                  <div className="flex space-x-1">
-                    {[...Array(totalPages)].map((_, index) => {
-                      const page = index + 1;
-                      if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
-                        return (
-                          <button
-                            key={page}
-                            onClick={() => setCurrentPage(page)}
-                            className={`px-3 py-1 text-sm border rounded-md ${
-                              currentPage === page
-                                ? 'bg-blue-600 text-white border-blue-600'
-                                : 'border-gray-300 hover:bg-gray-100'
-                            }`}
-                          >
-                            {page}
-                          </button>
-                        );
-                      } else if (page === currentPage - 2 || page === currentPage + 2) {
-                        return <span key={page} className="px-2 text-gray-500">...</span>;
-                      }
-                      return null;
-                    })}
-                  </div>
-                  
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </div>
+            <div className="flex justify-end items-center gap-6 px-6 py-4 border-t border-gray-200 bg-[var(--backgroundColor)] rounded-b-lg text-sm">
+              <span className="text-[var(--text-color)] font-medium">
+                {filteredData.length === 0
+                  ? "0"
+                  : `${(currentPage - 1) * itemsPerPage + 1} - ${Math.min(
+                    currentPage * itemsPerPage,
+                    filteredData.length
+                  )} of ${filteredData.length}`}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="w-7 h-7 flex items-center justify-center text-[var(--text-color)] disabled:opacity-40"
+                >
+                  <span className="text-3xl">‹</span>
+                </button>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="w-7 h-7 text-md flex items-center justify-center text-[var(--text-color)] disabled:opacity-40"
+                >
+                  <span className="text-3xl">›</span>
+                </button>
               </div>
             </div>
           )}

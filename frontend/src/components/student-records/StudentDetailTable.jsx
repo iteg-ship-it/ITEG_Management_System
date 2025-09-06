@@ -282,10 +282,6 @@ const StudentDetailTable = () => {
                     activeTab === tab
                       ? "border-[var(--text-color)] font-semibold text-[var(--text-color)]"
                       : "border-gray-200 text-[var(--text-color)]"
-                  } ${
-                    tab === "Level's Cleared" 
-                      ? "text-green-600 font-medium" + (activeTab === tab ? " border-green-600" : "")
-                      : ""
                   }`}
                 >
                   {tab === "Level's Cleared" ? "" + tab : tab}

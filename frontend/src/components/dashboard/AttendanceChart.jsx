@@ -2,9 +2,12 @@ import { useState, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useGetItegAttendanceQuery } from '../../redux/api/authApi';
 import { FiCalendar, FiUsers, FiTrendingUp, FiSearch, FiEye } from 'react-icons/fi';
+import { BsPersonFill, BsPersonFillCheck } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 import AttendanceApiError from '../common-components/error-pages/AttendanceApiError';
 import { useAttendanceErrorHandler } from '../../hooks/useAttendanceErrorHandler';
+import DatePicker from '../common-components/DatePicker';
+
 
 // Helper function to get current week dates
 const getCurrentWeekDates = () => {
@@ -123,8 +126,8 @@ const AttendanceChart = () => {
       <div className="px-6 py-4 border-b-2 border-gray-200 shadow-sm bg-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-blue-100">
-              <FiTrendingUp className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-100">
+              <FiTrendingUp className="w-5 h-5 text-gray-700" />
             </div>
             <div>
               <h3 className="text-lg font-bold text-gray-900">ITEG Attendance Analytics</h3>
@@ -141,37 +144,33 @@ const AttendanceChart = () => {
 
       <div className="p-6">
         {/* Date Range Filters */}
-        <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="flex-1 min-w-[140px]">
-              <label className="text-sm font-semibold text-gray-700 mb-2 block">From Date</label>
-              <input
-                type="date"
-                value={tempDateRange.dateFrom}
-                max={new Date().toISOString().split('T')[0]}
-                onChange={(e) => handleTempDateChange('dateFrom', e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm"
-              />
-            </div>
-            <div className="flex-1 min-w-[140px]">
-              <label className="text-sm font-semibold text-gray-700 mb-2 block">To Date</label>
-              <input
-                type="date"
-                value={tempDateRange.dateTo}
-                min={tempDateRange.dateFrom}
-                max={new Date().toISOString().split('T')[0]}
-                onChange={(e) => handleTempDateChange('dateTo', e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm"
-              />
-            </div>
-            <div className="flex gap-2">
+        <div className="mb-6 p-4 bg-white rounded-xl border border-gray-200">
+                  <div className="flex flex-wrap items-end gap-3">
+                    <div className="flex-1 min-w-[140px]">
+                      <DatePicker
+                        label="From Date"
+                        value={tempDateRange.dateFrom}
+                        max={new Date().toISOString().split('T')[0]}
+                        onChange={(value) => handleTempDateChange('dateFrom', value)}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-[140px]">
+                      <DatePicker
+                        label="To Date"
+                        value={tempDateRange.dateTo}
+                        min={tempDateRange.dateFrom}
+                        max={new Date().toISOString().split('T')[0]}
+                        onChange={(value) => handleTempDateChange('dateTo', value)}
+                      />
+                    </div>
+                    <div className="flex gap-2">
               <button
                 onClick={handleSearch}
                 disabled={!!dateError}
-                className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm ${
+                className={`px-4 py-2.5 h-[48px] rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm ${
                   dateError 
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                    : 'bg-[#FDA92D] text-white hover:bg-[#ED9A21]'
                 }`}
               >
                 <FiSearch className="w-4 h-4" />
@@ -179,19 +178,19 @@ const AttendanceChart = () => {
               </button>
               <button
                 onClick={handleReset}
-                className="px-4 py-2.5 bg-gray-500 text-white rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors shadow-sm"
+                className="px-4 py-2.5 h-[48px] bg-[#FDA92D] text-white rounded-lg text-sm font-medium hover:bg-[#ED9A21] transition-colors shadow-sm"
               >
                 Reset
               </button>
               <button
                 onClick={handleViewAttendance}
-                className="px-4 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm"
+                className="px-4 py-2.5 h-[48px] bg-[#FDA92D] text-white rounded-lg text-sm font-medium hover:bg-[#ED9A21] transition-colors flex items-center gap-2 shadow-sm"
               >
                 <FiEye className="w-4 h-4" />
                 View Attendance
               </button>
-            </div>
-          </div>
+                    </div>
+                  </div>
           {dateError && (
             <div className="mt-2 text-sm text-red-600 font-medium">
               {dateError}
@@ -202,7 +201,7 @@ const AttendanceChart = () => {
         {isLoading ? (
           <div className="h-64 flex items-center justify-center">
             <div className="text-center">
-              <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+              <div className="w-8 h-8 border-2 border-[#FDA92D] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
               <p className="text-sm text-gray-600">Loading attendance data...</p>
             </div>
           </div>
@@ -215,15 +214,15 @@ const AttendanceChart = () => {
           <div className="space-y-6">
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+              <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-blue-900">Total Students</p>
-                    <p className="text-2xl font-bold text-blue-600">
+                    <p className="text-sm font-medium text-purple-900">Total Students</p>
+                    <p className="text-2xl font-bold text-purple-600">
                       {parseInt(attendanceData?.data?.summary?.totalITEGStudents) || 0}
                     </p>
                   </div>
-                  <FiUsers className="w-8 h-8 text-blue-500" />
+                  <FiUsers className="w-8 h-8 text-purple-500" />
                 </div>
               </div>
               
@@ -235,7 +234,7 @@ const AttendanceChart = () => {
                       {parseInt(attendanceData?.data?.summary?.totalMaleStudents) || 0}
                     </p>
                   </div>
-                  <FiUsers className="w-8 h-8 text-blue-500" />
+                  <BsPersonFill className="w-8 h-8 text-blue-500" />
                 </div>
               </div>
               
@@ -247,7 +246,7 @@ const AttendanceChart = () => {
                       {parseInt(attendanceData?.data?.summary?.totalFemaleStudents) || 0}
                     </p>
                   </div>
-                  <FiUsers className="w-8 h-8 text-pink-500" />
+                  <BsPersonFillCheck className="w-8 h-8 text-pink-500" />
                 </div>
               </div>
               
@@ -266,7 +265,7 @@ const AttendanceChart = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Bar Chart */}
-              <div className="lg:col-span-2 bg-gray-50 rounded-lg p-4">
+              <div className="lg:col-span-2 bg-white rounded-lg p-4 border border-gray-300">
                 <h4 className="text-lg font-semibold text-gray-900 mb-4">Year-wise Attendance</h4>
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
@@ -293,7 +292,7 @@ const AttendanceChart = () => {
               </div>
 
               {/* Pie Chart */}
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-white rounded-lg p-4 border border-gray-300">
                 <h4 className="text-lg font-semibold text-gray-900 mb-4">Gender Distribution</h4>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
@@ -336,7 +335,7 @@ const AttendanceChart = () => {
 
             {/* Year-wise Details */}
             {attendanceData?.data?.itegAttendanceList && (
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-white rounded-lg p-4">
                 <h4 className="text-lg font-semibold text-gray-800 mb-4">Detailed Statistics</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {attendanceData.data.itegAttendanceList.map((yearData, index) => (
@@ -376,8 +375,8 @@ const AttendanceChart = () => {
 
             {/* Date Range Info */}
             {attendanceData?.data?.dateRange && (
-              <div className="bg-blue-50 rounded-lg p-4">
-                <div className="flex items-center justify-center gap-6 text-sm text-blue-800">
+              <div className="bg-orange-50 rounded-lg p-4">
+                <div className="flex items-center justify-center gap-6 text-sm text-orange-800">
                   <span>Period: {attendanceData.data.dateRange.from} to {attendanceData.data.dateRange.to}</span>
                   <span>•</span>
                   <span>Working Days: {attendanceData.data.dateRange.workingDays}</span>

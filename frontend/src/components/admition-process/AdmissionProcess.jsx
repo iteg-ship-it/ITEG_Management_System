@@ -132,7 +132,7 @@ const StudentList = () => {
       },
       {
         title: "Result",
-        options: dynamicResultOptions,
+        options: ["Selected", "Rejected"],
         selected: resultFilterTab2,
         setter: setResultFilterTab2,
       },
@@ -252,6 +252,14 @@ const StudentList = () => {
         if (activeTab === "Online Assessment") {
           const onlineResult = toTitleCase(student.onlineTest?.result || "Not Attempted");
           return selected.includes(onlineResult);
+        } else if (activeTab === "Results") {
+          const secondRound = student.interviews?.filter((i) => i.round === "Second") || [];
+          const isSelected = secondRound.some((i) => i.result === "Pass");
+          const isRejected = latestResult === "Fail" || secondRound.some((i) => i.result === "Fail");
+          
+          if (selected.includes("Selected") && isSelected) return true;
+          if (selected.includes("Rejected") && isRejected) return true;
+          return false;
         } else {
           return selected.includes(latestResult);
         }
@@ -385,17 +393,6 @@ const StudentList = () => {
           key: "course",
           label: "Course",
           render: (row) => toTitleCase(row.course),
-        },
-        {
-          key: "marks",
-          label: "Marks",
-          align: "center",
-          render: (row) => row.onlineTest?.marks || "0",
-        },
-        {
-          key: "stream",
-          label: "Status",
-          render: (row) => handleGetOnlineMarks(row.onlineTest),
         },
       ];
       actionButton = (row) => (

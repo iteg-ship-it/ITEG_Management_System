@@ -53,6 +53,10 @@ export const downloadPDF = (data, filename = "data.pdf") => {
     styles: {
       fontSize: 8,
       cellPadding: 2
+    },
+    headStyles: {
+      fillColor: [253, 169, 45],
+      textColor: 255
     }
   });
   doc.save(filename);

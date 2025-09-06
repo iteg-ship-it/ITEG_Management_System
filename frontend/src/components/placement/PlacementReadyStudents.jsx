@@ -105,7 +105,8 @@ const PlacementReadyStudents = () => {
           Array.isArray(s.PlacementinterviewRecord) &&
           s.PlacementinterviewRecord.some(
             (rec) => rec.status?.toLowerCase() === "selected"
-          )
+          ) &&
+          !s.placedInfo // Exclude students who are already placed
       );
     } else if (activeTab === "Placed Student") {
       // Use admitted students data for placed students
@@ -335,6 +336,11 @@ const PlacementReadyStudents = () => {
       label: "Mobile no.",
       align: "center",
       render: (row) => `+91 ${row.studentMobile}`,
+    },
+    {
+      key: "track",
+      label: "Track",
+      render: (row) => toTitleCase(row.track),
     },
     {
       key: "techno",

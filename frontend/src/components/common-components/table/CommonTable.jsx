@@ -135,10 +135,10 @@ const CommonTable = ({
     <div className="w-full py-3">
       <div className="w-full bg-white">
         <div ref={scrollRef} className="overflow-x-auto max-h-[60vh] overflow-y-overlay custom-scrollbar">
-            <table className="min-w-full text-sm">
+            <table className="min-w-full text-sm table-fixed">
               <thead className="bg-[--neutral-light] text-gray-600 shadow-sm sticky top-0 z-10">
                 <tr>
-                  <th className="px-4 py-3 text-center">
+                  <th className="w-12 px-3 py-3 text-center">
                     <div className="flex items-center justify-center">
                       <input type="checkbox" className="h-4 w-4 text-black accent-[#1c252e] rounded-md"
                         checked={isAllSelected}
@@ -146,9 +146,9 @@ const CommonTable = ({
                       />
                     </div>
                   </th>
-                  <th className="px-4 py-3 text-center">S.No</th>
+                  <th className="w-16 px-3 py-3 text-center">S.No</th>
                   {columns.map(({ key, label, align }) => (
-                    <th key={key} className={`px-4 py-3 ${align === 'center' ? 'text-center' : 'text-left'}`}>
+                    <th key={key} className={`px-3 py-3 ${align === 'center' ? 'text-center' : 'text-left'}`}>
                       {(key === 'fullName' || key === 'firstName' || key === 'profile') ? (
                         <div 
                           className="flex items-center gap-1 cursor-pointer hover:text-gray-800"
@@ -165,10 +165,10 @@ const CommonTable = ({
                     </th>
                   ))}
                   {editable && actionButton && (
-                    <th className="px-4 py-3 text-left">Action</th>
+                    <th className="px-3 py-3 text-left">Action</th>
                   )}
                   {extraColumn && (
-                    <th className="px-4 py-3 text-left">{extraColumn.header}</th>
+                    <th className="px-3 py-3 text-left">{extraColumn.header}</th>
                   )}
                 </tr>
               </thead>
@@ -178,7 +178,7 @@ const CommonTable = ({
                     className={`hover:bg-gray-100 text-md transition cursor-pointer border-b border-dashed border-gray-300`}
                     onClick={() => onRowClick && onRowClick(row)} // ⬅️ Navigation trigger
                   >
-                    <td className="px-4 py-3 text-center"
+                    <td className="px-3 py-3 text-center"
                       onClick={(e) => e.stopPropagation()} //Stop row click when clicking checkbox
                     >
                       <div className="flex items-center justify-center -mt-1">
@@ -190,11 +190,11 @@ const CommonTable = ({
                       </div>
                     </td>
 
-                    <td className="px-4 py-3 text-center font-medium text-gray-800">
+                    <td className="px-3 py-3 text-center font-medium text-gray-800">
                       {(currentPage - 1) * pageSize + rowIndex + 1}
                     </td>
                     {columns.map(({ key, render, align }) => (
-                      <td key={key} className={`px-4 py-3 ${align === 'center' ? 'text-center' : 'text-left'} text-gray-700`}>
+                      <td key={key} className={`px-3 py-3 ${align === 'center' ? 'text-center' : 'text-left'} text-gray-700`}>
                         {render ? (
                           render(row)
                         ) : key === "profile" ? (
@@ -212,7 +212,7 @@ const CommonTable = ({
                     ))}
                     {editable && actionButton && (
                       <td
-                        className="px-4 py-3 text-left sticky right-0"
+                        className="px-3 py-3 text-left sticky right-0"
                         onClick={(e) => e.stopPropagation()} //prevent row click from firing
                       >
                         <div className="inline-block hover:shadow-md transition cursor-pointer relative z-20">
@@ -221,7 +221,7 @@ const CommonTable = ({
                       </td>
                     )}
                     {extraColumn && (
-                      <td className="px-4 py-3 text-left">
+                      <td className="px-3 py-3 text-left">
                         {extraColumn.render?.(row)}
                       </td>
                     )}

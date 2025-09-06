@@ -39,8 +39,9 @@ const TextInput = ({
               <label
                 htmlFor={name}
                 className={`
-                  absolute left-3 bg-white px-1 transition-all duration-200
+                  absolute left-3 px-1 transition-all duration-200
                   pointer-events-none
+                  ${disabled ? "bg-gray-100" : "bg-white"}
                   ${isFocused || hasValue
                     ? "text-xs -top-2 text-black"
                     : "text-gray-500 top-3"}
