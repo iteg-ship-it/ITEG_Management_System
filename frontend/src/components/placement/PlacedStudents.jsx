@@ -30,15 +30,7 @@ const PlacedStudents = () => {
       label: "Student Name",
       render: (row) => (
         <div className="flex items-center gap-3">
-          {row.image ? (
-            <img src={row.image} alt={`${row.firstName} ${row.lastName}`} className="w-10 h-10 rounded-full object-cover border-2 border-gray-200" />
-          ) : (
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
-              <span className="text-white font-semibold text-sm">
-                {row.firstName?.charAt(0)?.toUpperCase() || 'S'}
-              </span>
-            </div>
-          )}
+      
           <div className="flex flex-col">
             <span className="font-semibold text-gray-900">{`${row.firstName} ${row.lastName}`}</span>
             <span className="text-xs text-gray-500">{row.course} - {row.stream}</span>
@@ -138,7 +130,7 @@ const PlacedStudents = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <PageNavbar
         title={`Placed Students`}
         subtitle={`Students placed in ${companyName}`}

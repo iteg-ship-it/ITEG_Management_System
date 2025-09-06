@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useGetItegStudentAttendanceQuery } from '../../redux/api/authApi';
-import { FiCalendar, FiFilter, FiEye, FiArrowLeft } from 'react-icons/fi';
+import { FiCalendar, FiFilter, FiEye } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import PageNavbar from '../common-components/navbar/PageNavbar';
 import AttendanceCalendarModal from './AttendanceCalendarModal';
@@ -116,7 +116,7 @@ const AttendanceDetails = () => {
   const years = [{ value: 'All', label: 'All Year' }, { value: 'I', label: 'I Year' }, { value: 'II', label: 'II Year' }, { value: 'III', label: 'III Year' }];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <PageNavbar 
         title="ITEG Attendance Details" 
         subtitle="Detailed attendance records and analytics"

@@ -93,9 +93,10 @@ const Header = () => {
                             className={`px-5 py-3 text-sm font-medium ${buttonStyles.primary}`}
                             title="Add Member"
                         >
-                            <span className="hidden sm:flex sm:items-center sm:gap-1">
+                            <span className="hidden sm:flex sm:items-center sm:gap-2">
+                                <span className="text-lg font-bold">+</span>
                                 <span>Add</span>
-                                <span>Member</span>
+                                <span>User</span>
                             </span>
                         </button>
                     )}

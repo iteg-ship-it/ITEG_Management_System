@@ -176,7 +176,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
       <div className="bg-white rounded-xl py-6 px-8 w-full max-w-3xl h-[95vh] overflow-y-auto no-scrollbar relative">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-center text-orange-500">
+          <h2 className="text-2xl font-semibold text-center mb-6 text-[var(--primary)]">
             Technical Interview Form
           </h2>
           <p className="text-center mt-2 text-lg font-medium text-gray-800">

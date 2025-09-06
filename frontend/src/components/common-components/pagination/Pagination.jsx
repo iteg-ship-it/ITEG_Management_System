@@ -59,7 +59,7 @@ const Pagination = ({
   return (
     <div className="flex items-center w-full py-5 flex-wrap gap-4 relative">
       {/* Search Box */}
-      <div className="flex border border-gray-300 rounded-md overflow-hidden w-full max-w-3xl h-12 bg-[var(--backgroundColor)] relative">
+      <div className="flex border border-gray-300 rounded-md overflow-hidden w-full max-w-3xl h-12 bg-[var(--backgroundColor)] relative focus-within:border-black transition-colors">
         <div className="flex items-center px-3 w-full">
           <Search className="w-4 h-4 text-gray-600 flex-shrink-0" />
           <input

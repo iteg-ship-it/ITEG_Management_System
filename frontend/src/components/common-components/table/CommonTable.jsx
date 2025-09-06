@@ -17,6 +17,7 @@ const CommonTable = ({
   onSelectionChange
 }) => {
   const [internalPage, setInternalPage] = useState(1);
+  const [sortOrder, setSortOrder] = useState('asc'); // 'asc' or 'desc'
   const scrollRef = useRef(null);
   // const navigate = useNavigate();
 
@@ -48,14 +49,46 @@ const CommonTable = ({
 
   const filteredData = useMemo(() => {
     const term = searchTerm.toLowerCase();
-    return data.filter((row) =>
+    const filtered = data.filter((row) =>
       Object.values(row)
         .map((val) => String(val ?? ""))
         .join(" ")
         .toLowerCase()
         .includes(term)
     );
-  }, [data, searchTerm]);
+    
+    // Sort by Full Name (handle different name field combinations)
+    return filtered.sort((a, b) => {
+      let nameA, nameB;
+      
+      // Handle different name field structures
+      if (a.firstName && a.lastName) {
+        nameA = `${a.firstName} ${a.lastName}`.trim().toLowerCase();
+      } else if (a.fullName) {
+        nameA = a.fullName.trim().toLowerCase();
+      } else if (a.name) {
+        nameA = a.name.trim().toLowerCase();
+      } else {
+        nameA = '';
+      }
+      
+      if (b.firstName && b.lastName) {
+        nameB = `${b.firstName} ${b.lastName}`.trim().toLowerCase();
+      } else if (b.fullName) {
+        nameB = b.fullName.trim().toLowerCase();
+      } else if (b.name) {
+        nameB = b.name.trim().toLowerCase();
+      } else {
+        nameB = '';
+      }
+      
+      if (sortOrder === 'asc') {
+        return nameA.localeCompare(nameB);
+      } else {
+        return nameB.localeCompare(nameA);
+      }
+    });
+  }, [data, searchTerm, sortOrder]);
 
   const totalPages = Math.ceil(filteredData.length / pageSize);
 
@@ -115,7 +148,21 @@ const CommonTable = ({
                   </th>
                   <th className="px-4 py-3 text-center">S.No</th>
                   {columns.map(({ key, label, align }) => (
-                    <th key={key} className={`px-4 py-3 ${align === 'center' ? 'text-center' : 'text-left'}`}>{label}</th>
+                    <th key={key} className={`px-4 py-3 ${align === 'center' ? 'text-center' : 'text-left'}`}>
+                      {(key === 'fullName' || key === 'firstName' || key === 'profile') ? (
+                        <div 
+                          className="flex items-center gap-1 cursor-pointer hover:text-gray-800"
+                          onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                        >
+                          {label}
+                          <span className="text-sm">
+                            {sortOrder === 'asc' ? '↑' : '↓'}
+                          </span>
+                        </div>
+                      ) : (
+                        label
+                      )}
+                    </th>
                   ))}
                   {editable && actionButton && (
                     <th className="px-4 py-3 text-left">Action</th>

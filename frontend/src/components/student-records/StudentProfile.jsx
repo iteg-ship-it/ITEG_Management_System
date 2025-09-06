@@ -40,6 +40,36 @@ export default function StudentProfile() {
 
   const fileInputRef = useRef(null);
 
+  // Helper function to get resume URL from various possible field names
+  const getResumeUrl = () => {
+    return studentData?.resumeURL || 
+           studentData?.resume || 
+           studentData?.resumeUrl || 
+           studentData?.resume_url || 
+           null;
+  };
+
+  // Function to handle resume link clicks with error handling
+  const handleResumeView = (e) => {
+    const resumeUrl = getResumeUrl();
+    if (!resumeUrl) {
+      e.preventDefault();
+      toast.error('Resume URL not found');
+      return;
+    }
+    
+    // Test if URL is accessible
+    fetch(resumeUrl, { method: 'HEAD' })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Resume not accessible');
+        }
+      })
+      .catch(error => {
+        console.error('Resume accessibility check failed:', error);
+        toast.error('Resume file may not be accessible. Please try again or contact support.');
+      });
+  };
 
   useEffect(() => {
     if (studentData?.level?.length > 0) {
@@ -92,7 +122,7 @@ export default function StudentProfile() {
     reader.onload = async (e) => {
       try {
         const base64Image = e.target.result;
-        console.log('Uploading image for student ID:', studentData._id);
+        // console.log('Uploading image for student ID:', studentData._id);
 
         // Update student image via RTK Query
         const result = await updateStudentImage({
@@ -146,12 +176,12 @@ export default function StudentProfile() {
         // Remove the data:application/pdf;base64, prefix
         const base64String = base64Data.split(',')[1];
 
-        console.log('Uploading resume:', {
-          studentId: studentData._id,
-          fileName: file.name,
-          fileSize: file.size,
-          base64Length: base64String.length
-        });
+        // console.log('Uploading resume:', {
+        //   studentId: studentData._id,
+        //   fileName: file.name,
+        //   fileSize: file.size,
+        //   base64Length: base64String.length
+        // });
 
         const payload = {
           studentId: studentData._id,
@@ -159,11 +189,15 @@ export default function StudentProfile() {
           fileData: base64String
         };
 
-        console.log('API Payload:', payload);
+        // console.log('API Payload:', payload);
 
-        await uploadResume(payload).unwrap();
+        const result = await uploadResume(payload).unwrap();
+        console.log('Upload result:', result);
 
         toast.success('Resume uploaded successfully!');
+
+        // Clear the file input
+        event.target.value = '';
 
       } catch (error) {
         console.error('Full error object:', error);
@@ -244,7 +278,14 @@ export default function StudentProfile() {
   // Debug student data to check resume field
   console.log('Student Data:', studentData);
   console.log('Resume field:', studentData.resume);
-  console.log('Has resume:', !!studentData.resume);
+  console.log('ResumeURL field:', studentData.resumeURL);
+  console.log('All resume-related fields:', {
+    resume: studentData.resume,
+    resumeURL: studentData.resumeURL,
+    resumeUrl: studentData.resumeUrl,
+    resume_url: studentData.resume_url
+  });
+  console.log('Has resume:', !!(studentData.resume || studentData.resumeURL));
 
   return (
     <div className="min-h-screen bg-white">
@@ -289,7 +330,7 @@ export default function StudentProfile() {
               <button
                 onClick={() => {
                   if (canChooseElective()) {
-                    console.log('Update Technology button clicked');
+                    // console.log('Update Technology button clicked');
                     setTechModalOpen(true);
                   }
                 }}
@@ -351,7 +392,7 @@ export default function StudentProfile() {
                   <h2 className="text-lg sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 text-white">
                     {studentData.firstName} {studentData.lastName}
                   </h2>
-                  <p className="text-gray-300 mb-3 sm:mb-4 text-xs sm:text-base">Course: {studentData.course || "N/A"} | Level - {currentLevel}</p>
+                  <p className="text-gray-300 mb-3 sm:mb-4 text-xs sm:text-base">Course: {studentData.course || "N/A"} | Level - {currentLevel || "1A"}</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6">
                     <ContactCard icon={<svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>} label="Email" value={studentData.email} />
                     <ContactCard icon={<svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>} label="Phone" value={studentData.studentMobile || "N/A"} />
@@ -550,9 +591,9 @@ export default function StudentProfile() {
             icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h4M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>}
           >
             <div className="space-y-4">
-              <DetailRow icon={company} label="Company" value={studentData.placedInfo?.companyName} />
-              <DetailRow icon={position} label="Position" value={studentData.placedInfo?.jobProfile} />
-              <DetailRow icon={loca} label="Location" value={studentData.placedInfo?.location} />
+              <DetailRow icon={company} label="Company" value={studentData.placedInfo?.companyName || "Not placed yet"} />
+              <DetailRow icon={position} label="Position" value={studentData.placedInfo?.jobProfile || "Not placed yet"} />
+              <DetailRow icon={loca} label="Location" value={studentData.placedInfo?.location || "Not placed yet"} />
               <DetailRow icon={date} label="Joining Date" value={studentData.placedInfo?.joiningDate ? new Date(studentData.placedInfo.joiningDate).toLocaleDateString() : null} />
             </div>
             {!studentData.placedInfo?.companyName && (
@@ -579,12 +620,12 @@ export default function StudentProfile() {
               <DetailRow
                 icon={permission}
                 label="Reason"
-                value={studentData?.permissionDetails?.remark || "N/A"}
+                value={studentData?.permissionDetails?.remark || "Don't have any reason"}
               />
               <DetailRow
                 icon={permission}
                 label="Approved By"
-                value={studentData?.permissionDetails?.approved_by || "N/A"}
+                value={studentData?.permissionDetails?.approved_by || "No one approved"}
               />
               {studentData?.permissionDetails?.imageURL && (
                 <div className="mt-4">
@@ -615,7 +656,7 @@ export default function StudentProfile() {
             icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
           >
             <div className="space-y-4">
-              {studentData.resumeURL ? (
+              {getResumeUrl() ? (
                 <div>
                   {/* Resume Header */}
                   <div className="flex items-center justify-between p-3 bg-blue-50 rounded-t-lg border border-blue-200 border-b-0">
@@ -624,12 +665,12 @@ export default function StudentProfile() {
                         <span className="text-blue-600 text-sm">📄</span>
                       </div>
                       <div>
-                        <p className="text-xs font-semibold text-blue-900">{studentData.resumeURL.split('/').pop().split('-').slice(1).join('-') || 'Resume.pdf'}</p>
+                        <p className="text-xs font-semibold text-blue-900">{getResumeUrl()?.split('/').pop().split('-').slice(1).join('-') || 'Resume.pdf'}</p>
                         <p className="text-xs text-blue-600">Resume document</p>
                       </div>
                     </div>
                     <a
-                      href={studentData.resumeURL}
+                      href={getResumeUrl()}
                       download
                       className="px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs font-medium rounded transition-colors flex items-center"
                     >
@@ -647,17 +688,19 @@ export default function StudentProfile() {
                       <p className="text-sm text-blue-700 mb-4">Student&rsquo;s resume has been uploaded successfully</p>
                       <div className="flex gap-3 justify-center">
                         <a
-                          href={studentData.resumeURL}
+                          href={getResumeUrl()}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+                          onClick={handleResumeView}
                         >
                           View Resume
                         </a>
                         <a
-                          href={studentData.resumeURL}
+                          href={getResumeUrl()}
                           download
                           className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+                          onClick={handleResumeView}
                         >
                           <img src={download} className="w-4 h-4" />
                           Download
