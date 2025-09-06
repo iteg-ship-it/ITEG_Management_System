@@ -34,6 +34,11 @@
 *{
   font-family: 'Inter', sans-serif;
 }
+
+body, html {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
 /* Add to index.css or global.css */
 
 .custom-scrollbar::-webkit-scrollbar {
