@@ -1406,6 +1406,9 @@ paths:
             schema:
               type: object
               properties:
+                Topic:
+                  type: string
+                  example: "java"
                 Theoretical_Marks:
                   type: number
                   example: 30
