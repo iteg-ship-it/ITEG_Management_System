@@ -62,9 +62,9 @@ const UpdateTechnologyModal = ({ isOpen, onClose, studentId }) => {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl py-4 px-6 w-full max-w-lg relative">
-                <h2 className="text-xl font-bold text-center text-orange-500 mb-4">Update Technology</h2>
-                
-                <TechnologyForm 
+                <h2 className="text-2xl font-semibold text-center mb-6 text-[var(--primary)]">Update Technology</h2>
+
+                <TechnologyForm
                     initialValues={initialValues}
                     techSchema={techSchema}
                     handleSubmit={handleSubmit}
@@ -74,7 +74,7 @@ const UpdateTechnologyModal = ({ isOpen, onClose, studentId }) => {
                     isLoading={isLoading}
                     onClose={onClose}
                 />
-                
+
                 <button
                     onClick={() => {
                         setShowCustomInput(false);
@@ -90,14 +90,14 @@ const UpdateTechnologyModal = ({ isOpen, onClose, studentId }) => {
 };
 
 // Separate component to handle the form logic
-const TechnologyForm = ({ initialValues, techSchema, handleSubmit, techOptions, showCustomInput, setShowCustomInput, isLoading, onClose }) => {
+const TechnologyForm = ({ initialValues, techSchema, handleSubmit, techOptions, showCustomInput, setShowCustomInput, isLoading }) => {
     return (
         <Formik
             initialValues={initialValues}
             validationSchema={techSchema}
             onSubmit={handleSubmit}
         >
-            {({ values, handleChange, touched, errors, resetForm, setFieldValue }) => {
+            {({ values, handleChange, touched, errors, setFieldValue }) => {
                 // Watch for techno field changes
                 useEffect(() => {
                     setShowCustomInput(values.techno === "Others");
@@ -135,7 +135,7 @@ const TechnologyForm = ({ initialValues, techSchema, handleSubmit, techOptions, 
                                     )}
                                 </div>
                             )}
-                            
+
                             {/* Submit Button */}
                             <div className="mt-4">
                                 <button
