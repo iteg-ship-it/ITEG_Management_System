@@ -6,6 +6,8 @@ import CreatePostModal from "./CreatePostModal";
 import CommonTable from "../common-components/table/CommonTable";
 import Loader from "../common-components/loader/Loader";
 import profile from "../../assets/images/profileImgDummy.jpeg";
+import iteg from "../../assets/images/logo.png";
+import ssism from "../../assets/images/iteg-logo.png";
 import Pagination from "../common-components/pagination/Pagination";
 
 const PlacementPost = () => {
@@ -261,6 +263,48 @@ const PlacementPost = () => {
                 label: "Salary",
                 render: (row) => row.placedInfo?.salary ? `₹${(row.placedInfo.salary / 100000).toFixed(1)} LPA` : 'N/A',
               },
+              {
+                key: "update",
+                label: "Update",
+                render: (row) => (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedStudent(row);
+                      setCreatePostModalOpen(true);
+                    }}
+                    className="bg-orange-400 hover:bg-orange-500 text-white px-3 py-2 rounded-md transition-colors flex items-center gap-2"
+                    title="Update Post"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    Update
+                  </button>
+                )
+              },
+              {
+                key: "download",
+                label: "Download",
+                render: (row) => (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      downloadPost(row);
+                    }}
+                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-md transition-colors flex items-center gap-2"
+                    title="Download Post"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <polyline points="7,10 12,15 17,10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                    Download
+                  </button>
+                )
+              },
             ]}
             data={placedStudents}
             pagination={true}
@@ -374,58 +418,106 @@ const PlacementPost = () => {
         }}
       />
 
-      {/* Responsive Cards with Circular Images - Only show in grid mode */}
-      {
-        viewMode === 'grid' && (
-          <div className="mt-8 px-4">
-            <h2 className="text-2xl font-bold text-center mb-6">Our Success Stories</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {placedStudents.map((student, index) => (
-                <div
-                  key={student._id || index}
-                  className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 text-center border border-gray-100"
-                >
-                  {/* Circular Image */}
-                  <div className="flex justify-center mb-4">
-                    <div className="relative">
+      {/* Square Responsive Cards */}
+      {viewMode === "grid" && (
+        <div className="mt-8 px-4">
+          <h2 className="text-2xl font-bold text-center mb-6">Our Success Stories</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {placedStudents.map((student, index) => (
+              <div
+                key={student._id || index}
+                data-student-id={student._id}
+                className="bg-cover bg-center bg-no-repeat shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 aspect-square flex flex-col items-center justify-between p-4 relative"
+                // style={{
+                //   backgroundImage: `url(${placementTemplate})`,
+                //   backgroundSize: 'cover',
+                //   backgroundPosition: 'center'
+                // }}
+              >
+                {/* Top Section - Logos and Congratulations */}
+                <div className="w-full text-center">
+                  <div className="flex justify-between items-center mb-2">
+                    <img src={iteg} alt="ITEG" className="h-14" />
+                    <img src={ssism} alt="SSISM" className="h-14" />
+                  </div>
+                  <h3 className="text-4xl font-bold text-[#133783]">Congratulations</h3>
+                  <p className="text-xl text-gray-500">We are proud to announce that <br />Our ITEG student</p>
+                </div>
+
+                {/* Center Section - Student Image */}
+                <div className="flex justify-center items-center flex-1">
+                  <div className="rounded-full p-1 bg-white">
+                    <div className="rounded-full p-1 bg-orange-500">
                       <img
-                        src={student.image || student.profileImage || "https://via.placeholder.com/120x120/e2e8f0/64748b?text=Student"}
+                        src={
+                          student.image ||
+                          student.profileImage ||
+                          "https://via.placeholder.com/150x150/e2e8f0/64748b?text=Student"
+                        }
                         alt={`${student.firstName} ${student.lastName}`}
-                        className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full object-cover border-4 border-orange-500 shadow-md"
+                        className="w-32 h-32 sm:w-36 sm:h-36 rounded-full object-cover border-2 border-white shadow-md"
                       />
-                      <div className="absolute -bottom-1 -right-1 bg-green-500 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center">
-                        <span className="text-white text-xs">✓</span>
-                      </div>
                     </div>
                   </div>
+                </div>
 
-                  {/* Student Info */}
-                  <h3 className="text-lg font-bold text-gray-800 mb-2">
+                {/* Bottom Section - Student Info */}
+                <div className="w-full text-center pt-3">
+                  <h3 className="text-lg font-bold text-[#133783] mb-1">
                     {toTitleCase(student.firstName)} {toTitleCase(student.lastName)}
                   </h3>
+                  <p className="text-xs text-black">{student.village || "Location"}</p>
+                  <p className="text-sm font-semibold text-black">{student.course || "Course"}</p>
 
-                  <p className="text-sm text-gray-600 mb-1">
-                    {student.course || 'Course'}
-                  </p>
-
-                  <p className="text-xs text-gray-500 mb-3">
-                    {student.village || 'Location'}
-                  </p>
-
-                  <div className="border-t pt-3">
-                    <p className="text-sm font-semibold text-blue-600 mb-1">
-                      {student.placedInfo?.jobProfile || 'Position'}
+                  <div className="mt-3 relative">
+                    <div className="border-t border-black w-1/5 mx-auto mb-3"></div>
+                    <p className="text-sm  text-black">got placed as a <span className="font-semibold">
+                      {student.placedInfo?.jobProfile || "Position"}
+                    </span> in
                     </p>
-                    <p className="text-sm font-bold text-gray-800">
-                      {student.placedInfo?.companyName || 'Company'}
+                    <p className="text-sm font-bold text-[#133783]">
+                      {student.placedInfo?.companyName || "Company"}
                     </p>
                   </div>
                 </div>
-              ))}
-            </div>
+
+                {/* Action Buttons */}
+                <div className="absolute top-2 right-2 flex gap-1 z-20">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedStudent(student);
+                      setCreatePostModalOpen(true);
+                    }}
+                    className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors shadow-lg"
+                    title="Edit Post"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      downloadPost(student);
+                    }}
+                    className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors shadow-lg"
+                    title="Download Post"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <polyline points="7,10 12,15 17,10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        )
-      }
+        </div>
+      )}
+
     </div >
   );
 };
