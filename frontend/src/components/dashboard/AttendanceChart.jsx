@@ -77,6 +77,12 @@ const AttendanceChart = () => {
     
     setDateError('');
     setTempDateRange(newRange);
+    
+    // Auto search when To date is selected and both dates are valid
+    if (field === 'dateTo' && newRange.dateFrom && newRange.dateTo && !dateError) {
+      setDateRange(newRange);
+      refetch();
+    }
   };
 
   const handleSearch = () => {
@@ -152,6 +158,7 @@ const AttendanceChart = () => {
                         value={tempDateRange.dateFrom}
                         max={new Date().toISOString().split('T')[0]}
                         onChange={(value) => handleTempDateChange('dateFrom', value)}
+                        className="black-calendar-icon"
                       />
                     </div>
                     <div className="flex-1 min-w-[140px]">
@@ -161,24 +168,13 @@ const AttendanceChart = () => {
                         min={tempDateRange.dateFrom}
                         max={new Date().toISOString().split('T')[0]}
                         onChange={(value) => handleTempDateChange('dateTo', value)}
+                        className="black-calendar-icon"
                       />
                     </div>
                     <div className="flex gap-2">
               <button
-                onClick={handleSearch}
-                disabled={!!dateError}
-                className={`px-4 py-2.5 h-[48px] rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm ${
-                  dateError 
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                    : 'bg-[#FDA92D] text-white hover:bg-[#ED9A21]'
-                }`}
-              >
-                <FiSearch className="w-4 h-4" />
-                Search
-              </button>
-              <button
                 onClick={handleReset}
-                className="px-4 py-2.5 h-[48px] bg-[#FDA92D] text-white rounded-lg text-sm font-medium hover:bg-[#ED9A21] transition-colors shadow-sm"
+                className="px-4 py-2.5 h-[48px] bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors shadow-sm border border-black"
               >
                 Reset
               </button>

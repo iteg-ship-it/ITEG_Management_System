@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useGetItegStudentAttendanceQuery } from '../../redux/api/authApi';
 import { FiCalendar, FiFilter, FiEye} from 'react-icons/fi';
 import { BsPersonFill, BsPersonFillCheck } from 'react-icons/bs';
@@ -8,6 +8,7 @@ import AttendanceCalendarModal from './AttendanceCalendarModal';
 import AttendanceApiError from '../common-components/error-pages/AttendanceApiError';
 import { useAttendanceErrorHandler } from '../../hooks/useAttendanceErrorHandler';
 import { buttonStyles } from '../../styles/buttonStyles';
+import DatePicker from '../common-components/DatePicker';
 
 // Helper function to get current week dates
 const getCurrentWeekDates = () => {
@@ -71,6 +72,8 @@ const AttendanceDetails = () => {
   const itemsPerPage = 10;
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isYearOpen, setIsYearOpen] = useState(false);
+  const [isGenderOpen, setIsGenderOpen] = useState(false);
 
   const filteredData = useMemo(() => {
     if (!attendanceData?.data?.students) return [];
@@ -117,6 +120,11 @@ const AttendanceDetails = () => {
 
   const years = [{ value: 'All', label: 'All Year' }, { value: 'I', label: 'I Year' }, { value: 'II', label: 'II Year' }, { value: 'III', label: 'III Year' }];
 
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="min-h-screen bg-[var(--backgroundColor)]">
       <PageNavbar 
@@ -136,52 +144,125 @@ const AttendanceDetails = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">From Date</label>
-              <input
-                type="date"
+              <DatePicker
+                label="From Date"
                 value={filters.dateFrom}
                 max={new Date().toISOString().split('T')[0]}
-                onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-[#FDA92D]"
+                onChange={(value) => handleFilterChange('dateFrom', value)}
+                className="black-calendar-icon"
               />
             </div>
             
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">To Date</label>
-              <input
-                type="date"
+              <DatePicker
+                label="To Date"
                 value={filters.dateTo}
                 min={filters.dateFrom}
                 max={new Date().toISOString().split('T')[0]}
-                onChange={(e) => handleFilterChange('dateTo', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-[#FDA92D]"
+                onChange={(value) => handleFilterChange('dateTo', value)}
+                className="black-calendar-icon"
               />
             </div>
             
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Year</label>
-              <select
-                value={filters.year}
-                onChange={(e) => handleFilterChange('year', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-[#FDA92D]"
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsYearOpen(!isYearOpen)}
+                className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-black focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200"
               >
-                {years.map(year => (
-                  <option key={year.value} value={year.value}>{year.label}</option>
-                ))}
-              </select>
+                <span className="text-gray-900">
+                  {years.find(y => y.value === filters.year)?.label || 'Select Year'}
+                </span>
+                <span className={`ml-2 transition-transform duration-200 ${isYearOpen ? 'rotate-180' : ''}`}>
+                  ▼
+                </span>
+              </button>
+              <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
+                Year
+              </label>
+              {isYearOpen && (
+                <div
+                  className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden border"
+                  style={{
+                    background: `
+                      linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 20%),
+                      linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 20%),
+                      white
+                    `
+                  }}
+                >
+                  {years.map((year) => (
+                    <div
+                      key={year.value}
+                      onClick={() => {
+                        handleFilterChange('year', year.value);
+                        setIsYearOpen(false);
+                      }}
+                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left transition-colors duration-150"
+                    >
+                      {year.label}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Gender</label>
-              <select
-                value={filters.gender}
-                onChange={(e) => handleFilterChange('gender', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-[#FDA92D]"
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsGenderOpen(!isGenderOpen)}
+                className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-black focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200"
               >
-                <option value="">All</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-              </select>
+                <span className="text-gray-900">
+                  {filters.gender === '' ? 'All' : filters.gender === 'male' ? 'Male' : 'Female'}
+                </span>
+                <span className={`ml-2 transition-transform duration-200 ${isGenderOpen ? 'rotate-180' : ''}`}>
+                  ▼
+                </span>
+              </button>
+              <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
+                Gender
+              </label>
+              {isGenderOpen && (
+                <div
+                  className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden border"
+                  style={{
+                    background: `
+                      linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 20%),
+                      linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 20%),
+                      white
+                    `
+                  }}
+                >
+                  <div
+                    onClick={() => {
+                      handleFilterChange('gender', '');
+                      setIsGenderOpen(false);
+                    }}
+                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left transition-colors duration-150"
+                  >
+                    All
+                  </div>
+                  <div
+                    onClick={() => {
+                      handleFilterChange('gender', 'male');
+                      setIsGenderOpen(false);
+                    }}
+                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left transition-colors duration-150"
+                  >
+                    Male
+                  </div>
+                  <div
+                    onClick={() => {
+                      handleFilterChange('gender', 'female');
+                      setIsGenderOpen(false);
+                    }}
+                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left transition-colors duration-150"
+                  >
+                    Female
+                  </div>
+                </div>
+              )}
             </div>
             
             <div className="flex items-end">
@@ -212,23 +293,23 @@ const AttendanceDetails = () => {
         {/* Statistics Section */}
         {overallStats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+            <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-blue-900">Total Students</p>
-                  <p className="text-2xl font-bold text-blue-600">{overallStats.totalStudents}</p>
+                  <p className="text-sm font-medium text-purple-900">Total Students</p>
+                  <p className="text-2xl font-bold text-purple-600">{overallStats.totalStudents}</p>
                 </div>
-                <FiEye className="w-8 h-8 text-blue-500" />
+                <FiEye className="w-8 h-8 text-purple-500" />
               </div>
             </div>
             
-            <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+            <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-green-900">Male Students</p>
-                  <p className="text-2xl font-bold text-green-600">{overallStats.maleStudents}</p>
+                  <p className="text-sm font-medium text-blue-900">Male Students</p>
+                  <p className="text-2xl font-bold text-blue-600">{overallStats.maleStudents}</p>
                 </div>
-                <BsPersonFill className="w-8 h-8 text-green-500" />
+                <BsPersonFill className="w-8 h-8 text-blue-500" />
               </div>
             </div>
             
@@ -242,13 +323,13 @@ const AttendanceDetails = () => {
               </div>
             </div>
             
-            <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+            <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-purple-900">Avg Attendance</p>
-                  <p className="text-2xl font-bold text-purple-600">{overallStats.avgAttendance}%</p>
+                  <p className="text-sm font-medium text-green-900">Avg Attendance</p>
+                  <p className="text-2xl font-bold text-green-600">{overallStats.avgAttendance}%</p>
                 </div>
-                <FiCalendar className="w-8 h-8 text-purple-500" />
+                <FiCalendar className="w-8 h-8 text-green-500" />
               </div>
             </div>
           </div>
@@ -259,12 +340,6 @@ const AttendanceDetails = () => {
           <div className="px-6 py-4 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900">Student Attendance Records</h3>
             <div className="flex justify-between items-center">
-              <p className="text-sm text-gray-600">
-                Showing {paginatedData.length} of {filteredData.length} students for {years.find(y => y.value === filters.year)?.label || 'All Years'}
-              </p>
-              <div className="text-sm text-gray-500">
-                Page {currentPage} of {totalPages}
-              </div>
             </div>
           </div>
           

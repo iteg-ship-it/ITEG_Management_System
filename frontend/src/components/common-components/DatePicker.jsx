@@ -116,7 +116,9 @@ const DatePicker = ({ value, onChange, label, min, max, className = "" }) => {
           {label}
         </label>
         <FiCalendar 
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#FDA92D] cursor-pointer"
+          className={`absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 cursor-pointer ${
+            className.includes('black-calendar-icon') ? 'text-gray-600' : 'text-[#FDA92D]'
+          }`}
           onClick={() => setIsOpen(!isOpen)}
         />
       </div>

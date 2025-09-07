@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
-import { useGetAdmittedStudentsByIdQuery, useUpdateStudentImageMutation, useUploadResumeMutation } from "../../redux/api/authApi";
+import { useGetAdmittedStudentsByIdQuery, useUpdateStudentImageMutation, useUploadResumeMutation, useUpdateStudentEmailMutation } from "../../redux/api/authApi";
 import PermissionModal from "./PermissionModal";
 import PlacementModal from "./PlacementModal";
 import Loader from "../common-components/loader/Loader";
@@ -30,6 +30,7 @@ export default function StudentProfile() {
   const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
   const [updateStudentImage] = useUpdateStudentImageMutation();
   const [uploadResume, { isLoading: isResumeUploading }] = useUploadResumeMutation();
+  const [updateStudentEmail, { isLoading: isEmailUpdating }] = useUpdateStudentEmailMutation();
   const [latestLevel, setLatestLevel] = useState("1A");
   const [currentLevel, setCurrentLevel] = useState("1A");
   const [isPermissionModalOpen, setPermissionModalOpen] = useState(false);
@@ -37,6 +38,7 @@ export default function StudentProfile() {
   const [isYearView, setIsYearView] = useState(false);
   const [isTechModalOpen, setTechModalOpen] = useState(false);
   const [isImageUploading, setIsImageUploading] = useState(false);
+  const [isEmailModalOpen, setEmailModalOpen] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -336,16 +338,22 @@ export default function StudentProfile() {
                 }}
                 disabled={!canChooseElective()}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg ${canChooseElective()
-                  ? 'bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-black font-extrabold cursor-pointer'
+                  ? 'bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-white font-extrabold cursor-pointer'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
                   }`}
               >
                 Choose Elective
               </button>
               <button
+                onClick={() => setEmailModalOpen(true)}
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-white disabled:opacity-50"
+              >
+                Update Email
+              </button>
+              <button
                 onClick={() => document.getElementById('resume-upload').click()}
                 disabled={isResumeUploading}
-                className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-black disabled:opacity-50"
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-white disabled:opacity-50"
               >
                 {isResumeUploading ? 'Uploading...' : 'Upload Resume'}
               </button>
@@ -807,6 +815,13 @@ export default function StudentProfile() {
         onClose={() => setTechModalOpen(false)}
         studentId={studentData._id}
       />
+      <UpdateEmailModal
+        isOpen={isEmailModalOpen}
+        onClose={() => setEmailModalOpen(false)}
+        studentData={studentData}
+        onUpdate={updateStudentEmail}
+        isLoading={isEmailUpdating}
+      />
     </div>
   );
 }
@@ -944,5 +959,116 @@ const StatusBadge = ({ status }) => {
     <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusStyle(status)}`}>
       {status || 'No Status'}
     </span>
+  );
+};
+
+// Update Email Modal Component
+const UpdateEmailModal = ({ isOpen, onClose, studentData, onUpdate, isLoading }) => {
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (isOpen && studentData) {
+      setEmail(studentData.email || '');
+      setError('');
+    }
+  }, [isOpen, studentData]);
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!email.trim()) {
+      setError('Email is required');
+      return;
+    }
+    
+    if (!validateEmail(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+    
+    if (email === studentData.email) {
+      setError('New email must be different from current email');
+      return;
+    }
+
+    try {
+      await onUpdate({ id: studentData._id, email }).unwrap();
+      toast.success('Email updated successfully!');
+      onClose();
+    } catch (err) {
+      console.error('Error updating email:', err);
+      toast.error(err?.data?.message || 'Failed to update email');
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl py-4 px-6 w-full max-w-lg relative">
+        <h2 className="text-2xl font-semibold text-center mb-6 text-[var(--primary)]">Update Email</h2>
+        
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Current Email
+            </label>
+            <input
+              type="text"
+              value={studentData?.email || ''}
+              disabled
+              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500"
+            />
+          </div>
+          
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              New Email Address
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setError('');
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-black"
+              placeholder="Enter new email address"
+            />
+            {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+          </div>
+          
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 px-4 py-2 bg-[#FDA92D] hover:bg-[#E6941A] text-white rounded-lg disabled:opacity-50"
+            >
+              {isLoading ? 'Updating...' : 'Update Email'}
+            </button>
+          </div>
+        </form>
+        
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-xl text-gray-400 hover:text-gray-700"
+        >
+          &times;
+        </button>
+      </div>
+    </div>
   );
 };

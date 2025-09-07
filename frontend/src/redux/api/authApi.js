@@ -380,6 +380,17 @@ export const authApi = createApi({
       ],
     }),
 
+    updateStudentEmail: builder.mutation({
+      query: ({ id, email }) => ({
+        url: `/admitted/students/update/email/${id}`,
+        method: "PATCH",
+        body: { email },
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'Student', id }
+      ],
+    }),
+
 
     // Get student level interviews for history page
     getStudentLevelInterviews: builder.query({
@@ -674,6 +685,7 @@ export const {
   useGetPlacedStudentsByCompanyQuery,
   useGetItegAttendanceQuery,
   useGetItegStudentAttendanceQuery,
+  useUpdateStudentEmailMutation,
 
   useGetStudentAttendanceCalendarQuery
 } = authApi;
