@@ -51,6 +51,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents, int
         remark: '',
         date: new Date(),
         result: 'Pending',
+        Topic: '',
     };
 
     const validationSchema = Yup.object().shape({
@@ -73,6 +74,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents, int
         remark: Yup.string(),
         date: Yup.date().required('Required'),
         result: Yup.string().required('Required'),
+        Topic: Yup.string(),
     });
 
     const getNextLevel = (current, result) => {
@@ -238,6 +240,14 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents, int
                                             { value: "Pass", label: "Pass" },
                                             { value: "Fail", label: "Fail" }
                                         ]}
+                                    />
+                                </div>
+
+                                <div className="col-span-2 md:col-span-1">
+                                    <TextInput
+                                        label="Topic"
+                                        name="Topic"
+                                        className="[&_input]:bg-white [&_input]:-webkit-autofill:bg-white"
                                     />
                                 </div>
 

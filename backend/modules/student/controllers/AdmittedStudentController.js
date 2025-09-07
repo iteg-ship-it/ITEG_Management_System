@@ -231,7 +231,7 @@ exports.createLevels = async (req, res) => {
     const newInterview = {
       levelNo: nextLevel,
       noOfAttempts: currentLevelAttempts.length + 1,
-      topic: Topic || "",
+      Topic: Topic || "",
       Theoretical_Marks: Theoretical_Marks || 0,
       Practical_Marks: Practical_Marks || 0,
       Communication_Marks: Communication_Marks || 0,

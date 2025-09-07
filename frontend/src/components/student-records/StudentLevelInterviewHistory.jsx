@@ -244,7 +244,7 @@ const InterviewCard = ({ interview }) => {
                     </div>
                     <div>
                         <h4 className="text-lg font-medium text-gray-800">
-                            Level {interview.levelNo} Interview
+                            Level {interview.levelNo} Interview{interview.Topic && ` | Topic - ${interview.Topic}`}
                         </h4>
                         <p className="text-sm text-gray-500">
                             Date: {formatDate(interview.date)}
