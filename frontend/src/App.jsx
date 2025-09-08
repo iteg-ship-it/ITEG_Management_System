@@ -1,4 +1,5 @@
 /* eslint-disable react/prop-types */
+import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./components/common-components/login-page/LoginPage";
 import ForgetPassword from "./components/common-components/forget-password/ForgetPassword";
@@ -22,6 +23,15 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   const { showModal, handleContinue, handleLogout } = useSessionTimeout();
+
+  // Add error logging for debugging
+  React.useEffect(() => {
+    const handleError = (error) => {
+      console.error('App Error:', error);
+    };
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, []);
 
   return (
     <>
