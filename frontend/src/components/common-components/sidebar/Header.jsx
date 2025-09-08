@@ -90,7 +90,7 @@ const Header = () => {
                     {userRole === 'admin' && (
                         <button
                             onClick={handleAddFaculty}
-                            className={`px-5 py-2 text-sm font-medium ${buttonStyles.primary}`}
+                            className={`px-4 py-1 text-sm font-medium ${buttonStyles.primary}`}
                             title="Add Member"
                         >
                             <span className="hidden sm:flex sm:items-center sm:gap-2">
