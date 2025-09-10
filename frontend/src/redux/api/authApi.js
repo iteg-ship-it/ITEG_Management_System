@@ -47,10 +47,10 @@ const rawBaseQuery = fetchBaseQuery({
 const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
   let result = await rawBaseQuery(args, api, extraOptions);
 
-  const isExternalAttendanceAPI = result?.error && 
+  const isExternalAttendanceAPI = result?.error &&
     (args.headers?.['x-api-key'] === import.meta.env.VITE_ITEG_ATTENDANCE_API_KEY ||
-     (typeof args.url === 'string' && args.url.includes(import.meta.env.VITE_ITEG_ATTENDANCE_API_URL)));
-     
+      (typeof args.url === 'string' && args.url.includes(import.meta.env.VITE_ITEG_ATTENDANCE_API_URL)));
+
   if (isExternalAttendanceAPI) {
     return result;
   }
@@ -76,7 +76,7 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
 
     const refreshResult = await rawBaseQuery(
       {
-        url: import.meta.env.VITE_REFRESH_TOKEN,
+        url: '/user/refresh_token',
         method: "POST",
         body: { refreshToken },
       },
@@ -116,7 +116,7 @@ export const authApi = createApi({
   endpoints: (builder) => ({
     login: builder.mutation({
       query: (credentials) => ({
-        url: import.meta.env.VITE_LOGIN_ENDPOINT,
+        url: '/user/login',
         method: "POST",
         body: credentials,
       }),
@@ -140,7 +140,7 @@ export const authApi = createApi({
 
     signup: builder.mutation({
       query: (userData) => ({
-        url: import.meta.env.VITE_SIGNUP_ENDPOINT || '/api/auth/signup',
+        url: '/user/signup',
         method: "POST",
         body: userData,
       }),
@@ -148,7 +148,7 @@ export const authApi = createApi({
     // ---- Create User API ----
     updateUser: builder.mutation({
       query: ({ id, data }) => ({
-        url: `${import.meta.env.VITE_UPDATE_USER_PROFILE}${id}`,
+        url: `/user/update/${id}`,
         method: 'PATCH',
         body: data,
       }),
@@ -156,7 +156,7 @@ export const authApi = createApi({
     //-- Logout API ----
     logout: builder.mutation({
       query: ({ id }) => ({
-        url: import.meta.env.VITE_LOGOUT_ENDPOINT,
+        url: '/user/logout',
         method: "POST",
         body: { id },
       }),
@@ -174,7 +174,7 @@ export const authApi = createApi({
     // login with goggle
     loginWithGoogle: builder.mutation({
       query: () => ({
-        url: import.meta.env.VITE_LOGIN_WITH_GOOGLE,
+        url: '/user/google',
         method: "GET",
       }),
     }),
@@ -182,7 +182,7 @@ export const authApi = createApi({
     // ---- Forget Password API ----
     forgetPassword: builder.mutation({
       query: ({ email }) => ({
-        url: import.meta.env.VITE_FORGET_PASSWORD, // or your actual endpoint
+        url: '/user/forgot_password', // or your actual endpoint
         method: "POST",
         body: { email },
         headers: {
@@ -194,7 +194,7 @@ export const authApi = createApi({
     // ---- Reset Password API ----
     resetPassword: builder.mutation({
       query: ({ token, body }) => ({
-        url: `${import.meta.env.VITE_RESET_PASSWORD}${token}`,
+        url: `/user/reset_password/${token}`,
         method: "POST",
         body,
       }),
@@ -204,7 +204,7 @@ export const authApi = createApi({
     // verify the otp
     verifyOtp: builder.mutation({
       query: (payload) => ({
-        url: import.meta.env.VITE_LOGIN_OTP_VERIFY, // e.g., /auth/verify-otp
+        url: '/user/otp/verify', // e.g., /auth/verify-otp
         method: "POST",
         body: payload, // { email, otp }
       }),
@@ -212,7 +212,7 @@ export const authApi = createApi({
     // send the otp
     sendOtp: builder.mutation({
       query: (payload) => ({
-        url: import.meta.env.VITE_LOGIN_OTP,
+        url: '/user/otp/send',
         method: "POST",
         body: payload,
       }),
@@ -223,7 +223,7 @@ export const authApi = createApi({
     // get the students for admission process
     getAllStudents: builder.query({
       query: () => ({
-        url: import.meta.env.VITE_GET_ALL_STUDENTS,
+        url: '/admission/students/getall',
         method: "GET",
       }),
       providesTags: ['Student'],
@@ -240,7 +240,7 @@ export const authApi = createApi({
     // get admission process student by id
     getStudentById: builder.query({
       query: (id) => ({
-        url: `${import.meta.env.VITE_GET_STUDENT_BY_ID}${id}`,
+        url: `/admission/students/get/${id}`,
         method: "GET",
       }),
     }),
@@ -248,7 +248,7 @@ export const authApi = createApi({
     // create interview for student
     interviewCreate: builder.mutation({
       query: ({ studentId, ...formData }) => ({
-        url: `${import.meta.env.VITE_INTERVIEW_CREATE}${studentId}`,
+        url: `/admission/students/create_interview/${studentId}`,
         method: "POST",
         body: formData,
         headers: {
@@ -261,7 +261,7 @@ export const authApi = createApi({
     // get interview detail of student by id
     getInterviewDetailById: builder.query({
       query: (id) => ({
-        url: `${import.meta.env.VITE_INTERVIEW_DETAIL}${id}`,
+        url: `/admission/students/get_interviews/${id}`,
         method: "GET",
       }),
       providesTags: (result, error, id) => [
@@ -274,7 +274,7 @@ export const authApi = createApi({
     // get all the students for admitted process
     admitedStudents: builder.query({
       query: () => ({
-        url: import.meta.env.VITE_GET_ADMITTED_STUDENTS,
+        url: '/admitted/students/getall',
         method: "GET",
       }),
       providesTags: ['Student'],
@@ -284,7 +284,7 @@ export const authApi = createApi({
     // create level interview
     createLevelInterview: builder.mutation({
       query: ({ id, data }) => ({
-        url: `${import.meta.env.VITE_CREATE_LEVEL_INTERVIEW}${id}`,
+        url: `/admitted/students/create_level/${id}`,
         method: "POST",
         body: data,
       }),
@@ -302,21 +302,21 @@ export const authApi = createApi({
     // apiSlice.js or interviewApi.js
     getLevelInterview: builder.query({
       query: (id) => ({
-        url: `${import.meta.env.VITE_GET_LEVEL_INTERVIEW_BY_ID}${id}`,
+        url: `/admitted/students/get_levels/${id}`,
         method: "GET",
       }),
     }),
 
     getLevelNumber: builder.query({
       query: (levelNo) => ({
-        url: `${import.meta.env.VITE_GET_LEVEL_BY_NUMBER}${levelNo}`,
+        url: `/admitted/students/level/${levelNo}`,
         method: "GET",
       }),
     }),
 
     getAdmittedStudentsById: builder.query({
       query: (id) => ({
-        url: `${import.meta.env.VITE_GET_ADMITTED_STUDENTS_BY_ID}${id}`,
+        url: `/admitted/students/${id}`,
         method: "GET",
       }),
       providesTags: (result, error, id) => [
@@ -326,14 +326,14 @@ export const authApi = createApi({
 
     getPermissionStudent: builder.query({
       query: () => ({
-        url: `${import.meta.env.VITE_GET_PERMISSION_STUDENT}`,
+        url: `/admitted/students/permission_students`,
         method: "GET",
       }),
     }),
 
     updatePermission: builder.mutation({
       query: ({ id, data }) => ({
-        url: `${import.meta.env.VITE_UPDATE_PERMISSION_STUDENT}${id}`,
+        url: `/admitted/students/update_permission_student/${id}`,
         method: "PATCH",
         body: data,
       }),
@@ -341,14 +341,14 @@ export const authApi = createApi({
 
     updatePlacement: builder.mutation({
       query: ({ id, data }) => ({
-        url: `${import.meta.env.VITE_UPDATE_PLACEMENT_INFO}${id}`,
+        url: `/admitted/students/update-placement/${id}`,
         method: "PATCH",
         body: data,
       }),
     }),
     updateTechnology: builder.mutation({
       query: ({ id, techno }) => {
-        const fullUrl = `${import.meta.env.VITE_UPDATE_TECHNOLOGY}${id}`;
+        const fullUrl = `/admitted/students/update_technology/${id}`;
         return {
           url: fullUrl,
           method: "PATCH",
@@ -364,7 +364,7 @@ export const authApi = createApi({
           // Invalidate specific student data to force refetch
           dispatch(authApi.util.invalidateTags([{ type: 'Student', id }]));
         } catch (error) {
-  
+          console.error('Error updating student:', error);
         }
       },
     }),
@@ -410,7 +410,7 @@ export const authApi = createApi({
     // get all ready students for placement
     getReadyStudentsForPlacement: builder.query({
       query: () => ({
-        url: import.meta.env.VITE_GET_READY_STUDENTS_FOR_PLACEMENT,
+        url: '/admitted/students/Ready_Students',
         method: "GET",
       }),
       providesTags: ['PlacementStudent'],
@@ -419,7 +419,7 @@ export const authApi = createApi({
 
     addPlacementInterviewRecord: builder.mutation({
       query: ({ studentId, interviewData }) => ({
-        url: `${import.meta.env.VITE_INTERVIEW_CREATE_PLACEMENT}${studentId}`,
+        url: `/admitted/students/interviews/${studentId}`,
         method: "POST",
         body: interviewData,
       }),
@@ -440,7 +440,7 @@ export const authApi = createApi({
     // In redux/api/authApi.js
     updatePlacedInfo: builder.mutation({
       query: ({ studentId, interviewId, ...data }) => ({
-        url: `${import.meta.env.VITE_PLACEMENT_INFO_UPDATE}${studentId}/${interviewId}`,
+        url: `/admitted/students/update/interviews/${studentId}/${interviewId}`,
         method: "PATCH",
         body: data,
       }),
@@ -454,7 +454,7 @@ export const authApi = createApi({
           // Also invalidate specific student data
           dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
         } catch (error) {
-
+          console.log('Error updating placed info:', error);
         }
       },
     }),
@@ -462,7 +462,7 @@ export const authApi = createApi({
     // Upload resume
     uploadResume: builder.mutation({
       query: ({ studentId, fileName, fileData }) => ({
-        url: import.meta.env.VITE_RESUME_UPLOAD,
+        url: '/admitted/students/upload_Resume_Base64',
         method: "POST",
         body: { studentId, fileName, fileData },
       }),
@@ -506,7 +506,7 @@ export const authApi = createApi({
           dispatch(authApi.util.invalidateTags(['PlacementStudent']));
           dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
         } catch (error) {
-
+          console.log('Error rescheduling interview:', error);
         }
       },
     }),
@@ -525,7 +525,7 @@ export const authApi = createApi({
           dispatch(authApi.util.invalidateTags(['PlacementStudent']));
           dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
         } catch (error) {
-
+          console.log('Error adding interview round:', error);
         }
       },
     }),
@@ -545,7 +545,7 @@ export const authApi = createApi({
           dispatch(authApi.util.invalidateTags(['PlacementStudent']));
           dispatch(authApi.util.invalidateTags(['Student']));
         } catch (error) {
-
+          console.error('Error confirming placement:', error);
         }
       },
     }),
@@ -586,7 +586,7 @@ export const authApi = createApi({
         const params = new URLSearchParams();
         if (dateFrom) params.append('dateFrom', dateFrom);
         if (dateTo) params.append('dateTo', dateTo);
-        
+
         return {
           url: `${import.meta.env.VITE_ITEG_ATTENDANCE_API_URL}${import.meta.env.VITE_ITEG_ATTENDANCE_ENDPOINT}?${params.toString()}`,
           method: "GET",
@@ -605,7 +605,7 @@ export const authApi = createApi({
         const params = new URLSearchParams();
         if (dateFrom) params.append('dateFrom', dateFrom);
         if (dateTo) params.append('dateTo', dateTo);
-        
+
         return {
           url: `${import.meta.env.VITE_ITEG_ATTENDANCE_API_URL}${import.meta.env.VITE_ITEG_ATTENDANCE_STUDENTS_ENDPOINT}/${year}?${params.toString()}`,
           method: "GET",
@@ -627,7 +627,7 @@ export const authApi = createApi({
         params.append('stdId', stdId);
         params.append('dateFrom', dateFrom);
         params.append('dateTo', dateTo);
-        
+
         return {
           url: `${import.meta.env.VITE_ITEG_ATTENDANCE_API_URL}/student-attendance-calendar?${params.toString()}`,
           method: "GET",
