@@ -28,15 +28,14 @@ import AttendanceDetails from "../dashboard/AttendanceDetails";
 
 // Role-based route configuration
 const adminRoutes = [
-  { path: "/", element: <AdmissionDashboard />, roles: ["superadmin", "admin"] },
-  { path: "/attendance-details", element: <AttendanceDetails />, roles: ["superadmin", "admin"] },
+  { path: "/", element: <AdmissionDashboard />, roles: ["superadmin", "admin", "faculty"] },
+  { path: "/attendance-details", element: <AttendanceDetails />, roles: ["superadmin", "admin", "faculty"] },
   { path: "/admission-process", element: <AdmissionProcess />, roles: ["superadmin", "admin"] },
   { path: "/admission/edit/:id", element: <AdmissionEditPage />, roles: ["superadmin", "admin"] },
   // { path: "/interview-detail/:id", element: <AdmissionInterviewDetails />, roles: ["superadmin", "admin"] },
 ];
 
 const facultyRoutes = [
-  { path: "/attendance-details", element: <AttendanceDetails />, roles: ["superadmin", "admin", "faculty"] },
 
   { path: "/student-dashboard", element: <StudentDashboard />, roles: ["superadmin", "admin", "faculty"] },
   { path: "/student-detail-table", element: <StudentDetailTable />, roles: ["superadmin", "admin", "faculty"] },
@@ -61,15 +60,13 @@ const Dashboard = () => {
 
   return (
     <Routes>
-      {/* Redirect faculty from root to student dashboard */}
+      {/* Main dashboard route - accessible to all roles */}
       <Route
         path="/"
         element={
-          userRole === 'faculty' ?
-            <Navigate to="/student-dashboard" replace /> :
-            <ProtectedRoute allowedRoles={["superadmin", "admin"]}>
-              <AdmissionDashboard />
-            </ProtectedRoute>
+          <ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}>
+            <AdmissionDashboard />
+          </ProtectedRoute>
         }
       />
 
