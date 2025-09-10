@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, } from "react-router-dom";
 // Admission process components
 import AdmissionDashboard from "../admition-process/AdmissionDashboard";
 import AdmissionProcess from "../admition-process/AdmissionProcess";
@@ -56,7 +56,7 @@ const facultyRoutes = [
 const allRoutes = [...adminRoutes, ...facultyRoutes];
 
 const Dashboard = () => {
-  const userRole = localStorage.getItem('role');
+  // const userRole = localStorage.getItem('role');
 
   return (
     <Routes>
