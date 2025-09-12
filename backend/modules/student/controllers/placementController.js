@@ -322,60 +322,117 @@ exports.updateJobType = async (req, res) => {
 exports.createPlacementPost = async (req, res) => {
   try {
     console.log("Request body:", req.body);
-    
-    const { 
-      studentId, 
-      position, 
-      companyName, 
-      companyLogo, 
+
+    const {
+      studentId,
+      position,
+      companyName,
+      companyLogo,
       headOffice,
-      studentImage 
+      studentImage
     } = req.body;
 
+    // ✅ Validate required fields
     if (!studentId || !position || !companyName || !headOffice) {
-      console.log("Missing fields:", { studentId, position, companyName, headOffice });
-      return res.status(400).json({ 
-        message: "Missing required fields: studentId, position, companyName, headOffice" 
+      return res.status(400).json({
+        message: "Missing required fields: studentId, position, companyName, headOffice"
       });
     }
 
+    // ✅ Find student
     const student = await AdmittedStudent.findById(studentId);
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
 
+    // ✅ Find or create company
     let company = await Company.findOne({ companyName });
-    
+
     if (!company) {
       if (!companyLogo) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: "Company logo is required for new company. Please provide base64 image or upload file.",
           example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
         });
       }
-      
-      if (!companyLogo.startsWith('data:image/')) {
-        return res.status(400).json({ 
-          message: "Invalid logo format. Must be base64 image starting with 'data:image/'"
-        });
+
+      let logoURL;
+
+      if (companyLogo.startsWith("data:image/")) {
+        try {
+          const logoResult = await cloudinary.uploader.upload(companyLogo, {
+            folder: "company-logos",
+            resource_type: "image"
+          });
+          console.log("✅ Cloudinary upload success:", logoResult.secure_url);
+          logoURL = logoResult.secure_url;
+        } catch (error) {
+          console.error("❌ Cloudinary upload failed:", error);
+          return res.status(500).json({
+            success: false,
+            message: "Cloudinary upload failed",
+            error: error.message
+          });
+        }
+      } else {
+        logoURL = companyLogo; // If direct URL given
       }
-      
+
       company = new Company({
         companyName,
-        companyLogo,
+        companyLogo: logoURL,
         headOffice
       });
+
       await company.save();
+    } else if (companyLogo && companyLogo.startsWith("data:image/")) {
+      // ✅ Update existing company logo
+      try {
+        const logoResult = await cloudinary.uploader.upload(companyLogo, {
+          folder: "company-logos",
+          resource_type: "image"
+        });
+        company.companyLogo = logoResult.secure_url;
+        await company.save();
+        console.log("✅ Company logo updated:", logoResult.secure_url);
+      } catch (error) {
+        console.error("❌ Failed to update company logo:", error);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to update company logo",
+          error: error.message
+        });
+      }
     }
 
-    const finalStudentImage = studentImage || student.image;
-    
+    // ✅ Handle student image (either new or from DB)
+    let finalStudentImage = studentImage || student.image;
+
     if (!finalStudentImage) {
-      return res.status(400).json({ 
-        message: "Student image is required (either upload new or student must have profile image)" 
+      return res.status(400).json({
+        message: "Student image is required (either upload new or student must have profile image)"
       });
     }
 
+    if (finalStudentImage.startsWith("data:image/")) {
+      try {
+        const studentResult = await cloudinary.uploader.upload(finalStudentImage, {
+          folder: "student-images",
+          resource_type: "image"
+        });
+        finalStudentImage = studentResult.secure_url;
+        console.log("✅ Student image uploaded:", studentResult.secure_url);
+      } catch (error) {
+        console.error("❌ Student image upload failed:", error);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to upload student image",
+          error: error.message
+        });
+      }
+    }
+
+    // ✅ Prepare final placement post object
     const placementPostData = {
       student: {
         id: student._id,
@@ -394,6 +451,7 @@ exports.createPlacementPost = async (req, res) => {
       createdAt: new Date()
     };
 
+    // ✅ Send response
     res.status(200).json({
       success: true,
       message: "Placement post data prepared successfully",
@@ -401,25 +459,122 @@ exports.createPlacementPost = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Error creating placement post:", error);
-    res.status(500).json({ 
-      success: false, 
-      message: "Server error", 
-      error: error.message 
+    console.error("❌ Error creating placement post:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
     });
   }
 };
 
-// Get all companies
-// exports.getAllCompanies = async (req, res) => {
+
+// exports.createPlacementPost = async (req, res) => {
 //   try {
-//     const companies = await Company.find().select('companyName companyLogo headOffice');
+//     console.log("Request body:", req.body);
+    
+//     const { 
+//       studentId, 
+//       position, 
+//       companyName, 
+//       companyLogo, 
+//       headOffice,
+//       studentImage 
+//     } = req.body;
+
+//     if (!studentId || !position || !companyName || !headOffice) {
+//       console.log("Missing fields:", { studentId, position, companyName, headOffice });
+//       return res.status(400).json({ 
+//         message: "Missing required fields: studentId, position, companyName, headOffice" 
+//       });
+//     }
+
+//     const student = await AdmittedStudent.findById(studentId);
+//     if (!student) {
+//       return res.status(404).json({ message: "Student not found" });
+//     }
+
+//     let company = await Company.findOne({ companyName });
+    
+//     if (!company) {
+//       if (!companyLogo) {
+//         return res.status(400).json({ 
+//           message: "Company logo is required for new company. Please provide base64 image or upload file.",
+//           example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+//         });
+//       }
+      
+//       let logoURL = companyLogo;
+      
+//       // Upload to Cloudinary if Base64
+//       if (companyLogo.startsWith('data:image/')) {
+//         try {
+//           const logoResult = await cloudinary.uploader.upload(companyLogo, {
+//             folder: 'company-logos',
+//             resource_type: 'image'
+//           });
+//           logoURL = logoResult.secure_url;
+//         } catch (error) {
+//           // Keep original Base64 if Cloudinary fails
+//           logoURL = companyLogo;
+//         }
+//       }
+      
+//       company = new Company({
+//         companyName,
+//         companyLogo: logoURL,
+//         headOffice
+//       });
+//       await company.save();
+//     } else if (companyLogo && companyLogo.startsWith('data:image/')) {
+//       // Update existing company logo if new Base64 provided
+//       try {
+//         const logoResult = await cloudinary.uploader.upload(companyLogo, {
+//           folder: 'company-logos',
+//           resource_type: 'image'
+//         });
+//         company.companyLogo = logoResult.secure_url;
+//         await company.save();
+//       } catch (error) {
+//         company.companyLogo = companyLogo;
+//         await company.save();
+//       }
+//     }
+
+//     const finalStudentImage = studentImage || student.image;
+    
+//     if (!finalStudentImage) {
+//       return res.status(400).json({ 
+//         message: "Student image is required (either upload new or student must have profile image)" 
+//       });
+//     }
+
+//     const placementPostData = {
+//       student: {
+//         id: student._id,
+//         name: `${student.firstName} ${student.lastName}`,
+//         year: student.year,
+//         course: student.course,
+//         image: finalStudentImage
+//       },
+//       company: {
+//         id: company._id,
+//         name: company.companyName,
+//         logo: company.companyLogo,
+//         headOffice: company.headOffice
+//       },
+//       position,
+//       createdAt: new Date()
+//     };
+
 //     res.status(200).json({
 //       success: true,
-//       data: companies
+//       message: "Placement post data prepared successfully",
+//       data: placementPostData
 //     });
+
 //   } catch (error) {
-//     console.error("Error fetching companies:", error);
+//     console.error("Error creating placement post:", error);
 //     res.status(500).json({ 
 //       success: false, 
 //       message: "Server error", 
@@ -427,6 +582,422 @@ exports.createPlacementPost = async (req, res) => {
 //     });
 //   }
 // };
+
+
+// exports.createPlacement = async (req, res) => {
+//   try {
+//     const {
+//       studentId,
+//       companyName,
+//       salary,
+//       location,
+//       jobProfile,
+//       jobType,
+//       joiningDate,
+//       interviewRecordId,
+//       headOffice,
+//       companyLogo,
+//       studentImage
+//     } = req.body;
+
+//     // ✅ required fields validation
+//     if (!studentId || !companyName || !salary || !location || !jobProfile) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Missing required fields: studentId, companyName, salary, location, jobProfile"
+//       });
+//     }
+
+//     // ✅ find student
+//     const student = await AdmittedStudent.findById(studentId);
+//     if (!student) {
+//       return res.status(404).json({ success: false, message: "Student not found" });
+//     }
+
+//       let company = await Company.findOne({ companyName });
+//     let logoURL = company ? company.companyLogo : null;
+
+//     if (companyLogo?.startsWith("data:image/")) {
+//       // Upload new logo to Cloudinary (always)
+//       const logoResult = await cloudinary.uploader.upload(companyLogo, {
+//         folder: "placement/company-logos"
+//       });
+//       logoURL = logoResult.secure_url;
+//     } else if (companyLogo) {
+//       // If user sends a direct URL instead of base64
+//       logoURL = companyLogo;
+//     }
+
+//     // ✅ find or create company
+//     // let company = await Company.findOne({ companyName });
+//     if (!company) {
+//       let logoURL = null;
+//       if (companyLogo?.startsWith("data:image/")) {
+//         const logoResult = await cloudinary.uploader.upload(companyLogo, {
+//           folder: "placement/company-logos"
+//         });
+//         logoURL = logoResult.secure_url;
+//       }
+//       company = new Company({
+//         companyName,
+//         companyLogo: logoURL,
+//         headOffice
+//       });
+//       await company.save();
+//     }
+
+//     // ✅ student image (use existing or upload new if provided)
+//     let finalStudentImage = student.image;
+//     if (studentImage?.startsWith("data:image/")) {
+//       const uploadStudent = await cloudinary.uploader.upload(studentImage, {
+//         folder: "placement/students"
+//       });
+//       finalStudentImage = uploadStudent.secure_url;
+//     } else if (studentImage) {
+//       finalStudentImage = studentImage;
+//     }
+    
+    
+//     // ✅ optional file uploads
+//     let offerLetterURL = null;
+//     let applicationURL = null;
+
+//     if (req.files?.offerLetter) {
+//       const offerResult = await cloudinary.uploader.upload(req.files.offerLetter[0].path, {
+//         folder: "placement/offer-letters"
+//       });
+//       offerLetterURL = offerResult.secure_url;
+//     }
+
+//     if (req.files?.applicationFile) {
+//       const appResult = await cloudinary.uploader.upload(req.files.applicationFile[0].path, {
+//         folder: "placement/application-files"
+//       });
+//       applicationURL = appResult.secure_url;
+//     }
+
+//     // ✅ save placement info
+//     const placedInfo = new PlacedInfo({
+//       companyRef: company._id,
+//       interviewRecordId,
+//       companyName,
+//       salary,
+//       location,
+//       jobProfile,
+//       jobType,
+//       joiningDate,
+//       offerLetterURL,
+//       applicationURL
+//     });
+
+//     await placedInfo.save();
+
+//     // ✅ response
+//     res.status(201).json({
+//       success: true,
+//       message: "Placement record created successfully",
+//       data: {
+//         placedInfo,
+//         student: {
+//           id: student._id,
+//           name: `${student.firstName} ${student.lastName}`,
+//           image: finalStudentImage
+//         },
+//         company: {
+//           id: company._id,
+//           name: company.companyName,
+//           logo: company.companyLogo,
+//           headOffice: company.headOffice
+//         }
+//       }
+//     });
+
+//   } catch (error) {
+//     console.error("Error creating placement:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Server error",
+//       error: error.message
+//     });
+//   }
+// };
+
+
+// exports.createPlacement = async (req, res) => {
+//   try {
+//     const {
+//       studentId,
+//       companyName,
+//       salary,
+//       location,
+//       jobProfile,
+//       jobType,
+//       joiningDate,
+//       interviewRecordId,
+//       headOffice,
+//       companyLogo,
+//       studentImage,
+//       hrEmail
+//     } = req.body;
+
+   
+
+//     // ✅ find student
+//     const student = await AdmittedStudent.findById(studentId);
+//     if (!student) {
+//       return res.status(404).json({ success: false, message: "Student not found" });
+//     }
+
+//     // ✅ find or create company
+//     let company = await Company.findOne({ companyName });
+//     let logoURL = company ? company.companyLogo : null;
+
+//     if (companyLogo?.startsWith("data:image/")) {
+//       const logoResult = await cloudinary.uploader.upload(companyLogo, {
+//         folder: "placement/company-logos"
+//       });
+//       logoURL = logoResult.secure_url;
+//     } else if (companyLogo) {
+//       logoURL = companyLogo;
+//     }
+
+//     if (!company) {
+//       company = new Company({
+//         companyName,
+//         companyLogo: logoURL,
+//         headOffice,
+//         location,
+//         hrEmail
+//       });
+//       await company.save();
+//     }
+
+//     if (companyLogo?.startsWith("data:image/")) {
+//   const logoResult = await cloudinary.uploader.upload(companyLogo, {
+//     folder: "placement/company-logos"
+//   });
+//   logoURL = logoResult.secure_url;
+// } else if (req.files?.companyLogo) {
+//   // Handle multipart form-data file
+//   const logoResult = await cloudinary.uploader.upload(req.files.companyLogo[0].path, {
+//     folder: "placement/company-logos"
+//   });
+//   logoURL = logoResult.secure_url;
+// } else if (companyLogo) {
+//   // Direct URL
+//   logoURL = companyLogo;
+// }
+
+//     // ✅ student image
+//     let finalStudentImage = student.image;
+//     if (studentImage?.startsWith("data:image/")) {
+//       const uploadStudent = await cloudinary.uploader.upload(studentImage, {
+//         folder: "placement/students"
+//       });
+//       finalStudentImage = uploadStudent.secure_url;
+//     } else if (studentImage) {
+//       finalStudentImage = studentImage;
+//     }
+
+//     // ✅ optional file uploads
+//     let offerLetterURL = null;
+//     let applicationURL = null;
+
+//     if (req.files?.offerLetter) {
+//       const offerResult = await cloudinary.uploader.upload(req.files.offerLetter[0].path, {
+//         folder: "placement/offer-letters"
+//       });
+//       offerLetterURL = offerResult.secure_url;
+//     }
+
+//     if (req.files?.applicationFile) {
+//       const appResult = await cloudinary.uploader.upload(req.files.applicationFile[0].path, {
+//         folder: "placement/application-files"
+//       });
+//       applicationURL = appResult.secure_url;
+//     }
+
+//     // ✅ save placement info
+//     const placedInfo = new PlacedInfo({
+//       companyRef: company._id,
+//       interviewRecordId,
+//       companyName,
+//       salary,
+//       location,
+//       jobProfile,
+//       jobType,
+//       joiningDate,
+//       offerLetterURL,
+//       applicationURL
+//     });
+
+//     await placedInfo.save();
+
+//     // ✅ response
+//     res.status(201).json({
+//       success: true,
+//       message: "Placement record created successfully",
+//       data: {
+//         placedInfo,
+//         student: {
+//           id: student._id,
+//           name: `${student.firstName} ${student.lastName}`,
+//           image: finalStudentImage
+//         },
+//         company: {
+//           id: company._id,
+//           name: company.companyName,
+//           logo: company.companyLogo,
+//           headOffice: company.headOffice,
+//           hrEmail: company.hrEmail,
+//           location: company.location
+//         }
+//       }
+//     });
+
+//   } catch (error) {
+//     console.error("Error creating placement:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Server error",
+//       error: error.message
+//     });
+//   }
+// };
+
+
+
+// exports.createPlacement = async (req, res) => {
+//   try {
+//     const {
+//       studentId,
+//       companyName,
+//       salary,
+//       location,
+//       jobProfile,
+//       jobType,
+//       joiningDate,
+//       interviewRecordId,
+//       headOffice,
+//       companyLogo,
+//       studentImage,
+//       hrEmail
+//     } = req.body;
+
+//     // ❌ remove this block if you don't want validation
+//     // if (!studentId || !companyName || !salary || !location || !jobProfile) {
+//     //   return res.status(400).json({
+//     //     success: false,
+//     //     message: "Missing required fields: studentId, companyName, salary, location, jobProfile"
+//     //   });
+//     // }
+
+//     // ✅ find student
+//     const student = await AdmittedStudent.findById(studentId);
+//     if (!student) {
+//       return res.status(404).json({ success: false, message: "Student not found" });
+//     }
+
+//     // ✅ find or create company
+//     let company = await Company.findOne({ companyName });
+//     let logoURL = company ? company.companyLogo : null;
+
+//     if (companyLogo?.startsWith("data:image/")) {
+//       const logoResult = await cloudinary.uploader.upload(companyLogo, {
+//         folder: "placement/company-logos"
+//       });
+//       logoURL = logoResult.secure_url;
+//     } else if (companyLogo) {
+//       logoURL = companyLogo;
+//     }
+
+//     if (!company) {
+//       company = new Company({
+//         companyName,
+//         companyLogo: logoURL,
+//         headOffice,
+//         location,
+//         hrEmail
+//       });
+//       await company.save();
+//     }
+
+//     // ✅ student image
+//     let finalStudentImage = student.image;
+//     if (studentImage?.startsWith("data:image/")) {
+//       const uploadStudent = await cloudinary.uploader.upload(studentImage, {
+//         folder: "placement/students"
+//       });
+//       finalStudentImage = uploadStudent.secure_url;
+//     } else if (studentImage) {
+//       finalStudentImage = studentImage;
+//     }
+
+//     // ✅ optional file uploads
+//     let offerLetterURL = null;
+//     let applicationURL = null;
+
+//     if (req.files?.offerLetter) {
+//       const offerResult = await cloudinary.uploader.upload(req.files.offerLetter[0].path, {
+//         folder: "placement/offer-letters"
+//       });
+//       offerLetterURL = offerResult.secure_url;
+//     }
+
+//     if (req.files?.applicationFile) {
+//       const appResult = await cloudinary.uploader.upload(req.files.applicationFile[0].path, {
+//         folder: "placement/application-files"
+//       });
+//       applicationURL = appResult.secure_url;
+//     }
+
+//     // ✅ save placement info
+//     const placedInfo = new PlacedInfo({
+//       companyRef: company._id,
+//       interviewRecordId,
+//       companyName,
+//       salary,
+//       location,
+//       jobProfile,
+//       jobType,
+//       joiningDate,
+//       offerLetterURL,
+//       applicationURL
+//     });
+
+//     await placedInfo.save();
+
+//     // ✅ response
+//     res.status(201).json({
+//       success: true,
+//       message: "Placement record created successfully",
+//       data: {
+//         placedInfo,
+//         student: {
+//           id: student._id,
+//           name: `${student.firstName} ${student.lastName}`,
+//           image: finalStudentImage
+//         },
+//         company: {
+//           id: company._id,
+//           name: company.companyName,
+//           logo: company.companyLogo,
+//           headOffice: company.headOffice,
+//           hrEmail: company.hrEmail,
+//           location: company.location
+//         }
+//       }
+//     });
+//   } catch (error) {
+//     console.error("Error creating placement:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Server error",
+//       error: error.message
+//     });
+//   }
+// };
+  
 
 
 exports.getAllCompanies = async (req, res) => {
