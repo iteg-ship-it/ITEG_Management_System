@@ -49,7 +49,7 @@ const Header = () => {
 
     const handleImageUpload = (file, setFieldValue) => {
         if (!file) return;
-        
+
         const reader = new FileReader();
         reader.onload = (e) => {
             setFieldValue('profileImage', e.target.result);
@@ -87,7 +87,7 @@ const Header = () => {
                     <img src={logo} alt="SSISM Logo" className="h-20 md:h-24" />
                 </div>
                 <div className="flex items-center gap-4">
-                    {userRole === 'admin' && (
+                    {userRole === 'superadmin' && (
                         <button
                             onClick={handleAddFaculty}
                             className={`px-4 py-1 text-sm font-medium ${buttonStyles.primary}`}

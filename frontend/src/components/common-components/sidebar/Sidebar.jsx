@@ -125,7 +125,6 @@ const Sidebar = ({ children }) => {
       subMenu: [
         { name: "Dashboard", path: "/" },
         { name: "Attendance Details", path: "/attendance-details" },
-
       ],
     },
     {

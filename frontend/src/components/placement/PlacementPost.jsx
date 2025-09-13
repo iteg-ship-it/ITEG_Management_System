@@ -74,22 +74,71 @@ const PlacementPost = () => {
       // Import html2canvas dynamically
       const html2canvas = (await import('html2canvas')).default;
 
-      // Find the specific card element
-      const cardElements = document.querySelectorAll('[data-student-id]');
       let targetCard = null;
+      let isTemporary = false;
 
+      // First try to find existing card element (for grid view)
+      const cardElements = document.querySelectorAll('[data-student-id]');
       cardElements.forEach(card => {
         if (card.getAttribute('data-student-id') === student._id) {
           targetCard = card;
         }
       });
 
+      // If no card found (table view), create temporary card
       if (!targetCard) {
-        console.error('Card element not found');
-        return;
+        isTemporary = true;
+        targetCard = document.createElement('div');
+        targetCard.className = 'bg-cover bg-center bg-no-repeat rounded-xl shadow-lg border border-gray-200 aspect-square flex flex-col items-center justify-between p-4 relative';
+        targetCard.style.width = '400px';
+        targetCard.style.height = '400px';
+        targetCard.style.backgroundColor = '#ffffff';
+        
+        targetCard.innerHTML = `
+          <div class="w-full text-center">
+            <div class="flex justify-between items-center mb-1">
+              <img src="${iteg}" alt="ITEG" class="h-14" />
+              <img src="${ssism}" alt="SSISM" class="h-14" />
+            </div>
+            <h3 class="text-4xl font-bold text-[#133783] -mt-1">Congratulations</h3>
+            <p class="text-xl text-gray-500">We are proud to announce that <br />Our ITEG student</p>
+          </div>
+          <div class="flex justify-center items-center flex-1">
+            <div class="rounded-full p-1 bg-white">
+              <div class="rounded-full p-1 bg-orange-500">
+                <img
+                  src="${student.image || student.profileImage || "https://via.placeholder.com/150x150/e2e8f0/64748b?text=Student"}"
+                  alt="${student.firstName} ${student.lastName}"
+                  class="w-24 h-24 rounded-full object-cover border-2 border-white shadow-md"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="w-full text-center pt-3">
+            <h3 class="text-lg font-bold text-[#133783] mb-1">
+              ${toTitleCase(student.firstName)} ${toTitleCase(student.lastName)}
+            </h3>
+            <p class="text-xs text-black">${student.village || "Location"}</p>
+            <p class="text-sm font-semibold text-black">${student.course || "Course"}</p>
+            <div class="mt-3 relative">
+              <div class="border-t border-black w-1/5 mx-auto mb-3"></div>
+              <p class="text-sm text-black">got placed as a <span class="font-semibold">
+                ${student.placedInfo?.jobProfile || "Position"}
+              </span> in</p>
+              <p class="text-sm font-bold text-[#133783]">
+                ${student.placedInfo?.companyName || "Company"}
+              </p>
+            </div>
+          </div>
+        `;
+        
+        // Add to DOM temporarily
+        targetCard.style.position = 'absolute';
+        targetCard.style.left = '-9999px';
+        document.body.appendChild(targetCard);
       }
 
-      // Hide buttons temporarily
+      // Hide buttons temporarily (only for existing cards)
       const buttons = targetCard.querySelector('.absolute.top-2.right-2');
       if (buttons) {
         buttons.style.display = 'none';
@@ -103,9 +152,14 @@ const PlacementPost = () => {
         backgroundColor: '#ffffff'
       });
 
-      // Show buttons again
+      // Show buttons again (only for existing cards)
       if (buttons) {
         buttons.style.display = 'flex';
+      }
+
+      // Remove temporary card
+      if (isTemporary) {
+        document.body.removeChild(targetCard);
       }
 
       // Convert to JPG and download
@@ -326,11 +380,11 @@ const PlacementPost = () => {
                 // }}
                 >
                   <div className="w-full text-center">
-                    <div className="flex justify-between items-center mb-2">
+                    <div className="flex justify-between items-center mb-1">
                       <img src={iteg} alt="ITEG" className="h-14" />
                       <img src={ssism} alt="SSISM" className="h-14" />
                     </div>
-                    <h3 className="text-4xl font-bold text-[#133783]">Congratulations</h3>
+                    <h3 className="text-4xl font-bold text-[#133783] -mt-1">Congratulations</h3>
                     <p className="text-xl text-gray-500">We are proud to announce that <br />Our ITEG student</p>
                   </div>
                   <div className="flex justify-center items-center flex-1">
@@ -339,7 +393,7 @@ const PlacementPost = () => {
                         <img
                           src={student.image || student.profileImage || "https://via.placeholder.com/150x150/e2e8f0/64748b?text=Student"}
                           alt={`${student.firstName} ${student.lastName}`}
-                          className="w-32 h-32 sm:w-36 sm:h-36 rounded-full object-cover border-2 border-white shadow-md"
+                          className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-2 border-white shadow-md"
                         />
                       </div>
                     </div>

@@ -356,7 +356,7 @@ const PlacementReadyStudents = () => {
     {
       key: "techno",
       label: "Technology",
-      render: (row) => toTitleCase(row.techno),
+      render: (row) => toTitleCase(row.techno || "Technology is not selected yet"),
     },
 
   ];

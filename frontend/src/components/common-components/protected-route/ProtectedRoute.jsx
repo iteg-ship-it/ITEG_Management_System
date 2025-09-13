@@ -11,11 +11,6 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     
     // If specific roles are required and user doesn't have permission
     if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
-        // Redirect faculty to student dashboard (admitted flow)
-        if (userRole === 'faculty') {
-            return <Navigate to="/student-dashboard" replace />;
-        }
-        // Redirect others to appropriate page
         return <Navigate to="/unauthorized" replace />;
     }
     
