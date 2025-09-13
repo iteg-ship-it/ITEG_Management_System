@@ -90,4 +90,6 @@ router.get("/companies/placed_students/:companyId", placementController.getPlace
 // Attendance Statistics Route
 router.get("/attendance/stats", verifyToken, checkRole(allowedRoles), attendanceController.getOverallAttendanceStats);
 
+router.get("/dashboard/stats", verifyToken, checkRole(allowedRoles), studentController.getStudentStats);
+
 module.exports = router;

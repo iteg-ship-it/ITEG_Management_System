@@ -1406,6 +1406,9 @@ paths:
             schema:
               type: object
               properties:
+                Topic:
+                  type: string
+                  example: "java"
                 Theoretical_Marks:
                   type: number
                   example: 30
@@ -2680,12 +2683,110 @@ paths:
         '500':
           description: Server error
 
+  # /api/admitted/students/placement_post:
+    # post:
+    #   summary: 8. Create Placement Post
+    #   description: Generate placement post from placed students
+    #   tags:
+    #     - Placement Workflow
+    #   requestBody:
+    #     required: true
+    #     content:
+    #       application/json:
+    #         schema:
+    #           type: object
+    #           required:
+    #             - studentId
+    #             - position
+    #             - companyName
+    #             - headOffice
+    #           properties:
+    #             studentId:
+    #               type: string
+    #               description: ID of placed student
+    #               example: "64a1b2c3d4e5f6789012345"
+    #             position:
+    #               type: string
+    #               example: "Software Developer"
+    #             companyName:
+    #               type: string
+    #               example: "TechCorp Solutions"
+    #             companyLogo:
+    #               type: string
+    #               description: "Base64 encoded company logo image - will be uploaded to Cloudinary automatically"
+    #               example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+    #             headOffice:
+    #               type: string
+    #               example: "Bangalore, India"
+    #             studentImage:
+    #               type: string
+    #               description: Optional - uses profile image if not provided
+    #               example: "data:image/jpeg;base64,..."
+    #   responses:
+    #     '200':
+    #       description: Placement post created successfully (company logo uploaded to Cloudinary if Base64 provided)
+    #       content:
+    #         application/json:
+    #           schema:
+    #             type: object
+    #             properties:
+    #               success:
+    #                 type: boolean
+    #                 example: true
+    #               message:
+    #                 type: string
+    #                 example: "Placement post data prepared successfully"
+    #               data:
+    #                 type: object
+    #                 properties:
+    #                   student:
+    #                     type: object
+    #                     properties:
+    #                       id:
+    #                         type: string
+    #                       name:
+    #                         type: string
+    #                       year:
+    #                         type: string
+    #                       course:
+    #                         type: string
+    #                       image:
+    #                         type: string
+    #                   company:
+    #                     type: object
+    #                     properties:
+    #                       id:
+    #                         type: string
+    #                       name:
+    #                         type: string
+    #                       logo:
+    #                         type: string
+    #                         description: "Cloudinary URL or Base64 data"
+    #                       headOffice:
+    #                         type: string
+    #                   position:
+    #                     type: string
+    #                   createdAt:
+    #                     type: string
+    #                     format: date-time
+    #     '400':
+    #       description: Missing required fields or student not placed
+    #     '404':
+    #       description: Student not found
+    #     '500':
+    #       description: Server error
+
+
+
   /api/admitted/students/placement_post:
     post:
-      summary: 8. Create Placement Post
-      description: Generate placement post from placed students
+      summary: Create Placement Post (Preview Only)
+      description: >
+        Prepares placement post data for a student and company.  
+        This API does **not** save the post in database — it only validates, uploads images (if needed),  
+        and returns structured placement post details.
       tags:
-        - Placement Workflow
+        - Placement
       requestBody:
         required: true
         content:
@@ -2697,37 +2798,131 @@ paths:
                 - position
                 - companyName
                 - headOffice
+                - hrEmail
+                - location
               properties:
                 studentId:
                   type: string
-                  description: ID of placed student
-                  example: "64a1b2c3d4e5f6789012345"
+                  example: "650a3f2b8c9d2a7b9f1e5c4a"
                 position:
                   type: string
-                  example: "Software Developer"
+                  example: "Software Engineer"
                 companyName:
                   type: string
-                  example: "TechCorp Solutions"
-                companyLogo:
-                  type: string
-                  description: Base64 company logo (updates existing company)
-                  example: "data:image/png;base64,..."
+                  example: "TechCorp Pvt Ltd"
                 headOffice:
                   type: string
                   example: "Bangalore, India"
+                hrEmail:
+                  type: string
+                  format: email
+                location:
+                  type: string
+                  example: "Bangalore, India"
+                companyLogo:
+                  type: string
+                  description: "Base64 image string or direct logo URL (required if new company)"
+                  example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
                 studentImage:
                   type: string
-                  description: Optional - uses profile image if not provided
-                  example: "data:image/jpeg;base64,..."
+                  description: "Base64 image string or direct URL (optional if student already has profile image)"
+                  example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
       responses:
-        '200':
-          description: Placement post created successfully
-        '400':
-          description: Missing required fields or student not placed
-        '404':
+        "200":
+          description: Placement post prepared successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Placement post data prepared successfully
+                  data:
+                    type: object
+                    properties:
+                      student:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            example: "650a3f2b8c9d2a7b9f1e5c4a"
+                          name:
+                            type: string
+                            example: "Ravi Kumar"
+                          year:
+                            type: string
+                            example: "3rd Year"
+                          course:
+                            type: string
+                            example: "B.Tech CSE"
+                          image:
+                            type: string
+                            example: "https://res.cloudinary.com/demo/image/upload/v12345/student.png"
+                      company:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            example: "6510c9d2b8a3f2a7b9f1e5c4"
+                          name:
+                            type: string
+                            example: "TechCorp Pvt Ltd"
+                          logo:
+                            type: string
+                            example: "https://res.cloudinary.com/demo/image/upload/v12345/logo.png"
+                          headOffice:
+                            type: string
+                            example: "Bangalore, India"
+                      position:
+                        type: string
+                        example: "Software Engineer"
+                      createdAt:
+                        type: string
+                        format: date-time
+                        example: "2025-09-13T09:15:30Z"
+        "400":
+          description: Missing required fields or validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Missing required fields: studentId, position
+        "404":
           description: Student not found
-        '500':
-          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student not found
+        "500":
+          description: Server or Cloudinary upload error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Failed to upload student image
+                  error:
+                    type: string
+                    example: Cloudinary upload failed
 
   /api/admitted/students/update_job_type:
     patch:
@@ -3434,3 +3629,167 @@ paths:
                   error:
                     type: string
                     example: Internal server error
+  /api/admitted/students/dashboard/stats:
+    get:
+      summary: Get student statistics
+      description: Get total students count, level-wise counting, and placed students count
+      tags:
+        - Dashboard
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalStudents:
+                    type: integer
+                    example: 150
+                  levelCounts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: "1A"
+                        count:
+                          type: integer
+                          example: 25
+                  placedStudents:
+                    type: integer
+                    example: 45
+        '500':
+          description: Server error
+
+
+  /api/admitted/students/placement_post:
+    post:
+      summary: Create a new placement record
+      description: Create a placement record for a student. Files like offer letter and application file are optional.
+      tags:
+        - Post create
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                studentId:
+                  type: string
+                  description: ID of the student
+                  example: 64f23f78a23b9c001f9f1234
+                companyName:
+                  type: string
+                  description: Name of the company
+                  example: Google
+                salary:
+                  type: number
+                  description: Salary offered
+                  example: 1200000
+                location:
+                  type: string
+                  description: Job location
+                  example: Bangalore
+                jobProfile:
+                  type: string
+                  description: Job role/profile
+                  example: Software Engineer
+                jobType:
+                  type: string
+                  description: Type of job (e.g., Full-time, Internship)
+                  example: Full-time
+                joiningDate:
+                  type: string
+                  format: date
+                  description: Date of joining
+                  example: 2025-07-01
+                interviewRecordId:
+                  type: string
+                  description: Related interview record ID (optional)
+                  example: 64f23f78a23b9c001f9f5678
+                headOffice:
+                  type: string
+                  description: Company head office location
+                  example: Mountain View, CA
+                companyLogo:
+                  type: string
+                  description: Company logo (base64 string)
+                  example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+                studentImage:
+                  type: string
+                  description: Student profile image (base64 string)
+                  example: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD..."
+                offerLetter:
+                  type: string
+                  format: binary
+                  description: Offer letter file (optional)
+                applicationFile:
+                  type: string
+                  format: binary
+                  description: Application file (optional)
+              required:
+                - studentId
+                - companyName
+                - salary
+                - location
+                - jobProfile
+      responses:
+        "201":
+          description: Placement record created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Placement record created successfully
+                  data:
+                    type: object
+                    properties:
+                      placedInfo:
+                        type: object
+                        description: Placement details saved
+                      student:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          name:
+                            type: string
+                          image:
+                            type: string
+                      company:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          name:
+                            type: string
+                          logo:
+                            type: string
+                          headOffice:
+                            type: string
+        "400":
+          description: Bad request (missing required fields)
+        "404":
+          description: Student not found
+        "500":
+          description: Internal server error
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
