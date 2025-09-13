@@ -2780,63 +2780,56 @@ paths:
 
   /api/admitted/students/placement_post:
     post:
-      summary: 8. Create Placement Post
-      description: Generate placement post from placed students
+      summary: Create Placement Post (Preview Only)
+      description: >
+        Prepares placement post data for a student and company.  
+        This API does **not** save the post in database — it only validates, uploads images (if needed),  
+        and returns structured placement post details.
       tags:
-        - Placement Workflow
-      security:
-        - bearerAuth: []
+        - Placement
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required:
+                - studentId
+                - position
+                - companyName
+                - headOffice
+                - hrEmail
+                - location
               properties:
                 studentId:
                   type: string
-                  description: ID of placed student
-                  example: "64a1b2c3d4e5f6789012345"
-                jobProfile:
+                  example: "650a3f2b8c9d2a7b9f1e5c4a"
+                position:
                   type: string
-                  example: "Software Developer"
-                salary:
-                  type: number
-                  example: 850000
+                  example: "Software Engineer"
                 companyName:
                   type: string
-                  example: "TechCorp Solutions"
-                companyLogo:
-                  type: string
-                  description: Base64 encoded logo image or direct URL
-                  example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+                  example: "TechCorp Pvt Ltd"
                 headOffice:
                   type: string
                   example: "Bangalore, India"
-                location:
-                  type: string
-                  example: "Pune, India"
                 hrEmail:
                   type: string
                   format: email
-                  example: "hr@techcorp.com"
-                jobType:
+                location:
                   type: string
-                  example: "Full-Time"
-                joiningDate:
+                  example: "Bangalore, India"
+                companyLogo:
                   type: string
-                  format: date
-                  example: "2025-10-01"
-                interviewRecordId:
-                  type: string
-                  example: "77b2c3d4e5f6789012345678"
+                  description: "Base64 image string or direct logo URL (required if new company)"
+                  example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
                 studentImage:
                   type: string
-                  description: Optional - Base64 encoded or URL
-                  example: "data:image/jpeg;base64,..."
+                  description: "Base64 image string or direct URL (optional if student already has profile image)"
+                  example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
       responses:
-        '201':
-          description: Placement record created successfully
+        "200":
+          description: Placement post prepared successfully
           content:
             application/json:
               schema:
@@ -2847,40 +2840,89 @@ paths:
                     example: true
                   message:
                     type: string
-                    example: Placement record created successfully
+                    example: Placement post data prepared successfully
                   data:
                     type: object
                     properties:
-                      placedInfo:
-                        type: object
                       student:
                         type: object
                         properties:
                           id:
                             type: string
+                            example: "650a3f2b8c9d2a7b9f1e5c4a"
                           name:
                             type: string
+                            example: "Ravi Kumar"
+                          year:
+                            type: string
+                            example: "3rd Year"
+                          course:
+                            type: string
+                            example: "B.Tech CSE"
                           image:
                             type: string
+                            example: "https://res.cloudinary.com/demo/image/upload/v12345/student.png"
                       company:
                         type: object
                         properties:
                           id:
                             type: string
+                            example: "6510c9d2b8a3f2a7b9f1e5c4"
                           name:
                             type: string
+                            example: "TechCorp Pvt Ltd"
                           logo:
                             type: string
+                            example: "https://res.cloudinary.com/demo/image/upload/v12345/logo.png"
                           headOffice:
                             type: string
-                          hrEmail:
-                            type: string
-                          location:
-                            type: string
-        '404':
+                            example: "Bangalore, India"
+                      position:
+                        type: string
+                        example: "Software Engineer"
+                      createdAt:
+                        type: string
+                        format: date-time
+                        example: "2025-09-13T09:15:30Z"
+        "400":
+          description: Missing required fields or validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Missing required fields: studentId, position
+        "404":
           description: Student not found
-        '500':
-          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Student not found
+        "500":
+          description: Server or Cloudinary upload error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Failed to upload student image
+                  error:
+                    type: string
+                    example: Cloudinary upload failed
 
   /api/admitted/students/update_job_type:
     patch:
