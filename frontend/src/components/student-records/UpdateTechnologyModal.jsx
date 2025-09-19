@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { useUpdateTechnologyMutation } from "../../redux/api/authApi";
 import CustomDropdown from "../common-components/common-feild/CustomDropdown";
 import { buttonStyles } from "../../styles/buttonStyles";
+import BlurBackground from "../common-components/BlurBackground";
 
 const UpdateTechnologyModal = ({ isOpen, onClose, studentId }) => {
     const [updateTechnology, { isLoading }] = useUpdateTechnologyMutation();
@@ -60,7 +61,7 @@ const UpdateTechnologyModal = ({ isOpen, onClose, studentId }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+        <BlurBackground isOpen={isOpen} onClose={() => { setShowCustomInput(false); onClose(); }}>
             <div className="bg-white rounded-xl py-4 px-6 w-full max-w-lg relative">
                 <h2 className="text-2xl font-semibold text-center mb-6 text-[var(--primary)]">Update Technology</h2>
 
@@ -85,7 +86,7 @@ const UpdateTechnologyModal = ({ isOpen, onClose, studentId }) => {
                     &times;
                 </button>
             </div>
-        </div>
+        </BlurBackground>
     );
 };
 

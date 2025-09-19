@@ -14,6 +14,7 @@ import CustomDropdown from "../common-components/common-feild/CustomDropdown";
 import DatePickerInput from "../datepickerInput/DatePickerInput";
 import Loader from "../common-components/loader/Loader";
 import { buttonStyles } from "../../styles/buttonStyles";
+import BlurBackground from "../common-components/BlurBackground";
 
 const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
   console.log("activeTab", activeTab);
@@ -173,7 +174,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+    <BlurBackground isOpen={isOpen} onClose={onClose}>
       <div className="bg-white rounded-xl py-6 px-8 w-full max-w-3xl h-[95vh] overflow-y-auto no-scrollbar relative">
         <div className="mb-6">
           <h2 className="text-2xl font-semibold text-center mb-6 text-[var(--primary)]">
@@ -320,7 +321,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
           &times;
         </button>
       </div>
-    </div>
+    </BlurBackground>
   );
 };
 

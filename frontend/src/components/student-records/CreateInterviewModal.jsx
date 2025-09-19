@@ -12,6 +12,7 @@ import CustomDropdown from '../common-components/common-feild/CustomDropdown';
 import { toast } from 'react-toastify';
 import InterviewSuccessModal from './InterviewSuccessModal';
 import { buttonStyles } from '../../styles/buttonStyles';
+import BlurBackground from '../common-components/BlurBackground';
 
 
 const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents, interviewLevel }) => {
@@ -142,7 +143,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents, int
 
     return (
         <>
-            <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+            <BlurBackground isOpen={isOpen} onClose={onClose}>
                 <div className="bg-white rounded-xl py-4 px-6 w-full max-w-2xl relative">
                     <h2 className="text-2xl font-semibold text-center mb-6 text-[var(--primary)]">Technical Interview Form</h2>
 
@@ -278,7 +279,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents, int
                         &times;
                     </button>
                 </div>
-            </div>
+            </BlurBackground>
 
             {/* Success Modal - Always rendered */}
             {showSuccessModal && (

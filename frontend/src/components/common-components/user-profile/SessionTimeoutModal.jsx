@@ -1,9 +1,10 @@
 /* eslint-disable react/prop-types */
+import BlurBackground from '../BlurBackground';
 const SessionTimeoutModal = ({ isOpen, onContinue, onLogout }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+    <BlurBackground isOpen={isOpen} onClose={onLogout}>
       <div className="bg-white rounded-xl py-4 px-6 w-full max-w-lg relative">
         <h2 className="text-xl font-bold text-center text-orange-500 mb-4">Session Timeout Warning</h2>
         
@@ -41,7 +42,7 @@ const SessionTimeoutModal = ({ isOpen, onContinue, onLogout }) => {
           &times;
         </button>
       </div>
-    </div>
+    </BlurBackground>
   );
 };
 

@@ -10,6 +10,7 @@ import { IoClose } from "react-icons/io5";
 import { FaCalendarAlt } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { buttonStyles } from "../../styles/buttonStyles";
+import BlurBackground from "../common-components/BlurBackground";
 
 const PRIMARY_COLOR = "#FDA92D";
 const TEXT_COLOR = "#4B4B4B";
@@ -104,7 +105,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <BlurBackground isOpen={isOpen} onClose={onClose}>
       <div className="bg-white rounded-2xl w-full max-w-3xl shadow-lg p-8 relative">
         {/* Close Button */}
         <button
@@ -258,7 +259,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
           </div>
         </form>
       </div>
-    </div>
+    </BlurBackground>
   );
 };
 
