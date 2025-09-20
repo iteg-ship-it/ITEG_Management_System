@@ -50,7 +50,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents, int
         Communication_Marks: '',
         marks: '',
         remark: '',
-        date: new Date(),
+        date: null,
         result: 'Pending',
         Topic: '',
     };
