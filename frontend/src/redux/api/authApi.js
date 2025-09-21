@@ -658,6 +658,16 @@ export const authApi = createApi({
       invalidatesTags: ['User'],
     }),
 
+    // Edit user (superadmin only)
+    editUser: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `/user/update/${id}`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ['User'],
+    }),
+
   }),
 });
 
@@ -707,5 +717,6 @@ export const {
 
   useGetStudentAttendanceCalendarQuery,
   useGetAllUsersQuery,
-  useDeleteUserMutation
+  useDeleteUserMutation,
+  useEditUserMutation
 } = authApi;

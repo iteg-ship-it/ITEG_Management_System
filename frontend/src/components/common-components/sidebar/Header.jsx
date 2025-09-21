@@ -156,9 +156,11 @@ const Header = () => {
                                             label="Department"
                                             name="department"
                                             options={[
+                                                { value: 'SSISM', label: 'SSISM' },
                                                 { value: 'ITEG', label: 'ITEG' },
                                                 { value: 'MEG', label: 'MEG' },
-                                                { value: 'BEG', label: 'BEG' }
+                                                { value: 'BEG', label: 'BEG' },
+                                                { value: 'BTECH', label: 'BTECH' }
                                             ]}
                                         />
                                         <CustomDropdown
@@ -168,7 +170,9 @@ const Header = () => {
                                                 { value: 'Assistant Professor', label: 'Assistant Professor' },
                                                 { value: 'Associate Professor', label: 'Associate Professor' },
                                                 { value: 'Professor', label: 'Professor' },
-                                                { value: 'Lecturer', label: 'Lecturer' }
+                                                { value: 'Lecturer', label: 'Lecturer' },
+                                                { value: 'Chairman', label: 'Chairman' },
+                                                { value: 'CEO', label: 'CEO' }
                                             ]}
                                         />
                                     </div>

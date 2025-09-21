@@ -1,14 +1,28 @@
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { Trash2, Edit, Eye } from 'lucide-react';
-import { useGetAllUsersQuery, useDeleteUserMutation } from '../../redux/api/authApi';
+import { Trash2, Edit, Eye, X } from 'lucide-react';
+import { useGetAllUsersQuery, useDeleteUserMutation, useEditUserMutation } from '../../redux/api/authApi';
+import CommonTable from '../common-components/table/CommonTable';
+import Pagination from '../common-components/pagination/Pagination';
+import Loader from "../common-components/loader/Loader";
+import InputField from '../common-components/common-feild/InputField';
+import CustomDropdown from '../common-components/common-feild/CustomDropdown';
+import { Formik, Form } from 'formik';
+import { buttonStyles } from '../../styles/buttonStyles';
+import PageNavbar from '../common-components/navbar/PageNavbar';
 
 const UsersManagement = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedDepartments, setSelectedDepartments] = useState([]);
+    const [selectedRoles, setSelectedRoles] = useState([]);
+    const [editModal, setEditModal] = useState({ show: false, user: null });
     const { data: usersData, isLoading: loading, error } = useGetAllUsersQuery();
     const [deleteUser] = useDeleteUserMutation();
+    const [editUser] = useEditUserMutation();
 
     const users = usersData?.users || [];
+    const departments = [...new Set(users.map(user => user.department).filter(Boolean))];
+    const roles = [...new Set(users.map(user => user.role).filter(Boolean))];
 
     const handleDeleteUser = async (userId, userName) => {
         if (window.confirm(`Are you sure you want to delete ${userName}?`)) {
@@ -22,6 +36,12 @@ const UsersManagement = () => {
         }
     };
 
+    const handleEditUser = (user) => {
+        setEditModal({ show: true, user });
+    };
+
+
+
     if (error) {
         return (
             <div className="p-6">
@@ -32,12 +52,7 @@ const UsersManagement = () => {
         );
     }
 
-    const filteredUsers = users.filter(user =>
-        user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.role?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.department?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+
 
     const getRoleBadgeColor = (role) => {
         switch (role?.toLowerCase()) {
@@ -47,6 +62,10 @@ const UsersManagement = () => {
                 return 'bg-blue-100 text-blue-800';
             case 'faculty':
                 return 'bg-green-100 text-green-800';
+            case 'chairman':
+                return 'bg-purple-100 text-purple-800';
+            case 'ceo':
+                return 'bg-yellow-100 text-yellow-800';
             default:
                 return 'bg-gray-100 text-gray-800';
         }
@@ -54,130 +73,245 @@ const UsersManagement = () => {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="min-h-screen flex items-center justify-center bg-white">
+                <Loader />
             </div>
         );
     }
 
-    return (
-        <div className="p-6">
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">Users Management</h1>
-                <p className="text-gray-600">Manage all system users</p>
-            </div>
+    const columns = [
+        {
+            key: 'name',
+            label: 'Name',
+            render: (user) => (
+                <div className="flex items-center">
+                    <img
+                        className="h-8 w-8 rounded-full object-cover mr-3"
+                        src={user.profileImage || '/default-avatar.png'}
+                        alt={user.name}
+                    />
+                    <div>
+                        <div className="font-medium">{user.name}</div>
+                        <div className="text-sm text-gray-500">{user.position}</div>
+                    </div>
+                </div>
+            )
+        },
+        {
+            key: 'email',
+            label: 'Contact',
+            render: (user) => (
+                <div>
+                    <div>{user.email}</div>
+                    <div className="text-sm text-gray-500">{user.mobileNo}</div>
+                </div>
+            )
+        },
+        {
+            key: 'role',
+            label: 'Role & Department',
+            render: (user) => (
+                <div>
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>
+                        {user.role}
+                    </span>
+                    <div className="text-sm text-gray-500 mt-1">{user.department}</div>
+                </div>
+            )
+        },
+        {
+            key: 'isActive',
+            label: 'Status',
+            render: (user) => (
+                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                    {user.isActive ? 'Active' : 'Inactive'}
+                </span>
+            )
+        }
+    ];
 
-            <div className="mb-6">
-                <input
-                    type="text"
-                    placeholder="Search users by name, email, role, or department..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+    const actionButton = (user) => (
+        <div className="flex space-x-2">
+            <button className="text-blue-600 hover:text-blue-900" title="View Details">
+                <Eye size={16} />
+            </button>
+            <button
+                onClick={() => handleEditUser(user)}
+                className="text-green-600 hover:text-green-900"
+                title="Edit User"
+            >
+                <Edit size={16} />
+            </button>
+            <button
+                onClick={() => handleDeleteUser(user.id, user.name)}
+                className="text-red-600 hover:text-red-900"
+                title="Delete User"
+            >
+                <Trash2 size={16} />
+            </button>
+        </div>
+    );
+
+    return (
+        <>
+            <PageNavbar
+                title="Users Management"
+                subtitle="Manage all system users"
+                showBackButton={true}
+            />
+           
+            <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
+
+                <div className="px-5 flex justify-between items-center flex-wrap gap-4 mt-4">
+                    <Pagination
+                        searchTerm={searchTerm}
+                        setSearchTerm={setSearchTerm}
+                        filtersConfig={[
+                            {
+                                title: 'Department',
+                                options: departments,
+                                selected: selectedDepartments,
+                                setter: setSelectedDepartments
+                            },
+                            {
+                                title: 'Role',
+                                options: roles,
+                                selected: selectedRoles,
+                                setter: setSelectedRoles
+                            }
+                        ]}
+                        allData={users}
+                        sectionName="users"
+                    />
+                </div>
+
+                <CommonTable
+                    columns={columns}
+                    data={users.filter(user =>
+                        (selectedDepartments.length === 0 || selectedDepartments.includes(user.department)) &&
+                        (selectedRoles.length === 0 || selectedRoles.includes(user.role))
+                    )}
+                    searchTerm={searchTerm}
+                    pagination={true}
+                    editable={true}
+                    actionButton={actionButton}
+                    rowsPerPage={10}
                 />
             </div>
 
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    User
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Contact
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Role & Department
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Status
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {filteredUsers.map((user) => (
-                                <tr key={user.id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center">
-                                            <div className="flex-shrink-0 h-10 w-10">
-                                                <img
-                                                    className="h-10 w-10 rounded-full object-cover"
-                                                    src={user.profileImage || '/default-avatar.png'}
-                                                    alt={user.name}
-                                                />
-                                            </div>
-                                            <div className="ml-4">
-                                                <div className="text-sm font-medium text-gray-900">
-                                                    {user.name}
-                                                </div>
-                                                <div className="text-sm text-gray-500">
-                                                    {user.position}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm text-gray-900">{user.email}</div>
-                                        <div className="text-sm text-gray-500">{user.mobileNo}</div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>
-                                            {user.role}
-                                        </span>
-                                        <div className="text-sm text-gray-500 mt-1">{user.department}</div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                            user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                        }`}>
-                                            {user.isActive ? 'Active' : 'Inactive'}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <div className="flex space-x-2">
-                                            <button
-                                                className="text-blue-600 hover:text-blue-900"
-                                                title="View Details"
-                                            >
-                                                <Eye size={16} />
-                                            </button>
-                                            <button
-                                                className="text-green-600 hover:text-green-900"
-                                                title="Edit User"
-                                            >
-                                                <Edit size={16} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteUser(user.id, user.name)}
-                                                className="text-red-600 hover:text-red-900"
-                                                title="Delete User"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+            {editModal.show && (
+                <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-xl py-4 px-6 w-full max-w-2xl relative">
+                        <button
+                            onClick={() => setEditModal({ show: false, user: null })}
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+                        >
+                            <X size={20} />
+                        </button>
+                        <h2 className="text-2xl font-semibold text-center mb-6 text-[var(--primary)]">Edit User</h2>
 
-                {filteredUsers.length === 0 && (
-                    <div className="text-center py-12">
-                        <p className="text-gray-500">No users found matching your search criteria.</p>
+                        <Formik
+                            initialValues={{
+                                name: editModal.user?.name || '',
+                                position: editModal.user?.position || '',
+                                role: editModal.user?.role || '',
+                                department: editModal.user?.department || '',
+                                isActive: editModal.user?.isActive || true
+                            }}
+                            onSubmit={async (values) => {
+                                try {
+                                    await editUser({ id: editModal.user.id, ...values }).unwrap();
+                                    toast.success('User updated successfully');
+                                    setEditModal({ show: false, user: null });
+                                } catch (error) {
+                                    console.error('Error updating user:', error);
+                                    toast.error('Failed to update user');
+                                }
+                            }}
+                        >
+                            <Form className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="col-span-2 text-sm font-semibold text-gray-600 mt-2">User Information</div>
+
+                                <div className="col-span-2 md:col-span-1">
+                                    <InputField label="Name" name="name" />
+                                </div>
+
+                                <div className="col-span-2 md:col-span-1">
+                                    <CustomDropdown
+                                        label="Position"
+                                        name="position"
+                                        options={[
+                                            { value: 'Assistant Professor', label: 'Assistant Professor' },
+                                            { value: 'Associate Professor', label: 'Associate Professor' },
+                                            { value: 'Professor', label: 'Professor' },
+                                            { value: 'Lecturer', label: 'Lecturer' },
+                                            { value: 'Chairman', label: 'Chairman' },
+                                            { value: 'CEO', label: 'CEO' }
+                                        ]}
+                                    />
+                                </div>
+
+                                <div className="col-span-2 text-sm font-semibold text-gray-600 mt-4">Access & Department</div>
+
+                                <div className="col-span-2 md:col-span-1">
+                                    <CustomDropdown
+                                        label="Role"
+                                        name="role"
+                                        options={[
+                                            { value: 'faculty', label: 'Faculty' },
+                                            { value: 'admin', label: 'Admin' },
+                                            { value: 'superadmin', label: 'Super Admin' }
+                                        ]}
+                                    />
+                                </div>
+
+                                <div className="col-span-2 md:col-span-1">
+                                    <CustomDropdown
+                                        label="Department"
+                                        name="department"
+                                        options={[
+                                            { value: 'SSISM', label: 'SSISM' },
+                                            { value: 'ITEG', label: 'ITEG' },
+                                            { value: 'MEG', label: 'MEG' },
+                                            { value: 'BEG', label: 'BEG' },
+                                            { value: 'BTECH', label: 'BTECH' }
+                                        ]}
+                                    />
+                                </div>
+
+                                <div className="col-span-2 md:col-span-1">
+                                    <CustomDropdown
+                                        label="Status"
+                                        name="isActive"
+                                        options={[
+                                            { value: true, label: 'Active' },
+                                            { value: false, label: 'Inactive' }
+                                        ]}
+                                    />
+                                </div>
+
+                                <div className="col-span-2 flex gap-3 pt-6">
+                                    <button
+                                        type="submit"
+                                        className={`flex-1 py-3 font-medium ${buttonStyles.primary}`}
+                                    >
+                                        Save Changes
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setEditModal({ show: false, user: null })}
+                                        className={`flex-1 py-3 font-medium ${buttonStyles.secondary}`}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </Form>
+                        </Formik>
                     </div>
-                )}
-            </div>
-
-            <div className="mt-4 text-sm text-gray-600">
-                Showing {filteredUsers.length} of {users.length} users
-            </div>
-        </div>
+                </div>
+            )}
+        </>
     );
 };
 
