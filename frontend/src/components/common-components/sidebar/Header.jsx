@@ -4,6 +4,7 @@ import defaultProfile from '../../../assets/images/profile-img.png';
 import UserProfile from '../user-profile/UserProfile';
 import { X, Upload } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useSignupMutation } from '../../../redux/api/authApi';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
@@ -88,17 +89,28 @@ const Header = () => {
                 </div>
                 <div className="flex items-center gap-4">
                     {userRole === 'superadmin' && (
-                        <button
-                            onClick={handleAddFaculty}
-                            className={`px-4 py-1 text-sm font-medium ${buttonStyles.primary}`}
-                            title="Add Member"
-                        >
-                            <span className="hidden sm:flex sm:items-center sm:gap-2">
-                                <span className="text-lg font-bold">+</span>
-                                <span>Add</span>
-                                <span>User</span>
-                            </span>
-                        </button>
+                        <>
+                            <Link
+                                to="/users-management"
+                                className={`px-4 py-1 text-sm font-medium ${buttonStyles.secondary}`}
+                                title="Manage Users"
+                            >
+                                <span className="hidden sm:flex sm:items-center sm:gap-2">
+                                    <span>Users</span>
+                                </span>
+                            </Link>
+                            <button
+                                onClick={handleAddFaculty}
+                                className={`px-4 py-1 text-sm font-medium ${buttonStyles.primary}`}
+                                title="Add Member"
+                            >
+                                <span className="hidden sm:flex sm:items-center sm:gap-2">
+                                    <span className="text-lg font-bold">+</span>
+                                    <span>Add</span>
+                                    <span>User</span>
+                                </span>
+                            </button>
+                        </>
                     )}
                     <UserProfile />
                 </div>

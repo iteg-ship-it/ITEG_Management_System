@@ -23,6 +23,7 @@ import InterviewRoundsHistory from "../placement/InterviewRoundsHistory";
 import PageNotFound from "../common-components/error-pages/PageNotFound";
 import ProtectedRoute from '../common-components/protected-route/ProtectedRoute';
 import AttendanceDetails from "../dashboard/AttendanceDetails";
+import UsersManagement from "../user-management/UsersManagement";
 
 const Dashboard = () => {
   return (
@@ -30,6 +31,9 @@ const Dashboard = () => {
       {/* Dashboard Routes - All roles */}
       <Route path="/" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionDashboard /></ProtectedRoute>} />
       <Route path="/attendance-details" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AttendanceDetails /></ProtectedRoute>} />
+      
+      {/* Superadmin Only Routes */}
+      <Route path="/users-management" element={<ProtectedRoute allowedRoles={["superadmin"]}><UsersManagement /></ProtectedRoute>} />
       
       {/* Admin Only Routes */}
       <Route path="/admission-process" element={<ProtectedRoute allowedRoles={["superadmin", "admin"]}><AdmissionProcess /></ProtectedRoute>} />
