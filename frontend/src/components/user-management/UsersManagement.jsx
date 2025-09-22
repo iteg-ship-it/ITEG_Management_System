@@ -10,6 +10,7 @@ import CustomDropdown from '../common-components/common-feild/CustomDropdown';
 import { Formik, Form } from 'formik';
 import { buttonStyles } from '../../styles/buttonStyles';
 import PageNavbar from '../common-components/navbar/PageNavbar';
+import profile from '../../assets/images/profile-img.png';
 
 const UsersManagement = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -87,7 +88,8 @@ const UsersManagement = () => {
                 <div className="flex items-center">
                     <img
                         className="h-8 w-8 rounded-full object-cover mr-3"
-                        src={user.profileImage || '/default-avatar.png'}
+                        src={user.profileImage || profile}
+
                         alt={user.name}
                     />
                     <div>
@@ -99,25 +101,32 @@ const UsersManagement = () => {
         },
         {
             key: 'email',
-            label: 'Contact',
-            render: (user) => (
-                <div>
-                    <div>{user.email}</div>
-                    <div className="text-sm text-gray-500">{user.mobileNo}</div>
-                </div>
-            )
+            label: 'Email ',
+            // render: (user) => user.email
+        }, {
+            key: 'mobileNo',
+            label: 'Contact No.',
+            // render: (user) => user.mobileNo
         },
         {
             key: 'role',
-            label: 'Role & Department',
+            label: 'Role',
             render: (user) => (
-                <div>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>
-                        {user.role}
-                    </span>
-                    <div className="text-sm text-gray-500 mt-1">{user.department}</div>
+                <div className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>
+                    {user.role}
                 </div>
             )
+        }, {
+            key: 'department',
+            label: 'Department',
+            // render: (user) => (
+            //     <div>
+            //         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>
+            //             {user.role}
+            //         </span>
+            //         <div className="text-sm text-gray-500 mt-1">{user.department}</div>
+            //     </div>
+            // )
         },
         {
             key: 'isActive',
@@ -132,23 +141,26 @@ const UsersManagement = () => {
     ];
 
     const actionButton = (user) => (
-        <div className="flex space-x-2">
-            <button className="text-blue-600 hover:text-blue-900" title="View Details">
-                <Eye size={16} />
+        <div className="flex space-x-1">
+            <button 
+                className="p-2 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" 
+                title="View Details"
+            >
+                <Eye size={14} />
             </button>
             <button
                 onClick={() => handleEditUser(user)}
-                className="text-green-600 hover:text-green-900"
+                className="p-2 rounded-md bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
                 title="Edit User"
             >
-                <Edit size={16} />
+                <Edit size={14} />
             </button>
             <button
                 onClick={() => handleDeleteUser(user.id, user.name)}
-                className="text-red-600 hover:text-red-900"
+                className="p-2 rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                 title="Delete User"
             >
-                <Trash2 size={16} />
+                <Trash2 size={14} />
             </button>
         </div>
     );
@@ -160,7 +172,7 @@ const UsersManagement = () => {
                 subtitle="Manage all system users"
                 showBackButton={true}
             />
-           
+
             <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
 
                 <div className="px-5 flex justify-between items-center flex-wrap gap-4 mt-4">

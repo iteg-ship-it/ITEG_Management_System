@@ -92,12 +92,14 @@ const Header = () => {
                         <>
                             <Link
                                 to="/users-management"
-                                className={`px-4 py-1 text-sm font-medium ${buttonStyles.secondary}`}
+                                className="px-4 py-2 text-sm font-medium bg-white text-orange-500 border border-orange-500 rounded-lg hover:bg-orange-100 hover:border-orange-300 transition-all duration-200 shadow-sm hover:shadow-md"
                                 title="Manage Users"
                             >
                                 <span className="hidden sm:flex sm:items-center sm:gap-2">
+                                    {/* <span></span> */}
                                     <span>Users</span>
                                 </span>
+                                <span className="sm:hidden">👥</span>
                             </Link>
                             <button
                                 onClick={handleAddFaculty}
