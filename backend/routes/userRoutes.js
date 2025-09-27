@@ -35,6 +35,8 @@ router.get("/google", passport.authenticate('google', {
 router.get("/google/callback", passport.authenticate('google', { session: false }), googleAuthCallback);
 
 router.get("/me", verifyToken, usercontroller.getCurrentUser);
+router.get("/all", verifyToken, usercontroller.getAllUsers);
+router.delete("/delete/:id", verifyToken, usercontroller.deleteUser);
 
 module.exports = router;
 

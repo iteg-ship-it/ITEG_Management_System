@@ -107,7 +107,7 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithAutoRefresh,
-  tagTypes: ['Student', 'PlacementStudent'],
+  tagTypes: ['Student', 'PlacementStudent', 'User'],
   // Global configuration for better caching
   keepUnusedDataFor: 300, // 5 minutes default cache
   refetchOnMountOrArgChange: 30, // Only refetch if data is older than 30 seconds
@@ -639,6 +639,34 @@ export const authApi = createApi({
       keepUnusedDataFor: 300,
     }),
 
+    // Get all users (superadmin only)
+    getAllUsers: builder.query({
+      query: () => ({
+        url: '/user/all',
+        method: "GET",
+      }),
+      providesTags: ['User'],
+    }),
+
+    // Delete user (superadmin only)
+    deleteUser: builder.mutation({
+      query: (userId) => ({
+        url: `/user/delete/${userId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ['User'],
+    }),
+
+    // Edit user (superadmin only)
+    editUser: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `/user/update/${id}`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ['User'],
+    }),
+
   }),
 });
 
@@ -686,5 +714,8 @@ export const {
   useGetItegStudentAttendanceQuery,
   useUpdateStudentEmailMutation,
 
-  useGetStudentAttendanceCalendarQuery
+  useGetStudentAttendanceCalendarQuery,
+  useGetAllUsersQuery,
+  useDeleteUserMutation,
+  useEditUserMutation
 } = authApi;

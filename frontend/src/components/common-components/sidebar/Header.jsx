@@ -4,6 +4,7 @@ import defaultProfile from '../../../assets/images/profile-img.png';
 import UserProfile from '../user-profile/UserProfile';
 import { X, Upload } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useSignupMutation } from '../../../redux/api/authApi';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
@@ -89,17 +90,30 @@ const Header = () => {
                 </div>
                 <div className="flex items-center gap-4">
                     {userRole === 'superadmin' && (
-                        <button
-                            onClick={handleAddFaculty}
-                            className={`px-4 py-1 text-sm font-medium ${buttonStyles.primary}`}
-                            title="Add Member"
-                        >
-                            <span className="hidden sm:flex sm:items-center sm:gap-2">
-                                <span className="text-lg font-bold">+</span>
-                                <span>Add</span>
-                                <span>User</span>
-                            </span>
-                        </button>
+                        <>
+                            <Link
+                                to="/users-management"
+                                className="px-4 py-2 text-sm font-medium bg-white text-orange-500 border border-orange-500 rounded-lg hover:bg-orange-100 hover:border-orange-300 transition-all duration-200 shadow-sm hover:shadow-md"
+                                title="Manage Users"
+                            >
+                                <span className="hidden sm:flex sm:items-center sm:gap-2">
+                                    {/* <span></span> */}
+                                    <span>Users</span>
+                                </span>
+                                <span className="sm:hidden">👥</span>
+                            </Link>
+                            <button
+                                onClick={handleAddFaculty}
+                                className={`px-4 py-1 text-sm font-medium ${buttonStyles.primary}`}
+                                title="Add Member"
+                            >
+                                <span className="hidden sm:flex sm:items-center sm:gap-2">
+                                    <span className="text-lg font-bold">+</span>
+                                    <span>Add</span>
+                                    <span>User</span>
+                                </span>
+                            </button>
+                        </>
                     )}
                     <UserProfile />
                 </div>
@@ -144,9 +158,11 @@ const Header = () => {
                                             label="Department"
                                             name="department"
                                             options={[
+                                                { value: 'SSISM', label: 'SSISM' },
                                                 { value: 'ITEG', label: 'ITEG' },
                                                 { value: 'MEG', label: 'MEG' },
-                                                { value: 'BEG', label: 'BEG' }
+                                                { value: 'BEG', label: 'BEG' },
+                                                { value: 'BTECH', label: 'BTECH' }
                                             ]}
                                         />
                                         <CustomDropdown
@@ -156,7 +172,9 @@ const Header = () => {
                                                 { value: 'Assistant Professor', label: 'Assistant Professor' },
                                                 { value: 'Associate Professor', label: 'Associate Professor' },
                                                 { value: 'Professor', label: 'Professor' },
-                                                { value: 'Lecturer', label: 'Lecturer' }
+                                                { value: 'Lecturer', label: 'Lecturer' },
+                                                { value: 'Chairman', label: 'Chairman' },
+                                                { value: 'CEO', label: 'CEO' }
                                             ]}
                                         />
                                     </div>
@@ -218,3 +236,5 @@ const Header = () => {
 };
 
 export default Header;
+
+

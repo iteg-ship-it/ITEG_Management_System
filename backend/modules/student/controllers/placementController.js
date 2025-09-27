@@ -322,60 +322,121 @@ exports.updateJobType = async (req, res) => {
 exports.createPlacementPost = async (req, res) => {
   try {
     console.log("Request body:", req.body);
-    
-    const { 
-      studentId, 
-      position, 
-      companyName, 
-      companyLogo, 
+
+    const {
+      studentId,
+      position,
+      companyName,
+      location,
+       hrEmail,
+      companyLogo,
       headOffice,
-      studentImage 
+      studentImage
     } = req.body;
 
+    // ✅ Validate required fields
     if (!studentId || !position || !companyName || !headOffice) {
-      console.log("Missing fields:", { studentId, position, companyName, headOffice });
-      return res.status(400).json({ 
-        message: "Missing required fields: studentId, position, companyName, headOffice" 
+      return res.status(400).json({
+        message: "Missing required fields: studentId, position, companyName, headOffice"
       });
     }
 
+    // ✅ Find student
     const student = await AdmittedStudent.findById(studentId);
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
 
+    // ✅ Find or create company
     let company = await Company.findOne({ companyName });
-    
+
     if (!company) {
       if (!companyLogo) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: "Company logo is required for new company. Please provide base64 image or upload file.",
           example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
         });
       }
-      
-      if (!companyLogo.startsWith('data:image/')) {
-        return res.status(400).json({ 
-          message: "Invalid logo format. Must be base64 image starting with 'data:image/'"
-        });
+
+      let logoURL;
+
+      if (companyLogo.startsWith("data:image/")) {
+        try {
+          const logoResult = await cloudinary.uploader.upload(companyLogo, {
+            folder: "company-logos",
+            resource_type: "image"
+          });
+          console.log("✅ Cloudinary upload success:", logoResult.secure_url);
+          logoURL = logoResult.secure_url;
+        } catch (error) {
+          console.error("❌ Cloudinary upload failed:", error);
+          return res.status(500).json({
+            success: false,
+            message: "Cloudinary upload failed",
+            error: error.message
+          });
+        }
+      } else {
+        logoURL = companyLogo; // If direct URL given
       }
-      
+
       company = new Company({
         companyName,
-        companyLogo,
-        headOffice
+        companyLogo: logoURL,
+        headOffice,
+        location,
+         hrEmail
       });
+
       await company.save();
+    } else if (companyLogo && companyLogo.startsWith("data:image/")) {
+      // ✅ Update existing company logo
+      try {
+        const logoResult = await cloudinary.uploader.upload(companyLogo, {
+          folder: "company-logos",
+          resource_type: "image"
+        });
+        company.companyLogo = logoResult.secure_url;
+        await company.save();
+        console.log("✅ Company logo updated:", logoResult.secure_url);
+      } catch (error) {
+        console.error("❌ Failed to update company logo:", error);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to update company logo",
+          error: error.message
+        });
+      }
     }
 
-    const finalStudentImage = studentImage || student.image;
-    
+    // ✅ Handle student image (either new or from DB)
+    let finalStudentImage = studentImage || student.image;
+
     if (!finalStudentImage) {
-      return res.status(400).json({ 
-        message: "Student image is required (either upload new or student must have profile image)" 
+      return res.status(400).json({
+        message: "Student image is required (either upload new or student must have profile image)"
       });
     }
 
+    if (finalStudentImage.startsWith("data:image/")) {
+      try {
+        const studentResult = await cloudinary.uploader.upload(finalStudentImage, {
+          folder: "student-images",
+          resource_type: "image"
+        });
+        finalStudentImage = studentResult.secure_url;
+        console.log("✅ Student image uploaded:", studentResult.secure_url);
+      } catch (error) {
+        console.error("❌ Student image upload failed:", error);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to upload student image",
+          error: error.message
+        });
+      }
+    }
+
+    // ✅ Prepare final placement post object
     const placementPostData = {
       student: {
         id: student._id,
@@ -394,6 +455,7 @@ exports.createPlacementPost = async (req, res) => {
       createdAt: new Date()
     };
 
+    // ✅ Send response
     res.status(200).json({
       success: true,
       message: "Placement post data prepared successfully",
@@ -401,32 +463,14 @@ exports.createPlacementPost = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Error creating placement post:", error);
-    res.status(500).json({ 
-      success: false, 
-      message: "Server error", 
-      error: error.message 
+    console.error("❌ Error creating placement post:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
     });
   }
 };
-
-// Get all companies
-// exports.getAllCompanies = async (req, res) => {
-//   try {
-//     const companies = await Company.find().select('companyName companyLogo headOffice');
-//     res.status(200).json({
-//       success: true,
-//       data: companies
-//     });
-//   } catch (error) {
-//     console.error("Error fetching companies:", error);
-//     res.status(500).json({ 
-//       success: false, 
-//       message: "Server error", 
-//       error: error.message 
-//     });
-//   }
-// };
 
 
 exports.getAllCompanies = async (req, res) => {
