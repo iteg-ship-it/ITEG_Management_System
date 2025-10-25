@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useUpdatePlacementMutation } from "../../redux/api/authApi";
 import { toast } from "react-toastify";
 import { buttonStyles } from "../../styles/buttonStyles";
+import BlurBackground from "../common-components/BlurBackground";
 
 const PlacementModal = ({ isOpen, onClose, studentId }) => {
   const [placementData, setPlacementData] = useState({
@@ -27,7 +28,7 @@ const PlacementModal = ({ isOpen, onClose, studentId }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+    <BlurBackground isOpen={isOpen} onClose={onClose}>
       <div className="bg-white rounded-xl py-4 px-6 w-full max-w-lg relative">
         <h2 className="text-2xl font-semibold text-center mb-6 text-[var(--primary)]">Update Placement Info</h2>
 
@@ -138,7 +139,7 @@ const PlacementModal = ({ isOpen, onClose, studentId }) => {
           &times;
         </button>
       </div>
-    </div>
+    </BlurBackground>
   );
 };
 

@@ -5,6 +5,7 @@ import { useConfirmPlacementMutation } from "../../redux/api/authApi";
 import { toast } from "react-toastify";
 import CustomDatePicker from "../student-records/CustomDatePicker";
 import { buttonStyles } from "../../styles/buttonStyles";
+import BlurBackground from "../common-components/BlurBackground";
 
 const PRIMARY_COLOR = "#FDA92D";
 const TEXT_COLOR = "#4B4B4B";
@@ -106,7 +107,7 @@ const ConfirmPlacementModal = ({ isOpen, onClose, student, onSuccess }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <BlurBackground isOpen={isOpen} onClose={handleClose}>
       <div className="bg-white rounded-2xl w-full max-w-2xl shadow-lg p-8 relative">
         {/* Close Button */}
         <button
@@ -360,7 +361,7 @@ const ConfirmPlacementModal = ({ isOpen, onClose, student, onSuccess }) => {
           </div>
         </form>
       </div>
-    </div>
+    </BlurBackground>
   );
 };
 

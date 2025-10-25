@@ -1,38 +1,42 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/prop-types */
 // components/DatePickerInput.js
 import { useField, ErrorMessage } from 'formik';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { useEffect, useState } from 'react';
-// import { format } from 'date-fns';
+import { useState } from 'react';
+import './DatePickerInput.css';
 
 const DatePickerInput = ({ label, name, className = '', disabled = false }) => {
-  const [field, helpers] = useField(name);
+  const [field, , helpers] = useField(name);
   const [isFocused, setIsFocused] = useState(false);
   const hasValue = !!field.value;
-
-  useEffect(() => {
-    if (!field.value) {
-      helpers.setValue(new Date()); // Default to today
-    }
-  }, []);
 
   return (
     <div className={`relative w-full ${className}`}>
       <DatePicker
         selected={field.value ? new Date(field.value) : null}
-        onChange={(date) => helpers.setValue(date)}
+        onChange={(date) => {
+          helpers.setValue(date);
+          helpers.setTouched(true);
+        }}
         onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        maxDate={new Date()} // Restrict to today or earlier
-        dateFormat="dd/MM/yyyy" // UI Format
+        onBlur={() => {
+          setIsFocused(false);
+          helpers.setTouched(true);
+        }}
+        maxDate={new Date()} // Allow previous and current dates only
+        dateFormat="dd/MM/yyyy"
         className={`peer h-12 w-full border border-gray-300 rounded-md px-3 pt-5 pb-2
-          leading-tight focus:outline-none focus:border-[#FDA92D]
+          leading-tight focus:outline-none focus:border-black focus:ring-0
           ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''} transition-all duration-200
         `}
         disabled={disabled}
         placeholderText="Select Date"
+        showYearDropdown
+        showMonthDropdown
+        dropdownMode="select"
+        calendarClassName="custom-datepicker"
+        popperClassName="custom-datepicker-popper"
       />
 
       <label

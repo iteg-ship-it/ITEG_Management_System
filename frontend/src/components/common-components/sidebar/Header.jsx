@@ -11,6 +11,7 @@ import * as Yup from 'yup';
 import InputField from '../common-feild/InputField';
 import CustomDropdown from '../common-feild/CustomDropdown';
 import { buttonStyles } from '../../../styles/buttonStyles';
+import BlurBackground from '../BlurBackground';
 
 const validationSchema = Yup.object({
     name: Yup.string().required('Name is required'),
@@ -118,9 +119,8 @@ const Header = () => {
                 </div>
             </header>
 
-            {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="bg-white rounded-lg p-6 w-[600px] max-w-2xl mx-4 min-h-[55%] h-auto overflow-visible">
+            <BlurBackground isOpen={showModal} onClose={() => { setShowModal(false); setSelectedImage(null); }}>
+                <div className="bg-white rounded-lg p-6 w-[600px] max-w-2xl mx-4 min-h-[55%] h-auto overflow-visible">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-xl font-semibold">Add Member</h2>
                             <button
@@ -230,8 +230,7 @@ const Header = () => {
                             )}
                         </Formik>
                     </div>
-                </div>
-            )}
+            </BlurBackground>
         </>
     );
 };

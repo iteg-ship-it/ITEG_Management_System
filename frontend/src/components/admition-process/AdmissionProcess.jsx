@@ -18,6 +18,7 @@ import {
 import { toast } from "react-toastify";
 import PageNavbar from "../common-components/navbar/PageNavbar";
 import { buttonStyles } from "../../styles/buttonStyles";
+import BlurBackground from "../common-components/BlurBackground";
 
 
 const toTitleCase = (str) =>
@@ -699,7 +700,7 @@ const StudentList = () => {
         />
       )}
       {AddInterviwModalOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm">
+        <BlurBackground isOpen={AddInterviwModalOpen} onClose={() => setAddInterviwModalOpen(false)}>
           <div className="bg-white rounded-xl p-6 w-[95%] max-w-xl max-h-[90vh] overflow-y-auto relative shadow-2xl">
             <h2 className="text-xl font-bold text-center text-orange-500 mb-6">
               Add Interview
@@ -750,7 +751,7 @@ const StudentList = () => {
               &times;
             </button>
           </div>
-        </div>
+        </BlurBackground>
       )}
     </>
   );

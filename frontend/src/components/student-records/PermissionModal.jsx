@@ -4,6 +4,7 @@ import { useUpdatePermissionMutation } from "../../redux/api/authApi";
 import { toast } from "react-toastify";
 import imageCompression from "browser-image-compression";
 import { buttonStyles } from "../../styles/buttonStyles";
+import BlurBackground from "../common-components/BlurBackground";
 
 const PermissionModal = ({ isOpen, onClose, studentId }) => {
     const [permissionData, setPermissionData] = useState({
@@ -82,7 +83,7 @@ const PermissionModal = ({ isOpen, onClose, studentId }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+        <BlurBackground isOpen={isOpen} onClose={onClose}>
             <div className="bg-white rounded-xl py-4 px-6 w-full max-w-lg relative">
                 <h2 className="text-2xl font-semibold text-center mb-6 text-[var(--primary)]"
                 >Permission Request Form</h2>
@@ -249,7 +250,7 @@ const PermissionModal = ({ isOpen, onClose, studentId }) => {
                     &times;
                 </button>
             </div>
-        </div>
+        </BlurBackground>
     );
 };
 

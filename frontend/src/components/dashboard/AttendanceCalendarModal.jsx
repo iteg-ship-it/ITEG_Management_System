@@ -3,6 +3,7 @@ import { useGetStudentAttendanceCalendarQuery } from '../../redux/api/authApi';
 import { FiX, FiChevronLeft, FiChevronRight, FiCalendar, FiUser } from 'react-icons/fi';
 import AttendanceApiError from '../common-components/error-pages/AttendanceApiError';
 import { useAttendanceErrorHandler } from '../../hooks/useAttendanceErrorHandler';
+import BlurBackground from '../common-components/BlurBackground';
 
 const AttendanceCalendarModal = ({ isOpen, onClose, student, initialDateFrom, initialDateTo }) => {
   const [dateFrom, setDateFrom] = useState(initialDateFrom);
@@ -182,8 +183,8 @@ const AttendanceCalendarModal = ({ isOpen, onClose, student, initialDateFrom, in
 
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-3xl w-full h-[75vh] flex flex-col">
+    <BlurBackground isOpen={isOpen} onClose={onClose}>
+      <div className="bg-white rounded-lg max-w-3xl w-full h-[75vh] flex flex-col m-4">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -305,7 +306,7 @@ const AttendanceCalendarModal = ({ isOpen, onClose, student, initialDateFrom, in
           )}
         </div>
       </div>
-    </div>
+    </BlurBackground>
   );
 };
 

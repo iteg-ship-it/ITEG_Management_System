@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useEffect } from 'react';
+import BlurBackground from '../common-components/BlurBackground';
 
 const InterviewSuccessModal = ({ isOpen, onClose, studentName, currentLevel, nextLevel, result }) => {
     // Auto close after 5 seconds
@@ -47,14 +48,8 @@ const InterviewSuccessModal = ({ isOpen, onClose, studentName, currentLevel, nex
     };
 
     return (
-        <div 
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]"
-            onClick={onClose}
-        >
-            <div 
-                className="bg-white rounded-xl p-8 w-full max-w-md mx-4 shadow-2xl transform transition-all duration-300 scale-100"
-                onClick={(e) => e.stopPropagation()}
-            >
+        <BlurBackground isOpen={isOpen} onClose={onClose}>
+            <div className="bg-white rounded-xl p-8 w-full max-w-md mx-4 shadow-2xl transform transition-all duration-300 scale-100">
                 <div className="text-center">
                     {/* Result Icon */}
                     <div className="text-6xl mb-4">
@@ -93,7 +88,7 @@ const InterviewSuccessModal = ({ isOpen, onClose, studentName, currentLevel, nex
                     &times;
                 </button>
             </div>
-        </div>
+        </BlurBackground>
     );
 };
 

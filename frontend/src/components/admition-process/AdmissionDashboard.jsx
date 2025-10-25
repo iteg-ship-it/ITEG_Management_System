@@ -1,8 +1,7 @@
 /* eslint-disable react/jsx-key */
 import { 
   Users, 
-  GraduationCap, 
-  Eye,
+  GraduationCap,
   Building2,
   Award
 } from 'lucide-react';
@@ -18,7 +17,7 @@ import {
 } from '../../redux/api/authApi';
 import Loader from '../common-components/loader/Loader';
 import { Chart } from 'react-google-charts';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import PageNavbar from '../common-components/navbar/PageNavbar';
 import AttendanceChart from '../dashboard/AttendanceChart';

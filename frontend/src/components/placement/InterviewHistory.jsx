@@ -10,6 +10,7 @@ import { CheckCircle, XCircle, Clock } from "lucide-react";
 import { FaCalendarAlt } from "react-icons/fa";
 import PageNavbar from "../common-components/navbar/PageNavbar";
 import { buttonStyles } from "../../styles/buttonStyles";
+import BlurBackground from "../common-components/BlurBackground";
 
 const InterviewHistory = () => {
   const { id } = useParams();
@@ -615,10 +616,9 @@ const InterviewHistory = () => {
       </div>
 
       {/* Update Modal */}
-      <Dialog open={isUpdateModalOpen} onClose={() => setIsUpdateModalOpen(false)} className="fixed z-50 inset-0">
-        <div className="flex items-center justify-center min-h-screen px-4 bg-black bg-opacity-30">
-          <Dialog.Panel className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-5">
-            <Dialog.Title className="text-xl font-semibold text-gray-800">Update Interview</Dialog.Title>
+      <BlurBackground isOpen={isUpdateModalOpen} onClose={() => setIsUpdateModalOpen(false)}>
+        <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-5">
+          <h2 className="text-xl font-semibold text-gray-800">Update Interview</h2>
 
             <div className="space-y-4">
               <div className="relative w-full">
@@ -705,17 +705,15 @@ const InterviewHistory = () => {
                 </button>
               </div>
             </div>
-          </Dialog.Panel>
         </div>
-      </Dialog>
+      </BlurBackground>
 
 
 
       {/* Add Next Round Modal */}
-      <Dialog open={isAddNextRoundModalOpen} onClose={() => setIsAddNextRoundModalOpen(false)} className="fixed z-50 inset-0">
-        <div className="flex items-center justify-center min-h-screen px-4 bg-black bg-opacity-30">
-          <Dialog.Panel className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-5">
-            <Dialog.Title className="text-xl font-semibold text-gray-800">Add Round</Dialog.Title>
+      <BlurBackground isOpen={isAddNextRoundModalOpen} onClose={() => setIsAddNextRoundModalOpen(false)}>
+        <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-5">
+          <h2 className="text-xl font-semibold text-gray-800">Add Round</h2>
 
             <div className="space-y-4">
               {/* Round Field (Auto-filled and Disabled) */}
@@ -864,15 +862,13 @@ const InterviewHistory = () => {
                 </button>
               </div>
             </div>
-          </Dialog.Panel>
         </div>
-      </Dialog>
+      </BlurBackground>
 
       {/* Reschedule Modal */}
-      <Dialog open={isRescheduleModalOpen} onClose={() => setIsRescheduleModalOpen(false)} className="fixed z-50 inset-0">
-        <div className="flex items-center justify-center min-h-screen px-4 bg-black bg-opacity-30">
-          <Dialog.Panel className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-5">
-            <Dialog.Title className="text-xl font-semibold text-gray-800">Reschedule Interview</Dialog.Title>
+      <BlurBackground isOpen={isRescheduleModalOpen} onClose={() => setIsRescheduleModalOpen(false)}>
+        <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-5">
+          <h2 className="text-xl font-semibold text-gray-800">Reschedule Interview</h2>
 
             <div className="space-y-4">
               <div className="relative w-full">
@@ -912,9 +908,8 @@ const InterviewHistory = () => {
                 </button>
               </div>
             </div>
-          </Dialog.Panel>
         </div>
-      </Dialog>
+      </BlurBackground>
     </>
   );
 };
