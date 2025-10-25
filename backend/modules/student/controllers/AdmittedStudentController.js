@@ -3,20 +3,18 @@ const AdmittedStudent = require("../models/admittedStudent");
 const Company = require("../models/company");
 const { sendHTMLMail } = require("./emailController");
 
-const { sendEmail } = require('./emailController');
-const cloudinary = require('../../../config/cloudinaryConfig');
+const { sendEmail } = require("./emailController");
+const cloudinary = require("../../../config/cloudinaryConfig");
 
-const path = require('path');
-const fs = require('fs');
-const sharp = require('sharp');
+const path = require("path");
+const fs = require("fs");
+const sharp = require("sharp");
 
-const multer = require('multer');
+const multer = require("multer");
 
 // Multer config to hold file in memory (no disk save)
 const storage = multer.memoryStorage();
-const upload = multer({ storage }).single('resume');
-
-
+const upload = multer({ storage }).single("resume");
 
 // ✅ Create New Admitted Student (from AdmissionProcess)
 exports.createAdmittedStudent = async (req, res) => {
@@ -78,8 +76,8 @@ exports.getAllStudents = async (req, res) => {
       $or: [
         { permissionDetails: { $exists: false } },
         { permissionDetails: null },
-        { permissionDetails: {} }
-      ]
+        { permissionDetails: {} },
+      ],
     }).sort({ updatedAt: -1 });
     console.log("Fetched all students:", students.length);
     res.status(200).json(students);
@@ -100,29 +98,31 @@ exports.getAllStudentsByLevel = async (req, res) => {
   try {
     const { levelNo } = req.params;
 
-const students = await AdmittedStudent.aggregate([
-  {
-    $addFields: {
-      latestLevel: { $arrayElemAt: ["$level", -1] }
-    }
-  },
-  {
+    const students = await AdmittedStudent.aggregate([
+      {
+        $addFields: {
+          latestLevel: { $arrayElemAt: ["$level", -1] },
+        },
+      },
+      {
         $match: {
           "latestLevel.levelNo": levelNo,
           $or: [
             { permissionDetails: { $exists: false } },
             { permissionDetails: null },
-            { permissionDetails: {} }
-          ]
-    }
-  },
-  {
-    $sort: { updatedAt: -1 }
-  }
-]);
+            { permissionDetails: {} },
+          ],
+        },
+      },
+      {
+        $sort: { updatedAt: -1 },
+      },
+    ]);
 
     if (!students || students.length === 0) {
-      return res.status(404).json({ message: "No students found for this level" });
+      return res
+        .status(404)
+        .json({ message: "No students found for this level" });
     }
 
     res.status(200).json(students);
@@ -149,7 +149,17 @@ exports.getStudentById = async (req, res) => {
 exports.updatedStudent = async (req, res) => {
   try {
     const { id } = req.params;
-    const { fullName, stream, course, fatherName, mobileNo, email, address, village, track } = req.body;
+    const {
+      fullName,
+      stream,
+      course,
+      fatherName,
+      mobileNo,
+      email,
+      address,
+      village,
+      track,
+    } = req.body;
     const student = await AdmittedStudent.findById(id);
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
@@ -184,24 +194,27 @@ exports.createLevels = async (req, res) => {
       marks,
       remark,
       date,
-      result
+      result,
     } = req.body;
 
     const student = await AdmittedStudent.findById(id);
     if (!student) {
-      return res.status(404).json({ success: false, message: "Student not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Student not found" });
     }
 
     const interviews = student.level || [];
 
     const LevelOrder = ["1A", "1B", "1C", "2A", "2B", "2C"];
 
-
-
     // Find previous highest passed round
     let lastPassedRoundIndex = -1;
     for (let i = 0; i < LevelOrder.length; i++) {
-      const passed = interviews.some(interview => interview.levelNo === LevelOrder[i] && interview.result === "Pass");
+      const passed = interviews.some(
+        (interview) =>
+          interview.levelNo === LevelOrder[i] && interview.result === "Pass"
+      );
       if (passed) {
         lastPassedRoundIndex = i;
       } else {
@@ -219,9 +232,11 @@ exports.createLevels = async (req, res) => {
     }
 
     // Check if round already passed
-    const currentLevelAttempts = interviews.filter(i => i.levelNo === nextLevel);
+    const currentLevelAttempts = interviews.filter(
+      (i) => i.levelNo === nextLevel
+    );
 
-    if (currentLevelAttempts.some(i => i.result === "Pass")) {
+    if (currentLevelAttempts.some((i) => i.result === "Pass")) {
       return res.status(400).json({
         success: false,
         message: `Round ${nextLevel} already passed. Please move to next round.`,
@@ -241,7 +256,6 @@ exports.createLevels = async (req, res) => {
       result: result || "Pending",
     };
 
-
     student.level.push(newInterview);
 
     // ✅ Update currentLevel if pass
@@ -254,11 +268,11 @@ exports.createLevels = async (req, res) => {
       }
 
       // Mark student ready if all levels are passed
-      const allLevelsPassed = LevelOrder.every(level =>
-        student.level.some(entry => entry.levelNo === level && entry.result === "Pass")
+      const allLevelsPassed = LevelOrder.every((level) =>
+        student.level.some(
+          (entry) => entry.levelNo === level && entry.result === "Pass"
+        )
       );
-
-
 
       if (newInterview.result === "Pass" && newInterview.levelNo === "1C") {
         if (student?.email) {
@@ -268,12 +282,13 @@ exports.createLevels = async (req, res) => {
           });
           console.log("Email sent to student:", student.email);
         } else {
-          console.log("❌ No email found for student:", student?.prkey || student?._id);
+          console.log(
+            "❌ No email found for student:",
+            student?.prkey || student?._id
+          );
         }
       }
 
-
-     
       if (allLevelsPassed) {
         student.readinessStatus = "Ready";
       }
@@ -307,7 +322,6 @@ Best wishes`,
       message: "Interview round added successfully",
       student,
     });
-
   } catch (error) {
     console.error("Error adding interview round:", error);
     res.status(500).json({ success: false, message: "Server Error", error });
@@ -317,19 +331,22 @@ Best wishes`,
 // Get all students with permissionDetails granted
 exports.getAllPermissionStudents = async (req, res) => {
   try {
-    const students = await AdmittedStudent.find({ permissionDetails: { $ne: null } }).select('-password').sort({ updatedAt: -1 });
+    const students = await AdmittedStudent.find({
+      permissionDetails: { $ne: null },
+    })
+      .select("-password")
+      .sort({ updatedAt: -1 });
 
     res.status(200).json({
       success: true,
       count: students.length,
-      data: students
+      data: students,
     });
   } catch (error) {
     console.error("Get Permission Students Error:", error);
     res.status(500).json({ message: "Server Error", error });
   }
 };
-
 
 exports.updatePermissionStudent = async (req, res) => {
   try {
@@ -338,11 +355,13 @@ exports.updatePermissionStudent = async (req, res) => {
 
     // Base64 image validation
     if (!/^data:image\/(png|jpeg|jpg);base64,/.test(imageURL)) {
-      return res.status(400).json({ message: "Invalid image format. Must be Base64 string." });
+      return res
+        .status(400)
+        .json({ message: "Invalid image format. Must be Base64 string." });
     }
 
     // Role validation
-    if (!['super admin', 'admin', 'faculty'].includes(approved_by)) {
+    if (!["super admin", "admin", "faculty"].includes(approved_by)) {
       return res.status(400).json({ message: "Invalid approver role." });
     }
 
@@ -350,6 +369,13 @@ exports.updatePermissionStudent = async (req, res) => {
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
+
+    // Force reconfigure cloudinary
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
 
     // Upload base64 image to Cloudinary
     const uploadResponse = await cloudinary.uploader.upload(imageURL, {
@@ -361,22 +387,20 @@ exports.updatePermissionStudent = async (req, res) => {
       imageURL: uploadResponse.secure_url,
       remark,
       approved_by,
-      uploadDate: new Date()
+      uploadDate: new Date(),
     };
 
     await student.save();
 
     res.status(200).json({
       message: "Permission updated successfully",
-      student
+      student,
     });
-
   } catch (error) {
     console.error("Update Permission Error:", error);
     res.status(500).json({ message: "Server Error", error });
   }
 };
-
 
 exports.updatePlacementInfo = async (req, res) => {
   try {
@@ -384,7 +408,12 @@ exports.updatePlacementInfo = async (req, res) => {
     const { companyName, salary, location, jobProfile } = req.body;
 
     if (!companyName || !salary || !location || !jobProfile) {
-      return res.status(400).json({ message: "All fields are required: companyName, salary, location, jobProfile" });
+      return res
+        .status(400)
+        .json({
+          message:
+            "All fields are required: companyName, salary, location, jobProfile",
+        });
     }
 
     const student = await AdmittedStudent.findById(id);
@@ -395,41 +424,46 @@ exports.updatePlacementInfo = async (req, res) => {
     // Find or create company
     let company = await Company.findOne({ companyName });
     if (!company) {
-      company = new Company({ 
-        companyName, 
+      company = new Company({
+        companyName,
         location,
-        hrEmail: "hr@" + companyName.toLowerCase().replace(/\s+/g, '') + ".com"
+        hrEmail: "hr@" + companyName.toLowerCase().replace(/\s+/g, "") + ".com",
       });
       await company.save();
     }
 
-    student.placedInfo = { 
+    student.placedInfo = {
       companyRef: company._id,
-      companyName, 
-      salary, 
-      location, 
-      jobProfile 
+      companyName,
+      salary,
+      location,
+      jobProfile,
     };
 
     // Update interview status from Selected to Placed (if any)
-    student.PlacementinterviewRecord.forEach(interview => {
-      if (interview.status === 'Selected' && interview.companyRef && interview.companyRef.toString() === company._id.toString()) {
-        interview.status = 'Placed';
+    student.PlacementinterviewRecord.forEach((interview) => {
+      if (
+        interview.status === "Selected" &&
+        interview.companyRef &&
+        interview.companyRef.toString() === company._id.toString()
+      ) {
+        interview.status = "Placed";
       }
     });
 
     await student.save();
-    
+
     return res.status(200).json({
       message: "Placement information updated successfully.",
-      placedInfo: student.placedInfo
+      placedInfo: student.placedInfo,
     });
   } catch (error) {
     console.error("Error updating placement info:", error);
-    return res.status(500).json({ message: "Server Error", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Server Error", error: error.message });
   }
 };
-
 
 exports.getStudentLevels = async (req, res) => {
   try {
@@ -440,38 +474,41 @@ exports.getStudentLevels = async (req, res) => {
     }
     const levels = student.level;
     if (!levels || levels.length === 0) {
-      return res.status(404).json({ message: "No levels found for this student" });
+      return res
+        .status(404)
+        .json({ message: "No levels found for this student" });
     }
     res.status(200).json(levels);
-  }
-  catch (error) {
+  } catch (error) {
     console.error("Error fetching levels:", error);
     res.status(500).json({ message: "Server Error", error });
   }
-}
+};
 
 exports.getLevelWiseStudents = async (req, res) => {
   try {
     const { levelNo } = req.params;
 
-  const students = await AdmittedStudent.aggregate([
-  {
-    $match: {
-      currentLevel: levelNo,
-      $or: [
-        { permissionDetails: { $exists: false } },
-        { permissionDetails: null },
-        { permissionDetails: {} }
-      ]
-    }
-  },
-  {
-    $sort: { updatedAt: -1 }
-  }
-]);
+    const students = await AdmittedStudent.aggregate([
+      {
+        $match: {
+          currentLevel: levelNo,
+          $or: [
+            { permissionDetails: { $exists: false } },
+            { permissionDetails: null },
+            { permissionDetails: {} },
+          ],
+        },
+      },
+      {
+        $sort: { updatedAt: -1 },
+      },
+    ]);
 
     if (!students || students.length === 0) {
-      return res.status(404).json({ message: "No students found for this level" });
+      return res
+        .status(404)
+        .json({ message: "No students found for this level" });
     }
 
     res.status(200).json(students);
@@ -481,17 +518,15 @@ exports.getLevelWiseStudents = async (req, res) => {
   }
 };
 
-
-
-
-
 exports.updateAdmittedStudent = async (req, res) => {
   try {
     console.log("Received update request for admitted student:", req.body);
 
     const { prkey } = req.body;
     if (!prkey) {
-      return res.status(400).json({ message: "Admission ID (prkey) is required" });
+      return res
+        .status(400)
+        .json({ message: "Admission ID (prkey) is required" });
     }
 
     // Define which fields you want to allow updates for
@@ -519,7 +554,7 @@ exports.updateAdmittedStudent = async (req, res) => {
     };
 
     // Remove undefined fields (in case partial update)
-    Object.keys(updateFields).forEach(key => {
+    Object.keys(updateFields).forEach((key) => {
       if (updateFields[key] === undefined) {
         delete updateFields[key];
       }
@@ -548,33 +583,31 @@ exports.updateAdmittedStudent = async (req, res) => {
   }
 };
 
-
-
 exports.getReadyStudent = async (req, res) => {
   try {
     // Find all students whose readinessStatus is "Ready"
-    const readyStudents = await AdmittedStudent.find({ readinessStatus: 'Ready' }).sort({ updatedAt: -1 });
+    const readyStudents = await AdmittedStudent.find({
+      readinessStatus: "Ready",
+    }).sort({ updatedAt: -1 });
 
     if (readyStudents.length === 0) {
-      return res.status(404).json({ message: "No students found with readinessStatus 'Ready'." });
+      return res
+        .status(404)
+        .json({ message: "No students found with readinessStatus 'Ready'." });
     }
 
     return res.status(200).json({
-      message: 'Ready students fetched successfully.',
+      message: "Ready students fetched successfully.",
       data: readyStudents,
     });
-
   } catch (error) {
     console.error("Error fetching ready students:", error);
     return res.status(500).json({
-      message: 'Failed to fetch ready students.',
+      message: "Failed to fetch ready students.",
       error: error.message,
     });
   }
 };
-
-
-
 
 // placement
 
@@ -582,17 +615,30 @@ exports.getReadyStudent = async (req, res) => {
 exports.addInterviewRecord = async (req, res) => {
   try {
     const { studentId } = req.params;
-    const { companyName, jobProfile, location, status, scheduleDate, rounds, offerLetterURL, applicationLetterURL } = req.body;
+    const {
+      companyName,
+      jobProfile,
+      location,
+      status,
+      scheduleDate,
+      rounds,
+      offerLetterURL,
+      applicationLetterURL,
+    } = req.body;
 
-    console.log("Searching for studentId:",  studentId );
+    console.log("Searching for studentId:", studentId);
 
     // Validate required fields
     if (!companyName || !jobProfile || !scheduleDate) {
-      return res.status(400).json({ message: "companyName, jobProfile, and scheduleDate are required." });
+      return res
+        .status(400)
+        .json({
+          message: "companyName, jobProfile, and scheduleDate are required.",
+        });
     }
 
     // Find the admitted student
-    const student = await AdmittedStudent.findById( studentId );
+    const student = await AdmittedStudent.findById(studentId);
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
@@ -606,7 +652,7 @@ exports.addInterviewRecord = async (req, res) => {
       scheduleDate: new Date(scheduleDate),
       rounds: Array.isArray(rounds) ? rounds : [], // must be array of {roundName, date, mode, feedback, result}
       offerLetterURL: offerLetterURL || "",
-      applicationLetterURL: applicationLetterURL || ""
+      applicationLetterURL: applicationLetterURL || "",
     };
 
     // Push new interview into student's PlacementinterviewRecord
@@ -617,97 +663,154 @@ exports.addInterviewRecord = async (req, res) => {
 
     res.status(201).json({
       message: "Placement interview scheduled successfully",
-      interview: newInterview
+      interview: newInterview,
     });
-
   } catch (error) {
     console.error("Error scheduling interview:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-
 exports.updateInterviewRecord = async (req, res) => {
   try {
     const { studentId, interviewId } = req.params;
     const { status } = req.body;
 
-    const validStatuses = ['Scheduled', 'Rescheduled', 'Ongoing', 'Selected', 'RejectedByStudent', 'RejectedByCompany'];
-    
+    const validStatuses = [
+      "Scheduled",
+      "Rescheduled",
+      "Ongoing",
+      "Selected",
+      "RejectedByStudent",
+      "RejectedByCompany",
+    ];
+
     if (!status || !validStatuses.includes(status)) {
-      return res.status(400).json({ success: false, message: "Valid status is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Valid status is required" });
     }
 
     const student = await AdmittedStudent.findById(studentId);
     if (!student) {
-      return res.status(404).json({ success: false, message: "Student not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Student not found" });
     }
 
     const interview = student.PlacementinterviewRecord.id(interviewId);
     if (!interview) {
-      return res.status(404).json({ success: false, message: "Interview record not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Interview record not found" });
     }
 
-    if (remark !== undefined) interview.remark = remark;
-    if (result !== undefined) interview.status = result; // Using status field as per schema
+    interview.status = status;
 
     await student.save();
 
     res.status(200).json({
       success: true,
       message: "Interview record updated successfully",
-      data: interview
+      data: interview,
     });
-
   } catch (error) {
     console.error("Update Error:", error);
-    res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    res
+      .status(500)
+      .json({ success: false, message: "Server Error", error: error.message });
   }
 };
 
+// Ensure you have these imports at the top of your file
+// const cloudinary = require('cloudinary').v2;
+// const AdmittedStudent = require('../models/AdmittedStudent'); // Adjust path as needed
 
+exports.uploadResumeBase64 = async (req, res) => {
+  const { studentId, fileData } = req.body;
+  let formattedFileData = fileData;
 
-exports.uploadResumeBase64= async (req, res) => {
-  const { studentId, fileName, fileData } = req.body;
+  // Force reconfigure cloudinary with current env vars
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
 
-  if (!studentId || !fileName || !fileData) {
+  console.log('Cloudinary Config:', {
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY?.substring(0, 5) + '...',
+    api_secret: process.env.CLOUDINARY_API_SECRET?.substring(0, 5) + '...'
+  });
+  if (!studentId || !fileData) {
     return res.status(400).json({
       success: false,
-      message: "Missing studentId, fileName, or fileData"
+      message: "Missing studentId or fileData",
     });
   }
 
+  // Ensure valid base64 header
+  if (!fileData.startsWith("data:")) {
+    formattedFileData = `data:application/pdf;base64,${fileData}`;
+  }
+
+  let uploadedFile;
   try {
-    // Upload Base64 file to Cloudinary
-    const uploadResponse = await cloudinary.uploader.upload(fileData, {
+    uploadedFile = await cloudinary.uploader.upload(formattedFileData, {
       folder: "student_resumes",
-      resource_type: "auto", // handles pdf/doc/image automatically
-      public_id: fileName.split(".")[0], // optional custom name
+      resource_type: "raw",
+      format: "pdf",
+      filename_override: `resume_${studentId}.pdf`,
+      use_filename: true,
+      type: "upload",
+      public_id: `resume_${studentId}_${Date.now()}`,
+      access_mode: "public" // ✅ Make file publicly accessible
     });
 
-    // Save the Cloudinary URL in DB
+    // Construct openable URL
+    const directUrl = uploadedFile.secure_url.replace("/image/upload/", "/raw/upload/");
+
+    // Update student record
     const updatedStudent = await AdmittedStudent.findByIdAndUpdate(
       studentId,
-      { resumeURL: uploadResponse.secure_url },
+      {
+        resumeURL: directUrl,
+        resume: {
+          url: directUrl,
+          public_id: uploadedFile.public_id,
+        },
+      },
       { new: true }
     );
+
+    if (!updatedStudent) {
+      await cloudinary.uploader.destroy(uploadedFile.public_id, { resource_type: "raw" });
+      return res.status(404).json({ success: false, message: "Student not found." });
+    }
 
     res.status(200).json({
       success: true,
       message: "Resume uploaded successfully",
-      resumeURL: uploadResponse.secure_url,
-      student: updatedStudent
+      resumeUrl: directUrl,
+      data: updatedStudent,
     });
-
   } catch (error) {
-    console.error("Upload error:", error);
+    console.error("Error during resume upload:", error);
+    if (uploadedFile) {
+      try {
+        await cloudinary.uploader.destroy(uploadedFile.public_id, { resource_type: "raw" });
+      } catch (cleanupError) {
+        console.error("Failed to cleanup orphaned file:", cleanupError);
+      }
+    }
     res.status(500).json({
       success: false,
-      message: "Error uploading resume",
-      error: error.message
+      message: "An error occurred during the upload process.",
+      error: error.message,
     });
   }
 };
+
 
 
 
@@ -749,9 +852,7 @@ exports.uploadResumeBase64= async (req, res) => {
 //   }
 // };
 
-
-
-// 
+//
 
 // exports.uploadResumeBase64 = async (req, res) => {
 //   const { studentId, fileName, fileData } = req.body;
@@ -814,44 +915,55 @@ exports.uploadResumeBase64= async (req, res) => {
 //   }
 // };
 
-
-
-
 exports.generatePlacementPost = async (req, res) => {
   try {
     const { studentId, studentImageBase64, companyLogoBase64 } = req.body;
 
     const student = await AdmittedStudent.findById(studentId);
-    if (!student) return res.status(404).json({ message: 'Student not found' });
+    if (!student) return res.status(404).json({ message: "Student not found" });
 
     const { firstName, lastName, placedInfo } = student;
     const studentName = `${firstName} ${lastName}`;
 
     if (!placedInfo || !placedInfo.companyName) {
-      return res.status(400).json({ message: 'Placement info not available' });
+      return res.status(400).json({ message: "Placement info not available" });
     }
 
     if (!studentImageBase64 || !companyLogoBase64) {
-      return res.status(400).json({ message: 'Student image and company logo are required' });
+      return res
+        .status(400)
+        .json({ message: "Student image and company logo are required" });
     }
 
     // Paths
-    const templatePath = path.join(__dirname, '../public/templates/Placement Template.jpg');
-    const outputFileName = `${studentName.replace(/\s+/g, '_')}_post.jpg`;
-    const outputPath = path.join(__dirname, `../public/posts/${outputFileName}`);
+    const templatePath = path.join(
+      __dirname,
+      "../public/templates/Placement Template.jpg"
+    );
+    const outputFileName = `${studentName.replace(/\s+/g, "_")}_post.jpg`;
+    const outputPath = path.join(
+      __dirname,
+      `../public/posts/${outputFileName}`
+    );
 
     // Ensure posts directory exists
     fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
     // Convert base64 to buffer
-    const studentImageBuffer = Buffer.from(studentImageBase64.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64');
-    const companyLogoBuffer = Buffer.from(companyLogoBase64.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64');
+    const studentImageBuffer = Buffer.from(
+      studentImageBase64.replace(/^data:image\/[a-z]+;base64,/, ""),
+      "base64"
+    );
+    const companyLogoBuffer = Buffer.from(
+      companyLogoBase64.replace(/^data:image\/[a-z]+;base64,/, ""),
+      "base64"
+    );
 
     // Compose final image
     const finalImage = await sharp(templatePath)
       .composite([
         { input: studentImageBuffer, top: 300, left: 280 },
-        { input: companyLogoBuffer, top: 620, left: 80 }
+        { input: companyLogoBuffer, top: 620, left: 80 },
       ])
       .resize(1080, 1080)
       .jpeg()
@@ -860,16 +972,17 @@ exports.generatePlacementPost = async (req, res) => {
     fs.writeFileSync(outputPath, finalImage);
 
     // Send file for download
-    res.setHeader('Content-Disposition', `attachment; filename="${outputFileName}"`);
-    res.setHeader('Content-Type', 'image/jpeg');
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${outputFileName}"`
+    );
+    res.setHeader("Content-Type", "image/jpeg");
     res.sendFile(outputPath);
-
   } catch (error) {
     console.error("Error generating post:", error);
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: "Server error", error });
   }
 };
-
 
 exports.updateTechnology = async (req, res) => {
   try {
@@ -877,22 +990,26 @@ exports.updateTechnology = async (req, res) => {
     const { techno } = req.body;
 
     if (!techno) {
-      return res.status(400).json({ message: 'Technology field is required' });
+      return res.status(400).json({ message: "Technology field is required" });
     }
 
     // Step 1: Fetch student
     const student = await AdmittedStudent.findById(studentId);
     if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
+      return res.status(404).json({ message: "Student not found" });
     }
 
     // ✅ Step 2: Check if Level 2A is passed inside the level array
     const hasPassedLevel2A = student.level?.some(
-      (lvl) => lvl.levelNo === '2A' && lvl.result === 'Pass'
+      (lvl) => lvl.levelNo === "2A" && lvl.result === "Pass"
     );
 
     if (!hasPassedLevel2A) {
-      return res.status(403).json({ message: 'Student must complete Level 2A before updating technology' });
+      return res
+        .status(403)
+        .json({
+          message: "Student must complete Level 2A before updating technology",
+        });
     }
 
     // ✅ Step 3: Update techno field
@@ -900,16 +1017,14 @@ exports.updateTechnology = async (req, res) => {
     await student.save();
 
     res.status(200).json({
-      message: 'Technology updated successfully',
-      student
+      message: "Technology updated successfully",
+      student,
     });
-
   } catch (error) {
-    console.error('Error updating technology:', error);
-    res.status(500).json({ message: 'Server error', error });
+    console.error("Error updating technology:", error);
+    res.status(500).json({ message: "Server error", error });
   }
 };
-
 
 exports.updateStudentProfile = async (req, res) => {
   try {
@@ -917,40 +1032,49 @@ exports.updateStudentProfile = async (req, res) => {
     const { image } = req.body;
 
     if (!image) {
-      return res.status(400).json({ message: 'Image is required' });
+      return res.status(400).json({ message: "Image is required" });
     }
 
     // Validate base64 image format
     if (!/^data:image\/(png|jpeg|jpg|gif);base64,/.test(image)) {
-      return res.status(400).json({ message: 'Invalid image format. Must be base64 encoded image.' });
+      return res
+        .status(400)
+        .json({
+          message: "Invalid image format. Must be base64 encoded image.",
+        });
     }
 
     const student = await AdmittedStudent.findById(studentId);
     if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
+      return res.status(404).json({ message: "Student not found" });
     }
+
+    // Force reconfigure cloudinary
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
 
     // Upload image to Cloudinary
     const uploadResponse = await cloudinary.uploader.upload(image, {
-      folder: 'student_profiles',
+      folder: "student_profiles",
       public_id: `student_${studentId}`,
-      overwrite: true
+      overwrite: true,
     });
 
     student.image = uploadResponse.secure_url; // Store Cloudinary URL
     await student.save();
 
     res.status(200).json({
-      message: 'Profile image updated successfully',
-      student
+      message: "Profile image updated successfully",
+      student,
     });
-
   } catch (error) {
-    console.error('Error updating profile image:', error);
-    res.status(500).json({ message: 'Server error', error });
+    console.error("Error updating profile image:", error);
+    res.status(500).json({ message: "Server error", error });
   }
 };
-
 
 exports.rescheduleInterview = async (req, res) => {
   try {
@@ -964,32 +1088,32 @@ exports.rescheduleInterview = async (req, res) => {
     const updatedStudent = await AdmittedStudent.findOneAndUpdate(
       {
         _id: studentId,
-        "PlacementinterviewRecord._id": interviewId
+        "PlacementinterviewRecord._id": interviewId,
       },
       {
         $set: {
           "PlacementinterviewRecord.$.scheduleDate": new Date(newDate),
-          "PlacementinterviewRecord.$.status": "Rescheduled"
-        }
+          "PlacementinterviewRecord.$.status": "Rescheduled",
+        },
       },
       { new: true }
     );
 
     if (!updatedStudent) {
-      return res.status(404).json({ message: "Student or interview not found." });
+      return res
+        .status(404)
+        .json({ message: "Student or interview not found." });
     }
 
     res.status(200).json({
       message: "Interview rescheduled successfully.",
-      updatedData: updatedStudent
+      updatedData: updatedStudent,
     });
-
   } catch (error) {
     console.error("Error rescheduling interview:", error);
     res.status(500).json({ message: "Server error.", error: error.message });
   }
 };
-
 
 exports.updateStudentEmail = async (req, res) => {
   try {
@@ -997,46 +1121,45 @@ exports.updateStudentEmail = async (req, res) => {
     const { email } = req.body;
 
     if (!email) {
-      return res.status(400).json({ message: 'Email is required' });
+      return res.status(400).json({ message: "Email is required" });
     }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return res.status(400).json({ message: 'Invalid email format' });
+      return res.status(400).json({ message: "Invalid email format" });
     }
 
     const student = await AdmittedStudent.findById(studentId);
     if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
+      return res.status(404).json({ message: "Student not found" });
     }
 
     // Check if email already exists for another student
-    const existingStudent = await AdmittedStudent.findOne({ email, _id: { $ne: studentId } });
+    const existingStudent = await AdmittedStudent.findOne({
+      email,
+      _id: { $ne: studentId },
+    });
     if (existingStudent) {
-      return res.status(409).json({ message: 'Email already exists for another student' });
+      return res
+        .status(409)
+        .json({ message: "Email already exists for another student" });
     }
 
     student.email = email;
     await student.save();
 
     res.status(200).json({
-      message: 'Email updated successfully',
+      message: "Email updated successfully",
       student: {
         _id: student._id,
         firstName: student.firstName,
         lastName: student.lastName,
-        email: student.email
-      }
+        email: student.email,
+      },
     });
-
   } catch (error) {
-    console.error('Error updating email:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error("Error updating email:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
-
-
-
-
-
