@@ -1165,3 +1165,22 @@ exports.updateStudentEmail = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+exports.getStudentStats = async (req, res) => {
+  try {
+    const totalStudents = await AdmittedStudent.countDocuments();
+    const readyStudents = await AdmittedStudent.countDocuments({ readinessStatus: "Ready" });
+    const placedStudents = await AdmittedStudent.countDocuments({ "placedInfo.companyName": { $exists: true, $ne: null } });
+    const permissionStudents = await AdmittedStudent.countDocuments({ permissionDetails: { $ne: null } });
+
+    res.status(200).json({
+      totalStudents,
+      readyStudents,
+      placedStudents,
+      permissionStudents
+    });
+  } catch (error) {
+    console.error("Error fetching student stats:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
