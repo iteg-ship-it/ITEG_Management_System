@@ -419,10 +419,11 @@ export default function StudentProfile() {
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6 mb-4 sm:mb-8 pr-2 sm:pr-0">
           <ProfessionalMetricCard
             icon={attendence}
-            title="Attendance Rate"
-            value={`${overallAttendanceRate}%`}
+            title="Report"
+            value="View"
             bgColor="#FDA92D"
-            description="Monthly average"
+            description="Student report"
+            onClick={() => navigate(`/student/${id}/report`)}
           />
           <ProfessionalMetricCard
             icon={level}
@@ -697,13 +698,13 @@ export default function StudentProfile() {
                         <p className="text-xs text-blue-600">Resume document</p>
                       </div>
                     </div>
-                    <a
+                    {/* <a
                       href={getResumeUrl()}
                       download
                       className="px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs font-medium rounded transition-colors flex items-center"
                     >
                       <img src={download} />
-                    </a>
+                    </a> */}
                   </div>
                   {/* Resume Card */}
                   <div className="border border-blue-200 rounded-b-lg bg-blue-50 p-6">

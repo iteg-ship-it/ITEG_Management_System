@@ -8,7 +8,24 @@ import { RiTv2Fill } from "react-icons/ri";
 import { HiChevronUp, HiChevronDown } from "react-icons/hi";
 
 const Sidebar = ({ children }) => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(() => {
+    // Check if screen is large (lg breakpoint is 1024px)
+    return window.innerWidth >= 1024;
+  });
+
+  // Handle window resize to auto-close/open sidebar based on screen size
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsOpen(true); // Auto-open on large screens
+      } else {
+        setIsOpen(false); // Auto-close on medium/small screens
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const location = useLocation();
   const role = (localStorage.getItem("role") || "").toLowerCase();
 
