@@ -54,7 +54,7 @@ export default function StudentReport() {
 
       {/* A4 Page with Grey Background */}
       <div className="min-h-screen p-6">
-        <div className="mx-auto bg-blue-50 shadow-xl p-6 w-[80vw]">
+        <div className="mx-auto bg-blue-50 shadow-xl p-6 w-[60vw]">
 
           {/* Header with Logos and Title */}
           <div className="relative flex items-center justify-between">
