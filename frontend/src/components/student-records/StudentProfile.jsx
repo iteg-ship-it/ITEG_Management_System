@@ -292,20 +292,20 @@ export default function StudentProfile() {
     <div className="min-h-screen bg-white">
       {/* Professional Header */}
       <div className="sticky top-0 z-10">
-        <div className="py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <div className="py-2 sm:py-4 ">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
               <button
                 onClick={() => window.history.back()}
-                className="group flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 text-gray-700 hover:text-gray-900"
+                className="group flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 text-gray-700 hover:text-gray-900"
               >
-                <HiArrowNarrowLeft className="text-lg group-hover:-translate-x-1 transition-transform" />
-                <span className="text-sm font-medium">Back</span>
+                <HiArrowNarrowLeft className="text-base sm:text-lg group-hover:-translate-x-1 transition-transform" />
+                <span className="text-xs sm:text-sm font-medium">Back</span>
               </button>
-              <div className="h-8 w-px bg-gray-300"></div>
-              <div>
-                <h1 className="text-2xl font-bold text-black">Student Profile</h1>
-                <p className="text-sm text-black">Comprehensive analytics & performance insights</p>
+              <div className="h-6 sm:h-8 w-px bg-gray-300 hidden sm:block"></div>
+              <div className="flex-1 sm:flex-none">
+                <h1 className="text-lg sm:text-2xl font-bold text-black">Student Profile</h1>
+                <p className="text-xs sm:text-sm text-black hidden sm:block">Comprehensive analytics & performance insights</p>
               </div>
             </div>
             {/* <div className="flex items-center gap-3">
@@ -327,13 +327,7 @@ export default function StudentProfile() {
               backgroundSize: 'cover',
               backgroundPosition: 'center'
             }}></div>
-            <div className="absolute top-7 right-8 flex flex-wrap gap-2 z-20">
-              <button
-                onClick={() => setReportCardOpen(true)}
-                className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg bg-green-600 hover:bg-green-700 hover:shadow-xl hover:scale-105 text-white font-extrabold cursor-pointer"
-              >
-                Report Card
-              </button>
+            <div className="absolute top-2 sm:top-7 right-2 sm:right-8 flex flex-col sm:flex-row gap-1 sm:gap-3 z-20">
               <button
                 onClick={() => {
                   if (canChooseElective()) {
@@ -342,27 +336,29 @@ export default function StudentProfile() {
                   }
                 }}
                 disabled={!canChooseElective()}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg ${canChooseElective()
+                className={`px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 shadow-lg ${canChooseElective()
                   ? 'bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-white font-extrabold cursor-pointer'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
                   }`}
                 title={canChooseElective() ? 'Choose your elective technology' : 'Complete Level 2A/2B/2C to unlock electives'}
               >
-                Choose Elective
+                <span className="hidden sm:inline">Choose Elective</span>
+                <span className="sm:hidden">Elective</span>
               </button>
               <button
                 onClick={() => setEmailModalOpen(true)}
-                className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-white disabled:opacity-50"
+                className="px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 shadow-lg bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-white disabled:opacity-50"
               >
-                Update Email
+                <span className="hidden sm:inline">Update Email</span>
+                <span className="sm:hidden">Email</span>
               </button>
-              <button
+              {/* <button
                 onClick={() => document.getElementById('resume-upload').click()}
                 disabled={isResumeUploading}
                 className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-white disabled:opacity-50"
               >
                 {isResumeUploading ? 'Uploading...' : 'Upload Resume'}
-              </button>
+              </button> */}
               <input
                 id="resume-upload"
                 type="file"
@@ -407,11 +403,11 @@ export default function StudentProfile() {
                     {studentData.firstName} {studentData.lastName}
                   </h2>
                   <p className="text-gray-300 mb-3 sm:mb-4 text-xs sm:text-base">Course: {studentData.course || "N/A"} | Level - {currentLevel || "1A"}</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6">
-                    <ContactCard icon={<svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>} label="Email" value={studentData.email} />
-                    <ContactCard icon={<svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>} label="Phone" value={studentData.studentMobile || "N/A"} />
-                    <ContactCard icon={<svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>} label="Location" value={studentData.address || studentData.village || "N/A"} />
-                    <ContactCard icon={<svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>} label="Elective" value={studentData.techno || "Not Selected"} />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2 lg:gap-6">
+                    <ContactCard icon={<svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>} label="Email" value={studentData.email} />
+                    <ContactCard icon={<svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>} label="Phone" value={studentData.studentMobile || "N/A"} />
+                    <ContactCard icon={<svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>} label="Location" value={studentData.address || studentData.village || "N/A"} />
+                    <ContactCard icon={<svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>} label="Elective" value={studentData.techno || "Not Selected"} />
                   </div>
                 </div>
               </div>
@@ -420,13 +416,14 @@ export default function StudentProfile() {
         </div>
 
         {/* Key Performance Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6 mb-4 sm:mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6 mb-4 sm:mb-8 pr-2 sm:pr-0">
           <ProfessionalMetricCard
             icon={attendence}
-            title="Attendance Rate"
-            value={`${overallAttendanceRate}%`}
+            title="Report"
+            value="View"
             bgColor="#FDA92D"
-            description="Monthly average"
+            description="Student report"
+            onClick={() => navigate(`/student/${id}/report`)}
           />
           <ProfessionalMetricCard
             icon={level}
@@ -457,7 +454,7 @@ export default function StudentProfile() {
         </div>
 
         {/* Analytics Dashboard */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8 mb-6 sm:mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-8 pr-2 sm:pr-0">
           {/* Attendance Analytics */}
           <div className="lg:col-span-2">
             <div className={`transition-all duration-500 ${isYearView ? 'hidden' : 'block'}`}>
@@ -597,7 +594,7 @@ export default function StudentProfile() {
         </div>
 
         {/* Detailed Information Sections */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 mb-4 sm:mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-4 sm:mb-8 pr-2 sm:pr-0">
           {/* Placement Information */}
           <DetailSection
             title="Placement Information"
@@ -669,13 +666,31 @@ export default function StudentProfile() {
         </div>
 
         {/* Resume and Additional Info Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 mb-4 sm:mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-4 sm:mb-8 pr-2 sm:pr-0">
           {/* Resume Card */}
-          <DetailSection
-            title="Resume"
-            subtitle="Student's uploaded resume document"
-            icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
-          >
+          <div className="bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 0 22px 6px rgba(0, 0, 0, 0.09)' }}>
+            <div className="px-3 sm:px-6 py-3 sm:py-4 border-b-2 border-gray-200 shadow-sm bg-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center bg-gray-100">
+                    <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                  </div>
+                  <div>
+                    <h3 className="text-sm sm:text-lg font-bold text-gray-900">Resume</h3>
+                    <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Student's uploaded resume document</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => document.getElementById('resume-upload-profile').click()}
+                  disabled={isResumeUploading}
+                  className="px-2 sm:px-3 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors"
+                >
+                  <span className="hidden sm:inline">{isResumeUploading ? 'Uploading...' : 'Upload Resume'}</span>
+                  <span className="sm:hidden">{isResumeUploading ? 'Upload...' : 'Upload'}</span>
+                </button>
+              </div>
+            </div>
+            <div className="p-3 sm:p-6">
             <div className="space-y-4">
               {getResumeUrl() ? (
                 <div>
@@ -703,13 +718,13 @@ export default function StudentProfile() {
                         <p className="text-xs text-blue-600">Resume document</p>
                       </div>
                     </div>
-                    <a
+                    {/* <a
                       href={getResumeUrl()}
                       download
                       className="px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs font-medium rounded transition-colors flex items-center"
                     >
-                      <img src={download} alt="Download" className="w-3 h-3" />
-                    </a>
+                      <img src={download} />
+                    </a> */}
                   </div>
                   {/* Resume Card */}
                   <div className="border border-blue-200 rounded-b-lg bg-blue-50 p-6">
@@ -724,19 +739,21 @@ export default function StudentProfile() {
                           href={getResumeUrl()}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+                          className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors"
                           onClick={handleResumeView}
                         >
-                          View Resume
+                          <span className="hidden sm:inline">View Resume</span>
+                          <span className="sm:hidden">View</span>
                         </a>
                         <a
                           href={getResumeUrl()}
                           download
-                          className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+                          className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-600 hover:bg-gray-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors flex items-center gap-1 sm:gap-2"
                           onClick={handleResumeView}
                         >
-                          <img src={download} alt="Download" className="w-4 h-4" />
-                          Download
+                          <img src={download} className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">Download</span>
+                          <span className="sm:hidden">DL</span>
                         </a>
                       </div>
                     </div>
@@ -752,7 +769,15 @@ export default function StudentProfile() {
                 </div>
               )}
             </div>
-          </DetailSection>
+            <input
+              id="resume-upload-profile"
+              type="file"
+              accept=".pdf"
+              onChange={handleResumeUpload}
+              className="hidden"
+            />
+          </div>
+          </div>
 
           {/* Additional Information Card */}
           <DetailSection
@@ -859,14 +884,14 @@ export default function StudentProfile() {
 
 // Professional Contact Card for Hero Section
 const ContactCard = ({ icon, label, value }) => (
-  <div className="bg-white/20 backdrop-blur-md rounded-lg p-3 border border-white/30" style={{ backdropFilter: 'blur(12px)', background: 'rgba(255, 255, 255, 0.15)' }}>
-    <div className="flex items-center gap-3">
-      <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-        <span className="text-sm">{icon}</span>
+  <div className="bg-white/20 backdrop-blur-md rounded-lg p-1.5 sm:p-3 border border-white/30" style={{ backdropFilter: 'blur(12px)', background: 'rgba(255, 255, 255, 0.15)' }}>
+    <div className="flex items-center gap-1.5 sm:gap-3">
+      <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+        <span className="text-xs sm:text-sm">{icon}</span>
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-xs text-gray-300 uppercase tracking-wide font-medium">{label}</p>
-        <p className="text-sm font-semibold text-white truncate">{value}</p>
+        <p className="text-xs sm:text-sm font-semibold text-white truncate">{value}</p>
       </div>
     </div>
   </div>
@@ -1324,9 +1349,9 @@ const UpdateEmailModal = ({ isOpen, onClose, studentData, onUpdate, isLoading })
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl py-4 px-6 w-full max-w-lg relative">
-        <h2 className="text-2xl font-semibold text-center mb-6 text-[var(--primary)]">Update Email</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl py-4 px-4 sm:px-6 w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
+        <h2 className="text-xl sm:text-2xl font-semibold text-center mb-4 sm:mb-6 text-[var(--primary)]">Update Email</h2>
         
         <form onSubmit={handleSubmit}>
           <div className="mb-4">

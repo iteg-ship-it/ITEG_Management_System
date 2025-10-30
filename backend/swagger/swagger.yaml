@@ -3450,16 +3450,12 @@ paths:
           application/json:
             schema:
               type: object
-              required: [studentId, fileName, fileData]
+              required: [studentId, fileData]
               properties:
                 studentId:
                   type: string
                   description: ID of the student
                   example: "64a1b2c3d4e5f6789012345"
-                fileName:
-                  type: string
-                  description: Name of the file with extension
-                  example: "john_doe_resume.pdf"
                 fileData:
                   type: string
                   description: Base64 encoded file data (with or without data URL prefix)
@@ -3478,7 +3474,7 @@ paths:
                   message:
                     type: string
                     example: "Resume uploaded successfully"
-                  resumeURL:
+                  resumeUrl:
                     type: string
                     example: "https://res.cloudinary.com/example/raw/upload/v1234567890/student-resumes/resume.pdf"
         '400':
