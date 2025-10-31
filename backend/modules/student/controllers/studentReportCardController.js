@@ -1,0 +1,159 @@
+const StudentReportCard = require('../models/studentReportCard');
+
+/**
+ * 🧾 Create a new Student Report Card
+ * Automatically calculates total scores from soft skills & discipline
+ */
+exports.saveStudentReportCard = async (req, res) => {
+  try {
+    const {
+      studentRef,
+      batchYear,
+      generatedByName,
+      softSkills,
+      discipline,
+      technicalSkills,
+      careerReadiness,
+      academicPerformance,
+      coCurricular,
+      overallGrade,
+      facultyRemark,
+      isFinalReport,
+    } = req.body;
+
+    /* =====================================================
+       🧮 CALCULATE TOTAL SOFT SKILL MARKS
+    ===================================================== */
+    let totalSoftSkillMarks = 0;
+
+    if (softSkills && softSkills.categories && softSkills.categories.length > 0) {
+      softSkills.categories = softSkills.categories.map((category) => {
+        const checkedCount = category.subcategories.filter((s) => s.value === true).length;
+        const subCount = category.subcategories.length || 1;
+        const max = category.maxMarks || 10;
+
+        const score = Math.round((checkedCount / subCount) * max);
+        totalSoftSkillMarks += score;
+
+        return { ...category, score };
+      });
+    }
+
+    /* =====================================================
+       🧮 CALCULATE TOTAL DISCIPLINE MARKS
+    ===================================================== */
+    let totalDisciplineMarks = 0;
+
+    if (discipline && discipline.categories && discipline.categories.length > 0) {
+      discipline.categories = discipline.categories.map((category) => {
+        const checkedCount = category.subcategories.filter((s) => s.value === true).length;
+        const subCount = category.subcategories.length || 1;
+        const max = category.maxMarks || 10;
+
+        const score = Math.round((checkedCount / subCount) * max);
+        totalDisciplineMarks += score;
+
+        return { ...category, score };
+      });
+    }
+
+    /* =====================================================
+       🧾 CREATE REPORT CARD DOCUMENT
+    ===================================================== */
+    const newReportCard = new StudentReportCard({
+      studentRef,
+      batchYear,
+      generatedByName,
+
+      softSkills: {
+        ...softSkills,
+        totalSoftSkillMarks,
+      },
+
+      discipline: {
+        ...discipline,
+        totalDisciplineMarks,
+      },
+
+      technicalSkills,
+      careerReadiness,
+      academicPerformance,
+      coCurricular,
+      overallGrade,
+      facultyRemark,
+      isFinalReport,
+    });
+
+    const savedReportCard = await newReportCard.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Report card saved successfully",
+      data: savedReportCard,
+    });
+  } catch (error) {
+    console.error("❌ Error saving report card:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error while saving report card",
+      error: error.message,
+    });
+  }
+};
+
+exports.getStudentReportCard = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    const reportCard = await StudentReportCard.findOne({ studentRef: studentId });
+
+    if (!reportCard) {
+      return res.status(404).json({
+        success: false,
+        message: 'Report card not found for this student'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Report card retrieved successfully',
+      data: reportCard
+    });
+
+  } catch (error) {
+    console.error('Error retrieving report card:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+};
+
+exports.getAllReportCards = async (req, res) => {
+  try {
+    const { batchYear, isFinalReport } = req.query;
+    const filter = {};
+
+    if (batchYear) filter.batchYear = batchYear;
+    if (isFinalReport !== undefined) filter.isFinalReport = isFinalReport === 'true';
+
+    const reportCards = await StudentReportCard.find(filter)
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      message: 'Report cards retrieved successfully',
+      count: reportCards.length,
+      data: reportCards
+    });
+
+  } catch (error) {
+    console.error('Error retrieving report cards:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+};
