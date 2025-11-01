@@ -4,11 +4,17 @@ import { HiArrowNarrowLeft } from "react-icons/hi";
 import { FaUserGroup } from "react-icons/fa6";
 import Loader from "../common-components/loader/Loader";
 import logo from '../../assets/images/doulLogo.png';
+import { RiEdit2Fill } from "react-icons/ri";
 
 export default function StudentReport() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
+
+  // Debug logs
+  console.log('Current user role:', localStorage.getItem('role'));
+  console.log('Current token:', localStorage.getItem('token'));
+  console.log('Student ID:', id);
 
   if (isLoading) {
     return (
@@ -42,11 +48,23 @@ export default function StudentReport() {
                 <p className="text-gray-600">Comprehensive performance report for {studentData.firstName} {studentData.lastName}</p>
               </div>
             </div>
-            {/* <div className="flex items-center gap-3">
-              <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                Active Student
-              </div>
-            </div> */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  console.log('Navigating to:', `/student/${id}/report/edit`);
+                  try {
+                    navigate(`/student/${id}/report/edit`);
+                  } catch (error) {
+                    console.error('Navigation error:', error);
+                    // Fallback: try relative navigation
+                    navigate('edit');
+                  }
+                }}
+                className="p-2 bg-orange-400 text-white rounded-full text-2xl font-medium hover:bg-orange-500 transition-colors"
+              >
+                <RiEdit2Fill />
+              </button>
+            </div>
 
           </div>
         </div>
@@ -54,7 +72,7 @@ export default function StudentReport() {
 
       {/* A4 Page with Grey Background */}
       <div className="min-h-screen p-6">
-        <div className="mx-auto bg-blue-50 shadow-xl p-6 w-[60vw]">
+        <div className="mx-auto bg-[#F9FAFB] shadow-xl p-6 w-[60vw]">
 
           {/* Header with Logos and Title */}
           <div className="relative flex items-center justify-between">
