@@ -62,6 +62,181 @@ components:
           type: string
           format: date-time
           example: "2024-04-29T08:30:00.000Z"
+    
+    StudentReportCard:
+      type: object
+      required:
+        - studentRef
+        - batchYear
+        - generatedByName
+      properties:
+        studentRef:
+          type: string
+          description: Reference to AdmittedStudent
+          example: "671ff96e0b213a12bca4d1b5"
+        batchYear:
+          type: string
+          description: Batch year
+          example: "2025"
+        generatedByName:
+          type: string
+          description: Name of the user who generated the report
+          example: "John Doe"
+        technicalSkills:
+          type: array
+          items:
+            type: object
+            properties:
+              skillName:
+                type: string
+                example: "React"
+              theoryMarks:
+                type: number
+                example: 80
+              practicalMarks:
+                type: number
+                example: 90
+              totalPercentage:
+                type: number
+                example: 85
+              remark:
+                type: string
+                example: "Good"
+        softSkills:
+          type: object
+          properties:
+            sectionTitle:
+              type: string
+              example: "Soft Skills Evaluation (50 Marks)"
+            categories:
+              type: array
+              items:
+                type: object
+                properties:
+                  title:
+                    type: string
+                    example: "Presentation Skills"
+                  maxMarks:
+                    type: number
+                    example: 10
+                  subcategories:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: "Content & Structure"
+                        value:
+                          type: boolean
+                          example: true
+                  score:
+                    type: number
+                    example: 8
+            totalSoftSkillMarks:
+              type: number
+              example: 40
+        discipline:
+          type: object
+          properties:
+            sectionTitle:
+              type: string
+              example: "Discipline Evaluation (30 Marks)"
+            categories:
+              type: array
+              items:
+                type: object
+                properties:
+                  title:
+                    type: string
+                    example: "Attendance"
+                  maxMarks:
+                    type: number
+                    example: 10
+                  subcategories:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: "Regular Attendance"
+                        value:
+                          type: boolean
+                          example: true
+                  score:
+                    type: number
+                    example: 9
+            totalDisciplineMarks:
+              type: number
+              example: 25
+        careerReadiness:
+          type: object
+          properties:
+            resumeStatus:
+              type: string
+              enum: ["Uploaded", "Not Uploaded"]
+              example: "Uploaded"
+            linkedinStatus:
+              type: string
+              enum: ["Not Created", "Need Improvement", "Up-to-date"]
+              example: "Up-to-date"
+            aptitudeStatus:
+              type: string
+              enum: ["In-progress", "Done"]
+              example: "Done"
+            placementReady:
+              type: string
+              enum: ["Ready", "Not Ready"]
+              example: "Ready"
+        academicPerformance:
+          type: object
+          properties:
+            yearWiseSGPA:
+              type: array
+              items:
+                type: object
+                properties:
+                  year:
+                    type: string
+                    example: "2023"
+                  sgpa:
+                    type: number
+                    example: 8.5
+            cgpa:
+              type: number
+              example: 8.2
+        coCurricular:
+          type: array
+          items:
+            type: object
+            properties:
+              category:
+                type: string
+                example: "Sports"
+              title:
+                type: string
+                example: "Cricket Tournament Winner"
+              remark:
+                type: string
+                example: "Excellent team player"
+        overallGrade:
+          type: string
+          example: "A"
+        facultyRemark:
+          type: string
+          example: "Excellent progress this level."
+        isFinalReport:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-10-29T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2025-10-29T10:30:00Z"
     Admission:
       type: object
       required:
@@ -3782,6 +3957,133 @@ paths:
           description: Student not found
         "500":
           description: Internal server error
+
+  /api/reportcards:
+    post:
+      summary: Save student report card data
+      description: Stores report card data for a student including technical skills, soft skills, discipline, and other assessment information.
+      tags:
+        - Report Cards
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentReportCard'
+            example:
+              studentRef: "671ff96e0b213a12bca4d1b5"
+              batchYear: "2025"
+              generatedBy: "671a3b520f49e81d9f879e32"
+              generatedByName: "John Doe"
+              generatedByRole: "faculty"
+              overallGrade: "A"
+              facultyRemark: "Excellent progress this level."
+              isFinalReport: false
+      responses:
+        '201':
+          description: Report card created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Report card saved successfully"
+                  data:
+                    $ref: '#/components/schemas/StudentReportCard'
+        '400':
+          description: Validation error - Missing required fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Missing required fields: studentRef, generatedBy, generatedByName, generatedByRole"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Internal server error"
+                  error:
+                    type: string
+                    example: "Error message details"
+
+  /api/reportcards/{studentId}:
+    get:
+      summary: Get student report card by student ID
+      description: Retrieves the report card data for a specific student (returns only report card fields without populating references).
+      tags:
+        - Report Cards
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          description: ID of the student
+          schema:
+            type: string
+            example: "68a0a3d26e68de1d340a4035"
+      responses:
+        '200':
+          description: Report card retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Report card retrieved successfully"
+                  data:
+                    $ref: '#/components/schemas/StudentReportCard'
+        '404':
+          description: Report card not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Report card not found for this student"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Internal server error"
+                  error:
+                    type: string
+                    example: "Error message details"
 
 components:
   securitySchemes:
