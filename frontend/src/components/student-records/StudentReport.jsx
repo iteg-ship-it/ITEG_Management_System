@@ -68,7 +68,7 @@ export default function StudentReport() {
 
       {/* A4 Page with Grey Background */}
       <div className="min-h-screen p-6">
-        <div className="mx-auto bg-[#F9FAFB] shadow-xl p-6 w-[60vw]">
+        <div className="mx-auto bg-[#F9FAFB] shadow-xl p-6" style={{ width: '210mm', minHeight: '297mm' }}>
 
           {/* Header with Logos and Title */}
           <div className="relative flex items-center justify-between">
@@ -139,7 +139,7 @@ export default function StudentReport() {
 
               <div className="md:col-span-1 flex justify-center">
                 <img
-                  src={studentData.profileImage || "/default-avatar.png"}
+                  src={studentData.profileImage || "https://via.placeholder.com/80x80/4F46E5/FFFFFF?text=Student"}
                   alt="Student Photo"
                   className="w-20 h-20 rounded-full object-cover border-2 border-gray-200 shadow-sm"
                 />
@@ -154,8 +154,16 @@ export default function StudentReport() {
               {/* Stepper Column - 80% */}
               <div className="col-span-5">
                 <div className="relative">
-                  {/* Connecting Line */}
-                  <div className="absolute top-3 left-3 right-3 h-0.5 bg-gray-300"></div>
+                  {/* Background Connecting Line */}
+                  <div className="absolute top-3 left-3 right-3 h-1 bg-gray-300"></div>
+                  
+                  {/* Progress Line (Green) */}
+                  <div 
+                    className="absolute top-3 left-3 h-1 bg-green-600" 
+                    style={{ 
+                      width: `${((studentData.currentLevel ? ['1A', '1B', '1C', '2A', '2B', '2C'].indexOf(studentData.currentLevel) : -1) / 5) * 100}%` 
+                    }}
+                  ></div>
 
                   {/* Steps */}
                   <div className="flex justify-between relative">
@@ -167,11 +175,14 @@ export default function StudentReport() {
 
                       return (
                         <div key={level} className="flex flex-col items-center">
-                          <div className={`flex items-center justify-center rounded-full text-xs font-medium relative z-10 ${isPassed
-                            ? 'w-6 h-6 bg-green-600 text-white'
-                            : 'w-6 h-6 bg-gray-300'
+                          <div className={`flex items-center justify-center rounded-full text-xs font-medium relative z-10 ${
+                            isPassed
+                              ? 'w-6 h-6 bg-green-600 text-white'
+                              : isCurrent
+                              ? 'w-6 h-6 bg-yellow-500 text-white'
+                              : 'w-6 h-6 bg-gray-300'
                             }`}>
-                            {isPassed ? '✓' : ''}
+                            {isPassed ? '✓' : isCurrent ? level : ''}
                           </div>
                           <span className="text-xs text-gray-500 mt-2">{level}</span>
                         </div>
@@ -195,63 +206,49 @@ export default function StudentReport() {
           </div>
 
           {/* Three Separate White Boxes with Gaps */}
-          <div className="grid grid-cols-4 gap-4 mt-4">
-            {/* Skills Box */}
-            <div className="col-span-1 bg-white rounded-lg shadow-md p-6">
-              <h4 className="text-lg font-bold text-gray-800 mb-4">Skills</h4>
-              <div className="space-y-3">
-                {reportCardData?.skills?.map((skill, index) => (
-                  <div key={index}>
-                    <span className="text-sm text-gray-600 block mb-1">{skill.name}</span>
-                    <div>
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <span key={star} className={`text-sm ${star <= skill.rating ? 'text-yellow-500' : 'text-gray-300'}`}>
-                          ★
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )) || [
-                  { name: 'Communication', rating: 4 },
-                  { name: 'Problem Solving', rating: 5 },
-                  { name: 'Teamwork', rating: 3 },
-                  { name: 'Leadership', rating: 4 }
-                ].map((skill, index) => (
-                  <div key={index}>
-                    <span className="text-sm text-gray-600 block mb-1">{skill.name}</span>
-                    <div>
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <span key={star} className={`text-sm ${star <= skill.rating ? 'text-yellow-500' : 'text-gray-300'}`}>
-                          ★
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
+          <div className="grid grid-cols-3 gap-4 mt-4">
             {/* Technical Skills Box */}
-            <div className="col-span-2 bg-white rounded-lg shadow-md p-6">
+            <div className="col-span-1 bg-white rounded-lg shadow-md p-6">
               <h4 className="text-lg font-bold text-gray-800 mb-4">Technical Skills</h4>
-              <div className="grid grid-cols-4 gap-3">
+              <div className="space-y-3">
                 {(reportCardData?.technicalSkills || [
-                  { name: 'HTML', percentage: 85, icon: '💻' },
-                  { name: 'CSS', percentage: 75, icon: '⚙️' },
-                  { name: 'JavaScript', percentage: 90, icon: '🚀' },
-                  { name: 'React', percentage: 70, icon: '📊' }
+                  { name: 'HTML/CSS', percentage: 85 },
+                  { name: 'JavaScript', percentage: 90 },
+                  { name: 'React', percentage: 75 },
+                  { name: 'Node.js', percentage: 70 }
                 ]).map((tech, index) => (
-                  <div key={index} className="text-center">
-                    <div className="text-2xl mb-1">{tech.icon || '💻'}</div>
-                    <p className="text-xs text-gray-600 mb-2">{tech.name}</p>
+                  <div key={index}>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm text-gray-600">{tech.name}</span>
+                      <span className="text-xs text-gray-500">{tech.percentage}%</span>
+                    </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${tech.percentage}%` }}></div>
+                      <div className="bg-[#FDA92D] h-2 rounded-full" style={{ width: `${tech.percentage}%` }}></div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
             
+            {/* Soft Skills Box */}
+            <div className="col-span-1 bg-white rounded-lg shadow-md p-6">
+              <h4 className="text-lg font-bold text-gray-800 mb-4">Soft Skills</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {(reportCardData?.softSkills || [
+                  { name: 'Presentation', percentage: 85 },
+                  { name: 'Communication', percentage: 90 },
+                  { name: 'Teamwork', percentage: 88 },
+                  { name: 'Problem Solving', percentage: 82 },
+                  { name: 'Confidence', percentage: 87 },
+                  { name: 'Adaptability', percentage: 80 }
+                ]).map((skill, index) => (
+                  <div key={index} className="text-center">
+                    <p className="text-xs text-gray-600">{skill.name}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+              
             {/* Discipline Box */}
             <div className="col-span-1 bg-white rounded-lg shadow-md p-6">
               <h4 className="text-lg font-bold text-gray-800 mb-4">Discipline</h4>
@@ -272,6 +269,107 @@ export default function StudentReport() {
               </div>
             </div>
           </div>
+
+          {/* Career Readiness */}
+          <div className="bg-white rounded-lg shadow-md p-6 mt-4">
+            <h4 className="text-lg font-bold text-gray-800 mb-4">Career Readiness</h4>
+            <div className="grid grid-cols-4 gap-4">
+              {(reportCardData?.careerReadiness || [
+                { name: 'Resume', percentage: 85 },
+                { name: 'LinkedIn', percentage: 75 },
+                { name: 'Aptitude/Reasoning', percentage: 80 },
+                { name: 'Interview Readiness', percentage: 70 }
+              ]).map((career, index) => (
+                <div key={index} className="text-center">
+                  <p className="text-sm text-gray-600 mb-2">{career.name}</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${career.percentage}%` }}></div>
+                  </div>
+                  <span className="text-xs text-gray-500 mt-1">{career.percentage}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Academic Performance */}
+          <div className="bg-white rounded-lg shadow-md p-6 mt-4">
+            <h4 className="text-lg font-bold text-gray-800 mb-4">Academic Performance</h4>
+            <div className="grid grid-cols-5 gap-6">
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-2">Current Level</p>
+                <div className="bg-gray-100 rounded-lg p-3">
+                  <span className="text-lg font-bold text-gray-800">{studentData.currentLevel || "1C"}</span>
+                </div>
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-2">1st Year SGPA</p>
+                <div className="bg-gray-100 rounded-lg p-3">
+                  <span className="text-lg font-bold text-gray-800">{reportCardData?.firstYearSGPA || "8.5"}</span>
+                </div>
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-2">2nd Year SGPA</p>
+                <div className="bg-gray-100 rounded-lg p-3">
+                  <span className="text-lg font-bold text-gray-800">{reportCardData?.secondYearSGPA || "8.2"}</span>
+                </div>
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-2">3rd Year SGPA</p>
+                <div className="bg-gray-100 rounded-lg p-3">
+                  <span className="text-lg font-bold text-gray-800">{reportCardData?.thirdYearSGPA || "8.7"}</span>
+                </div>
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-2">Attendance</p>
+                <div className="bg-gray-100 rounded-lg p-3">
+                  <span className="text-lg font-bold text-gray-800">{reportCardData?.attendance || "95"}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Faculty Feedback */}
+          <div className="bg-[#EFF6FF] rounded-lg shadow-md p-6 mt-4 relative">
+            <h4 className="text-lg font-bold text-gray-800 mb-4">Faculty Feedback</h4>
+            <div className="mb-8">
+              <p className="text-sm text-gray-600 line-clamp-2">
+                {reportCardData?.facultyFeedback || "Student shows excellent progress in technical skills and demonstrates strong problem-solving abilities. Needs to improve time management for project deliveries."}
+              </p>
+            </div>
+            <p className="absolute bottom-4 right-6 text-sm font-bold" style={{ color: '#7335DD' }}>
+              - Prof. {reportCardData?.facultyName || "John Smith"}
+            </p>
+          </div>
+
+          {/* Final Assessment Section */}
+          <div className="rounded-lg shadow-md p-6 mt-4" style={{ backgroundColor: '#7335DD' }}>
+            <div className="grid grid-cols-3 gap-6">
+              {/* Final Status */}
+              <div>
+                <h5 className="text-md font-semibold text-white mb-2">Final Status</h5>
+                <p className="text-sm text-white">
+                  Level {studentData.currentLevel || "1C"}
+                </p>
+              </div>
+              
+              {/* Result */}
+              <div>
+                <h5 className="text-md font-semibold text-white mb-2">Result</h5>
+                <p className="text-sm text-white">
+                  {studentData.currentLevel || "1A"}
+                </p>
+              </div>
+              
+              {/* Remark */}
+              <div>
+                <h5 className="text-md font-semibold text-white mb-2">Remark</h5>
+                <p className="text-sm text-white">
+                  {reportCardData?.remark || "Good Performance"}
+                </p>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>

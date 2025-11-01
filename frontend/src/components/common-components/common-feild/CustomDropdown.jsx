@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect } from "react";
 import { useField, ErrorMessage } from "formik";
+import { HiChevronDown } from "react-icons/hi";
 
 const CustomDropdown = ({ name, label, options, className = "", disabled = false }) => {
   const [field, , helpers] = useField(name);
@@ -47,9 +48,9 @@ const CustomDropdown = ({ name, label, options, className = "", disabled = false
         <span className={selectedOption ? 'text-gray-900' : 'text-gray-400'}>
           {selectedOption ? selectedOption.label : 'Select'}
         </span>
-        <span className={`ml-2 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
-          ▼
-        </span>
+        <HiChevronDown 
+          className={`ml-2 w-4 h-4 text-[#FDA92D] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+        />
       </button>
 
       <label

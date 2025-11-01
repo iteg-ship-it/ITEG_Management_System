@@ -39,6 +39,7 @@ export default function StudentProfile() {
   const [isTechModalOpen, setTechModalOpen] = useState(false);
   const [isImageUploading, setIsImageUploading] = useState(false);
   const [isEmailModalOpen, setEmailModalOpen] = useState(false);
+  const [isReportCardOpen, setReportCardOpen] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -67,8 +68,8 @@ export default function StudentProfile() {
           throw new Error('Resume not accessible');
         }
       })
-      .catch(error => {
-        console.error('Resume accessibility check failed:', error);
+      .catch(() => {
+        // Silently handle resume accessibility check failure
         toast.error('Resume file may not be accessible. Please try again or contact support.');
       });
   };
@@ -132,18 +133,19 @@ export default function StudentProfile() {
           image: base64Image
         }).unwrap();
 
-        console.log('Image upload successful:', result);
+        // console.log('Image upload successful:', result);
 
       } catch (error) {
-        console.error('Error uploading image:', error);
-        alert(`Failed to upload image: ${error.data?.message || error.message || 'Unknown error'}`);
+        // console.error('Error uploading image:', error);
+        const errorMessage = error?.data?.message || error?.message || 'Unknown error';
+        alert(`Failed to upload image: ${errorMessage}`);
       } finally {
         setIsImageUploading(false);
       }
     };
 
     reader.onerror = () => {
-      console.error('Error reading file');
+      // console.error('Error reading file');
       alert('Error reading file');
       setIsImageUploading(false);
     };
@@ -194,7 +196,7 @@ export default function StudentProfile() {
         // console.log('API Payload:', payload);
 
         const result = await uploadResume(payload).unwrap();
-        console.log('Upload result:', result);
+        // console.log('Upload result:', result);
 
         toast.success('Resume uploaded successfully!');
 
@@ -202,15 +204,17 @@ export default function StudentProfile() {
         event.target.value = '';
 
       } catch (error) {
-        console.error('Full error object:', error);
-        console.error('Error status:', error?.status);
-        console.error('Error data:', error?.data);
+        // console.error('Full error object:', error);
+        // console.error('Error status:', error?.status);
+        // console.error('Error data:', error?.data);
 
         let errorMessage = 'Failed to upload resume';
         if (error?.status === 500) {
           errorMessage = 'Server error. Please try with a smaller file or contact support.';
         } else if (error?.data?.message) {
           errorMessage = error.data.message;
+        } else if (error?.message) {
+          errorMessage = error.message;
         }
 
         toast.error(errorMessage);
@@ -218,7 +222,7 @@ export default function StudentProfile() {
     };
 
     reader.onerror = () => {
-      console.error('Error reading file');
+      // console.error('Error reading file');
       toast.error('Error reading file');
     };
 
@@ -244,8 +248,13 @@ export default function StudentProfile() {
     
     monthNames.forEach((month, index) => {
       const monthRecord = attendanceRecord.find(record => {
-        const recordDate = new Date(record.date);
-        return recordDate.getMonth() === index;
+        if (!record.date) return false;
+        try {
+          const recordDate = new Date(record.date);
+          return !isNaN(recordDate.getTime()) && recordDate.getMonth() === index;
+        } catch {
+          return false;
+        }
       });
       
       const attendanceRate = monthRecord ? monthRecord.attendancePercentage || 0 : 0;
@@ -277,17 +286,7 @@ export default function StudentProfile() {
   const hasPlacement = studentData.placedInfo && studentData.placedInfo !== null && typeof studentData.placedInfo === 'object' && Object.keys(studentData.placedInfo).length > 0;
   const placementStatus = hasPlacement ? "Placed" : "Not Placed";
 
-  // Debug student data to check resume field
-  console.log('Student Data:', studentData);
-  console.log('Resume field:', studentData.resume);
-  console.log('ResumeURL field:', studentData.resumeURL);
-  console.log('All resume-related fields:', {
-    resume: studentData.resume,
-    resumeURL: studentData.resumeURL,
-    resumeUrl: studentData.resumeUrl,
-    resume_url: studentData.resume_url
-  });
-  console.log('Has resume:', !!(studentData.resume || studentData.resumeURL));
+  // Debug student data to check resume field (removed console logs to reduce noise)
 
   return (
     <div className="min-h-screen bg-white">
@@ -341,6 +340,7 @@ export default function StudentProfile() {
                   ? 'bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-white font-extrabold cursor-pointer'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
                   }`}
+                title={canChooseElective() ? 'Choose your elective technology' : 'Complete Level 2A/2B/2C to unlock electives'}
               >
                 <span className="hidden sm:inline">Choose Elective</span>
                 <span className="sm:hidden">Elective</span>
@@ -605,7 +605,7 @@ export default function StudentProfile() {
               <DetailRow icon={company} label="Company" value={studentData.placedInfo?.companyName || "Not placed yet"} />
               <DetailRow icon={position} label="Position" value={studentData.placedInfo?.jobProfile || "Not placed yet"} />
               <DetailRow icon={loca} label="Location" value={studentData.placedInfo?.location || "Not placed yet"} />
-              <DetailRow icon={date} label="Joining Date" value={studentData.placedInfo?.joiningDate ? new Date(studentData.placedInfo.joiningDate).toLocaleDateString() : null} />
+              <DetailRow icon={date} label="Joining Date" value={studentData.placedInfo?.joiningDate ? new Date(studentData.placedInfo.joiningDate).toLocaleDateString() : "Not available"} />
             </div>
             {!studentData.placedInfo?.companyName && (
               <div className="mt-6 p-4 bg-yellow-50 rounded-lg" style={{ boxShadow: '0 0 15px 4px rgba(0, 0, 0, 0.06)' }}>
@@ -625,7 +625,14 @@ export default function StudentProfile() {
                 icon={date}
                 label="Last Request"
                 value={studentData?.permissionDetails?.uploadDate
-                  ? new Date(studentData.permissionDetails.uploadDate).toLocaleDateString()
+                  ? (() => {
+                      try {
+                        const date = new Date(studentData.permissionDetails.uploadDate);
+                        return !isNaN(date.getTime()) ? date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Invalid date';
+                      } catch {
+                        return 'Invalid date';
+                      }
+                    })()
                   : "No recent requests"}
               />
               <DetailRow
@@ -694,7 +701,20 @@ export default function StudentProfile() {
                         <span className="text-blue-600 text-sm">📄</span>
                       </div>
                       <div>
-                        <p className="text-xs font-semibold text-blue-900">{getResumeUrl()?.split('/').pop().split('-').slice(1).join('-') || 'Resume.pdf'}</p>
+                        <p className="text-xs font-semibold text-blue-900">
+                        {(() => {
+                          try {
+                            const url = getResumeUrl();
+                            if (!url) return 'Resume.pdf';
+                            const fileName = url.split('/').pop();
+                            if (!fileName) return 'Resume.pdf';
+                            const parts = fileName.split('-');
+                            return parts.length > 1 ? parts.slice(1).join('-') : fileName;
+                          } catch {
+                            return 'Resume.pdf';
+                          }
+                        })()} 
+                      </p>
                         <p className="text-xs text-blue-600">Resume document</p>
                       </div>
                     </div>
@@ -852,6 +872,12 @@ export default function StudentProfile() {
         onUpdate={updateStudentEmail}
         isLoading={isEmailUpdating}
       />
+      <ReportCardModal
+        isOpen={isReportCardOpen}
+        onClose={() => setReportCardOpen(false)}
+        studentData={studentData}
+        currentLevel={currentLevel}
+      />
     </div>
   );
 }
@@ -926,7 +952,7 @@ const AnalyticsCard = ({ title, subtitle, icon, children, showButton, buttonText
 
 // Progress Metric with Bar
 const ProgressMetric = ({ title, value, total, color, suffix = '' }) => {
-  const percentage = (value / total) * 100;
+  const percentage = total > 0 ? (value / total) * 100 : 0;
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
@@ -992,6 +1018,289 @@ const StatusBadge = ({ status }) => {
   );
 };
 
+// Report Card Modal Component
+const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
+  if (!isOpen) return null;
+
+  const calculateGrade = (percentage) => {
+    if (percentage >= 90) return 'A+';
+    if (percentage >= 80) return 'A';
+    if (percentage >= 70) return 'B+';
+    if (percentage >= 60) return 'B';
+    if (percentage >= 50) return 'C';
+    return 'F';
+  };
+
+  const getGradeColor = (grade) => {
+    switch (grade) {
+      case 'A+': return 'text-green-600';
+      case 'A': return 'text-green-500';
+      case 'B+': return 'text-blue-600';
+      case 'B': return 'text-blue-500';
+      case 'C': return 'text-yellow-600';
+      default: return 'text-red-600';
+    }
+  };
+
+  const passedLevels = studentData?.level?.filter(lvl => lvl.result === "Pass") || [];
+  const overallAttendance = studentData.attendanceRecord?.length > 0 
+    ? Math.round(studentData.attendanceRecord.reduce((sum, record) => sum + (record.attendancePercentage || 0), 0) / studentData.attendanceRecord.length)
+    : 0;
+  const attendanceGrade = calculateGrade(overallAttendance);
+  const academicGrade = passedLevels.length > 0 ? 'A' : 'C';
+  
+  // Calculate CGPA (assuming 4.0 scale)
+  const calculateCGPA = () => {
+    const gradePoints = { 'A+': 4.0, 'A': 3.7, 'B+': 3.3, 'B': 3.0, 'C': 2.0, 'F': 0.0 };
+    const academicPoints = gradePoints[academicGrade] || 0;
+    const attendancePoints = gradePoints[attendanceGrade] || 0;
+    const totalPoints = academicPoints + attendancePoints;
+    return (totalPoints / 2).toFixed(2);
+  };
+  
+  const cgpa = calculateCGPA();
+  const enrollmentDate = studentData.createdAt ? new Date(studentData.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
+  const currentSemester = Math.min(Math.max(Math.ceil(passedLevels.length / 2) + 1, 1), 8);
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-green-600 to-green-800 text-white p-6 rounded-t-xl">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold mb-2">Student Report Card</h2>
+              <p className="text-green-100">Academic Performance Summary</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-white hover:text-gray-200 text-2xl font-bold"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        {/* Student Info */}
+        <div className="p-6 border-b">
+          <div className="flex items-center gap-6">
+            <img
+              src={studentData.image || profilePlaceholder}
+              alt="Student"
+              className="w-24 h-24 rounded-full object-cover border-4 border-green-200"
+            />
+            <div className="flex-1">
+              <h3 className="text-2xl font-bold text-gray-800">
+                {studentData.firstName} {studentData.lastName}
+              </h3>
+              <div className="grid grid-cols-3 gap-4 mt-3 text-sm">
+                <div><span className="font-medium text-gray-600">Student ID:</span> <br/><span className="font-semibold">{studentData._id?.slice(-8) || 'N/A'}</span></div>
+                <div><span className="font-medium text-gray-600">Course:</span> <br/><span className="font-semibold">{studentData.course || 'N/A'}</span></div>
+                <div><span className="font-medium text-gray-600">Current Semester:</span> <br/><span className="font-semibold">{currentSemester}</span></div>
+                <div><span className="font-medium text-gray-600">Email:</span> <br/><span className="font-semibold">{studentData.email}</span></div>
+                <div><span className="font-medium text-gray-600">Phone:</span> <br/><span className="font-semibold">{studentData.studentMobile || 'N/A'}</span></div>
+                <div><span className="font-medium text-gray-600">Enrollment Date:</span> <br/><span className="font-semibold">{enrollmentDate}</span></div>
+                <div><span className="font-medium text-gray-600">Specialization:</span> <br/><span className="font-semibold">{studentData.techno || 'Not Selected'}</span></div>
+                <div><span className="font-medium text-gray-600">Address:</span> <br/><span className="font-semibold">{studentData.address || studentData.village || 'N/A'}</span></div>
+                <div><span className="font-medium text-gray-600">CGPA:</span> <br/><span className="font-semibold text-green-600 text-lg">{cgpa}/4.0</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Academic Performance */}
+        <div className="p-6">
+          <h4 className="text-lg font-bold text-gray-800 mb-4">Academic Performance</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* Level Progress */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h5 className="font-semibold text-gray-700 mb-3">📚 Course Progress</h5>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {studentData?.level?.map((level, index) => (
+                  <div key={index} className="flex justify-between items-center p-2 bg-white rounded border">
+                    <span className="font-medium">Level {level.levelNo}</span>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      level.result === 'Pass' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {level.result}
+                    </span>
+                  </div>
+                )) || <p className="text-gray-500">No level data available</p>}
+              </div>
+              <div className="mt-3 pt-3 border-t">
+                <div className="text-sm text-gray-600">Progress: {passedLevels.length}/13 Levels</div>
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                  <div 
+                    className="bg-green-600 h-2 rounded-full transition-all duration-300" 
+                    style={{width: `${Math.min((passedLevels.length/13)*100, 100)}%`}}
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Attendance Summary */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h5 className="font-semibold text-gray-700 mb-3">📅 Attendance Record</h5>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-600 mb-2">{overallAttendance}%</div>
+                <div className={`text-lg font-semibold ${getGradeColor(attendanceGrade)}`}>
+                  Grade: {attendanceGrade}
+                </div>
+                <div className="mt-4 space-y-2">
+                  {studentData.attendanceRecord?.slice(0, 3).map((record, index) => (
+                    <div key={index} className="flex justify-between text-sm bg-white p-2 rounded">
+                      <span>{record.date ? new Date(record.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'N/A'}</span>
+                      <span className="font-medium">{record.attendancePercentage || 0}%</span>
+                    </div>
+                  )) || <p className="text-gray-500 text-sm">No attendance records</p>}
+                </div>
+              </div>
+            </div>
+
+            {/* Skills & Certifications */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h5 className="font-semibold text-gray-700 mb-3">🏆 Skills & Achievements</h5>
+              <div className="space-y-3">
+                <div className="bg-white p-3 rounded border">
+                  <div className="text-sm font-medium text-gray-700">Technical Skills</div>
+                  <div className="text-xs text-[#FDA92D] mt-1">{studentData.techno || 'Not Selected'}</div>
+                </div>
+                <div className="bg-white p-3 rounded border">
+                  <div className="text-sm font-medium text-gray-700">Certifications</div>
+                  <div className="text-xs text-green-600 mt-1">{passedLevels.length} Level Certificates</div>
+                </div>
+                <div className="bg-white p-3 rounded border">
+                  <div className="text-sm font-medium text-gray-700">Resume Status</div>
+                  <div className={`text-xs mt-1 ${studentData.resumeURL || studentData.resume ? 'text-green-600' : 'text-red-600'}`}>
+                    {studentData.resumeURL || studentData.resume ? '✓ Uploaded' : '✗ Not Uploaded'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Overall Performance Dashboard */}
+          <div className="mt-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-6">
+            <h5 className="font-semibold text-gray-700 mb-4">📊 Performance Dashboard</h5>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                <div className="text-sm text-gray-600 mb-1">CGPA</div>
+                <div className="text-2xl font-bold text-green-600">{cgpa}</div>
+                <div className="text-xs text-gray-500">Out of 4.0</div>
+              </div>
+              <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                <div className="text-sm text-gray-600 mb-1">Academic</div>
+                <div className={`text-2xl font-bold ${getGradeColor(academicGrade)}`}>{academicGrade}</div>
+                <div className="text-xs text-gray-500">{passedLevels.length}/13 levels</div>
+              </div>
+              <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                <div className="text-sm text-gray-600 mb-1">Attendance</div>
+                <div className={`text-2xl font-bold ${getGradeColor(attendanceGrade)}`}>{attendanceGrade}</div>
+                <div className="text-xs text-gray-500">{overallAttendance}% average</div>
+              </div>
+              <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                <div className="text-sm text-gray-600 mb-1">Status</div>
+                <div className={`text-lg font-bold ${
+                  studentData.placedInfo?.companyName ? 'text-green-600' : 'text-yellow-600'
+                }`}>
+                  {studentData.placedInfo?.companyName ? 'Placed' : 'Active'}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {studentData.placedInfo?.companyName || 'In Progress'}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Personal & Contact Information */}
+          <div className="mt-6 bg-gray-50 rounded-lg p-6">
+            <h5 className="font-semibold text-gray-700 mb-4">👤 Personal Information</h5>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+              <div><span className="font-medium text-gray-600">Father's Name:</span> <br/>{studentData.fatherName || 'N/A'}</div>
+              <div><span className="font-medium text-gray-600">Mother's Name:</span> <br/>{studentData.motherName || 'N/A'}</div>
+              <div><span className="font-medium text-gray-600">Date of Birth:</span> <br/>{studentData.dateOfBirth ? new Date(studentData.dateOfBirth).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}</div>
+              <div><span className="font-medium text-gray-600">Gender:</span> <br/>{studentData.gender || 'N/A'}</div>
+              <div><span className="font-medium text-gray-600">Blood Group:</span> <br/>{studentData.bloodGroup || 'N/A'}</div>
+              <div><span className="font-medium text-gray-600">Emergency Contact:</span> <br/>{studentData.emergencyContact || studentData.parentMobile || 'N/A'}</div>
+            </div>
+          </div>
+
+          {/* Academic History */}
+          <div className="mt-6 bg-gray-50 rounded-lg p-6">
+            <h5 className="font-semibold text-gray-700 mb-4">🎓 Academic History</h5>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="bg-white p-4 rounded border">
+                <div className="font-medium text-gray-700 mb-2">Previous Education</div>
+                <div><span className="text-gray-600">12th Percentage:</span> {studentData.twelfthPercentage || 'N/A'}%</div>
+                <div><span className="text-gray-600">12th Board:</span> {studentData.twelfthBoard || 'N/A'}</div>
+                <div><span className="text-gray-600">School:</span> {studentData.schoolName || 'N/A'}</div>
+              </div>
+              <div className="bg-white p-4 rounded border">
+                <div className="font-medium text-gray-700 mb-2">Current Performance</div>
+                <div><span className="text-gray-600">Current Level:</span> {currentLevel || 'N/A'}</div>
+                <div><span className="text-gray-600">Completion Rate:</span> {Math.min(Math.round((passedLevels.length/13)*100), 100)}%</div>
+                <div><span className="text-gray-600">Semester:</span> {currentSemester}/8</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Placement & Career Information */}
+          <div className="mt-6 bg-green-50 rounded-lg p-6">
+            <h5 className="font-semibold text-gray-700 mb-4">💼 Career & Placement</h5>
+            {studentData.placedInfo?.companyName ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                <div><span className="font-medium text-gray-600">Company:</span> <br/><span className="font-semibold text-[#E6941A]">{studentData.placedInfo.companyName}</span></div>
+                <div><span className="font-medium text-gray-600">Position:</span> <br/><span className="font-semibold">{studentData.placedInfo.jobProfile}</span></div>
+                <div><span className="font-medium text-gray-600">Package:</span> <br/><span className="font-semibold">{studentData.placedInfo.package || 'N/A'}</span></div>
+                <div><span className="font-medium text-gray-600">Location:</span> <br/><span className="font-semibold">{studentData.placedInfo.location}</span></div>
+                <div><span className="font-medium text-gray-600">Joining Date:</span> <br/><span className="font-semibold">{studentData.placedInfo.joiningDate ? new Date(studentData.placedInfo.joiningDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}</span></div>
+                <div><span className="font-medium text-gray-600">Offer Letter:</span> <br/><span className={`font-semibold ${studentData.placedInfo.offerLetterURL ? 'text-[#FDA92D]' : 'text-red-600'}`}>{studentData.placedInfo.offerLetterURL ? '✓ Available' : '✗ Pending'}</span></div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="text-4xl mb-2">🎯</div>
+                <div className="text-lg font-medium text-gray-700">Placement In Progress</div>
+                <div className="text-sm text-gray-500 mt-1">Student is actively seeking placement opportunities</div>
+                <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+                  <div><span className="font-medium text-gray-600">Resume Status:</span> <br/><span className={`font-semibold ${studentData.resumeURL || studentData.resume ? 'text-[#FDA92D]' : 'text-red-600'}`}>{studentData.resumeURL || studentData.resume ? '✓ Ready' : '✗ Pending'}</span></div>
+                  <div><span className="font-medium text-gray-600">Eligibility:</span> <br/><span className={`font-semibold ${passedLevels.length >= 6 ? 'text-[#FDA92D]' : 'text-yellow-600'}`}>{passedLevels.length >= 6 ? '✓ Eligible' : '⚠ In Progress'}</span></div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-6 border-t bg-gray-50 rounded-b-xl">
+          <div className="flex justify-between items-center">
+            <div className="text-sm text-gray-600">
+              <div>Generated on: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+              <div className="mt-1">Academic Year: {new Date().getFullYear()}-{new Date().getFullYear() + 1}</div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => window.print()}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium flex items-center gap-2"
+              >
+                🖨️ Print Report
+              </button>
+              <button
+                onClick={onClose}
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Update Email Modal Component
 const UpdateEmailModal = ({ isOpen, onClose, studentData, onUpdate, isLoading }) => {
   const [email, setEmail] = useState('');
@@ -1032,7 +1341,7 @@ const UpdateEmailModal = ({ isOpen, onClose, studentData, onUpdate, isLoading })
       toast.success('Email updated successfully!');
       onClose();
     } catch (err) {
-      console.error('Error updating email:', err);
+      // console.error('Error updating email:', err);
       toast.error(err?.data?.message || 'Failed to update email');
     }
   };
