@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useGetAdmittedStudentsByIdQuery } from "../../redux/api/authApi";
+import { useGetAdmittedStudentsByIdQuery, useGetReportCardQuery } from "../../redux/api/authApi";
 import { HiArrowNarrowLeft } from "react-icons/hi";
 import { FaUserGroup } from "react-icons/fa6";
 import Loader from "../common-components/loader/Loader";
@@ -10,6 +10,9 @@ export default function StudentReport() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
+  const { data: reportCardData, isLoading: reportLoading, isError: reportError } = useGetReportCardQuery(id);
+
+  console.log('Report Card Data:', reportCardData);
 
   // Debug logs
   console.log('Current user role:', localStorage.getItem('role'));
@@ -204,13 +207,24 @@ export default function StudentReport() {
             <div className="col-span-1 bg-white rounded-lg shadow-md p-6">
               <h4 className="text-lg font-bold text-gray-800 mb-4">Skills</h4>
               <div className="space-y-3">
-                {[
+                {reportCardData?.skills?.map((skill, index) => (
+                  <div key={index}>
+                    <span className="text-sm text-gray-600 block mb-1">{skill.name}</span>
+                    <div>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <span key={star} className={`text-sm ${star <= skill.rating ? 'text-yellow-500' : 'text-gray-300'}`}>
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )) || [
                   { name: 'Communication', rating: 4 },
                   { name: 'Problem Solving', rating: 5 },
                   { name: 'Teamwork', rating: 3 },
                   { name: 'Leadership', rating: 4 }
                 ].map((skill, index) => (
-                  <div key={index} >
+                  <div key={index}>
                     <span className="text-sm text-gray-600 block mb-1">{skill.name}</span>
                     <div>
                       {[1, 2, 3, 4, 5].map((star) => (
@@ -228,18 +242,14 @@ export default function StudentReport() {
             <div className="col-span-2 bg-white rounded-lg shadow-md p-6">
               <h4 className="text-lg font-bold text-gray-800 mb-4">Technical Skills</h4>
               <div className="grid grid-cols-4 gap-3">
-                {[
+                {(reportCardData?.technicalSkills || [
                   { name: 'HTML', percentage: 85, icon: '💻' },
                   { name: 'CSS', percentage: 75, icon: '⚙️' },
                   { name: 'JavaScript', percentage: 90, icon: '🚀' },
-                  { name: 'React', percentage: 70, icon: '📊' },
-                  { name: 'React', percentage: 70, icon: '📊' },
-                  { name: 'React', percentage: 70, icon: '📊' },
-                  { name: 'React', percentage: 70, icon: '📊' },
-                  { name: 'React', percentage: 70, icon: '📊' },
-                ].map((tech, index) => (
+                  { name: 'React', percentage: 70, icon: '📊' }
+                ]).map((tech, index) => (
                   <div key={index} className="text-center">
-                    <div className="text-2xl mb-1">{tech.icon}</div>
+                    <div className="text-2xl mb-1">{tech.icon || '💻'}</div>
                     <p className="text-xs text-gray-600 mb-2">{tech.name}</p>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${tech.percentage}%` }}></div>
@@ -253,16 +263,16 @@ export default function StudentReport() {
             <div className="col-span-1 bg-white rounded-lg shadow-md p-6">
               <h4 className="text-lg font-bold text-gray-800 mb-4">Discipline</h4>
               <div className="space-y-3">
-                {[
+                {(reportCardData?.discipline || [
                   { name: 'Attendance', percentage: 95, color: 'bg-green-500' },
                   { name: 'Punctuality', percentage: 80, color: 'bg-orange-500' },
                   { name: 'Assignment Submission', percentage: 90, color: 'bg-purple-500' },
                   { name: 'Class Participation', percentage: 85, color: 'bg-red-500' }
-                ].map((discipline, index) => (
+                ]).map((discipline, index) => (
                   <div key={index}>
                     <p className="text-sm text-gray-600 mb-1">{discipline.name}</p>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className={`${discipline.color} h-2 rounded-full`} style={{ width: `${discipline.percentage}%` }}></div>
+                      <div className={`${discipline.color || 'bg-blue-500'} h-2 rounded-full`} style={{ width: `${discipline.percentage}%` }}></div>
                     </div>
                   </div>
                 ))}

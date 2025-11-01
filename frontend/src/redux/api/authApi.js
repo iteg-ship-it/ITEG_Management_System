@@ -667,6 +667,17 @@ export const authApi = createApi({
       invalidatesTags: ['User'],
     }),
 
+    // Get report card by student ID
+    getReportCard: builder.query({
+      query: (studentId) => ({
+        url: `/reportcards/${studentId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, studentId) => [
+        { type: 'Student', id: studentId }
+      ],
+    }),
+
   }),
 });
 
@@ -717,5 +728,6 @@ export const {
   useGetStudentAttendanceCalendarQuery,
   useGetAllUsersQuery,
   useDeleteUserMutation,
-  useEditUserMutation
+  useEditUserMutation,
+  useGetReportCardQuery
 } = authApi;
