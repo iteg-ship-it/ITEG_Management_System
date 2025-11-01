@@ -58,9 +58,9 @@ exports.saveStudentReportCard = async (req, res) => {
     }
 
     /* =====================================================
-       🧾 CREATE REPORT CARD DOCUMENT
+       🧾 CREATE OR UPDATE REPORT CARD DOCUMENT
     ===================================================== */
-    const newReportCard = new StudentReportCard({
+    const reportCardData = {
       studentRef,
       batchYear,
       generatedByName,
@@ -82,9 +82,13 @@ exports.saveStudentReportCard = async (req, res) => {
       overallGrade,
       facultyRemark,
       isFinalReport,
-    });
+    };
 
-    const savedReportCard = await newReportCard.save();
+    const savedReportCard = await StudentReportCard.findOneAndUpdate(
+      { studentRef },
+      reportCardData,
+      { new: true, upsert: true }
+    );
 
     res.status(201).json({
       success: true,
