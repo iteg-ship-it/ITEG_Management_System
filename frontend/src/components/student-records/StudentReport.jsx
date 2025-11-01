@@ -12,12 +12,6 @@ export default function StudentReport() {
   const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
   const { data: reportCardData, isLoading: reportLoading, isError: reportError } = useGetReportCardQuery(id);
 
-  console.log('Report Card Data:', reportCardData);
-
-  // Debug logs
-  console.log('Current user role:', localStorage.getItem('role'));
-  console.log('Current token:', localStorage.getItem('token'));
-  console.log('Student ID:', id);
 
   if (isLoading) {
     return (
@@ -54,7 +48,6 @@ export default function StudentReport() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => {
-                  console.log('Navigating to:', `/student/${id}/report/edit`);
                   try {
                     navigate(`/student/${id}/report/edit`);
                   } catch (error) {

@@ -678,6 +678,22 @@ export const authApi = createApi({
       ],
     }),
 
+    // Create report card
+    createReportCard: builder.mutation({
+      query: (reportData) => {
+        console.log('RTK Query - Creating report card with data:', reportData);
+        return {
+          url: '/reportcards',
+          method: "POST",
+          body: reportData,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        };
+      },
+      invalidatesTags: ['Student'],
+    }),
+
   }),
 });
 
@@ -729,5 +745,6 @@ export const {
   useGetAllUsersQuery,
   useDeleteUserMutation,
   useEditUserMutation,
-  useGetReportCardQuery
+  useGetReportCardQuery,
+  useCreateReportCardMutation
 } = authApi;
