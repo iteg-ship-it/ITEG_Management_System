@@ -1,23 +1,95 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetAdmittedStudentsByIdQuery, useCreateReportCardMutation } from "../../redux/api/authApi";
 import { HiArrowNarrowLeft } from "react-icons/hi";
 import Loader from "../common-components/loader/Loader";
+
+const SimpleDropdown = ({ label, value, onChange, options }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const hasValue = value !== "";
+  const selectedOption = options.find(opt => opt.value === value);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative w-full" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        className={`
+          peer h-12 w-full border border-gray-300 rounded-md
+          px-3 py-2 leading-tight bg-white text-left
+          focus:outline-none focus:border-black 
+          focus:ring-0 appearance-none flex items-center justify-between
+          cursor-pointer
+          ${isOpen ? "border-black" : ""}
+          transition-all duration-200
+        `}
+      >
+        <span className={selectedOption ? 'text-gray-900' : 'text-gray-400'}>
+          {selectedOption ? selectedOption.label : 'Select'}
+        </span>
+        <span className={`ml-2 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+          ▼
+        </span>
+      </button>
+
+      <label
+        className={`
+          absolute left-3 bg-white px-1 transition-all duration-200
+          pointer-events-none
+          ${isFocused || hasValue || isOpen
+            ? "text-xs -top-2 text-black"
+            : "text-gray-500 top-3"}
+        `}
+      >
+        {label}
+      </label>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden border bg-white">
+          {options.map((option) => (
+            <div
+              key={option.value}
+              onClick={() => {
+                onChange(option.value);
+                setIsOpen(false);
+              }}
+              className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left transition-colors duration-150"
+            >
+              {option.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 
 export default function StudentReportForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
   const [createReportCard, { isLoading: isCreating, error: mutationError }] = useCreateReportCardMutation();
-  
-  console.log('Student ID:', id);
-  console.log('Create Report Card Mutation:', createReportCard);
-  console.log('Is Creating:', isCreating);
-  console.log('Mutation Error:', mutationError);
+  const loggedInUser = JSON.parse(localStorage.getItem('user') || '{}');
 
   const [formData, setFormData] = useState({
     batchYear: "",
-    generatedByName: "",
+    generatedByName: loggedInUser?.name || "",
     softSkills: {
       sectionTitle: "Soft Skills Evaluation (50 Marks)",
       totalSoftSkillMarks: 0,
@@ -218,10 +290,9 @@ export default function StudentReportForm() {
         isFinalReport: formData.isFinalReport
       };
       
-      console.log("Report Data:", JSON.stringify(reportData, null, 2));
       
-      const result = await createReportCard(reportData).unwrap();
-      console.log('Success:', result);
+      // const result = await createReportCard(reportData).unwrap();
+      // console.log(result);
       
       alert('Report card created successfully!');
       navigate(`/student/${id}/report`);
@@ -306,10 +377,8 @@ export default function StudentReportForm() {
               <input
                 type="text"
                 value={formData.generatedByName}
-                onChange={(e) => setFormData({...formData, generatedByName: e.target.value})}
-                placeholder="e.g., Prof. John Doe"
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                disabled
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
               />
             </div>
           </div>
@@ -331,6 +400,12 @@ export default function StudentReportForm() {
                   onChange={(e) => {
                     const newFormData = {...formData};
                     newFormData.academicPerformance.yearWiseSGPA[index].sgpa = parseFloat(e.target.value) || 0;
+                    
+                    // Auto-calculate CGPA
+                    const totalSGPA = newFormData.academicPerformance.yearWiseSGPA.reduce((sum, year) => sum + year.sgpa, 0);
+                    const validSGPAs = newFormData.academicPerformance.yearWiseSGPA.filter(year => year.sgpa > 0).length;
+                    newFormData.academicPerformance.cgpa = validSGPAs > 0 ? parseFloat((totalSGPA / validSGPAs).toFixed(2)) : 0;
+                    
                     setFormData(newFormData);
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
@@ -361,33 +436,37 @@ export default function StudentReportForm() {
           <h3 className="text-lg font-semibold mb-4">Career Readiness</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Resume Status
-              </label>
-              <input
-                type="text"
+              <SimpleDropdown
+                label="Resume Status"
                 value={formData.careerReadiness.resumeStatus}
-                onChange={(e) => {
+                onChange={(value) => {
                   const newFormData = {...formData};
-                  newFormData.careerReadiness.resumeStatus = e.target.value;
+                  newFormData.careerReadiness.resumeStatus = value;
                   setFormData(newFormData);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                options={[
+                  { value: "", label: "Select Status" },
+                  { value: "Not created", label: "Not created" },
+                  { value: "Need to improve", label: "Need to improve" },
+                  { value: "Updated", label: "Updated" }
+                ]}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                LinkedIn Status
-              </label>
-              <input
-                type="text"
+              <SimpleDropdown
+                label="LinkedIn Status"
                 value={formData.careerReadiness.linkedinStatus}
-                onChange={(e) => {
+                onChange={(value) => {
                   const newFormData = {...formData};
-                  newFormData.careerReadiness.linkedinStatus = e.target.value;
+                  newFormData.careerReadiness.linkedinStatus = value;
                   setFormData(newFormData);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                options={[
+                  { value: "", label: "Select Status" },
+                  { value: "Not created", label: "Not created" },
+                  { value: "Need to improve", label: "Need to improve" },
+                  { value: "Updated", label: "Updated" }
+                ]}
               />
             </div>
             <div>
