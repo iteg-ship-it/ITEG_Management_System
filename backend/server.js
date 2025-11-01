@@ -29,6 +29,7 @@ const protectedRoutes = require("./routes/protectedRoutes");
 const admittedStudentRoutes = require("./routes/studentRoutes");
 const userRoutes = require("./routes/userRoutes.js");
 const otpRoutes = require("./routes/otpRoutes.js");
+const reportCardRoutes = require("./routes/reportCardRoutes.js");
 const passport = require("./config/passport.js");
 
 
@@ -75,6 +76,9 @@ app.use('/api/user/otp', otpRoutes);
 // face authentication routes
 const faceAuthRoutes = require('./routes/faceAuthRoutes');
 app.use('/api/face-auth', faceAuthRoutes);
+
+// report card routes
+app.use('/api/reportcards', reportCardRoutes);
 
 // passport.js
 app.use(passport.initialize());
