@@ -290,9 +290,9 @@ export default function StudentReportForm() {
         isFinalReport: formData.isFinalReport
       };
       
-      
-      // const result = await createReportCard(reportData).unwrap();
-      // console.log(result);
+      console.log('Sending report data to API:', JSON.stringify(reportData, null, 2));
+      const result = await createReportCard(reportData).unwrap();
+      console.log('Report card created successfully:', result);
       
       alert('Report card created successfully!');
       navigate(`/student/${id}/report`);

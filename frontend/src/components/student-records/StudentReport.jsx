@@ -2,15 +2,61 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useGetAdmittedStudentsByIdQuery, useGetReportCardQuery } from "../../redux/api/authApi";
 import { HiArrowNarrowLeft } from "react-icons/hi";
 import { FaUserGroup } from "react-icons/fa6";
+import { HiDownload } from "react-icons/hi";
 import Loader from "../common-components/loader/Loader";
 import logo from '../../assets/images/doulLogo.png';
 import { RiEdit2Fill } from "react-icons/ri";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 export default function StudentReport() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
-  const { data: reportCardData, isLoading: reportLoading, isError: reportError } = useGetReportCardQuery(id);
+  const { data: reportCardResponse, isLoading: reportLoading, isError: reportError } = useGetReportCardQuery(id);
+  const reportCardData = reportCardResponse?.data;
+
+  const downloadPDF = async () => {
+    console.log('Download PDF clicked');
+    const element = document.getElementById('pdf-content');
+    
+    if (!element) {
+      console.error('PDF content element not found');
+      alert('Report content not found');
+      return;
+    }
+
+    try {
+      console.log('Starting PDF generation...');
+      
+      const canvas = await html2canvas(element, {
+        scale: 1.5,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#F9FAFB',
+        logging: false
+      });
+      
+      console.log('Canvas created successfully');
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const imgWidth = 210;
+      const pageHeight = 295;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      
+      const fileName = `${studentData?.firstName || 'Student'}_${studentData?.lastName || 'Report'}_Report_Card.pdf`;
+      pdf.save(fileName);
+      
+      console.log('PDF downloaded successfully');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error generating PDF: ' + error.message);
+    }
+  };
 
 
   if (isLoading) {
@@ -48,6 +94,16 @@ export default function StudentReport() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => {
+                  console.log('Button clicked');
+                  downloadPDF();
+                }}
+                className="p-2 bg-green-500 text-white rounded-full text-xl font-medium hover:bg-green-600 transition-colors"
+                title="Download PDF"
+              >
+                <HiDownload />
+              </button>
+              <button
+                onClick={() => {
                   try {
                     navigate(`/student/${id}/report/edit`);
                   } catch (error) {
@@ -68,7 +124,7 @@ export default function StudentReport() {
 
       {/* A4 Page with Grey Background */}
       <div className="min-h-screen p-6">
-        <div className="mx-auto bg-[#F9FAFB] shadow-xl p-6" style={{ width: '210mm', minHeight: '297mm' }}>
+        <div id="pdf-content" className="mx-auto bg-[#F9FAFB] shadow-xl p-6 w-[50vw]">
 
           {/* Header with Logos and Title */}
           <div className="relative flex items-center justify-between">
@@ -211,61 +267,65 @@ export default function StudentReport() {
             <div className="col-span-1 bg-white rounded-lg shadow-md p-6">
               <h4 className="text-lg font-bold text-gray-800 mb-4">Technical Skills</h4>
               <div className="space-y-3">
-                {(reportCardData?.technicalSkills || [
-                  { name: 'HTML/CSS', percentage: 85 },
-                  { name: 'JavaScript', percentage: 90 },
-                  { name: 'React', percentage: 75 },
-                  { name: 'Node.js', percentage: 70 }
-                ]).map((tech, index) => (
+                {reportCardData?.technicalSkills?.length > 0 ? reportCardData.technicalSkills.map((tech, index) => (
                   <div key={index}>
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm text-gray-600">{tech.name}</span>
-                      <span className="text-xs text-gray-500">{tech.percentage}%</span>
+                      <span className="text-sm text-gray-600">{tech.skillName}</span>
+                      <span className="text-xs text-gray-500">{tech.totalPercentage}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-[#FDA92D] h-2 rounded-full" style={{ width: `${tech.percentage}%` }}></div>
+                      <div className="bg-[#FDA92D] h-2 rounded-full" style={{ width: `${tech.totalPercentage}%` }}></div>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <div className="text-center text-gray-500">
+                    <span>N/A</span>
+                  </div>
+                )}
               </div>
             </div>
             
             {/* Soft Skills Box */}
             <div className="col-span-1 bg-white rounded-lg shadow-md p-6">
               <h4 className="text-lg font-bold text-gray-800 mb-4">Soft Skills</h4>
-              <div className="grid grid-cols-2 gap-2">
-                {(reportCardData?.softSkills || [
-                  { name: 'Presentation', percentage: 85 },
-                  { name: 'Communication', percentage: 90 },
-                  { name: 'Teamwork', percentage: 88 },
-                  { name: 'Problem Solving', percentage: 82 },
-                  { name: 'Confidence', percentage: 87 },
-                  { name: 'Adaptability', percentage: 80 }
-                ]).map((skill, index) => (
-                  <div key={index} className="text-center">
-                    <p className="text-xs text-gray-600">{skill.name}</p>
+              <div className="space-y-2">
+                {reportCardData?.softSkills?.categories?.length > 0 ? reportCardData.softSkills.categories.map((category, index) => (
+                  <div key={index}>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-xs text-gray-600">{category.title}</span>
+                      <span className="text-xs text-gray-500">{category.score}/{category.maxMarks}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                      <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: `${(category.score / category.maxMarks) * 100}%` }}></div>
+                    </div>
                   </div>
-                ))}
+                )) : (
+                  <div className="text-center text-gray-500">
+                    <span>N/A</span>
+                  </div>
+                )}
               </div>
             </div>
               
             {/* Discipline Box */}
             <div className="col-span-1 bg-white rounded-lg shadow-md p-6">
               <h4 className="text-lg font-bold text-gray-800 mb-4">Discipline</h4>
-              <div className="space-y-3">
-                {(reportCardData?.discipline || [
-                  { name: 'Attendance', percentage: 95, color: 'bg-green-500' },
-                  { name: 'Punctuality', percentage: 80, color: 'bg-orange-500' },
-                  { name: 'Assignment Submission', percentage: 90, color: 'bg-purple-500' },
-                  { name: 'Class Participation', percentage: 85, color: 'bg-red-500' }
-                ]).map((discipline, index) => (
+              <div className="space-y-2">
+                {reportCardData?.discipline?.categories?.length > 0 ? reportCardData.discipline.categories.map((category, index) => (
                   <div key={index}>
-                    <p className="text-sm text-gray-600 mb-1">{discipline.name}</p>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className={`${discipline.color || 'bg-blue-500'} h-2 rounded-full`} style={{ width: `${discipline.percentage}%` }}></div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-xs text-gray-600">{category.title}</span>
+                      <span className="text-xs text-gray-500">{category.score}/{category.maxMarks}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                      <div className="bg-green-500 h-1.5 rounded-full" style={{ width: `${(category.score / category.maxMarks) * 100}%` }}></div>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <div className="text-center text-gray-500">
+                    <span>N/A</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -274,20 +334,38 @@ export default function StudentReport() {
           <div className="bg-white rounded-lg shadow-md p-6 mt-4">
             <h4 className="text-lg font-bold text-gray-800 mb-4">Career Readiness</h4>
             <div className="grid grid-cols-4 gap-4">
-              {(reportCardData?.careerReadiness || [
-                { name: 'Resume', percentage: 85 },
-                { name: 'LinkedIn', percentage: 75 },
-                { name: 'Aptitude/Reasoning', percentage: 80 },
-                { name: 'Interview Readiness', percentage: 70 }
-              ]).map((career, index) => (
-                <div key={index} className="text-center">
-                  <p className="text-sm text-gray-600 mb-2">{career.name}</p>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${career.percentage}%` }}></div>
+              {reportCardData?.careerReadiness ? (
+                <>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600 mb-2">Resume</p>
+                    <div className="bg-gray-100 rounded-lg p-3">
+                      <span className="text-sm font-bold text-gray-800">{reportCardData.careerReadiness.resumeStatus}</span>
+                    </div>
                   </div>
-                  <span className="text-xs text-gray-500 mt-1">{career.percentage}%</span>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600 mb-2">LinkedIn</p>
+                    <div className="bg-gray-100 rounded-lg p-3">
+                      <span className="text-sm font-bold text-gray-800">{reportCardData.careerReadiness.linkedinStatus}</span>
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600 mb-2">Aptitude</p>
+                    <div className="bg-gray-100 rounded-lg p-3">
+                      <span className="text-sm font-bold text-gray-800">{reportCardData.careerReadiness.aptitudeStatus}</span>
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600 mb-2">Placement Ready</p>
+                    <div className="bg-gray-100 rounded-lg p-3">
+                      <span className="text-sm font-bold text-gray-800">{reportCardData.careerReadiness.placementReady}</span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="col-span-4 text-center text-gray-500">
+                  <span>N/A</span>
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
@@ -304,25 +382,31 @@ export default function StudentReport() {
               <div className="text-center">
                 <p className="text-sm text-gray-600 mb-2">1st Year SGPA</p>
                 <div className="bg-gray-100 rounded-lg p-3">
-                  <span className="text-lg font-bold text-gray-800">{reportCardData?.firstYearSGPA || "8.5"}</span>
+                  <span className="text-lg font-bold text-gray-800">
+                    {reportCardData?.academicPerformance?.yearWiseSGPA?.find(y => y.year === 'FY')?.sgpa || "N/A"}
+                  </span>
                 </div>
               </div>
               <div className="text-center">
                 <p className="text-sm text-gray-600 mb-2">2nd Year SGPA</p>
                 <div className="bg-gray-100 rounded-lg p-3">
-                  <span className="text-lg font-bold text-gray-800">{reportCardData?.secondYearSGPA || "8.2"}</span>
+                  <span className="text-lg font-bold text-gray-800">
+                    {reportCardData?.academicPerformance?.yearWiseSGPA?.find(y => y.year === 'SY')?.sgpa || "N/A"}
+                  </span>
                 </div>
               </div>
               <div className="text-center">
                 <p className="text-sm text-gray-600 mb-2">3rd Year SGPA</p>
                 <div className="bg-gray-100 rounded-lg p-3">
-                  <span className="text-lg font-bold text-gray-800">{reportCardData?.thirdYearSGPA || "8.7"}</span>
+                  <span className="text-lg font-bold text-gray-800">
+                    {reportCardData?.academicPerformance?.yearWiseSGPA?.find(y => y.year === 'TY')?.sgpa || "N/A"}
+                  </span>
                 </div>
               </div>
               <div className="text-center">
-                <p className="text-sm text-gray-600 mb-2">Attendance</p>
+                <p className="text-sm text-gray-600 mb-2">CGPA</p>
                 <div className="bg-gray-100 rounded-lg p-3">
-                  <span className="text-lg font-bold text-gray-800">{reportCardData?.attendance || "95"}%</span>
+                  <span className="text-lg font-bold text-gray-800">{reportCardData?.academicPerformance?.cgpa || "N/A"}</span>
                 </div>
               </div>
             </div>
@@ -333,11 +417,11 @@ export default function StudentReport() {
             <h4 className="text-lg font-bold text-gray-800 mb-4">Faculty Feedback</h4>
             <div className="mb-8">
               <p className="text-sm text-gray-600 line-clamp-2">
-                {reportCardData?.facultyFeedback || "Student shows excellent progress in technical skills and demonstrates strong problem-solving abilities. Needs to improve time management for project deliveries."}
+                {reportCardData?.facultyRemark || "N/A"}
               </p>
             </div>
             <p className="absolute bottom-4 right-6 text-sm font-bold" style={{ color: '#7335DD' }}>
-              - Prof. {reportCardData?.facultyName || "John Smith"}
+              - {reportCardData?.generatedByName || "N/A"}
             </p>
           </div>
 
@@ -360,11 +444,11 @@ export default function StudentReport() {
                 </p>
               </div>
               
-              {/* Remark */}
+              {/* Overall Grade */}
               <div>
-                <h5 className="text-md font-semibold text-white mb-2">Remark</h5>
+                <h5 className="text-md font-semibold text-white mb-2">Overall Grade</h5>
                 <p className="text-sm text-white">
-                  {reportCardData?.remark || "Good Performance"}
+                  {reportCardData?.overallGrade || "N/A"}
                 </p>
               </div>
             </div>
