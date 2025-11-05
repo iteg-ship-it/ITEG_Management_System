@@ -181,20 +181,6 @@ export default function StudentReportForm() {
         practicalMarks: 0,
         totalPercentage: 0,
         remark: ""
-      },
-      {
-        skillName: "",
-        theoryMarks: 0,
-        practicalMarks: 0,
-        totalPercentage: 0,
-        remark: ""
-      },
-      {
-        skillName: "",
-        theoryMarks: 0,
-        practicalMarks: 0,
-        totalPercentage: 0,
-        remark: ""
       }
     ],
     careerReadiness: {
@@ -216,16 +202,6 @@ export default function StudentReportForm() {
         category: "",
         title: "",
         remark: ""
-      },
-      {
-        category: "",
-        title: "",
-        remark: ""
-      },
-      {
-        category: "",
-        title: "",
-        remark: ""
       }
     ],
     overallGrade: "",
@@ -234,7 +210,7 @@ export default function StudentReportForm() {
   });
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.batchYear.trim()) {
       alert('Please enter batch year');
       return;
@@ -247,7 +223,7 @@ export default function StudentReportForm() {
       alert('Please select overall grade');
       return;
     }
-    
+
     try {
       const reportData = {
         studentRef: id,
@@ -289,16 +265,16 @@ export default function StudentReportForm() {
         facultyRemark: formData.facultyRemark.trim() || "No specific remarks",
         isFinalReport: formData.isFinalReport
       };
-      
+
       console.log('Sending report data to API:', JSON.stringify(reportData, null, 2));
       const result = await createReportCard(reportData).unwrap();
       console.log('Report card created successfully:', result);
-      
+
       alert('Report card created successfully!');
       navigate(`/student/${id}/report`);
     } catch (error) {
       console.error('Submit Error:', error);
-      
+
       let errorMsg = 'Failed to create report card';
       if (error.status === 400) {
         errorMsg = 'Invalid data format. Please check all fields.';
@@ -307,7 +283,7 @@ export default function StudentReportForm() {
       } else if (error.data?.message) {
         errorMsg = error.data.message;
       }
-      
+
       alert(errorMsg);
     }
   };
@@ -339,18 +315,21 @@ export default function StudentReportForm() {
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       {/* Header */}
-      <div className="mb-6">
+      <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
         <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow text-gray-700 hover:text-gray-900 mb-4"
+          onClick={() => window.history.back()}
+          className="group flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 text-gray-700 hover:text-gray-900"
         >
-          <HiArrowNarrowLeft className="text-lg" />
-          <span className="text-sm font-medium">Back</span>
+          <HiArrowNarrowLeft className="text-base sm:text-lg group-hover:-translate-x-1 transition-transform" />
+          <span className="text-xs sm:text-sm font-medium">Back</span>
         </button>
-        
-        <h1 className="text-2xl font-bold text-gray-900">Edit Student Report</h1>
-        <p className="text-gray-600">Edit performance report for {studentData.firstName} {studentData.lastName}</p>
+        <div className="h-6 sm:h-8 w-px bg-gray-300 hidden sm:block"></div>
+        <div className="flex-1 sm:flex-none">
+          <h1 className="text-lg sm:text-2xl font-bold text-black">Edit Student Report</h1>
+          <p className="text-gray-600">Edit performance report for {studentData.firstName} {studentData.lastName}</p>
+        </div>
       </div>
+
 
       <form onSubmit={handleSubmit} className="max-w-6xl mx-auto space-y-6">
         {/* Basic Info */}
@@ -364,7 +343,7 @@ export default function StudentReportForm() {
               <input
                 type="text"
                 value={formData.batchYear}
-                onChange={(e) => setFormData({...formData, batchYear: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, batchYear: e.target.value })}
                 placeholder="e.g., 2024-25"
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
@@ -376,7 +355,7 @@ export default function StudentReportForm() {
               </label>
               <input
                 type="text"
-                value={formData.generatedByName}
+                value={`Prof. ${formData.generatedByName}`}
                 disabled
                 className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
               />
@@ -387,7 +366,7 @@ export default function StudentReportForm() {
         {/* Academic Performance */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold mb-4">Academic Performance</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {formData.academicPerformance.yearWiseSGPA.map((year, index) => (
               <div key={index}>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -398,36 +377,36 @@ export default function StudentReportForm() {
                   step="0.01"
                   value={year.sgpa}
                   onChange={(e) => {
-                    const newFormData = {...formData};
+                    const newFormData = { ...formData };
                     newFormData.academicPerformance.yearWiseSGPA[index].sgpa = parseFloat(e.target.value) || 0;
-                    
+
                     // Auto-calculate CGPA
                     const totalSGPA = newFormData.academicPerformance.yearWiseSGPA.reduce((sum, year) => sum + year.sgpa, 0);
                     const validSGPAs = newFormData.academicPerformance.yearWiseSGPA.filter(year => year.sgpa > 0).length;
                     newFormData.academicPerformance.cgpa = validSGPAs > 0 ? parseFloat((totalSGPA / validSGPAs).toFixed(2)) : 0;
-                    
+
                     setFormData(newFormData);
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
                 />
               </div>
             ))}
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              CGPA
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.academicPerformance.cgpa}
-              onChange={(e) => {
-                const newFormData = {...formData};
-                newFormData.academicPerformance.cgpa = parseFloat(e.target.value) || 0;
-                setFormData(newFormData);
-              }}
-              className="w-full md:w-1/3 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
-            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                CGPA
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.academicPerformance.cgpa}
+                onChange={(e) => {
+                  const newFormData = { ...formData };
+                  newFormData.academicPerformance.cgpa = parseFloat(e.target.value) || 0;
+                  setFormData(newFormData);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+              />
+            </div>
           </div>
         </div>
 
@@ -440,7 +419,7 @@ export default function StudentReportForm() {
                 label="Resume Status"
                 value={formData.careerReadiness.resumeStatus}
                 onChange={(value) => {
-                  const newFormData = {...formData};
+                  const newFormData = { ...formData };
                   newFormData.careerReadiness.resumeStatus = value;
                   setFormData(newFormData);
                 }}
@@ -457,7 +436,7 @@ export default function StudentReportForm() {
                 label="LinkedIn Status"
                 value={formData.careerReadiness.linkedinStatus}
                 onChange={(value) => {
-                  const newFormData = {...formData};
+                  const newFormData = { ...formData };
                   newFormData.careerReadiness.linkedinStatus = value;
                   setFormData(newFormData);
                 }}
@@ -470,33 +449,35 @@ export default function StudentReportForm() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Aptitude Status
-              </label>
-              <input
-                type="text"
+              <SimpleDropdown
+                label="Aptitude Status"
                 value={formData.careerReadiness.aptitudeStatus}
-                onChange={(e) => {
-                  const newFormData = {...formData};
-                  newFormData.careerReadiness.aptitudeStatus = e.target.value;
+                onChange={(value) => {
+                  const newFormData = { ...formData };
+                  newFormData.careerReadiness.aptitudeStatus = value;
                   setFormData(newFormData);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                options={[
+                  { value: "", label: "Select Status" },
+                  { value: "In-Progress", label: "In-Progress" },
+                  { value: "Not Started", label: "Not Started" }
+                ]}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Placement Ready
-              </label>
-              <input
-                type="text"
+              <SimpleDropdown
+                label="Placement Ready"
                 value={formData.careerReadiness.placementReady}
-                onChange={(e) => {
-                  const newFormData = {...formData};
-                  newFormData.careerReadiness.placementReady = e.target.value;
+                onChange={(value) => {
+                  const newFormData = { ...formData };
+                  newFormData.careerReadiness.placementReady = value;
                   setFormData(newFormData);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                options={[
+                  { value: "", label: "Select Status" },
+                  { value: "Ready", label: "Ready" },
+                  { value: "Not Ready", label: "Not Ready" }
+                ]}
               />
             </div>
           </div>
@@ -515,7 +496,7 @@ export default function StudentReportForm() {
                   type="text"
                   value={activity.category}
                   onChange={(e) => {
-                    const newFormData = {...formData};
+                    const newFormData = { ...formData };
                     newFormData.coCurricular[index].category = e.target.value;
                     setFormData(newFormData);
                   }}
@@ -530,7 +511,7 @@ export default function StudentReportForm() {
                   type="text"
                   value={activity.title}
                   onChange={(e) => {
-                    const newFormData = {...formData};
+                    const newFormData = { ...formData };
                     newFormData.coCurricular[index].title = e.target.value;
                     setFormData(newFormData);
                   }}
@@ -545,7 +526,7 @@ export default function StudentReportForm() {
                   type="text"
                   value={activity.remark}
                   onChange={(e) => {
-                    const newFormData = {...formData};
+                    const newFormData = { ...formData };
                     newFormData.coCurricular[index].remark = e.target.value;
                     setFormData(newFormData);
                   }}
@@ -554,86 +535,101 @@ export default function StudentReportForm() {
               </div>
             </div>
           ))}
+          <button
+            type="button"
+            onClick={() => {
+              const newFormData = { ...formData };
+              newFormData.coCurricular.push({ category: "", title: "", remark: "" });
+              setFormData(newFormData);
+            }}
+            className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
+          >
+            Add More
+          </button>
         </div>
 
         {/* Soft Skills */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold mb-4">Soft Skills Evaluation</h3>
-          {formData.softSkills.categories.map((category, categoryIndex) => (
-            <div key={categoryIndex} className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-medium text-gray-800">{category.title}</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {formData.softSkills.categories.map((category, categoryIndex) => (
+              <div key={categoryIndex} className="border border-gray-200 rounded-lg p-4">
+                <h4 className="text-lg font-bold text-gray-800 mb-3">{category.title}</h4>
+                <div className="space-y-2 mb-3">
+                  {category.subcategories.map((sub, subIndex) => (
+                    <label key={subIndex} className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={sub.value}
+                        onChange={(e) => {
+                          updateSoftSkillSubcategory(categoryIndex, subIndex, e.target.checked);
+                          // Auto-calculate score (2 points per checkbox)
+                          const newFormData = { ...formData };
+                          const checkedCount = newFormData.softSkills.categories[categoryIndex].subcategories.filter(s => s.value).length;
+                          newFormData.softSkills.categories[categoryIndex].score = checkedCount * 2;
+                          setFormData(newFormData);
+                        }}
+                        className="w-5 h-5 rounded border-2 border-gray-300 checked:bg-black checked:border-black focus:ring-2 focus:ring-black appearance-none relative checked:after:content-['✓'] checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1"
+                      />
+                      <span className="text-sm text-gray-700">{sub.name}</span>
+                    </label>
+                  ))}
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-600">Score:</span>
                   <input
                     type="number"
                     value={category.score}
-                    max={category.maxMarks}
-                    onChange={(e) => {
-                      const newFormData = {...formData};
-                      newFormData.softSkills.categories[categoryIndex].score = parseInt(e.target.value);
-                      setFormData(newFormData);
-                    }}
-                    className="w-16 px-2 py-1 border border-gray-300 rounded text-center"
+                    readOnly
+                    className="w-16 px-2 py-1 border border-gray-300 rounded text-center bg-gray-100"
                   />
                   <span className="text-sm text-gray-600">/ {category.maxMarks}</span>
                 </div>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                {category.subcategories.map((sub, subIndex) => (
-                  <label key={subIndex} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={sub.value}
-                      onChange={(e) => updateSoftSkillSubcategory(categoryIndex, subIndex, e.target.checked)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-700">{sub.name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Discipline */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold mb-4">Discipline Evaluation</h3>
-          {formData.discipline.categories.map((category, categoryIndex) => (
-            <div key={categoryIndex} className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-medium text-gray-800">{category.title}</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {formData.discipline.categories.map((category, categoryIndex) => (
+              <div key={categoryIndex} className="border border-gray-200 rounded-lg p-4">
+                <h4 className="text-lg font-bold text-gray-800 mb-3">{category.title}</h4>
+                <div className="space-y-2 mb-3">
+                  {category.subcategories.map((sub, subIndex) => (
+                    <label key={subIndex} className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={sub.value}
+                        onChange={(e) => {
+                          updateDisciplineSubcategory(categoryIndex, subIndex, e.target.checked);
+                          // Auto-calculate score (2 points per checkbox)
+                          const newFormData = { ...formData };
+                          const checkedCount = newFormData.discipline.categories[categoryIndex].subcategories.filter(s => s.value).length;
+                          newFormData.discipline.categories[categoryIndex].score = checkedCount * 2;
+                          setFormData(newFormData);
+                        }}
+                        className="w-5 h-5 rounded border-2 border-gray-300 checked:bg-black checked:border-black focus:ring-2 focus:ring-black appearance-none relative checked:after:content-['✓'] checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1"
+                      />
+                      <span className="text-sm text-gray-700">{sub.name}</span>
+                    </label>
+                  ))}
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-600">Score:</span>
                   <input
                     type="number"
                     value={category.score}
-                    max={category.maxMarks}
-                    onChange={(e) => {
-                      const newFormData = {...formData};
-                      newFormData.discipline.categories[categoryIndex].score = parseInt(e.target.value);
-                      setFormData(newFormData);
-                    }}
-                    className="w-16 px-2 py-1 border border-gray-300 rounded text-center"
+                    readOnly
+                    className="w-16 px-2 py-1 border border-gray-300 rounded text-center bg-gray-100"
                   />
                   <span className="text-sm text-gray-600">/ {category.maxMarks}</span>
                 </div>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                {category.subcategories.map((sub, subIndex) => (
-                  <label key={subIndex} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={sub.value}
-                      onChange={(e) => updateDisciplineSubcategory(categoryIndex, subIndex, e.target.checked)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-700">{sub.name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Technical Skills */}
@@ -649,34 +645,66 @@ export default function StudentReportForm() {
                   onChange={(e) => {
                     const newSkills = [...formData.technicalSkills];
                     newSkills[index].skillName = e.target.value;
-                    setFormData({...formData, technicalSkills: newSkills});
+                    setFormData({ ...formData, technicalSkills: newSkills });
                   }}
                   placeholder="e.g., HTML & CSS"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Theory Marks</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Theory Marks (out of 10)</label>
                 <input
                   type="number"
+                  max="10"
                   value={skill.theoryMarks}
                   onChange={(e) => {
                     const newSkills = [...formData.technicalSkills];
-                    newSkills[index].theoryMarks = parseInt(e.target.value);
-                    setFormData({...formData, technicalSkills: newSkills});
+                    const theoryMarks = Math.min(parseInt(e.target.value) || 0, 10);
+                    newSkills[index].theoryMarks = theoryMarks;
+
+                    // Calculate percentage and remark
+                    const totalMarks = theoryMarks + newSkills[index].practicalMarks;
+                    const percentage = Math.round((totalMarks / 20) * 100);
+                    newSkills[index].totalPercentage = percentage;
+
+                    // Auto-generate remark
+                    if (percentage >= 90) newSkills[index].remark = "Excellent";
+                    else if (percentage >= 80) newSkills[index].remark = "Very Good";
+                    else if (percentage >= 70) newSkills[index].remark = "Good";
+                    else if (percentage >= 60) newSkills[index].remark = "Average";
+                    else if (percentage >= 50) newSkills[index].remark = "Below Average";
+                    else newSkills[index].remark = "Poor";
+
+                    setFormData({ ...formData, technicalSkills: newSkills });
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Practical Marks</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Practical Marks (out of 10)</label>
                 <input
                   type="number"
+                  max="10"
                   value={skill.practicalMarks}
                   onChange={(e) => {
                     const newSkills = [...formData.technicalSkills];
-                    newSkills[index].practicalMarks = parseInt(e.target.value);
-                    setFormData({...formData, technicalSkills: newSkills});
+                    const practicalMarks = Math.min(parseInt(e.target.value) || 0, 10);
+                    newSkills[index].practicalMarks = practicalMarks;
+
+                    // Calculate percentage and remark
+                    const totalMarks = newSkills[index].theoryMarks + practicalMarks;
+                    const percentage = Math.round((totalMarks / 20) * 100);
+                    newSkills[index].totalPercentage = percentage;
+
+                    // Auto-generate remark
+                    if (percentage >= 90) newSkills[index].remark = "Excellent";
+                    else if (percentage >= 80) newSkills[index].remark = "Very Good";
+                    else if (percentage >= 70) newSkills[index].remark = "Good";
+                    else if (percentage >= 60) newSkills[index].remark = "Average";
+                    else if (percentage >= 50) newSkills[index].remark = "Below Average";
+                    else newSkills[index].remark = "Poor";
+
+                    setFormData({ ...formData, technicalSkills: newSkills });
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
                 />
@@ -686,12 +714,8 @@ export default function StudentReportForm() {
                 <input
                   type="number"
                   value={skill.totalPercentage}
-                  onChange={(e) => {
-                    const newSkills = [...formData.technicalSkills];
-                    newSkills[index].totalPercentage = parseInt(e.target.value);
-                    setFormData({...formData, technicalSkills: newSkills});
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                  readOnly
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
                 />
               </div>
               <div>
@@ -702,14 +726,24 @@ export default function StudentReportForm() {
                   onChange={(e) => {
                     const newSkills = [...formData.technicalSkills];
                     newSkills[index].remark = e.target.value;
-                    setFormData({...formData, technicalSkills: newSkills});
+                    setFormData({ ...formData, technicalSkills: newSkills });
                   }}
-                  placeholder="e.g., Excellent understanding"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>
           ))}
+          <button
+            type="button"
+            onClick={() => {
+              const newFormData = { ...formData };
+              newFormData.technicalSkills.push({ skillName: "", theoryMarks: 0, practicalMarks: 0, totalPercentage: 0, remark: "" });
+              setFormData(newFormData);
+            }}
+            className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
+          >
+            Add More
+          </button>
         </div>
 
         {/* Final Section */}
@@ -722,7 +756,7 @@ export default function StudentReportForm() {
               </label>
               <select
                 value={formData.overallGrade}
-                onChange={(e) => setFormData({...formData, overallGrade: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, overallGrade: e.target.value })}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
               >
@@ -738,7 +772,7 @@ export default function StudentReportForm() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Faculty Remark</label>
               <textarea
                 value={formData.facultyRemark}
-                onChange={(e) => setFormData({...formData, facultyRemark: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, facultyRemark: e.target.value })}
                 rows={3}
                 placeholder="Enter faculty remarks about student performance..."
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
@@ -759,7 +793,7 @@ export default function StudentReportForm() {
           <button
             type="submit"
             disabled={isCreating}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50"
           >
             {isCreating ? 'Saving...' : 'Save Report'}
           </button>
