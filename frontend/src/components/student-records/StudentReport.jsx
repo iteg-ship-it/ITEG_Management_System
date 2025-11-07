@@ -2,18 +2,19 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useGetAdmittedStudentsByIdQuery, useGetReportCardQuery } from "../../redux/api/authApi";
 import { HiArrowNarrowLeft } from "react-icons/hi";
 import { FaUserGroup } from "react-icons/fa6";
-import { HiDownload } from "react-icons/hi";
+import { useState } from "react";
 import Loader from "../common-components/loader/Loader";
 import logo from '../../assets/images/doulLogo.png';
 import { RiEdit2Fill } from "react-icons/ri";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import profileIcon from '../../assets/icons/StuReportprofile_icon.png';
 import courseIcon from '../../assets/icons/StuReportCourse_icon.png';
 import mailIcon from '../../assets/icons/StuReportMail_icon.png';
 import fatherIcon from '../../assets/icons/StuReportFather_icon.png';
 import contactIcon from '../../assets/icons/StuReport_Phone.png';
 import addressIcon from '../../assets/icons/StuReportAddress_icon.png';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+
 
 export default function StudentReport() {
   const { id } = useParams();
@@ -21,57 +22,48 @@ export default function StudentReport() {
   const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
   const { data: reportCardResponse, isLoading: reportLoading, isError: reportError } = useGetReportCardQuery(id);
   const reportCardData = reportCardResponse?.data;
+  const [showPDFViewer, setShowPDFViewer] = useState(false);
 
   const downloadPDF = async () => {
-    console.log('Download PDF clicked');
-    const element = document.getElementById('pdf-content');
-
+    const element = document.getElementById('pdf-viewer-content');
     if (!element) {
-      console.error('PDF content element not found');
-      alert('Report content not found');
+      alert('PDF content not found');
       return;
     }
 
     try {
-      console.log('Starting PDF generation...');
-
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: 1.5,
         useCORS: true,
         allowTaint: true,
-        backgroundColor: '#F9FAFB',
+        backgroundColor: '#ffffff',
         logging: false
       });
 
-      console.log('Canvas created successfully');
-
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
-
+      
       const pdfWidth = 210;
       const pdfHeight = 297;
       const imgWidth = pdfWidth;
       const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-
+      
       if (imgHeight > pdfHeight) {
         const scaleFactor = pdfHeight / imgHeight;
-        const scaledWidth = imgWidth * scaleFactor;
-        const scaledHeight = pdfHeight;
-        const xOffset = (pdfWidth - scaledWidth) / 2;
-        pdf.addImage(imgData, 'PNG', xOffset, 0, scaledWidth, scaledHeight);
+        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth * scaleFactor, pdfHeight);
       } else {
         pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
       }
-
-      const fileName = `${studentData?.firstName || 'Student'}_${studentData?.lastName || 'Report'}_Report_Card.pdf`;
+      
+      const fileName = `Report_Card_${studentData?.firstName || 'Student'}.pdf`;
       pdf.save(fileName);
-
-      console.log('PDF downloaded successfully');
     } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Error generating PDF: ' + error.message);
+      console.error('PDF Error:', error);
+      alert('Error generating PDF');
     }
   };
+
+
 
 
   if (isLoading) {
@@ -89,7 +81,7 @@ export default function StudentReport() {
   return (
     <div className="min-h-screen bg-white">
       {/* Professional Header */}
-      <div className="sticky top-0 z-10">
+      <div className="sticky top-0 z-10 print:hidden">
         <div className="py-2 sm:py-4 ">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
             <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
@@ -108,14 +100,10 @@ export default function StudentReport() {
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => {
-                  console.log('Button clicked');
-                  downloadPDF();
-                }}
-                className="p-2 bg-green-500 text-white rounded-full text-xl font-medium hover:bg-green-600 transition-colors"
-                title="Download PDF"
+                onClick={() => setShowPDFViewer(true)}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
               >
-                <HiDownload />
+                View PDF
               </button>
               <button
                 onClick={() => {
@@ -138,8 +126,8 @@ export default function StudentReport() {
       </div>
 
       {/* A4 Page with Grey Background */}
-      <div className="min-h-screen p-6">
-        <div id="pdf-content" className="mx-auto bg-[#F9FAFB] shadow-xl p-4 w-[50vw]">
+      <div className="min-h-screen p-6 print:p-0 print:m-0">
+        <div id="pdf-content" className="mx-auto bg-[#F9FAFB] shadow-xl p-4 print:shadow-none print:bg-white print:mx-0" style={{ width: '210mm', minHeight: '297mm' }}>
 
           {/* Header with Logos and Title */}
           <div className="relative flex items-center justify-between">
@@ -552,6 +540,57 @@ export default function StudentReport() {
 
         </div>
       </div>
+
+      {/* Custom PDF Viewer Modal */}
+      {showPDFViewer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg shadow-xl w-[90vw] h-[90vh] flex flex-col">
+            {/* PDF Viewer Header */}
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-xl font-bold text-gray-800">Report Card PDF</h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={downloadPDF}
+                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                >
+                  Download PDF
+                </button>
+                <button
+                  onClick={() => setShowPDFViewer(false)}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+            
+            {/* PDF Content Area */}
+            <div className="flex-1 p-4 overflow-auto bg-gray-100">
+              <div id="pdf-viewer-content" className="bg-white shadow-lg mx-auto" style={{ width: '210mm', minHeight: '297mm' }}>
+                {/* Report Card Content - Same as above but without page UI */}
+                <div className="p-4">
+                  {/* Header with Logos and Title */}
+                  <div className="relative flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                      <img src={logo} alt="ITEG Logo" className="h-20 object-contain" />
+                    </div>
+                    <div className="absolute left-1/2 transform -translate-x-1/2">
+                      <h1 className="text-xl font-bold text-black">Report Card</h1>
+                    </div>
+                    <div className="text-right text-sm text-gray-600">
+                      <p>Academic Year</p>
+                      <p className="font-semibold text-gray-800">Session 2024-25</p>
+                    </div>
+                  </div>
+                  
+                  <p className="text-center text-gray-600 mt-4">Custom PDF Viewer - Design this area as needed</p>
+                  <p className="text-center text-gray-500 text-sm mt-2">Add your custom PDF content and styling here</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
