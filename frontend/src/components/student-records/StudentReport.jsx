@@ -147,10 +147,10 @@ export default function StudentReport() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <img src={addressIcon} alt="Address" className="w-4 h-4" />
-                    <label className="text-sm font-medium text-gray-600">Address</label>
+                    <img src={addressIcon} alt="Track" className="w-4 h-4" />
+                    <label className="text-sm font-medium text-gray-600">Track</label>
                   </div>
-                  <p className="text-sm font-semibold text-gray-800">{studentData.address || "N/A"}</p>
+                  <p className="text-sm font-semibold text-gray-800">{studentData.track || "N/A"}</p>
                 </div>
               </div>
 
