@@ -141,21 +141,21 @@ export default function StudentReport() {
         <div id="pdf-content" className="mx-auto bg-[#F9FAFB] shadow-xl p-4 print:shadow-none print:bg-white print:mx-0" style={{ width: '210mm', minHeight: '297mm' }}>
 
           {/* Header with Logos and Title */}
-          <div className="relative flex items-center justify-between">
+          <div className="relative flex items-center justify-between" style={{ height: '80px' }}>
             <div className="flex items-center gap-4">
-              <img src={logo} alt="ITEG Logo" className="h-20 object-contain" />
+              <img src={logo} alt="ITEG Logo" className="h-16 object-contain" />
             </div>
             <div className="absolute left-1/2 transform -translate-x-1/2">
-              <h1 className="text-xl font-bold text-black">Report Card</h1>
+              <h1 className="text-lg font-bold text-black">Report Card</h1>
             </div>
-            <div className="text-right text-sm text-gray-600">
+            <div className="text-right text-xs text-gray-600">
               <p>Academic Year</p>
               <p className="font-semibold text-gray-800">Session 2024-25</p>
             </div>
           </div>
 
           {/* White Box 1 - Personal Information */}
-          <div className="bg-white rounded-lg shadow-md p-4 mb-3">
+          <div className="bg-white rounded-lg shadow-md p-4 mb-3" style={{ height: '127px' }}>
             {/* <h2 className="text-2xl font-bold text-gray-800 mb-6">Personal Information</h2> */}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -216,7 +216,7 @@ export default function StudentReport() {
 
           {/* White Box 2 - Stepper */}
           <div className="bg-white rounded-lg shadow-md p-4">
-            <h3 className="text-xl font-bold text-gray-800 mb-6">Level Progress</h3>
+                        <h4 className="text-lg font-bold text-gray-800 mb-4">Level Progress</h4>
             <div className="grid grid-cols-6 gap-4">
               {/* Stepper Column - 80% */}
               <div className="col-span-5">
@@ -376,7 +376,7 @@ export default function StudentReport() {
                       </div>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm text-gray-600 mb-2">Placement Ready</p>
+                      <p className="text-sm text-gray-600 mb-2">Placement</p>
                       <div className="bg-gray-100 rounded-lg p-3">
                         <span className="text-sm font-bold text-gray-800">{reportCardData.careerReadiness.placementReady}</span>
                       </div>
@@ -434,28 +434,28 @@ export default function StudentReport() {
             </div>
           </div>
           {/* Co-Curricular Activities */}
-          <div className="bg-white rounded-lg shadow-md p-4 mt-3">
-            <h4 className="text-lg font-bold text-gray-800 mb-4">Co-Curricular Activities</h4>
-            <div className="grid grid-cols-3 gap-4">
-              {reportCardData?.coCurricular?.length > 0 ? (
-                reportCardData.coCurricular.map((activity, index) => (
-                  <div key={index} className="p-3 bg-gray-50 rounded-lg shadow-md">
+          <h4 className="text-lg font-bold text-gray-800 mb-4 mt-3">Co-Curricular Activities</h4>
+          <div className="grid grid-cols-3 gap-4">
+            {(() => {
+              const categories = ['Certificate', 'Project', 'Sports'];
+              return categories.map((category) => {
+                const count = reportCardData?.coCurricular?.filter(activity => 
+                  activity.category.toLowerCase() === category.toLowerCase()
+                ).length || 0;
+                
+                return (
+                  <div key={category} className="p-3 bg-gray-50 rounded-lg shadow-md flex flex-col justify-center" style={{ height: '80px' }}>
                     <div className="text-center">
-                      <span className="text-md font-bold px-2 py-1 rounded mb-2 inline-block">{activity.category}</span>
-                      <p className="text-sm font-medium text-gray-800 mb-1">{activity.title}</p>
-                      <p className="text-xs text-gray-600">{activity.remark}</p>
+                      <span className="text-sm font-bold px-2 py-1 rounded mb-2 inline-block">{category}</span>
+                      <p className="text-2xl font-bold text-gray-800">{count}</p>
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="col-span-3 text-center text-gray-500 py-4">
-                  <span>No co-curricular activities recorded</span>
-                </div>
-              )}
-            </div>
+                );
+              });
+            })()}
           </div>
           {/* Faculty Feedback */}
-          <div className="bg-[#EFF6FF] rounded-lg shadow-md p-4 mt-3 relative">
+          <div className="bg-[#EFF6FF] rounded-lg shadow-md p-4 mt-3 relative" style={{ height: '120px' }}>
             <h4 className="text-lg font-bold text-gray-800 mb-4">Faculty Feedback</h4>
             <div className="mb-8">
               <p className="text-sm text-gray-600 line-clamp-2">
