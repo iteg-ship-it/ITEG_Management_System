@@ -1,10 +1,13 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetAdmittedStudentsByIdQuery, useGetReportCardQuery } from "../../redux/api/authApi";
 import { HiArrowNarrowLeft } from "react-icons/hi";
+import { FaUserGroup } from "react-icons/fa6";
 import { useState } from "react";
 import Loader from "../common-components/loader/Loader";
 import logo from '../../assets/images/doulLogo.png';
 import { RiEdit2Fill } from "react-icons/ri";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import profileIcon from '../../assets/icons/StuReportprofile_icon.png';
 import courseIcon from '../../assets/icons/StuReportCourse_icon.png';
 import mailIcon from '../../assets/icons/StuReportMail_icon.png';
@@ -19,8 +22,7 @@ export default function StudentReport() {
   const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
   const { data: reportCardResponse, isLoading: reportLoading, isError: reportError } = useGetReportCardQuery(id);
   const reportCardData = reportCardResponse?.data;
-
-
+  const [showPDFViewer, setShowPDFViewer] = useState(false);
 
 
 
@@ -57,6 +59,7 @@ export default function StudentReport() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+            
               <button
                 onClick={() => {
                   try {
@@ -535,59 +538,8 @@ export default function StudentReport() {
                     </div>
                   </div>
                   
-                  {/* Personal Information */}
-                  <div className="bg-white rounded-lg shadow-md p-4 mb-3">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="md:col-span-1 space-y-4">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <img src={profileIcon} alt="Profile" className="w-4 h-4" />
-                            <label className="text-sm font-medium text-gray-600">Full Name</label>
-                          </div>
-                          <p className="text-sm font-semibold text-gray-800">{studentData.firstName} {studentData.lastName}</p>
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <img src={courseIcon} alt="Course" className="w-4 h-4" />
-                            <label className="text-sm font-medium text-gray-600">Course</label>
-                          </div>
-                          <p className="text-sm font-semibold text-gray-800">{studentData.course || "N/A"}</p>
-                        </div>
-                      </div>
-                      <div className="md:col-span-1 space-y-4">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <img src={mailIcon} alt="Email" className="w-4 h-4" />
-                            <label className="text-sm font-medium text-gray-600">Email</label>
-                          </div>
-                          <p className="text-sm font-semibold text-gray-800">{studentData.email || "N/A"}</p>
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <img src={fatherIcon} alt="Father" className="w-4 h-4" />
-                            <label className="text-sm font-medium text-gray-600">Father's Name</label>
-                          </div>
-                          <p className="text-sm font-semibold text-gray-800">{studentData.fatherName || "N/A"}</p>
-                        </div>
-                      </div>
-                      <div className="md:col-span-1 space-y-4">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <img src={contactIcon} alt="Phone" className="w-4 h-4" />
-                            <label className="text-sm font-medium text-gray-600">Contact Number</label>
-                          </div>
-                          <p className="text-sm font-semibold text-gray-800">{studentData.studentMobile || "N/A"}</p>
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <img src={addressIcon} alt="Address" className="w-4 h-4" />
-                            <label className="text-sm font-medium text-gray-600">Address</label>
-                          </div>
-                          <p className="text-sm font-semibold text-gray-800">{studentData.address || "N/A"}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <p className="text-center text-gray-600 mt-4">Custom PDF Viewer - Design this area as needed</p>
+                  <p className="text-center text-gray-500 text-sm mt-2">Add your custom PDF content and styling here</p>
                 </div>
               </div>
             </div>
@@ -597,3 +549,305 @@ export default function StudentReport() {
     </div>
   );
 }
+
+
+// import { useParams, useNavigate } from "react-router-dom";
+// import { useGetAdmittedStudentsByIdQuery, useGetReportCardQuery } from "../../redux/api/authApi";
+// import { HiArrowNarrowLeft } from "react-icons/hi";
+// import { useState } from "react";
+// import Loader from "../common-components/loader/Loader";
+// import logo from '../../assets/images/doulLogo.png';
+// import { RiEdit2Fill } from "react-icons/ri";
+// import profileIcon from '../../assets/icons/StuReportprofile_icon.png';
+// import courseIcon from '../../assets/icons/StuReportCourse_icon.png';
+// import mailIcon from '../../assets/icons/StuReportMail_icon.png';
+// import fatherIcon from '../../assets/icons/StuReportFather_icon.png';
+// import contactIcon from '../../assets/icons/StuReport_Phone.png';
+// import addressIcon from '../../assets/icons/StuReportAddress_icon.png';
+
+// export default function StudentReport() {
+//   const { id } = useParams();
+//   const navigate = useNavigate();
+//   const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
+//   const { data: reportCardResponse, isLoading: reportLoading, isError: reportError } = useGetReportCardQuery(id);
+//   const reportCardData = reportCardResponse?.data;
+
+//   if (isLoading || reportLoading) {
+//     return (
+//       <div className="min-h-screen flex items-center justify-center bg-white">
+//         <Loader />
+//       </div>
+//     );
+//   }
+
+//   if (isError || !studentData) {
+//     return <div className="p-4 text-red-500">Error loading student data.</div>;
+//   }
+
+//   if (reportError) {
+//     console.error('Report Card Error:', reportError);
+//   }
+
+//   const hasReportData = reportCardData && Object.keys(reportCardData).length > 0;
+
+//   return (
+//     <div className="min-h-screen bg-white">
+//       {/* Header */}
+//       <div className="sticky top-0 z-10 print:hidden">
+//         <div className="py-2 sm:py-4">
+//           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+//             <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+//               <button
+//                 onClick={() => window.history.back()}
+//                 className="group flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 text-gray-700 hover:text-gray-900"
+//               >
+//                 <HiArrowNarrowLeft className="text-base sm:text-lg group-hover:-translate-x-1 transition-transform" />
+//                 <span className="text-xs sm:text-sm font-medium">Back</span>
+//               </button>
+//               <div className="h-6 sm:h-8 w-px bg-gray-300 hidden sm:block"></div>
+//               <div className="flex-1 sm:flex-none">
+//                 <h1 className="text-lg sm:text-2xl font-bold text-black">Student Report Card</h1>
+//                 <p className="text-gray-600">Comprehensive performance report for {studentData.firstName} {studentData.lastName}</p>
+//               </div>
+//             </div>
+//             <div className="flex items-center gap-3">
+//               <button
+//                 onClick={() => navigate(`/student/${id}/report/edit`)}
+//                 className="p-2 bg-orange-400 text-white rounded-full text-2xl font-medium hover:bg-orange-500 transition-colors"
+//               >
+//                 <RiEdit2Fill />
+//               </button>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Content */}
+//       <div className="min-h-screen p-6 print:p-0 print:m-0">
+//         {!hasReportData ? (
+//           <div className="mx-auto bg-white shadow-xl p-8 rounded-lg text-center" style={{ maxWidth: '600px' }}>
+//             <h2 className="text-2xl font-bold text-gray-800 mb-4">No Report Card Data</h2>
+//             <p className="text-gray-600 mb-6">No report card has been created for {studentData.firstName} {studentData.lastName} yet.</p>
+//             <button
+//               onClick={() => navigate(`/student/${id}/report/edit`)}
+//               className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+//             >
+//               Create Report Card
+//             </button>
+//           </div>
+//         ) : (
+//           <div className="mx-auto bg-[#F9FAFB] shadow-xl p-4 print:shadow-none print:bg-white print:mx-0" style={{ width: '210mm', minHeight: '297mm' }}>
+//             {/* Header with Logo */}
+//             <div className="relative flex items-center justify-between mb-4" style={{ height: '80px' }}>
+//               <div className="flex items-center gap-4">
+//                 <img src={logo} alt="ITEG Logo" className="h-16 object-contain" />
+//               </div>
+//               <div className="absolute left-1/2 transform -translate-x-1/2">
+//                 <h1 className="text-lg font-bold text-black">Report Card</h1>
+//               </div>
+//               <div className="text-right text-xs text-gray-600">
+//                 <p>Academic Year</p>
+//                 <p className="font-semibold text-gray-800">Session 2024-25</p>
+//               </div>
+//             </div>
+
+//             {/* Personal Information */}
+//             <div className="bg-white rounded-lg shadow-md p-4 mb-3">
+//               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+//                 <div className="space-y-4">
+//                   <div>
+//                     <div className="flex items-center gap-2 mb-1">
+//                       <img src={profileIcon} alt="Profile" className="w-4 h-4" />
+//                       <label className="text-sm font-medium text-gray-600">Full Name</label>
+//                     </div>
+//                     <p className="text-sm font-semibold text-gray-800">{studentData.firstName} {studentData.lastName}</p>
+//                   </div>
+//                   <div>
+//                     <div className="flex items-center gap-2 mb-1">
+//                       <img src={courseIcon} alt="Course" className="w-4 h-4" />
+//                       <label className="text-sm font-medium text-gray-600">Course</label>
+//                     </div>
+//                     <p className="text-sm font-semibold text-gray-800">{studentData.course || "N/A"}</p>
+//                   </div>
+//                 </div>
+
+//                 <div className="space-y-4">
+//                   <div>
+//                     <div className="flex items-center gap-2 mb-1">
+//                       <img src={mailIcon} alt="Email" className="w-4 h-4" />
+//                       <label className="text-sm font-medium text-gray-600">Email</label>
+//                     </div>
+//                     <p className="text-sm font-semibold text-gray-800">{studentData.email || "N/A"}</p>
+//                   </div>
+//                   <div>
+//                     <div className="flex items-center gap-2 mb-1">
+//                       <img src={fatherIcon} alt="Father" className="w-4 h-4" />
+//                       <label className="text-sm font-medium text-gray-600">Father's Name</label>
+//                     </div>
+//                     <p className="text-sm font-semibold text-gray-800">{studentData.fatherName || "N/A"}</p>
+//                   </div>
+//                 </div>
+
+//                 <div className="space-y-4">
+//                   <div>
+//                     <div className="flex items-center gap-2 mb-1">
+//                       <img src={contactIcon} alt="Phone" className="w-4 h-4" />
+//                       <label className="text-sm font-medium text-gray-600">Contact Number</label>
+//                     </div>
+//                     <p className="text-sm font-semibold text-gray-800">{studentData.studentMobile || "N/A"}</p>
+//                   </div>
+//                   <div>
+//                     <div className="flex items-center gap-2 mb-1">
+//                       <img src={addressIcon} alt="Address" className="w-4 h-4" />
+//                       <label className="text-sm font-medium text-gray-600">Address</label>
+//                     </div>
+//                     <p className="text-sm font-semibold text-gray-800">{studentData.address || "N/A"}</p>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* Report Card Content */}
+//             <div className="bg-white rounded-lg shadow-md p-4">
+//               <h4 className="text-lg font-bold text-gray-800 mb-4">Report Card Details</h4>
+              
+//               {/* Academic Performance */}
+//               {reportCardData?.subjects && reportCardData.subjects.length > 0 && (
+//                 <div className="mb-6">
+//                   <h5 className="text-md font-semibold text-gray-700 mb-3">Academic Performance</h5>
+//                   <div className="overflow-x-auto">
+//                     <table className="w-full border-collapse border border-gray-300">
+//                       <thead>
+//                         <tr className="bg-gray-100">
+//                           <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium">Subject</th>
+//                           <th className="border border-gray-300 px-3 py-2 text-center text-sm font-medium">Marks Obtained</th>
+//                           <th className="border border-gray-300 px-3 py-2 text-center text-sm font-medium">Total Marks</th>
+//                           <th className="border border-gray-300 px-3 py-2 text-center text-sm font-medium">Percentage</th>
+//                           <th className="border border-gray-300 px-3 py-2 text-center text-sm font-medium">Grade</th>
+//                         </tr>
+//                       </thead>
+//                       <tbody>
+//                         {reportCardData.subjects.map((subject, index) => (
+//                           <tr key={index}>
+//                             <td className="border border-gray-300 px-3 py-2 text-sm">{subject.name || 'N/A'}</td>
+//                             <td className="border border-gray-300 px-3 py-2 text-center text-sm">{subject.marksObtained || 0}</td>
+//                             <td className="border border-gray-300 px-3 py-2 text-center text-sm">{subject.totalMarks || 0}</td>
+//                             <td className="border border-gray-300 px-3 py-2 text-center text-sm">
+//                               {subject.totalMarks ? ((subject.marksObtained / subject.totalMarks) * 100).toFixed(1) : 0}%
+//                             </td>
+//                             <td className="border border-gray-300 px-3 py-2 text-center text-sm font-medium">{subject.grade || 'N/A'}</td>
+//                           </tr>
+//                         ))}
+//                       </tbody>
+//                     </table>
+//                   </div>
+//                 </div>
+//               )}
+
+//               {/* Overall Performance */}
+//               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+//                 <div className="bg-gray-50 p-4 rounded-lg">
+//                   <h5 className="text-md font-semibold text-gray-700 mb-3">Overall Performance</h5>
+//                   <div className="space-y-2">
+//                     <div className="flex justify-between">
+//                       <span className="text-sm text-gray-600">Total Marks:</span>
+//                       <span className="text-sm font-medium">{reportCardData?.totalMarks || 'N/A'}</span>
+//                     </div>
+//                     <div className="flex justify-between">
+//                       <span className="text-sm text-gray-600">Marks Obtained:</span>
+//                       <span className="text-sm font-medium">{reportCardData?.marksObtained || 'N/A'}</span>
+//                     </div>
+//                     <div className="flex justify-between">
+//                       <span className="text-sm text-gray-600">Percentage:</span>
+//                       <span className="text-sm font-medium">{reportCardData?.percentage || 'N/A'}%</span>
+//                     </div>
+//                     <div className="flex justify-between">
+//                       <span className="text-sm text-gray-600">Overall Grade:</span>
+//                       <span className="text-sm font-bold text-lg">{reportCardData?.grade || 'N/A'}</span>
+//                     </div>
+//                   </div>
+//                 </div>
+
+//                 <div className="bg-gray-50 p-4 rounded-lg">
+//                   <h5 className="text-md font-semibold text-gray-700 mb-3">Additional Information</h5>
+//                   <div className="space-y-2">
+//                     <div className="flex justify-between">
+//                       <span className="text-sm text-gray-600">Class:</span>
+//                       <span className="text-sm font-medium">{reportCardData?.class || 'N/A'}</span>
+//                     </div>
+//                     <div className="flex justify-between">
+//                       <span className="text-sm text-gray-600">Section:</span>
+//                       <span className="text-sm font-medium">{reportCardData?.section || 'N/A'}</span>
+//                     </div>
+//                     <div className="flex justify-between">
+//                       <span className="text-sm text-gray-600">Roll Number:</span>
+//                       <span className="text-sm font-medium">{reportCardData?.rollNumber || 'N/A'}</span>
+//                     </div>
+//                     <div className="flex justify-between">
+//                       <span className="text-sm text-gray-600">Exam Type:</span>
+//                       <span className="text-sm font-medium">{reportCardData?.examType || 'N/A'}</span>
+//                     </div>
+//                   </div>
+//                 </div>
+//               </div>
+
+//               {/* Attendance */}
+//               {reportCardData?.attendance && (
+//                 <div className="mb-6">
+//                   <h5 className="text-md font-semibold text-gray-700 mb-3">Attendance Record</h5>
+//                   <div className="bg-gray-50 p-4 rounded-lg">
+//                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+//                       <div className="text-center">
+//                         <p className="text-sm text-gray-600">Total Days</p>
+//                         <p className="text-lg font-bold">{reportCardData.attendance.totalDays || 0}</p>
+//                       </div>
+//                       <div className="text-center">
+//                         <p className="text-sm text-gray-600">Present Days</p>
+//                         <p className="text-lg font-bold text-green-600">{reportCardData.attendance.presentDays || 0}</p>
+//                       </div>
+//                       <div className="text-center">
+//                         <p className="text-sm text-gray-600">Absent Days</p>
+//                         <p className="text-lg font-bold text-red-600">{reportCardData.attendance.absentDays || 0}</p>
+//                       </div>
+//                       <div className="text-center">
+//                         <p className="text-sm text-gray-600">Attendance %</p>
+//                         <p className="text-lg font-bold">{reportCardData.attendance.percentage || 0}%</p>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 </div>
+//               )}
+
+//               {/* Teacher's Remarks */}
+//               {reportCardData?.remarks && (
+//                 <div className="mb-6">
+//                   <h5 className="text-md font-semibold text-gray-700 mb-3">Teacher's Remarks</h5>
+//                   <div className="bg-gray-50 p-4 rounded-lg">
+//                     <p className="text-sm text-gray-700">{reportCardData.remarks}</p>
+//                   </div>
+//                 </div>
+//               )}
+
+//               {/* Debug: Show all available data */}
+//               {process.env.NODE_ENV === 'development' && (
+//                 <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+//                   <h5 className="text-md font-semibold text-yellow-800 mb-2">Debug: Available Report Data</h5>
+//                   <pre className="text-xs text-yellow-700 overflow-auto max-h-40">
+//                     {JSON.stringify(reportCardData, null, 2)}
+//                   </pre>
+//                 </div>
+//               )}
+
+//               {/* Fallback message */}
+//               {!reportCardData || Object.keys(reportCardData).length === 0 && (
+//                 <div className="text-center text-gray-500">
+//                   <p>No report card data available to display.</p>
+//                 </div>
+//               )}
+//             </div>
+//           </div>
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
