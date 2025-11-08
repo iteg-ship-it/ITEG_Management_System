@@ -8,6 +8,8 @@ import logo from '../../assets/images/doulLogo.png';
 import { RiEdit2Fill } from "react-icons/ri";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
+import StudentReportPDF from './StudentReportPDF';
 import profileIcon from '../../assets/icons/StuReportprofile_icon.png';
 import courseIcon from '../../assets/icons/StuReportCourse_icon.png';
 import mailIcon from '../../assets/icons/StuReportMail_icon.png';
@@ -105,6 +107,15 @@ export default function StudentReport() {
               >
                 View PDF
               </button>
+              <PDFDownloadLink
+                document={<StudentReportPDF studentData={studentData} reportCardData={reportCardData} />}
+                fileName={`Report_Card_${studentData?.firstName || 'Student'}.pdf`}
+                className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 transition-colors"
+              >
+                {({ blob, url, loading, error }) =>
+                  loading ? 'Loading...' : 'Download PDF'
+                }
+              </PDFDownloadLink>
               <button
                 onClick={() => {
                   try {
@@ -583,8 +594,59 @@ export default function StudentReport() {
                     </div>
                   </div>
                   
-                  <p className="text-center text-gray-600 mt-4">Custom PDF Viewer - Design this area as needed</p>
-                  <p className="text-center text-gray-500 text-sm mt-2">Add your custom PDF content and styling here</p>
+                  {/* Personal Information */}
+                  <div className="bg-white rounded-lg shadow-md p-4 mb-3">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="md:col-span-1 space-y-4">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <img src={profileIcon} alt="Profile" className="w-4 h-4" />
+                            <label className="text-sm font-medium text-gray-600">Full Name</label>
+                          </div>
+                          <p className="text-sm font-semibold text-gray-800">{studentData.firstName} {studentData.lastName}</p>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <img src={courseIcon} alt="Course" className="w-4 h-4" />
+                            <label className="text-sm font-medium text-gray-600">Course</label>
+                          </div>
+                          <p className="text-sm font-semibold text-gray-800">{studentData.course || "N/A"}</p>
+                        </div>
+                      </div>
+                      <div className="md:col-span-1 space-y-4">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <img src={mailIcon} alt="Email" className="w-4 h-4" />
+                            <label className="text-sm font-medium text-gray-600">Email</label>
+                          </div>
+                          <p className="text-sm font-semibold text-gray-800">{studentData.email || "N/A"}</p>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <img src={fatherIcon} alt="Father" className="w-4 h-4" />
+                            <label className="text-sm font-medium text-gray-600">Father's Name</label>
+                          </div>
+                          <p className="text-sm font-semibold text-gray-800">{studentData.fatherName || "N/A"}</p>
+                        </div>
+                      </div>
+                      <div className="md:col-span-1 space-y-4">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <img src={contactIcon} alt="Phone" className="w-4 h-4" />
+                            <label className="text-sm font-medium text-gray-600">Contact Number</label>
+                          </div>
+                          <p className="text-sm font-semibold text-gray-800">{studentData.studentMobile || "N/A"}</p>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <img src={addressIcon} alt="Address" className="w-4 h-4" />
+                            <label className="text-sm font-medium text-gray-600">Address</label>
+                          </div>
+                          <p className="text-sm font-semibold text-gray-800">{studentData.address || "N/A"}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
