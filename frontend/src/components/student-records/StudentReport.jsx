@@ -1,15 +1,10 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetAdmittedStudentsByIdQuery, useGetReportCardQuery } from "../../redux/api/authApi";
 import { HiArrowNarrowLeft } from "react-icons/hi";
-import { FaUserGroup } from "react-icons/fa6";
 import { useState } from "react";
 import Loader from "../common-components/loader/Loader";
 import logo from '../../assets/images/doulLogo.png';
 import { RiEdit2Fill } from "react-icons/ri";
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
-import StudentReportPDF from './StudentReportPDF';
 import profileIcon from '../../assets/icons/StuReportprofile_icon.png';
 import courseIcon from '../../assets/icons/StuReportCourse_icon.png';
 import mailIcon from '../../assets/icons/StuReportMail_icon.png';
@@ -24,46 +19,7 @@ export default function StudentReport() {
   const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
   const { data: reportCardResponse, isLoading: reportLoading, isError: reportError } = useGetReportCardQuery(id);
   const reportCardData = reportCardResponse?.data;
-  const [showPDFViewer, setShowPDFViewer] = useState(false);
 
-  const downloadPDF = async () => {
-    const element = document.getElementById('pdf-viewer-content');
-    if (!element) {
-      alert('PDF content not found');
-      return;
-    }
-
-    try {
-      const canvas = await html2canvas(element, {
-        scale: 1.5,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        logging: false
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      
-      const pdfWidth = 210;
-      const pdfHeight = 297;
-      const imgWidth = pdfWidth;
-      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      if (imgHeight > pdfHeight) {
-        const scaleFactor = pdfHeight / imgHeight;
-        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth * scaleFactor, pdfHeight);
-      } else {
-        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-      }
-      
-      const fileName = `Report_Card_${studentData?.firstName || 'Student'}.pdf`;
-      pdf.save(fileName);
-    } catch (error) {
-      console.error('PDF Error:', error);
-      alert('Error generating PDF');
-    }
-  };
 
 
 
@@ -101,21 +57,6 @@ export default function StudentReport() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowPDFViewer(true)}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
-              >
-                View PDF
-              </button>
-              <PDFDownloadLink
-                document={<StudentReportPDF studentData={studentData} reportCardData={reportCardData} />}
-                fileName={`Report_Card_${studentData?.firstName || 'Student'}.pdf`}
-                className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 transition-colors"
-              >
-                {({ blob, url, loading, error }) =>
-                  loading ? 'Loading...' : 'Download PDF'
-                }
-              </PDFDownloadLink>
               <button
                 onClick={() => {
                   try {
