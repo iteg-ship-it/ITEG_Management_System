@@ -1,13 +1,13 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetAdmittedStudentsByIdQuery, useGetReportCardQuery } from "../../redux/api/authApi";
 import { HiArrowNarrowLeft } from "react-icons/hi";
-import { FaUserGroup } from "react-icons/fa6";
+import { FaUserGroup, FaDownload } from "react-icons/fa6";
 import { useState } from "react";
 import Loader from "../common-components/loader/Loader";
 import logo from '../../assets/images/doulLogo.png';
 import { RiEdit2Fill } from "react-icons/ri";
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import StudentReportPDF from './StudentReportPDF';
 import profileIcon from '../../assets/icons/StuReportprofile_icon.png';
 import courseIcon from '../../assets/icons/StuReportCourse_icon.png';
 import mailIcon from '../../assets/icons/StuReportMail_icon.png';
@@ -22,7 +22,7 @@ export default function StudentReport() {
   const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
   const { data: reportCardResponse, isLoading: reportLoading, isError: reportError } = useGetReportCardQuery(id);
   const reportCardData = reportCardResponse?.data;
-  const [showPDFViewer, setShowPDFViewer] = useState(false);
+
 
 
 
@@ -59,7 +59,21 @@ export default function StudentReport() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-            
+              {/* PDF Download Button */}
+              <PDFDownloadLink
+                document={<StudentReportPDF studentData={studentData} reportCardData={reportCardData} />}
+                fileName={`${studentData.firstName}_${studentData.lastName}_Report_Card.pdf`}
+                className="p-2 bg-green-500 text-white rounded-full text-2xl font-medium hover:bg-green-600 transition-colors"
+              >
+                {({ blob, url, loading, error }) =>
+                  loading ? (
+                    <div className="animate-spin">⏳</div>
+                  ) : (
+                    <FaDownload />
+                  )
+                }
+              </PDFDownloadLink>
+              
               <button
                 onClick={() => {
                   try {
@@ -496,56 +510,7 @@ export default function StudentReport() {
         </div>
       </div>
 
-      {/* Custom PDF Viewer Modal */}
-      {showPDFViewer && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg shadow-xl w-[90vw] h-[90vh] flex flex-col">
-            {/* PDF Viewer Header */}
-            <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-xl font-bold text-gray-800">Report Card PDF</h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={downloadPDF}
-                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-                >
-                  Download PDF
-                </button>
-                <button
-                  onClick={() => setShowPDFViewer(false)}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-            
-            {/* PDF Content Area */}
-            <div className="flex-1 p-4 overflow-auto bg-gray-100">
-              <div id="pdf-viewer-content" className="bg-white shadow-lg mx-auto" style={{ width: '210mm', minHeight: '297mm' }}>
-                {/* Report Card Content - Same as above but without page UI */}
-                <div className="p-4">
-                  {/* Header with Logos and Title */}
-                  <div className="relative flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                      <img src={logo} alt="ITEG Logo" className="h-20 object-contain" />
-                    </div>
-                    <div className="absolute left-1/2 transform -translate-x-1/2">
-                      <h1 className="text-xl font-bold text-black">Report Card</h1>
-                    </div>
-                    <div className="text-right text-sm text-gray-600">
-                      <p>Academic Year</p>
-                      <p className="font-semibold text-gray-800">Session 2024-25</p>
-                    </div>
-                  </div>
-                  
-                  <p className="text-center text-gray-600 mt-4">Custom PDF Viewer - Design this area as needed</p>
-                  <p className="text-center text-gray-500 text-sm mt-2">Add your custom PDF content and styling here</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }
