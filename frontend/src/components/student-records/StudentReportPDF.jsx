@@ -1,222 +1,296 @@
-import React from 'react';
-import { Document, Page, Text, View, StyleSheet, Image, Svg, Circle, Rect, Line } from '@react-pdf/renderer';
-import logo from '../../assets/images/doulLogo.png';
+import React from "react";
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+  Image,
+  Svg,
+  Line,
+  Circle,
+} from "@react-pdf/renderer";
 
+import logo from "../../assets/images/doulLogo.png";
+import profileIcon from "../../assets/icons/StuReportprofile_icon.png";
+import courseIcon from "../../assets/icons/StuReportCourse_icon.png";
+import mailIcon from "../../assets/icons/StuReportMail_icon.png";
+import fatherIcon from "../../assets/icons/StuReportFather_icon.png";
+import contactIcon from "../../assets/icons/StuReport_Phone.png";
+import addressIcon from "../../assets/icons/StuReportAddress_icon.png";
+
+/* =================== Styles (adjusted to use page more, larger text + spacing) =================== */
 const styles = StyleSheet.create({
   page: {
-    flexDirection: 'column',
-    backgroundColor: '#FFFFFF',
-    padding: 20,
-    fontFamily: 'Helvetica',
+    flexDirection: "column",
+    backgroundColor: "#FFFFFF",
+    // a little more horizontal space to use the whole page
+    paddingTop: 12,
+    paddingHorizontal: 18,
+    paddingBottom: 12,
+    fontFamily: "Helvetica",
   },
+
+  /* Header */
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-    borderBottom: 2,
-    borderBottomColor: '#7335DD',
-    paddingBottom: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+    paddingBottom: 6,
+    borderBottomWidth: 2,
+    borderBottomColor: "#7335DD",
+    borderBottomStyle: "solid",
   },
-  logo: {
-    width: 70,
-    height: 50,
-  },
-  headerLeft: {
-    flex: 1,
-    alignItems: 'flex-start',
-  },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  headerRight: {
-    flex: 1,
-    alignItems: 'flex-end',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#7335DD',
-    textAlign: 'center',
-    whiteSpace: 'nowrap',
-  },
-  subtitle: {
-    fontSize: 12,
-    color: '#666666',
-    textAlign: 'right',
-  },
+  headerLeft: { flexDirection: "row", alignItems: "center", width: 140 },
+  headerCenter: { flexGrow: 1, alignItems: "center" },
+  headerRight: { width: 140, alignItems: "flex-end" },
+
+  // slightly larger logo
+  logo: { width: 68, height: 46 },
+  // larger title
+  title: { fontSize: 18, fontWeight: "bold", color: "#111827" },
+  subMuted: { fontSize: 9, color: "#6B7280" },
+  subBold: { fontSize: 10, color: "#111827", fontWeight: "bold" },
+
+  /* Section/Card */
   section: {
-    marginBottom: 15,
-    padding: 10,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 5,
+    marginBottom: 8,
+    padding: 10, // more padding for breathing room
+    backgroundColor: "#F9FAFB",
+    borderRadius: 6,
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: "#E5E7EB",
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#333333',
+    fontSize: 12, // bigger title
+    fontWeight: "bold",
+    color: "#111827",
     marginBottom: 8,
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 5,
+
+  /* Info grid - now two columns for more space */
+  infoGrid: { flexDirection: "row", flexWrap: "wrap" },
+  // increased width to 50% to make two columns and more horizontal space for values
+  infoCell: { width: "33.3333%", paddingRight: 4, marginBottom: 4 },
+  infoTop: { flexDirection: "row", alignItems: "center", marginBottom: 4 },
+  icon: { width: 11, height: 11, marginRight: 6 }, // slightly larger icon
+  label: { fontSize: 9, color: "#6B7280", fontWeight: "bold" }, // larger label
+  value: { fontSize: 10, color: "#111827" }, // larger value font
+
+  /* Level Progress */
+  levelWrap: { paddingVertical: 6 },
+  levelLegend: {
+    marginTop: 6,
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
-  threeColumnRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  column: {
-    width: '30%',
-  },
-  label: {
-    fontSize: 10,
-    color: '#666666',
-    fontWeight: 'bold',
-  },
-  value: {
-    fontSize: 10,
-    color: '#333333',
-  },
-  progressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  progressBar: {
-    width: 100,
-    height: 8,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 4,
-    marginLeft: 10,
-  },
-  progressFill: {
-    height: 8,
-    borderRadius: 4,
-  },
-  chartContainer: {
-    marginTop: 10,
-    alignItems: 'center',
-  },
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  gridItem: {
-    width: '48%',
-    marginBottom: 10,
-    padding: 8,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 3,
+  badge: { fontSize: 9, color: "#374151", textAlign: "center", width: 28 },
+
+  /* Three-panels row */
+  boardRow: { flexDirection: "row", gap: 8, marginBottom: 6 },
+  boardCol: {
+    flexGrow: 1,
+    flexBasis: 0,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 6,
     borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: '#E5E7EB',
+    borderStyle: "solid",
+    borderColor: "#E5E7EB",
+    padding: 10, // increased padding
+    minWidth: 0,
   },
-  centerText: {
-    textAlign: 'center',
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#7335DD',
+
+  /* Progress list */
+  skillRow: { marginBottom: 8 },
+  skillHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 4,
   },
-  footer: {
-    marginTop: 20,
-    padding: 10,
-    backgroundColor: '#7335DD',
+  small: { fontSize: 9, color: "#374151" }, // slightly larger
+  barTrack: {
+    height: 8, // increased height
+    backgroundColor: "#E5E7EB",
     borderRadius: 5,
+    overflow: "hidden",
   },
-  footerText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    textAlign: 'center',
+  barFill: { height: 8, backgroundColor: "#7335DD" },
+
+  /* Soft skills */
+  softRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
   },
+  softLeft: { fontSize: 9.5, color: "#374151" },
+  softRight: { fontSize: 9.5, fontWeight: "bold" },
+
+  /* Career readiness (4 in one row) */
+  readinessRow: { flexDirection: "row", justifyContent: "space-between" },
+  pill: {
+    width: "23%",
+    backgroundColor: "#F3F4F6",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: "#E5E7EB",
+  },
+  pillLabel: { fontSize: 9, color: "#6B7280", marginBottom: 6, textAlign: "center" },
+  pillValue: { fontSize: 10, fontWeight: "bold", color: "#111827", textAlign: "center" },
+
+  /* Footer */
+  footer: {
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: "#7335DD",
+    borderRadius: 6,
+  },
+  footerText: { fontSize: 10, color: "#FFFFFF", textAlign: "center" },
 });
 
-// Simple Bar Chart Component
-const BarChart = ({ data, title }) => (
-  <View style={styles.chartContainer}>
-    <Text style={[styles.sectionTitle, { textAlign: 'center', marginBottom: 10 }]}>{title}</Text>
-    <Svg height="120" width="300">
-      {data.map((item, index) => {
-        const barHeight = (item.value / 100) * 80;
-        const x = index * 60 + 20;
-        return (
-          <View key={index}>
-            <Rect
-              x={x}
-              y={100 - barHeight}
-              width="40"
-              height={barHeight}
-              fill={item.color || '#7335DD'}
-            />
-            <Text
-              x={x + 20}
-              y="115"
-              fontSize="8"
-              textAnchor="middle"
-              fill="#333333"
-            >
-              {item.label}
-            </Text>
-          </View>
-        );
-      })}
-    </Svg>
+/* =================== Helpers =================== */
+const InfoItem = ({ icon, label, value }) => (
+  <View style={styles.infoCell}>
+    <View style={styles.infoTop}>
+      <Image src={icon} style={styles.icon} />
+      <Text style={styles.label}>{label}</Text>
+    </View>
+    <Text style={styles.value}>{value || "N/A"}</Text>
   </View>
 );
 
-// Simple Pie Chart Component
-const PieChart = ({ data, title }) => {
-  const total = data.reduce((sum, item) => sum + item.value, 0);
-  let currentAngle = 0;
-  
+const ProgressBar = ({ percent }) => (
+  <View style={styles.barTrack}>
+    <View
+      style={[
+        styles.barFill,
+        { width: `${Math.max(0, Math.min(100, Number(percent) || 0))}%` },
+      ]}
+    />
+  </View>
+);
+
+const SoftItem = ({ title, status }) => (
+  <View style={styles.softRow}>
+    <Text style={styles.softLeft}>{title}</Text>
+    <Text
+      style={[
+        styles.softRight,
+        {
+          color:
+            status === "Excellent"
+              ? "#059669"
+              : status === "Good"
+              ? "#2563EB"
+              : status === "Average"
+              ? "#D97706"
+              : "#DC2626",
+        },
+      ]}
+    >
+      {status}
+    </Text>
+  </View>
+);
+
+/* Level steps array */
+const LEVEL_STEPS = ["1A", "1B", "1C", "2A", "2B", "2C"];
+
+/* Level timeline */
+const LevelTimeline = ({ currentLevel = "1A" }) => {
+  const steps = LEVEL_STEPS;
+  const currentIdx = Math.max(
+    0,
+    steps.findIndex(
+      (s) => s.toUpperCase() === String(currentLevel || "1A").toUpperCase()
+    )
+  );
+
+  // Optimized width for better level display
+  const width = 520;
+  const left = 20;
+  const right = width - 20;
+  const y = 20;
+
+  const pts = steps.map(
+    (_, i) => left + (i * (right - left)) / (steps.length - 1)
+  );
+
   return (
-    <View style={styles.chartContainer}>
-      <Text style={[styles.sectionTitle, { textAlign: 'center', marginBottom: 10 }]}>{title}</Text>
-      <Svg height="120" width="120">
-        <Circle cx="60" cy="60" r="50" fill="#E5E7EB" />
-        {data.map((item, index) => {
-          const angle = (item.value / total) * 360;
-          const slice = (
-            <Circle
-              key={index}
-              cx="60"
-              cy="60"
-              r="45"
-              fill={item.color || '#7335DD'}
-              stroke="#FFFFFF"
-              strokeWidth="2"
-            />
+    <View style={styles.levelWrap}>
+      <Svg width={width} height="35">
+        <Line x1={left} y1={y} x2={right} y2={y} stroke="#E5E7EB" strokeWidth="4" />
+        <Line
+          x1={left}
+          y1={y}
+          x2={pts[currentIdx]}
+          y2={y}
+          stroke="#10B981"
+          strokeWidth="4"
+        />
+        {pts.map((x, i) => {
+          const isDone = i < currentIdx;
+          const isCurrent = i === currentIdx;
+          const fill = isCurrent ? "#7335DD" : isDone ? "#10B981" : "#FFFFFF";
+          const stroke = isCurrent ? "#7335DD" : isDone ? "#10B981" : "#D1D5DB";
+          return (
+            <g key={i}>
+              <Circle
+                cx={x}
+                cy={y}
+                r="12"
+                fill={fill}
+                stroke={stroke}
+                strokeWidth={isCurrent ? "3" : "2"}
+              />
+              <text
+                x={x}
+                y={y + 3}
+                textAnchor="middle"
+                fontSize="8"
+                fill="white"
+                fontWeight="bold"
+              >
+                {steps[i]}
+              </text>
+            </g>
           );
-          currentAngle += angle;
-          return slice;
         })}
       </Svg>
     </View>
   );
 };
 
-const StudentReportPDF = ({ studentData, reportCardData }) => {
-  // Sample chart data
-  const technicalSkillsData = reportCardData?.technicalSkills?.map((skill, index) => ({
-    label: skill.skillName.substring(0, 8),
-    value: skill.totalPercentage,
-    color: ['#3B82F6', '#10B981', '#8B5CF6', '#EF4444', '#F59E0B'][index % 5]
-  })) || [];
+const softStatus = (score, max) => {
+  const pct = (Number(score || 0) / Number(max || 1)) * 100;
+  if (pct >= 90) return "Excellent";
+  if (pct >= 70) return "Good";
+  if (pct >= 50) return "Average";
+  return "Poor";
+};
 
-  const academicData = [
-    { label: 'FY', value: reportCardData?.academicPerformance?.yearWiseSGPA?.find(y => y.year === 'FY')?.sgpa * 10 || 70, color: '#3B82F6' },
-    { label: 'SY', value: reportCardData?.academicPerformance?.yearWiseSGPA?.find(y => y.year === 'SY')?.sgpa * 10 || 75, color: '#10B981' },
-    { label: 'TY', value: reportCardData?.academicPerformance?.yearWiseSGPA?.find(y => y.year === 'TY')?.sgpa * 10 || 80, color: '#8B5CF6' },
-  ];
+/* =================== Main Component =================== */
+const StudentReportPDF = ({ studentData = {}, reportCardData = {} }) => {
+  const technicalSkills =
+    reportCardData?.technicalSkills?.map((s) => ({
+      name: s?.skillName || "Skill",
+      percent: Math.round(Number(s?.totalPercentage || 0)),
+    })) || [];
 
-  const skillsDistribution = [
-    { label: 'Technical', value: 60, color: '#3B82F6' },
-    { label: 'Soft Skills', value: 25, color: '#10B981' },
-    { label: 'Leadership', value: 15, color: '#F59E0B' },
-  ];
+  const softCats = reportCardData?.softSkills?.categories || [];
+  const discCats = reportCardData?.discipline?.categories || [];
+
+  const co = reportCardData?.coCurricular || [];
+  const coCounts = ["Certificate", "Project", "Sports"].map((c) => ({
+    title: c,
+    count: co.filter(
+      (x) => (x?.category || "").toLowerCase() === c.toLowerCase()
+    ).length,
+  }));
 
   return (
     <Document>
@@ -230,194 +304,258 @@ const StudentReportPDF = ({ studentData, reportCardData }) => {
             <Text style={styles.title}>Report Card</Text>
           </View>
           <View style={styles.headerRight}>
-            <Text style={styles.subtitle}>Academic Year</Text>
-            <Text style={styles.subtitle}>Session 2024-25</Text>
+            <Text style={styles.subMuted}>Academic Year</Text>
+            <Text style={styles.subBold}>Session 2024-25</Text>
           </View>
         </View>
 
-        {/* Personal Information */}
+        {/* Personal Information - now two columns */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
-          <View style={styles.threeColumnRow}>
-            <View style={styles.column}>
-              <Text style={styles.label}>Name:</Text>
-              <Text style={styles.value}>{studentData?.firstName} {studentData?.lastName}</Text>
-            </View>
-            <View style={styles.column}>
-              <Text style={styles.label}>Course:</Text>
-              <Text style={styles.value}>{studentData?.course || 'N/A'}</Text>
-            </View>
-            <View style={styles.column}>
-              <Text style={styles.label}>Email:</Text>
-              <Text style={styles.value}>{studentData?.email || 'N/A'}</Text>
-            </View>
-          </View>
-          <View style={styles.threeColumnRow}>
-            <View style={styles.column}>
-              <Text style={styles.label}>Father's Name:</Text>
-              <Text style={styles.value}>{studentData?.fatherName || 'N/A'}</Text>
-            </View>
-            <View style={styles.column}>
-              <Text style={styles.label}>Contact:</Text>
-              <Text style={styles.value}>{studentData?.studentMobile || 'N/A'}</Text>
-            </View>
-            <View style={styles.column}>
-              <Text style={styles.label}>Track:</Text>
-              <Text style={styles.value}>{studentData?.track || 'N/A'}</Text>
-            </View>
+          <View style={styles.infoGrid}>
+            <InfoItem
+              icon={profileIcon}
+              label="Full Name"
+              value={`${studentData?.firstName || ""} ${studentData?.lastName || ""}`.trim() || "N/A"}
+            />
+            <InfoItem icon={mailIcon} label="Email" value={studentData?.email} />
+            <InfoItem icon={contactIcon} label="Contact Number" value={studentData?.studentMobile} />
+            <InfoItem icon={courseIcon} label="Course" value={studentData?.course} />
+            <InfoItem icon={fatherIcon} label="Father's Name" value={studentData?.fatherName} />
+            <InfoItem icon={addressIcon} label="Current Level" value={`Level ${studentData?.currentLevel || "1A"}`} />
           </View>
         </View>
 
         {/* Level Progress */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Level Progress</Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>Current Level:</Text>
-            <Text style={styles.value}>{studentData?.currentLevel || 'N/A'}</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <Text style={[styles.value, { fontSize: 11 }]}>
+              Current Level: <Text style={{ fontWeight: 'bold', color: '#7335DD' }}>Level {studentData?.currentLevel || "1A"}</Text>
+            </Text>
+            <Text style={[styles.small, { color: '#6B7280' }]}>
+              Progress: {Math.round(((LEVEL_STEPS.findIndex(s => s === (studentData?.currentLevel || "1A")) + 1) / LEVEL_STEPS.length) * 100)}% Complete
+            </Text>
           </View>
+          <LevelTimeline currentLevel={studentData?.currentLevel || "1A"} />
         </View>
 
-        {/* Technical Skills Chart */}
-        {technicalSkillsData.length > 0 && (
-          <View style={styles.section}>
-            <BarChart data={technicalSkillsData} title="Technical Skills Performance" />
-          </View>
-        )}
-
-        {/* Academic Performance */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Academic Performance</Text>
-          <View style={styles.gridContainer}>
-            <View style={styles.gridItem}>
-              <Text style={styles.label}>CGPA</Text>
-              <Text style={styles.centerText}>{reportCardData?.academicPerformance?.cgpa || 'N/A'}</Text>
-            </View>
-            <View style={styles.gridItem}>
-              <Text style={styles.label}>Overall Grade</Text>
-              <Text style={styles.centerText}>{reportCardData?.overallGrade || 'N/A'}</Text>
-            </View>
-          </View>
-          <BarChart data={academicData} title="Year-wise SGPA Performance" />
-        </View>
-
-        {/* Soft Skills */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Soft Skills</Text>
-          <View style={styles.gridContainer}>
-            {reportCardData?.softSkills?.categories?.length > 0 ? reportCardData.softSkills.categories.map((category, index) => {
-              const percentage = (category.score / category.maxMarks) * 100;
-              let status = "Poor";
-              if (percentage >= 90) status = "Excellent";
-              else if (percentage >= 70) status = "Good";
-              else if (percentage >= 50) status = "Average";
-              
-              return (
-                <View key={index} style={styles.gridItem}>
-                  <Text style={styles.label}>{category.title}</Text>
-                  <Text style={styles.value}>{status}</Text>
+        {/* Technical | Soft | Discipline */}
+        <View style={styles.boardRow}>
+          {/* Technical */}
+          <View style={styles.boardCol}>
+            <Text style={styles.sectionTitle}>Technical Skills</Text>
+            {(technicalSkills.length ? technicalSkills : [{ name: "N/A", percent: 0 }]).map(
+              (s, i) => (
+                <View key={i} style={styles.skillRow}>
+                  <View style={styles.skillHeader}>
+                    <Text style={styles.small}>{s.name}</Text>
+                    <Text style={styles.small}>{s.percent}%</Text>
+                  </View>
+                  <ProgressBar percent={s.percent} />
                 </View>
-              );
-            }) : (
-              <View style={styles.gridItem}>
-                <Text style={styles.value}>N/A</Text>
-              </View>
+              )
+            )}
+          </View>
+
+          {/* Soft */}
+          <View style={styles.boardCol}>
+            <Text style={styles.sectionTitle}>Soft Skills</Text>
+            {softCats.length ? (
+              softCats.map((c, i) => (
+                <SoftItem
+                  key={i}
+                  title={c?.title || "Skill"}
+                  status={softStatus(c?.score, c?.maxMarks)}
+                />
+              ))
+            ) : (
+              <Text style={styles.small}>N/A</Text>
+            )}
+          </View>
+
+          {/* Discipline */}
+          <View style={styles.boardCol}>
+            <Text style={styles.sectionTitle}>Discipline</Text>
+            {discCats.length ? (
+              discCats.map((c, i) => {
+                const pct =
+                  ((Number(c?.score || 0) / Number(c?.maxMarks || 10)) * 100) || 0;
+                return (
+                  <View key={i} style={styles.skillRow}>
+                    <View style={styles.skillHeader}>
+                      <Text style={styles.small}>{c?.title || "Metric"}</Text>
+                      <Text style={styles.small}>
+                        {c?.score}/{c?.maxMarks}
+                      </Text>
+                    </View>
+                    <ProgressBar percent={pct} />
+                  </View>
+                );
+              })
+            ) : (
+              <Text style={styles.small}>N/A</Text>
             )}
           </View>
         </View>
 
-        {/* Discipline */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Discipline</Text>
-          <View style={styles.gridContainer}>
-            {reportCardData?.discipline?.categories?.length > 0 ? reportCardData.discipline.categories.map((category, index) => (
-              <View key={index} style={styles.gridItem}>
-                <Text style={styles.label}>{category.title}</Text>
-                <Text style={styles.value}>{category.score}/{category.maxMarks}</Text>
-              </View>
-            )) : (
-              <View style={styles.gridItem}>
-                <Text style={styles.value}>N/A</Text>
-              </View>
-            )}
-          </View>
-        </View>
-
-        {/* Career Readiness */}
+        {/* Career Readiness (4 in one row) */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Career Readiness</Text>
-          <View style={styles.gridContainer}>
-            <View style={styles.gridItem}>
-              <Text style={styles.label}>Resume</Text>
-              <Text style={styles.value}>{reportCardData?.careerReadiness?.resumeStatus || 'N/A'}</Text>
+          <View style={styles.readinessRow}>
+            <View style={styles.pill}>
+              <Text style={styles.pillLabel}>Resume</Text>
+              <Text style={styles.pillValue}>
+                {reportCardData?.careerReadiness?.resumeStatus || "Not created"}
+              </Text>
             </View>
-            <View style={styles.gridItem}>
-              <Text style={styles.label}>LinkedIn</Text>
-              <Text style={styles.value}>{reportCardData?.careerReadiness?.linkedinStatus || 'N/A'}</Text>
+            <View style={styles.pill}>
+              <Text style={styles.pillLabel}>LinkedIn</Text>
+              <Text style={styles.pillValue}>
+                {reportCardData?.careerReadiness?.linkedinStatus || "Need to improve"}
+              </Text>
             </View>
-            <View style={styles.gridItem}>
-              <Text style={styles.label}>Aptitude</Text>
-              <Text style={styles.value}>{reportCardData?.careerReadiness?.aptitudeStatus || 'N/A'}</Text>
+            <View style={styles.pill}>
+              <Text style={styles.pillLabel}>Aptitude</Text>
+              <Text style={styles.pillValue}>
+                {reportCardData?.careerReadiness?.aptitudeStatus || "In-progress"}
+              </Text>
             </View>
-            <View style={styles.gridItem}>
-              <Text style={styles.label}>Placement Ready</Text>
-              <Text style={styles.value}>{reportCardData?.careerReadiness?.placementReady || 'N/A'}</Text>
+            <View style={styles.pill}>
+              <Text style={styles.pillLabel}>Placement</Text>
+              <Text style={styles.pillValue}>
+                {reportCardData?.careerReadiness?.placementReady || "Not-ready"}
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* Co-Curricular Activities */}
+        {/* Academic Performance (summary row) */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Co-Curricular Activities</Text>
-          <View style={styles.threeColumnRow}>
-            {['Certificate', 'Project', 'Sports'].map((category) => {
-              const count = reportCardData?.coCurricular?.filter(activity => 
-                activity.category.toLowerCase() === category.toLowerCase()
-              ).length || 0;
-              
-              return (
-                <View key={category} style={styles.column}>
-                  <Text style={styles.label}>{category}:</Text>
-                  <Text style={styles.centerText}>{count}</Text>
-                </View>
-              );
-            })}
+          <Text style={styles.sectionTitle}>Academic Performance</Text>
+          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            {[
+              { title: "Current Level", val: `Level ${studentData?.currentLevel || "1A"}` },
+              { title: "1st Year SGPA", val: reportCardData?.academicPerformance?.yearWiseSGPA?.find(y => y.year === "FY")?.sgpa ?? "N/A" },
+              { title: "2nd Year SGPA", val: reportCardData?.academicPerformance?.yearWiseSGPA?.find(y => y.year === "SY")?.sgpa ?? "N/A" },
+              { title: "3rd Year SGPA", val: reportCardData?.academicPerformance?.yearWiseSGPA?.find(y => y.year === "TY")?.sgpa ?? "N/A" },
+              { title: "CGPA", val: reportCardData?.academicPerformance?.cgpa ?? "N/A" },
+            ].map((it, idx) => (
+              <View
+                key={idx}
+                style={{
+                  width: "19.2%",
+                  backgroundColor: "#FFFFFF",
+                  borderRadius: 6,
+                  borderWidth: 1,
+                  borderStyle: "solid",
+                  borderColor: "#E5E7EB",
+                  paddingVertical: 8,
+                  paddingHorizontal: 6,
+                }}
+              >
+                <Text style={{ fontSize: 9, color: "#6B7280", textAlign: "center", marginBottom: 4 }}>
+                  {it.title}
+                </Text>
+                <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center", color: "#111827" }}>
+                  {it.val}
+                </Text>
+              </View>
+            ))}
           </View>
         </View>
+
+        {/* Co-Curricular Activities (SMALLER CARDS) */}
+        {/* <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Co-Curricular Activities</Text>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              marginTop: 6,
+            }}
+          >
+            {coCounts.map((c) => (
+              <View
+                key={c.title}
+                style={{
+                  width: "30%",
+                  paddingVertical: 8,
+                  paddingHorizontal: 8,
+                  backgroundColor: "#FFFFFF",
+                  borderRadius: 5,
+                  borderWidth: 1,
+                  borderStyle: "solid",
+                  borderColor: "#E5E7EB",
+                  textAlign: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 10,
+                    fontWeight: "bold",
+                    color: "#374151",
+                    marginBottom: 4,
+                    textAlign: "center",
+                  }}
+                >
+                  {c.title}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "bold",
+                    color: "#111827",
+                    textAlign: "center",
+                  }}
+                >
+                  {c.count}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View> */}
 
         {/* Faculty Feedback */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Faculty Feedback</Text>
-          <Text style={styles.value}>{reportCardData?.facultyRemark || 'No feedback available'}</Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>Rating:</Text>
-            <Text style={styles.value}>
-              {(() => {
-                const grade = reportCardData?.overallGrade;
-                if (grade === 'A+') return '5.0';
-                else if (grade === 'A') return '4.5';
-                else if (grade === 'B+') return '4.0';
-                else if (grade === 'B') return '3.5';
-                else if (grade === 'C+') return '3.0';
-                else if (grade === 'C') return '2.5';
-                else if (grade === 'D+') return '2.0';
-                else if (grade === 'D') return '1.5';
-                else if (grade === 'F') return '1.0';
-                else return '3.0';
-              })()} ★
+          <Text style={styles.value}>
+            {reportCardData?.facultyRemark || "No feedback available"}
+          </Text>
+
+          <View style={{ flexDirection: "row", marginTop: 8, gap: 12 }}>
+            <Text style={styles.label}>
+              Rating:{" "}
+              <Text style={styles.value}>
+                {(() => {
+                  const g = (reportCardData?.overallGrade || "").toUpperCase();
+                  if (g === "A+") return "5.0";
+                  if (g === "A") return "4.5";
+                  if (g === "B+") return "4.0";
+                  if (g === "B") return "3.5";
+                  if (g === "C+") return "3.0";
+                  if (g === "C") return "2.5";
+                  if (g === "D+") return "2.0";
+                  if (g === "D") return "1.5";
+                  if (g === "F") return "1.0";
+                  return "3.0";
+                })()} ★
+              </Text>
             </Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Generated by:</Text>
-            <Text style={styles.value}>{reportCardData?.generatedByName || 'N/A'}</Text>
+
+            <Text style={styles.label}>
+              Generated by:{" "}
+              <Text style={styles.value}>
+                {reportCardData?.generatedByName || "N/A"}
+              </Text>
+            </Text>
           </View>
         </View>
 
-        {/* Final Assessment */}
+        {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            Final Status: Level {studentData?.currentLevel || 'N/A'} | 
-            Result: {studentData?.currentLevel || 'N/A'} | 
-            Overall Grade: {reportCardData?.overallGrade || 'N/A'}
+            Current Level: {studentData?.currentLevel || "1A"} • Overall Grade: {reportCardData?.overallGrade || "B+"} • Academic Year: 2024-25
           </Text>
         </View>
       </Page>
