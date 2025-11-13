@@ -9,6 +9,7 @@ import {
   Svg,
   Line,
   Circle,
+  G, // Use G for grouping elements for better rendering/styling in react-pdf
 } from "@react-pdf/renderer";
 
 import logo from "../../assets/images/doulLogo.png";
@@ -197,80 +198,140 @@ const SoftItem = ({ title, status }) => (
   </View>
 );
 
-/* Level steps array */
-const LEVEL_STEPS = ["1A", "1B", "1C", "2A", "2B", "2C"];
-
-/* Level timeline */
-const LevelTimeline = ({ currentLevel = "1A" }) => {
-  const steps = LEVEL_STEPS;
-  const currentIdx = Math.max(
-    0,
-    steps.findIndex(
-      (s) => s.toUpperCase() === String(currentLevel || "1A").toUpperCase()
-    )
-  );
-
-  // Optimized width for better level display
-  const width = 520;
-  const left = 20;
-  const right = width - 20;
-  const y = 20;
-
-  const pts = steps.map(
-    (_, i) => left + (i * (right - left)) / (steps.length - 1)
-  );
-
-  return (
-    <View style={styles.levelWrap}>
-      <Svg width={width} height="35">
-        <Line x1={left} y1={y} x2={right} y2={y} stroke="#E5E7EB" strokeWidth="4" />
-        <Line
-          x1={left}
-          y1={y}
-          x2={pts[currentIdx]}
-          y2={y}
-          stroke="#10B981"
-          strokeWidth="4"
-        />
-        {pts.map((x, i) => {
-          const isDone = i < currentIdx;
-          const isCurrent = i === currentIdx;
-          const fill = isCurrent ? "#7335DD" : isDone ? "#10B981" : "#FFFFFF";
-          const stroke = isCurrent ? "#7335DD" : isDone ? "#10B981" : "#D1D5DB";
-          return (
-            <g key={i}>
-              <Circle
-                cx={x}
-                cy={y}
-                r="12"
-                fill={fill}
-                stroke={stroke}
-                strokeWidth={isCurrent ? "3" : "2"}
-              />
-              <text
-                x={x}
-                y={y + 3}
-                textAnchor="middle"
-                fontSize="8"
-                fill="white"
-                fontWeight="bold"
-              >
-                {steps[i]}
-              </text>
-            </g>
-          );
-        })}
-      </Svg>
-    </View>
-  );
-};
-
 const softStatus = (score, max) => {
   const pct = (Number(score || 0) / Number(max || 1)) * 100;
   if (pct >= 90) return "Excellent";
   if (pct >= 70) return "Good";
   if (pct >= 50) return "Average";
   return "Poor";
+};
+
+
+/* Level steps array - Adjusted to match the visual steps 1A through 2C */
+const LEVEL_STEPS = ["1A", "1B", "1C", "2A", "2B", "2C"];
+
+/* =================== Level Timeline Component (UPDATED) =================== */
+const LevelTimeline = ({ currentLevel = "1A" }) => {
+  const steps = LEVEL_STEPS;
+  const currentLevelUpper = String(currentLevel || "1A").toUpperCase();
+  // Find the index of the current level
+  const currentIdx = Math.max(
+    0,
+    steps.findIndex((s) => s.toUpperCase() === currentLevelUpper)
+  );
+
+  // Constants for SVG dimensions and positioning
+  const width = 480; // Total width for the SVG canvas (matches typical react-pdf A4 width)
+  const padding = 20; // Padding from the edges for circles
+  const yCenter = 15; // Vertical center for the line and circles
+  const circleRadius = 12;
+  const lineStrokeWidth = 3;
+
+  const innerWidth = width - padding * 2;
+  // Calculate the horizontal position for each step's circle center
+  const pts = steps.map(
+    (_, i) => padding + (i * innerWidth) / (steps.length - 1)
+  );
+
+  // The progress line ends at the center of the current circle
+  const progressLineEnd = pts[currentIdx];
+
+  return (
+    <View style={styles.levelWrap}>
+      <Svg width={width} height="50" viewBox={`0 0 ${width} 50`}>
+        {/* 1. Background line (Gray) */}
+        <Line
+          x1={pts[0]}
+          y1={yCenter}
+          x2={pts[steps.length - 1]}
+          y2={yCenter}
+          stroke="#E5E7EB" // Light gray for inactive track
+          strokeWidth={lineStrokeWidth}
+        />
+
+        {/* 2. Progress line (Green) */}
+        <Line
+          x1={pts[0]}
+          y1={yCenter}
+          x2={progressLineEnd}
+          y2={yCenter}
+          stroke="#10B981" // Green for active progress
+          strokeWidth={lineStrokeWidth}
+        />
+
+        {/* 3. Level circles and labels */}
+        {pts.map((x, i) => {
+          const isPassed = i < currentIdx;
+          const isCurrent = i === currentIdx;
+          const isUpcoming = i > currentIdx;
+
+          // Determine circle color: Green for passed, Yellow for current, Gray for upcoming
+          const circleFill = isPassed
+            ? "#10B981" // Green
+            : isCurrent
+            ? "#F59E0B" // Yellow
+            : "#E5E7EB"; // Light Gray
+
+          // Determine text color for the label below the circle
+          const labelColor = isCurrent ? "#F59E0B" : "#374151";
+
+          return (
+            <G key={i}>
+              {/* Circle */}
+              <Circle
+                cx={x}
+                cy={yCenter}
+                r={circleRadius}
+                fill={circleFill}
+                stroke={isCurrent ? "#F59E0B" : "none"} // Optional: yellow stroke for current
+                strokeWidth={isCurrent ? 1 : 0}
+              />
+
+              {/* Checkmark for Passed Levels */}
+              {isPassed && (
+                <Text
+                  x={x}
+                  y={yCenter + 4} // Adjusted Y for better vertical centering
+                  textAnchor="middle"
+                  fontSize="12"
+                  fill="white"
+                  fontWeight="bold"
+                >
+                  ✓
+                </Text>
+              )}
+              
+              {/* Level Text (Current and Upcoming) */}
+              {!isPassed && (
+                <Text
+                  x={x}
+                  y={yCenter + 3} // Adjusted Y for better vertical centering
+                  textAnchor="middle"
+                  fontSize="10"
+                  fill={isCurrent ? "white" : "#6B7280"} // White text on yellow, gray text on light gray
+                  fontWeight={isCurrent ? "bold" : "normal"}
+                >
+                  {steps[i]}
+                </Text>
+              )}
+
+              {/* Label below the circle */}
+              <Text
+                x={x}
+                y={yCenter + 25}
+                textAnchor="middle"
+                fontSize="8"
+                fill={labelColor}
+                fontWeight={isCurrent ? "bold" : "normal"}
+              >
+                {steps[i]}
+              </Text>
+            </G>
+          );
+        })}
+      </Svg>
+    </View>
+  );
 };
 
 /* =================== Main Component =================== */
@@ -284,13 +345,14 @@ const StudentReportPDF = ({ studentData = {}, reportCardData = {} }) => {
   const softCats = reportCardData?.softSkills?.categories || [];
   const discCats = reportCardData?.discipline?.categories || [];
 
-  const co = reportCardData?.coCurricular || [];
-  const coCounts = ["Certificate", "Project", "Sports"].map((c) => ({
-    title: c,
-    count: co.filter(
-      (x) => (x?.category || "").toLowerCase() === c.toLowerCase()
-    ).length,
-  }));
+  // co-curricular calculation (not used in the commented-out section)
+  // const co = reportCardData?.coCurricular || [];
+  // const coCounts = ["Certificate", "Project", "Sports"].map((c) => ({
+  //   title: c,
+  //   count: co.filter(
+  //     (x) => (x?.category || "").toLowerCase() === c.toLowerCase()
+  //   ).length,
+  // }));
 
   return (
     <Document>
@@ -326,12 +388,12 @@ const StudentReportPDF = ({ studentData = {}, reportCardData = {} }) => {
           </View>
         </View>
 
-        {/* Level Progress */}
+        {/* Level Progress (UPDATED) */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Level Progress</Text>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <Text style={[styles.value, { fontSize: 11 }]}>
-              Current Level: <Text style={{ fontWeight: 'bold', color: '#7335DD' }}>Level {studentData?.currentLevel || "1A"}</Text>
+              Current Level: <Text style={{ fontWeight: 'bold', color: '#F59E0B' }}>Level {studentData?.currentLevel || "1A"}</Text>
             </Text>
             <Text style={[styles.small, { color: '#6B7280' }]}>
               Progress: {Math.round(((LEVEL_STEPS.findIndex(s => s === (studentData?.currentLevel || "1A")) + 1) / LEVEL_STEPS.length) * 100)}% Complete
@@ -465,57 +527,6 @@ const StudentReportPDF = ({ studentData = {}, reportCardData = {} }) => {
           </View>
         </View>
 
-        {/* Co-Curricular Activities (SMALLER CARDS) */}
-        {/* <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Co-Curricular Activities</Text>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              marginTop: 6,
-            }}
-          >
-            {coCounts.map((c) => (
-              <View
-                key={c.title}
-                style={{
-                  width: "30%",
-                  paddingVertical: 8,
-                  paddingHorizontal: 8,
-                  backgroundColor: "#FFFFFF",
-                  borderRadius: 5,
-                  borderWidth: 1,
-                  borderStyle: "solid",
-                  borderColor: "#E5E7EB",
-                  textAlign: "center",
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 10,
-                    fontWeight: "bold",
-                    color: "#374151",
-                    marginBottom: 4,
-                    textAlign: "center",
-                  }}
-                >
-                  {c.title}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: "bold",
-                    color: "#111827",
-                    textAlign: "center",
-                  }}
-                >
-                  {c.count}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View> */}
-
         {/* Faculty Feedback */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Faculty Feedback</Text>
@@ -553,7 +564,7 @@ const StudentReportPDF = ({ studentData = {}, reportCardData = {} }) => {
         </View>
 
         {/* Footer */}
-        <View style={styles.footer}>
+        <View style={styles.footer} fixed>
           <Text style={styles.footerText}>
             Current Level: {studentData?.currentLevel || "1A"} • Overall Grade: {reportCardData?.overallGrade || "B+"} • Academic Year: 2024-25
           </Text>
@@ -564,3 +575,4 @@ const StudentReportPDF = ({ studentData = {}, reportCardData = {} }) => {
 };
 
 export default StudentReportPDF;
+
