@@ -552,6 +552,7 @@ export default function StudentReportForm() {
                 options={[
                   { value: "", label: "Select Status" },
                   { value: "Ready", label: "Ready" },
+                  { value: "In-process", label: "In-process" },
                   { value: "Not Ready", label: "Not Ready" }
                 ]}
               />
