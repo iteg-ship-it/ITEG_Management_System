@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useGetAdmittedStudentsByIdQuery, useCreateReportCardMutation, useGetReportCardForEditQuery } from "../../redux/api/authApi";
 import { HiArrowNarrowLeft } from "react-icons/hi";
 import Loader from "../common-components/loader/Loader";
+import { toast } from "react-toastify";
 
 const SimpleDropdown = ({ label, value, onChange, options }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -283,15 +284,15 @@ export default function StudentReportForm() {
     e.preventDefault();
 
     if (!formData.batchYear.trim()) {
-      alert('Please enter batch year');
+      toast.error('Please enter batch year');
       return;
     }
     if (!formData.generatedByName.trim()) {
-      alert('Please enter faculty name');
+      toast.error('Please enter faculty name');
       return;
     }
     if (!formData.overallGrade) {
-      alert('Please select overall grade');
+      toast.error('Please select overall grade');
       return;
     }
 
@@ -341,7 +342,7 @@ export default function StudentReportForm() {
       const result = await createReportCard(reportData).unwrap();
       console.log('Report card created successfully:', result);
 
-      alert(existingReportData?.data ? 'Report card updated successfully!' : 'Report card created successfully!');
+      toast.success(existingReportData?.data ? 'Report card updated successfully!' : 'Report card created successfully!');
       navigate(`/student/${id}/report`);
     } catch (error) {
       console.error('Submit Error:', error);
@@ -355,7 +356,7 @@ export default function StudentReportForm() {
         errorMsg = error.data.message;
       }
 
-      alert(errorMsg);
+      toast.error(errorMsg);
     }
   };
 

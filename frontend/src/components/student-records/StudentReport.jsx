@@ -4,7 +4,7 @@ import { HiArrowNarrowLeft } from "react-icons/hi";
 import { FaUserGroup, FaDownload } from "react-icons/fa6";
 import { useState } from "react";
 import Loader from "../common-components/loader/Loader";
-import logo from '../../assets/images/doulLogo.png';
+import logo from '../../assets/images/logo-ssism.png';
 import { RiEdit2Fill } from "react-icons/ri";
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import StudentReportPDF from './StudentReportPDF';
@@ -47,7 +47,7 @@ export default function StudentReport() {
             <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
               <button
                 onClick={() => window.history.back()}
-                className="group flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 duration-200 text-gray-700 hover:text-gray-900"
+                className="group flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 text-gray-700 hover:text-gray-900"
               >
                 <HiArrowNarrowLeft className="text-base sm:text-lg group-hover:-translate-x-1 transition-transform" />
                 <span className="text-xs sm:text-sm font-medium">Back</span>
@@ -95,11 +95,11 @@ export default function StudentReport() {
       </div>
 
       {/* Full Width Professional Background */}
-      <div className="min-h-screen p-6 print:p-0 print:m-0">
+      <div className="min-h-screen p-6 print:p-0 print:m-0 bg-gradient-to-br from-slate-50 to-blue-50">
         <div id="pdf-content" className="w-full bg-white shadow-2xl rounded-2xl p-8 print:shadow-none print:bg-white print:mx-0 print:rounded-none border border-gray-100">
 
           {/* Professional Header */}
-          <div className="relative bg-gradient-to-r from-indigo-600 to-purple-700 rounded-xl p-6 mb-6 text-white">
+          <div className="relative bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl p-6 mb-6 text-white">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3">
@@ -107,13 +107,13 @@ export default function StudentReport() {
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold mb-1">Student Report Card</h1>
-                  <p className="text-gray-300 text-sm">Comprehensive Performance Analysis</p>
+                  <p className="text-blue-100 text-sm">Comprehensive Performance Analysis</p>
                 </div>
               </div>
               <div className="text-right bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <p className="text-gray-300 text-sm">Academic Year</p>
+                <p className="text-blue-100 text-sm">Academic Year</p>
                 <p className="font-bold text-lg">{reportCardData?.batchYear || '2024-25'}</p>
-                <p className="text-gray-400 text-xs mt-1">Generated: {new Date().toLocaleDateString()}</p>
+                <p className="text-blue-200 text-xs mt-1">Generated: {new Date().toLocaleDateString()}</p>
               </div>
             </div>
           </div>

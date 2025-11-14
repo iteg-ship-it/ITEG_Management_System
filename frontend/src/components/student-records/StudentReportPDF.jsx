@@ -446,7 +446,7 @@ const StudentReportPDF = ({ studentData = {}, reportCardData = {} }) => {
             <InfoItem icon={contactIcon} label="Contact Number" value={studentData?.studentMobile} />
             <InfoItem icon={courseIcon} label="Course" value={studentData?.course} />
             <InfoItem icon={fatherIcon} label="Father's Name" value={studentData?.fatherName} />
-            <InfoItem icon={addressIcon} label="Track" value={`Level ${studentData?.track || "1A"}`} />
+            <InfoItem icon={addressIcon} label="Track" value={studentData?.track} />
           </View>
         </View>
 
