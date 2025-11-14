@@ -1115,24 +1115,20 @@ exports.rescheduleInterview = async (req, res) => {
 
 exports.updateStudentEmail = async (req, res) => {
   try {
-    const { prkey, email } = req.body;
+    const studentId = req.params.id;
+    const { email } = req.body;
 
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    // Validate email format
+    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ message: "Invalid email format" });
     }
 
-    const student = await AdmittedStudent.findOneAndUpdate(
-      { prkey },
-      { email },
-      { new: true }
-    );
-
+    const student = await AdmittedStudent.findById(studentId);
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }

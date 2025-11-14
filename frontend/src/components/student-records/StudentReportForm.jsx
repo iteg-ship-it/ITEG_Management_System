@@ -550,9 +550,10 @@ export default function StudentReportForm() {
                   newFormData.careerReadiness.placementReady = value;
                   setFormData(newFormData);
                 }}
-                options={[
+                  options={[
                   { value: "", label: "Select Status" },
                   { value: "Ready", label: "Ready" },
+                  { value: "In-process", label: "In-process" },
                   { value: "Not Ready", label: "Not Ready" }
                 ]}
               />
