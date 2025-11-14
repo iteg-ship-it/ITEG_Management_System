@@ -4,7 +4,7 @@ import { HiArrowNarrowLeft } from "react-icons/hi";
 import { FaUserGroup, FaDownload } from "react-icons/fa6";
 import { useState } from "react";
 import Loader from "../common-components/loader/Loader";
-import logo from '../../assets/images/logo-ssism.png';
+import logo from '../../assets/images/doulLogo.png';
 import { RiEdit2Fill } from "react-icons/ri";
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import StudentReportPDF from './StudentReportPDF';
@@ -496,9 +496,11 @@ export default function StudentReport() {
                 ];
                 
                 return categories.map((category) => {
-                  const count = reportCardData?.coCurricular?.filter(activity => 
-                    activity.category.toLowerCase() === category.name.toLowerCase()
-                  ).length || 0;
+                  const count = reportCardData?.coCurricular?.filter(activity => {
+                    const activityCategory = activity.category?.toLowerCase().trim();
+                    const categoryName = category.name.toLowerCase().trim();
+                    return activityCategory === categoryName;
+                  }).length || 0;
                   
                   return (
                     <div key={category.name} className="bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
@@ -520,9 +522,9 @@ export default function StudentReport() {
                 <h4 className="font-semibold text-gray-700 mb-4">Activity Details</h4>
                 {(() => {
                   const groupedActivities = reportCardData.coCurricular.reduce((acc, activity) => {
-                    const category = activity.category.toLowerCase();
-                    if (!acc[category]) acc[category] = [];
-                    acc[category].push(activity);
+                    const category = activity.category?.toLowerCase().trim();
+                    if (category && !acc[category]) acc[category] = [];
+                    if (category) acc[category].push(activity);
                     return acc;
                   }, {});
                   
