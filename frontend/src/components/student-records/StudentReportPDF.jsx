@@ -213,14 +213,32 @@ const styles = StyleSheet.create({
   pillLabel: { fontSize: 9, color: "#6B7280", marginBottom: 6, textAlign: "center" },
   pillValue: { fontSize: 10, fontWeight: "bold", color: "#111827", textAlign: "center" },
 
-  /* Footer */
-  footer: {
-    marginTop: 8,
-    padding: 8,
-    backgroundColor: "#7335DD",
-    borderRadius: 6,
-  },
-  footerText: { fontSize: 10, color: "#FFFFFF", textAlign: "center" },
+/* Footer */
+footer: {
+  marginTop: 8,
+  padding: 12,
+  backgroundColor: "#7335DD",
+  borderRadius: 8,
+  flexDirection: "row",
+  justifyContent: "space-between",
+},
+
+footerColumn: {
+  width: "33%",
+},
+
+footerHeading: {
+  fontSize: 10,
+  color: "#FFFFFF",
+  fontWeight: "bold",
+  marginBottom: 4,
+},
+
+footerValue: {
+  fontSize: 10,
+  color: "#FFFFFF",
+},
+
 });
 
 /* =================== Helpers =================== */
@@ -428,7 +446,7 @@ const StudentReportPDF = ({ studentData = {}, reportCardData = {} }) => {
             <InfoItem icon={contactIcon} label="Contact Number" value={studentData?.studentMobile} />
             <InfoItem icon={courseIcon} label="Course" value={studentData?.course} />
             <InfoItem icon={fatherIcon} label="Father's Name" value={studentData?.fatherName} />
-            <InfoItem icon={addressIcon} label="Current Level" value={`Level ${studentData?.currentLevel || "1A"}`} />
+            <InfoItem icon={addressIcon} label="Track" value={`Level ${studentData?.track || "1A"}`} />
           </View>
         </View>
 
@@ -626,11 +644,30 @@ const StudentReportPDF = ({ studentData = {}, reportCardData = {} }) => {
         </View> */}
 
         {/* Footer */}
-        <View style={styles.footer} fixed>
-          <Text style={styles.footerText}>
-            Current Level: {studentData?.currentLevel || "1A"} • Overall Grade: {reportCardData?.overallGrade || "B+"} • Academic Year: 2024-25
-          </Text>
-        </View>
+   <View style={styles.footer} fixed>
+  <View style={styles.footerColumn}>
+    <Text style={styles.footerHeading}>Final Status</Text>
+    <Text style={styles.footerValue}>
+      {reportCardData?.finalStatus || "Level 2A"}
+    </Text>
+  </View>
+
+  <View style={styles.footerColumn}>
+    <Text style={styles.footerHeading}>Result</Text>
+    <Text style={styles.footerValue}>
+      {reportCardData?.result || "2A"}
+    </Text>
+  </View>
+
+  <View style={styles.footerColumn}>
+    <Text style={styles.footerHeading}>Overall Grade</Text>
+    <Text style={styles.footerValue}>
+      {reportCardData?.overallGrade || "A"}
+    </Text>
+  </View>
+</View>
+
+
       </Page>
     </Document>
   );
