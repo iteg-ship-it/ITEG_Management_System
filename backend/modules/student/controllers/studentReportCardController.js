@@ -134,6 +134,42 @@ exports.getStudentReportCard = async (req, res) => {
   }
 };
 
+// New endpoint for getting report card data for editing
+exports.getStudentReportCardForEdit = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    console.log('🔍 Fetching report card for edit - Student ID:', studentId);
+
+    const reportCard = await StudentReportCard.findOne({ studentRef: studentId });
+    console.log('📄 Found report card:', reportCard ? 'Yes' : 'No');
+
+    // If no report card exists, return empty structure for new creation
+    if (!reportCard) {
+      console.log('✅ No existing report card found');
+      return res.status(200).json({
+        success: true,
+        message: 'No existing report card found, returning empty structure',
+        data: null
+      });
+    }
+
+    console.log('✅ Report card data retrieved successfully');
+    res.status(200).json({
+      success: true,
+      message: 'Report card data retrieved for editing',
+      data: reportCard
+    });
+
+  } catch (error) {
+    console.error('❌ Error retrieving report card for edit:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+};
+
 exports.getAllReportCards = async (req, res) => {
   try {
     const { batchYear, isFinalReport } = req.query;

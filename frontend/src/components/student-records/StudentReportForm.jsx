@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useGetAdmittedStudentsByIdQuery, useCreateReportCardMutation } from "../../redux/api/authApi";
+import { useGetAdmittedStudentsByIdQuery, useCreateReportCardMutation, useGetReportCardForEditQuery } from "../../redux/api/authApi";
 import { HiArrowNarrowLeft } from "react-icons/hi";
 import Loader from "../common-components/loader/Loader";
 
@@ -84,8 +84,14 @@ export default function StudentReportForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
+  const { data: existingReportData, isLoading: reportLoading, error: reportError } = useGetReportCardForEditQuery(id);
   const [createReportCard, { isLoading: isCreating, error: mutationError }] = useCreateReportCardMutation();
   const loggedInUser = JSON.parse(localStorage.getItem('user') || '{}');
+  
+  console.log('🔍 StudentReportForm - Student ID:', id);
+  console.log('📄 Report loading:', reportLoading);
+  console.log('📄 Report error:', reportError);
+  console.log('📄 Report data:', existingReportData);
 
   const [formData, setFormData] = useState({
     batchYear: "",
@@ -208,6 +214,71 @@ export default function StudentReportForm() {
     facultyRemark: "",
     isFinalReport: false
   });
+
+  // Populate form with existing data when available
+  useEffect(() => {
+    console.log('🔍 useEffect triggered - existingReportData:', existingReportData);
+    if (existingReportData?.data) {
+      const reportData = existingReportData.data;
+      console.log('📄 Populating form with existing data:', reportData);
+      
+      setFormData({
+        batchYear: reportData.batchYear || "",
+        generatedByName: reportData.generatedByName || loggedInUser?.name || "",
+        
+        // Soft Skills - preserve existing structure and data
+        softSkills: {
+          sectionTitle: reportData.softSkills?.sectionTitle || "Soft Skills Evaluation (50 Marks)",
+          totalSoftSkillMarks: reportData.softSkills?.totalSoftSkillMarks || 0,
+          categories: reportData.softSkills?.categories?.length > 0 
+            ? reportData.softSkills.categories 
+            : formData.softSkills.categories // fallback to default structure
+        },
+        
+        // Discipline - preserve existing structure and data
+        discipline: {
+          sectionTitle: reportData.discipline?.sectionTitle || "Discipline Evaluation (30 Marks)",
+          totalDisciplineMarks: reportData.discipline?.totalDisciplineMarks || 0,
+          categories: reportData.discipline?.categories?.length > 0 
+            ? reportData.discipline.categories 
+            : formData.discipline.categories // fallback to default structure
+        },
+        
+        // Technical Skills - ensure at least one empty entry for adding more
+        technicalSkills: reportData.technicalSkills?.length > 0 
+          ? [...reportData.technicalSkills, { skillName: "", theoryMarks: 0, practicalMarks: 0, totalPercentage: 0, remark: "" }]
+          : [{ skillName: "", theoryMarks: 0, practicalMarks: 0, totalPercentage: 0, remark: "" }],
+        
+        // Career Readiness
+        careerReadiness: {
+          resumeStatus: reportData.careerReadiness?.resumeStatus || "",
+          linkedinStatus: reportData.careerReadiness?.linkedinStatus || "",
+          aptitudeStatus: reportData.careerReadiness?.aptitudeStatus || "",
+          placementReady: reportData.careerReadiness?.placementReady || ""
+        },
+        
+        // Academic Performance
+        academicPerformance: {
+          yearWiseSGPA: reportData.academicPerformance?.yearWiseSGPA?.length > 0 
+            ? reportData.academicPerformance.yearWiseSGPA 
+            : [{ year: "FY", sgpa: 0 }, { year: "SY", sgpa: 0 }, { year: "TY", sgpa: 0 }],
+          cgpa: reportData.academicPerformance?.cgpa || 0
+        },
+        
+        // Co-Curricular Activities - ensure at least one empty entry for adding more
+        coCurricular: reportData.coCurricular?.length > 0 
+          ? [...reportData.coCurricular, { category: "", title: "", remark: "" }]
+          : [{ category: "", title: "", remark: "" }],
+        
+        // Final Assessment
+        overallGrade: reportData.overallGrade || "",
+        facultyRemark: reportData.facultyRemark || "",
+        isFinalReport: reportData.isFinalReport || false
+      });
+    } else {
+      console.log('⚠️ No existing report data found');
+    }
+  }, [existingReportData, loggedInUser?.name]);
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -250,7 +321,7 @@ export default function StudentReportForm() {
           }))
         },
         technicalSkills: formData.technicalSkills
-          .filter(skill => skill.skillName && skill.skillName.trim() !== "")
+          .filter(skill => skill.skillName && skill.skillName.trim() !== "" && (skill.theoryMarks > 0 || skill.practicalMarks > 0))
           .map(skill => ({
             skillName: skill.skillName.trim(),
             theoryMarks: skill.theoryMarks || 0,
@@ -260,7 +331,7 @@ export default function StudentReportForm() {
           })),
         careerReadiness: formData.careerReadiness,
         academicPerformance: formData.academicPerformance,
-        coCurricular: formData.coCurricular.filter(item => item.title && item.title.trim() !== ""),
+        coCurricular: formData.coCurricular.filter(item => item.title && item.title.trim() !== "" && item.category && item.category.trim() !== ""),
         overallGrade: formData.overallGrade,
         facultyRemark: formData.facultyRemark.trim() || "No specific remarks",
         isFinalReport: formData.isFinalReport
@@ -270,7 +341,7 @@ export default function StudentReportForm() {
       const result = await createReportCard(reportData).unwrap();
       console.log('Report card created successfully:', result);
 
-      alert('Report card created successfully!');
+      alert(existingReportData?.data ? 'Report card updated successfully!' : 'Report card created successfully!');
       navigate(`/student/${id}/report`);
     } catch (error) {
       console.error('Submit Error:', error);
@@ -300,7 +371,7 @@ export default function StudentReportForm() {
     setFormData(newFormData);
   };
 
-  if (isLoading) {
+  if (isLoading || reportLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <Loader />
@@ -325,8 +396,12 @@ export default function StudentReportForm() {
         </button>
         <div className="h-6 sm:h-8 w-px bg-gray-300 hidden sm:block"></div>
         <div className="flex-1 sm:flex-none">
-          <h1 className="text-lg sm:text-2xl font-bold text-black">Edit Student Report</h1>
-          <p className="text-gray-600">Edit performance report for {studentData.firstName} {studentData.lastName}</p>
+          <h1 className="text-lg sm:text-2xl font-bold text-black">
+            {existingReportData?.data ? 'Edit Student Report' : 'Create Student Report'}
+          </h1>
+          <p className="text-gray-600">
+            {existingReportData?.data ? 'Edit' : 'Create'} performance report for {studentData.firstName} {studentData.lastName}
+          </p>
         </div>
       </div>
 
@@ -796,7 +871,7 @@ export default function StudentReportForm() {
             disabled={isCreating}
             className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50"
           >
-            {isCreating ? 'Saving...' : 'Save Report'}
+            {isCreating ? 'Saving...' : (existingReportData?.data ? 'Update Report' : 'Save Report')}
           </button>
         </div>
       </form>

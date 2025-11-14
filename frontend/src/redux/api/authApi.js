@@ -694,6 +694,17 @@ export const authApi = createApi({
       invalidatesTags: ['Student'],
     }),
 
+    // Get report card for editing
+    getReportCardForEdit: builder.query({
+      query: (studentId) => ({
+        url: `/reportcards/${studentId}/edit`,
+        method: "GET",
+      }),
+      providesTags: (result, error, studentId) => [
+        { type: 'Student', id: studentId }
+      ],
+    }),
+
   }),
 });
 
@@ -746,5 +757,6 @@ export const {
   useDeleteUserMutation,
   useEditUserMutation,
   useGetReportCardQuery,
-  useCreateReportCardMutation
+  useCreateReportCardMutation,
+  useGetReportCardForEditQuery
 } = authApi;
