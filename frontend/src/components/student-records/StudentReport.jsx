@@ -294,7 +294,6 @@ export default function StudentReport() {
                   );
                 }) : (
                   <div className="text-center py-8 text-gray-500">
-                    <span className="text-4xl mb-2 block">📊</span>
                     <p>No technical skills data</p>
                   </div>
                 )}
@@ -349,7 +348,6 @@ export default function StudentReport() {
                   );
                 }) : (
                   <div className="text-center py-8 text-gray-500">
-                    <span className="text-4xl mb-2 block">🎆</span>
                     <p>No soft skills data</p>
                   </div>
                 )}
@@ -387,7 +385,6 @@ export default function StudentReport() {
                   );
                 }) : (
                   <div className="text-center py-8 text-gray-500">
-                    <span className="text-4xl mb-2 block">🏅</span>
                     <p>No discipline data</p>
                   </div>
                 )}
@@ -456,7 +453,6 @@ export default function StudentReport() {
                   </>
                 ) : (
                   <div className="col-span-2 text-center py-8 text-gray-500">
-                    <span className="text-4xl mb-2 block">📈</span>
                     <p>No career readiness data</p>
                   </div>
                 )}
