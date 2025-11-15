@@ -39,10 +39,10 @@ export default function StudentReport() {
   }
 
   return (
-    <div className="min-h-screen">
-      {/* Header */}
+    <div className="min-h-screen bg-white">
+      {/* Professional Header */}
       <div className="sticky top-0 z-10 print:hidden">
-        <div className="py-2 sm:py-4">
+        <div className="py-2 sm:py-4 ">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
             <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
               <button
@@ -55,23 +55,23 @@ export default function StudentReport() {
               <div className="h-6 sm:h-8 w-px bg-gray-300 hidden sm:block"></div>
               <div className="flex-1 sm:flex-none">
                 <h1 className="text-lg sm:text-2xl font-bold text-black">Student Report Card</h1>
-                <p className="text-xs sm:text-sm text-black hidden sm:block">Comprehensive analytics & performance insights</p>
+                <p className="text-gray-600">Comprehensive performance report for {studentData.firstName} {studentData.lastName}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
+              {/* PDF Download Button */}
               <PDFDownloadLink
                 document={<StudentReportPDF studentData={studentData} reportCardData={reportCardData} />}
                 fileName={`${studentData.firstName}_${studentData.lastName}_Report_Card.pdf`}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                className="p-2 bg-green-500 text-white rounded-full text-2xl font-medium hover:bg-green-600 transition-colors"
               >
                 {({ blob, url, loading, error }) =>
                   loading ? (
-                    <div className="animate-spin mr-2">⏳</div>
+                    <div className="animate-spin">⏳</div>
                   ) : (
-                    <FaDownload className="mr-2 h-4 w-4" />
+                    <FaDownload />
                   )
                 }
-                Download PDF
               </PDFDownloadLink>
               
               <button
@@ -80,132 +80,104 @@ export default function StudentReport() {
                     navigate(`/student/${id}/report/edit`);
                   } catch (error) {
                     console.error('Navigation error:', error);
+                    // Fallback: try relative navigation
                     navigate('edit');
                   }
                 }}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                className="p-2 bg-orange-400 text-white rounded-full text-2xl font-medium hover:bg-orange-500 transition-colors"
               >
-                <RiEdit2Fill className="mr-2 h-4 w-4" />
-                Edit
+                <RiEdit2Fill />
               </button>
             </div>
+
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto py-4 sm:py-8 px-4 sm:px-6 print:p-0 print:m-0">
-        <div id="pdf-content" className="bg-white shadow-sm rounded-lg border border-gray-200 print:shadow-none print:border-none">
+      {/* Full Width Professional Background */}
+      <div className="min-h-screen p-6 print:p-0 print:m-0 bg-gradient-to-br from-slate-50 to-blue-50">
+        <div id="pdf-content" className="w-full bg-white shadow-2xl rounded-2xl p-8 print:shadow-none print:bg-white print:mx-0 print:rounded-none border border-gray-100">
 
-          {/* Document Header */}
-          <div className="px-4 sm:px-8 py-4 sm:py-6 border-b border-gray-200">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center space-x-3 sm:space-x-6">
-                <div className="flex-shrink-0">
-                  <img src={logo} alt="ITEG Logo" className="h-12 sm:h-16 w-auto" />
+          {/* Professional Header */}
+          <div className="relative bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl p-6 mb-6 text-white">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3">
+                  <img src={logo} alt="ITEG Logo" className="h-12 object-contain" />
                 </div>
                 <div>
-                  <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Student Report Card</h1>
-                  <p className="mt-1 text-xs sm:text-sm text-gray-600">Academic Performance Report</p>
+                  <h1 className="text-2xl font-bold mb-1">Student Report Card</h1>
+                  <p className="text-blue-100 text-sm">Comprehensive Performance Analysis</p>
                 </div>
               </div>
-              <div className="text-left sm:text-right w-full sm:w-auto">
-                <div className="bg-gray-50 rounded-lg px-3 sm:px-4 py-2 sm:py-3 border border-gray-200">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Academic Year</p>
-                  <p className="mt-1 text-base sm:text-lg font-semibold text-gray-900">{reportCardData?.batchYear || '2024-25'}</p>
-                  <p className="mt-1 text-xs text-gray-500">Generated: {new Date().toLocaleDateString()}</p>
-                </div>
+              <div className="text-right bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                <p className="text-blue-100 text-sm">Academic Year</p>
+                <p className="font-bold text-lg">{reportCardData?.batchYear || '2024-25'}</p>
+                <p className="text-blue-200 text-xs mt-1">Generated: {new Date().toLocaleDateString()}</p>
               </div>
             </div>
           </div>
 
-          {/* Student Information */}
-          <div className="px-4 sm:px-8 py-4 sm:py-6">
-            <div className="mb-6 sm:mb-8">
-              <div className="flex flex-col sm:flex-row items-center sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
-                <div className="flex-shrink-0">
-                  <div className="w-16 sm:w-20 h-16 sm:h-20 bg-gray-800 rounded-full flex items-center justify-center">
-                    <span className="text-xl sm:text-2xl font-bold text-white">
-                      {studentData.firstName?.[0]}{studentData.lastName?.[0]}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex-1 text-center sm:text-left">
-                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-                    {studentData.firstName} {studentData.lastName}
-                  </h2>
-                  <p className="mt-1 text-base sm:text-lg text-gray-600">
-                    {studentData.course || "N/A"} • Level {studentData.currentLevel || "1A"}
-                  </p>
-                </div>
+          {/* Student Information Card */}
+          <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-6 mb-6 border border-gray-200">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                {studentData.firstName?.[0]}{studentData.lastName?.[0]}
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">{studentData.firstName} {studentData.lastName}</h2>
+                <p className="text-blue-600 font-medium">{studentData.course || "N/A"} • Level {studentData.currentLevel || "1A"}</p>
               </div>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <div className="flex items-center space-x-3">
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-gray-200">
-                      <img src={mailIcon} alt="Email" className="w-5 h-5" />
-                    </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <img src={mailIcon} alt="Email" className="w-4 h-4" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Email Address</p>
-                    <p className="mt-1 text-sm font-medium text-gray-900 truncate">{studentData.email || "N/A"}</p>
-                  </div>
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Email</span>
                 </div>
+                <p className="text-sm font-semibold text-gray-800 truncate">{studentData.email || "N/A"}</p>
               </div>
               
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <div className="flex items-center space-x-3">
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-gray-200">
-                      <img src={contactIcon} alt="Phone" className="w-5 h-5" />
-                    </div>
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                    <img src={contactIcon} alt="Phone" className="w-4 h-4" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Phone Number</p>
-                    <p className="mt-1 text-sm font-medium text-gray-900">{studentData.studentMobile || "N/A"}</p>
-                  </div>
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Contact</span>
                 </div>
+                <p className="text-sm font-semibold text-gray-800">{studentData.studentMobile || "N/A"}</p>
               </div>
               
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <div className="flex items-center space-x-3">
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-gray-200">
-                      <img src={fatherIcon} alt="Father" className="w-5 h-5" />
-                    </div>
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <img src={fatherIcon} alt="Father" className="w-4 h-4" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Father's Name</p>
-                    <p className="mt-1 text-sm font-medium text-gray-900">{studentData.fatherName || "N/A"}</p>
-                  </div>
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Father</span>
                 </div>
+                <p className="text-sm font-semibold text-gray-800">{studentData.fatherName || "N/A"}</p>
               </div>
               
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <div className="flex items-center space-x-3">
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-gray-200">
-                      <img src={addressIcon} alt="Track" className="w-5 h-5" />
-                    </div>
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <img src={addressIcon} alt="Track" className="w-4 h-4" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Track</p>
-                    <p className="mt-1 text-sm font-medium text-gray-900">{studentData.track || studentData.techno || "N/A"}</p>
-                  </div>
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Track</span>
                 </div>
+                <p className="text-sm font-semibold text-gray-800">{studentData.track || studentData.techno || "N/A"}</p>
               </div>
             </div>
           </div>
 
-
           {/* Level Progress Card */}
-          <div className="px-4 sm:px-8 py-4 sm:py-6 border-b border-gray-200">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Academic Progress</h3>
-              <div className="bg-gray-800 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium">
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-800">Academic Progress</h3>
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-medium">
                 Current: Level {studentData.currentLevel || "1A"}
               </div>
             </div>
@@ -214,9 +186,9 @@ export default function StudentReport() {
               {/* Progress Track */}
               <div className="absolute top-6 left-8 right-16 h-2 bg-gray-200 rounded-full"></div>
               <div 
-                className="absolute top-6 left-8 h-2 bg-green-600 rounded-full transition-all duration-1000"
+                className="absolute top-6 left-8 h-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full transition-all duration-1000"
                 style={{
-                  width: `${((studentData.currentLevel ? ['1A', '1B', '1C', '2A', '2B', '2C'].indexOf(studentData.currentLevel) + 1 : 1) / 7) * 85}%`
+                  width: `${Math.max(((studentData.currentLevel ? ['1A', '1B', '1C', '2A', '2B', '2C'].indexOf(studentData.currentLevel) + 1 : 1) / 6) * 100, 16.67)}%`
                 }}
               ></div>
               
@@ -231,9 +203,9 @@ export default function StudentReport() {
                     <div key={level} className="flex flex-col items-center relative z-10">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
                         isPassed 
-                          ? 'bg-green-600 text-white shadow-lg' 
+                          ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg' 
                           : isCurrent 
-                            ? 'bg-green-500 text-white shadow-lg' 
+                            ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg animate-pulse' 
                             : 'bg-gray-200 text-gray-500'
                       }`}>
                         {isPassed ? '✓' : level}
@@ -245,10 +217,10 @@ export default function StudentReport() {
                   );
                 })}
                 
-                {/* Goal */}
+                {/* Goal Trophy */}
                 <div className="flex flex-col items-center">
-                  <div className="w-12 h-12 border-2 border-gray-300 rounded-full flex items-center justify-center text-xl">
-                    🎯
+                  <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-2xl shadow-lg">
+                    🏆
                   </div>
                   <span className="text-xs mt-2 font-medium text-gray-700">Goal</span>
                 </div>
@@ -259,12 +231,12 @@ export default function StudentReport() {
           {/* Skills & Performance Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             {/* Technical Skills Card */}
-            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-600 text-lg">💻</span>
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-lg">💻</span>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-800">Technical Skills</h3>
+                <h3 className="text-lg font-bold text-gray-800">Technical Skills</h3>
               </div>
               
               <div className="space-y-4">
@@ -286,7 +258,7 @@ export default function StudentReport() {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-3">
                         <div 
-                          className="h-3 rounded-full bg-gray-600 transition-all duration-1000" 
+                          className={`h-3 rounded-full bg-gradient-to-r ${colors[index % colors.length]} transition-all duration-1000`} 
                           style={{ width: `${tech.totalPercentage}%` }}
                         ></div>
                       </div>
@@ -294,6 +266,7 @@ export default function StudentReport() {
                   );
                 }) : (
                   <div className="text-center py-8 text-gray-500">
+                    <span className="text-4xl mb-2 block">📊</span>
                     <p>No technical skills data</p>
                   </div>
                 )}
@@ -301,12 +274,12 @@ export default function StudentReport() {
             </div>
 
             {/* Soft Skills Card */}
-            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-600 text-lg">🧠</span>
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-lg">🧠</span>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-800">Soft Skills</h3>
+                <h3 className="text-lg font-bold text-gray-800">Soft Skills</h3>
               </div>
               
               <div className="space-y-4">
@@ -338,7 +311,7 @@ export default function StudentReport() {
                         <span>Score: {category.score}/{category.maxMarks}</span>
                         <div className="flex-1 bg-gray-200 rounded-full h-2 ml-2">
                           <div 
-                            className="h-2 rounded-full bg-gray-600 transition-all duration-1000" 
+                            className="h-2 rounded-full bg-gradient-to-r from-green-400 to-green-600 transition-all duration-1000" 
                             style={{ width: `${percentage}%` }}
                           ></div>
                         </div>
@@ -348,6 +321,7 @@ export default function StudentReport() {
                   );
                 }) : (
                   <div className="text-center py-8 text-gray-500">
+                    <span className="text-4xl mb-2 block">🎆</span>
                     <p>No soft skills data</p>
                   </div>
                 )}
@@ -355,12 +329,12 @@ export default function StudentReport() {
             </div>
 
             {/* Discipline Card */}
-            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-600 text-lg">🎖️</span>
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-lg">🎖️</span>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-800">Discipline</h3>
+                <h3 className="text-lg font-bold text-gray-800">Discipline</h3>
               </div>
               
               <div className="space-y-4">
@@ -375,7 +349,7 @@ export default function StudentReport() {
                       <div className="flex items-center gap-2">
                         <div className="flex-1 bg-gray-200 rounded-full h-3">
                           <div 
-                            className="h-3 rounded-full bg-gray-600 transition-all duration-1000" 
+                            className="h-3 rounded-full bg-gradient-to-r from-purple-400 to-purple-600 transition-all duration-1000" 
                             style={{ width: `${percentage}%` }}
                           ></div>
                         </div>
@@ -385,6 +359,7 @@ export default function StudentReport() {
                   );
                 }) : (
                   <div className="text-center py-8 text-gray-500">
+                    <span className="text-4xl mb-2 block">🏅</span>
                     <p>No discipline data</p>
                   </div>
                 )}
@@ -394,21 +369,21 @@ export default function StudentReport() {
           {/* Career Readiness & Academic Performance */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* Career Readiness Card */}
-            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-600 text-lg">🚀</span>
+                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-lg">🚀</span>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-800">Career Readiness</h3>
+                <h3 className="text-lg font-bold text-gray-800">Career Readiness</h3>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 {reportCardData?.careerReadiness ? (
                   <>
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-lg">📄</span>
-                        <span className="text-sm font-medium text-gray-700">Resume</span>
+                        <span className="text-sm font-medium text-blue-700">Resume</span>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                         reportCardData.careerReadiness.resumeStatus === 'Updated' ? 'bg-green-100 text-green-800' :
@@ -417,10 +392,10 @@ export default function StudentReport() {
                       }`}>{reportCardData.careerReadiness.resumeStatus}</span>
                     </div>
                     
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-lg">🔗</span>
-                        <span className="text-sm font-medium text-gray-700">LinkedIn</span>
+                        <span className="text-sm font-medium text-indigo-700">LinkedIn</span>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                         reportCardData.careerReadiness.linkedinStatus === 'Updated' ? 'bg-green-100 text-green-800' :
@@ -429,10 +404,10 @@ export default function StudentReport() {
                       }`}>{reportCardData.careerReadiness.linkedinStatus}</span>
                     </div>
                     
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-lg">🧠</span>
-                        <span className="text-sm font-medium text-gray-700">Aptitude</span>
+                        <span className="text-sm font-medium text-purple-700">Aptitude</span>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                         reportCardData.careerReadiness.aptitudeStatus === 'In-Progress' ? 'bg-blue-100 text-blue-800' :
@@ -440,10 +415,10 @@ export default function StudentReport() {
                       }`}>{reportCardData.careerReadiness.aptitudeStatus}</span>
                     </div>
                     
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-lg">🎯</span>
-                        <span className="text-sm font-medium text-gray-700">Placement</span>
+                        <span className="text-sm font-medium text-green-700">Placement</span>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                         reportCardData.careerReadiness.placementReady === 'Ready' ? 'bg-green-100 text-green-800' :
@@ -453,6 +428,7 @@ export default function StudentReport() {
                   </>
                 ) : (
                   <div className="col-span-2 text-center py-8 text-gray-500">
+                    <span className="text-4xl mb-2 block">📈</span>
                     <p>No career readiness data</p>
                   </div>
                 )}
@@ -460,17 +436,17 @@ export default function StudentReport() {
             </div>
 
             {/* Academic Performance Card */}
-            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-600 text-lg">🎓</span>
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-lg">🎓</span>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-800">Academic Performance</h3>
+                <h3 className="text-lg font-bold text-gray-800">Academic Performance</h3>
               </div>
               
               <div className="space-y-4">
                 {/* CGPA Highlight */}
-                <div className="bg-gray-800 rounded-lg p-4 text-white text-center">
+                <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-4 text-white text-center">
                   <p className="text-sm opacity-90 mb-1">Overall CGPA</p>
                   <p className="text-3xl font-bold">{reportCardData?.academicPerformance?.cgpa || "N/A"}</p>
                   <p className="text-sm opacity-75">out of 10.0</p>
@@ -478,21 +454,21 @@ export default function StudentReport() {
                 
                 {/* Year-wise SGPA */}
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-200">
-                    <p className="text-xs font-medium text-gray-600 mb-1">FY SGPA</p>
-                    <p className="text-lg font-bold text-gray-800">
+                  <div className="bg-blue-50 rounded-lg p-3 text-center border border-blue-200">
+                    <p className="text-xs font-medium text-blue-700 mb-1">FY SGPA</p>
+                    <p className="text-lg font-bold text-blue-800">
                       {reportCardData?.academicPerformance?.yearWiseSGPA?.find(y => y.year === 'FY')?.sgpa || "N/A"}
                     </p>
                   </div>
-                  <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-200">
-                    <p className="text-xs font-medium text-gray-600 mb-1">SY SGPA</p>
-                    <p className="text-lg font-bold text-gray-800">
+                  <div className="bg-green-50 rounded-lg p-3 text-center border border-green-200">
+                    <p className="text-xs font-medium text-green-700 mb-1">SY SGPA</p>
+                    <p className="text-lg font-bold text-green-800">
                       {reportCardData?.academicPerformance?.yearWiseSGPA?.find(y => y.year === 'SY')?.sgpa || "N/A"}
                     </p>
                   </div>
-                  <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-200">
-                    <p className="text-xs font-medium text-gray-600 mb-1">TY SGPA</p>
-                    <p className="text-lg font-bold text-gray-800">
+                  <div className="bg-purple-50 rounded-lg p-3 text-center border border-purple-200">
+                    <p className="text-xs font-medium text-purple-700 mb-1">TY SGPA</p>
+                    <p className="text-lg font-bold text-purple-800">
                       {reportCardData?.academicPerformance?.yearWiseSGPA?.find(y => y.year === 'TY')?.sgpa || "N/A"}
                     </p>
                   </div>
@@ -503,12 +479,12 @@ export default function StudentReport() {
             </div>
           </div>
           {/* Co-Curricular Activities */}
-          <div className="px-8 py-6 border-b border-gray-200">
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                <span className="text-gray-600 text-lg">🏆</span>
+              <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center">
+                <span className="text-white text-lg">🏆</span>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900">Co-Curricular Activities</h3>
+              <h3 className="text-lg font-bold text-gray-800">Co-Curricular Activities</h3>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -520,15 +496,13 @@ export default function StudentReport() {
                 ];
                 
                 return categories.map((category) => {
-                  const count = reportCardData?.coCurricular?.filter(activity => {
-                    const activityCategory = activity.category?.toLowerCase().trim();
-                    const categoryName = category.name.toLowerCase().trim();
-                    return activityCategory === categoryName;
-                  }).length || 0;
+                  const count = reportCardData?.coCurricular?.filter(activity => 
+                    activity.category.toLowerCase() === category.name.toLowerCase()
+                  ).length || 0;
                   
                   return (
                     <div key={category.name} className="bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
-                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <div className={`w-12 h-12 bg-gradient-to-br ${category.color} rounded-full flex items-center justify-center mx-auto mb-3`}>
                         <span className="text-2xl">{category.icon}</span>
                       </div>
                       <h4 className="font-semibold text-gray-800 mb-1">{category.name}</h4>
@@ -546,15 +520,19 @@ export default function StudentReport() {
                 <h4 className="font-semibold text-gray-700 mb-4">Activity Details</h4>
                 {(() => {
                   const groupedActivities = reportCardData.coCurricular.reduce((acc, activity) => {
-                    const category = activity.category?.toLowerCase().trim();
-                    if (category && !acc[category]) acc[category] = [];
-                    if (category) acc[category].push(activity);
+                    const category = activity.category.toLowerCase();
+                    if (!acc[category]) acc[category] = [];
+                    acc[category].push(activity);
                     return acc;
                   }, {});
                   
                   return Object.entries(groupedActivities).map(([category, activities]) => (
                     <div key={category} className="mb-6">
-                      <h5 className="font-semibold text-lg mb-3 uppercase tracking-wide text-gray-700">{category} ({activities.length})</h5>
+                      <h5 className={`font-semibold text-lg mb-3 uppercase tracking-wide ${
+                        category === 'certificate' ? 'text-yellow-700' :
+                        category === 'project' ? 'text-blue-700' :
+                        'text-green-700'
+                      }`}>{category} ({activities.length})</h5>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {activities.map((activity, index) => {
                           const getActivityColor = (category) => {
@@ -581,17 +559,17 @@ export default function StudentReport() {
             )}
           </div>
           {/* Faculty Feedback */}
-          <div className="px-8 py-6 border-b border-gray-200">
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                <span className="text-gray-600 text-lg">📝</span>
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white text-lg">📝</span>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900">Faculty Feedback</h3>
+              <h3 className="text-lg font-bold text-gray-800">Faculty Feedback</h3>
             </div>
             
-            <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
                   {reportCardData?.generatedByName?.split(' ').map(n => n[0]).join('') || 'FA'}
                 </div>
                 <div className="flex-1">
@@ -628,10 +606,10 @@ export default function StudentReport() {
                           });
                         })()}
                       </div>
-                      <p className="text-sm text-gray-600">Overall Grade: <span className="font-bold text-gray-800">{reportCardData?.overallGrade || "N/A"}</span></p>
+                      <p className="text-sm text-gray-600">Overall Grade: <span className="font-bold text-indigo-600">{reportCardData?.overallGrade || "N/A"}</span></p>
                     </div>
                   </div>
-                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <div className="bg-white rounded-lg p-4 border border-blue-100">
                     <p className="text-gray-700 italic leading-relaxed">
                       "{reportCardData?.facultyRemark || "No specific remarks provided."}"
                     </p>

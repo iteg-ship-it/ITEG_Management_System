@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
-import { useGetAdmittedStudentsByIdQuery, useUpdateStudentImageMutation, useUploadResumeMutation, useUpdateStudentEmailMutation } from "../../redux/api/authApi";
+import { useGetAdmittedStudentsByIdQuery, useUpdateStudentImageMutation, useUploadResumeMutation, useUpdateStudentEmailMutation, useGetReportCardQuery } from "../../redux/api/authApi";
 import PermissionModal from "./PermissionModal";
 import PlacementModal from "./PlacementModal";
 import Loader from "../common-components/loader/Loader";
@@ -28,6 +28,8 @@ export default function StudentProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
+  const { data: reportCardResponse, isLoading: reportLoading, isError: reportError } = useGetReportCardQuery(id);
+  const reportCardData = reportCardResponse?.data;
   const [updateStudentImage] = useUpdateStudentImageMutation();
   const [uploadResume, { isLoading: isResumeUploading }] = useUploadResumeMutation();
   const [updateStudentEmail, { isLoading: isEmailUpdating }] = useUpdateStudentEmailMutation();
@@ -82,7 +84,7 @@ export default function StudentProfile() {
       setLatestLevel(passed.length > 0 ? passed[passed.length - 1].levelNo : "1A");
       
       // For Course line - show current level (next level to pass)
-      const levelOrder = ["1A", "1B", "1C", "2A", "2B", "2C", "3A", "3B", "3C", "4A", "4B", "4C", "5A"];
+      const levelOrder = ["1A", "1B", "2A", "2B", "3A", "3B"];
       if (passed.length > 0) {
         const lastPassedLevel = passed[passed.length - 1].levelNo;
         const currentIndex = levelOrder.indexOf(lastPassedLevel);
@@ -584,11 +586,11 @@ export default function StudentProfile() {
               subtitle="Academic achievements"
               icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>}
             >
-              <div className="h-48 sm:h-80 flex flex-col justify-center space-y-6">
-                <ProgressMetric title="Certificates" value="2" total="5" color="#FFAB00" />
-                <ProgressMetric title="Success Rate" value="99" total="100" color="#22C55E" suffix="%" />
-                <ProgressMetric title="Levels Completed" value="6" total="10" color="#8E33FF" />
-              </div>
+              <DynamicProgressOverview 
+                studentData={studentData} 
+                reportCardData={reportCardData} 
+                reportLoading={reportLoading}
+              />
             </AnalyticsCard>
           </div>
         </div>
@@ -969,6 +971,78 @@ const ProgressMetric = ({ title, value, total, color, suffix = '' }) => {
   );
 };
 
+// Dynamic Progress Overview Component
+const DynamicProgressOverview = ({ studentData, reportCardData, reportLoading }) => {
+  if (reportLoading) {
+    return (
+      <div className="h-48 sm:h-80 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  // Calculate dynamic values from report card data
+  const calculateDynamicMetrics = () => {
+    const passedLevels = studentData?.level?.filter(lvl => lvl.result === "Pass") || [];
+    const totalLevels = 6; // Total levels in the system
+    
+    // Calculate success rate from report card data
+    let successRate = 0;
+    if (reportCardData?.subjects && reportCardData.subjects.length > 0) {
+      const totalMarks = reportCardData.subjects.reduce((sum, subject) => sum + (subject.totalMarks || 0), 0);
+      const obtainedMarks = reportCardData.subjects.reduce((sum, subject) => sum + (subject.obtainedMarks || 0), 0);
+      successRate = totalMarks > 0 ? Math.round((obtainedMarks / totalMarks) * 100) : 0;
+    } else {
+      // Fallback: calculate from attendance if no subject data
+      const attendanceRecord = studentData.attendanceRecord || [];
+      if (attendanceRecord.length > 0) {
+        const totalAttendance = attendanceRecord.reduce((sum, record) => sum + (record.attendancePercentage || 0), 0);
+        successRate = Math.round(totalAttendance / attendanceRecord.length);
+      } else {
+        // Final fallback: calculate from passed levels
+        successRate = totalLevels > 0 ? Math.round((passedLevels.length / totalLevels) * 100) : 0;
+      }
+    }
+    
+    // Calculate overall performance score
+    const performanceScore = Math.round((successRate + (passedLevels.length / totalLevels * 100)) / 2);
+    
+    return {
+      successRate,
+      levelsCompleted: passedLevels.length,
+      totalLevels,
+      performanceScore
+    };
+  };
+
+  const metrics = calculateDynamicMetrics();
+
+  return (
+    <div className="h-48 sm:h-80 flex flex-col justify-center space-y-6">
+      <ProgressMetric 
+        title="Overall Performance" 
+        value={metrics.performanceScore} 
+        total="100" 
+        color="#FFAB00" 
+        suffix="%"
+      />
+      <ProgressMetric 
+        title="Success Rate" 
+        value={metrics.successRate} 
+        total="100" 
+        color="#22C55E" 
+        suffix="%" 
+      />
+      <ProgressMetric 
+        title="Levels Completed" 
+        value={metrics.levelsCompleted} 
+        total={metrics.totalLevels} 
+        color="#8E33FF" 
+      />
+    </div>
+  );
+};
+
 // Detail Section Container
 const DetailSection = ({ title, subtitle, icon, children }) => (
   <div className="bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 0 22px 6px rgba(0, 0, 0, 0.09)' }}>
@@ -1131,11 +1205,11 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
                 )) || <p className="text-gray-500">No level data available</p>}
               </div>
               <div className="mt-3 pt-3 border-t">
-                <div className="text-sm text-gray-600">Progress: {passedLevels.length}/13 Levels</div>
+                <div className="text-sm text-gray-600">Progress: {passedLevels.length}/6 Levels</div>
                 <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                   <div 
                     className="bg-green-600 h-2 rounded-full transition-all duration-300" 
-                    style={{width: `${Math.min((passedLevels.length/13)*100, 100)}%`}}
+                    style={{width: `${Math.min((passedLevels.length/6)*100, 100)}%`}}
                   ></div>
                 </div>
               </div>
@@ -1194,7 +1268,7 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
               <div className="text-center p-4 bg-white rounded-lg shadow-sm">
                 <div className="text-sm text-gray-600 mb-1">Academic</div>
                 <div className={`text-2xl font-bold ${getGradeColor(academicGrade)}`}>{academicGrade}</div>
-                <div className="text-xs text-gray-500">{passedLevels.length}/13 levels</div>
+                <div className="text-xs text-gray-500">{passedLevels.length}/6 levels</div>
               </div>
               <div className="text-center p-4 bg-white rounded-lg shadow-sm">
                 <div className="text-sm text-gray-600 mb-1">Attendance</div>
@@ -1241,7 +1315,7 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
               <div className="bg-white p-4 rounded border">
                 <div className="font-medium text-gray-700 mb-2">Current Performance</div>
                 <div><span className="text-gray-600">Current Level:</span> {currentLevel || 'N/A'}</div>
-                <div><span className="text-gray-600">Completion Rate:</span> {Math.min(Math.round((passedLevels.length/13)*100), 100)}%</div>
+                <div><span className="text-gray-600">Completion Rate:</span> {Math.min(Math.round((passedLevels.length/6)*100), 100)}%</div>
                 <div><span className="text-gray-600">Semester:</span> {currentSemester}/8</div>
               </div>
             </div>
