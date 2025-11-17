@@ -534,23 +534,12 @@ export default function StudentReport() {
                         'text-green-700'
                       }`}>{category} ({activities.length})</h5>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {activities.map((activity, index) => {
-                          const getActivityColor = (category) => {
-                            switch(category) {
-                              case 'certificate': return 'bg-yellow-50 border-yellow-200';
-                              case 'project': return 'bg-blue-50 border-blue-200';
-                              case 'sports': return 'bg-green-50 border-green-200';
-                              default: return 'bg-gray-50 border-gray-200';
-                            }
-                          };
-                          
-                          return (
-                            <div key={index} className={`rounded-lg p-4 border ${getActivityColor(category)}`}>
-                              <h6 className="font-semibold text-gray-800 mb-2">{activity.title}</h6>
-                              <p className="text-sm text-gray-600">{activity.remark}</p>
-                            </div>
-                          );
-                        })}
+                        {activities.map((activity, index) => (
+                          <div key={index} className="rounded-lg p-4 border border-gray-200 bg-gray-50">
+                            <h6 className="font-semibold text-gray-800 mb-2">{activity.title}</h6>
+                            <p className="text-sm text-gray-600">{activity.remark}</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ));
