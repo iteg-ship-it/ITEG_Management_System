@@ -15,6 +15,7 @@ import ServerError from "./components/common-components/error-pages/ServerError"
 import ErrorBoundary from './components/common-components/protected-route/ErrorBoundary';
 import SessionTimeoutModal from './components/common-components/user-profile/SessionTimeoutModal';
 
+
 // ✅ Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
@@ -81,6 +82,7 @@ function App() {
         pauseOnHover
         theme="light"
       />
+
     </>
   );
 }

@@ -74,6 +74,7 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
       return result;
     }
 
+    console.log("Attempting token refresh...");
     const refreshResult = await rawBaseQuery(
       {
         url: '/user/refresh_token',
@@ -84,11 +85,18 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
       extraOptions
     );
 
-    if (refreshResult?.data) {
+    if (refreshResult?.data?.accessToken) {
       const { accessToken } = refreshResult.data;
+      console.log("Token refreshed successfully");
 
       // Store encrypted token
       localStorage.setItem("token", encrypt(accessToken));
+      
+      // Update Redux state
+      api.dispatch(setCredentials({ 
+        token: accessToken, 
+        role: localStorage.getItem("role") 
+      }));
 
       // Retry original query
       result = await rawBaseQuery(args, api, extraOptions);
@@ -133,6 +141,7 @@ export const authApi = createApi({
           window.location.replace("/");
         } catch (error) {
           console.error("Login failed:", error);
+          localStorage.clear();
           dispatch(logout());
         }
       },
@@ -165,7 +174,7 @@ export const authApi = createApi({
     // Refresh token
     refreshToken: builder.mutation({
       query: (payload) => ({
-        url: import.meta.env.VITE_REFRESH_TOKEN,
+        url: '/user/refresh_token',
         method: "POST",
         body: payload,
       }),

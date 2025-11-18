@@ -562,7 +562,7 @@ exports.createUser = async (req, res) => {
 // Helper functions
 const generateRefreshToken = (user) => {
   return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-    expiresIn: "4h",
+    expiresIn: "7d",
   });
 };
 
@@ -593,7 +593,7 @@ exports.login = async (req, res) => {
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "2h" }
+      { expiresIn: "1h" }
     );
 
     const refreshToken = generateRefreshToken(user);
@@ -639,7 +639,7 @@ exports.refreshAccessToken = async (req, res) => {
       const newAccessToken = jwt.sign(
         { id: decoded.id, role: user.role },
         process.env.JWT_SECRET,
-        { expiresIn: "2h" }
+        { expiresIn: "1h" }
       );
 
       res.status(200).json({
@@ -841,12 +841,10 @@ exports.googleAuthCallback = async (req, res) => {
     }
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-      expiresIn: "2h",
+      expiresIn: "1h",
     });
 
-    const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "4h",
-    });
+    const refreshToken = generateRefreshToken(user);
     user.refreshToken = refreshToken;
     await user.save();
 
