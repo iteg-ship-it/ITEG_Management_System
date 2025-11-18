@@ -96,24 +96,24 @@ export default function StudentReport() {
 
       {/* Full Width Professional Background */}
       <div className="min-h-screen p-6 print:p-0 print:m-0 bg-gradient-to-br from-slate-50 to-blue-50">
-        <div id="pdf-content" className="w-full bg-white shadow-2xl rounded-2xl p-8 print:shadow-none print:bg-white print:mx-0 print:rounded-none border border-gray-100">
+        <div id="pdf-content" className="max-w-7xl mx-auto bg-white shadow-2xl rounded-2xl p-8 print:shadow-none print:bg-white print:mx-0 print:rounded-none border border-gray-100">
 
           {/* Professional Header */}
-          <div className="relative bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl p-6 mb-6 text-white">
+          <div className="relative bg-white rounded-xl p-6 mb-6 border border-gray-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3">
+                <div className="bg-gray-100 rounded-lg p-3">
                   <img src={logo} alt="ITEG Logo" className="h-12 object-contain" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold mb-1">Student Report Card</h1>
-                  <p className="text-blue-100 text-sm">Comprehensive Performance Analysis</p>
+                  <h1 className="text-2xl font-bold mb-1 text-gray-800">Student Report Card</h1>
+                  <p className="text-gray-600 text-sm">Comprehensive Performance Analysis</p>
                 </div>
               </div>
-              <div className="text-right bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <p className="text-blue-100 text-sm">Academic Year</p>
-                <p className="font-bold text-lg">{reportCardData?.batchYear || '2024-25'}</p>
-                <p className="text-blue-200 text-xs mt-1">Generated: {new Date().toLocaleDateString()}</p>
+              <div className="text-right bg-gray-50 rounded-lg p-4">
+                <p className="text-gray-600 text-sm">Academic Year</p>
+                <p className="font-bold text-lg text-gray-800">{reportCardData?.batchYear || '2024-25'}</p>
+                <p className="text-gray-500 text-xs mt-1">Generated: {new Date().toLocaleDateString()}</p>
               </div>
             </div>
           </div>
@@ -133,7 +133,7 @@ export default function StudentReport() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
                     <img src={mailIcon} alt="Email" className="w-4 h-4" />
                   </div>
                   <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Email</span>
@@ -143,7 +143,7 @@ export default function StudentReport() {
               
               <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
                     <img src={contactIcon} alt="Phone" className="w-4 h-4" />
                   </div>
                   <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Contact</span>
@@ -153,7 +153,7 @@ export default function StudentReport() {
               
               <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
                     <img src={fatherIcon} alt="Father" className="w-4 h-4" />
                   </div>
                   <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Father</span>
@@ -163,7 +163,7 @@ export default function StudentReport() {
               
               <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
                     <img src={addressIcon} alt="Track" className="w-4 h-4" />
                   </div>
                   <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Track</span>
@@ -188,7 +188,7 @@ export default function StudentReport() {
               <div 
                 className="absolute top-6 left-8 h-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full transition-all duration-1000"
                 style={{
-                  width: `${Math.max(((studentData.currentLevel ? ['1A', '1B', '1C', '2A', '2B', '2C'].indexOf(studentData.currentLevel) + 1 : 1) / 6) * 100, 16.67)}%`
+                  width: `${((studentData.currentLevel ? ['1A', '1B', '1C', '2A', '2B', '2C'].indexOf(studentData.currentLevel) + 1 : 1) / 7) * 100}%`
                 }}
               ></div>
               
@@ -205,7 +205,7 @@ export default function StudentReport() {
                         isPassed 
                           ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg' 
                           : isCurrent 
-                            ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg animate-pulse' 
+                            ? 'bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-lg' 
                             : 'bg-gray-200 text-gray-500'
                       }`}>
                         {isPassed ? '✓' : level}
@@ -233,8 +233,8 @@ export default function StudentReport() {
             {/* Technical Skills Card */}
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-lg">💻</span>
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <span className="text-gray-600 text-lg">💻</span>
                 </div>
                 <h3 className="text-lg font-bold text-gray-800">Technical Skills</h3>
               </div>
@@ -276,8 +276,8 @@ export default function StudentReport() {
             {/* Soft Skills Card */}
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-lg">🧠</span>
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <span className="text-gray-600 text-lg">🧠</span>
                 </div>
                 <h3 className="text-lg font-bold text-gray-800">Soft Skills</h3>
               </div>
@@ -331,8 +331,8 @@ export default function StudentReport() {
             {/* Discipline Card */}
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-lg">🎖️</span>
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <span className="text-gray-600 text-lg">🎖️</span>
                 </div>
                 <h3 className="text-lg font-bold text-gray-800">Discipline</h3>
               </div>
@@ -371,8 +371,8 @@ export default function StudentReport() {
             {/* Career Readiness Card */}
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-lg">🚀</span>
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <span className="text-gray-600 text-lg">🚀</span>
                 </div>
                 <h3 className="text-lg font-bold text-gray-800">Career Readiness</h3>
               </div>
@@ -438,8 +438,8 @@ export default function StudentReport() {
             {/* Academic Performance Card */}
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-lg">🎓</span>
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <span className="text-gray-600 text-lg">🎓</span>
                 </div>
                 <h3 className="text-lg font-bold text-gray-800">Academic Performance</h3>
               </div>
@@ -481,8 +481,8 @@ export default function StudentReport() {
           {/* Co-Curricular Activities */}
           <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center">
-                <span className="text-white text-lg">🏆</span>
+              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                <span className="text-gray-600 text-lg">🏆</span>
               </div>
               <h3 className="text-lg font-bold text-gray-800">Co-Curricular Activities</h3>
             </div>
@@ -502,8 +502,8 @@ export default function StudentReport() {
                   
                   return (
                     <div key={category.name} className="bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
-                      <div className={`w-12 h-12 bg-gradient-to-br ${category.color} rounded-full flex items-center justify-center mx-auto mb-3`}>
-                        <span className="text-2xl">{category.icon}</span>
+                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <span className="text-2xl text-gray-600">{category.icon}</span>
                       </div>
                       <h4 className="font-semibold text-gray-800 mb-1">{category.name}</h4>
                       <p className="text-2xl font-bold text-gray-700">{count}</p>
@@ -529,28 +529,21 @@ export default function StudentReport() {
                   return Object.entries(groupedActivities).map(([category, activities]) => (
                     <div key={category} className="mb-6">
                       <h5 className={`font-semibold text-lg mb-3 uppercase tracking-wide ${
-                        category === 'certificate' ? 'text-yellow-700' :
-                        category === 'project' ? 'text-blue-700' :
-                        'text-green-700'
+                        category === 'certificate' ? 'text-yellow-600' :
+                        category === 'project' ? 'text-blue-600' :
+                        'text-green-600'
                       }`}>{category} ({activities.length})</h5>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {activities.map((activity, index) => {
-                          const getActivityColor = (category) => {
-                            switch(category) {
-                              case 'certificate': return 'bg-yellow-50 border-yellow-200';
-                              case 'project': return 'bg-blue-50 border-blue-200';
-                              case 'sports': return 'bg-green-50 border-green-200';
-                              default: return 'bg-gray-50 border-gray-200';
-                            }
-                          };
-                          
-                          return (
-                            <div key={index} className={`rounded-lg p-4 border ${getActivityColor(category)}`}>
-                              <h6 className="font-semibold text-gray-800 mb-2">{activity.title}</h6>
-                              <p className="text-sm text-gray-600">{activity.remark}</p>
-                            </div>
-                          );
-                        })}
+                        {activities.map((activity, index) => (
+                          <div key={index} className={`rounded-lg p-4 border ${
+                            category === 'certificate' ? 'border-yellow-200 bg-yellow-50' :
+                            category === 'project' ? 'border-blue-200 bg-blue-50' :
+                            'border-green-200 bg-green-50'
+                          }`}>
+                            <h6 className="font-semibold text-gray-800 mb-2">{activity.title}</h6>
+                            <p className="text-sm text-gray-600">{activity.remark}</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ));
@@ -561,8 +554,8 @@ export default function StudentReport() {
           {/* Faculty Feedback */}
           <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white text-lg">📝</span>
+              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                <span className="text-gray-600 text-lg">📝</span>
               </div>
               <h3 className="text-lg font-bold text-gray-800">Faculty Feedback</h3>
             </div>
