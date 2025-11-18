@@ -685,7 +685,7 @@ export default function StudentProfile() {
                 <button
                   onClick={() => document.getElementById('resume-upload-profile').click()}
                   disabled={isResumeUploading}
-                  className="px-2 sm:px-3 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors"
+                  className="px-2 sm:px-3 py-1.5 sm:py-2 bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-white text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 shadow-lg disabled:opacity-50"
                 >
                   <span className="hidden sm:inline">{isResumeUploading ? 'Uploading...' : 'Upload Resume'}</span>
                   <span className="sm:hidden">{isResumeUploading ? 'Upload...' : 'Upload'}</span>
