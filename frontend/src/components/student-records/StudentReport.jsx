@@ -95,7 +95,7 @@ export default function StudentReport() {
       </div>
 
       {/* Full Width Professional Background */}
-      <div className="min-h-screen p-6 print:p-0 print:m-0 bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="min-h-screen p-6 print:p-0 print:m-0">
         <div id="pdf-content" className="max-w-7xl mx-auto bg-white shadow-2xl rounded-2xl p-8 print:shadow-none print:bg-white print:mx-0 print:rounded-none border border-gray-100">
 
           {/* Professional Header */}

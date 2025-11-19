@@ -147,7 +147,7 @@ const Sidebar = ({ children }) => {
     {
       name: "Admissions",
       icon: <RiTv2Fill />,
-      roles: ["superadmin", "admin"],
+      roles: ["superadmin", "admin", "faculty"],
       subMenu: [
         { name: "Admission Workflow", path: "/admission-process" },
       ],
