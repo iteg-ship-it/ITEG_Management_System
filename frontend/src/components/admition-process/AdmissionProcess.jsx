@@ -211,19 +211,19 @@ const StudentList = () => {
         );
       case "Technical Round":
         return (
-          firstRound.length > 0 &&
+          (student.onlineTest?.result === "Fail" && firstRound.length === 0) ||
+          (firstRound.length > 0 &&
           !firstRound.some((i) => i.result === "Pass") &&
-          firstRound.some((i) => i.result === "Fail")
+          firstRound.some((i) => i.result === "Fail"))
         );
       case "Final Round":
         return (
           firstRound.some((i) => i.result === "Pass") &&
-          !secondRound.some((i) => i.result === "Pass")
+          secondRound.length === 0
         );
       case "Results":
         return (
           secondRound.some((i) => i.result === "Pass") ||
-          latestResult === "Fail" ||
           secondRound.some((i) => i.result === "Fail")
         );
       default:
