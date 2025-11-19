@@ -120,7 +120,7 @@ export default function StudentReport() {
       {/* Top sticky header */}
       <div className="sticky top-0 z-10 print:hidden bg-white">
         <div className="py-2 sm:py-4 ">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 max-w-7xl mx-auto px-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 ">
             <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
               <button
                 onClick={() => window.history.back()}
