@@ -298,7 +298,7 @@ const StudentDetailTable = () => {
               filtersConfig={filtersConfig}
               filteredData={filteredData}
               selectedRows={selectedRows}
-              allData={data}
+              allData={filteredData}
               sectionName={activeTab === "Level's Cleared" ? "levelscleared" : `level${selectedLevel}`}
             />
           </div>
