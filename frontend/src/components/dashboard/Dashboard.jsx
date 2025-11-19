@@ -38,9 +38,9 @@ const Dashboard = () => {
       {/* Superadmin Only Routes */}
       <Route path="/users-management" element={<ProtectedRoute allowedRoles={["superadmin"]}><UsersManagement /></ProtectedRoute>} />
       
-      {/* Admin Only Routes */}
-      <Route path="/admission-process" element={<ProtectedRoute allowedRoles={["superadmin", "admin"]}><AdmissionProcess /></ProtectedRoute>} />
-      <Route path="/admission/edit/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin"]}><AdmissionEditPage /></ProtectedRoute>} />
+      {/* Admission Routes - All roles */}
+      <Route path="/admission-process" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionProcess /></ProtectedRoute>} />
+      <Route path="/admission/edit/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionEditPage /></ProtectedRoute>} />
       
       {/* Student & Faculty Routes - All roles */}
       <Route path="/student-dashboard" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentDashboard /></ProtectedRoute>} />
