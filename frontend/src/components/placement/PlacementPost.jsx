@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useAdmitedStudentsQuery } from "../../redux/api/authApi";
+import { useState, useRef } from "react";
+import { useAdmitedStudentsQuery, useUpdateStudentImageMutation } from "../../redux/api/authApi";
 import { pdf } from "@react-pdf/renderer";
 import PageNavbar from "../common-components/navbar/PageNavbar";
 import CreatePostModal from "./CreatePostModal";
@@ -19,6 +19,12 @@ const PlacementPost = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTracks, setSelectedTracks] = useState([]);
   const [selectedSubjects, setSelectedSubjects] = useState([]);
+  const [uploadingStudents, setUploadingStudents] = useState({});
+  const [updateStudentImage] = useUpdateStudentImageMutation();
+  const fileInputRef = useRef(null);
+  
+  // Get admitted students data from API with refetch function
+  const { data: admittedStudents, isLoading, error, refetch } = useAdmitedStudentsQuery();
 
   // Helper function to capitalize first letter
   const toTitleCase = (str) => {
@@ -27,8 +33,7 @@ const PlacementPost = () => {
     ).join(' ');
   };
 
-  // Get admitted students data from API
-  const { data: admittedStudents, isLoading, error } = useAdmitedStudentsQuery();
+
 
   // Filter only placed students (those with placedInfo)
   const allPlacedStudents = admittedStudents?.filter(student => student.placedInfo !== null) || [];
@@ -68,6 +73,55 @@ const PlacementPost = () => {
 
     return trackMatch && subjectMatch && searchMatch;
   });
+
+  // Image upload function
+  const handleImageUpload = async (event, student) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select a valid image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size should be less than 5MB');
+      return;
+    }
+
+    setUploadingStudents(prev => ({ ...prev, [student._id]: true }));
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const base64Image = e.target.result;
+        await updateStudentImage({
+          id: student._id,
+          image: base64Image
+        }).unwrap();
+        
+        // Refetch data to update UI immediately
+        refetch();
+      } catch (error) {
+        const errorMessage = error?.data?.message || error?.message || 'Unknown error';
+        alert(`Failed to upload image: ${errorMessage}`);
+      } finally {
+        setUploadingStudents(prev => ({ ...prev, [student._id]: false }));
+      }
+    };
+
+    reader.onerror = () => {
+      alert('Error reading file');
+      setUploadingStudents(prev => ({ ...prev, [student._id]: false }));
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const triggerImageUpload = (student) => {
+    fileInputRef.current?.click();
+    fileInputRef.current.onchange = (e) => handleImageUpload(e, student);
+  };
 
   // Download post function using react-pdf-renderer
   const downloadPost = async (student) => {
@@ -304,13 +358,28 @@ const PlacementPost = () => {
                     <p className="text-xl text-gray-500">We are proud to announce that <br />Our ITEG student</p>
                   </div>
                   <div className="flex justify-center items-center flex-1">
-                    <div className="rounded-full p-1 bg-white">
-                      <div className="rounded-full p-1 bg-orange-500">
-                        <img
-                          src={student.image || student.profileImage || "https://via.placeholder.com/150x150/e2e8f0/64748b?text=Student"}
-                          alt={`${student.firstName} ${student.lastName}`}
-                          className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-2 border-white shadow-md"
-                        />
+                    <div className="relative">
+                      <div className="rounded-full p-1 bg-white">
+                        <div className="rounded-full p-1 bg-orange-500">
+                          <img
+                            src={student.image || student.profileImage || "https://via.placeholder.com/150x150/e2e8f0/64748b?text=Student"}
+                            alt={`${student.firstName} ${student.lastName}`}
+                            className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-2 border-white shadow-md"
+                          />
+                        </div>
+                      </div>
+                      <div
+                        className="absolute -bottom-1 -right-1 w-6 h-6 sm:w-8 sm:h-8 bg-white rounded-full shadow-md flex items-center justify-center cursor-pointer hover:shadow-lg transition-shadow"
+                        onClick={() => triggerImageUpload(student)}
+                      >
+                        {uploadingStudents[student._id] ? (
+                          <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -367,6 +436,14 @@ const PlacementPost = () => {
         )}
       </div>
 
+      {/* Hidden file input for image upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+      />
+
       {/* Create Post Modal */}
       <CreatePostModal
         isOpen={isCreatePostModalOpen}
@@ -377,95 +454,6 @@ const PlacementPost = () => {
           console.log('Post created successfully');
         }}
       />
-
-      {/* Square Responsive Cards */}
-      {/* {viewMode === "grid" && (
-        <div className="mt-8 px-4">
-          <h2 className="text-2xl font-bold text-center mb-6">Our Success Stories</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {placedStudents.map((student, index) => (
-              <div
-                key={student._id || index}
-                data-student-id={student._id}
-                className="bg-cover bg-center bg-no-repeat rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 aspect-square flex flex-col items-center justify-between p-4 relative"
-                // style={{
-                //   backgroundImage: `url(${placementTemplate})`,
-                //   backgroundSize: 'cover',
-                //   backgroundPosition: 'center'
-                // }}
-              >
-                <div className="w-full text-center">
-                  <div className="flex justify-between items-center mb-2">
-                    <img src={iteg} alt="ITEG" className="h-14" />
-                    <img src={ssism} alt="SSISM" className="h-14" />
-                  </div>
-                  <h3 className="text-4xl font-bold text-[#133783]">Congratulations</h3>
-                  <p className="text-xl text-gray-500">We are proud to announce that <br />Our ITEG student</p>
-                </div>
-                <div className="flex justify-center items-center flex-1">
-                  <div className="rounded-full p-1 bg-white">
-                    <div className="rounded-full p-1 bg-orange-500">
-                      <img
-                        src={student.image || student.profileImage || "https://via.placeholder.com/150x150/e2e8f0/64748b?text=Student"}
-                        alt={`${student.firstName} ${student.lastName}`}
-                        className="w-32 h-32 sm:w-36 sm:h-36 rounded-full object-cover border-2 border-white shadow-md"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="w-full text-center pt-3">
-                  <h3 className="text-lg font-bold text-[#133783] mb-1">
-                    {toTitleCase(student.firstName)} {toTitleCase(student.lastName)}
-                  </h3>
-                  <p className="text-xs text-black">{student.village || "Location"}</p>
-                  <p className="text-sm font-semibold text-black">{student.course || "Course"}</p>
-                  <div className="mt-3 relative">
-                    <div className="border-t border-black w-1/5 mx-auto mb-3"></div>
-                    <p className="text-sm text-black">got placed as a <span className="font-semibold">
-                      {student.placedInfo?.jobProfile || "Position"}
-                    </span> in</p>
-                    <p className="text-sm font-bold text-[#133783]">
-                      {student.placedInfo?.companyName || "Company"}
-                    </p>
-                  </div>
-                </div>
-                <div className="absolute top-2 right-2 flex gap-1 z-20">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedStudent(student);
-                      setCreatePostModalOpen(true);
-                    }}
-                    className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors shadow-lg"
-                    title="Edit Post"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      downloadPost(student);
-                    }}
-                    className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors shadow-lg"
-                    title="Download Post"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      <polyline points="7,10 12,15 17,10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )} */}
-
-
 
     </div >
   );

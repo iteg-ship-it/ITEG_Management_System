@@ -103,7 +103,6 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  console.log('CreatePostModal props:', { isOpen, student: student?.firstName });
   
   if (!isOpen) return null;
 
