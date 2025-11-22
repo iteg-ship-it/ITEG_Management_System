@@ -1,5 +1,5 @@
 const express = require('express');
-const { saveStudentReportCard, getStudentReportCard, getAllReportCards, getStudentReportCardForEdit } = require('../modules/student/controllers/studentReportCardController');
+const { saveStudentReportCard, getStudentReportCard, getAllReportCards, getStudentReportCardForEdit, updateStudentReportCard } = require('../modules/student/controllers/studentReportCardController');
 
 const router = express.Router();
 
