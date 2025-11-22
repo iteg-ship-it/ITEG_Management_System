@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAdmitedStudentsQuery } from "../../redux/api/authApi";
-// import placementTemplate from "../../assets/images/ITEG_Placement_Post.jpg";
+import { pdf } from "@react-pdf/renderer";
 import PageNavbar from "../common-components/navbar/PageNavbar";
 import CreatePostModal from "./CreatePostModal";
 import CommonTable from "../common-components/table/CommonTable";
@@ -9,6 +9,7 @@ import profile from "../../assets/images/profileImgDummy.jpeg";
 import iteg from "../../assets/images/logo.png";
 import ssism from "../../assets/images/iteg-logo.png";
 import Pagination from "../common-components/pagination/Pagination";
+import PlacementPostPDF from "./PlacementPostPDF";
 
 const PlacementPost = () => {
   console.log("PlacementPost component loaded");
@@ -68,105 +69,20 @@ const PlacementPost = () => {
     return trackMatch && subjectMatch && searchMatch;
   });
 
-  // Download post function
+  // Download post function using react-pdf-renderer
   const downloadPost = async (student) => {
     try {
-      // Import html2canvas dynamically
-      const html2canvas = (await import('html2canvas')).default;
-
-      let targetCard = null;
-      let isTemporary = false;
-
-      // First try to find existing card element (for grid view)
-      const cardElements = document.querySelectorAll('[data-student-id]');
-      cardElements.forEach(card => {
-        if (card.getAttribute('data-student-id') === student._id) {
-          targetCard = card;
-        }
-      });
-
-      // If no card found (table view), create temporary card
-      if (!targetCard) {
-        isTemporary = true;
-        targetCard = document.createElement('div');
-        targetCard.className = 'bg-cover bg-center bg-no-repeat rounded-xl shadow-lg border border-gray-200 aspect-square flex flex-col items-center justify-between p-4 relative';
-        targetCard.style.width = '400px';
-        targetCard.style.height = '400px';
-        targetCard.style.backgroundColor = '#ffffff';
-        
-        targetCard.innerHTML = `
-          <div class="w-full text-center">
-            <div class="flex justify-between items-center mb-1">
-              <img src="${iteg}" alt="ITEG" class="h-14" />
-              <img src="${ssism}" alt="SSISM" class="h-14" />
-            </div>
-            <h3 class="text-4xl font-bold text-[#133783] -mt-1">Congratulations</h3>
-            <p class="text-xl text-gray-500">We are proud to announce that <br />Our ITEG student</p>
-          </div>
-          <div class="flex justify-center items-center flex-1">
-            <div class="rounded-full p-1 bg-white">
-              <div class="rounded-full p-1 bg-orange-500">
-                <img
-                  src="${student.image || student.profileImage || "https://via.placeholder.com/150x150/e2e8f0/64748b?text=Student"}"
-                  alt="${student.firstName} ${student.lastName}"
-                  class="w-24 h-24 rounded-full object-cover border-2 border-white shadow-md"
-                />
-              </div>
-            </div>
-          </div>
-          <div class="w-full text-center pt-3">
-            <h3 class="text-lg font-bold text-[#133783] mb-1">
-              ${toTitleCase(student.firstName)} ${toTitleCase(student.lastName)}
-            </h3>
-            <p class="text-xs text-black">${student.village || "Location"}</p>
-            <p class="text-sm font-semibold text-black">${student.course || "Course"}</p>
-            <div class="mt-3 relative">
-              <div class="border-t border-black w-1/5 mx-auto mb-3"></div>
-              <p class="text-sm text-black">got placed as a <span class="font-semibold">
-                ${student.placedInfo?.jobProfile || "Position"}
-              </span> in</p>
-              <p class="text-sm font-bold text-[#133783]">
-                ${student.placedInfo?.companyName || "Company"}
-              </p>
-            </div>
-          </div>
-        `;
-        
-        // Add to DOM temporarily
-        targetCard.style.position = 'absolute';
-        targetCard.style.left = '-9999px';
-        document.body.appendChild(targetCard);
-      }
-
-      // Hide buttons temporarily (only for existing cards)
-      const buttons = targetCard.querySelector('.absolute.top-2.right-2');
-      if (buttons) {
-        buttons.style.display = 'none';
-      }
-
-      // Capture the card element
-      const canvas = await html2canvas(targetCard, {
-        useCORS: true,
-        allowTaint: true,
-        scale: 3,
-        backgroundColor: '#ffffff'
-      });
-
-      // Show buttons again (only for existing cards)
-      if (buttons) {
-        buttons.style.display = 'flex';
-      }
-
-      // Remove temporary card
-      if (isTemporary) {
-        document.body.removeChild(targetCard);
-      }
-
-      // Convert to JPG and download
+      // Generate PDF blob
+      const blob = await pdf(<PlacementPostPDF student={student} />).toBlob();
+      
+      // Create download link
       const link = document.createElement('a');
-      link.download = `${student.firstName}_${student.lastName}_placement_post.jpg`;
-      link.href = canvas.toDataURL('image/jpeg', 1.0);
+      link.href = URL.createObjectURL(blob);
+      link.download = `${student.firstName}_${student.lastName}_placement_post.pdf`;
       link.click();
+      
+      // Clean up
+      URL.revokeObjectURL(link.href);
     } catch (error) {
       console.error('Error downloading post:', error);
     }
