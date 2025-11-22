@@ -22,7 +22,7 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!companyLogoFile || !studentImageFile) {
       toast.error("Please upload both company logo and student image");
       return;
@@ -34,12 +34,12 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
     }
 
     setIsSubmitting(true);
-    
+
     try {
       // Convert files to base64
       const companyLogoBase64 = await fileToBase64(companyLogoFile);
       const studentImageBase64 = await fileToBase64(studentImageFile);
-      
+
       const postData = {
         studentId: student._id,
         position: formData.position,
@@ -51,7 +51,7 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
 
       // Call API to create placement post
       await createPlacementPost(postData).unwrap();
-      
+
       toast.success("Placement post created successfully!");
       onSuccess?.();
       onClose();
@@ -103,7 +103,7 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  
+
   if (!isOpen) return null;
 
   return (
@@ -152,7 +152,7 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
               required
               readOnly
             />
-            <label 
+            <label
               htmlFor="position"
               className="absolute left-3 -top-2 text-xs bg-white px-1 text-black"
             >
@@ -172,7 +172,7 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
               required
               readOnly
             />
-            <label 
+            <label
               htmlFor="companyName"
               className="absolute left-3 -top-2 text-xs bg-white px-1 text-black"
             >
@@ -191,7 +191,7 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
               placeholder=" "
               required
             />
-            <label 
+            <label
               htmlFor="headOffice"
               className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
             >
@@ -213,11 +213,10 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
                 required
                 id="companyLogo"
               />
-              <div className={`h-12 border-2 border-dashed rounded-md flex items-center px-3 transition-colors ${
-                companyLogoFile 
-                  ? 'border-green-400 bg-green-50' 
+              <div className={`h-12 border-2 border-dashed rounded-md flex items-center px-3 transition-colors ${companyLogoFile
+                  ? 'border-green-400 bg-green-50'
                   : 'border-gray-300 hover:border-[#FDA92D] hover:bg-orange-50'
-              }`}>
+                }`}>
                 <div className="flex items-center gap-2 w-full">
                   {companyLogoFile ? (
                     <>
@@ -259,11 +258,10 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
                 required
                 id="studentImage"
               />
-              <div className={`h-12 border-2 border-dashed rounded-md flex items-center px-3 transition-colors ${
-                studentImageFile 
-                  ? 'border-green-400 bg-green-50' 
+              <div className={`h-12 border-2 border-dashed rounded-md flex items-center px-3 transition-colors ${studentImageFile
+                  ? 'border-green-400 bg-green-50'
                   : 'border-gray-300 hover:border-[#FDA92D] hover:bg-orange-50'
-              }`}>
+                }`}>
                 <div className="flex items-center gap-2 w-full">
                   {studentImageFile ? (
                     <>
