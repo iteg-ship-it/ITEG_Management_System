@@ -4085,6 +4085,64 @@ paths:
                     type: string
                     example: "Error message details"
 
+
+
+  /report-card:
+    post:
+      tags:
+        - Student Report Card
+      summary: Save or update student report card
+      description: Creates a new report card or updates it if already exists using studentRef.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportCardInput"
+      responses:
+        "201":
+          description: Report card saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportCardResponse"
+        "500":
+          description: Internal server error
+
+  /api/report-card/{id}:
+    put:
+      tags:
+        - Student Report Card
+      summary: Update student report card
+      description: Updates an existing report card by ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Report card ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportCardInput"
+      responses:
+        "200":
+          description: Report card updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportCardResponse"
+        "404":
+          description: Report card not found
+        "500":
+          description: Internal server error
+
+
+
+
 components:
   securitySchemes:
     bearerAuth:
