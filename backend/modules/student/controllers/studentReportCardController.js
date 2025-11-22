@@ -197,3 +197,115 @@ exports.getAllReportCards = async (req, res) => {
     });
   }
 };
+
+
+exports.updateStudentReportCard = async (req, res) => {
+  try {
+    const { id } = req.params; // report card ID or studentRef
+    const {
+      softSkills,
+      discipline,
+      technicalSkills,
+      careerReadiness,
+      academicPerformance,
+      coCurricular,
+      overallGrade,
+      facultyRemark,
+      isFinalReport,
+      generatedByName,
+      batchYear,
+    } = req.body;
+
+    /* =====================================================
+       🧮 RE-CALCULATE TOTAL SOFT SKILL MARKS (if updated)
+    ===================================================== */
+    let totalSoftSkillMarks = 0;
+
+    if (softSkills && softSkills.categories) {
+      softSkills.categories = softSkills.categories.map((category) => {
+        const checkedCount = category.subcategories.filter((s) => s.value === true).length;
+        const subCount = category.subcategories.length || 1;
+        const max = category.maxMarks || 10;
+
+        const score = Math.round((checkedCount / subCount) * max);
+        totalSoftSkillMarks += score;
+
+        return { ...category, score };
+      });
+    }
+
+    /* =====================================================
+       🧮 RE-CALCULATE TOTAL DISCIPLINE MARKS (if updated)
+    ===================================================== */
+    let totalDisciplineMarks = 0;
+
+    if (discipline && discipline.categories) {
+      discipline.categories = discipline.categories.map((category) => {
+        const checkedCount = category.subcategories.filter((s) => s.value === true).length;
+        const subCount = category.subcategories.length || 1;
+        const max = category.maxMarks || 10;
+
+        const score = Math.round((checkedCount / subCount) * max);
+        totalDisciplineMarks += score;
+
+        return { ...category, score };
+      });
+    }
+
+    /* =====================================================
+       🧾 BUILD UPDATED DATA OBJECT
+    ===================================================== */
+    const updatedData = {
+      generatedByName,
+      batchYear,
+      softSkills: softSkills
+        ? { ...softSkills, totalSoftSkillMarks }
+        : undefined,
+      discipline: discipline
+        ? { ...discipline, totalDisciplineMarks }
+        : undefined,
+      technicalSkills,
+      careerReadiness,
+      academicPerformance,
+      coCurricular,
+      overallGrade,
+      facultyRemark,
+      isFinalReport,
+    };
+
+    // Remove undefined fields to avoid overwriting
+    Object.keys(updatedData).forEach(
+      (key) => updatedData[key] === undefined && delete updatedData[key]
+    );
+
+    /* =====================================================
+       🔄 UPDATE REPORT CARD DOCUMENT
+    ===================================================== */
+    const updatedReportCard = await StudentReportCard.findOneAndUpdate(
+      { _id: id }, // you can also use { studentRef: id }
+      updatedData,
+      { new: true }
+    );
+
+    if (!updatedReportCard) {
+      return res.status(404).json({
+        success: false,
+        message: "Report card not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Report card updated successfully",
+      data: updatedReportCard,
+    });
+  } catch (error) {
+    console.error("❌ Error updating report card:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error while updating report card",
+      error: error.message,
+    });
+  }
+};
+

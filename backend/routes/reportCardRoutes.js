@@ -20,4 +20,6 @@ router.get('/test/edit', (req, res) => {
 // GET /api/reportcards/:studentId - Get student report card
 router.get('/:studentId', getStudentReportCard);
 
+router.put("/report-card/:id", updateStudentReportCard);
+
 module.exports = router;
