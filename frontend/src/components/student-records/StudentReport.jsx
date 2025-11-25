@@ -15,6 +15,11 @@ import mailIcon from '../../assets/icons/StuReportMail_icon.png';
 import fatherIcon from '../../assets/icons/StuReportFather_icon.png';
 import contactIcon from '../../assets/icons/StuReport_Phone.png';
 import addressIcon from '../../assets/icons/StuReportAddress_icon.png';
+import careerIcon from '../../assets/icons/Career_icon.png';
+import disciplineIcon from '../../assets/icons/Displine_icon.png';
+import medalIcon from '../../assets/icons/Medal_icons.png';
+import softSkillIcon from '../../assets/icons/SoftSkill.png';
+import technicalIcon from '../../assets/icons/Technical_icon.png';
 
 /**
  * Simplified LevelStepper - only levels 1A..2C shown with a connecting line.
@@ -259,7 +264,7 @@ export default function StudentReport() {
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-600 text-lg">💻</span>
+                  <img src={technicalIcon} alt="Technical Skills" className="w-6 h-6" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-800">Technical Skills</h3>
               </div>
@@ -301,7 +306,7 @@ export default function StudentReport() {
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-600 text-lg">🧠</span>
+                  <img src={softSkillIcon} alt="Soft Skills" className="w-6 h-6" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-800">Soft Skills</h3>
               </div>
@@ -355,7 +360,7 @@ export default function StudentReport() {
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-600 text-lg">🎖️</span>
+                  <img src={disciplineIcon} alt="Discipline" className="w-6 h-6" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-800">Discipline</h3>
               </div>
@@ -395,7 +400,7 @@ export default function StudentReport() {
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-600 text-lg">🚀</span>
+                  <img src={careerIcon} alt="Career Readiness" className="w-6 h-6" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-800">Career Readiness</h3>
               </div>
@@ -502,7 +507,7 @@ export default function StudentReport() {
           <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                <span className="text-gray-600 text-lg">🏆</span>
+                <img src={medalIcon} alt="Co-Curricular Activities" className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-gray-800">Co-Curricular Activities</h3>
             </div>
