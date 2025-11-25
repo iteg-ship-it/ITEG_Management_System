@@ -1,5 +1,5 @@
 const express = require('express');
-const { saveStudentReportCard, getStudentReportCard, getAllReportCards, getStudentReportCardForEdit } = require('../modules/student/controllers/studentReportCardController');
+const { saveStudentReportCard, getStudentReportCard, getAllReportCards, getStudentReportCardForEdit, updateStudentReportCard } = require('../modules/student/controllers/studentReportCardController');
 
 const router = express.Router();
 
@@ -19,5 +19,7 @@ router.get('/test/edit', (req, res) => {
 
 // GET /api/reportcards/:studentId - Get student report card
 router.get('/:studentId', getStudentReportCard);
+
+router.put("/report-card/:id", updateStudentReportCard);
 
 module.exports = router;

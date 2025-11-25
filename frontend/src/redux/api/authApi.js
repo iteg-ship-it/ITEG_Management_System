@@ -714,6 +714,16 @@ export const authApi = createApi({
       ],
     }),
 
+    // Update report card
+    updateReportCard: builder.mutation({
+      query: ({ id, ...reportData }) => ({
+        url: `/reportcards/report-card/${id}`,
+        method: "PUT",
+        body: reportData,
+      }),
+      invalidatesTags: ['Student'],
+    }),
+
   }),
 });
 
@@ -767,5 +777,6 @@ export const {
   useEditUserMutation,
   useGetReportCardQuery,
   useCreateReportCardMutation,
-  useGetReportCardForEditQuery
+  useGetReportCardForEditQuery,
+  useUpdateReportCardMutation
 } = authApi;
