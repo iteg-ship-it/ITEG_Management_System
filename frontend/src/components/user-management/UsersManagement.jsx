@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { Trash2, Edit, Eye, X } from 'lucide-react';
+import { Trash2, Edit, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useGetAllUsersQuery, useDeleteUserMutation, useEditUserMutation } from '../../redux/api/authApi';
 import CommonTable from '../common-components/table/CommonTable';
 import Pagination from '../common-components/pagination/Pagination';
@@ -13,6 +14,7 @@ import PageNavbar from '../common-components/navbar/PageNavbar';
 import profile from '../../assets/images/profile-img.png';
 
 const UsersManagement = () => {
+    const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedDepartments, setSelectedDepartments] = useState([]);
     const [selectedRoles, setSelectedRoles] = useState([]);
@@ -39,6 +41,10 @@ const UsersManagement = () => {
 
     const handleEditUser = (user) => {
         setEditModal({ show: true, user });
+    };
+
+    const handleViewUser = (userId) => {
+        navigate(`/user-profile/${userId}`);
     };
 
 
@@ -142,12 +148,6 @@ const UsersManagement = () => {
 
     const actionButton = (user) => (
         <div className="flex space-x-1">
-            <button 
-                className="p-2 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" 
-                title="View Details"
-            >
-                <Eye size={14} />
-            </button>
             <button
                 onClick={() => handleEditUser(user)}
                 className="p-2 rounded-md bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
@@ -208,6 +208,7 @@ const UsersManagement = () => {
                     pagination={true}
                     editable={true}
                     actionButton={actionButton}
+                    onRowClick={(user) => handleViewUser(user.id)}
                     rowsPerPage={10}
                 />
             </div>
