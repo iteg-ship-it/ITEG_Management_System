@@ -176,8 +176,8 @@ export default function StudentReport() {
           <div className="relative bg-white rounded-xl p-6 mb-6 border border-gray-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="bg-gray-100 rounded-lg p-3">
-                  <img src={logo} alt="ITEG Logo" className="h-12 object-contain" />
+                <div>
+                  <img src={logo} alt="ITEG Logo" className="h-16 object-contain" />
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold mb-1 text-gray-800">Student Report Card</h1>
@@ -291,7 +291,6 @@ export default function StudentReport() {
                   );
                 }) : (
                   <div className="text-center py-8 text-gray-500">
-                    <span className="text-4xl mb-2 block">📊</span>
                     <p>No technical skills data</p>
                   </div>
                 )}
@@ -346,7 +345,6 @@ export default function StudentReport() {
                   );
                 }) : (
                   <div className="text-center py-8 text-gray-500">
-                    <span className="text-4xl mb-2 block">🎆</span>
                     <p>No soft skills data</p>
                   </div>
                 )}
@@ -384,7 +382,6 @@ export default function StudentReport() {
                   );
                 }) : (
                   <div className="text-center py-8 text-gray-500">
-                    <span className="text-4xl mb-2 block">🏅</span>
                     <p>No discipline data</p>
                   </div>
                 )}
@@ -454,7 +451,6 @@ export default function StudentReport() {
                   </>
                 ) : (
                   <div className="col-span-2 text-center py-8 text-gray-500">
-                    <span className="text-4xl mb-2 block">📈</span>
                     <p>No career readiness data</p>
                   </div>
                 )}

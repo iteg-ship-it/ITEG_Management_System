@@ -506,10 +506,9 @@ export default function StudentReportForm() {
               </label>
               <input
                 type="text"
-                value={formData.generatedByName}
-                onChange={(e) => setFormData(prev => ({ ...prev, generatedByName: e.target.value }))}
-                placeholder="Enter faculty name"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                value={`Prof. ${formData.generatedByName}`}
+                disabled
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
               />
             </div>
           </div>
@@ -689,7 +688,7 @@ export default function StudentReportForm() {
                         type="checkbox"
                         checked={!!sub.value}
                         onChange={(e) => updateSoftSkillSubcategory(categoryIndex, subIndex, e.target.checked)}
-                        className="w-5 h-5 rounded border-2 border-gray-300 checked:bg-black checked:border-black focus:ring-2 focus:ring-black"
+                        className="w-5 h-5 rounded border-2 border-gray-300 checked:bg-black checked:border-black focus:ring-2 focus:ring-black appearance-none relative checked:after:content-['✓'] checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1"
                       />
                       <span className="text-sm text-gray-700">{sub.name}</span>
                     </label>
@@ -731,7 +730,7 @@ export default function StudentReportForm() {
                         type="checkbox"
                         checked={!!sub.value}
                         onChange={(e) => updateDisciplineSubcategory(categoryIndex, subIndex, e.target.checked)}
-                        className="w-5 h-5 rounded border-2 border-gray-300 checked:bg-black checked:border-black focus:ring-2 focus:ring-black"
+                        className="w-5 h-5 rounded border-2 border-gray-300 checked:bg-black checked:border-black focus:ring-2 focus:ring-black appearance-none relative checked:after:content-['✓'] checked:after:text-white checked:after:text-sm checked:after:font-bold checked:after:absolute checked:after:top-0 checked:after:left-1"
                       />
                       <span className="text-sm text-gray-700">{sub.name}</span>
                     </label>
@@ -868,14 +867,18 @@ export default function StudentReportForm() {
             Cancel
           </button>
 
-          <button
-            type="submit"
-            disabled={isCreating}
-            className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50"
-          >
-            {isCreating ? 'Submitting...' : 'Submit Report'}
-          </button>
+          {/* Show Submit button only when no existing data */}
+          {!existingReportData?.data && (
+            <button
+              type="submit"
+              disabled={isCreating}
+              className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50"
+            >
+              {isCreating ? 'Submitting...' : 'Submit Report'}
+            </button>
+          )}
 
+          {/* Show Update button only when existing data is found */}
           {existingReportData?.data && (
             <button
               type="button"
@@ -944,7 +947,7 @@ export default function StudentReportForm() {
                 }
               }}
               disabled={isUpdating}
-              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+              className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50"
             >
               {isUpdating ? 'Updating...' : 'Update Report'}
             </button>
