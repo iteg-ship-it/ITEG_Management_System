@@ -1,18 +1,20 @@
 import { useParams } from "react-router-dom";
-import { useGetUserByIdQuery } from "../../redux/api/authApi";
+import { useGetUserByIdQuery, useUpdateUserMutation } from "../../redux/api/authApi";
 import Loader from "../common-components/loader/Loader";
 import { HiArrowNarrowLeft } from "react-icons/hi";
+import { IoCamera } from "react-icons/io5";
 import { FiUser, FiBriefcase, FiShield, FiSettings, FiMail, FiPhone, FiMapPin, FiCalendar, FiClock, FiUserCheck } from "react-icons/fi";
 import profilePlaceholder from '../../assets/images/profile-img.png';
 import studentProfileBg from "../../assets/images/Student_profile_2nd_bg.jpg";
-import attendence from "../../assets/icons/attendence-card-icon.png";
-import level from "../../assets/icons/level-card-icon.png";
-import permission from "../../assets/icons/permission-card-icon.png";
-import placed from "../../assets/icons/placement-card-icon.png";
+import { toast } from 'react-toastify';
+import { useState, useRef } from 'react';
 
 const UserProfile = () => {
   const { id } = useParams();
-  const { data, isLoading, isError, error } = useGetUserByIdQuery(id);
+  const { data, isLoading, isError, error, refetch } = useGetUserByIdQuery(id);
+  const [updateUser] = useUpdateUserMutation();
+  const [isImageUploading, setIsImageUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   if (isLoading) {
     return (
@@ -31,6 +33,58 @@ const UserProfile = () => {
   }
 
   const userData = data?.user;
+
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select a valid image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB');
+      return;
+    }
+
+    const userId = id || userData?._id;
+    if (!userId) {
+      toast.error('User ID not found');
+      return;
+    }
+
+    setIsImageUploading(true);
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const base64Image = e.target.result;
+        await updateUser({
+          id: userId,
+          data: { profileImage: base64Image }
+        }).unwrap();
+        refetch();
+        toast.success('Profile image updated successfully!');
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        toast.error('Failed to upload image');
+      } finally {
+        setIsImageUploading(false);
+      }
+    };
+
+    reader.onerror = () => {
+      toast.error('Error reading file');
+      setIsImageUploading(false);
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const triggerImageUpload = () => {
+    fileInputRef.current?.click();
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -75,6 +129,24 @@ const UserProfile = () => {
                       className="w-full h-full object-cover rounded-full"
                     />
                   </div>
+                  <div
+                    className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full shadow-md flex items-center justify-center cursor-pointer hover:shadow-lg transition-shadow"
+                    onClick={triggerImageUpload}
+                    style={{ transform: 'translate(-25%, -25%)' }}
+                  >
+                    {isImageUploading ? (
+                      <div className="w-4 h-4 sm:w-3 sm:h-3 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <IoCamera className="w-5 h-5 sm:w-7 sm:h-6 text-gray-700 hover:text-gray-900" />
+                    )}
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
                 </div>
                 <div className="flex-1 text-center sm:text-left">
                   <h2 className="text-lg sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 text-white">

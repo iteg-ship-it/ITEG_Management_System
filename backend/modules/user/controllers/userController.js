@@ -703,7 +703,7 @@ exports.updateUserFields = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    const { name, position, role, department, isActive } = req.body;
+    const { name, position, role, department, isActive, profileImage } = req.body;
 
     const updatedData = {
       ...(name && { name }),
@@ -711,6 +711,7 @@ exports.updateUserFields = async (req, res) => {
       ...(role && { role }),
       ...(department && { department }),
       ...(typeof isActive === "boolean" && { isActive }),
+      ...(profileImage && { profileImage }),
       updatedAt: new Date(),
     };
 

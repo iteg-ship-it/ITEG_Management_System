@@ -161,6 +161,9 @@ export const authApi = createApi({
         method: 'PATCH',
         body: data,
       }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'User', id }
+      ],
     }),
     //-- Logout API ----
     logout: builder.mutation({
