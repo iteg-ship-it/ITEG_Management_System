@@ -3,23 +3,14 @@ import React, { useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetAdmittedStudentsByIdQuery, useGetReportCardQuery } from "../../redux/api/authApi";
 import { HiArrowNarrowLeft } from "react-icons/hi";
-import { FaDownload } from "react-icons/fa6";
+import { FaDownload, FaLaptopCode, FaBrain, FaClipboardCheck, FaRocket, FaCertificate, FaGraduationCap, FaEdit, FaTrophy, FaMedal, FaProjectDiagram } from "react-icons/fa";
+import { MdEmail, MdPhone, MdPerson, MdLocationOn, MdOutlineSportsVolleyball } from "react-icons/md";
 import Loader from "../common-components/loader/Loader";
+import { TbCertificate } from "react-icons/tb";
 import logo from '../../assets/images/doulLogo.png';
 import { RiEdit2Fill } from "react-icons/ri";
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import StudentReportPDF from './StudentReportPDF';
-// import profileIcon from '../../assets/icons/StuReportprofile_icon.png';
-// import courseIcon from '../../assets/icons/StuReportCourse_icon.png';
-import mailIcon from '../../assets/icons/StuReportMail_icon.png';
-import fatherIcon from '../../assets/icons/StuReportFather_icon.png';
-import contactIcon from '../../assets/icons/StuReport_Phone.png';
-import addressIcon from '../../assets/icons/StuReportAddress_icon.png';
-import careerIcon from '../../assets/icons/Career_icon.png';
-import disciplineIcon from '../../assets/icons/Displine_icon.png';
-import medalIcon from '../../assets/icons/Medal_icons.png';
-import softSkillIcon from '../../assets/icons/SoftSkill.png';
-import technicalIcon from '../../assets/icons/Technical_icon.png';
 
 /**
  * Simplified LevelStepper - only levels 1A..2C shown with a connecting line.
@@ -90,7 +81,7 @@ function LevelStepper({ levels = ['1A','1B','1C','2A','2B','2C'], currentLevel =
         {/* Goal Section - positioned at the end */}
         <div className="flex flex-col items-center">
           <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-2xl shadow-lg">
-            🏆
+            <FaTrophy className="text-white" />
           </div>
           <span className="text-xs mt-2 font-medium text-gray-700">Goal</span>
         </div>
@@ -213,7 +204,7 @@ export default function StudentReport() {
               <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <img src={mailIcon} alt="Email" className="w-4 h-4" />
+                    <MdEmail className="w-4 h-4 text-purple-500" />
                   </div>
                   <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Email</span>
                 </div>
@@ -223,7 +214,7 @@ export default function StudentReport() {
               <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <img src={contactIcon} alt="Phone" className="w-4 h-4" />
+                    <MdPhone className="w-4 h-4 text-purple-500" />
                   </div>
                   <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Contact</span>
                 </div>
@@ -233,7 +224,7 @@ export default function StudentReport() {
               <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <img src={fatherIcon} alt="Father" className="w-4 h-4" />
+                    <MdPerson className="w-4 h-4 text-purple-500" />
                   </div>
                   <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Father</span>
                 </div>
@@ -243,7 +234,7 @@ export default function StudentReport() {
               <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <img src={addressIcon} alt="Track" className="w-4 h-4" />
+                    <MdLocationOn className="w-4 h-4 text-purple-500" />
                   </div>
                   <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Track</span>
                 </div>
@@ -264,7 +255,7 @@ export default function StudentReport() {
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <img src={technicalIcon} alt="Technical Skills" className="w-6 h-6" />
+                  <FaLaptopCode className="w-6 h-6 text-purple-500" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-800">Technical Skills</h3>
               </div>
@@ -306,7 +297,7 @@ export default function StudentReport() {
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <img src={softSkillIcon} alt="Soft Skills" className="w-6 h-6" />
+                  <FaBrain className="w-6 h-6 text-purple-500" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-800">Soft Skills</h3>
               </div>
@@ -360,7 +351,7 @@ export default function StudentReport() {
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <img src={disciplineIcon} alt="Discipline" className="w-6 h-6" />
+                  <FaClipboardCheck className="w-6 h-6 text-purple-500" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-800">Discipline</h3>
               </div>
@@ -400,7 +391,7 @@ export default function StudentReport() {
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <img src={careerIcon} alt="Career Readiness" className="w-6 h-6" />
+                  <FaRocket className="w-6 h-6 text-purple-500" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-800">Career Readiness</h3>
               </div>
@@ -466,7 +457,7 @@ export default function StudentReport() {
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-600 text-lg">🎓</span>
+                  <FaGraduationCap className="w-6 h-6 text-purple-500" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-800">Academic Performance</h3>
               </div>
@@ -507,7 +498,7 @@ export default function StudentReport() {
           <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                <img src={medalIcon} alt="Co-Curricular Activities" className="w-6 h-6" />
+                <TbCertificate className="w-6 h-6 text-purple-500" />
               </div>
               <h3 className="text-lg font-bold text-gray-800">Co-Curricular Activities</h3>
             </div>
@@ -515,9 +506,9 @@ export default function StudentReport() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               {(() => {
                 const categories = [
-                  { name: 'Certificate', icon: '🏅' },
-                  { name: 'Project', icon: '💻' },
-                  { name: 'Sports', icon: '⚽' }
+                  { name: 'Certificate', icon: FaMedal },
+                  { name: 'Project', icon: FaProjectDiagram },
+                  { name: 'Sports', icon: MdOutlineSportsVolleyball}
                 ];
 
                 return categories.map((category) => {
@@ -525,10 +516,12 @@ export default function StudentReport() {
                     activity.category.toLowerCase() === category.name.toLowerCase()
                   ).length || 0;
 
+                  const IconComponent = category.icon;
+
                   return (
                     <div key={category.name} className="bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
                       <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <span className="text-2xl text-gray-600">{category.icon}</span>
+                        <IconComponent className="w-6 h-6 text-purple-500" />
                       </div>
                       <h4 className="font-semibold text-gray-800 mb-1">{category.name}</h4>
                       <p className="text-2xl font-bold text-gray-700">{count}</p>
@@ -580,7 +573,7 @@ export default function StudentReport() {
           <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                <span className="text-gray-600 text-lg">📝</span>
+                <FaEdit className="w-6 h-6 text-purple-500" />
               </div>
               <h3 className="text-lg font-bold text-gray-800">Faculty Feedback</h3>
             </div>
