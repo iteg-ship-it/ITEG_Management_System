@@ -3,8 +3,8 @@ import React, { useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetAdmittedStudentsByIdQuery, useGetReportCardQuery } from "../../redux/api/authApi";
 import { HiArrowNarrowLeft } from "react-icons/hi";
-import { FaDownload, FaLaptopCode, FaBrain, FaClipboardCheck, FaRocket, FaCertificate, FaGraduationCap, FaEdit, FaTrophy, FaMedal, FaProjectDiagram } from "react-icons/fa";
-import { MdEmail, MdPhone, MdPerson, MdLocationOn, MdOutlineSportsVolleyball } from "react-icons/md";
+import { FaDownload, FaLaptopCode, FaBrain, FaClipboardCheck, FaRocket, FaCertificate, FaGraduationCap, FaEdit, FaTrophy, FaProjectDiagram } from "react-icons/fa";
+import { MdEmail, MdPhone, MdPerson, MdLocationOn, MdSports } from "react-icons/md";
 import Loader from "../common-components/loader/Loader";
 import { TbCertificate } from "react-icons/tb";
 import logo from '../../assets/images/doulLogo.png';
@@ -506,9 +506,9 @@ export default function StudentReport() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               {(() => {
                 const categories = [
-                  { name: 'Certificate', icon: FaMedal },
+                  { name: 'Certificate', icon: TbCertificate },
                   { name: 'Project', icon: FaProjectDiagram },
-                  { name: 'Sports', icon: MdOutlineSportsVolleyball}
+                  { name: 'Sports', icon: MdSports }
                 ];
 
                 return categories.map((category) => {
