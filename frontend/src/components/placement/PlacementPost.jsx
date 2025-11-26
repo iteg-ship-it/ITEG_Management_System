@@ -126,19 +126,28 @@ const PlacementPost = () => {
   // Download post function using react-pdf-renderer
   const downloadPost = async (student) => {
     try {
+      console.log('Starting download for student:', student.firstName, student.lastName);
+      
       // Generate PDF blob
       const blob = await pdf(<PlacementPostPDF student={student} />).toBlob();
+      console.log('PDF blob generated successfully');
       
       // Create download link
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
       link.download = `${student.firstName}_${student.lastName}_placement_post.pdf`;
+      
+      // Append to body, click, and remove
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
       
       // Clean up
       URL.revokeObjectURL(link.href);
+      console.log('Download completed successfully');
     } catch (error) {
       console.error('Error downloading post:', error);
+      alert('Failed to download post. Please try again.');
     }
   };
 
@@ -275,12 +284,12 @@ const PlacementPost = () => {
               {
                 key: "company",
                 label: "Company",
-                render: (row) => toTitleCase(row.placedInfo?.companyName || 'N/A'),
+                render: (row) => toTitleCase(row.placedInfo?.companyName) || 'N/A',
               },
               {
                 key: "position",
                 label: "Position",
-                render: (row) => toTitleCase(row.placedInfo?.jobProfile || 'N/A'),
+                render: (row) => toTitleCase(row.placedInfo?.jobProfile) || 'N/A',
               },
               {
                 key: "salary",
@@ -392,10 +401,10 @@ const PlacementPost = () => {
                     <div className="mt-3 relative">
                       <div className="border-t border-black w-1/5 mx-auto mb-3"></div>
                       <p className="text-sm text-black">got placed as a <span className="font-semibold">
-                        {student.placedInfo?.jobProfile || "Position"}
+                        {toTitleCase(student.placedInfo?.jobProfile) || "Position"}
                       </span> in</p>
                       <p className="text-sm font-bold text-[#133783]">
-                        {student.placedInfo?.companyName || "Company"}
+                        {toTitleCase(student.placedInfo?.companyName) || "Company"}
                       </p>
                     </div>
                   </div>

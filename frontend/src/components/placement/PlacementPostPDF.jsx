@@ -24,7 +24,6 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
     height: "100%",
-    borderRadius: 12,
     padding: 16,
     flexDirection: "column",
     justifyContent: "flex-end",
@@ -37,7 +36,6 @@ const styles = StyleSheet.create({
     left: 0,
     width: "100%",
     height: "100%",
-    borderRadius: 12,
   },
   header: {
     width: "100%",
@@ -125,7 +123,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#000000",
     width: "20%",
-    marginVertical: 12,
+    marginVertical: 8,
     alignSelf: "center",
   },
   placementText: {
@@ -141,6 +139,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#133783",
     textAlign: "center",
+    marginTop: 4,
   },
 });
 
@@ -197,11 +196,11 @@ const PlacementPostPDF = ({ student }) => {
             
             <Text style={styles.placementText}>
               got placed as a <Text style={styles.jobProfile}>
-                {student.placedInfo?.jobProfile || "Position"}
+                {toTitleCase(student.placedInfo?.jobProfile) || "Position"}
               </Text> in
             </Text>
             <Text style={styles.companyName}>
-              {student.placedInfo?.companyName || "Company"}
+              {toTitleCase(student.placedInfo?.companyName) || "Company"}
             </Text>
           </View>
         </View>
