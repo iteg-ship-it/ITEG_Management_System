@@ -193,7 +193,7 @@ const UserProfile = () => {
             icon={<FiShield className="w-5 h-5 text-gray-700" />}
           >
             <div className="space-y-4">
-              <ProfessionalDetailRow icon={<FiSettings />} label="Aadhar Number" value={userData?.adharCard || "N/A"} />
+              <ProfessionalDetailRow icon={<FiSettings />} label="Aadhar Number" value={userData?.adharCard ? `XXXX-XXXX-${userData.adharCard.slice(-4)}` : "N/A"} />
               <ProfessionalDetailRow icon={<FiShield />} label="Security Level" value={userData?.role === 'superadmin' ? 'High' : userData?.role === 'admin' ? 'Medium' : 'Standard'} />
               <ProfessionalDetailRow icon={<FiUserCheck />} label="Verification Status" value="Verified" />
             </div>
