@@ -96,28 +96,28 @@ const UserProfile = () => {
         {/* Professional Metrics Dashboard */}
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6 mb-4 sm:mb-8 pr-2 sm:pr-0">
           <ProfessionalMetricCard
-            icon={<FiBriefcase className="w-6 h-6 text-white" />}
+            icon={<FiBriefcase />}
             title="Department"
             value={userData?.department || "N/A"}
             bgColor="#FDA92D"
             description="Organizational unit"
           />
           <ProfessionalMetricCard
-            icon={<FiUser className="w-6 h-6 text-white" />}
+            icon={<FiUser />}
             title="Position"
             value={userData?.position || "N/A"}
             bgColor="#8E33FF"
             description="Job designation"
           />
           <ProfessionalMetricCard
-            icon={<FiShield className="w-6 h-6 text-white" />}
+            icon={<FiShield />}
             title="Access Level"
             value={userData?.role?.toUpperCase() || "N/A"}
             bgColor="#00B8D9"
             description="System privileges"
           />
           <ProfessionalMetricCard
-            icon={<FiUserCheck className="w-6 h-6 text-white" />}
+            icon={<FiUserCheck />}
             title="Status"
             value={userData?.isActive ? "Active" : "Inactive"}
             bgColor="#22C55E"
@@ -285,8 +285,7 @@ const ProfessionalMetricCard = ({ icon, title, value, bgColor, description }) =>
           <h3 className="text-sm sm:text-xl lg:text-2xl font-bold mb-0.5 sm:mb-1" style={{ color: bgColor }}>{value}</h3>
           <p className="text-xs text-gray-500 hidden sm:block">{description}</p>
         </div>
-        <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110"
-          style={{ backgroundColor: bgColor }}>
+        <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110 bg-gray-200 text-black">
           {icon}
         </div>
       </div>
