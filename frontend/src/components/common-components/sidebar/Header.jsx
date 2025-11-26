@@ -91,25 +91,14 @@ const Header = () => {
                 </div>
                 <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
                     {userRole === 'superadmin' && (
-                        <>
-                            <Link
-                                to="/users-management"
-                                className="flex items-center justify-center h-8 sm:h-9 md:h-10 px-2 sm:px-3 md:px-4 text-xs sm:text-sm font-medium bg-white text-orange-500 border border-orange-500 rounded-lg hover:bg-orange-100 hover:border-orange-300 transition-all duration-200 shadow-sm hover:shadow-md"
-                                title="Manage Users"
-                            >
-                                <span className="hidden sm:inline">Users</span>
-                                <span className="sm:hidden"><FaUserGroup />
-</span>
-                            </Link>
-                            <button
-                                onClick={handleAddFaculty}
-                                className={`flex items-center justify-center h-8 sm:h-9 md:h-10 px-2 sm:px-2 md:px-4 text-xs sm:text-sm font-medium ${buttonStyles.primary}`}
-                                title="Add Member"
-                            >
-                                <span className="w-20 hidden sm:inline">Add User</span>
-                                <span className="sm:hidden text-lg">+</span>
-                            </button>
-                        </>
+                        <button
+                            onClick={handleAddFaculty}
+                            className={`flex items-center justify-center h-8 sm:h-9 md:h-10 px-2 sm:px-2 md:px-4 text-xs sm:text-sm font-medium ${buttonStyles.primary}`}
+                            title="Add Member"
+                        >
+                            <span className="w-20 hidden sm:inline">Add User</span>
+                            <span className="sm:hidden text-lg">+</span>
+                        </button>
                     )}
                     <UserProfile />
                 </div>
