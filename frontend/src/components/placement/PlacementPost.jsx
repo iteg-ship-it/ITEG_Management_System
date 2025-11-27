@@ -33,6 +33,15 @@ const PlacementPost = () => {
     ).join(' ');
   };
 
+  // Smart capitalization for company names
+  const smartCapitalize = (str) => {
+    if (!str) return str;
+    // If all uppercase, keep as is
+    if (str === str.toUpperCase()) return str;
+    // Otherwise, capitalize first letter only
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  };
+
 
 
   // Filter only placed students (those with placedInfo)
@@ -284,7 +293,7 @@ const PlacementPost = () => {
               {
                 key: "company",
                 label: "Company",
-                render: (row) => toTitleCase(row.placedInfo?.companyName) || 'N/A',
+                render: (row) => smartCapitalize(row.placedInfo?.companyName) || 'N/A',
               },
               {
                 key: "position",
@@ -404,7 +413,7 @@ const PlacementPost = () => {
                         {toTitleCase(student.placedInfo?.jobProfile) || "Position"}
                       </span> in</p>
                       <p className="text-sm font-bold text-[#133783]">
-                        {toTitleCase(student.placedInfo?.companyName) || "Company"}
+                        {smartCapitalize(student.placedInfo?.companyName) || "Company"}
                       </p>
                     </div>
                   </div>
@@ -416,7 +425,7 @@ const PlacementPost = () => {
                         setCreatePostModalOpen(true);
                       }}
                       className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors shadow-lg"
-                      title="Edit Post"
+                      title="Update Post"
                     >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -458,9 +467,10 @@ const PlacementPost = () => {
         isOpen={isCreatePostModalOpen}
         onClose={() => setCreatePostModalOpen(false)}
         student={selectedStudent}
+        isUpdateMode={true}
         onSuccess={() => {
           // Refresh data or show success message
-          console.log('Post created successfully');
+          console.log('Post updated successfully');
         }}
       />
 

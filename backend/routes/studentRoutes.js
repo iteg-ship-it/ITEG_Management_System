@@ -50,6 +50,7 @@ router.get('/placed_students', verifyToken, checkRole(allowedRoles), placementCo
 router.post('/confirm_placement', verifyToken, checkRole(allowedRoles), upload.fields([{ name: 'applicationFile', maxCount: 1 }, { name: 'offerLetterFile', maxCount: 1 }]), placementController.confirmPlacement);
 router.patch('/update_job_type', verifyToken, checkRole(allowedRoles), placementController.updateJobType);
 router.post('/placement_post', verifyToken, checkRole(allowedRoles), placementController.createPlacementPost);
+router.post('/placement_post/update/:studentId', verifyToken, checkRole(allowedRoles), placementController.updatePlacementPost);
 
 // 4. Company & Document Management
 router.get('/companies', verifyToken, checkRole(allowedRoles), placementController.getAllCompanies);

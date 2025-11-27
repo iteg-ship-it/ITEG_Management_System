@@ -385,7 +385,7 @@ exports.createPlacementPost = async (req, res) => {
         companyLogo: logoURL,
         headOffice,
         location,
-         hrEmail
+        hrEmail
       });
 
       await company.save();
@@ -680,6 +680,128 @@ exports.getPlacedStudentsByCompany = async (req, res) => {
 
   } catch (error) {
     console.error("Error fetching placed students:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
+    });
+  }
+};
+
+// UPDATE PLACEMENT POST
+exports.updatePlacementPost = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const {
+      position,
+      companyName,
+      headOffice,
+      companyLogo,
+      studentImage
+    } = req.body;
+
+    // Validate required fields
+    if (!position || !companyName || !headOffice) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields: position, companyName, headOffice"
+      });
+    }
+
+    // Find student
+    const student = await AdmittedStudent.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Student not found" 
+      });
+    }
+
+    // Find company
+    let company = await Company.findOne({ companyName });
+    if (!company) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Company not found" 
+      });
+    }
+
+    // Update company logo if provided
+    if (companyLogo && companyLogo.startsWith("data:image/")) {
+      try {
+        const logoResult = await cloudinary.uploader.upload(companyLogo, {
+          folder: "company-logos",
+          resource_type: "image",
+          public_id: `${companyName.replace(/\s+/g, '_')}_${Date.now()}`
+        });
+        company.companyLogo = logoResult.secure_url;
+      } catch (error) {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to upload company logo",
+          error: error.message
+        });
+      }
+    }
+
+    // Update company details
+    company.headOffice = headOffice;
+    await company.save();
+
+    // Update student image if provided
+    let finalStudentImage = student.image;
+    if (studentImage && studentImage.startsWith("data:image/")) {
+      try {
+        const studentResult = await cloudinary.uploader.upload(studentImage, {
+          folder: "student-images",
+          resource_type: "image",
+          public_id: `${studentId}_${Date.now()}`
+        });
+        finalStudentImage = studentResult.secure_url;
+        student.image = finalStudentImage;
+        await student.save();
+      } catch (error) {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to upload student image",
+          error: error.message
+        });
+      }
+    }
+
+    // Update placement info if exists
+    if (student.placedInfo) {
+      student.placedInfo.jobProfile = position;
+      await student.save();
+    }
+
+    // Prepare response data
+    const updatedData = {
+      student: {
+        id: student._id,
+        name: `${student.firstName} ${student.lastName}`,
+        image: finalStudentImage,
+        course: student.course,
+        year: student.year
+      },
+      company: {
+        id: company._id,
+        name: company.companyName,
+        logo: company.companyLogo,
+        headOffice: company.headOffice
+      },
+      position,
+      updatedAt: new Date()
+    };
+
+    res.status(200).json({
+      success: true,
+      message: "Placement post updated successfully",
+      data: updatedData
+    });
+
+  } catch (error) {
+    console.error("Error updating placement post:", error);
     res.status(500).json({
       success: false,
       message: "Server error",

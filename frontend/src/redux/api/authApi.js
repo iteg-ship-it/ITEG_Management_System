@@ -568,6 +568,16 @@ export const authApi = createApi({
       invalidatesTags: ['PlacementStudent'],
     }),
 
+    // Update placement post
+    updatePlacementPost: builder.mutation({
+      query: ({ studentId, ...data }) => ({
+        url: `/admitted/students/placement_post/update/${studentId}`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['PlacementStudent'],
+    }),
+
     // Get all companies
     getAllCompanies: builder.query({
       query: () => ({
@@ -764,7 +774,8 @@ export const {
   useRescheduleInterviewMutation,
   useAddInterviewRoundMutation,
   useConfirmPlacementMutation,
-  useCreatePlacementPostMutation,
+ useCreatePlacementPostMutation ,
+  useUpdatePlacementPostMutation,
   useGetAllCompaniesQuery,
   useGetPlacedStudentsByCompanyQuery,
   useGetItegAttendanceQuery,
