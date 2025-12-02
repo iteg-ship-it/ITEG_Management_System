@@ -344,7 +344,7 @@ export default function StudentProfile() {
                   }`}
                 title={canChooseElective() ? 'Choose your elective technology' : 'Complete Level 2A/2B/2C to unlock electives'}
               >
-                <span className="hidden sm:inline">Choose Elective</span>
+                <span className="hidden sm:inline">Choose Elective</span> 
                 <span className="sm:hidden">Elective</span>
               </button>
               <button
