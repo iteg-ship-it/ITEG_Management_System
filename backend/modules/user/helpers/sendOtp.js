@@ -2,6 +2,38 @@ const nodemailer = require('nodemailer');
 const path = require('path');
 require('dotenv').config();
 
+// Function to get appropriate client URL based on environment
+function getClientBaseUrl() {
+    const urls = process.env.CLIENT_BASE_URL.split(',').map(url => url.trim());
+    
+    // Priority 1: Custom domain for AWS production
+    if (process.env.CUSTOM_DOMAIN) {
+        return process.env.CUSTOM_DOMAIN.endsWith('/') ? 
+               process.env.CUSTOM_DOMAIN + 'reset-password/' : 
+               process.env.CUSTOM_DOMAIN + '/reset-password/';
+    }
+    
+    // Priority 2: Development environment (localhost)
+    if (process.env.NODE_ENV === 'development') {
+        const localhostUrl = urls.find(url => url.includes('localhost'));
+        if (localhostUrl) {
+            console.log('🏠 Using localhost URL for development');
+            return localhostUrl;
+        }
+    }
+    
+    // Priority 3: Production Vercel URL
+    const vercelUrl = urls.find(url => url.includes('vercel.app'));
+    if (vercelUrl) {
+        console.log('☁️ Using Vercel URL for production');
+        return vercelUrl;
+    }
+    
+    // Fallback to first URL
+    console.log('⚠️ Using fallback URL');
+    return urls[0];
+}
+
 function generateOTP() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
@@ -69,7 +101,12 @@ async function sendResetLinkEmail(email, token) {
     });
 
     const logoPath = path.join(__dirname, '..', process.env.EMAIL_LOGO_PATH);
-    const resetLink = `${process.env.CLIENT_BASE_URL}${token}`;
+    const baseUrl = getClientBaseUrl();
+    const resetLink = `${baseUrl}${token}`;
+    
+    console.log('🔗 Reset link generated:', resetLink);
+    console.log('🌍 Environment:', process.env.NODE_ENV);
+    console.log('🎯 Base URL used:', baseUrl);
 
     const mailOptions = {
         from: `"ITEG Management System" <${process.env.EMAIL_USER}>`,

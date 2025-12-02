@@ -161,6 +161,9 @@ export const authApi = createApi({
         method: 'PATCH',
         body: data,
       }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'User', id }
+      ],
     }),
     //-- Logout API ----
     logout: builder.mutation({
@@ -686,6 +689,17 @@ export const authApi = createApi({
       invalidatesTags: ['User'],
     }),
 
+    // Get user by ID
+    getUserById: builder.query({
+      query: (userId) => ({
+        url: `/user/get/${userId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, userId) => [
+        { type: 'User', id: userId }
+      ],
+    }),
+
     // Get report card by student ID
     getReportCard: builder.query({
       query: (studentId) => ({
@@ -786,6 +800,7 @@ export const {
   useGetAllUsersQuery,
   useDeleteUserMutation,
   useEditUserMutation,
+  useGetUserByIdQuery,
   useGetReportCardQuery,
   useCreateReportCardMutation,
   useGetReportCardForEditQuery,
