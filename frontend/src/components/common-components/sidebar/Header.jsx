@@ -91,14 +91,24 @@ const Header = () => {
                 </div>
                 <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
                     {userRole === 'superadmin' && (
-                        <button
-                            onClick={handleAddFaculty}
-                            className={`flex items-center justify-center h-8 sm:h-9 md:h-10 px-2 sm:px-2 md:px-4 text-xs sm:text-sm font-medium ${buttonStyles.primary}`}
-                            title="Add Member"
-                        >
-                            <span className="w-20 hidden sm:inline">Add User</span>
-                            <span className="sm:hidden text-lg">+</span>
-                        </button>
+                        <>
+                            <Link
+                                to="/users-management"
+                                className={`flex items-center justify-center h-8 sm:h-9 md:h-10 px-2 sm:px-2 md:px-4 text-xs sm:text-sm font-medium ${buttonStyles.primary}`}
+                                title="Users Management"
+                            >
+                                <FaUserGroup className="w-4 h-4 sm:mr-2" />
+                                <span className="hidden sm:inline">Users</span>
+                            </Link>
+                            <button
+                                onClick={handleAddFaculty}
+                                className={`flex items-center justify-center h-8 sm:h-9 md:h-10 px-2 sm:px-2 md:px-4 text-xs sm:text-sm font-medium ${buttonStyles.primary}`}
+                                title="Add Member"
+                            >
+                                <span className="w-20 hidden sm:inline">Add User</span>
+                                <span className="sm:hidden text-lg">+</span>
+                            </button>
+                        </>
                     )}
                     <UserProfile />
                 </div>
@@ -125,14 +135,17 @@ const Header = () => {
                             onSubmit={handleSubmit}
                         >
                             {({ setFieldValue }) => (
-                                <Form className="space-y-3">
+                                <Form className="space-y-3" autoComplete="off">
+                                    {/* Hidden dummy fields to prevent autofill */}
+                                    <input type="email" style={{display: 'none'}} />
+                                    <input type="password" style={{display: 'none'}} />
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <InputField label="Name" name="name" />
-                                        <InputField label="Email" name="email" type="email" />
+                                        <InputField label="Name" name="name" autoComplete="off" />
+                                        <InputField label="Email" name="email" type="email" autoComplete="nope" />
                                     </div>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <InputField label="Password" name="password" type="password" />
+                                        <InputField label="Password" name="password" type="password" autoComplete="new-password" />
                                         <InputField label="Mobile No" name="mobileNo" type="tel" />
                                     </div>
 

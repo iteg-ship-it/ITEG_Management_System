@@ -8,6 +8,7 @@ const InputField = ({
   disabled = false,
   type = "text",
   className = "",
+  autoComplete = "on",
 }) => {
   const [field, meta] = useField(name);
   const [isFocused, setIsFocused] = useState(false);
@@ -20,6 +21,8 @@ const InputField = ({
         {...field}
         type={type}
         disabled={disabled}
+        autoComplete={autoComplete}
+        data-form-type="other"
         onFocus={() => setIsFocused(true)}
         onBlur={(e) => {
           setIsFocused(false);
