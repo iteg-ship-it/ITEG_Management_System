@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { useAdmitedStudentsQuery, useUpdateStudentImageMutation } from "../../redux/api/authApi";
+import { useAdmitedStudentsQuery, useUpdateStudentImageMutation, useGetAllCompaniesQuery } from "../../redux/api/authApi";
 import { pdf } from "@react-pdf/renderer";
 import PageNavbar from "../common-components/navbar/PageNavbar";
 import CreatePostModal from "./CreatePostModal";
@@ -25,6 +25,12 @@ const PlacementPost = () => {
   
   // Get admitted students data from API with refetch function
   const { data: admittedStudents, isLoading, error, refetch } = useAdmitedStudentsQuery();
+  
+  // Get all companies data (optional)
+  const { data: companiesData } = useGetAllCompaniesQuery(undefined, {
+    skip: false, // Always try to fetch
+    refetchOnMountOrArgChange: false, // Don't refetch on every mount
+  });
 
   // Helper function to capitalize first letter
   const toTitleCase = (str) => {
@@ -40,6 +46,19 @@ const PlacementPost = () => {
     if (str === str.toUpperCase()) return str;
     // Otherwise, capitalize first letter only
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  };
+
+  // Get company details by company name
+  const getCompanyDetails = (companyName) => {
+    try {
+      if (!companiesData || !Array.isArray(companiesData) || !companyName) return null;
+      return companiesData.find(company => 
+        company?.companyName?.toLowerCase() === companyName.toLowerCase()
+      );
+    } catch (error) {
+      console.warn('Error getting company details:', error);
+      return null;
+    }
   };
 
 
@@ -379,11 +398,13 @@ const PlacementPost = () => {
                     <div className="relative">
                       <div className="rounded-full p-1 bg-white">
                         <div className="rounded-full p-1 bg-orange-500">
-                          <img
-                            src={student.image || student.profileImage || "https://via.placeholder.com/150x150/e2e8f0/64748b?text=Student"}
-                            alt={`${student.firstName} ${student.lastName}`}
-                            className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-2 border-white shadow-md"
-                          />
+                          <div className="rounded-full p-1 bg-white">
+                            <img
+                              src={student.image || student.profileImage || "https://via.placeholder.com/150x150/e2e8f0/64748b?text=Student"}
+                              alt={`${student.firstName} ${student.lastName}`}
+                              className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover shadow-md"
+                            />
+                          </div>
                         </div>
                       </div>
                       <div
@@ -412,9 +433,46 @@ const PlacementPost = () => {
                       <p className="text-sm text-black">got placed as a <span className="font-semibold">
                         {toTitleCase(student.placedInfo?.jobProfile) || "Position"}
                       </span> in</p>
-                      <p className="text-sm font-bold text-[#133783]">
-                        {smartCapitalize(student.placedInfo?.companyName) || "Company"}
-                      </p>
+                      <div className="flex items-center justify-center gap-2">
+                        {(() => {
+                          try {
+                            const companyInfo = getCompanyDetails(student.placedInfo?.companyName);
+                            const logoSrc = student.placedInfo?.companyLogo || companyInfo?.companyLogo;
+                            
+                            return (
+                              <>
+                                {logoSrc && (
+                                  <img
+                                    src={logoSrc}
+                                    alt="Company Logo"
+                                    className="w-6 h-6 object-contain"
+                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                  />
+                                )}
+                                <div className="text-center">
+                                  <p className="text-sm font-bold text-[#133783]">
+                                    {smartCapitalize(student.placedInfo?.companyName) || "Company"}
+                                  </p>
+                                  {(student.placedInfo?.location || companyInfo?.location) && (
+                                    <p className="text-xs text-gray-600">
+                                      {student.placedInfo?.location || companyInfo?.location}
+                                    </p>
+                                  )}
+                                </div>
+                              </>
+                            );
+                          } catch (error) {
+                            console.warn('Error rendering company info:', error);
+                            return (
+                              <div className="text-center">
+                                <p className="text-sm font-bold text-[#133783]">
+                                  {smartCapitalize(student.placedInfo?.companyName) || "Company"}
+                                </p>
+                              </div>
+                            );
+                          }
+                        })()}
+                      </div>
                     </div>
                   </div>
                   <div className="absolute top-2 right-2 flex gap-1 z-20">
