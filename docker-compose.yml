@@ -1,0 +1,28 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: ./backend   # aapke backend Dockerfile ka folder
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - "5001:5001"        # host:container => backend container 5000 mapped to host 5001
+    environment:
+      - NODE_ENV=production
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend  # aapke frontend Dockerfile ka folder
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "5002:5002"          # frontend container port 80 mapped to host 5002
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

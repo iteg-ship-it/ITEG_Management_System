@@ -17,6 +17,8 @@ const secretKey = "ITEG@123";
 //   }
 // };
 const decrypt = (encrypted) => {
+  if (!encrypted) return null;
+
   try {
     if (!encrypted || typeof encrypted !== "string") return null; // ✅ Prevent decryption of null or invalid input
     const bytes = CryptoJS.AES.decrypt(encrypted, secretKey);
@@ -28,6 +30,7 @@ const decrypt = (encrypted) => {
   }
 };
 
+
 //  Encrypt before storing
 const encrypt = (data) => CryptoJS.AES.encrypt(data, secretKey).toString();
 
@@ -35,12 +38,25 @@ const encrypt = (data) => CryptoJS.AES.encrypt(data, secretKey).toString();
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_API_URL,
   credentials: "include",
+  // prepareHeaders: (headers) => {
+  //   const encryptedToken = localStorage.getItem("token");
+  //   const token = decrypt(encryptedToken);
+  //   if (token) headers.set("Authorization", `Bearer ${token}`);
+  //   return headers;
+  // },
   prepareHeaders: (headers) => {
-    const encryptedToken = localStorage.getItem("token");
-    const token = decrypt(encryptedToken);
-    if (token) headers.set("Authorization", `Bearer ${token}`);
-    return headers;
-  },
+  const encryptedToken = localStorage.getItem("token");
+  const token = decrypt(encryptedToken);
+
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  } else {
+    console.warn("🔐 No valid token found, skipping Authorization header");
+  }
+
+  return headers;
+},
+
 });
 
 //  Auto-refresh logic
