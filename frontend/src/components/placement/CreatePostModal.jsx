@@ -13,7 +13,8 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess, isUpdateMode = f
   const [formData, setFormData] = useState({
     position: "",
     companyName: "",
-    headOffice: ""
+    headOffice: "",
+    email: ""
   });
   const [companyLogoFile, setCompanyLogoFile] = useState(null);
   const [studentImageFile, setStudentImageFile] = useState(null);
@@ -41,7 +42,8 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess, isUpdateMode = f
         studentId: student._id,
         position: formData.position,
         companyName: formData.companyName,
-        headOffice: formData.headOffice
+        headOffice: formData.headOffice,
+        email: formData.email
       };
 
       // Add images if provided
@@ -90,7 +92,8 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess, isUpdateMode = f
     setFormData({
       position: student?.placedInfo?.jobProfile || "",
       companyName: student?.placedInfo?.companyName || "",
-      headOffice: ""
+      headOffice: "",
+      email: ""
     });
     setCompanyLogoFile(null);
     setStudentImageFile(null);
@@ -102,7 +105,8 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess, isUpdateMode = f
       setFormData({
         position: student.placedInfo.jobProfile || "",
         companyName: student.placedInfo.companyName || "",
-        headOffice: ""
+        headOffice: "",
+        email: ""
       });
     }
   }, [student]);
@@ -204,6 +208,25 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess, isUpdateMode = f
               className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
             >
               Head Office *
+            </label>
+          </div>
+
+          {/* Email */}
+          <div className="relative">
+            <input
+              type="email"
+              id="email"
+              value={formData.email}
+              onChange={(e) => handleInputChange('email', e.target.value)}
+              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer"
+              placeholder=" "
+              required
+            />
+            <label
+              htmlFor="email"
+              className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
+            >
+              Email *
             </label>
           </div>
 
