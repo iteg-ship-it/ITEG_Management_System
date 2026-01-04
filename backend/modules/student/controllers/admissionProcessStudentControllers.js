@@ -29,6 +29,8 @@ exports.addAdmission = async (req, res) => {
       }
     }
 
+    
+
     // 2) Validate date format
     // if (isNaN(Date.parse(payload.dob))) {
     //   return res.status(400).json({ message: 'Invalid date format' });
