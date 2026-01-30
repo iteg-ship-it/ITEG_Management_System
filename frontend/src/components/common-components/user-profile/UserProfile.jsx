@@ -5,6 +5,8 @@ import profileImg from "../../../assets/images/profile-img.png";
 // import Loader from "../loader/Loader";
 // import backIcon from "../../../assets/icons/back-icon.png";
 import { useLogoutMutation } from "../../../redux/api/authApi";
+import { useDispatch } from "react-redux";
+import { logout as logoutAction } from "../../../redux/auth/authSlice";
 import { toast } from "react-toastify";
 import SettingsModal from "./SettingModal";
 
@@ -16,6 +18,7 @@ const UserProfile = () => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   const [logout] = useLogoutMutation();
@@ -29,17 +32,29 @@ const UserProfile = () => {
     try {
       setIsLoggingOut(true);
       setShowLogoutConfirm(false);
-      const userId = user?.id || user?._id;
-      console.log("🔑 Initiating logout for user:", userId);
-      const res = await logout({ id: userId }).unwrap();
-      console.log("✅ Logout success:");
-
-      localStorage.clear();
-      toast.success(res.message);
-      navigate("/login");
+      
+      // Clear Redux state first
+      dispatch(logoutAction());
+      
+      // Try to call logout API, but don't fail if it doesn't work
+      try {
+        const userId = user?.id || user?._id;
+        if (userId) {
+          await logout({ id: userId }).unwrap();
+        }
+      } catch (apiError) {
+        console.warn("Logout API failed, but continuing with local logout:", apiError);
+      }
+      
+      toast.success("Logged out successfully");
+      navigate("/login", { replace: true });
     } catch (err) {
-      console.error("❌ Logout failed:", err?.data || err);
-      toast.error(err?.data?.message || "Logout failed");
+      console.error("❌ Logout failed:", err);
+      // Even if logout fails, clear Redux state and redirect
+      dispatch(logoutAction());
+      toast.error("Logout completed");
+      navigate("/login", { replace: true });
+    } finally {
       setIsLoggingOut(false);
     }
   };

@@ -90,6 +90,7 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
       return result;
     }
 
+    console.log("Attempting token refresh...");
     const refreshResult = await rawBaseQuery(
       {
         url: '/user/refresh_token',
@@ -100,11 +101,18 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
       extraOptions
     );
 
-    if (refreshResult?.data) {
+    if (refreshResult?.data?.accessToken) {
       const { accessToken } = refreshResult.data;
+      console.log("Token refreshed successfully");
 
       // Store encrypted token
       localStorage.setItem("token", encrypt(accessToken));
+      
+      // Update Redux state
+      api.dispatch(setCredentials({ 
+        token: accessToken, 
+        role: localStorage.getItem("role") 
+      }));
 
       // Retry original query
       result = await rawBaseQuery(args, api, extraOptions);
@@ -123,7 +131,7 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithAutoRefresh,
-  tagTypes: ['Student', 'PlacementStudent'],
+  tagTypes: ['Student', 'PlacementStudent', 'User'],
   // Global configuration for better caching
   keepUnusedDataFor: 300, // 5 minutes default cache
   refetchOnMountOrArgChange: 30, // Only refetch if data is older than 30 seconds
@@ -149,6 +157,7 @@ export const authApi = createApi({
           window.location.replace("/");
         } catch (error) {
           console.error("Login failed:", error);
+          localStorage.clear();
           dispatch(logout());
         }
       },
@@ -168,6 +177,9 @@ export const authApi = createApi({
         method: 'PATCH',
         body: data,
       }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'User', id }
+      ],
     }),
     //-- Logout API ----
     logout: builder.mutation({
@@ -181,7 +193,7 @@ export const authApi = createApi({
     // Refresh token
     refreshToken: builder.mutation({
       query: (payload) => ({
-        url: import.meta.env.VITE_REFRESH_TOKEN,
+        url: '/user/refresh_token',
         method: "POST",
         body: payload,
       }),
@@ -575,6 +587,16 @@ export const authApi = createApi({
       invalidatesTags: ['PlacementStudent'],
     }),
 
+    // Update placement post
+    updatePlacementPost: builder.mutation({
+      query: ({ studentId, ...data }) => ({
+        url: `/admitted/students/placement_post/update/${studentId}`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['PlacementStudent'],
+    }),
+
     // Get all companies
     getAllCompanies: builder.query({
       query: () => ({
@@ -655,6 +677,93 @@ export const authApi = createApi({
       keepUnusedDataFor: 300,
     }),
 
+    // Get all users (superadmin only)
+    getAllUsers: builder.query({
+      query: () => ({
+        url: '/user/all',
+        method: "GET",
+      }),
+      providesTags: ['User'],
+    }),
+
+    // Delete user (superadmin only)
+    deleteUser: builder.mutation({
+      query: (userId) => ({
+        url: `/user/delete/${userId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ['User'],
+    }),
+
+    // Edit user (superadmin only)
+    editUser: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `/user/update/${id}`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ['User'],
+    }),
+
+    // Get user by ID
+    getUserById: builder.query({
+      query: (userId) => ({
+        url: `/user/get/${userId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, userId) => [
+        { type: 'User', id: userId }
+      ],
+    }),
+
+    // Get report card by student ID
+    getReportCard: builder.query({
+      query: (studentId) => ({
+        url: `/reportcards/${studentId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, studentId) => [
+        { type: 'Student', id: studentId }
+      ],
+    }),
+
+    // Create report card
+    createReportCard: builder.mutation({
+      query: (reportData) => {
+        console.log('RTK Query - Creating report card with data:', reportData);
+        return {
+          url: '/reportcards',
+          method: "POST",
+          body: reportData,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        };
+      },
+      invalidatesTags: ['Student'],
+    }),
+
+    // Get report card for editing
+    getReportCardForEdit: builder.query({
+      query: (studentId) => ({
+        url: `/reportcards/${studentId}/edit`,
+        method: "GET",
+      }),
+      providesTags: (result, error, studentId) => [
+        { type: 'Student', id: studentId }
+      ],
+    }),
+
+    // Update report card
+    updateReportCard: builder.mutation({
+      query: ({ id, ...reportData }) => ({
+        url: `/reportcards/report-card/${id}`,
+        method: "PUT",
+        body: reportData,
+      }),
+      invalidatesTags: ['Student'],
+    }),
+
   }),
 });
 
@@ -695,12 +804,21 @@ export const {
   useRescheduleInterviewMutation,
   useAddInterviewRoundMutation,
   useConfirmPlacementMutation,
-  useCreatePlacementPostMutation,
+ useCreatePlacementPostMutation ,
+  useUpdatePlacementPostMutation,
   useGetAllCompaniesQuery,
   useGetPlacedStudentsByCompanyQuery,
   useGetItegAttendanceQuery,
   useGetItegStudentAttendanceQuery,
   useUpdateStudentEmailMutation,
 
-  useGetStudentAttendanceCalendarQuery
+  useGetStudentAttendanceCalendarQuery,
+  useGetAllUsersQuery,
+  useDeleteUserMutation,
+  useEditUserMutation,
+  useGetUserByIdQuery,
+  useGetReportCardQuery,
+  useCreateReportCardMutation,
+  useGetReportCardForEditQuery,
+  useUpdateReportCardMutation
 } = authApi;

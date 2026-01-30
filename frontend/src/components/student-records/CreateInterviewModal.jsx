@@ -165,7 +165,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents, int
                                             type="text"
                                             value={studentName}
                                             disabled
-                                            className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 bg-gray-100 cursor-not-allowed transition-all duration-200"
+                                            className="peer h-14 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 bg-gray-100 cursor-not-allowed transition-all duration-200"
                                             placeholder=" "
                                         />
                                         <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">

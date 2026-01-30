@@ -9,6 +9,8 @@ import StudentDashboard from "../student-records/StudentDashboard";
 import StudentDetailTable from "../student-records/StudentDetailTable";
 import StudentEditPage from "../student-records/StudentEditPage";
 import StudentProfile from "../student-records/StudentProfile";
+import StudentReport from "../student-records/StudentReport";
+import StudentReportForm from "../student-records/StudentReportForm";
 import StudentLevelData from "../student-records/StudentLevelData";
 import StudentLevelInterviewHistory from "../student-records/StudentLevelInterviewHistory";
 // Placement components
@@ -23,17 +25,24 @@ import InterviewRoundsHistory from "../placement/InterviewRoundsHistory";
 import PageNotFound from "../common-components/error-pages/PageNotFound";
 import ProtectedRoute from '../common-components/protected-route/ProtectedRoute';
 import AttendanceDetails from "../dashboard/AttendanceDetails";
+import UsersManagement from "../user-management/UsersManagement";
+import UserProfile from "../user-management/UserProfile";
 
 const Dashboard = () => {
+  console.log('Dashboard routes loaded');
   return (
     <Routes>
       {/* Dashboard Routes - All roles */}
       <Route path="/" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionDashboard /></ProtectedRoute>} />
       <Route path="/attendance-details" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AttendanceDetails /></ProtectedRoute>} />
       
-      {/* Admin Only Routes */}
-      <Route path="/admission-process" element={<ProtectedRoute allowedRoles={["superadmin", "admin"]}><AdmissionProcess /></ProtectedRoute>} />
-      <Route path="/admission/edit/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin"]}><AdmissionEditPage /></ProtectedRoute>} />
+      {/* Superadmin Only Routes */}
+      <Route path="/users-management" element={<ProtectedRoute allowedRoles={["superadmin"]}><UsersManagement /></ProtectedRoute>} />
+      <Route path="/user-profile/:id" element={<ProtectedRoute allowedRoles={["superadmin"]}><UserProfile /></ProtectedRoute>} />
+      
+      {/* Admission Routes - All roles */}
+      <Route path="/admission-process" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionProcess /></ProtectedRoute>} />
+      <Route path="/admission/edit/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionEditPage /></ProtectedRoute>} />
       
       {/* Student & Faculty Routes - All roles */}
       <Route path="/student-dashboard" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentDashboard /></ProtectedRoute>} />
@@ -41,6 +50,8 @@ const Dashboard = () => {
       <Route path="/student/edit/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentEditPage /></ProtectedRoute>} />
       <Route path="/student/leveldata/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentLevelData /></ProtectedRoute>} />
       <Route path="/student-profile/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentProfile /></ProtectedRoute>} />
+      <Route path="/student/:id/report/edit" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentReportForm /></ProtectedRoute>} />
+      <Route path="/student/:id/report" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentReport /></ProtectedRoute>} />
       <Route path="/student/:studentId/level-interviews" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentLevelInterviewHistory /></ProtectedRoute>} />
       <Route path="/student-permission" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentPermission /></ProtectedRoute>} />
       

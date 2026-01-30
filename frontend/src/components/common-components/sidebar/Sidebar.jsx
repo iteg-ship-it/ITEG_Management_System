@@ -2,13 +2,30 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { IoMenu } from "react-icons/io5";
-import { FaClipboardList } from "react-icons/fa6";
+import { FaClipboardList, FaUserGroup } from "react-icons/fa6";
 import { MdWork, MdDashboard } from "react-icons/md";
 import { RiTv2Fill } from "react-icons/ri";
 import { HiChevronUp, HiChevronDown } from "react-icons/hi";
 
 const Sidebar = ({ children }) => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(() => {
+    // Check if screen is large (lg breakpoint is 1024px)
+    return window.innerWidth >= 1024;
+  });
+
+  // Handle window resize to auto-close/open sidebar based on screen size
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsOpen(true); // Auto-open on large screens
+      } else {
+        setIsOpen(false); // Auto-close on medium/small screens
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const location = useLocation();
   const role = (localStorage.getItem("role") || "").toLowerCase();
 
@@ -17,7 +34,9 @@ const Sidebar = ({ children }) => {
     const openMenus = [];
 
     // Dashboard menu (index 0)
-
+    if (path === "/") {
+      openMenus.push(0);
+    }
     // Admissions menu (index 1)
     if (path === "/admission-process" || path.startsWith("/admission/") || path.startsWith("/interview-detail/") || path === "/admission-record") {
       openMenus.push(1);
@@ -43,6 +62,7 @@ const Sidebar = ({ children }) => {
     const newOpenMenus = [];
 
     // Dashboard menu (index 0)
+
 
     // Admissions menu (index 1)
     if (path === "/admission-process" || path.startsWith("/admission/") || path.startsWith("/interview-detail/") || path === "/admission-record") {
@@ -130,7 +150,7 @@ const Sidebar = ({ children }) => {
     {
       name: "Admissions",
       icon: <RiTv2Fill />,
-      roles: ["superadmin", "admin"],
+      roles: ["superadmin", "admin", "faculty"],
       subMenu: [
         { name: "Admission Workflow", path: "/admission-process" },
       ],

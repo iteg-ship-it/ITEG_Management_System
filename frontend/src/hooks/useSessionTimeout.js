@@ -18,6 +18,24 @@ export const useSessionTimeout = () => {
     return { showModal: false, handleContinue: () => {}, handleLogout: () => {} };
   }
 
+  // Check if token is valid before starting timeout logic
+  let isValidToken = false;
+  try {
+    const decryptedToken = CryptoJS.AES.decrypt(token, secretKey).toString(CryptoJS.enc.Utf8);
+    if (decryptedToken && decryptedToken.includes('.')) {
+      const payload = JSON.parse(atob(decryptedToken.split('.')[1]));
+      const currentTime = Date.now() / 1000;
+      isValidToken = payload.exp > currentTime;
+    }
+  } catch (error) {
+    // Invalid token, don't show timeout modal
+    return { showModal: false, handleContinue: () => {}, handleLogout: () => {} };
+  }
+
+  if (!isValidToken) {
+    return { showModal: false, handleContinue: () => {}, handleLogout: () => {} };
+  }
+
   const handleLogout = useCallback(() => {
     dispatch(logout());
     localStorage.clear();
@@ -35,7 +53,7 @@ export const useSessionTimeout = () => {
 
     try {
       // Decrypt refresh token before sending
-      const refreshToken = CryptoJS.AES.decrypt(encryptedRefreshToken, secretKey).toString(CryptoJS.enc.Utf8);
+      const refreshToken = decrypt(encryptedRefreshToken);
       
       if (!refreshToken) {
         handleLogout();
@@ -66,33 +84,44 @@ export const useSessionTimeout = () => {
 
       try {
         const decryptedToken = CryptoJS.AES.decrypt(token, secretKey).toString(CryptoJS.enc.Utf8);
-        if (!decryptedToken) {
-          handleLogout();
-          return;
+        if (!decryptedToken || !decryptedToken.includes('.')) {
+          return; // Don't logout, just skip check
         }
         
         const payload = JSON.parse(atob(decryptedToken.split('.')[1]));
         const currentTime = Date.now() / 1000;
         const timeUntilExpiry = payload.exp - currentTime;
 
-        // Show modal 30 seconds before expiry for testing
-        if (timeUntilExpiry <= 30 && timeUntilExpiry > -60) {
+        // Only show modal if token expires in exactly 5 minutes (300 seconds)
+        // and token is still valid
+        if (timeUntilExpiry > 0 && timeUntilExpiry <= 300) {
           setShowModal(true);
-        } else if (timeUntilExpiry <= -60) {
-          // Auto logout if token expired more than 1 minute ago
+        } else if (timeUntilExpiry <= 0) {
+          // Auto logout if token expired
           handleLogout();
         }
       } catch (error) {
-        console.error('Token parsing error:', error);
-        handleLogout();
+        // Don't logout on parsing error, just skip
+        console.warn('Token parsing skipped:', error.message);
       }
     };
 
-    // Check every 30 seconds for more responsive behavior
-    const interval = setInterval(checkTokenExpiry, 30000);
-    checkTokenExpiry(); // Initial check
+    // Start checking after 50 minutes (3000 seconds) to avoid immediate popup
+    const initialDelay = setTimeout(() => {
+      checkTokenExpiry();
+      // Then check every minute
+      const interval = setInterval(checkTokenExpiry, 60000);
+      
+      // Store interval ID for cleanup
+      window.sessionTimeoutInterval = interval;
+    }, 3000000); // 50 minutes delay
 
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(initialDelay);
+      if (window.sessionTimeoutInterval) {
+        clearInterval(window.sessionTimeoutInterval);
+      }
+    };
   }, [handleLogout]);
 
   return {

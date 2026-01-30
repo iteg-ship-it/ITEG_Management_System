@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
-import { useGetAdmittedStudentsByIdQuery, useUpdateStudentImageMutation, useUploadResumeMutation, useUpdateStudentEmailMutation } from "../../redux/api/authApi";
+import { useGetAdmittedStudentsByIdQuery, useUpdateStudentImageMutation, useUploadResumeMutation, useUpdateStudentEmailMutation, useGetReportCardQuery } from "../../redux/api/authApi";
 import PermissionModal from "./PermissionModal";
 import PlacementModal from "./PlacementModal";
 import Loader from "../common-components/loader/Loader";
@@ -28,6 +28,8 @@ export default function StudentProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
+  const { data: reportCardResponse, isLoading: reportLoading, isError: reportError } = useGetReportCardQuery(id);
+  const reportCardData = reportCardResponse?.data;
   const [updateStudentImage] = useUpdateStudentImageMutation();
   const [uploadResume, { isLoading: isResumeUploading }] = useUploadResumeMutation();
   const [updateStudentEmail, { isLoading: isEmailUpdating }] = useUpdateStudentEmailMutation();
@@ -39,6 +41,7 @@ export default function StudentProfile() {
   const [isTechModalOpen, setTechModalOpen] = useState(false);
   const [isImageUploading, setIsImageUploading] = useState(false);
   const [isEmailModalOpen, setEmailModalOpen] = useState(false);
+  const [isReportCardOpen, setReportCardOpen] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -67,8 +70,8 @@ export default function StudentProfile() {
           throw new Error('Resume not accessible');
         }
       })
-      .catch(error => {
-        console.error('Resume accessibility check failed:', error);
+      .catch(() => {
+        // Silently handle resume accessibility check failure
         toast.error('Resume file may not be accessible. Please try again or contact support.');
       });
   };
@@ -81,7 +84,7 @@ export default function StudentProfile() {
       setLatestLevel(passed.length > 0 ? passed[passed.length - 1].levelNo : "1A");
       
       // For Course line - show current level (next level to pass)
-      const levelOrder = ["1A", "1B", "1C", "2A", "2B", "2C", "3A", "3B", "3C", "4A", "4B", "4C", "5A"];
+      const levelOrder = ["1A", "1B", "2A", "2B", "3A", "3B"];
       if (passed.length > 0) {
         const lastPassedLevel = passed[passed.length - 1].levelNo;
         const currentIndex = levelOrder.indexOf(lastPassedLevel);
@@ -132,18 +135,19 @@ export default function StudentProfile() {
           image: base64Image
         }).unwrap();
 
-        console.log('Image upload successful:', result);
+        // console.log('Image upload successful:', result);
 
       } catch (error) {
-        console.error('Error uploading image:', error);
-        alert(`Failed to upload image: ${error.data?.message || error.message || 'Unknown error'}`);
+        // console.error('Error uploading image:', error);
+        const errorMessage = error?.data?.message || error?.message || 'Unknown error';
+        alert(`Failed to upload image: ${errorMessage}`);
       } finally {
         setIsImageUploading(false);
       }
     };
 
     reader.onerror = () => {
-      console.error('Error reading file');
+      // console.error('Error reading file');
       alert('Error reading file');
       setIsImageUploading(false);
     };
@@ -194,7 +198,7 @@ export default function StudentProfile() {
         // console.log('API Payload:', payload);
 
         const result = await uploadResume(payload).unwrap();
-        console.log('Upload result:', result);
+        // console.log('Upload result:', result);
 
         toast.success('Resume uploaded successfully!');
 
@@ -202,15 +206,17 @@ export default function StudentProfile() {
         event.target.value = '';
 
       } catch (error) {
-        console.error('Full error object:', error);
-        console.error('Error status:', error?.status);
-        console.error('Error data:', error?.data);
+        // console.error('Full error object:', error);
+        // console.error('Error status:', error?.status);
+        // console.error('Error data:', error?.data);
 
         let errorMessage = 'Failed to upload resume';
         if (error?.status === 500) {
           errorMessage = 'Server error. Please try with a smaller file or contact support.';
         } else if (error?.data?.message) {
           errorMessage = error.data.message;
+        } else if (error?.message) {
+          errorMessage = error.message;
         }
 
         toast.error(errorMessage);
@@ -218,7 +224,7 @@ export default function StudentProfile() {
     };
 
     reader.onerror = () => {
-      console.error('Error reading file');
+      // console.error('Error reading file');
       toast.error('Error reading file');
     };
 
@@ -244,8 +250,13 @@ export default function StudentProfile() {
     
     monthNames.forEach((month, index) => {
       const monthRecord = attendanceRecord.find(record => {
-        const recordDate = new Date(record.date);
-        return recordDate.getMonth() === index;
+        if (!record.date) return false;
+        try {
+          const recordDate = new Date(record.date);
+          return !isNaN(recordDate.getTime()) && recordDate.getMonth() === index;
+        } catch {
+          return false;
+        }
       });
       
       const attendanceRate = monthRecord ? monthRecord.attendancePercentage || 0 : 0;
@@ -277,36 +288,26 @@ export default function StudentProfile() {
   const hasPlacement = studentData.placedInfo && studentData.placedInfo !== null && typeof studentData.placedInfo === 'object' && Object.keys(studentData.placedInfo).length > 0;
   const placementStatus = hasPlacement ? "Placed" : "Not Placed";
 
-  // Debug student data to check resume field
-  console.log('Student Data:', studentData);
-  console.log('Resume field:', studentData.resume);
-  console.log('ResumeURL field:', studentData.resumeURL);
-  console.log('All resume-related fields:', {
-    resume: studentData.resume,
-    resumeURL: studentData.resumeURL,
-    resumeUrl: studentData.resumeUrl,
-    resume_url: studentData.resume_url
-  });
-  console.log('Has resume:', !!(studentData.resume || studentData.resumeURL));
+  // Debug student data to check resume field (removed console logs to reduce noise)
 
   return (
     <div className="min-h-screen bg-white">
       {/* Professional Header */}
       <div className="sticky top-0 z-10">
-        <div className="py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <div className="py-2 sm:py-4 ">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
               <button
                 onClick={() => window.history.back()}
-                className="group flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 text-gray-700 hover:text-gray-900"
+                className="group flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 text-gray-700 hover:text-gray-900"
               >
-                <HiArrowNarrowLeft className="text-lg group-hover:-translate-x-1 transition-transform" />
-                <span className="text-sm font-medium">Back</span>
+                <HiArrowNarrowLeft className="text-base sm:text-lg group-hover:-translate-x-1 transition-transform" />
+                <span className="text-xs sm:text-sm font-medium">Back</span>
               </button>
-              <div className="h-8 w-px bg-gray-300"></div>
-              <div>
-                <h1 className="text-2xl font-bold text-black">Student Profile</h1>
-                <p className="text-sm text-black">Comprehensive analytics & performance insights</p>
+              <div className="h-6 sm:h-8 w-px bg-gray-300 hidden sm:block"></div>
+              <div className="flex-1 sm:flex-none">
+                <h1 className="text-lg sm:text-2xl font-bold text-black">Student Profile</h1>
+                <p className="text-xs sm:text-sm text-black hidden sm:block">Comprehensive analytics & performance insights</p>
               </div>
             </div>
             {/* <div className="flex items-center gap-3">
@@ -328,7 +329,7 @@ export default function StudentProfile() {
               backgroundSize: 'cover',
               backgroundPosition: 'center'
             }}></div>
-            <div className="absolute top-7 right-8 flex gap-3 z-20">
+            <div className="absolute top-2 sm:top-7 right-2 sm:right-8 flex flex-col sm:flex-row gap-1 sm:gap-3 z-20">
               <button
                 onClick={() => {
                   if (canChooseElective()) {
@@ -337,26 +338,29 @@ export default function StudentProfile() {
                   }
                 }}
                 disabled={!canChooseElective()}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg ${canChooseElective()
+                className={`px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 shadow-lg ${canChooseElective()
                   ? 'bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-white font-extrabold cursor-pointer'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
                   }`}
+                title={canChooseElective() ? 'Choose your elective technology' : 'Complete Level 2A/2B/2C to unlock electives'}
               >
-                Choose Elective
+                <span className="hidden sm:inline">Choose Elective</span> 
+                <span className="sm:hidden">Elective</span>
               </button>
               <button
                 onClick={() => setEmailModalOpen(true)}
-                className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-white disabled:opacity-50"
+                className="px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 shadow-lg bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-white disabled:opacity-50"
               >
-                Update Email
+                <span className="hidden sm:inline">Update Email</span>
+                <span className="sm:hidden">Email</span>
               </button>
-              <button
+              {/* <button
                 onClick={() => document.getElementById('resume-upload').click()}
                 disabled={isResumeUploading}
                 className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-white disabled:opacity-50"
               >
                 {isResumeUploading ? 'Uploading...' : 'Upload Resume'}
-              </button>
+              </button> */}
               <input
                 id="resume-upload"
                 type="file"
@@ -401,11 +405,11 @@ export default function StudentProfile() {
                     {studentData.firstName} {studentData.lastName}
                   </h2>
                   <p className="text-gray-300 mb-3 sm:mb-4 text-xs sm:text-base">Course: {studentData.course || "N/A"} | Level - {currentLevel || "1A"}</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6">
-                    <ContactCard icon={<svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>} label="Email" value={studentData.email} />
-                    <ContactCard icon={<svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>} label="Phone" value={studentData.studentMobile || "N/A"} />
-                    <ContactCard icon={<svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>} label="Location" value={studentData.address || studentData.village || "N/A"} />
-                    <ContactCard icon={<svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>} label="Elective" value={studentData.techno || "Not Selected"} />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2 lg:gap-6">
+                    <ContactCard icon={<svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>} label="Email" value={studentData.email} />
+                    <ContactCard icon={<svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>} label="Phone" value={studentData.studentMobile || "N/A"} />
+                    <ContactCard icon={<svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>} label="Location" value={studentData.address || studentData.village || "N/A"} />
+                    <ContactCard icon={<svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>} label="Elective" value={studentData.techno || "Not Selected"} />
                   </div>
                 </div>
               </div>
@@ -414,13 +418,14 @@ export default function StudentProfile() {
         </div>
 
         {/* Key Performance Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6 mb-4 sm:mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6 mb-4 sm:mb-8 pr-2 sm:pr-0">
           <ProfessionalMetricCard
             icon={attendence}
-            title="Attendance Rate"
-            value={`${overallAttendanceRate}%`}
+            title="Report"
+            value="View"
             bgColor="#FDA92D"
-            description="Monthly average"
+            description="Student report"
+            onClick={() => navigate(`/student/${id}/report`)}
           />
           <ProfessionalMetricCard
             icon={level}
@@ -451,7 +456,7 @@ export default function StudentProfile() {
         </div>
 
         {/* Analytics Dashboard */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8 mb-6 sm:mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-8 pr-2 sm:pr-0">
           {/* Attendance Analytics */}
           <div className="lg:col-span-2">
             <div className={`transition-all duration-500 ${isYearView ? 'hidden' : 'block'}`}>
@@ -581,17 +586,17 @@ export default function StudentProfile() {
               subtitle="Academic achievements"
               icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>}
             >
-              <div className="h-48 sm:h-80 flex flex-col justify-center space-y-6">
-                <ProgressMetric title="Certificates" value="2" total="5" color="#FFAB00" />
-                <ProgressMetric title="Success Rate" value="99" total="100" color="#22C55E" suffix="%" />
-                <ProgressMetric title="Levels Completed" value="6" total="10" color="#8E33FF" />
-              </div>
+              <DynamicProgressOverview 
+                studentData={studentData} 
+                reportCardData={reportCardData} 
+                reportLoading={reportLoading}
+              />
             </AnalyticsCard>
           </div>
         </div>
 
         {/* Detailed Information Sections */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 mb-4 sm:mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-4 sm:mb-8 pr-2 sm:pr-0">
           {/* Placement Information */}
           <DetailSection
             title="Placement Information"
@@ -602,7 +607,7 @@ export default function StudentProfile() {
               <DetailRow icon={company} label="Company" value={studentData.placedInfo?.companyName || "Not placed yet"} />
               <DetailRow icon={position} label="Position" value={studentData.placedInfo?.jobProfile || "Not placed yet"} />
               <DetailRow icon={loca} label="Location" value={studentData.placedInfo?.location || "Not placed yet"} />
-              <DetailRow icon={date} label="Joining Date" value={studentData.placedInfo?.joiningDate ? new Date(studentData.placedInfo.joiningDate).toLocaleDateString() : null} />
+              <DetailRow icon={date} label="Joining Date" value={studentData.placedInfo?.joiningDate ? new Date(studentData.placedInfo.joiningDate).toLocaleDateString() : "Not available"} />
             </div>
             {!studentData.placedInfo?.companyName && (
               <div className="mt-6 p-4 bg-yellow-50 rounded-lg" style={{ boxShadow: '0 0 15px 4px rgba(0, 0, 0, 0.06)' }}>
@@ -622,7 +627,14 @@ export default function StudentProfile() {
                 icon={date}
                 label="Last Request"
                 value={studentData?.permissionDetails?.uploadDate
-                  ? new Date(studentData.permissionDetails.uploadDate).toLocaleDateString()
+                  ? (() => {
+                      try {
+                        const date = new Date(studentData.permissionDetails.uploadDate);
+                        return !isNaN(date.getTime()) ? date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Invalid date';
+                      } catch {
+                        return 'Invalid date';
+                      }
+                    })()
                   : "No recent requests"}
               />
               <DetailRow
@@ -656,13 +668,31 @@ export default function StudentProfile() {
         </div>
 
         {/* Resume and Additional Info Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 mb-4 sm:mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-4 sm:mb-8 pr-2 sm:pr-0">
           {/* Resume Card */}
-          <DetailSection
-            title="Resume"
-            subtitle="Student's uploaded resume document"
-            icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
-          >
+          <div className="bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 0 22px 6px rgba(0, 0, 0, 0.09)' }}>
+            <div className="px-3 sm:px-6 py-3 sm:py-4 border-b-2 border-gray-200 shadow-sm bg-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center bg-gray-100">
+                    <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                  </div>
+                  <div>
+                    <h3 className="text-sm sm:text-lg font-bold text-gray-900">Resume</h3>
+                    <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Student's uploaded resume document</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => document.getElementById('resume-upload-profile').click()}
+                  disabled={isResumeUploading}
+                  className="px-2 sm:px-3 py-1.5 sm:py-2 bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-white text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 shadow-lg disabled:opacity-50"
+                >
+                  <span className="hidden sm:inline">{isResumeUploading ? 'Uploading...' : 'Upload Resume'}</span>
+                  <span className="sm:hidden">{isResumeUploading ? 'Upload...' : 'Upload'}</span>
+                </button>
+              </div>
+            </div>
+            <div className="p-3 sm:p-6">
             <div className="space-y-4">
               {getResumeUrl() ? (
                 <div>
@@ -673,18 +703,30 @@ export default function StudentProfile() {
                         <span className="text-blue-600 text-sm">📄</span>
                       </div>
                       <div>
-                        <p className="text-xs font-semibold text-blue-900">{getResumeUrl()?.split('/').pop().split('-').slice(1).join('-') || 'Resume.pdf'}</p>
+                        <p className="text-xs font-semibold text-blue-900">
+                        {(() => {
+                          try {
+                            const url = getResumeUrl();
+                            if (!url) return 'Resume.pdf';
+                            const fileName = url.split('/').pop();
+                            if (!fileName) return 'Resume.pdf';
+                            const parts = fileName.split('-');
+                            return parts.length > 1 ? parts.slice(1).join('-') : fileName;
+                          } catch {
+                            return 'Resume.pdf';
+                          }
+                        })()} 
+                      </p>
                         <p className="text-xs text-blue-600">Resume document</p>
                       </div>
                     </div>
-                    <a
+                    {/* <a
                       href={getResumeUrl()}
                       download
                       className="px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs font-medium rounded transition-colors flex items-center"
                     >
                       <img src={download} />
-
-                    </a>
+                    </a> */}
                   </div>
                   {/* Resume Card */}
                   <div className="border border-blue-200 rounded-b-lg bg-blue-50 p-6">
@@ -699,19 +741,21 @@ export default function StudentProfile() {
                           href={getResumeUrl()}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+                          className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors"
                           onClick={handleResumeView}
                         >
-                          View Resume
+                          <span className="hidden sm:inline">View Resume</span>
+                          <span className="sm:hidden">View</span>
                         </a>
                         <a
                           href={getResumeUrl()}
                           download
-                          className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+                          className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-600 hover:bg-gray-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors flex items-center gap-1 sm:gap-2"
                           onClick={handleResumeView}
                         >
-                          <img src={download} className="w-4 h-4" />
-                          Download
+                          <img src={download} className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">Download</span>
+                          <span className="sm:hidden">DL</span>
                         </a>
                       </div>
                     </div>
@@ -727,7 +771,15 @@ export default function StudentProfile() {
                 </div>
               )}
             </div>
-          </DetailSection>
+            <input
+              id="resume-upload-profile"
+              type="file"
+              accept=".pdf"
+              onChange={handleResumeUpload}
+              className="hidden"
+            />
+          </div>
+          </div>
 
           {/* Additional Information Card */}
           <DetailSection
@@ -822,20 +874,26 @@ export default function StudentProfile() {
         onUpdate={updateStudentEmail}
         isLoading={isEmailUpdating}
       />
+      <ReportCardModal
+        isOpen={isReportCardOpen}
+        onClose={() => setReportCardOpen(false)}
+        studentData={studentData}
+        currentLevel={currentLevel}
+      />
     </div>
   );
 }
 
 // Professional Contact Card for Hero Section
 const ContactCard = ({ icon, label, value }) => (
-  <div className="bg-white/20 backdrop-blur-md rounded-lg p-3 border border-white/30" style={{ backdropFilter: 'blur(12px)', background: 'rgba(255, 255, 255, 0.15)' }}>
-    <div className="flex items-center gap-3">
-      <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-        <span className="text-sm">{icon}</span>
+  <div className="bg-white/20 backdrop-blur-md rounded-lg p-1.5 sm:p-3 border border-white/30" style={{ backdropFilter: 'blur(12px)', background: 'rgba(255, 255, 255, 0.15)' }}>
+    <div className="flex items-center gap-1.5 sm:gap-3">
+      <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+        <span className="text-xs sm:text-sm">{icon}</span>
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-xs text-gray-300 uppercase tracking-wide font-medium">{label}</p>
-        <p className="text-sm font-semibold text-white truncate">{value}</p>
+        <p className="text-xs sm:text-sm font-semibold text-white truncate">{value}</p>
       </div>
     </div>
   </div>
@@ -896,7 +954,7 @@ const AnalyticsCard = ({ title, subtitle, icon, children, showButton, buttonText
 
 // Progress Metric with Bar
 const ProgressMetric = ({ title, value, total, color, suffix = '' }) => {
-  const percentage = (value / total) * 100;
+  const percentage = total > 0 ? (value / total) * 100 : 0;
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
@@ -909,6 +967,78 @@ const ProgressMetric = ({ title, value, total, color, suffix = '' }) => {
           style={{ width: `${percentage}%`, backgroundColor: color }}
         ></div>
       </div>
+    </div>
+  );
+};
+
+// Dynamic Progress Overview Component
+const DynamicProgressOverview = ({ studentData, reportCardData, reportLoading }) => {
+  if (reportLoading) {
+    return (
+      <div className="h-48 sm:h-80 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  // Calculate dynamic values from report card data
+  const calculateDynamicMetrics = () => {
+    const passedLevels = studentData?.level?.filter(lvl => lvl.result === "Pass") || [];
+    const totalLevels = 6; // Total levels in the system
+    
+    // Calculate success rate from report card data
+    let successRate = 0;
+    if (reportCardData?.subjects && reportCardData.subjects.length > 0) {
+      const totalMarks = reportCardData.subjects.reduce((sum, subject) => sum + (subject.totalMarks || 0), 0);
+      const obtainedMarks = reportCardData.subjects.reduce((sum, subject) => sum + (subject.obtainedMarks || 0), 0);
+      successRate = totalMarks > 0 ? Math.round((obtainedMarks / totalMarks) * 100) : 0;
+    } else {
+      // Fallback: calculate from attendance if no subject data
+      const attendanceRecord = studentData.attendanceRecord || [];
+      if (attendanceRecord.length > 0) {
+        const totalAttendance = attendanceRecord.reduce((sum, record) => sum + (record.attendancePercentage || 0), 0);
+        successRate = Math.round(totalAttendance / attendanceRecord.length);
+      } else {
+        // Final fallback: calculate from passed levels
+        successRate = totalLevels > 0 ? Math.round((passedLevels.length / totalLevels) * 100) : 0;
+      }
+    }
+    
+    // Calculate overall performance score
+    const performanceScore = Math.round((successRate + (passedLevels.length / totalLevels * 100)) / 2);
+    
+    return {
+      successRate,
+      levelsCompleted: passedLevels.length,
+      totalLevels,
+      performanceScore
+    };
+  };
+
+  const metrics = calculateDynamicMetrics();
+
+  return (
+    <div className="h-48 sm:h-80 flex flex-col justify-center space-y-6">
+      <ProgressMetric 
+        title="Overall Performance" 
+        value={metrics.performanceScore} 
+        total="100" 
+        color="#FFAB00" 
+        suffix="%"
+      />
+      <ProgressMetric 
+        title="Success Rate" 
+        value={metrics.successRate} 
+        total="100" 
+        color="#22C55E" 
+        suffix="%" 
+      />
+      <ProgressMetric 
+        title="Levels Completed" 
+        value={metrics.levelsCompleted} 
+        total={metrics.totalLevels} 
+        color="#8E33FF" 
+      />
     </div>
   );
 };
@@ -962,6 +1092,289 @@ const StatusBadge = ({ status }) => {
   );
 };
 
+// Report Card Modal Component
+const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
+  if (!isOpen) return null;
+
+  const calculateGrade = (percentage) => {
+    if (percentage >= 90) return 'A+';
+    if (percentage >= 80) return 'A';
+    if (percentage >= 70) return 'B+';
+    if (percentage >= 60) return 'B';
+    if (percentage >= 50) return 'C';
+    return 'F';
+  };
+
+  const getGradeColor = (grade) => {
+    switch (grade) {
+      case 'A+': return 'text-green-600';
+      case 'A': return 'text-green-500';
+      case 'B+': return 'text-blue-600';
+      case 'B': return 'text-blue-500';
+      case 'C': return 'text-yellow-600';
+      default: return 'text-red-600';
+    }
+  };
+
+  const passedLevels = studentData?.level?.filter(lvl => lvl.result === "Pass") || [];
+  const overallAttendance = studentData.attendanceRecord?.length > 0 
+    ? Math.round(studentData.attendanceRecord.reduce((sum, record) => sum + (record.attendancePercentage || 0), 0) / studentData.attendanceRecord.length)
+    : 0;
+  const attendanceGrade = calculateGrade(overallAttendance);
+  const academicGrade = passedLevels.length > 0 ? 'A' : 'C';
+  
+  // Calculate CGPA (assuming 4.0 scale)
+  const calculateCGPA = () => {
+    const gradePoints = { 'A+': 4.0, 'A': 3.7, 'B+': 3.3, 'B': 3.0, 'C': 2.0, 'F': 0.0 };
+    const academicPoints = gradePoints[academicGrade] || 0;
+    const attendancePoints = gradePoints[attendanceGrade] || 0;
+    const totalPoints = academicPoints + attendancePoints;
+    return (totalPoints / 2).toFixed(2);
+  };
+  
+  const cgpa = calculateCGPA();
+  const enrollmentDate = studentData.createdAt ? new Date(studentData.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
+  const currentSemester = Math.min(Math.max(Math.ceil(passedLevels.length / 2) + 1, 1), 8);
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-green-600 to-green-800 text-white p-6 rounded-t-xl">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold mb-2">Student Report Card</h2>
+              <p className="text-green-100">Academic Performance Summary</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-white hover:text-gray-200 text-2xl font-bold"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        {/* Student Info */}
+        <div className="p-6 border-b">
+          <div className="flex items-center gap-6">
+            <img
+              src={studentData.image || profilePlaceholder}
+              alt="Student"
+              className="w-24 h-24 rounded-full object-cover border-4 border-green-200"
+            />
+            <div className="flex-1">
+              <h3 className="text-2xl font-bold text-gray-800">
+                {studentData.firstName} {studentData.lastName}
+              </h3>
+              <div className="grid grid-cols-3 gap-4 mt-3 text-sm">
+                <div><span className="font-medium text-gray-600">Student ID:</span> <br/><span className="font-semibold">{studentData._id?.slice(-8) || 'N/A'}</span></div>
+                <div><span className="font-medium text-gray-600">Course:</span> <br/><span className="font-semibold">{studentData.course || 'N/A'}</span></div>
+                <div><span className="font-medium text-gray-600">Current Semester:</span> <br/><span className="font-semibold">{currentSemester}</span></div>
+                <div><span className="font-medium text-gray-600">Email:</span> <br/><span className="font-semibold">{studentData.email}</span></div>
+                <div><span className="font-medium text-gray-600">Phone:</span> <br/><span className="font-semibold">{studentData.studentMobile || 'N/A'}</span></div>
+                <div><span className="font-medium text-gray-600">Enrollment Date:</span> <br/><span className="font-semibold">{enrollmentDate}</span></div>
+                <div><span className="font-medium text-gray-600">Specialization:</span> <br/><span className="font-semibold">{studentData.techno || 'Not Selected'}</span></div>
+                <div><span className="font-medium text-gray-600">Address:</span> <br/><span className="font-semibold">{studentData.address || studentData.village || 'N/A'}</span></div>
+                <div><span className="font-medium text-gray-600">CGPA:</span> <br/><span className="font-semibold text-green-600 text-lg">{cgpa}/4.0</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Academic Performance */}
+        <div className="p-6">
+          <h4 className="text-lg font-bold text-gray-800 mb-4">Academic Performance</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* Level Progress */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h5 className="font-semibold text-gray-700 mb-3">📚 Course Progress</h5>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {studentData?.level?.map((level, index) => (
+                  <div key={index} className="flex justify-between items-center p-2 bg-white rounded border">
+                    <span className="font-medium">Level {level.levelNo}</span>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      level.result === 'Pass' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {level.result}
+                    </span>
+                  </div>
+                )) || <p className="text-gray-500">No level data available</p>}
+              </div>
+              <div className="mt-3 pt-3 border-t">
+                <div className="text-sm text-gray-600">Progress: {passedLevels.length}/6 Levels</div>
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                  <div 
+                    className="bg-green-600 h-2 rounded-full transition-all duration-300" 
+                    style={{width: `${Math.min((passedLevels.length/6)*100, 100)}%`}}
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Attendance Summary */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h5 className="font-semibold text-gray-700 mb-3">📅 Attendance Record</h5>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-600 mb-2">{overallAttendance}%</div>
+                <div className={`text-lg font-semibold ${getGradeColor(attendanceGrade)}`}>
+                  Grade: {attendanceGrade}
+                </div>
+                <div className="mt-4 space-y-2">
+                  {studentData.attendanceRecord?.slice(0, 3).map((record, index) => (
+                    <div key={index} className="flex justify-between text-sm bg-white p-2 rounded">
+                      <span>{record.date ? new Date(record.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'N/A'}</span>
+                      <span className="font-medium">{record.attendancePercentage || 0}%</span>
+                    </div>
+                  )) || <p className="text-gray-500 text-sm">No attendance records</p>}
+                </div>
+              </div>
+            </div>
+
+            {/* Skills & Certifications */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h5 className="font-semibold text-gray-700 mb-3">🏆 Skills & Achievements</h5>
+              <div className="space-y-3">
+                <div className="bg-white p-3 rounded border">
+                  <div className="text-sm font-medium text-gray-700">Technical Skills</div>
+                  <div className="text-xs text-[#FDA92D] mt-1">{studentData.techno || 'Not Selected'}</div>
+                </div>
+                <div className="bg-white p-3 rounded border">
+                  <div className="text-sm font-medium text-gray-700">Certifications</div>
+                  <div className="text-xs text-green-600 mt-1">{passedLevels.length} Level Certificates</div>
+                </div>
+                <div className="bg-white p-3 rounded border">
+                  <div className="text-sm font-medium text-gray-700">Resume Status</div>
+                  <div className={`text-xs mt-1 ${studentData.resumeURL || studentData.resume ? 'text-green-600' : 'text-red-600'}`}>
+                    {studentData.resumeURL || studentData.resume ? '✓ Uploaded' : '✗ Not Uploaded'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Overall Performance Dashboard */}
+          <div className="mt-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-6">
+            <h5 className="font-semibold text-gray-700 mb-4">📊 Performance Dashboard</h5>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                <div className="text-sm text-gray-600 mb-1">CGPA</div>
+                <div className="text-2xl font-bold text-green-600">{cgpa}</div>
+                <div className="text-xs text-gray-500">Out of 4.0</div>
+              </div>
+              <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                <div className="text-sm text-gray-600 mb-1">Academic</div>
+                <div className={`text-2xl font-bold ${getGradeColor(academicGrade)}`}>{academicGrade}</div>
+                <div className="text-xs text-gray-500">{passedLevels.length}/6 levels</div>
+              </div>
+              <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                <div className="text-sm text-gray-600 mb-1">Attendance</div>
+                <div className={`text-2xl font-bold ${getGradeColor(attendanceGrade)}`}>{attendanceGrade}</div>
+                <div className="text-xs text-gray-500">{overallAttendance}% average</div>
+              </div>
+              <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                <div className="text-sm text-gray-600 mb-1">Status</div>
+                <div className={`text-lg font-bold ${
+                  studentData.placedInfo?.companyName ? 'text-green-600' : 'text-yellow-600'
+                }`}>
+                  {studentData.placedInfo?.companyName ? 'Placed' : 'Active'}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {studentData.placedInfo?.companyName || 'In Progress'}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Personal & Contact Information */}
+          <div className="mt-6 bg-gray-50 rounded-lg p-6">
+            <h5 className="font-semibold text-gray-700 mb-4">👤 Personal Information</h5>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+              <div><span className="font-medium text-gray-600">Father's Name:</span> <br/>{studentData.fatherName || 'N/A'}</div>
+              <div><span className="font-medium text-gray-600">Mother's Name:</span> <br/>{studentData.motherName || 'N/A'}</div>
+              <div><span className="font-medium text-gray-600">Date of Birth:</span> <br/>{studentData.dateOfBirth ? new Date(studentData.dateOfBirth).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}</div>
+              <div><span className="font-medium text-gray-600">Gender:</span> <br/>{studentData.gender || 'N/A'}</div>
+              <div><span className="font-medium text-gray-600">Blood Group:</span> <br/>{studentData.bloodGroup || 'N/A'}</div>
+              <div><span className="font-medium text-gray-600">Emergency Contact:</span> <br/>{studentData.emergencyContact || studentData.parentMobile || 'N/A'}</div>
+            </div>
+          </div>
+
+          {/* Academic History */}
+          <div className="mt-6 bg-gray-50 rounded-lg p-6">
+            <h5 className="font-semibold text-gray-700 mb-4">🎓 Academic History</h5>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="bg-white p-4 rounded border">
+                <div className="font-medium text-gray-700 mb-2">Previous Education</div>
+                <div><span className="text-gray-600">12th Percentage:</span> {studentData.twelfthPercentage || 'N/A'}%</div>
+                <div><span className="text-gray-600">12th Board:</span> {studentData.twelfthBoard || 'N/A'}</div>
+                <div><span className="text-gray-600">School:</span> {studentData.schoolName || 'N/A'}</div>
+              </div>
+              <div className="bg-white p-4 rounded border">
+                <div className="font-medium text-gray-700 mb-2">Current Performance</div>
+                <div><span className="text-gray-600">Current Level:</span> {currentLevel || 'N/A'}</div>
+                <div><span className="text-gray-600">Completion Rate:</span> {Math.min(Math.round((passedLevels.length/6)*100), 100)}%</div>
+                <div><span className="text-gray-600">Semester:</span> {currentSemester}/8</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Placement & Career Information */}
+          <div className="mt-6 bg-green-50 rounded-lg p-6">
+            <h5 className="font-semibold text-gray-700 mb-4">💼 Career & Placement</h5>
+            {studentData.placedInfo?.companyName ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                <div><span className="font-medium text-gray-600">Company:</span> <br/><span className="font-semibold text-[#E6941A]">{studentData.placedInfo.companyName}</span></div>
+                <div><span className="font-medium text-gray-600">Position:</span> <br/><span className="font-semibold">{studentData.placedInfo.jobProfile}</span></div>
+                <div><span className="font-medium text-gray-600">Package:</span> <br/><span className="font-semibold">{studentData.placedInfo.package || 'N/A'}</span></div>
+                <div><span className="font-medium text-gray-600">Location:</span> <br/><span className="font-semibold">{studentData.placedInfo.location}</span></div>
+                <div><span className="font-medium text-gray-600">Joining Date:</span> <br/><span className="font-semibold">{studentData.placedInfo.joiningDate ? new Date(studentData.placedInfo.joiningDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}</span></div>
+                <div><span className="font-medium text-gray-600">Offer Letter:</span> <br/><span className={`font-semibold ${studentData.placedInfo.offerLetterURL ? 'text-[#FDA92D]' : 'text-red-600'}`}>{studentData.placedInfo.offerLetterURL ? '✓ Available' : '✗ Pending'}</span></div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="text-4xl mb-2">🎯</div>
+                <div className="text-lg font-medium text-gray-700">Placement In Progress</div>
+                <div className="text-sm text-gray-500 mt-1">Student is actively seeking placement opportunities</div>
+                <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+                  <div><span className="font-medium text-gray-600">Resume Status:</span> <br/><span className={`font-semibold ${studentData.resumeURL || studentData.resume ? 'text-[#FDA92D]' : 'text-red-600'}`}>{studentData.resumeURL || studentData.resume ? '✓ Ready' : '✗ Pending'}</span></div>
+                  <div><span className="font-medium text-gray-600">Eligibility:</span> <br/><span className={`font-semibold ${passedLevels.length >= 6 ? 'text-[#FDA92D]' : 'text-yellow-600'}`}>{passedLevels.length >= 6 ? '✓ Eligible' : '⚠ In Progress'}</span></div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-6 border-t bg-gray-50 rounded-b-xl">
+          <div className="flex justify-between items-center">
+            <div className="text-sm text-gray-600">
+              <div>Generated on: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+              <div className="mt-1">Academic Year: {new Date().getFullYear()}-{new Date().getFullYear() + 1}</div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => window.print()}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium flex items-center gap-2"
+              >
+                🖨️ Print Report
+              </button>
+              <button
+                onClick={onClose}
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Update Email Modal Component
 const UpdateEmailModal = ({ isOpen, onClose, studentData, onUpdate, isLoading }) => {
   const [email, setEmail] = useState('');
@@ -1002,7 +1415,7 @@ const UpdateEmailModal = ({ isOpen, onClose, studentData, onUpdate, isLoading })
       toast.success('Email updated successfully!');
       onClose();
     } catch (err) {
-      console.error('Error updating email:', err);
+      // console.error('Error updating email:', err);
       toast.error(err?.data?.message || 'Failed to update email');
     }
   };
@@ -1010,9 +1423,9 @@ const UpdateEmailModal = ({ isOpen, onClose, studentData, onUpdate, isLoading })
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl py-4 px-6 w-full max-w-lg relative">
-        <h2 className="text-2xl font-semibold text-center mb-6 text-[var(--primary)]">Update Email</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl py-4 px-4 sm:px-6 w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
+        <h2 className="text-xl sm:text-2xl font-semibold text-center mb-4 sm:mb-6 text-[var(--primary)]">Update Email</h2>
         
         <form onSubmit={handleSubmit}>
           <div className="mb-4">

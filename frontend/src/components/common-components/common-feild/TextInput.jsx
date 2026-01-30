@@ -28,7 +28,7 @@ const TextInput = ({
                   field.onBlur(e);
                 }}
                 placeholder=" "
-                className={`peer h-12 w-full border border-gray-300 rounded-md
+                className={`peer h-14 w-full border border-gray-300 rounded-md
                   px-3 py-2 leading-tight 
                   focus:outline-none focus:border-[#FDA92D] 
                   focus:ring-0
@@ -42,9 +42,9 @@ const TextInput = ({
                   absolute left-3 px-1 transition-all duration-200
                   pointer-events-none
                   ${disabled ? "bg-gray-100" : "bg-white"}
-                  ${isFocused || hasValue
-                    ? "text-xs -top-2 text-black"
-                    : "text-gray-500 top-3"}
+                  ${isFocused || hasValue || field.value
+                    ? `${label.length > 20 ? "text-xs" : label.length > 15 ? "text-sm" : "text-base"} -top-2 text-black`
+                    : `${label.length > 20 ? "text-sm" : label.length > 15 ? "text-base" : "text-lg"} text-gray-500 top-3`}
                 `}
               >
                 {label}
