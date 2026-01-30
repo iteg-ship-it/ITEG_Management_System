@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
-const studentController = require("../modules/student/controllers/AdmittedStudentController");
-const placementController = require("../modules/student/controllers/placementController");
-const attendanceController = require("../modules/student/controllers/attendanceController");
+const studentController = require("../controllers/student/AdmittedStudentController");
+const placementController = require("../controllers/placement/placementController");
+const attendanceController = require("../controllers/student/attendanceController");
 
 const upload = require('../config/multerConfig');
 

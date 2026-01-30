@@ -1,9 +1,9 @@
 const axios = require("axios");
-const AdmissionProcess = require("../models/admissionProcessStudent");
+const AdmissionProcess = require("../../models/student/admissionProcessStudent");
 const admittedStudent = require("./AdmittedStudentController");
 
 const crypto = require("crypto");
- const { sendEmail } = require('./emailController');
+const { sendEmail } = require('../helper/emailController');
 //  console.log('Student email:', updatedStudent.email);
 
 

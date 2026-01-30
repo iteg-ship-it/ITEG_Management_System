@@ -1,4 +1,4 @@
-const AdmittedStudent = require("../models/admittedStudent");
+const AdmittedStudent = require("../../models/student/admittedStudent");
 
 exports.getOverallAttendanceStats = async (req, res) => {
   try {

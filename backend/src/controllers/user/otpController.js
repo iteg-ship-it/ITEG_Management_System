@@ -2,8 +2,8 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 require('dotenv').config();
-const { generateOTP, sendEmailOtp } = require('../helpers/sendOtp');
-const User = require('../models/user');
+const { generateOTP, sendEmailOtp } = require('../../services/emailService');
+const User = require('../../models/user/user');
 const mongoose = require('mongoose');
 
 // Create a schema for storing OTPs in the database

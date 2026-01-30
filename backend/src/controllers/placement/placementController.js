@@ -1,6 +1,6 @@
-const AdmittedStudent = require("../models/admittedStudent");
-const Company = require("../models/company");
-const cloudinary = require('../../../config/cloudinaryConfig');
+const AdmittedStudent = require("../../models/student/admittedStudent");
+const Company = require("../../models/company/company");
+const cloudinary = require('../../config/cloudinaryConfig');
 
 // 1. CREATE/SCHEDULE INTERVIEW (from Ready Students) - Using original URL pattern
 exports.createInterview = async (req, res) => {

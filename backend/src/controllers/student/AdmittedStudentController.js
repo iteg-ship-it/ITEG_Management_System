@@ -1,10 +1,9 @@
-const AdmissionProcess = require("../models/admissionProcessStudent");
-const AdmittedStudent = require("../models/admittedStudent");
-const Company = require("../models/company");
-const { sendHTMLMail } = require("./emailController");
-
-const { sendEmail } = require("./emailController");
-const cloudinary = require("../../../config/cloudinaryConfig");
+const AdmissionProcess = require("../../models/student/admissionProcessStudent");
+const AdmittedStudent = require("../../models/student/admittedStudent");
+const Company = require("../../models/company/company");
+const { sendHTMLMail } = require("../helper/emailController");
+const { sendEmail } = require("../helper/emailController");
+const cloudinary = require("../../config/cloudinaryConfig");
 
 const path = require("path");
 const fs = require("fs");

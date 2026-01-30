@@ -1,7 +1,7 @@
 const express = require("express");
-const usercontroller = require("../modules/user/controllers/userController");
+const usercontroller = require("../controllers/user/userController");
 const passport = require("passport");
-const { googleAuthCallback } = require('../modules/user/controllers/userController');
+const { googleAuthCallback } = require('../controllers/user/userController');
 const { verifyToken } = require("../middlewares/authMiddleware");
 
 const router = express.Router();

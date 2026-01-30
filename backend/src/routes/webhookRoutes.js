@@ -1,9 +1,9 @@
 // webhookRoutes.js or inside your main route file
 const express = require("express");
 const router = express.Router();
-const admissionController = require('../modules/student/controllers/admissionProcessStudentControllers'); // adjust path
-const studentAdmittedController= require('../modules/student/controllers/AdmittedStudentController'); // adjust path
-const studentController = require('../modules/student/controllers/AdmittedStudentController'); // adjust path
+const admissionController = require('../controllers/student/admissionProcessStudentControllers');
+const studentAdmittedController= require('../controllers/student/AdmittedStudentController');
+const studentController = require('../controllers/student/AdmittedStudentController');
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 
 
