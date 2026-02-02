@@ -21,6 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import PageNavbar from '../common-components/navbar/PageNavbar';
 import AttendanceChart from '../dashboard/AttendanceChart';
+import DepartmentSection from '../Departments/departments';
 
 // Auto-Swapping Flow Cards Component
 const FlowSwapCard = () => {
@@ -432,6 +433,9 @@ const AdmissionDashboard = () => {
 
         {/* Attendance Chart with Fallback */}
         <AttendanceChart />
+
+        {/* Department Section */}
+        <DepartmentSection />
 
         {/* Placement Flow - Bottom Row */}
         <div className="grid grid-cols-1 gap-4 sm:gap-8 mb-6 sm:mb-8">
