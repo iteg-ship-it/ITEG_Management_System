@@ -15,6 +15,60 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    Company:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64fdb61e7b9a1a1234567890"
+        companyName:
+          type: string
+          example: "TCS Pvt Ltd"
+        location:
+          type: string
+          example: "Bangalore, India"
+        companyLogo:
+          type: string
+          example: "https://cloudinary.com/logo.png"
+        hrEmail:
+          type: string
+          format: email
+          example: "hr@tcs.com"
+        hrContact:
+          type: string
+          example: "+91-9876543210"
+        headOffice:
+          type: string
+          example: "Mumbai, India"
+    
+    PlacedStudent:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64a1b2c3d4e5f6789012345"
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+        course:
+          type: string
+          example: "B.Tech CSE"
+        placedInfo:
+          type: object
+          properties:
+            salary:
+              type: number
+              example: 500000
+            jobProfile:
+              type: string
+              example: "Software Developer"
+            location:
+              type: string
+              example: "Bangalore, India"
+
     User:
       type: object
       properties:
@@ -421,8 +475,7 @@ components:
             isScheduled:
               type: boolean
               example: true
-    Admittedstudent:
-      Level:
+    Level:
       type: object
       properties:
         levelNo:
@@ -699,48 +752,6 @@ paths:
 
   /api/user/update/{id}:
     patch:
-      tags:
-        - Auth
-      summary: Update user fields
-      description: Update fields like position, role, department, isActive for a user by their ID.
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: User ID to update
-          schema:
-            type: string
-
-            properties:
-                position:
-                  type: string
-                  example: "Senior Developer"
-                role:
-                  type: string
-                  example: "admin"
-                department:
-                  type: string
-                  example: "IT"
-                isActive:
-                  type: boolean
-                  example: true
-      responses:
-        200:
-          description: User updated successfully
-              required:
-                - email
-                - otp
-              properties:
-                email:
-                  type: string
-                  example: user@example.com
-                otp:
-                  type: string
-                  example: "123456"
-
-  /api/user/update/{id}:
-    patch:
-      patch:
       summary: Update selected fields of a user
       tags:
         - Auth
@@ -793,32 +804,8 @@ paths:
                     $ref: '#/components/schemas/User'
         '404':
           description: User not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: User not found
         '500':
           description: Server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: Server error
-                  error:
-                    type: string
 
 
 
@@ -1174,19 +1161,9 @@ paths:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
-                    example: true
                   message:
                     type: string
-                    example: Interview round added successfully
-                  student:
-                    $ref: './schemas/Admission'
-        '400':
-          description: Bad request due to validation failure or logic rejection
-                  message:
-                    type: string
-                    example: Logged out successfully, refresh token removed
+                    example: Logged out successfully
         '400':
           description: User ID is required
         '404':
@@ -1241,7 +1218,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: './schemas/Admission'
+                  $ref: '#/components/schemas/Admission'
         500:
           description: Server error
 
@@ -1316,7 +1293,7 @@ paths:
                     type: string
                     example: "Student admitted"
                   data:
-                    $ref:  '#/components/schemas/Admission'
+                    $ref: '#/components/schemas/Admission'
         '200':
           description: Admission status updated but student not admitted (e.g., status false)
           content:
@@ -1489,76 +1466,6 @@ paths:
                     type: string
                   error:
                     type: string
-
-
-
-  /api/admitted/students/getall:
-    get:
-      summary: Get all admitted students
-      description: Fetches a list of all admitted students.
-      tags:
-        - Admitted Student
-      responses:
-        '200':
-          description: List of admitted students
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AdmittedStudent'
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Server error
-
-  /api/admitted/students/{id}:
-    get:
-      summary: Get student by ID
-      description: Fetches a single admitted student's details using their unique MongoDB ObjectId.
-      tags:
-        - Admitted Student
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: ID of the admitted student
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Student found successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdmittedStudent'
-        '404':
-          description: Student not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Student not found
-        '500':
-          description: Server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  error:
-                    type: string
   
 
   /api/admitted/students/create_level/{id}:
@@ -1620,7 +1527,7 @@ paths:
                   message:
                     type: string
                   student:
-                    $ref: '#/components/schemas/Admission/Level'
+                    $ref: '#/components/schemas/AdmittedStudent'
         '400':
           description: Bad Request (e.g., all levels completed or duplicate passed level)
           content:
@@ -2372,107 +2279,6 @@ paths:
                   error:
                     type: string
                     example: Error stack or message
-
-
-
-
-
-
-
-
-    # post:
-    #   tags:
-    #     - Placement
-    #   summary: Add interview record for a student
-    #   description: Add a new interview record to a student's profile. The student must have readinessStatus = "Ready".
-    #   parameters:
-    #     - name: id
-    #       in: path
-    #       required: true
-    #       description: MongoDB ObjectId of the student
-    #       schema:
-    #         type: string
-    #         example: 665f6aaf4f55e5aaee6a1234
-    #   requestBody:
-    #     required: true
-    #     content:
-    #       application/json:
-    #         schema:
-    #           type: object
-    #           required:
-    #             - companyName
-    #             - interviewDate
-    #             - location
-    #             - jobProfile
-    #           properties:
-    #             companyName:
-    #               type: string
-    #               example: Infosys
-    #             interviewDate:
-    #               type: string
-    #               format: date
-    #               example: 2025-06-15
-    #             remark:
-    #               type: string
-    #               example: "Performed well in technical round"
-    #             result:
-    #               type: string
-    #               enum: [Selected, Rejected, Pending]
-    #               default: Pending
-    #               example: Pending
-    #             location:
-    #               type: string
-    #               example: Pune
-    #             jobProfile:
-    #               type: string
-    #               example: Software Engineer Intern
-    #   responses:
-    #     '201':
-    #       description: Interview record added successfully
-    #       content:
-    #         application/json:
-    #           schema:
-    #             type: object
-    #             properties:
-    #               success:
-    #                 type: boolean
-    #                 example: true
-    #               message:
-    #                 type: string
-    #                 example: Interview record added
-    #               data:
-    #                 type: array
-    #                 items:
-    #                   $ref: '#/components/schemas/InterviewRecord'
-    #     '400':
-    #       description: Student is not eligible (readinessStatus is not "Ready")
-    #       content:
-    #         application/json:
-    #           schema:
-    #             type: object
-    #             properties:
-    #               success:
-    #                 type: boolean
-    #                 example: false
-    #               message:
-    #                 type: string
-    #                 example: Student is not eligible for interview. Status: Not Ready
-    #     '404':
-    #       description: Student not found
-    #     '500':
-    #       description: Server error
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

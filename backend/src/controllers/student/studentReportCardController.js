@@ -1,4 +1,4 @@
-const StudentReportCard = require('../models/studentReportCard');
+const StudentReportCard = require('../../models/student/studentReportCard');
 
 /**
  * 🧾 Create a new Student Report Card

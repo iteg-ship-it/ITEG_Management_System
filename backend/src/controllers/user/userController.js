@@ -1,10 +1,10 @@
 // ✨ JWT, bcrypt, and other setups
 require("dotenv").config();
-const User = require("../models/user");
+const User = require("../../models/user/user");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
-const { sendResetLinkEmail } = require("../helpers/sendOtp");
+const { sendResetLinkEmail } = require("../../services/emailService");
 const cloudinary = require("cloudinary").v2;
 const mongoose = require("mongoose");
 

@@ -1,5 +1,5 @@
 const express = require('express');
-const FaceAuthController = require('../modules/faceAuth/faceAuthController');
+const FaceAuthController = require('../controllers/helper/faceAuthController');
 const router = express.Router();
 
 // Register face for a user
