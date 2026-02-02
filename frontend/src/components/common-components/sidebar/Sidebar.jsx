@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { IoMenu } from "react-icons/io5";
-import { FaClipboardList } from "react-icons/fa6";
+import { FaClipboardList, FaUserGroup } from "react-icons/fa6";
 import { MdWork, MdDashboard } from "react-icons/md";
 import { RiTv2Fill } from "react-icons/ri";
 import { HiChevronUp, HiChevronDown } from "react-icons/hi";
@@ -36,7 +36,9 @@ const Sidebar = ({ children }) => {
     const openMenus = [];
 
     // Dashboard menu (index 0)
-
+    if (path === "/") {
+      openMenus.push(0);
+    }
     // Admissions menu (index 1)
     if (path === "/admission-process" || path.startsWith("/admission/") || path.startsWith("/interview-detail/") || path === "/admission-record") {
       openMenus.push(1);
@@ -67,6 +69,7 @@ const Sidebar = ({ children }) => {
     const newOpenMenus = [];
 
     // Dashboard menu (index 0)
+
 
     // Admissions menu (index 1)
     if (path === "/admission-process" || path.startsWith("/admission/") || path.startsWith("/interview-detail/") || path === "/admission-record") {
@@ -154,7 +157,7 @@ const Sidebar = ({ children }) => {
     {
       name: "Admissions",
       icon: <RiTv2Fill />,
-      roles: ["superadmin", "admin"],
+      roles: ["superadmin", "admin", "faculty"],
       subMenu: [
         { name: "Admission Workflow", path: "/admission-process" },
       ],

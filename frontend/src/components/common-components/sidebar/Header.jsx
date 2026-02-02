@@ -94,12 +94,11 @@ const Header = () => {
                         <>
                             <Link
                                 to="/users-management"
-                                className="flex items-center justify-center h-8 sm:h-9 md:h-10 px-2 sm:px-3 md:px-4 text-xs sm:text-sm font-medium bg-white text-orange-500 border border-orange-500 rounded-lg hover:bg-orange-100 hover:border-orange-300 transition-all duration-200 shadow-sm hover:shadow-md"
-                                title="Manage Users"
+                                className={`flex items-center justify-center h-8 sm:h-9 md:h-10 px-2 sm:px-2 md:px-4 text-xs sm:text-sm font-medium ${buttonStyles.primary}`}
+                                title="Users Management"
                             >
+                                <FaUserGroup className="w-4 h-4 sm:mr-2" />
                                 <span className="hidden sm:inline">Users</span>
-                                <span className="sm:hidden"><FaUserGroup />
-</span>
                             </Link>
                             <button
                                 onClick={handleAddFaculty}
@@ -136,14 +135,17 @@ const Header = () => {
                             onSubmit={handleSubmit}
                         >
                             {({ setFieldValue }) => (
-                                <Form className="space-y-3">
+                                <Form className="space-y-3" autoComplete="off">
+                                    {/* Hidden dummy fields to prevent autofill */}
+                                    <input type="email" style={{display: 'none'}} />
+                                    <input type="password" style={{display: 'none'}} />
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <InputField label="Name" name="name" />
-                                        <InputField label="Email" name="email" type="email" />
+                                        <InputField label="Name" name="name" autoComplete="off" />
+                                        <InputField label="Email" name="email" type="email" autoComplete="nope" />
                                     </div>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <InputField label="Password" name="password" type="password" />
+                                        <InputField label="Password" name="password" type="password" autoComplete="new-password" />
                                         <InputField label="Mobile No" name="mobileNo" type="tel" />
                                     </div>
 

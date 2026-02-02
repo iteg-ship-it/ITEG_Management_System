@@ -106,9 +106,47 @@ const PlacedStudents = () => {
   }
 
   if (error) {
+    // Check if it's a "no students found" error (404) vs actual error
+    const isNoStudentsError = error?.status === 404 || error?.data?.message?.includes('No students found');
+    
+    if (isNoStudentsError) {
+      // Show "no students" message instead of error
+      return (
+        <div className="min-h-screen">
+          <PageNavbar
+            title={`Placed Students`}
+            subtitle={`Students placed in ${companyName}`}
+            showBackButton={true}
+          />
+          <div className="rounded-xl shadow-sm border border-gray-200">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">{companyName}</h2>
+                </div>
+                <div className="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg font-semibold">
+                  Total Placements: 0
+                </div>
+              </div>
+            </div>
+            <div className="text-center py-12">
+              <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Students Placed</h3>
+              <p className="text-gray-500">No students have been placed in this company yet.</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    // Show actual error for other types of errors
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className=" rounded-xl shadow-sm border border-red-200 max-w-md w-full mx-4">
+        <div className="rounded-xl shadow-sm border border-red-200 max-w-md w-full mx-4 p-6">
           <div className="text-center">
             <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
               <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

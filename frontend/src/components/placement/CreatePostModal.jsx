@@ -2,14 +2,14 @@
 import { useState, useEffect } from "react";
 import { IoClose, IoCloudUploadOutline, IoDocumentTextOutline } from "react-icons/io5";
 import { toast } from "react-toastify";
-import { useCreatePlacementPostMutation } from "../../redux/api/authApi";
+import { useCreatePlacementPostMutation, useUpdatePlacementPostMutation } from "../../redux/api/authApi";
 import { buttonStyles } from "../../styles/buttonStyles";
 import BlurBackground from "../common-components/BlurBackground";
 
 const PRIMARY_COLOR = "#FDA92D";
 const TEXT_COLOR = "#4B4B4B";
 
-const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
+const CreatePostModal = ({ isOpen, onClose, student, onSuccess, isUpdateMode = false }) => {
   const [formData, setFormData] = useState({
     position: "",
     companyName: "",
@@ -19,11 +19,12 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
   const [studentImageFile, setStudentImageFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createPlacementPost] = useCreatePlacementPostMutation();
+  const [updatePlacementPost] = useUpdatePlacementPostMutation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!companyLogoFile || !studentImageFile) {
+
+    if (!isUpdateMode && (!companyLogoFile || !studentImageFile)) {
       toast.error("Please upload both company logo and student image");
       return;
     }
@@ -34,31 +35,38 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
     }
 
     setIsSubmitting(true);
-    
+
     try {
-      // Convert files to base64
-      const companyLogoBase64 = await fileToBase64(companyLogoFile);
-      const studentImageBase64 = await fileToBase64(studentImageFile);
-      
       const postData = {
         studentId: student._id,
         position: formData.position,
         companyName: formData.companyName,
-        companyLogo: companyLogoBase64,
-        headOffice: formData.headOffice,
-        studentImage: studentImageBase64
+        headOffice: formData.headOffice
       };
 
-      // Call API to create placement post
-      await createPlacementPost(postData).unwrap();
-      
-      toast.success("Placement post created successfully!");
+      // Add images if provided
+      if (companyLogoFile) {
+        postData.companyLogo = await fileToBase64(companyLogoFile);
+      }
+      if (studentImageFile) {
+        postData.studentImage = await fileToBase64(studentImageFile);
+      }
+
+      // Call appropriate API
+      if (isUpdateMode) {
+        await updatePlacementPost(postData).unwrap();
+        toast.success("Placement post updated successfully!");
+      } else {
+        await createPlacementPost(postData).unwrap();
+        toast.success("Placement post created successfully!");
+      }
+
       onSuccess?.();
       onClose();
       resetForm();
     } catch (error) {
-      console.error("Error creating placement post:", error);
-      toast.error("Error creating placement post. Please try again.");
+      console.error(`Error ${isUpdateMode ? 'updating' : 'creating'} placement post:`, error);
+      toast.error(`Error ${isUpdateMode ? 'updating' : 'creating'} placement post. Please try again.`);
     } finally {
       setIsSubmitting(false);
     }
@@ -103,8 +111,7 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  console.log('CreatePostModal props:', { isOpen, student: student?.firstName });
-  
+
   if (!isOpen) return null;
 
   return (
@@ -123,7 +130,7 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
           className="text-2xl font-semibold text-center mb-6"
           style={{ color: PRIMARY_COLOR }}
         >
-          Create Placement Post
+          {isUpdateMode ? 'Update Placement Post' : 'Create Placement Post'}
         </h2>
 
         {/* Student Info */}
@@ -141,7 +148,7 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
         )}
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 text-[15px]" style={{ color: TEXT_COLOR }}>
-          {/* Position (Auto-filled) */}
+          {/* Position */}
           <div className="relative">
             <input
               type="text"
@@ -151,9 +158,9 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
               className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer"
               placeholder=" "
               required
-              readOnly
+              readOnly={!isUpdateMode}
             />
-            <label 
+            <label
               htmlFor="position"
               className="absolute left-3 -top-2 text-xs bg-white px-1 text-black"
             >
@@ -161,7 +168,7 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
             </label>
           </div>
 
-          {/* Company Name (Auto-filled) */}
+          {/* Company Name */}
           <div className="relative">
             <input
               type="text"
@@ -171,9 +178,9 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
               className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer"
               placeholder=" "
               required
-              readOnly
+              readOnly={!isUpdateMode}
             />
-            <label 
+            <label
               htmlFor="companyName"
               className="absolute left-3 -top-2 text-xs bg-white px-1 text-black"
             >
@@ -192,7 +199,7 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
               placeholder=" "
               required
             />
-            <label 
+            <label
               htmlFor="headOffice"
               className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
             >
@@ -203,7 +210,7 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
           {/* Company Logo Upload */}
           <div className="relative">
             <label className="block text-sm font-medium mb-2" style={{ color: TEXT_COLOR }}>
-              Company Logo *
+              Company Logo {!isUpdateMode ? '*' : '(Optional)'}
             </label>
             <div className="relative">
               <input
@@ -211,14 +218,13 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
                 accept="image/*"
                 onChange={(e) => setCompanyLogoFile(e.target.files[0])}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                required
+                required={!isUpdateMode}
                 id="companyLogo"
               />
-              <div className={`h-12 border-2 border-dashed rounded-md flex items-center px-3 transition-colors ${
-                companyLogoFile 
-                  ? 'border-green-400 bg-green-50' 
+              <div className={`h-12 border-2 border-dashed rounded-md flex items-center px-3 transition-colors ${companyLogoFile
+                  ? 'border-green-400 bg-green-50'
                   : 'border-gray-300 hover:border-[#FDA92D] hover:bg-orange-50'
-              }`}>
+                }`}>
                 <div className="flex items-center gap-2 w-full">
                   {companyLogoFile ? (
                     <>
@@ -249,7 +255,7 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
           {/* Student Image Upload */}
           <div className="relative">
             <label className="block text-sm font-medium mb-2" style={{ color: TEXT_COLOR }}>
-              Student Image *
+              Student Image {!isUpdateMode ? '*' : '(Optional)'}
             </label>
             <div className="relative">
               <input
@@ -257,14 +263,13 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
                 accept="image/*"
                 onChange={(e) => setStudentImageFile(e.target.files[0])}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                required
+                required={!isUpdateMode}
                 id="studentImage"
               />
-              <div className={`h-12 border-2 border-dashed rounded-md flex items-center px-3 transition-colors ${
-                studentImageFile 
-                  ? 'border-green-400 bg-green-50' 
+              <div className={`h-12 border-2 border-dashed rounded-md flex items-center px-3 transition-colors ${studentImageFile
+                  ? 'border-green-400 bg-green-50'
                   : 'border-gray-300 hover:border-[#FDA92D] hover:bg-orange-50'
-              }`}>
+                }`}>
                 <div className="flex items-center gap-2 w-full">
                   {studentImageFile ? (
                     <>
@@ -299,7 +304,7 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess }) => {
               disabled={isSubmitting}
               className={`w-full h-12 rounded-md transition disabled:opacity-50 ${buttonStyles.primary}`}
             >
-              {isSubmitting ? "Creating Post..." : "Create Post"}
+              {isSubmitting ? (isUpdateMode ? "Updating Post..." : "Creating Post...") : (isUpdateMode ? "Update Post" : "Create Post")}
             </button>
           </div>
         </form>

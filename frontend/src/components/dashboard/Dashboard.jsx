@@ -26,6 +26,7 @@ import PageNotFound from "../common-components/error-pages/PageNotFound";
 import ProtectedRoute from '../common-components/protected-route/ProtectedRoute';
 import AttendanceDetails from "../dashboard/AttendanceDetails";
 import UsersManagement from "../user-management/UsersManagement";
+import UserProfile from "../user-management/UserProfile";
 
 const Dashboard = () => {
   console.log('Dashboard routes loaded');
@@ -37,10 +38,11 @@ const Dashboard = () => {
       
       {/* Superadmin Only Routes */}
       <Route path="/users-management" element={<ProtectedRoute allowedRoles={["superadmin"]}><UsersManagement /></ProtectedRoute>} />
+      <Route path="/user-profile/:id" element={<ProtectedRoute allowedRoles={["superadmin"]}><UserProfile /></ProtectedRoute>} />
       
-      {/* Admin Only Routes */}
-      <Route path="/admission-process" element={<ProtectedRoute allowedRoles={["superadmin", "admin"]}><AdmissionProcess /></ProtectedRoute>} />
-      <Route path="/admission/edit/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin"]}><AdmissionEditPage /></ProtectedRoute>} />
+      {/* Admission Routes - All roles */}
+      <Route path="/admission-process" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionProcess /></ProtectedRoute>} />
+      <Route path="/admission/edit/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionEditPage /></ProtectedRoute>} />
       
       {/* Student & Faculty Routes - All roles */}
       <Route path="/student-dashboard" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentDashboard /></ProtectedRoute>} />

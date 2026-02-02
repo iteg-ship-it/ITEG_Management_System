@@ -10,5 +10,9 @@ export const store = configureStore({
     auth: authReducer, // ✅ Add kara
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(authApi.middleware),
+    getDefaultMiddleware({
+      serializableCheck: {
+        warnAfter: 128,
+      },
+    }).concat(authApi.middleware),
 });
