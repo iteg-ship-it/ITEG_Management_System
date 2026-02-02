@@ -49,6 +49,10 @@ const Sidebar = ({ children }) => {
     if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post" || path.startsWith("/interview-history/") || path === "/company-details" || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/")) {
       openMenus.push(3);
     }
+    // User Management menu (index 4)
+    if (path === "/users-management" || path === "/permission-management" || path.startsWith("/user-profile/")) {
+      openMenus.push(4);
+    }
     if (path.startsWith("/student-profile/")) {
       const lastSection = localStorage.getItem("lastSection");
       openMenus.push(lastSection === "admission" ? 1 : 2);
@@ -77,6 +81,10 @@ const Sidebar = ({ children }) => {
     // Placements menu (index 3)
     if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post" || path.startsWith("/interview-history/") || path === "/company-details" || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/")) {
       newOpenMenus.push(3);
+    }
+    // User Management menu (index 4)
+    if (path === "/users-management" || path === "/permission-management" || path.startsWith("/user-profile/")) {
+      newOpenMenus.push(4);
     }
     if (path.startsWith("/student-profile/")) {
       const lastSection = localStorage.getItem("lastSection");
@@ -134,6 +142,14 @@ const Sidebar = ({ children }) => {
       return path === "/placement-post";
     }
 
+    if (subPath === "/users-management") {
+      return path === "/users-management" || path.startsWith("/user-profile/");
+    }
+
+    if (subPath === "/permission-management") {
+      return path === "/permission-management";
+    }
+
     return path === subPath || path.startsWith(subPath + "/");
   };
 
@@ -172,6 +188,15 @@ const Sidebar = ({ children }) => {
         { name: "Placement Candidates", path: "/readiness-status" },
         { name: "Company Details", path: "/company-details" },
         { name: "Placed Students", path: "/placement-post" },
+      ],
+    },
+    {
+      name: "User Management",
+      icon: <FaUserGroup />,
+      roles: ["superadmin"],
+      subMenu: [
+        { name: "Users", path: "/users-management" },
+        { name: "Permission", path: "/permission-management" },
       ],
     },
   ];
@@ -244,6 +269,8 @@ const Sidebar = ({ children }) => {
               })}
           </nav>
         )}
+
+
       </aside>
 
       {/* Main content */}

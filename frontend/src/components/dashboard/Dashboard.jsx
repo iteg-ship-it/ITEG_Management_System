@@ -27,6 +27,8 @@ import ProtectedRoute from '../common-components/protected-route/ProtectedRoute'
 import AttendanceDetails from "../dashboard/AttendanceDetails";
 import UsersManagement from "../user-management/UsersManagement";
 import UserProfile from "../user-management/UserProfile";
+import PermissionManagement from "../user-management/PermissionManagement";
+import PermissionAccessSystem from "../user-management/PermissionAccessSystem";
 
 const Dashboard = () => {
   console.log('Dashboard routes loaded');
@@ -38,6 +40,8 @@ const Dashboard = () => {
       
       {/* Superadmin Only Routes */}
       <Route path="/users-management" element={<ProtectedRoute allowedRoles={["superadmin"]}><UsersManagement /></ProtectedRoute>} />
+      <Route path="/permission-management" element={<ProtectedRoute allowedRoles={["superadmin"]}><PermissionManagement /></ProtectedRoute>} />
+      <Route path="/permission-access/:userId" element={<ProtectedRoute allowedRoles={["superadmin"]}><PermissionAccessSystem /></ProtectedRoute>} />
       <Route path="/user-profile/:id" element={<ProtectedRoute allowedRoles={["superadmin"]}><UserProfile /></ProtectedRoute>} />
       
       {/* Admission Routes - All roles */}
