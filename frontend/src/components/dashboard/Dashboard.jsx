@@ -27,6 +27,7 @@ import ProtectedRoute from '../common-components/protected-route/ProtectedRoute'
 import AttendanceDetails from "../dashboard/AttendanceDetails";
 import UsersManagement from "../user-management/UsersManagement";
 import UserProfile from "../user-management/UserProfile";
+import DepartmentManagement from "../common-components/Setting/DepartmentManagement";
 
 const Dashboard = () => {
   console.log('Dashboard routes loaded');
@@ -63,6 +64,9 @@ const Dashboard = () => {
       <Route path="/placement-post" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><PlacementPost /></ProtectedRoute>} />
       <Route path="/interview-history/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><InterviewHistory /></ProtectedRoute>} />
       <Route path="/interview-rounds-history/:studentId/:interviewId" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><InterviewRoundsHistory /></ProtectedRoute>} />
+      
+      {/* Settings Routes - All roles */}
+      <Route path="/department-management" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><DepartmentManagement /></ProtectedRoute>} />
       
       {/* Error Routes */}
       <Route path="/unauthorized" element={<PageNotFound />} />

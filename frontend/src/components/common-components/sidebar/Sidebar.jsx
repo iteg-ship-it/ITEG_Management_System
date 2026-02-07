@@ -6,14 +6,12 @@ import { FaClipboardList, FaUserGroup } from "react-icons/fa6";
 import { MdWork, MdDashboard } from "react-icons/md";
 import { RiTv2Fill } from "react-icons/ri";
 import { HiChevronUp, HiChevronDown } from "react-icons/hi";
-import AddDepartmentModal from "../Setting/AddDepartmentModal";
 
 const Sidebar = ({ children }) => {
   const [isOpen, setIsOpen] = useState(() => {
     // Check if screen is large (lg breakpoint is 1024px)
     return window.innerWidth >= 1024;
   });
-  const [isAddDepartmentModalOpen, setIsAddDepartmentModalOpen] = useState(false);
 
   // Handle window resize to auto-close/open sidebar based on screen size
   useEffect(() => {
@@ -51,6 +49,10 @@ const Sidebar = ({ children }) => {
     if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post" || path.startsWith("/interview-history/") || path === "/company-details" || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/")) {
       openMenus.push(3);
     }
+    // Settings menu (index 4)
+    if (path === "/department-management") {
+      openMenus.push(4);
+    }
     if (path.startsWith("/student-profile/")) {
       const lastSection = localStorage.getItem("lastSection");
       openMenus.push(lastSection === "admission" ? 1 : 2);
@@ -61,7 +63,7 @@ const Sidebar = ({ children }) => {
     //   openMenus.push(3);
     // }
 
-    return openMenus.length > 0 ? openMenus : [0, 1, 2, 3];
+    return openMenus.length > 0 ? openMenus : [0, 1, 2, 3, 4];
   });
 
   useEffect(() => {
@@ -84,6 +86,10 @@ const Sidebar = ({ children }) => {
     // Placements menu (index 3)
     if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post" || path.startsWith("/interview-history/") || path === "/company-details" || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/")) {
       newOpenMenus.push(3);
+    }
+    // Settings menu (index 4)
+    if (path === "/department-management") {
+      newOpenMenus.push(4);
     }
     if (path.startsWith("/student-profile/")) {
       const lastSection = localStorage.getItem("lastSection");
@@ -186,7 +192,7 @@ const Sidebar = ({ children }) => {
       icon: <MdWork />,
       roles: ["superadmin", "admin", "faculty"],
       subMenu: [
-        { name: "Add Department", path: "/Add department" },
+        { name: "Department Management", path: "/department-management" },
       //   { name: "ITEG", path: "/ITEG" },
       //   { name: "MEG", path: "/MEG" },
       //   { name: "BEG", path: "/BEG" },
@@ -244,23 +250,6 @@ const Sidebar = ({ children }) => {
                         {item.subMenu.map((sub, i) => {
                           const active = isSubMenuActive(sub.path);
                           
-                          // Handle Add Department click
-                          if (sub.name === "Add Department") {
-                            return (
-                              <button
-                                key={i}
-                                onClick={() => setIsAddDepartmentModalOpen(true)}
-                                className={`block w-full text-left rounded px-3 py-2 text-md transition-colors duration-200 border-l-4 ${
-                                  active
-                                    ? "bg-brandYellowOpacity text-brandYellow font-semibold border-brandYellow"
-                                    : "text-gray-700 border-transparent hover:text-brandYellow"
-                                  }`}
-                              >
-                                {sub.name}
-                              </button>
-                            );
-                          }
-                          
                           return (
                             <Link
                               key={i}
@@ -291,16 +280,6 @@ const Sidebar = ({ children }) => {
       >
         {children}
       </main>
-      
-      {/* Add Department Modal */}
-      <AddDepartmentModal
-        isOpen={isAddDepartmentModalOpen}
-        onClose={() => setIsAddDepartmentModalOpen(false)}
-        onSuccess={(departmentData) => {
-          console.log("Department added:", departmentData);
-          // Handle successful department addition here
-        }}
-      />
     </div>
   );
 };

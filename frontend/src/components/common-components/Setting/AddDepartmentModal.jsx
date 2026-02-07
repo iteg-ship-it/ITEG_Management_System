@@ -2,7 +2,6 @@ import { useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { MdBusiness } from "react-icons/md";
 import { toast } from "react-toastify";
-import BlurBackground from "../BlurBackground";
 
 const PRIMARY_COLOR = "#FDA92D";
 
