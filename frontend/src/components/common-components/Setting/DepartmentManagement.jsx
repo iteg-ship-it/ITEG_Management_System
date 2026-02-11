@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { MdBusiness, MdAdd, MdEdit, MdDelete } from "react-icons/md";
-import AddDepartmentModal from "/AddDepartmentModal";
+import AddDepartmentModal from "./AddDepartmentModal";
 import PageNavbar from "../navbar/PageNavbar";
 import CommonTable from "../table/CommonTable";
 import Pagination from "../pagination/Pagination";
