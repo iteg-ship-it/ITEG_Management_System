@@ -6,8 +6,10 @@ import { FaClipboardList, FaUserGroup } from "react-icons/fa6";
 import { MdWork, MdDashboard } from "react-icons/md";
 import { RiTv2Fill } from "react-icons/ri";
 import { HiChevronUp, HiChevronDown } from "react-icons/hi";
+import { usePermissions } from '../../../hooks/usePermissions';
 
 const Sidebar = ({ children }) => {
+  const { hasPermission } = usePermissions();
   const [isOpen, setIsOpen] = useState(() => {
     // Check if screen is large (lg breakpoint is 1024px)
     return window.innerWidth >= 1024;
@@ -157,46 +159,46 @@ const Sidebar = ({ children }) => {
     {
       name: "Dashboard",
       icon: <MdDashboard />,
-      roles: ["superadmin", "admin", "faculty"],
+      permission: 'dashboard',
       subMenu: [
-        { name: "Dashboard", path: "/" },
-        { name: "Attendance Details", path: "/attendance-details" },
+        { name: "Dashboard", path: "/", permission: 'dashboard' },
+        { name: "Attendance Details", path: "/attendance-details", permission: 'attendanceDetails' },
       ],
     },
     {
       name: "Admissions",
       icon: <RiTv2Fill />,
-      roles: ["superadmin", "admin", "faculty"],
+      permission: 'admissionProcess',
       subMenu: [
-        { name: "Admission Workflow", path: "/admission-process" },
+        { name: "Admission Workflow", path: "/admission-process", permission: 'admissionProcess' },
       ],
     },
     {
       name: "Admitted",
       icon: <FaClipboardList />,
-      roles: ["superadmin", "admin", "faculty"],
+      permission: 'studentDashboard',
       subMenu: [
-        { name: "Student Progress", path: "/student-dashboard" },
-        { name: "Dummy Students", path: "/student-permission" },
+        { name: "Student Progress", path: "/student-dashboard", permission: 'studentDashboard' },
+        { name: "Dummy Students", path: "/student-permission", permission: 'studentPermission' },
       ],
     },
     {
       name: "Placements",
       icon: <MdWork />,
-      roles: ["superadmin", "admin", "faculty"],
+      permission: 'placementReadyStudents',
       subMenu: [
-        { name: "Placement Candidates", path: "/readiness-status" },
-        { name: "Company Details", path: "/company-details" },
-        { name: "Placed Students", path: "/placement-post" },
+        { name: "Placement Candidates", path: "/readiness-status", permission: 'placementReadyStudents' },
+        { name: "Company Details", path: "/company-details", permission: 'companyDetail' },
+        { name: "Placed Students", path: "/placement-post", permission: 'placementPost' },
       ],
     },
     {
       name: "User Management",
       icon: <FaUserGroup />,
-      roles: ["superadmin"],
+      permission: 'usersManagement',
       subMenu: [
-        { name: "Users", path: "/users-management" },
-        { name: "Permission", path: "/permission-management" },
+        { name: "Users", path: "/users-management", permission: 'usersManagement' },
+        { name: "Permission", path: "/permission-management", permission: 'permissionManagement' },
       ],
     },
   ];
@@ -223,7 +225,7 @@ const Sidebar = ({ children }) => {
         {isOpen && (
           <nav className="flex flex-col gap-1 px-2 py-2 overflow-y-auto">
             {menuItems
-              .filter((item) => item.roles.includes(role))
+              .filter((item) => hasPermission(item.permission, 'view'))
               .map((item, idx) => {
                 const isActive = openMenus.includes(idx);
                 return (
@@ -247,7 +249,9 @@ const Sidebar = ({ children }) => {
                     {/* Submenus */}
                     {isActive && (
                       <div className="ml-1">
-                        {item.subMenu.map((sub, i) => {
+                        {item.subMenu
+                          .filter((sub) => hasPermission(sub.permission, 'view'))
+                          .map((sub, i) => {
                           const active = isSubMenuActive(sub.path);
                           return (
                             <Link

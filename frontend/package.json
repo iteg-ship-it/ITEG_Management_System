@@ -15,6 +15,7 @@
     "@react-pdf/renderer": "^4.3.1",
     "@reduxjs/toolkit": "^2.6.1",
     "@tanstack/react-table": "^8.21.3",
+    "axios": "^1.13.4",
     "browser-image-compression": "^2.0.2",
     "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",

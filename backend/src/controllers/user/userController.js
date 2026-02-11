@@ -1,6 +1,8 @@
 // ✨ JWT, bcrypt, and other setups
 require("dotenv").config();
 const User = require("../../models/user/user");
+const Permission = require("../../models/user/permission");
+const { getDefaultPermissions } = require("../../utils/permissionUtils");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
@@ -79,6 +81,15 @@ exports.createUser = async (req, res) => {
     });
 
     await newUser.save();
+
+    // Create default permissions for the new user
+    const defaultPermissions = getDefaultPermissions(role);
+    const newPermission = new Permission({
+      userId: newUser._id,
+      role: role,
+      permissions: defaultPermissions
+    });
+    await newPermission.save();
 
     res.status(201).json({
       message: `${role.charAt(0).toUpperCase() + role.slice(1)} created successfully!`,
@@ -361,12 +372,11 @@ exports.googleAuthCallback = async (req, res) => {
     const { sub, email, name } = _json;
 
     if (!email.endsWith("@ssism.org")) {
-      return res.status(403).json({
-        message: "Only institutional emails (@ssism.org) are allowed to login.",
-      });
+      return res.redirect(`${process.env.GOOGLE_REDIRECT_URI}?error=unauthorized&message=Only institutional emails are allowed`);
     }
 
     let user = await User.findOne({ email });
+    let isNewUser = false;
 
     if (!user) {
       user = await User.create({
@@ -374,7 +384,23 @@ exports.googleAuthCallback = async (req, res) => {
         email,
         name,
         role: "superadmin",
+        position: "admin",
+        department: "IT",
+        mobileNo: "0000000000",
+        adharCard: `GOOGLE_${sub}`,
+        password: await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10),
         profileImage: _json.picture || "https://via.placeholder.com/150",
+      });
+      isNewUser = true;
+    }
+
+    // Create permissions if new user or if permissions don't exist
+    if (isNewUser) {
+      const defaultPermissions = getDefaultPermissions(user.role);
+      await Permission.create({
+        userId: user._id,
+        role: user.role,
+        permissions: defaultPermissions
       });
     }
 
@@ -386,12 +412,12 @@ exports.googleAuthCallback = async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
-    const redirectUrl = `${process.env.GOOGLE_REDIRECT_URI}?token=${token}&refreshToken=${refreshToken}&userId=${user._id}&name=${encodeURIComponent(user.name)}&role=${user.role}&email=${user.email}`;
+    const redirectUrl = `${process.env.GOOGLE_REDIRECT_URI}?token=${token}&refreshToken=${refreshToken}&userId=${user._id}&name=${encodeURIComponent(user.name)}&role=${user.role}&email=${user.email}&positionRole=${user.position || 'admin'}`;
 
     return res.redirect(redirectUrl);
   } catch (error) {
     console.error("Google login failed:", error);
-    res.status(500).json({ error: "Login failed" });
+    return res.redirect(`${process.env.GOOGLE_REDIRECT_URI}?error=server_error&message=Login failed`);
   }
 };
 

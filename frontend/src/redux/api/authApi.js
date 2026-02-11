@@ -115,7 +115,7 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithAutoRefresh,
-  tagTypes: ['Student', 'PlacementStudent', 'User'],
+  tagTypes: ['Student', 'PlacementStudent', 'User', 'Permission', 'CurrentUserPermission'],
   // Global configuration for better caching
   keepUnusedDataFor: 300, // 5 minutes default cache
   refetchOnMountOrArgChange: 30, // Only refetch if data is older than 30 seconds
@@ -748,6 +748,48 @@ export const authApi = createApi({
       invalidatesTags: ['Student'],
     }),
 
+    // Permission Management APIs
+    getUserPermissions: builder.query({
+      query: (userId) => ({
+        url: `/permissions/user/${userId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, userId) => [
+        { type: 'Permission', id: userId }
+      ],
+    }),
+
+    updateUserPermissions: builder.mutation({
+      query: ({ userId, permissions }) => ({
+        url: `/permissions/user/${userId}`,
+        method: "POST",
+        body: { permissions },
+      }),
+      invalidatesTags: (result, error, { userId }) => [
+        { type: 'Permission', id: userId }
+      ],
+    }),
+
+    updateSpecificPermission: builder.mutation({
+      query: ({ userId, page, action, value }) => ({
+        url: `/permissions/user/${userId}/permission`,
+        method: "PATCH",
+        body: { page, action, value },
+      }),
+      invalidatesTags: (result, error, { userId }) => [
+        { type: 'Permission', id: userId }
+      ],
+    }),
+
+    // Get current user's permissions
+    getCurrentUserPermissions: builder.query({
+      query: () => ({
+        url: '/permissions/current-user',
+        method: "GET",
+      }),
+      providesTags: ['CurrentUserPermission'],
+    }),
+
   }),
 });
 
@@ -804,5 +846,9 @@ export const {
   useGetReportCardQuery,
   useCreateReportCardMutation,
   useGetReportCardForEditQuery,
-  useUpdateReportCardMutation
+  useUpdateReportCardMutation,
+  useGetUserPermissionsQuery,
+  useUpdateUserPermissionsMutation,
+  useUpdateSpecificPermissionMutation,
+  useGetCurrentUserPermissionsQuery
 } = authApi;

@@ -1,144 +1,64 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useGetUserByIdQuery, useEditUserMutation } from '../../redux/api/authApi';
+import { useGetUserByIdQuery, useGetUserPermissionsQuery, useUpdateSpecificPermissionMutation } from '../../redux/api/authApi';
 import PageNavbar from '../common-components/navbar/PageNavbar';
 import Loader from '../common-components/loader/Loader';
 import profile from '../../assets/images/profile-img.png';
 
 const PermissionAccessSystem = () => {
   const { userId } = useParams();
-  const { data: userData, isLoading, error } = useGetUserByIdQuery(userId);
-  const [editUser] = useEditUserMutation();
+  const { data: userData, isLoading: userLoading, error: userError } = useGetUserByIdQuery(userId);
+  const { data: permissionsData, isLoading: permissionsLoading, error: permissionsError } = useGetUserPermissionsQuery(userId);
+  const [updateSpecificPermission] = useUpdateSpecificPermissionMutation();
   
-  const [permissions, setPermissions] = useState({
-    dashboard: { view: true, edit: true, add: false, delete: false },
-    attendanceDetails: { view: true, edit: true, add: false, delete: false },
-    admissionProcess: { view: true, edit: true, add: true, delete: false },
-    admissionEditPage: { view: true, edit: true, add: false, delete: false },
-    studentDashboard: { view: true, edit: true, add: true, delete: false },
-    studentDetailTable: { view: true, edit: true, add: false, delete: false },
-    studentEditPage: { view: true, edit: true, add: false, delete: false },
-    studentProfile: { view: true, edit: true, add: false, delete: false },
-    studentReport: { view: true, edit: true, add: false, delete: false },
-    studentReportForm: { view: true, edit: true, add: false, delete: false },
-    studentLevelData: { view: true, edit: true, add: false, delete: false },
-    studentLevelInterviewHistory: { view: true, edit: true, add: false, delete: false },
-    studentPermission: { view: true, edit: true, add: false, delete: false },
-    placementReadyStudents: { view: true, edit: true, add: true, delete: false },
-    placementRecords: { view: true, edit: true, add: false, delete: false },
-    placementPost: { view: true, edit: true, add: true, delete: false },
-    companyDetail: { view: true, edit: true, add: true, delete: false },
-    placedStudents: { view: true, edit: true, add: false, delete: false },
-    interviewHistory: { view: true, edit: true, add: false, delete: false },
-    interviewRoundsHistory: { view: true, edit: true, add: false, delete: false },
-    usersManagement: { view: false, edit: false, add: false, delete: false },
-    userProfile: { view: false, edit: false, add: false, delete: false },
-    permissionManagement: { view: false, edit: false, add: false, delete: false },
-  });
+  const [permissions, setPermissions] = useState({});
 
   const user = userData?.user;
+  const isLoading = userLoading || permissionsLoading;
+  const error = userError || permissionsError;
 
   useEffect(() => {
-    if (user) {
-      const rolePermissions = {
-        superadmin: {
-          dashboard: { view: true, edit: true, add: true, delete: true },
-          attendanceDetails: { view: true, edit: true, add: true, delete: true },
-          admissionProcess: { view: true, edit: true, add: true, delete: true },
-          admissionEditPage: { view: true, edit: true, add: true, delete: true },
-          studentDashboard: { view: true, edit: true, add: true, delete: true },
-          studentDetailTable: { view: true, edit: true, add: true, delete: true },
-          studentEditPage: { view: true, edit: true, add: true, delete: true },
-          studentProfile: { view: true, edit: true, add: true, delete: true },
-          studentReport: { view: true, edit: true, add: true, delete: true },
-          studentReportForm: { view: true, edit: true, add: true, delete: true },
-          studentLevelData: { view: true, edit: true, add: true, delete: true },
-          studentLevelInterviewHistory: { view: true, edit: true, add: true, delete: true },
-          studentPermission: { view: true, edit: true, add: true, delete: true },
-          placementReadyStudents: { view: true, edit: true, add: true, delete: true },
-          placementRecords: { view: true, edit: true, add: true, delete: true },
-          placementPost: { view: true, edit: true, add: true, delete: true },
-          companyDetail: { view: true, edit: true, add: true, delete: true },
-          placedStudents: { view: true, edit: true, add: true, delete: true },
-          interviewHistory: { view: true, edit: true, add: true, delete: true },
-          interviewRoundsHistory: { view: true, edit: true, add: true, delete: true },
-          usersManagement: { view: true, edit: true, add: true, delete: true },
-          userProfile: { view: true, edit: true, add: true, delete: true },
-          permissionManagement: { view: true, edit: true, add: true, delete: true },
-        },
-        admin: {
-          dashboard: { view: true, edit: true, add: true, delete: false },
-          attendanceDetails: { view: true, edit: true, add: true, delete: false },
-          admissionProcess: { view: true, edit: true, add: true, delete: false },
-          admissionEditPage: { view: true, edit: true, add: true, delete: false },
-          studentDashboard: { view: true, edit: true, add: true, delete: false },
-          studentDetailTable: { view: true, edit: true, add: true, delete: false },
-          studentEditPage: { view: true, edit: true, add: true, delete: false },
-          studentProfile: { view: true, edit: true, add: true, delete: false },
-          studentReport: { view: true, edit: true, add: true, delete: false },
-          studentReportForm: { view: true, edit: true, add: true, delete: false },
-          studentLevelData: { view: true, edit: true, add: true, delete: false },
-          studentLevelInterviewHistory: { view: true, edit: true, add: true, delete: false },
-          studentPermission: { view: true, edit: true, add: true, delete: false },
-          placementReadyStudents: { view: true, edit: true, add: true, delete: false },
-          placementRecords: { view: true, edit: true, add: true, delete: false },
-          placementPost: { view: true, edit: true, add: true, delete: false },
-          companyDetail: { view: true, edit: true, add: true, delete: false },
-          placedStudents: { view: true, edit: true, add: true, delete: false },
-          interviewHistory: { view: true, edit: true, add: true, delete: false },
-          interviewRoundsHistory: { view: true, edit: true, add: true, delete: false },
-          usersManagement: { view: false, edit: false, add: false, delete: false },
-          userProfile: { view: false, edit: false, add: false, delete: false },
-          permissionManagement: { view: false, edit: false, add: false, delete: false },
-        },
-        faculty: {
-          dashboard: { view: true, edit: false, add: false, delete: false },
-          attendanceDetails: { view: true, edit: false, add: false, delete: false },
-          admissionProcess: { view: true, edit: true, add: false, delete: false },
-          admissionEditPage: { view: true, edit: true, add: false, delete: false },
-          studentDashboard: { view: true, edit: true, add: false, delete: false },
-          studentDetailTable: { view: true, edit: true, add: false, delete: false },
-          studentEditPage: { view: true, edit: true, add: false, delete: false },
-          studentProfile: { view: true, edit: true, add: false, delete: false },
-          studentReport: { view: true, edit: true, add: false, delete: false },
-          studentReportForm: { view: true, edit: true, add: false, delete: false },
-          studentLevelData: { view: true, edit: true, add: false, delete: false },
-          studentLevelInterviewHistory: { view: true, edit: true, add: false, delete: false },
-          studentPermission: { view: true, edit: false, add: false, delete: false },
-          placementReadyStudents: { view: true, edit: false, add: false, delete: false },
-          placementRecords: { view: true, edit: false, add: false, delete: false },
-          placementPost: { view: true, edit: false, add: false, delete: false },
-          companyDetail: { view: true, edit: false, add: false, delete: false },
-          placedStudents: { view: true, edit: false, add: false, delete: false },
-          interviewHistory: { view: true, edit: false, add: false, delete: false },
-          interviewRoundsHistory: { view: true, edit: false, add: false, delete: false },
-          usersManagement: { view: false, edit: false, add: false, delete: false },
-          userProfile: { view: false, edit: false, add: false, delete: false },
-          permissionManagement: { view: false, edit: false, add: false, delete: false },
-        },
-      };
-      
-      setPermissions(rolePermissions[user.role?.toLowerCase()] || {});
+    if (permissionsData?.permissions?.permissions) {
+      setPermissions(permissionsData.permissions.permissions);
     }
-  }, [user]);
+  }, [permissionsData]);
 
   const handlePermissionToggle = async (permissionKey, actionType) => {
-    const newPermissions = {
-      ...permissions,
-      [permissionKey]: {
-        ...permissions[permissionKey],
-        [actionType]: !permissions[permissionKey][actionType]
-      }
-    };
-    setPermissions(newPermissions);
-    
     try {
-      toast.success(`${actionType.charAt(0).toUpperCase() + actionType.slice(1)} permission ${newPermissions[permissionKey][actionType] ? 'granted' : 'revoked'} successfully`);
+      const currentValue = permissions[permissionKey]?.[actionType] || false;
+      const newValue = !currentValue;
+      
+      // Optimistic update
+      setPermissions(prev => ({
+        ...prev,
+        [permissionKey]: {
+          ...prev[permissionKey],
+          [actionType]: newValue
+        }
+      }));
+
+      // API call
+      await updateSpecificPermission({
+        userId,
+        page: permissionKey,
+        action: actionType,
+        value: newValue
+      }).unwrap();
+
+      toast.success(`${actionType.charAt(0).toUpperCase() + actionType.slice(1)} permission ${newValue ? 'granted' : 'revoked'} successfully`);
     } catch (error) {
       console.error('Error updating permissions:', error);
       toast.error('Failed to update permissions');
-      setPermissions(permissions);
+      
+      // Revert optimistic update on error
+      setPermissions(prev => ({
+        ...prev,
+        [permissionKey]: {
+          ...prev[permissionKey],
+          [actionType]: !prev[permissionKey]?.[actionType]
+        }
+      }));
     }
   };
 
@@ -242,8 +162,8 @@ const PermissionAccessSystem = () => {
                         onClick={() => handlePermissionToggle(item.key, action)}
                         className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
                           permissions[item.key]?.[action]
-                            ? 'bg-green-100 text-green-800 border border-green-300'
-                            : 'bg-gray-100 text-gray-600 border border-gray-300'
+                            ? 'bg-green-500 text-white border border-green-600 hover:bg-green-600'
+                            : 'bg-red-500 text-white border border-red-600 hover:bg-red-600'
                         }`}
                       >
                         {action.charAt(0).toUpperCase() + action.slice(1)}

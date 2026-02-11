@@ -64,6 +64,16 @@ const updateGoogleUsersRole = async () => {
   }
 };
 
+// Initialize permissions for existing users
+const initializePermissions = async () => {
+  try {
+    const { initializePermissionsForExistingUsers } = require("./src/utils/permissionUtils");
+    await initializePermissionsForExistingUsers();
+  } catch (error) {
+    console.error("❌ Error initializing permissions:", error);
+  }
+};
+
 // Start Server only if this is the main module (not when testing)
 if (require.main === module) {
   mongoose
@@ -72,6 +82,8 @@ if (require.main === module) {
       console.log("✅ Connected to MongoDB");
       // Update existing Google users role
       await updateGoogleUsersRole();
+      // Initialize permissions for existing users
+      await initializePermissions();
     })
     .catch((err) => console.error("❌ DB Connection Error:", err));
 

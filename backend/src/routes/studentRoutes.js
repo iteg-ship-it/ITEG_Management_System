@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
+const { checkPermission } = require("../middlewares/permissionMiddleware");
 const studentController = require("../controllers/student/AdmittedStudentController");
 const placementController = require("../controllers/placement/placementController");
 const attendanceController = require("../controllers/student/attendanceController");
@@ -14,26 +15,26 @@ router.post("/admitted", studentController.createAdmittedStudent);
 router.get(
   "/getall",
   verifyToken,
-  checkRole(allowedRoles),
+  checkPermission('studentDashboard', 'view'),
   studentController.getAllStudents
 );
 
 router.get(
   "/get_student_by_level/:levelNo",
   verifyToken,
-  checkRole(allowedRoles),
+  checkPermission('studentLevelData', 'view'),
   studentController.getAllStudentsByLevel
 );
 
-router.get("/Ready_Students", verifyToken, checkRole(allowedRoles), studentController.getReadyStudent);
+router.get("/Ready_Students", verifyToken, checkPermission('placementReadyStudents', 'view'), studentController.getReadyStudent);
 
-router.post("/create_level/:id", verifyToken, checkRole(allowedRoles), studentController.createLevels);
+router.post("/create_level/:id", verifyToken, checkPermission('studentLevelData', 'add'), studentController.createLevels);
 
 
-router.get("/permission_students", verifyToken, checkRole(allowedRoles), studentController.getAllPermissionStudents
+router.get("/permission_students", verifyToken, checkPermission('studentPermission', 'view'), studentController.getAllPermissionStudents
 );
 
-router.patch("/update_permission_student/:studentId", verifyToken, checkRole(allowedRoles), studentController.updatePermissionStudent);
+router.patch("/update_permission_student/:studentId", verifyToken, checkPermission('studentPermission', 'edit'), studentController.updatePermissionStudent);
 
 // Placement Workflow Routes (before /:id route) - Keep original URLs
 // 1. Interview Management
