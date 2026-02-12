@@ -49,12 +49,21 @@ const Sidebar = ({ children }) => {
     if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post" || path.startsWith("/interview-history/") || path === "/company-details" || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/")) {
       openMenus.push(3);
     }
+    // Settings menu (index 4)
+    if (path === "/department-management") {
+      openMenus.push(4);
+    }
     if (path.startsWith("/student-profile/")) {
       const lastSection = localStorage.getItem("lastSection");
       openMenus.push(lastSection === "admission" ? 1 : 2);
     }
 
-    return openMenus.length > 0 ? openMenus : [0, 1, 2, 3];
+     // Department menu (index 3)
+    // if (path === "/ITEG" || path === "/MEG" || path === "/BEG" || path.startsWith("/interview-history/") || path === "/company-details" || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/")) {
+    //   openMenus.push(3);
+    // }
+
+    return openMenus.length > 0 ? openMenus : [0, 1, 2, 3, 4];
   });
 
   useEffect(() => {
@@ -77,6 +86,10 @@ const Sidebar = ({ children }) => {
     // Placements menu (index 3)
     if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post" || path.startsWith("/interview-history/") || path === "/company-details" || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/")) {
       newOpenMenus.push(3);
+    }
+    // Settings menu (index 4)
+    if (path === "/department-management") {
+      newOpenMenus.push(4);
     }
     if (path.startsWith("/student-profile/")) {
       const lastSection = localStorage.getItem("lastSection");
@@ -174,6 +187,18 @@ const Sidebar = ({ children }) => {
         { name: "Placed Students", path: "/placement-post" },
       ],
     },
+    {
+      name: "Setting",
+      icon: <MdWork />,
+      roles: ["superadmin", "admin", "faculty"],
+      subMenu: [
+        { name: "Department Management", path: "/department-management" },
+      //   { name: "ITEG", path: "/ITEG" },
+      //   { name: "MEG", path: "/MEG" },
+      //   { name: "BEG", path: "/BEG" },
+      //   { name: "B.Tech", path: "/B.Tech" },
+       ],
+    },
   ];
 
   return (
@@ -224,13 +249,15 @@ const Sidebar = ({ children }) => {
                       <div className="ml-1">
                         {item.subMenu.map((sub, i) => {
                           const active = isSubMenuActive(sub.path);
+                          
                           return (
                             <Link
                               key={i}
                               to={sub.path}
-                              className={`block rounded px-3 py-2 text-md transition-colors duration-200 border-l-4 ${active
-                                ? "bg-brandYellowOpacity text-brandYellow font-semibold border-brandYellow"
-                                : "text-gray-700 border-transparent hover:text-brandYellow"
+                              className={`block rounded px-3 py-2 text-md transition-colors duration-200 border-l-4 ${
+                                active
+                                  ? "bg-brandYellowOpacity text-brandYellow font-semibold border-brandYellow"
+                                  : "text-gray-700 border-transparent hover:text-brandYellow"
                                 }`}
                             >
                               {sub.name}
@@ -256,5 +283,6 @@ const Sidebar = ({ children }) => {
     </div>
   );
 };
+
 
 export default Sidebar;
