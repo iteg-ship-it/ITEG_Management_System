@@ -28,7 +28,6 @@ import AttendanceDetails from "../dashboard/AttendanceDetails";
 import UsersManagement from "../user-management/UsersManagement";
 import UserProfile from "../user-management/UserProfile";
 import DepartmentManagement from "../common-components/Setting/DepartmentManagement";
-import UserProfile from "../user-management/UserProfile";
 
 const Dashboard = () => {
   console.log('Dashboard routes loaded');
@@ -41,11 +40,7 @@ const Dashboard = () => {
       {/* Superadmin Only Routes */}
       <Route path="/users-management" element={<ProtectedRoute allowedRoles={["superadmin"]}><UsersManagement /></ProtectedRoute>} />
       <Route path="/user-profile/:id" element={<ProtectedRoute allowedRoles={["superadmin"]}><UserProfile /></ProtectedRoute>} />
-      <Route path="/user-profile/:id" element={<ProtectedRoute allowedRoles={["superadmin"]}><UserProfile /></ProtectedRoute>} />
       
-      {/* Admission Routes - All roles */}
-      <Route path="/admission-process" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionProcess /></ProtectedRoute>} />
-      <Route path="/admission/edit/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionEditPage /></ProtectedRoute>} />
       {/* Admission Routes - All roles */}
       <Route path="/admission-process" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionProcess /></ProtectedRoute>} />
       <Route path="/admission/edit/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionEditPage /></ProtectedRoute>} />
