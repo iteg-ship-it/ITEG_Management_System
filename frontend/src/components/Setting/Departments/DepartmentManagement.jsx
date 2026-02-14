@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { MdBusiness, MdAdd, MdEdit, MdDelete } from "react-icons/md";
 import AddDepartmentModal from "./AddDepartmentModal";
-import PageNavbar from "../common-components/navbar/PageNavbar";
-import CommonTable from "../common-components/table/CommonTable";
-import Pagination from "../common-components/pagination/Pagination";
-import { buttonStyles } from "../../styles/buttonStyles";
+import PageNavbar from "../../common-components/navbar/PageNavbar";
+import CommonTable from "../../common-components/table/CommonTable";
+import Pagination from "../../common-components/pagination/Pagination";
+import { buttonStyles } from "../../../styles/buttonStyles";
 
 const DepartmentManagement = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);

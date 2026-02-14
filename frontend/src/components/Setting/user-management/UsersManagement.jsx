@@ -170,7 +170,7 @@ const UsersManagement = () => {
             <PageNavbar
                 title="Users Management"
                 subtitle="Manage all system users"
-                showBackButton={true}
+                showBackButton={false}
             />
 
             <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
