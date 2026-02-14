@@ -13,6 +13,7 @@ import StudentReport from "../student-records/StudentReport";
 import StudentReportForm from "../student-records/StudentReportForm";
 import StudentLevelData from "../student-records/StudentLevelData";
 import StudentLevelInterviewHistory from "../student-records/StudentLevelInterviewHistory";
+import TaskList from "../student-records/TaskList";
 // Placement components
 import PlacementReadyStudents from "../placement/PlacementReadyStudents";
 import StudentPermission from "../student-records/StudentPermission";
@@ -57,6 +58,7 @@ const Dashboard = () => {
       <Route path="/student/:id/report/edit" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentReportForm /></ProtectedRoute>} />
       <Route path="/student/:id/report" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentReport /></ProtectedRoute>} />
       <Route path="/student/:studentId/level-interviews" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentLevelInterviewHistory /></ProtectedRoute>} />
+      <Route path="/student/:id/task-list" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><TaskList /></ProtectedRoute>} />
       <Route path="/student-permission" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentPermission /></ProtectedRoute>} />
       
       {/* Placement Routes - All roles */}

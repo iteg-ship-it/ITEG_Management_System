@@ -96,6 +96,12 @@ const PermissionSchema = new mongoose.Schema({
       add: { type: Boolean, default: false },
       delete: { type: Boolean, default: false }
     },
+    taskList: {
+      view: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      add: { type: Boolean, default: false },
+      delete: { type: Boolean, default: false }
+    },
     
     // Placement Section
     placementReadyStudents: {

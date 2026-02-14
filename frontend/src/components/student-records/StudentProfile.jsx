@@ -348,6 +348,14 @@ export default function StudentProfile() {
                 <span className="sm:hidden">Elective</span>
               </button>
               <button
+                onClick={() => navigate(`/student/${id}/task-list`)}
+                className="px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 shadow-lg bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-white"
+                title="Manage student tasks and assignments"
+              >
+                <span className="hidden sm:inline">Task List</span>
+                <span className="sm:hidden">Tasks</span>
+              </button>
+              <button
                 onClick={() => setEmailModalOpen(true)}
                 className="px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 shadow-lg bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-white disabled:opacity-50"
               >
