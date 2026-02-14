@@ -26,6 +26,9 @@ const verifyToken = (req, res, next) => {
     }
 };
 
+// Alternative name for compatibility
+const authenticateToken = verifyToken;
+
 // Middleware to check required role
 const checkRole = (roles) => {
     return (req, res, next) => {
@@ -36,5 +39,5 @@ const checkRole = (roles) => {
     };
 };
 
-module.exports = { verifyToken, checkRole };
+module.exports = { verifyToken, authenticateToken, checkRole };
 

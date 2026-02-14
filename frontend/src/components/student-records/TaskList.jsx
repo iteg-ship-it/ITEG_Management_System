@@ -1,23 +1,23 @@
 /* eslint-disable react/prop-types */
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { HiArrowNarrowLeft } from "react-icons/hi";
-import { FaPlus, FaEdit, FaTrash, FaCheck, FaTimes, FaUpload, FaFileExcel, FaFilePdf } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaCheck, FaTimes } from "react-icons/fa";
 import * as XLSX from 'xlsx';
+import { taskAPI, studentAPI } from '../../services/taskService';
 
 export default function TaskList() {
   const { id } = useParams();
   const navigate = useNavigate();
   
-  const [tasks, setTasks] = useState([
-    { id: 1, title: "Complete Level 2A Assignment", description: "Submit the programming assignment for Level 2A", status: "pending", priority: "high", dueDate: "2024-01-15" },
-    { id: 2, title: "Prepare for Technical Interview", description: "Review data structures and algorithms", status: "in-progress", priority: "medium", dueDate: "2024-01-20" },
-    { id: 3, title: "Update Resume", description: "Add recent projects and skills", status: "completed", priority: "low", dueDate: "2024-01-10" }
-  ]);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [studentInfo, setStudentInfo] = useState(null);
+  const [draggedTask, setDraggedTask] = useState(null);
+  const [dragOverColumn, setDragOverColumn] = useState(null);
   
   const [isAddModalOpen, setAddModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  const [isBulkUploadModalOpen, setBulkUploadModalOpen] = useState(false);
   const fileInputRef = useRef(null);
   const [newTask, setNewTask] = useState({
     title: "",
@@ -25,6 +25,50 @@ export default function TaskList() {
     priority: "medium",
     dueDate: ""
   });
+
+  // Fetch student tasks on component mount
+  useEffect(() => {
+    fetchStudentTasks();
+    fetchStudentInfo();
+  }, [id]);
+
+  const fetchStudentTasks = async () => {
+    try {
+      const result = await taskAPI.getStudentTasks(id);
+      console.log('API Response:', result); // Debug log
+      
+      // Handle both response formats for backward compatibility
+      const tasksData = result.tasks || result;
+      
+      const formattedTasks = tasksData.map(st => ({
+        id: st._id,
+        title: st.taskId?.title || 'Untitled Task',
+        description: st.taskId?.description || 'No description',
+        status: st.status,
+        priority: st.taskId?.priority || 'medium',
+        dueDate: st.taskId?.dueDate ? st.taskId.dueDate.split('T')[0] : new Date().toISOString().split('T')[0],
+        taskId: st.taskId?._id,
+        studentTaskId: st._id,
+        notes: st.notes || ''
+      }));
+      
+      setTasks(formattedTasks);
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+      setTasks([]); // Set empty array on error
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchStudentInfo = async () => {
+    try {
+      const student = await studentAPI.getStudentById(id);
+      setStudentInfo(student);
+    } catch (error) {
+      console.error('Error fetching student info:', error);
+    }
+  };
 
   const handleAddTask = () => {
     if (newTask.title.trim()) {
@@ -67,12 +111,46 @@ export default function TaskList() {
     setTasks(tasks.filter(task => task.id !== taskId));
   };
 
-  const handleStatusChange = (taskId, newStatus) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId 
-        ? { ...task, status: newStatus }
-        : task
-    ));
+  const handleStatusChange = async (taskId, newStatus) => {
+    try {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      await taskAPI.updateStudentTaskStatus(id, task.taskId, newStatus);
+      setTasks(tasks.map(task => 
+        task.id === taskId 
+          ? { ...task, status: newStatus }
+          : task
+      ));
+    } catch (error) {
+      console.error('Error updating task status:', error);
+      alert('Error updating task status');
+    }
+  };
+
+  const handleDragStart = (e, task) => {
+    setDraggedTask(task);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e, columnStatus) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverColumn(columnStatus);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverColumn(null);
+  };
+
+  const handleDrop = async (e, newStatus) => {
+    e.preventDefault();
+    setDragOverColumn(null);
+    
+    if (draggedTask && draggedTask.status !== newStatus) {
+      await handleStatusChange(draggedTask.id, newStatus);
+    }
+    setDraggedTask(null);
   };
 
   const handleBulkUpload = (event) => {
@@ -139,6 +217,17 @@ export default function TaskList() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FDA92D] mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading tasks...</p>
+        </div>
+      </div>
+    );
+  }
+
   const pendingTasks = tasks.filter(task => task.status === 'pending');
   const inProgressTasks = tasks.filter(task => task.status === 'in-progress');
   const completedTasks = tasks.filter(task => task.status === 'completed');
@@ -158,7 +247,12 @@ export default function TaskList() {
             </button>
             <div>
               <h1 className="text-2xl font-bold text-black">Task List</h1>
-              <p className="text-sm text-gray-600">Manage student tasks and assignments</p>
+              <p className="text-sm text-gray-600">
+                {studentInfo ? 
+                  `Manage tasks for ${studentInfo.firstName} ${studentInfo.lastName} (Level ${studentInfo.currentLevel})` : 
+                  'Manage student tasks and assignments'
+                }
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -172,13 +266,6 @@ export default function TaskList() {
             >
               <FaPlus className="text-sm" />
               Add Task
-            </button>
-            <button
-              onClick={() => setBulkUploadModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-[#22C55E] hover:bg-[#16A34A] text-white rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
-            >
-              <FaUpload className="text-sm" />
-              Bulk Upload
             </button>
           </div>
         </div>
@@ -228,11 +315,17 @@ export default function TaskList() {
           title="Pending"
           tasks={pendingTasks}
           color="gray"
+          status="pending"
           onStatusChange={handleStatusChange}
           onEdit={handleEditTask}
           onDelete={handleDeleteTask}
           getPriorityColor={getPriorityColor}
           getStatusColor={getStatusColor}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          dragOverColumn={dragOverColumn}
         />
 
         {/* In Progress Tasks */}
@@ -240,11 +333,17 @@ export default function TaskList() {
           title="In Progress"
           tasks={inProgressTasks}
           color="blue"
+          status="in-progress"
           onStatusChange={handleStatusChange}
           onEdit={handleEditTask}
           onDelete={handleDeleteTask}
           getPriorityColor={getPriorityColor}
           getStatusColor={getStatusColor}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          dragOverColumn={dragOverColumn}
         />
 
         {/* Completed Tasks */}
@@ -252,11 +351,17 @@ export default function TaskList() {
           title="Completed"
           tasks={completedTasks}
           color="green"
+          status="completed"
           onStatusChange={handleStatusChange}
           onEdit={handleEditTask}
           onDelete={handleDeleteTask}
           getPriorityColor={getPriorityColor}
           getStatusColor={getStatusColor}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          dragOverColumn={dragOverColumn}
         />
       </div>
 
@@ -275,23 +380,12 @@ export default function TaskList() {
           isEditing={!!editingTask}
         />
       )}
-
-      {/* Bulk Upload Modal */}
-      {isBulkUploadModalOpen && (
-        <BulkUploadModal
-          isOpen={isBulkUploadModalOpen}
-          onClose={() => setBulkUploadModalOpen(false)}
-          onUpload={handleBulkUpload}
-          onDownloadTemplate={downloadTemplate}
-          fileInputRef={fileInputRef}
-        />
-      )}
     </div>
   );
 }
 
 // Task Column Component
-const TaskColumn = ({ title, tasks, color, onStatusChange, onEdit, onDelete, getPriorityColor, getStatusColor }) => {
+const TaskColumn = ({ title, tasks, color, status, onStatusChange, onEdit, onDelete, getPriorityColor, getStatusColor, onDragStart, onDragOver, onDragLeave, onDrop, dragOverColumn }) => {
   const getColumnColor = (color) => {
     switch (color) {
       case 'blue': return 'border-blue-200 bg-blue-50';
@@ -300,8 +394,17 @@ const TaskColumn = ({ title, tasks, color, onStatusChange, onEdit, onDelete, get
     }
   };
 
+  const isDragOver = dragOverColumn === status;
+
   return (
-    <div className={`rounded-xl border-2 ${getColumnColor(color)} p-4`}>
+    <div 
+      className={`rounded-xl border-2 p-4 transition-all duration-200 ${
+        getColumnColor(color)
+      } ${isDragOver ? 'border-dashed border-4 border-blue-400 bg-blue-100' : ''}`}
+      onDragOver={(e) => onDragOver(e, status)}
+      onDragLeave={onDragLeave}
+      onDrop={(e) => onDrop(e, status)}
+    >
       <h3 className="font-semibold text-lg mb-4 text-gray-800">{title} ({tasks.length})</h3>
       <div className="space-y-4">
         {tasks.map(task => (
@@ -313,6 +416,7 @@ const TaskColumn = ({ title, tasks, color, onStatusChange, onEdit, onDelete, get
             onDelete={onDelete}
             getPriorityColor={getPriorityColor}
             getStatusColor={getStatusColor}
+            onDragStart={onDragStart}
           />
         ))}
         {tasks.length === 0 && (
@@ -326,9 +430,13 @@ const TaskColumn = ({ title, tasks, color, onStatusChange, onEdit, onDelete, get
 };
 
 // Task Card Component
-const TaskCard = ({ task, onStatusChange, onEdit, onDelete, getPriorityColor, getStatusColor }) => {
+const TaskCard = ({ task, onStatusChange, onEdit, onDelete, getPriorityColor, getStatusColor, onDragStart }) => {
   return (
-    <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+    <div 
+      className="bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-move"
+      draggable
+      onDragStart={(e) => onDragStart(e, task)}
+    >
       <div className="flex items-start justify-between mb-2">
         <h4 className="font-medium text-gray-800 flex-1">{task.title}</h4>
         <div className="flex items-center gap-2 ml-2">

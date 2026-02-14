@@ -44,7 +44,7 @@ const Sidebar = ({ children }) => {
       openMenus.push(1);
     }
     // Admitted menu (index 2)
-    if (path === "/student-dashboard" || path === "/student-detail-table" || path.startsWith("/student/") || path === "/student-permission" || path.startsWith("/student-profile/")) {
+    if (path === "/student-dashboard" || path === "/student-detail-table" || path.startsWith("/student/") || path === "/student-permission" || path.startsWith("/student-profile/") || path === "/level-wise-management") {
       openMenus.push(2);
     }
     // Placements menu (index 3)
@@ -76,7 +76,7 @@ const Sidebar = ({ children }) => {
       localStorage.setItem("lastSection", "admission");
     }
     // Admitted menu (index 2)
-    if (path === "/student-dashboard" || path === "/student-detail-table" || path.startsWith("/student/") || path === "/student-permission" || path.startsWith("/student-profile/")) {
+    if (path === "/student-dashboard" || path === "/student-detail-table" || path.startsWith("/student/") || path === "/student-permission" || path.startsWith("/student-profile/") || path === "/level-wise-management") {
       newOpenMenus.push(2);
       localStorage.setItem("lastSection", "admitted");
     }
@@ -125,7 +125,7 @@ const Sidebar = ({ children }) => {
     }
 
     if (subPath === "/student-dashboard") {
-      return path === "/student-dashboard" || path === "/student-detail-table" || path.startsWith("/student-profile/") || path.includes("/level-interviews");
+      return path === "/student-dashboard" || path === "/student-detail-table" || path.startsWith("/student-profile/") || path.includes("/level-interviews") || path.includes("/task-list");
     }
 
     if (subPath === "/student-permission") {
@@ -179,6 +179,7 @@ const Sidebar = ({ children }) => {
       permission: 'studentDashboard',
       subMenu: [
         { name: "Student Progress", path: "/student-dashboard", permission: 'studentDashboard' },
+        { name: "Level-wise Management", path: "/level-wise-management", permission: 'studentDashboard' },
         { name: "Dummy Students", path: "/student-permission", permission: 'studentPermission' },
       ],
     },
