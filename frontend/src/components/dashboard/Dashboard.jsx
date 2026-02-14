@@ -25,9 +25,9 @@ import InterviewRoundsHistory from "../placement/InterviewRoundsHistory";
 import PageNotFound from "../common-components/error-pages/PageNotFound";
 import ProtectedRoute from '../common-components/protected-route/ProtectedRoute';
 import AttendanceDetails from "../dashboard/AttendanceDetails";
-import UsersManagement from "../user-management/UsersManagement";
-import UserProfile from "../user-management/UserProfile";
-import DepartmentManagement from "../common-components/Setting/DepartmentManagement";
+import UsersManagement from "../Setting/user-management/UsersManagement";
+import UserProfile from "../Setting/user-management/UserProfile";
+import DepartmentManagement from "../Setting/DepartmentManagement";
 
 const Dashboard = () => {
   console.log('Dashboard routes loaded');

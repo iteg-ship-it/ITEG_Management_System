@@ -6,7 +6,7 @@ import { useCreateLevelInterviewMutation } from '../../redux/api/authApi';
 import { Formik, Form, useFormikContext } from 'formik';
 import * as Yup from 'yup';
 // import CustomDatePicker from './CustomDatePicker';
-import DatePickerInput from "../datepickerInput/DatePickerInput";
+import DatePickerInput from "../common-components/datepickerInput/DatePickerInput";
 import TextInput from '../common-components/common-feild/TextInput';
 import CustomDropdown from '../common-components/common-feild/CustomDropdown';
 import { toast } from 'react-toastify';

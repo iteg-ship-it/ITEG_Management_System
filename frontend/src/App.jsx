@@ -1,8 +1,9 @@
-/* eslint-disable react/prop-types */
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import Layout from "./components/dashboard/Layout.jsx";
+import { useSessionTimeout } from "./hooks/useSessionTimeout";
 
 // Lazy load components
 const LoginPage = React.lazy(() => import("./components/common-components/login-page/LoginPage"));
@@ -11,11 +12,8 @@ const ConfirmPassword = React.lazy(() => import("./components/common-components/
 const OtpVerification = React.lazy(() => import("./components/common-components/otp-verfication/OtpVeriFication"));
 const OtpEnter = React.lazy(() => import("./components/common-components/otp-verfication/OtpEnter"));
 const GoogleSuccess = React.lazy(() => import('./components/common-components/login-page/GoogleSuccess.jsx'));
-const Layout = React.lazy(() => import("./components/dashboard/Layout.jsx"));
 const ServerError = React.lazy(() => import("./components/common-components/error-pages/ServerError"));
 const SessionTimeoutModal = React.lazy(() => import('./components/common-components/user-profile/SessionTimeoutModal'));
-
-import { useSessionTimeout } from "./hooks/useSessionTimeout";
 
 
 // ✅ Protected Route Component
@@ -44,7 +42,7 @@ function App() {
     }>
       <Router>
         <Routes>
-          <Route path="/" element={<Navigate to={localStorage.getItem("token") ? "/dashboard" : "/login"} replace />} />
+          {/* <Route path="/" element={<Navigate to={localStorage.getItem("token") ? "/" : "/login"} replace />} /> */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/otp-verification" element={<OtpVerification />} />
           <Route path="/reset-password/:token" element={<ConfirmPassword />} />
