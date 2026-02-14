@@ -1,7 +1,8 @@
 // StudentReport.jsx
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetAdmittedStudentsByIdQuery, useGetReportCardQuery } from "../../redux/api/authApi";
+import { taskAPI } from '../../services/taskService';
 import { HiArrowNarrowLeft } from "react-icons/hi";
 import { FaDownload, FaLaptopCode, FaBrain, FaClipboardCheck, FaRocket, FaCertificate, FaGraduationCap, FaEdit, FaTrophy, FaProjectDiagram } from "react-icons/fa";
 import { MdEmail, MdPhone, MdPerson, MdLocationOn, MdSports } from "react-icons/md";
@@ -93,13 +94,40 @@ function LevelStepper({ levels = ['1A','1B','1C','2A','2B','2C'], currentLevel =
 export default function StudentReport() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [taskPerformance, setTaskPerformance] = useState(null);
+  const [taskLoading, setTaskLoading] = useState(true);
 
   const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
   const { data: reportCardResponse, isLoading: reportLoading, isError: reportError } = useGetReportCardQuery(id);
   const reportCardData = reportCardResponse?.data;
 
+  // Debug logs
+  console.log('Student ID:', id);
+  console.log('Task Performance State:', taskPerformance);
+  console.log('Task Loading:', taskLoading);
+
+  // Fetch task performance
+  useEffect(() => {
+    const fetchTaskPerformance = async () => {
+      if (id) {
+        try {
+          console.log('Fetching task performance for student:', id);
+          const result = await taskAPI.getStudentTaskPerformance(id);
+          console.log('Task performance result:', result);
+          setTaskPerformance(result.performance);
+        } catch (error) {
+          console.error('Error fetching task performance:', error);
+        } finally {
+          setTaskLoading(false);
+        }
+      }
+    };
+
+    fetchTaskPerformance();
+  }, [id]);
+
   // show loader while either is loading
-  if (isLoading || reportLoading) {
+  if (isLoading || reportLoading || taskLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <Loader />
@@ -493,6 +521,70 @@ export default function StudentReport() {
               </div>
             </div>
           </div>
+
+          {/* Task Performance Section */}
+          {taskPerformance ? (
+            <div className="bg-white rounded-xl shadow-lg p-4 mb-6 border border-gray-100">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <FaProjectDiagram className="w-6 h-6 text-purple-500" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-800">Task Performance</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg p-4 border border-orange-200">
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-2xl">📋</span>
+                    </div>
+                    <p className="text-2xl font-bold text-orange-600 mb-1">{taskPerformance.completionRate || 0}%</p>
+                    <p className="text-sm font-medium text-orange-700">Task Completion Rate</p>
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-2xl">🎯</span>
+                    </div>
+                    <p className="text-2xl font-bold text-blue-600 mb-1">
+                      {taskPerformance.overallStats?.completedTasks || 0}/{taskPerformance.overallStats?.totalTasks || 0}
+                    </p>
+                    <p className="text-sm font-medium text-blue-700">Tasks Completed</p>
+                  </div>
+                </div>
+              </div>
+              
+              {taskPerformance.levelWiseStats?.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="font-semibold text-gray-700 mb-3">Level-wise Task Progress</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+                    {taskPerformance.levelWiseStats.map((level, index) => (
+                      <div key={index} className="bg-gray-50 rounded-lg p-2 text-center border border-gray-200">
+                        <p className="text-xs font-medium text-gray-700 mb-1">Level {level._id}</p>
+                        <p className="text-sm font-bold text-gray-800">{level.completedTasks}/{level.totalTasks}</p>
+                        <p className="text-xs text-gray-500">Tasks</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl shadow-lg p-4 mb-6 border border-gray-100">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <FaProjectDiagram className="w-6 h-6 text-purple-500" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-800">Task Performance</h3>
+              </div>
+              <div className="text-center py-6">
+                <span className="text-3xl mb-3 block">📋</span>
+                <p className="text-gray-600">No task performance data available</p>
+              </div>
+            </div>
+          )}
 
           {/* Co-Curricular Activities */}
           <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">

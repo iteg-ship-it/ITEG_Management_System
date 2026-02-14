@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FaUpload, FaUsers, FaEye } from 'react-icons/fa';
+import { Search } from 'lucide-react';
 import LevelTaskUploadModal from './LevelTaskUploadModal';
 import { taskAPI } from '../../services/taskService';
 import { useAdmitedStudentsQuery } from '../../redux/api/authApi';
@@ -10,6 +11,7 @@ const LevelWiseStudentManagement = () => {
   const [loading, setLoading] = useState(false);
   const [levelStats, setLevelStats] = useState({});
   const [isTaskUploadModalOpen, setIsTaskUploadModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   
   // Get admitted students data
   const { data: admittedStudents = [], isLoading: isLoadingAdmitted, refetch } = useAdmitedStudentsQuery(undefined, {
@@ -18,6 +20,28 @@ const LevelWiseStudentManagement = () => {
   });
 
   const levels = ['1A', '1B', '1C', '2A', '2B', '2C'];
+
+  // Filter students based on search term
+  const filteredStudents = useMemo(() => {
+    if (!searchTerm) return students;
+    
+    return students.filter((student) => {
+      const searchFields = [
+        student.firstName,
+        student.lastName,
+        `${student.firstName} ${student.lastName}`,
+        student.studentMobile,
+        student.village,
+        student.course,
+        student.techno,
+        student.readinessStatus
+      ];
+      
+      return searchFields.some(field => 
+        field && String(field).toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    });
+  }, [students, searchTerm]);
 
   useEffect(() => {
     if (admittedStudents.length > 0) {
@@ -138,15 +162,36 @@ const LevelWiseStudentManagement = () => {
           </button>
         </div>
 
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="flex border border-gray-300 rounded-lg overflow-hidden max-w-md h-12 bg-white relative focus-within:border-[#FDA92D] transition-colors">
+            <div className="flex items-center px-3 w-full">
+              <Search className="w-4 h-4 text-gray-600 flex-shrink-0" />
+              <input
+                type="text"
+                placeholder="Search students by name, mobile, village..."
+                className="outline-none border-none ring-0 focus:ring-0 px-2 py-2 w-full h-9 text-sm text-gray-600 bg-white"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+          {searchTerm && (
+            <p className="text-sm text-gray-600 mt-2">
+              Found {filteredStudents.length} student{filteredStudents.length !== 1 ? 's' : ''} matching "{searchTerm}"
+            </p>
+          )}
+        </div>
+
         {/* Students List */}
         {loading || isLoadingAdmitted ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FDA92D] mx-auto mb-4"></div>
             <p className="text-gray-600">Loading students...</p>
           </div>
-        ) : students.length > 0 ? (
+        ) : filteredStudents.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {students.map((student) => (
+            {filteredStudents.map((student) => (
               <div key={student._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <div className="flex items-start justify-between mb-3">
                   <div>
@@ -227,8 +272,23 @@ const LevelWiseStudentManagement = () => {
         ) : (
           <div className="text-center py-12">
             <FaUsers className="text-4xl text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-600 mb-2">No Students Found</h3>
-            <p className="text-gray-500">No students are currently in Level {selectedLevel}</p>
+            <h3 className="text-lg font-medium text-gray-600 mb-2">
+              {searchTerm ? 'No Students Found' : 'No Students Found'}
+            </h3>
+            <p className="text-gray-500">
+              {searchTerm 
+                ? `No students match "${searchTerm}" in Level ${selectedLevel}`
+                : `No students are currently in Level ${selectedLevel}`
+              }
+            </p>
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="mt-3 px-4 py-2 text-[#FDA92D] hover:text-[#E6941A] font-medium transition-colors"
+              >
+                Clear search
+              </button>
+            )}
           </div>
         )}
       </div>

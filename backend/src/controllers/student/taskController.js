@@ -1,5 +1,6 @@
 const { Task, StudentTask } = require("../../models/student/task");
 const AdmittedStudent = require("../../models/student/admittedStudent");
+const mongoose = require("mongoose");
 
 // Bulk upload tasks for a level
 exports.bulkUploadTasks = async (req, res) => {
@@ -146,6 +147,76 @@ exports.getStudentsByLevelWithTasks = async (req, res) => {
     );
 
     res.status(200).json({ students: studentsWithTasks });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Get student task performance for report card
+exports.getStudentTaskPerformance = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    
+    const taskStats = await StudentTask.aggregate([
+      { $match: { studentId: new mongoose.Types.ObjectId(studentId) } },
+      {
+        $lookup: {
+          from: 'tasks',
+          localField: 'taskId',
+          foreignField: '_id',
+          as: 'taskDetails'
+        }
+      },
+      { $unwind: '$taskDetails' },
+      {
+        $group: {
+          _id: '$taskDetails.level',
+          totalTasks: { $sum: 1 },
+          completedTasks: {
+            $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] }
+          },
+          inProgressTasks: {
+            $sum: { $cond: [{ $eq: ['$status', 'in-progress'] }, 1, 0] }
+          },
+          pendingTasks: {
+            $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] }
+          }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    // Calculate overall performance
+    const overallStats = await StudentTask.aggregate([
+      { $match: { studentId: new mongoose.Types.ObjectId(studentId) } },
+      {
+        $group: {
+          _id: null,
+          totalTasks: { $sum: 1 },
+          completedTasks: {
+            $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] }
+          },
+          averageCompletionTime: {
+            $avg: {
+              $cond: [
+                { $eq: ['$status', 'completed'] },
+                { $subtract: ['$completedAt', '$createdAt'] },
+                null
+              ]
+            }
+          }
+        }
+      }
+    ]);
+
+    const performance = {
+      levelWiseStats: taskStats,
+      overallStats: overallStats[0] || { totalTasks: 0, completedTasks: 0 },
+      completionRate: overallStats[0] ? 
+        Math.round((overallStats[0].completedTasks / overallStats[0].totalTasks) * 100) : 0
+    };
+
+    res.status(200).json({ performance });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

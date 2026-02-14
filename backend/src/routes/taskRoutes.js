@@ -18,4 +18,7 @@ router.get('/student/:studentId', authenticateToken, taskController.getStudentTa
 // Update student task status
 router.put('/student/:studentId/task/:taskId', authenticateToken, taskController.updateStudentTaskStatus);
 
+// Get student task performance for report card
+router.get('/student/:studentId/performance', authenticateToken, taskController.getStudentTaskPerformance);
+
 module.exports = router;

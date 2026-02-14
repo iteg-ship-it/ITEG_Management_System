@@ -115,6 +115,19 @@ export const taskAPI = {
       headers: getAuthHeaders()
     });
     return response.json();
+  },
+
+  // Get student task performance
+  getStudentTaskPerformance: async (studentId) => {
+    const response = await fetch(`${API_BASE_URL}/tasks/student/${studentId}/performance`, {
+      headers: getAuthHeaders()
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
   }
 };
 
