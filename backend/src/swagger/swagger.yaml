@@ -15,6 +15,36 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    Department:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "662b18b6c3eabc00123f5678"
+        departmentName:
+          type: string
+          example: "Computer Science"
+        departmentCode:
+          type: string
+          example: "CS"
+        headOfDepartment:
+          type: string
+          example: "Dr. John Smith"
+        description:
+          type: string
+          example: "Software Development & Programming"
+        studentCount:
+          type: number
+          example: 0
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-04-29T08:00:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-04-29T08:00:00.000Z"
+
     Company:
       type: object
       properties:
@@ -3949,20 +3979,12 @@ paths:
 
 
 
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
 
   /api/departments/add:
     post:
-      summary: Add a new department
-      description: Create a new department with name, code, head of department, and description
       tags:
         - Department
+      summary: Add new department
       security:
         - bearerAuth: []
       requestBody:
@@ -3970,74 +3992,22 @@ components:
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - departmentName
-                - departmentCode
-              properties:
-                departmentName:
-                  type: string
-                  example: "Computer Science"
-                departmentCode:
-                  type: string
-                  example: "CS"
-                headOfDepartment:
-                  type: string
-                  example: "Dr. John Smith"
-                description:
-                  type: string
-                  example: "Software Development & Programming"
+              $ref: '#/components/schemas/Department'
       responses:
-        '201':
+        "201":
           description: Department added successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Department added successfully"
-                  data:
-                    type: object
-                    properties:
-                      _id:
-                        type: string
-                        example: "64a1b2c3d4e5f6789012345"
-                      departmentName:
-                        type: string
-                        example: "Computer Science"
-                      departmentCode:
-                        type: string
-                        example: "CS"
-                      headOfDepartment:
-                        type: string
-                        example: "Dr. John Smith"
-                      description:
-                        type: string
-                        example: "Software Development & Programming"
-                      studentCount:
-                        type: number
-                        example: 0
-                      createdAt:
-                        type: string
-                        format: date-time
-        '400':
-          description: Bad request - Missing required fields or duplicate code
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Department code already exists"
-        '401':
-          description: Unauthorized - Missing or invalid token
-        '403':
-          description: Forbidden - Insufficient permissions
-        '500':
+                $ref: '#/components/schemas/Department'
+        "400":
+          description: Invalid input
+        "401":
+          description: Unauthorized
+        "500":
           description: Server error
+
+
 
   /api/departments/all:
     get:

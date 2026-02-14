@@ -26,4 +26,5 @@ router.use('/departments', departmentRoutes);
 router.use('/admission/students/webhook', webhookRoutes);
 router.use('/admitted/students/webhook', webhookRoutes);
 
+
 module.exports = router;
