@@ -1,54 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MdBusiness, MdAdd, MdEdit, MdDelete } from "react-icons/md";
 import AddDepartmentModal from "./AddDepartmentModal";
 import PageNavbar from "../navbar/PageNavbar";
 import CommonTable from "../table/CommonTable";
 import Pagination from "../pagination/Pagination";
 import { buttonStyles } from "../../../styles/buttonStyles";
+import { useGetAllDepartmentsQuery } from "../../../redux/api/authApi";
+import { toast } from "react-toastify";
 
 const DepartmentManagement = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [rowsPerPage] = useState(10);
   const [selectedRows, setSelectedRows] = useState([]);
-  const [departments, setDepartments] = useState([
-    // {
-    //   id: 1,
-    //   departmentName: "Computer Science",
-    //   departmentCode: "CS",
-    //   headOfDepartment: "Dr. John Smith",
-    //   description: "Software Development & Programming",
-    //   studentCount: 45,
-    //   createdAt: "2024-01-15"
-    // },
-    // {
-    //   id: 2,
-    //   departmentName: "Information Technology",
-    //   departmentCode: "IT",
-    //   headOfDepartment: "Dr. Sarah Johnson",
-    //   description: "IT Infrastructure & Systems",
-    //   studentCount: 38,
-    //   createdAt: "2024-01-20"
-    // },
-    // {
-    //   id: 3,
-    //   departmentName: "Mechanical Engineering",
-    //   departmentCode: "ME",
-    //   headOfDepartment: "Dr. Mike Wilson",
-    //   description: "Mechanical Systems & Design",
-    //   studentCount: 32,
-    //   createdAt: "2024-02-01"
-    // }
-  ]);
+  
+  const { data, isLoading, error, refetch } = useGetAllDepartmentsQuery();
+  const departments = data?.data || [];
 
-  const handleAddDepartment = (newDepartment) => {
-    const department = {
-      id: departments.length + 1,
-      ...newDepartment,
-      studentCount: 0,
-      createdAt: new Date().toISOString().split('T')[0]
-    };
-    setDepartments(prev => [...prev, department]);
+  useEffect(() => {
+    if (error) {
+      toast.error("Failed to load departments");
+    }
+  }, [error]);
+
+  const handleAddDepartment = () => {
+    refetch();
   };
 
   const getFilteredData = () => {
@@ -158,11 +134,14 @@ const DepartmentManagement = () => {
           <div className="flex justify-between items-center py-4">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">All Departments</h2>
-              <p className="text-sm text-gray-600">Manage and organize your departments</p>
+              <p className="text-sm text-gray-600">
+                {isLoading ? "Loading..." : `${departments.length} departments found`}
+              </p>
             </div>
             <button
               onClick={() => setIsAddModalOpen(true)}
               className={`flex items-center gap-2 ${buttonStyles.primary}`}
+              disabled={isLoading}
             >
               <MdAdd size={20} />
               Add Department

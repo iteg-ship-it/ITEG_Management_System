@@ -1,35 +1,55 @@
-const Department = require("../../models/department/department");
+// ✅ Add New Department
+// const express = require("express");
+// const router = express.Router();
+const Department = require("../models/department/department"); // adjust path if needed
 
-// Add Department
+
+
 exports.addDepartment = async (req, res) => {
   try {
-    const { departmentName, departmentCode, headOfDepartment, description } = req.body;
+    console.log("Received request to add department:", req.body);
 
-    if (!departmentName || !departmentCode) {
-      return res.status(400).json({ message: "Department name and code are required" });
+    const {
+      department_id,
+      department_name,
+      full_name,
+      description,
+      sub_departments
+    } = req.body;
+
+    // Optional validation
+    if (!department_name) {
+      return res.status(400).json({
+        message: "Department name is required",
+      });
     }
 
-    const existingDepartment = await Department.findOne({ departmentCode });
-    if (existingDepartment) {
-      return res.status(400).json({ message: "Department code already exists" });
-    }
+    const now = Date.now();
 
-    const department = new Department({
-      departmentName,
-      departmentCode,
-      headOfDepartment,
-      description
+    const newDepartment = new Department({
+      department_id,
+      department_name,
+      full_name,
+      description,
+      created_at: now,
+      updated_at: now,
+      sub_departments: sub_departments || []
     });
 
-    await department.save();
+    await newDepartment.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Department added successfully",
-      data: department
+      data: newDepartment,
     });
+
   } catch (error) {
     console.error("Error adding department:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+
+    return res.status(500).json({
+      message: "Failed to add department",
+      error: error.message,
+    });
   }
 };
 

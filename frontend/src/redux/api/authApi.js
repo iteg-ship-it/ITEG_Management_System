@@ -115,7 +115,7 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithAutoRefresh,
-  tagTypes: ['Student', 'PlacementStudent', 'User'],
+  tagTypes: ['Student', 'PlacementStudent', 'User', 'Department'],
   // Global configuration for better caching
   keepUnusedDataFor: 300, // 5 minutes default cache
   refetchOnMountOrArgChange: 30, // Only refetch if data is older than 30 seconds
@@ -748,6 +748,28 @@ export const authApi = createApi({
       invalidatesTags: ['Student'],
     }),
 
+    // ---------Department Management-------------
+    
+    // Add department
+    addDepartment: builder.mutation({
+      query: (departmentData) => ({
+        url: '/departments/add',
+        method: "POST",
+        body: departmentData,
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Get all departments
+    getAllDepartments: builder.query({
+      query: () => ({
+        url: '/departments/all',
+        method: "GET",
+      }),
+      providesTags: ['Department'],
+      keepUnusedDataFor: 300,
+    }),
+
   }),
 });
 
@@ -804,5 +826,7 @@ export const {
   useGetReportCardQuery,
   useCreateReportCardMutation,
   useGetReportCardForEditQuery,
-  useUpdateReportCardMutation
+  useUpdateReportCardMutation,
+  useAddDepartmentMutation,
+  useGetAllDepartmentsQuery
 } = authApi;
