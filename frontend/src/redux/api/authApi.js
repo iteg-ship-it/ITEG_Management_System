@@ -115,7 +115,7 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithAutoRefresh,
-  tagTypes: ['Student', 'PlacementStudent', 'User'],
+  tagTypes: ['Student', 'PlacementStudent', 'User', 'Department'],
   // Global configuration for better caching
   keepUnusedDataFor: 300, // 5 minutes default cache
   refetchOnMountOrArgChange: 30, // Only refetch if data is older than 30 seconds
@@ -748,6 +748,158 @@ export const authApi = createApi({
       invalidatesTags: ['Student'],
     }),
 
+    // Add Department
+    addDepartment: builder.mutation({
+      query: (departmentData) => ({
+        url: '/departments/add',
+        method: "POST",
+        body: departmentData,
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Get All Departments
+    getAllDepartments: builder.query({
+      query: () => ({
+        url: '/departments/all',
+        method: "GET",
+      }),
+      providesTags: ['Department'],
+    }),
+
+    // Update Department
+    updateDepartment: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `/departments/update/${id}`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Delete Department
+    deleteDepartment: builder.mutation({
+      query: (id) => ({
+        url: `/departments/delete/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Add Subdepartment
+    addSubdepartment: builder.mutation({
+      query: ({ departmentId, ...data }) => ({
+        url: `/departments/${departmentId}/subdepartments`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Update Subdepartment
+    updateSubdepartment: builder.mutation({
+      query: ({ departmentId, subdepartmentId, ...data }) => ({
+        url: `/departments/${departmentId}/subdepartments/${subdepartmentId}`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Delete Subdepartment
+    deleteSubdepartment: builder.mutation({
+      query: ({ departmentId, subdepartmentId }) => ({
+        url: `/departments/${departmentId}/subdepartments/${subdepartmentId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Get Subdepartments by Department
+    getSubdepartmentsByDepartment: builder.query({
+      query: (departmentId) => ({
+        url: `/departments/${departmentId}/subdepartments`,
+        method: "GET",
+      }),
+      providesTags: ['Department'],
+    }),
+
+    // Get Levels by Subdepartment
+    getLevelsBySubdepartment: builder.query({
+      query: ({ departmentId, subdepartmentId }) => ({
+        url: `/departments/${departmentId}/subdepartments/${subdepartmentId}/levels`,
+        method: "GET",
+      }),
+      providesTags: ['Department'],
+    }),
+
+    // Add Level
+    addLevel: builder.mutation({
+      query: ({ departmentId, subdepartmentId, ...data }) => ({
+        url: `/departments/${departmentId}/subdepartments/${subdepartmentId}/levels`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Update Level
+    updateLevel: builder.mutation({
+      query: ({ departmentId, subdepartmentId, levelId, ...data }) => ({
+        url: `/departments/${departmentId}/subdepartments/${subdepartmentId}/levels/${levelId}`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Delete Level
+    deleteLevel: builder.mutation({
+      query: ({ departmentId, subdepartmentId, levelId }) => ({
+        url: `/departments/${departmentId}/subdepartments/${subdepartmentId}/levels/${levelId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Add SubLevel
+    addSubLevel: builder.mutation({
+      query: ({ departmentId, subdepartmentId, levelId, ...data }) => ({
+        url: `/departments/${departmentId}/subdepartments/${subdepartmentId}/levels/${levelId}/sublevels`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Update SubLevel
+    updateSubLevel: builder.mutation({
+      query: ({ departmentId, subdepartmentId, levelId, subLevelId, ...data }) => ({
+        url: `/departments/${departmentId}/subdepartments/${subdepartmentId}/levels/${levelId}/sublevels/${subLevelId}`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Delete SubLevel
+    deleteSubLevel: builder.mutation({
+      query: ({ departmentId, subdepartmentId, levelId, subLevelId }) => ({
+        url: `/departments/${departmentId}/subdepartments/${subdepartmentId}/levels/${levelId}/sublevels/${subLevelId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Get SubLevels by Level
+    getSubLevelsByLevel: builder.query({
+      query: ({ departmentId, subdepartmentId, levelId }) => ({
+        url: `/departments/${departmentId}/subdepartments/${subdepartmentId}/levels/${levelId}/sublevels`,
+        method: "GET",
+      }),
+      providesTags: ['Department'],
+    }),
+
   }),
 });
 
@@ -804,5 +956,21 @@ export const {
   useGetReportCardQuery,
   useCreateReportCardMutation,
   useGetReportCardForEditQuery,
-  useUpdateReportCardMutation
+  useUpdateReportCardMutation,
+  useAddDepartmentMutation,
+  useGetAllDepartmentsQuery,
+  useUpdateDepartmentMutation,
+  useDeleteDepartmentMutation,
+  useAddSubdepartmentMutation,
+  useUpdateSubdepartmentMutation,
+  useDeleteSubdepartmentMutation,
+  useGetSubdepartmentsByDepartmentQuery,
+  useGetLevelsBySubdepartmentQuery,
+  useAddLevelMutation,
+  useUpdateLevelMutation,
+  useDeleteLevelMutation,
+  useAddSubLevelMutation,
+  useUpdateSubLevelMutation,
+  useDeleteSubLevelMutation,
+  useGetSubLevelsByLevelQuery
 } = authApi;
