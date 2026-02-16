@@ -1,19 +1,19 @@
-/* eslint-disable react/prop-types */
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import LoginPage from "./components/common-components/login-page/LoginPage";
-import ForgetPassword from "./components/common-components/forget-password/ForgetPassword";
-import ConfirmPassword from "./components/common-components/confirm-password/ConfirmPassword";
-import OtpVerification from "./components/common-components/otp-verfication/OtpVeriFication";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import OtpEnter from "./components/common-components/otp-verfication/OtpEnter";
-import GoogleSuccess from './components/common-components/login-page/GoogleSuccess.jsx';
 import Layout from "./components/dashboard/Layout.jsx";
 import { useSessionTimeout } from "./hooks/useSessionTimeout";
-import ServerError from "./components/common-components/error-pages/ServerError";
-import ErrorBoundary from './components/common-components/protected-route/ErrorBoundary';
-import SessionTimeoutModal from './components/common-components/user-profile/SessionTimeoutModal';
+
+// Lazy load components
+const LoginPage = React.lazy(() => import("./components/common-components/login-page/LoginPage"));
+const ForgetPassword = React.lazy(() => import("./components/common-components/forget-password/ForgetPassword"));
+const ConfirmPassword = React.lazy(() => import("./components/common-components/confirm-password/ConfirmPassword"));
+const OtpVerification = React.lazy(() => import("./components/common-components/otp-verfication/OtpVeriFication"));
+const OtpEnter = React.lazy(() => import("./components/common-components/otp-verfication/OtpEnter"));
+const GoogleSuccess = React.lazy(() => import('./components/common-components/login-page/GoogleSuccess.jsx'));
+const ServerError = React.lazy(() => import("./components/common-components/error-pages/ServerError"));
+const SessionTimeoutModal = React.lazy(() => import('./components/common-components/user-profile/SessionTimeoutModal'));
 
 
 // ✅ Protected Route Component
@@ -25,44 +25,43 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   const { showModal, handleContinue, handleLogout } = useSessionTimeout();
 
-  // Add error logging for debugging
   React.useEffect(() => {
+    console.log('✅ App component mounted');
     const handleError = (error) => {
-      console.error('App Error:', error);
+      console.error('❌ App Error:', error);
     };
     window.addEventListener('error', handleError);
     return () => window.removeEventListener('error', handleError);
   }, []);
 
   return (
-    <>
-      <ErrorBoundary>
-        <Router>
-          <Routes>
-            {/*  Public routes */}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/otp-verification" element={<OtpVerification />} />
-            <Route path="/reset-password/:token" element={<ConfirmPassword />} />
-            <Route path="/forget-password" element={<ForgetPassword />} />
-            <Route path="/otp-enter" element={<OtpEnter />} />
-            <Route path="/google-success" element={<GoogleSuccess />} />
-            <Route path="/server-error" element={<ServerError />} />
-
-            {/* ✅ Protected routes with sidebar */}
-            <Route
-              path="/*"
-              element={
-                <ProtectedRoute>
-                  <div className="bg-white">
-                    <Layout />
-                  </div>
-                </ProtectedRoute>
-              }
-            />
-
-          </Routes>
-        </Router>
-      </ErrorBoundary>
+    <React.Suspense fallback={
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div>Loading...</div>
+      </div>
+    }>
+      <Router>
+        <Routes>
+          {/* <Route path="/" element={<Navigate to={localStorage.getItem("token") ? "/" : "/login"} replace />} /> */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/otp-verification" element={<OtpVerification />} />
+          <Route path="/reset-password/:token" element={<ConfirmPassword />} />
+          <Route path="/forget-password" element={<ForgetPassword />} />
+          <Route path="/otp-enter" element={<OtpEnter />} />
+          <Route path="/google-success" element={<GoogleSuccess />} />
+          <Route path="/server-error" element={<ServerError />} />
+          <Route
+            path="/*"
+            element={
+              <ProtectedRoute>
+                <div className="bg-white">
+                  <Layout />
+                </div>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </Router>
 
       <SessionTimeoutModal
         isOpen={showModal}
@@ -82,8 +81,7 @@ function App() {
         pauseOnHover
         theme="light"
       />
-
-    </>
+    </React.Suspense>
   );
 }
 

@@ -1,18 +1,30 @@
 import { useState, useEffect } from "react";
 import { MdBusiness, MdAdd, MdEdit, MdDelete } from "react-icons/md";
 import AddDepartmentModal from "./AddDepartmentModal";
-import PageNavbar from "../navbar/PageNavbar";
-import CommonTable from "../table/CommonTable";
-import Pagination from "../pagination/Pagination";
+import PageNavbar from "../../common-components/navbar/PageNavbar";
+import CommonTable from "../../common-components/table/CommonTable";
+import Pagination from "../../common-components/pagination/Pagination";
 import { buttonStyles } from "../../../styles/buttonStyles";
+<<<<<<< HEAD:frontend/src/components/common-components/Setting/DepartmentManagement.jsx
 import { useGetAllDepartmentsQuery } from "../../../redux/api/authApi";
 import { toast } from "react-toastify";
+=======
+import { useGetAllDepartmentsQuery, useDeleteDepartmentMutation } from "../../../redux/api/authApi";
+import Loader from "../../common-components/loader/Loader";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+>>>>>>> b051ea7966eb15b2629550aa3f4c0f448678e164:frontend/src/components/Setting/Departments/DepartmentManagement.jsx
 
 const DepartmentManagement = () => {
+  const navigate = useNavigate();
+  const { data: departmentsData, isLoading, refetch } = useGetAllDepartmentsQuery();
+  const [deleteDepartment] = useDeleteDepartmentMutation();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingDepartment, setEditingDepartment] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [rowsPerPage] = useState(10);
   const [selectedRows, setSelectedRows] = useState([]);
+<<<<<<< HEAD:frontend/src/components/common-components/Setting/DepartmentManagement.jsx
   
   const { data, isLoading, error, refetch } = useGetAllDepartmentsQuery();
   const departments = data?.data || [];
@@ -25,6 +37,35 @@ const DepartmentManagement = () => {
 
   const handleAddDepartment = () => {
     refetch();
+=======
+
+  const departments = departmentsData?.data || [];
+
+  const handleAddDepartment = () => {
+    refetch();
+  };
+
+  const handleEdit = (department) => {
+    setEditingDepartment(department);
+    setIsAddModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsAddModalOpen(false);
+    setEditingDepartment(null);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this department?")) {
+      try {
+        await deleteDepartment(id).unwrap();
+        toast.success("Department deleted successfully!");
+        refetch();
+      } catch (error) {
+        toast.error(error?.data?.message || "Error deleting department");
+      }
+    }
+>>>>>>> b051ea7966eb15b2629550aa3f4c0f448678e164:frontend/src/components/Setting/Departments/DepartmentManagement.jsx
   };
 
   const getFilteredData = () => {
@@ -94,7 +135,7 @@ const DepartmentManagement = () => {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              // Handle edit
+              handleEdit(row);
             }}
             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
             title="Edit Department"
@@ -104,7 +145,7 @@ const DepartmentManagement = () => {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              // Handle delete
+              handleDelete(row._id);
             }}
             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             title="Delete Department"
@@ -117,9 +158,12 @@ const DepartmentManagement = () => {
   ];
 
   const handleRowClick = (department) => {
-    console.log("Department clicked:", department);
-    // Navigate to department details or handle row click
+    navigate(`/department-details/${department._id}`, { state: { department } });
   };
+
+  if (isLoading) {
+    return <Loader />;
+  }
 
   return (
     <>
@@ -129,6 +173,7 @@ const DepartmentManagement = () => {
         showBackButton={false}
       />
       <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
+<<<<<<< HEAD:frontend/src/components/common-components/Setting/DepartmentManagement.jsx
         <div className="px-6">
           {/* Header with Add Button */}
           <div className="flex justify-between items-center py-4">
@@ -142,25 +187,42 @@ const DepartmentManagement = () => {
               onClick={() => setIsAddModalOpen(true)}
               className={`flex items-center gap-2 ${buttonStyles.primary}`}
               disabled={isLoading}
+=======
+        {/* Header Section */}
+        <div className="border-b border-gray-200 px-6 py-5">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-[#FDA92D] to-[#FDB84D] rounded-xl flex items-center justify-center shadow-md">
+                <MdBusiness className="text-white" size={24} />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">All Departments</h2>
+                <p className="text-sm text-gray-500 mt-0.5">{departments.length} departments registered</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#FDA92D] to-[#FDB84D] text-white rounded-lg hover:shadow-lg transition-all duration-200 font-medium"
+>>>>>>> b051ea7966eb15b2629550aa3f4c0f448678e164:frontend/src/components/Setting/Departments/DepartmentManagement.jsx
             >
               <MdAdd size={20} />
               Add Department
             </button>
           </div>
+        </div>
 
-          {/* Filters + Search */}
-          <div className="flex justify-between items-center flex-wrap gap-4 pb-4">
-            <Pagination
-              rowsPerPage={rowsPerPage}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              filtersConfig={[]}
-              filteredData={getFilteredData()}
-              selectedRows={selectedRows}
-              allData={departments}
-              sectionName="departments"
-            />
-          </div>
+        {/* Search Section */}
+        <div className="px-6 py-4">
+          <Pagination
+            rowsPerPage={rowsPerPage}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            filtersConfig={[]}
+            filteredData={getFilteredData()}
+            selectedRows={selectedRows}
+            allData={departments}
+            sectionName="departments"
+          />
         </div>
 
         {/* Table */}
@@ -175,11 +237,12 @@ const DepartmentManagement = () => {
           onRowClick={handleRowClick}
         />
 
-        {/* Add Department Modal */}
+        {/* Add/Edit Department Modal */}
         <AddDepartmentModal
           isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
+          onClose={handleCloseModal}
           onSuccess={handleAddDepartment}
+          editData={editingDepartment}
         />
       </div>
     </>

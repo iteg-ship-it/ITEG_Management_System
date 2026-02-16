@@ -1,20 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { IoClose } from "react-icons/io5";
 import { MdBusiness } from "react-icons/md";
 import { toast } from "react-toastify";
+<<<<<<< HEAD:frontend/src/components/common-components/Setting/AddDepartmentModal.jsx
 import { useAddDepartmentMutation } from "../../../redux/api/authApi";
+=======
+import { useAddDepartmentMutation, useUpdateDepartmentMutation } from "../../../redux/api/authApi";
+>>>>>>> b051ea7966eb15b2629550aa3f4c0f448678e164:frontend/src/components/Setting/Departments/AddDepartmentModal.jsx
 
 const PRIMARY_COLOR = "#FDA92D";
 
-const AddDepartmentModal = ({ isOpen, onClose, onSuccess }) => {
+const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
+  const [addDepartment, { isLoading: isAdding }] = useAddDepartmentMutation();
+  const [updateDepartment, { isLoading: isUpdating }] = useUpdateDepartmentMutation();
   const [formData, setFormData] = useState({
     departmentName: "",
     description: "",
     headOfDepartment: "",
     departmentCode: ""
   });
+<<<<<<< HEAD:frontend/src/components/common-components/Setting/AddDepartmentModal.jsx
   
   const [addDepartment, { isLoading }] = useAddDepartmentMutation();
+=======
+
+  const isEditMode = !!editData;
+  const isLoading = isAdding || isUpdating;
+
+  useEffect(() => {
+    if (editData) {
+      setFormData({
+        departmentName: editData.departmentName || "",
+        description: editData.description || "",
+        headOfDepartment: editData.headOfDepartment || "",
+        departmentCode: editData.departmentCode || ""
+      });
+    }
+  }, [editData]);
+>>>>>>> b051ea7966eb15b2629550aa3f4c0f448678e164:frontend/src/components/Setting/Departments/AddDepartmentModal.jsx
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,13 +53,30 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess }) => {
     }
     
     try {
+<<<<<<< HEAD:frontend/src/components/common-components/Setting/AddDepartmentModal.jsx
       const result = await addDepartment(formData).unwrap();
       toast.success("Department added successfully!");
       onSuccess?.(result.data);
+=======
+      if (isEditMode) {
+        const result = await updateDepartment({ id: editData._id, ...formData }).unwrap();
+        toast.success(result.message || "Department updated successfully!");
+      } else {
+        const result = await addDepartment(formData).unwrap();
+        toast.success(result.message || "Department added successfully!");
+      }
+>>>>>>> b051ea7966eb15b2629550aa3f4c0f448678e164:frontend/src/components/Setting/Departments/AddDepartmentModal.jsx
       handleClose();
+      onSuccess?.();
     } catch (error) {
+<<<<<<< HEAD:frontend/src/components/common-components/Setting/AddDepartmentModal.jsx
       console.error("Error adding department:", error);
       toast.error(error?.data?.message || "Error adding department. Please try again.");
+=======
+      console.error("Error saving department:", error);
+      const errorMessage = error?.data?.message || error?.message || "Error saving department. Please try again.";
+      toast.error(errorMessage);
+>>>>>>> b051ea7966eb15b2629550aa3f4c0f448678e164:frontend/src/components/Setting/Departments/AddDepartmentModal.jsx
     }
   };
 
@@ -76,10 +116,10 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess }) => {
             <MdBusiness size={32} style={{ color: PRIMARY_COLOR }} />
           </div>
           <h2 className="text-2xl font-semibold" style={{ color: PRIMARY_COLOR }}>
-            Add New Department
+            {isEditMode ? "Edit Department" : "Add New Department"}
           </h2>
           <p className="text-sm text-gray-600 mt-2">
-            Create a new department for your organization
+            {isEditMode ? "Update department information" : "Create a new department for your organization"}
           </p>
         </div>
 
@@ -149,7 +189,11 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess }) => {
                 opacity: isLoading ? 0.7 : 1
               }}
             >
+<<<<<<< HEAD:frontend/src/components/common-components/Setting/AddDepartmentModal.jsx
               {isLoading ? "Adding..." : "Add Department"}
+=======
+              {isLoading ? (isEditMode ? "Updating..." : "Adding...") : (isEditMode ? "Update Department" : "Add Department")}
+>>>>>>> b051ea7966eb15b2629550aa3f4c0f448678e164:frontend/src/components/Setting/Departments/AddDepartmentModal.jsx
             </button>
           </div>
         </form>

@@ -6,6 +6,7 @@ import { FaClipboardList, FaUserGroup } from "react-icons/fa6";
 import { MdWork, MdDashboard } from "react-icons/md";
 import { RiTv2Fill } from "react-icons/ri";
 import { HiChevronUp, HiChevronDown } from "react-icons/hi";
+import { IoSettingsSharp } from "react-icons/io5";
 
 const Sidebar = ({ children }) => {
   const [isOpen, setIsOpen] = useState(() => {
@@ -50,7 +51,7 @@ const Sidebar = ({ children }) => {
       openMenus.push(3);
     }
     // Settings menu (index 4)
-    if (path === "/department-management") {
+    if (path === "/department-management" || path === "/subdepartments" || path === "/levels" || path === "/user-management" || path === "/user-permission") {
       openMenus.push(4);
     }
     if (path.startsWith("/student-profile/")) {
@@ -88,7 +89,7 @@ const Sidebar = ({ children }) => {
       newOpenMenus.push(3);
     }
     // Settings menu (index 4)
-    if (path === "/department-management") {
+    if (path === "/department-management" || path === "/subdepartments" || path === "/levels" || path === "/user-management" || path === "/user-permission") {
       newOpenMenus.push(4);
     }
     if (path.startsWith("/student-profile/")) {
@@ -106,6 +107,16 @@ const Sidebar = ({ children }) => {
       prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
     );
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (openMenus.includes(4) && !event.target.closest('.settings-menu')) {
+        setOpenMenus((prev) => prev.filter((i) => i !== 4));
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openMenus]);
 
   const isSubMenuActive = (subPath) => {
     const path = location.pathname;
@@ -189,15 +200,15 @@ const Sidebar = ({ children }) => {
     },
     {
       name: "Setting",
-      icon: <MdWork />,
+      icon: <IoSettingsSharp />,
       roles: ["superadmin", "admin", "faculty"],
       subMenu: [
         { name: "Department Management", path: "/department-management" },
-      //   { name: "ITEG", path: "/ITEG" },
-      //   { name: "MEG", path: "/MEG" },
-      //   { name: "BEG", path: "/BEG" },
-      //   { name: "B.Tech", path: "/B.Tech" },
-       ],
+        { name: "Subdepartments", path: "/subdepartments" },
+        { name: "Levels", path: "/levels" },
+        { name: "User Management", path: "/user-management" },
+        { name: "User Permission", path: "/user-permission" },
+      ],
     },
   ];
 
@@ -221,9 +232,9 @@ const Sidebar = ({ children }) => {
 
         {/* Sidebar links */}
         {isOpen && (
-          <nav className="flex flex-col gap-1 px-2 py-2 overflow-y-auto">
+          <nav className="flex flex-col gap-1 px-2 py-2 overflow-y-auto h-[calc(100%-5rem)] pb-20">
             {menuItems
-              .filter((item) => item.roles.includes(role))
+              .filter((item) => item.roles.includes(role) && item.name !== "Setting")
               .map((item, idx) => {
                 const isActive = openMenus.includes(idx);
                 return (
@@ -270,6 +281,60 @@ const Sidebar = ({ children }) => {
                 );
               })}
           </nav>
+        )}
+
+        {/* Fixed Settings Menu at Bottom */}
+        {isOpen && (
+          <div className="absolute bottom-0 left-0 right-0 bg-[var(--backgroundColor)] border-t px-2 py-2">
+            {menuItems
+              .filter((item) => item.roles.includes(role) && item.name === "Setting")
+              .map((item, idx) => {
+                const settingsIdx = 4;
+                const isActive = openMenus.includes(settingsIdx);
+                return (
+                  <div key={idx} className="relative settings-menu">
+                    {/* Dropdown - Opens Upward */}
+                    {isActive && (
+                      <div className="absolute bottom-full left-0 right-0 mb-1 bg-white border rounded shadow-lg">
+                        {item.subMenu.map((sub, i) => {
+                          const active = isSubMenuActive(sub.path);
+                          return (
+                            <Link
+                              key={i}
+                              to={sub.path}
+                              className={`block rounded px-3 py-2 text-md transition-colors duration-200 border-l-4 ${
+                                active
+                                  ? "bg-brandYellowOpacity text-brandYellow font-semibold border-brandYellow"
+                                  : "text-gray-700 border-transparent hover:text-brandYellow"
+                              }`}
+                            >
+                              {sub.name}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                    
+                    {/* Settings Button */}
+                    <div
+                      onClick={() => toggleMenu(settingsIdx)}
+                      className={`group flex text-[1.1rem] items-center justify-between px-3 py-3 rounded cursor-pointer font-semibold ${isActive ? "bg-gray-100 text-gray-700" : "hover:bg-gray-100 text-gray-700"
+                        }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span>{item.icon}</span>
+                        <span>{item.name}</span>
+                      </div>
+                      <div className="relative flex items-center">
+                        <span>
+                          {isActive ? <HiChevronDown /> : <HiChevronUp />}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
         )}
       </aside>
 

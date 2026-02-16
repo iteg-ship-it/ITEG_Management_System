@@ -25,9 +25,14 @@ import InterviewRoundsHistory from "../placement/InterviewRoundsHistory";
 import PageNotFound from "../common-components/error-pages/PageNotFound";
 import ProtectedRoute from '../common-components/protected-route/ProtectedRoute';
 import AttendanceDetails from "../dashboard/AttendanceDetails";
-import UsersManagement from "../user-management/UsersManagement";
-import UserProfile from "../user-management/UserProfile";
-import DepartmentManagement from "../common-components/Setting/DepartmentManagement";
+import UsersManagement from "../Setting/user-management/UsersManagement";
+import UserProfile from "../Setting/user-management/UserProfile";
+import DepartmentManagement from "../Setting/Departments/DepartmentManagement";
+import UserPermission from "../Setting/user-management/UserPermission";
+import SubDepartment from "../Setting/Departments/SubDepartment";
+import ShowLevels from "../Setting/Levels/ShowLevels";
+import DepartmentDetails from "../Setting/Departments/DepartmentDetails";
+import SubdepartmentDetails from "../Setting/Departments/SubdepartmentDetails";
 
 const Dashboard = () => {
   console.log('Dashboard routes loaded');
@@ -38,7 +43,7 @@ const Dashboard = () => {
       <Route path="/attendance-details" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AttendanceDetails /></ProtectedRoute>} />
       
       {/* Superadmin Only Routes */}
-      <Route path="/users-management" element={<ProtectedRoute allowedRoles={["superadmin"]}><UsersManagement /></ProtectedRoute>} />
+      <Route path="/user-management" element={<ProtectedRoute allowedRoles={["superadmin"]}><UsersManagement /></ProtectedRoute>} />
       <Route path="/user-profile/:id" element={<ProtectedRoute allowedRoles={["superadmin"]}><UserProfile /></ProtectedRoute>} />
       
       {/* Admission Routes - All roles */}
@@ -67,6 +72,11 @@ const Dashboard = () => {
       
       {/* Settings Routes - All roles */}
       <Route path="/department-management" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><DepartmentManagement /></ProtectedRoute>} />
+      <Route path="/department-details/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><DepartmentDetails /></ProtectedRoute>} />
+      <Route path="/subdepartment-details" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><SubdepartmentDetails /></ProtectedRoute>} />
+      <Route path="/subdepartments" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><SubDepartment /></ProtectedRoute>} />
+      <Route path="/levels" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><ShowLevels /></ProtectedRoute>} />
+      <Route path="/user-permission" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><UserPermission /></ProtectedRoute>} />
       
       {/* Error Routes */}
       <Route path="/unauthorized" element={<PageNotFound />} />
