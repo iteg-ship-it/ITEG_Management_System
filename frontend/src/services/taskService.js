@@ -52,6 +52,19 @@ export const taskAPI = {
     return response.json();
   },
 
+  // Bulk upload tasks to selected students
+  bulkUploadTasksToSelectedStudents: async (level, tasks, studentIds) => {
+    const response = await fetch(`${API_BASE_URL}/tasks/bulk-upload-selected`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ level, tasks, studentIds })
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  },
+
   // Get tasks by level
   getTasksByLevel: async (level) => {
     const response = await fetch(`${API_BASE_URL}/tasks/level/${level}`, {

@@ -4,6 +4,7 @@ import { Search } from 'lucide-react';
 import LevelTaskUploadModal from './LevelTaskUploadModal';
 import { taskAPI } from '../../services/taskService';
 import { useAdmitedStudentsQuery } from '../../redux/api/authApi';
+import CommonTable from '../common-components/table/CommonTable';
 
 const LevelWiseStudentManagement = () => {
   const [selectedLevel, setSelectedLevel] = useState('1A');
@@ -17,9 +18,139 @@ const LevelWiseStudentManagement = () => {
   const { data: admittedStudents = [], isLoading: isLoadingAdmitted, refetch } = useAdmitedStudentsQuery(undefined, {
     refetchOnMountOrArgChange: true,
     refetchOnFocus: true,
+    refetchOnReconnect: true,
   });
 
   const levels = ['1A', '1B', '1C', '2A', '2B', '2C'];
+
+  // Table columns configuration
+  const tableColumns = [
+    {
+      key: 'fullName',
+      label: 'Student Name',
+      render: (student) => (
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-[#FDA92D]/20 rounded-full flex items-center justify-center">
+            <span className="text-[#FDA92D] font-semibold text-sm">
+              {student.firstName?.charAt(0)}{student.lastName?.charAt(0)}
+            </span>
+          </div>
+          <div>
+            <div className="font-medium text-gray-900">
+              {student.firstName} {student.lastName}
+            </div>
+            <div className="text-sm text-gray-500">{student.course}</div>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'currentLevel',
+      label: 'Level',
+      align: 'center',
+      render: (student) => (
+        <span className="px-2 py-1 bg-[#FDA92D]/10 text-[#FDA92D] rounded-full text-sm font-medium">
+          {student.currentLevel}
+        </span>
+      )
+    },
+    {
+      key: 'taskProgress',
+      label: 'Task Progress',
+      align: 'center',
+      render: (student) => {
+        const completed = student.taskStats?.completed || 0;
+        const total = student.totalTasks || 0;
+        const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+        
+        return (
+          <div className="flex flex-col items-center gap-1">
+            <div className="text-sm font-medium">{completed}/{total}</div>
+            <div className="w-16 bg-gray-200 rounded-full h-2">
+              <div 
+                className={`h-2 rounded-full transition-all ${
+                  percentage >= 80 ? 'bg-green-500' : 
+                  percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                }`}
+                style={{ width: `${percentage}%` }}
+              ></div>
+            </div>
+            <div className="text-xs text-gray-500">{percentage}%</div>
+          </div>
+        );
+      }
+    },
+    {
+      key: 'pendingTasks',
+      label: 'Pending',
+      align: 'center',
+      render: (student) => (
+        <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
+          {student.taskStats?.pending || 0}
+        </span>
+      )
+    },
+    {
+      key: 'inProgressTasks',
+      label: 'In Progress',
+      align: 'center',
+      render: (student) => (
+        <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+          {student.taskStats?.['in-progress'] || 0}
+        </span>
+      )
+    },
+    {
+      key: 'completedTasks',
+      label: 'Completed',
+      align: 'center',
+      render: (student) => (
+        <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+          {student.taskStats?.completed || 0}
+        </span>
+      )
+    },
+    {
+      key: 'readinessStatus',
+      label: 'Status',
+      align: 'center',
+      render: (student) => (
+        <div className="flex flex-col gap-1">
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+            student.readinessStatus === 'Ready for Interview' 
+              ? 'bg-green-100 text-green-800' 
+              : student.readinessStatus === 'In Progress'
+                ? 'bg-blue-100 text-blue-800'
+                : 'bg-yellow-100 text-yellow-800'
+          }`}>
+            {student.readinessStatus || 'Not Ready'}
+          </span>
+          {student.techno && (
+            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+              {student.techno}
+            </span>
+          )}
+        </div>
+      )
+    }
+  ];
+
+  // Action button for each row
+  const actionButton = (student) => (
+    <button
+      onClick={() => window.open(`/student-profile/${student._id}`, '_blank')}
+      className="flex items-center gap-2 px-3 py-1 text-[#FDA92D] hover:text-[#E6941A] hover:bg-[#FDA92D]/10 rounded-lg transition-all duration-200"
+      title="View Profile"
+    >
+      <FaEye className="text-sm" />
+      <span className="text-sm">View</span>
+    </button>
+  );
+
+  // Handle row click
+  const handleRowClick = (student) => {
+    window.open(`/student-profile/${student._id}`, '_blank');
+  };
 
   // Filter students based on search term
   const filteredStudents = useMemo(() => {
@@ -50,26 +181,54 @@ const LevelWiseStudentManagement = () => {
     }
   }, [selectedLevel, admittedStudents]);
 
+  // Refresh data when page becomes visible (user returns from other pages)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && admittedStudents.length > 0) {
+        fetchStudentsByLevel(selectedLevel);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [selectedLevel, admittedStudents]);
+
   const fetchStudentsByLevel = async (level) => {
     setLoading(true);
     try {
-      // Try to get students with task data first
+      // Always try to get fresh data with task statistics
       const result = await taskAPI.getStudentsByLevelWithTasks(level);
       if (result.students) {
-        setStudents(result.students);
+        // Sort students by name to maintain consistent order
+        const sortedStudents = result.students.sort((a, b) => {
+          const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+          const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+          return nameA.localeCompare(nameB);
+        });
+        setStudents(sortedStudents);
       } else {
-        // Fallback to regular filtering
-        const filteredStudents = admittedStudents.filter(student => 
-          student.currentLevel === level
-        );
+        // Fallback to regular filtering with consistent sorting
+        const filteredStudents = admittedStudents
+          .filter(student => student.currentLevel === level)
+          .sort((a, b) => {
+            const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+            const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+            return nameA.localeCompare(nameB);
+          });
         setStudents(filteredStudents);
       }
     } catch (error) {
       console.error('Error fetching students:', error);
-      // Fallback to regular filtering
-      const filteredStudents = admittedStudents.filter(student => 
-        student.currentLevel === level
-      );
+      // Fallback to regular filtering with consistent sorting
+      const filteredStudents = admittedStudents
+        .filter(student => student.currentLevel === level)
+        .sort((a, b) => {
+          const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+          const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+          return nameA.localeCompare(nameB);
+        });
       setStudents(filteredStudents);
     } finally {
       setLoading(false);
@@ -94,7 +253,12 @@ const LevelWiseStudentManagement = () => {
   const handleTasksUploaded = () => {
     // Refresh students data when tasks are uploaded
     fetchStudentsByLevel(selectedLevel);
+    // Force refetch of admitted students data
     refetch();
+    // Small delay to ensure backend data is updated
+    setTimeout(() => {
+      fetchStudentsByLevel(selectedLevel);
+    }, 1000);
   };
 
   const getTaskCompletionColor = (completed, total) => {
@@ -114,27 +278,27 @@ const LevelWiseStudentManagement = () => {
       </div>
 
       {/* Level Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mb-4">
         {levels.map((level) => (
           <div
             key={level}
             onClick={() => setSelectedLevel(level)}
-            className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+            className={`p-2 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
               selectedLevel === level
                 ? 'border-[#FDA92D] bg-[#FDA92D]/10 shadow-lg'
                 : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md'
             }`}
           >
             <div className="text-center">
-              <h3 className={`text-lg font-bold ${
+              <h3 className={`text-sm font-bold ${
                 selectedLevel === level ? 'text-[#FDA92D]' : 'text-gray-800'
               }`}>
                 Level {level}
               </h3>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
+              <p className="text-lg font-bold text-gray-900">
                 {levelStats[level] || 0}
               </p>
-              <p className="text-sm text-gray-600">Students</p>
+              <p className="text-xs text-gray-600">Students</p>
             </div>
           </div>
         ))}
@@ -164,7 +328,7 @@ const LevelWiseStudentManagement = () => {
 
         {/* Search Bar */}
         <div className="mb-6">
-          <div className="flex border border-gray-300 rounded-lg overflow-hidden max-w-md h-12 bg-white relative focus-within:border-[#FDA92D] transition-colors">
+          <div className="flex border border-gray-300 rounded-md overflow-hidden w-full max-w-3xl h-12 bg-white relative focus-within:border-black transition-colors">
             <div className="flex items-center px-3 w-full">
               <Search className="w-4 h-4 text-gray-600 flex-shrink-0" />
               <input
@@ -175,6 +339,10 @@ const LevelWiseStudentManagement = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            <div
+              className="absolute inset-0 cursor-text"
+              onClick={() => document.querySelector('input[type="text"]').focus()}
+            ></div>
           </div>
           {searchTerm && (
             <p className="text-sm text-gray-600 mt-2">
@@ -183,91 +351,22 @@ const LevelWiseStudentManagement = () => {
           )}
         </div>
 
-        {/* Students List */}
+        {/* Students Table */}
         {loading || isLoadingAdmitted ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FDA92D] mx-auto mb-4"></div>
             <p className="text-gray-600">Loading students...</p>
           </div>
         ) : filteredStudents.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredStudents.map((student) => (
-              <div key={student._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h3 className="font-semibold text-gray-800">
-                      {student.firstName} {student.lastName}
-                    </h3>
-                    <p className="text-sm text-gray-600">Level {student.currentLevel}</p>
-                    <p className="text-xs text-gray-500">{student.course}</p>
-                  </div>
-                  <button
-                    onClick={() => window.open(`/student-profile/${student._id}`, '_blank')}
-                    className="text-[#FDA92D] hover:text-[#E6941A] transition-colors"
-                    title="View Profile"
-                  >
-                    <FaEye />
-                  </button>
-                </div>
-                
-                {/* Student Information */}
-                <div className="space-y-2">
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <span className="text-gray-600">Mobile:</span>
-                      <span className="ml-1 font-medium">{student.studentMobile}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Village:</span>
-                      <span className="ml-1 font-medium">{student.village}</span>
-                    </div>
-                  </div>
-                  
-                  {/* Task Statistics */}
-                  <div className="mt-3">
-                    <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="text-gray-600">Tasks Progress:</span>
-                      <span className="font-medium">
-                        {student.taskStats?.completed || 0} / {student.totalTasks || 0}
-                      </span>
-                    </div>
-                    
-                    {student.totalTasks > 0 && (
-                      <div className="grid grid-cols-3 gap-2 text-xs">
-                        <div className="px-2 py-1 rounded text-center bg-red-100 text-red-800">
-                          <div className="font-medium">{student.taskStats?.pending || 0}</div>
-                          <div>Pending</div>
-                        </div>
-                        <div className="px-2 py-1 rounded text-center bg-blue-100 text-blue-800">
-                          <div className="font-medium">{student.taskStats?.['in-progress'] || 0}</div>
-                          <div>In Progress</div>
-                        </div>
-                        <div className="px-2 py-1 rounded text-center bg-green-100 text-green-800">
-                          <div className="font-medium">{student.taskStats?.completed || 0}</div>
-                          <div>Completed</div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Status Badge */}
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      student.readinessStatus === 'Ready' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {student.readinessStatus || 'Not Ready'}
-                    </span>
-                    {student.techno && (
-                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {student.techno}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <CommonTable
+              columns={tableColumns}
+              data={filteredStudents}
+              pagination={true}
+              rowsPerPage={10}
+              searchTerm=""
+              onRowClick={handleRowClick}
+            />
           </div>
         ) : (
           <div className="text-center py-12">
@@ -298,6 +397,7 @@ const LevelWiseStudentManagement = () => {
         isOpen={isTaskUploadModalOpen}
         onClose={() => setIsTaskUploadModalOpen(false)}
         level={selectedLevel}
+        students={students}
         onTasksUploaded={handleTasksUploaded}
       />
     </div>

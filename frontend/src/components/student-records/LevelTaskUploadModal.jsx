@@ -1,52 +1,116 @@
-import React, { useState, useRef } from 'react';
-import { FaUpload, FaFileExcel, FaTimes, FaPlus } from 'react-icons/fa';
+import React, { useState, useRef, useEffect } from 'react';
+import { FaUpload, FaFileExcel, FaTimes, FaPlus, FaUsers, FaCheck } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
 import { taskAPI } from '../../services/taskService';
 
-const LevelTaskUploadModal = ({ isOpen, onClose, level, onTasksUploaded }) => {
+const LevelTaskUploadModal = ({ isOpen, onClose, level, onTasksUploaded, students = [] }) => {
   const [tasks, setTasks] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [isProcessingFile, setIsProcessingFile] = useState(false);
   const [showManualForm, setShowManualForm] = useState(false);
+  const [assignmentType, setAssignmentType] = useState('all'); // 'all' or 'selected'
+  const [selectedStudents, setSelectedStudents] = useState([]);
   const fileInputRef = useRef(null);
   
   const [manualTask, setManualTask] = useState({
     title: '',
     description: '',
-    priority: 'medium',
-    dueDate: ''
+    subject: '',
+    priority: '2nd',
+    dueDate: new Date().toISOString().split('T')[0]
   });
 
-  const handleFileUpload = (event) => {
+  const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+    // Check file size (limit to 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      alert('File size too large. Please select a file smaller than 2MB.');
+      event.target.value = '';
+      return;
+    }
 
-        const parsedTasks = jsonData.map((row, index) => ({
-          title: row.Title || row.title || `Task ${index + 1}`,
-          description: row.Description || row.description || '',
-          priority: (row.Priority || row.priority || 'medium').toLowerCase(),
-          dueDate: row.DueDate || row.dueDate || new Date().toISOString().split('T')[0]
-        }));
+    // Check file type
+    const allowedTypes = ['.xlsx', '.xls', '.csv'];
+    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    if (!allowedTypes.includes(fileExtension)) {
+      alert('Please select a valid Excel file (.xlsx, .xls, .csv)');
+      event.target.value = '';
+      return;
+    }
 
-        setTasks(parsedTasks);
-        event.target.value = '';
-      } catch (error) {
-        alert('Error reading file. Please check the format.');
-      }
-    };
-    reader.readAsArrayBuffer(file);
+    setIsProcessingFile(true);
+    
+    try {
+      // Use setTimeout to prevent blocking
+      setTimeout(async () => {
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          const data = new Uint8Array(arrayBuffer);
+          
+          // Process in smaller chunks
+          const workbook = XLSX.read(data, { 
+            type: 'array',
+            cellDates: true,
+            cellNF: false,
+            cellText: false
+          });
+          
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+          // Strict limit to prevent hanging
+          if (jsonData.length > 50) {
+            alert('Too many rows. Please limit to 50 tasks per upload.');
+            event.target.value = '';
+            setIsProcessingFile(false);
+            return;
+          }
+
+          if (jsonData.length === 0) {
+            alert('No data found in the file. Please check the file format.');
+            event.target.value = '';
+            setIsProcessingFile(false);
+            return;
+          }
+
+          const parsedTasks = jsonData.map((row, index) => ({
+            title: String(row.Title || row.title || `Task ${index + 1}`).trim(),
+            description: String(row.Description || row.description || '').trim(),
+            subject: String(row.Subject || row.subject || '').trim(),
+            priority: String(row.Priority || row.priority || '2nd').toLowerCase().trim(),
+            dueDate: row.DueDate || row.dueDate || new Date().toISOString().split('T')[0]
+          })).filter(task => task.title && task.description && task.subject);
+
+          if (parsedTasks.length === 0) {
+            alert('No valid tasks found. Please check required fields: Title, Description, Subject.');
+            event.target.value = '';
+            setIsProcessingFile(false);
+            return;
+          }
+
+          setTasks(parsedTasks);
+          event.target.value = '';
+          setIsProcessingFile(false);
+        } catch (error) {
+          console.error('File parsing error:', error);
+          alert('Error reading file. Please check the format and try again.');
+          event.target.value = '';
+          setIsProcessingFile(false);
+        }
+      }, 100);
+    } catch (error) {
+      console.error('File reading error:', error);
+      alert('Error reading file. Please try again.');
+      event.target.value = '';
+      setIsProcessingFile(false);
+    }
   };
 
   const addManualTask = () => {
-    if (!manualTask.title.trim() || !manualTask.description.trim() || !manualTask.dueDate) {
+    if (!manualTask.title.trim() || !manualTask.description.trim() || !manualTask.subject.trim()) {
       alert('Please fill all required fields');
       return;
     }
@@ -55,8 +119,9 @@ const LevelTaskUploadModal = ({ isOpen, onClose, level, onTasksUploaded }) => {
     setManualTask({
       title: '',
       description: '',
-      priority: 'medium',
-      dueDate: ''
+      subject: '',
+      priority: '2nd',
+      dueDate: new Date().toISOString().split('T')[0]
     });
     setShowManualForm(false);
   };
@@ -71,13 +136,24 @@ const LevelTaskUploadModal = ({ isOpen, onClose, level, onTasksUploaded }) => {
       return;
     }
 
+    if (assignmentType === 'selected' && selectedStudents.length === 0) {
+      alert('Please select at least one student');
+      return;
+    }
+
     setIsUploading(true);
     try {
-      const result = await taskAPI.bulkUploadTasks(level, tasks);
+      let result;
+      if (assignmentType === 'all') {
+        result = await taskAPI.bulkUploadTasks(level, tasks);
+      } else {
+        result = await taskAPI.bulkUploadTasksToSelectedStudents(level, tasks, selectedStudents);
+      }
       
       if (result.message) {
         alert(result.message);
         setTasks([]);
+        setSelectedStudents([]);
         onTasksUploaded && onTasksUploaded();
         onClose();
       } else {
@@ -91,18 +167,36 @@ const LevelTaskUploadModal = ({ isOpen, onClose, level, onTasksUploaded }) => {
     }
   };
 
+  const toggleStudentSelection = (studentId) => {
+    setSelectedStudents(prev => 
+      prev.includes(studentId) 
+        ? prev.filter(id => id !== studentId)
+        : [...prev, studentId]
+    );
+  };
+
+  const selectAllStudents = () => {
+    setSelectedStudents(students.map(s => s._id));
+  };
+
+  const clearAllStudents = () => {
+    setSelectedStudents([]);
+  };
+
   const downloadTemplate = () => {
     const templateData = [
       { 
         Title: 'Complete JavaScript Assignment', 
         Description: 'Complete the JavaScript fundamentals assignment covering variables, functions, and loops', 
-        Priority: 'High', 
+        Subject: 'JavaScript',
+        Priority: '1st', 
         DueDate: '2024-01-15' 
       },
       { 
         Title: 'Prepare for Technical Interview', 
         Description: 'Review data structures and algorithms for upcoming technical interview', 
-        Priority: 'Medium', 
+        Subject: 'Data Structures',
+        Priority: '2nd', 
         DueDate: '2024-01-20' 
       }
     ];
@@ -140,13 +234,20 @@ const LevelTaskUploadModal = ({ isOpen, onClose, level, onTasksUploaded }) => {
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
               <FaUpload className="mx-auto text-3xl text-gray-400 mb-3" />
               <h3 className="font-semibold text-gray-700 mb-2">Upload Excel File</h3>
-              <p className="text-sm text-gray-600 mb-4">Upload tasks in bulk using Excel file</p>
+              <p className="text-sm text-gray-600 mb-4">Upload up to 50 tasks using Excel file (Max 2MB)</p>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="px-4 py-2 bg-[#FDA92D] hover:bg-[#E6941A] text-white rounded-lg font-medium transition-colors"
+                disabled={isProcessingFile}
+                className="px-4 py-2 bg-[#FDA92D] hover:bg-[#E6941A] text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Choose File
+                {isProcessingFile ? 'Processing...' : 'Choose File'}
               </button>
+              {isProcessingFile && (
+                <div className="mt-3">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#FDA92D] mx-auto"></div>
+                  <p className="text-xs text-gray-500 mt-2">Processing file, please wait...</p>
+                </div>
+              )}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -170,7 +271,79 @@ const LevelTaskUploadModal = ({ isOpen, onClose, level, onTasksUploaded }) => {
             </div>
           </div>
 
-          {/* Download Template */}
+          {/* Assignment Type Selection */}
+          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+            <h4 className="font-medium text-gray-800 mb-3">Task Assignment</h4>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="assignmentType"
+                  value="all"
+                  checked={assignmentType === 'all'}
+                  onChange={(e) => setAssignmentType(e.target.value)}
+                  className="text-[#FDA92D] focus:ring-[#FDA92D]"
+                />
+                <span className="text-sm font-medium text-gray-700">Assign to All Students in Level {level}</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="assignmentType"
+                  value="selected"
+                  checked={assignmentType === 'selected'}
+                  onChange={(e) => setAssignmentType(e.target.value)}
+                  className="text-[#FDA92D] focus:ring-[#FDA92D]"
+                />
+                <span className="text-sm font-medium text-gray-700">Assign to Selected Students</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Student Selection */}
+          {assignmentType === 'selected' && (
+            <div className="mb-6 p-4 border border-gray-200 rounded-lg">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-medium text-gray-800">Select Students ({selectedStudents.length}/{students.length})</h4>
+                <div className="flex gap-2">
+                  <button
+                    onClick={selectAllStudents}
+                    className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
+                  >
+                    Select All
+                  </button>
+                  <button
+                    onClick={clearAllStudents}
+                    className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              </div>
+              <div className="max-h-48 overflow-y-auto space-y-2">
+                {students.map((student) => (
+                  <label key={student._id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedStudents.includes(student._id)}
+                      onChange={() => toggleStudentSelection(student._id)}
+                      className="text-[#FDA92D] focus:ring-[#FDA92D] rounded"
+                    />
+                    <div className="flex items-center gap-2 flex-1">
+                      <div className="w-6 h-6 bg-[#FDA92D]/20 rounded-full flex items-center justify-center">
+                        <span className="text-[#FDA92D] font-semibold text-xs">
+                          {student.firstName?.charAt(0)}{student.lastName?.charAt(0)}
+                        </span>
+                      </div>
+                      <span className="text-sm font-medium text-gray-800">
+                        {student.firstName} {student.lastName}
+                      </span>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="mb-6 p-4 bg-blue-50 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
@@ -213,19 +386,39 @@ const LevelTaskUploadModal = ({ isOpen, onClose, level, onTasksUploaded }) => {
                   />
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Subject *</label>
+                  <select
+                    value={manualTask.subject}
+                    onChange={(e) => setManualTask({ ...manualTask, subject: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#FDA92D]"
+                  >
+                    <option value="">Select Subject</option>
+                    <option value="JavaScript">JavaScript</option>
+                    <option value="React">React</option>
+                    <option value="Node.js">Node.js</option>
+                    <option value="Database">Database</option>
+                    <option value="Data Structures">Data Structures</option>
+                    <option value="System Design">System Design</option>
+                    <option value="Project Work">Project Work</option>
+                    <option value="Soft Skills">Soft Skills</option>
+                    <option value="Interview Prep">Interview Prep</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
                   <select
                     value={manualTask.priority}
                     onChange={(e) => setManualTask({ ...manualTask, priority: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#FDA92D]"
                   >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
+                    <option value="1st">1st</option>
+                    <option value="2nd">2nd</option>
+                    <option value="3rd">3rd</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Due Date *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
                   <input
                     type="date"
                     value={manualTask.dueDate}
@@ -262,9 +455,12 @@ const LevelTaskUploadModal = ({ isOpen, onClose, level, onTasksUploaded }) => {
                       <h5 className="font-medium text-gray-800">{task.title}</h5>
                       <p className="text-sm text-gray-600 mt-1">{task.description}</p>
                       <div className="flex items-center gap-4 mt-2">
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                          {task.subject}
+                        </span>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          task.priority === 'high' ? 'bg-red-100 text-red-800' :
-                          task.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                          task.priority === '1st' ? 'bg-red-100 text-red-800' :
+                          task.priority === '2nd' ? 'bg-yellow-100 text-yellow-800' :
                           'bg-green-100 text-green-800'
                         }`}>
                           {task.priority}
@@ -295,10 +491,14 @@ const LevelTaskUploadModal = ({ isOpen, onClose, level, onTasksUploaded }) => {
           </button>
           <button
             onClick={uploadTasks}
-            disabled={tasks.length === 0 || isUploading}
+            disabled={tasks.length === 0 || isUploading || (assignmentType === 'selected' && selectedStudents.length === 0)}
             className="flex-1 px-4 py-2 bg-[#FDA92D] hover:bg-[#E6941A] text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isUploading ? 'Uploading...' : `Upload ${tasks.length} Tasks`}
+            {isUploading ? 'Uploading...' : 
+              assignmentType === 'all' 
+                ? `Upload ${tasks.length} Tasks to All Students` 
+                : `Upload ${tasks.length} Tasks to ${selectedStudents.length} Students`
+            }
           </button>
         </div>
       </div>

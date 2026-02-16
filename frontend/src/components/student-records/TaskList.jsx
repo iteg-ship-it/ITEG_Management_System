@@ -2,7 +2,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { HiArrowNarrowLeft } from "react-icons/hi";
-import { FaPlus, FaEdit, FaTrash, FaCheck, FaTimes } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaCheck, FaTimes, FaChevronDown, FaChevronRight } from "react-icons/fa";
 import * as XLSX from 'xlsx';
 import { taskAPI, studentAPI } from '../../services/taskService';
 
@@ -44,6 +44,7 @@ export default function TaskList() {
         id: st._id,
         title: st.taskId?.title || 'Untitled Task',
         description: st.taskId?.description || 'No description',
+        subject: st.taskId?.subject || 'General',
         status: st.status,
         priority: st.taskId?.priority || 'medium',
         dueDate: st.taskId?.dueDate ? st.taskId.dueDate.split('T')[0] : new Date().toISOString().split('T')[0],
@@ -256,17 +257,7 @@ export default function TaskList() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => {
-                setEditingTask(null);
-                setNewTask({ title: "", description: "", priority: "medium", dueDate: "" });
-                setAddModalOpen(true);
-              }}
-              className="flex items-center gap-2 px-4 py-2 bg-[#FDA92D] hover:bg-[#E6941A] text-white rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
-            >
-              <FaPlus className="text-sm" />
-              Add Task
-            </button>
+            {/* Removed Add Task button */}
           </div>
         </div>
       </div>
@@ -386,6 +377,8 @@ export default function TaskList() {
 
 // Task Column Component
 const TaskColumn = ({ title, tasks, color, status, onStatusChange, onEdit, onDelete, getPriorityColor, getStatusColor, onDragStart, onDragOver, onDragLeave, onDrop, dragOverColumn }) => {
+  const [expandedSubjects, setExpandedSubjects] = useState({});
+
   const getColumnColor = (color) => {
     switch (color) {
       case 'blue': return 'border-blue-200 bg-blue-50';
@@ -396,30 +389,77 @@ const TaskColumn = ({ title, tasks, color, status, onStatusChange, onEdit, onDel
 
   const isDragOver = dragOverColumn === status;
 
+  // Group tasks by subject
+  const tasksBySubject = tasks.reduce((acc, task) => {
+    const subject = task.subject || 'General';
+    if (!acc[subject]) {
+      acc[subject] = [];
+    }
+    acc[subject].push(task);
+    return acc;
+  }, {});
+
+  const toggleSubject = (subject) => {
+    setExpandedSubjects(prev => ({
+      ...prev,
+      [subject]: !prev[subject]
+    }));
+  };
+
   return (
     <div 
-      className={`rounded-xl border-2 p-4 transition-all duration-200 ${
+      className={`rounded-xl border-2 p-4 transition-all duration-200 flex flex-col h-[calc(100vh-300px)] ${
         getColumnColor(color)
       } ${isDragOver ? 'border-dashed border-4 border-blue-400 bg-blue-100' : ''}`}
       onDragOver={(e) => onDragOver(e, status)}
       onDragLeave={onDragLeave}
       onDrop={(e) => onDrop(e, status)}
     >
-      <h3 className="font-semibold text-lg mb-4 text-gray-800">{title} ({tasks.length})</h3>
-      <div className="space-y-4">
-        {tasks.map(task => (
-          <TaskCard
-            key={task.id}
-            task={task}
-            onStatusChange={onStatusChange}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            getPriorityColor={getPriorityColor}
-            getStatusColor={getStatusColor}
-            onDragStart={onDragStart}
-          />
-        ))}
-        {tasks.length === 0 && (
+      <h3 className="font-semibold text-lg mb-4 text-gray-800 flex-shrink-0">{title} ({tasks.length})</h3>
+      <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+        {Object.keys(tasksBySubject).length > 0 ? (
+          Object.entries(tasksBySubject).map(([subject, subjectTasks]) => {
+            const isExpanded = expandedSubjects[subject] !== false; // Default to expanded
+            return (
+              <div key={subject} className="space-y-2">
+                <button
+                  onClick={() => toggleSubject(subject)}
+                  className="flex items-center justify-between w-full p-2 bg-white rounded-md border hover:bg-gray-50 transition-colors flex-shrink-0"
+                >
+                  <div className="flex items-center gap-2">
+                    {isExpanded ? (
+                      <FaChevronDown className="text-xs text-gray-500" />
+                    ) : (
+                      <FaChevronRight className="text-xs text-gray-500" />
+                    )}
+                    <span className="font-medium text-sm text-gray-700">
+                      {subject}
+                    </span>
+                  </div>
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                    {subjectTasks.length}
+                  </span>
+                </button>
+                {isExpanded && (
+                  <div className="space-y-3 pl-4">
+                    {subjectTasks.map(task => (
+                      <TaskCard
+                        key={task.id}
+                        task={task}
+                        onStatusChange={onStatusChange}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                        getPriorityColor={getPriorityColor}
+                        getStatusColor={getStatusColor}
+                        onDragStart={onDragStart}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        ) : (
           <div className="text-center py-8 text-gray-500">
             <p>No {title.toLowerCase()} tasks</p>
           </div>
@@ -439,28 +479,19 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete, getPriorityColor, ge
     >
       <div className="flex items-start justify-between mb-2">
         <h4 className="font-medium text-gray-800 flex-1">{task.title}</h4>
-        <div className="flex items-center gap-2 ml-2">
-          <button
-            onClick={() => onEdit(task)}
-            className="text-gray-400 hover:text-blue-600 transition-colors"
-          >
-            <FaEdit className="text-sm" />
-          </button>
-          <button
-            onClick={() => onDelete(task.id)}
-            className="text-gray-400 hover:text-red-600 transition-colors"
-          >
-            <FaTrash className="text-sm" />
-          </button>
-        </div>
       </div>
       
       <p className="text-sm text-gray-600 mb-3">{task.description}</p>
       
       <div className="flex items-center justify-between mb-3">
-        <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(task.priority)}`}>
-          {task.priority}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(task.priority)}`}>
+            {task.priority}
+          </span>
+          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+            {task.subject}
+          </span>
+        </div>
         <span className="text-xs text-gray-500">
           Due: {new Date(task.dueDate).toLocaleDateString()}
         </span>

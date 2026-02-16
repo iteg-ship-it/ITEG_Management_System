@@ -6,6 +6,9 @@ const { authenticateToken } = require('../middlewares/authMiddleware');
 // Bulk upload tasks for a level
 router.post('/bulk-upload', authenticateToken, taskController.bulkUploadTasks);
 
+// Bulk upload tasks to selected students
+router.post('/bulk-upload-selected', authenticateToken, taskController.bulkUploadTasksToSelectedStudents);
+
 // Get tasks by level
 router.get('/level/:level', authenticateToken, taskController.getTasksByLevel);
 
