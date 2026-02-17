@@ -141,6 +141,21 @@ export const taskAPI = {
     }
     
     return response.json();
+  },
+
+  // Create individual task for a student
+  createIndividualTask: async (studentId, taskData) => {
+    const response = await fetch(`${API_BASE_URL}/tasks/student/${studentId}/create`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(taskData)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
   }
 };
 

@@ -390,3 +390,50 @@ exports.getStudentTaskPerformance = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+// Create individual task for a student
+exports.createIndividualTask = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const { title, description, subject, priority, dueDate } = req.body;
+    const createdBy = req.user.id;
+
+    if (!title || !description) {
+      return res.status(400).json({ message: "Title and description are required" });
+    }
+
+    // Get student info to determine level
+    const student = await AdmittedStudent.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    // Create the task
+    const task = await Task.create({
+      title,
+      description,
+      subject: subject || 'General',
+      priority: priority || 'medium',
+      dueDate: dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default 7 days from now
+      level: student.currentLevel,
+      createdBy
+    });
+
+    // Assign task to the student
+    const studentTask = await StudentTask.create({
+      studentId,
+      taskId: task._id
+    });
+
+    // Populate the task details
+    await studentTask.populate('taskId');
+
+    res.status(201).json({
+      message: "Task created successfully",
+      task: studentTask
+    });
+  } catch (error) {
+    console.error("Error creating individual task:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};

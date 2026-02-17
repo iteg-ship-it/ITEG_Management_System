@@ -22,8 +22,10 @@ export default function TaskList() {
   const [newTask, setNewTask] = useState({
     title: "",
     description: "",
-    priority: "medium",
-    dueDate: ""
+    subject: "",
+    customSubject: "",
+    priority: "2nd",
+    dueDate: new Date().toISOString().split('T')[0]
   });
 
   // Fetch student tasks on component mount
@@ -71,16 +73,46 @@ export default function TaskList() {
     }
   };
 
-  const handleAddTask = () => {
-    if (newTask.title.trim()) {
-      const task = {
-        id: Date.now(),
-        ...newTask,
-        status: "pending"
-      };
-      setTasks([...tasks, task]);
-      setNewTask({ title: "", description: "", priority: "medium", dueDate: "" });
-      setAddModalOpen(false);
+  const handleAddTask = async () => {
+    const finalSubject = newTask.subject === 'Other' ? newTask.customSubject : newTask.subject;
+    
+    if (newTask.title.trim() && newTask.description.trim() && finalSubject.trim()) {
+      try {
+        const taskData = {
+          title: newTask.title,
+          description: newTask.description,
+          subject: finalSubject,
+          priority: newTask.priority,
+          dueDate: newTask.dueDate || new Date().toISOString().split('T')[0]
+        };
+
+        const result = await taskAPI.createIndividualTask(id, taskData);
+        
+        // Add the new task to the local state
+        const formattedTask = {
+          id: result.task._id,
+          title: result.task.taskId.title,
+          description: result.task.taskId.description,
+          subject: result.task.taskId.subject,
+          status: result.task.status,
+          priority: result.task.taskId.priority,
+          dueDate: result.task.taskId.dueDate.split('T')[0],
+          taskId: result.task.taskId._id,
+          studentTaskId: result.task._id,
+          notes: result.task.notes || ''
+        };
+
+        setTasks([...tasks, formattedTask]);
+        setNewTask({ title: "", description: "", subject: "", customSubject: "", priority: "2nd", dueDate: new Date().toISOString().split('T')[0] });
+        setAddModalOpen(false);
+        
+        alert('Task created successfully!');
+      } catch (error) {
+        console.error('Error creating task:', error);
+        alert('Error creating task. Please try again.');
+      }
+    } else {
+      alert('Please fill in title, description, and subject.');
     }
   };
 
@@ -89,6 +121,8 @@ export default function TaskList() {
     setNewTask({
       title: task.title,
       description: task.description,
+      subject: task.subject || '',
+      customSubject: '',
       priority: task.priority,
       dueDate: task.dueDate
     });
@@ -171,7 +205,8 @@ export default function TaskList() {
           id: Date.now() + index,
           title: row.Title || row.title || `Task ${index + 1}`,
           description: row.Description || row.description || '',
-          priority: (row.Priority || row.priority || 'medium').toLowerCase(),
+          subject: row.Subject || row.subject || 'General',
+          priority: (row.Priority || row.priority || '2nd').toLowerCase().trim(),
           dueDate: row.DueDate || row.dueDate || new Date().toISOString().split('T')[0],
           status: 'pending'
         }));
@@ -188,8 +223,8 @@ export default function TaskList() {
 
   const downloadTemplate = (format) => {
     const templateData = [
-      { Title: 'Sample Task 1', Description: 'This is a sample task description', Priority: 'High', DueDate: '2024-01-15' },
-      { Title: 'Sample Task 2', Description: 'Another sample task', Priority: 'Medium', DueDate: '2024-01-20' }
+      { Title: 'Sample Task 1', Description: 'This is a sample task description', Subject: 'JavaScript', Priority: '1st', DueDate: '2024-01-15' },
+      { Title: 'Sample Task 2', Description: 'Another sample task', Subject: 'React', Priority: '2nd', DueDate: '2024-01-20' }
     ];
 
     if (format === 'excel') {
@@ -202,8 +237,11 @@ export default function TaskList() {
 
   const getPriorityColor = (priority) => {
     switch (priority) {
+      case '1st':
       case 'high': return 'bg-red-100 text-red-800 border-red-200';
+      case '2nd':
       case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case '3rd':
       case 'low': return 'bg-green-100 text-green-800 border-green-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -257,7 +295,13 @@ export default function TaskList() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {/* Removed Add Task button */}
+            <button
+              onClick={() => setAddModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-[#FDA92D] hover:bg-[#E6941A] text-white rounded-lg font-medium transition-colors"
+            >
+              <FaPlus className="text-sm" />
+              <span>Add Task</span>
+            </button>
           </div>
         </div>
       </div>
@@ -363,7 +407,7 @@ export default function TaskList() {
           onClose={() => {
             setAddModalOpen(false);
             setEditingTask(null);
-            setNewTask({ title: "", description: "", priority: "medium", dueDate: "" });
+            setNewTask({ title: "", description: "", subject: "", customSubject: "", priority: "2nd", dueDate: new Date().toISOString().split('T')[0] });
           }}
           task={newTask}
           setTask={setNewTask}
@@ -518,12 +562,12 @@ const TaskModal = ({ isOpen, onClose, task, setTask, onSave, isEditing }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl w-full max-w-md p-6">
+      <div className="bg-white rounded-xl w-full max-w-2xl p-6">
         <h2 className="text-xl font-bold mb-4">{isEditing ? 'Edit Task' : 'Add New Task'}</h2>
         
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
             <input
               type="text"
               value={task.title}
@@ -533,8 +577,8 @@ const TaskModal = ({ isOpen, onClose, task, setTask, onSave, isEditing }) => {
             />
           </div>
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
             <textarea
               value={task.description}
               onChange={(e) => setTask({ ...task, description: e.target.value })}
@@ -544,42 +588,74 @@ const TaskModal = ({ isOpen, onClose, task, setTask, onSave, isEditing }) => {
             />
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-              <select
-                value={task.priority}
-                onChange={(e) => setTask({ ...task, priority: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#FDA92D]"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Subject *</label>
+            <select
+              value={task.subject}
+              onChange={(e) => setTask({ ...task, subject: e.target.value, customSubject: '' })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#FDA92D]"
+            >
+              <option value="">Select Subject</option>
+              <option value="HTML/CSS">HTML/CSS</option>
+              <option value="Java">Java</option>
+              <option value="JavaScript">JavaScript</option>
+              <option value="React">React</option>
+              <option value="Node.js">Node.js</option>
+              <option value="Database">Database</option>
+              <option value="Data Structures">Data Structures</option>
+              <option value="System Design">System Design</option>
+              <option value="Algorithms">Algorithms</option>
+              <option value="Machine Learning">Machine Learning</option>
+              <option value="Project Work">Project Work</option>
+              <option value="Soft Skills">Soft Skills</option>
+              <option value="Interview Prep">Interview Prep</option>
+              <option value="Other">Other</option>
+            </select>
+            {task.subject === 'Other' && (
               <input
-                type="date"
-                value={task.dueDate}
-                onChange={(e) => setTask({ ...task, dueDate: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#FDA92D]"
+                type="text"
+                value={task.customSubject || ''}
+                onChange={(e) => setTask({ ...task, customSubject: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#FDA92D] mt-2"
+                placeholder="Enter custom subject"
               />
-            </div>
+            )}
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+            <select
+              value={task.priority}
+              onChange={(e) => setTask({ ...task, priority: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#FDA92D]"
+            >
+              <option value="1st">1st</option>
+              <option value="2nd">2nd</option>
+              <option value="3rd">3rd</option>
+            </select>
+          </div>
+          
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+            <input
+              type="date"
+              value={task.dueDate}
+              onChange={(e) => setTask({ ...task, dueDate: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#FDA92D]"
+            />
           </div>
         </div>
         
         <div className="flex gap-3 mt-6">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={onSave}
-            className="flex-1 px-4 py-2 bg-[#FDA92D] hover:bg-[#E6941A] text-white rounded-lg"
+            className="flex-1 px-4 py-2 bg-[#FDA92D] hover:bg-[#E6941A] text-white rounded-lg font-medium transition-colors"
           >
             {isEditing ? 'Update' : 'Add'} Task
           </button>
@@ -601,7 +677,7 @@ const BulkUploadModal = ({ isOpen, onClose, onUpload, onDownloadTemplate, fileIn
         <div className="space-y-4">
           <div className="text-sm text-gray-600">
             <p className="mb-2">Upload tasks in bulk using Excel or CSV files.</p>
-            <p className="text-xs text-gray-500">Required columns: Title, Description, Priority (High/Medium/Low), DueDate (YYYY-MM-DD)</p>
+            <p className="text-xs text-gray-500">Required columns: Title, Description, Subject, Priority (High/Medium/Low), DueDate (YYYY-MM-DD)</p>
           </div>
           
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">

@@ -16,6 +16,7 @@ const LevelTaskUploadModal = ({ isOpen, onClose, level, onTasksUploaded, student
     title: '',
     description: '',
     subject: '',
+    customSubject: '',
     priority: '2nd',
     dueDate: new Date().toISOString().split('T')[0]
   });
@@ -110,16 +111,22 @@ const LevelTaskUploadModal = ({ isOpen, onClose, level, onTasksUploaded, student
   };
 
   const addManualTask = () => {
-    if (!manualTask.title.trim() || !manualTask.description.trim() || !manualTask.subject.trim()) {
+    const finalSubject = manualTask.subject === 'Other' ? manualTask.customSubject : manualTask.subject;
+    
+    if (!manualTask.title.trim() || !manualTask.description.trim() || !finalSubject.trim()) {
       alert('Please fill all required fields');
       return;
     }
 
-    setTasks([...tasks, { ...manualTask }]);
+    setTasks([...tasks, { 
+      ...manualTask, 
+      subject: finalSubject 
+    }]);
     setManualTask({
       title: '',
       description: '',
       subject: '',
+      customSubject: '',
       priority: '2nd',
       dueDate: new Date().toISOString().split('T')[0]
     });
@@ -389,21 +396,34 @@ const LevelTaskUploadModal = ({ isOpen, onClose, level, onTasksUploaded, student
                   <label className="block text-sm font-medium text-gray-700 mb-1">Subject *</label>
                   <select
                     value={manualTask.subject}
-                    onChange={(e) => setManualTask({ ...manualTask, subject: e.target.value })}
+                    onChange={(e) => setManualTask({ ...manualTask, subject: e.target.value, customSubject: '' })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#FDA92D]"
                   >
                     <option value="">Select Subject</option>
+                    <option value="HTML/CSS">HTML/CSS</option>
+                    <option value="Java">Java</option>
                     <option value="JavaScript">JavaScript</option>
                     <option value="React">React</option>
                     <option value="Node.js">Node.js</option>
                     <option value="Database">Database</option>
                     <option value="Data Structures">Data Structures</option>
                     <option value="System Design">System Design</option>
+                    <option value="Algorithms">Algorithms</option>
+                    <option value="Machine Learning">Machine Learning</option>
                     <option value="Project Work">Project Work</option>
                     <option value="Soft Skills">Soft Skills</option>
                     <option value="Interview Prep">Interview Prep</option>
                     <option value="Other">Other</option>
                   </select>
+                  {manualTask.subject === 'Other' && (
+                    <input
+                      type="text"
+                      value={manualTask.customSubject}
+                      onChange={(e) => setManualTask({ ...manualTask, customSubject: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#FDA92D] mt-2"
+                      placeholder="Enter custom subject"
+                    />
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>

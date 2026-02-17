@@ -24,4 +24,7 @@ router.put('/student/:studentId/task/:taskId', authenticateToken, taskController
 // Get student task performance for report card
 router.get('/student/:studentId/performance', authenticateToken, taskController.getStudentTaskPerformance);
 
+// Create individual task for a student
+router.post('/student/:studentId/create', authenticateToken, taskController.createIndividualTask);
+
 module.exports = router;
