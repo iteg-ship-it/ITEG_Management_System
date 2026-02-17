@@ -373,10 +373,9 @@ export const authApi = createApi({
       async onQueryStarted({ id, techno }, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
-          // Invalidate specific student data to force refetch
           dispatch(authApi.util.invalidateTags([{ type: 'Student', id }]));
         } catch (error) {
-          console.error('Error updating student:', error);
+          // Error handled by toast
         }
       },
     }),
@@ -460,12 +459,10 @@ export const authApi = createApi({
       async onQueryStarted({ studentId, interviewId, ...data }, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
-          // Invalidate all placement student queries to force refetch
           dispatch(authApi.util.invalidateTags(['PlacementStudent']));
-          // Also invalidate specific student data
           dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
         } catch (error) {
-          console.log('Error updating placed info:', error);
+          // Error handled by toast
         }
       },
     }),
@@ -517,7 +514,7 @@ export const authApi = createApi({
           dispatch(authApi.util.invalidateTags(['PlacementStudent']));
           dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
         } catch (error) {
-          console.log('Error rescheduling interview:', error);
+          // Error handled by toast
         }
       },
     }),
@@ -536,7 +533,7 @@ export const authApi = createApi({
           dispatch(authApi.util.invalidateTags(['PlacementStudent']));
           dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
         } catch (error) {
-          console.log('Error adding interview round:', error);
+          // Error handled by toast
         }
       },
     }),
@@ -714,7 +711,6 @@ export const authApi = createApi({
     // Create report card
     createReportCard: builder.mutation({
       query: (reportData) => {
-        console.log('RTK Query - Creating report card with data:', reportData);
         return {
           url: '/reportcards',
           method: "POST",

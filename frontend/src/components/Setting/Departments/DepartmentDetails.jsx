@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useDeleteSubdepartmentMutation, useGetAllDepartmentsQuery } from "../../../redux/api/authApi";
 import { toast } from "react-toastify";
 import AddSubdepartmentModal from "./AddSubdepartmentModal";
-import { buttonStyles } from "../../../styles/buttonStyles";
+
 import CommonTable from "../../common-components/table/CommonTable";
 
 const DepartmentDetails = () => {

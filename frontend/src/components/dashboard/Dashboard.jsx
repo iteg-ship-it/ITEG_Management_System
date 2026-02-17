@@ -35,7 +35,6 @@ import DepartmentDetails from "../Setting/Departments/DepartmentDetails";
 import SubdepartmentDetails from "../Setting/Departments/SubdepartmentDetails";
 
 const Dashboard = () => {
-  console.log('Dashboard routes loaded');
   return (
     <Routes>
       {/* Dashboard Routes - All roles */}

@@ -54,7 +54,6 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
       handleClose();
       onSuccess?.();
     } catch (error) {
-      console.error("Error saving department:", error);
       const errorMessage = error?.data?.message || error?.message || "Error saving department. Please try again.";
       toast.error(errorMessage);
     }

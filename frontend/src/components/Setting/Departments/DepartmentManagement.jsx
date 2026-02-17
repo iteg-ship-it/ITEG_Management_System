@@ -4,7 +4,6 @@ import AddDepartmentModal from "./AddDepartmentModal";
 import PageNavbar from "../../common-components/navbar/PageNavbar";
 import CommonTable from "../../common-components/table/CommonTable";
 import Pagination from "../../common-components/pagination/Pagination";
-import { buttonStyles } from "../../../styles/buttonStyles";
 import { useGetAllDepartmentsQuery, useDeleteDepartmentMutation } from "../../../redux/api/authApi";
 import Loader from "../../common-components/loader/Loader";
 import { toast } from "react-toastify";
