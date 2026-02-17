@@ -1,18 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { IoClose } from "react-icons/io5";
 import { MdBusiness } from "react-icons/md";
 import { toast } from "react-toastify";
+import { useAddDepartmentMutation, useUpdateDepartmentMutation } from "../../../redux/api/authApi";
 
 const PRIMARY_COLOR = "#FDA92D";
 
-const AddDepartmentModal = ({ isOpen, onClose, onSuccess }) => {
+const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
+  const [addDepartment, { isLoading: isAdding }] = useAddDepartmentMutation();
+  const [updateDepartment, { isLoading: isUpdating }] = useUpdateDepartmentMutation();
   const [formData, setFormData] = useState({
     departmentName: "",
     description: "",
     headOfDepartment: "",
-    departmentCode: ""
+    departmentCode: "",
+    status: true
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isEditMode = !!editData;
+  const isLoading = isAdding || isUpdating;
+
+  useEffect(() => {
+    if (editData) {
+      setFormData({
+        departmentName: editData.departmentName || "",
+        description: editData.description || "",
+        headOfDepartment: editData.headOfDepartment || "",
+        departmentCode: editData.departmentCode || "",
+        status: editData.status !== undefined ? editData.status : true
+      });
+    }
+  }, [editData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,22 +44,20 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess }) => {
       toast.error("Please enter department code");
       return;
     }
-
-    setIsSubmitting(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log("Department data:", formData);
-      
-      toast.success("Department added successfully!");
-      onSuccess?.(formData);
+      if (isEditMode) {
+        const result = await updateDepartment({ id: editData._id, ...formData }).unwrap();
+        toast.success(result.message || "Department updated successfully!");
+      } else {
+        const result = await addDepartment(formData).unwrap();
+        toast.success(result.message || "Department added successfully!");
+      }
       handleClose();
+      onSuccess?.();
     } catch (error) {
-      console.error("Error adding department:", error);
-      toast.error("Error adding department. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+      const errorMessage = error?.data?.message || error?.message || "Error saving department. Please try again.";
+      toast.error(errorMessage);
     }
   };
 
@@ -55,7 +71,8 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess }) => {
       departmentName: "",
       description: "",
       headOfDepartment: "",
-      departmentCode: ""
+      departmentCode: "",
+      status: true
     });
   };
 
@@ -81,10 +98,10 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess }) => {
             <MdBusiness size={32} style={{ color: PRIMARY_COLOR }} />
           </div>
           <h2 className="text-2xl font-semibold" style={{ color: PRIMARY_COLOR }}>
-            Add New Department
+            {isEditMode ? "Edit Department" : "Add New Department"}
           </h2>
           <p className="text-sm text-gray-600 mt-2">
-            Create a new department for your organization
+            {isEditMode ? "Update department information" : "Create a new department for your organization"}
           </p>
         </div>
 
@@ -136,6 +153,30 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess }) => {
             />
           </div>
 
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-medium text-gray-700">Status:</label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="status"
+                checked={formData.status === true}
+                onChange={() => handleInputChange('status', true)}
+                className="w-4 h-4 text-[#FDA92D] focus:ring-[#FDA92D]"
+              />
+              <span className="text-sm text-gray-700">Active</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="status"
+                checked={formData.status === false}
+                onChange={() => handleInputChange('status', false)}
+                className="w-4 h-4 text-[#FDA92D] focus:ring-[#FDA92D]"
+              />
+              <span className="text-sm text-gray-700">Inactive</span>
+            </label>
+          </div>
+
           <div className="flex gap-3 mt-6">
             <button
               type="button"
@@ -146,15 +187,15 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess }) => {
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isLoading}
               className="flex-1 h-12 rounded-md transition-colors disabled:opacity-50"
               style={{ 
                 backgroundColor: PRIMARY_COLOR, 
                 color: 'white',
-                opacity: isSubmitting ? 0.7 : 1
+                opacity: isLoading ? 0.7 : 1
               }}
             >
-              {isSubmitting ? "Adding..." : "Add Department"}
+              {isLoading ? (isEditMode ? "Updating..." : "Adding...") : (isEditMode ? "Update Department" : "Add Department")}
             </button>
           </div>
         </form>

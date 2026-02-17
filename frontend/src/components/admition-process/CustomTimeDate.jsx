@@ -11,7 +11,7 @@ import { toast } from "react-toastify";
 
 import TextInput from "../common-components/common-feild/TextInput";
 import CustomDropdown from "../common-components/common-feild/CustomDropdown";
-import DatePickerInput from "../datepickerInput/DatePickerInput";
+import DatePickerInput from "../common-components/datepickerInput/DatePickerInput";
 import Loader from "../common-components/loader/Loader";
 import { buttonStyles } from "../../styles/buttonStyles";
 import BlurBackground from "../common-components/BlurBackground";

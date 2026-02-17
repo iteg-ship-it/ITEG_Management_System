@@ -4,7 +4,6 @@ import defaultProfile from '../../../assets/images/profile-img.png';
 import UserProfile from '../user-profile/UserProfile';
 import { X, Upload } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useSignupMutation } from '../../../redux/api/authApi';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
@@ -12,7 +11,6 @@ import InputField from '../common-feild/InputField';
 import CustomDropdown from '../common-feild/CustomDropdown';
 import { buttonStyles } from '../../../styles/buttonStyles';
 import BlurBackground from '../BlurBackground';
-import { FaUserGroup } from "react-icons/fa6";
 
 const validationSchema = Yup.object({
     name: Yup.string().required('Name is required'),
@@ -91,24 +89,14 @@ const Header = () => {
                 </div>
                 <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
                     {userRole === 'superadmin' && (
-                        <>
-                            <Link
-                                to="/users-management"
-                                className={`flex items-center justify-center h-8 sm:h-9 md:h-10 px-2 sm:px-2 md:px-4 text-xs sm:text-sm font-medium ${buttonStyles.primary}`}
-                                title="Users Management"
-                            >
-                                <FaUserGroup className="w-4 h-4 sm:mr-2" />
-                                <span className="hidden sm:inline">Users</span>
-                            </Link>
-                            <button
-                                onClick={handleAddFaculty}
-                                className={`flex items-center justify-center h-8 sm:h-9 md:h-10 px-2 sm:px-2 md:px-4 text-xs sm:text-sm font-medium ${buttonStyles.primary}`}
-                                title="Add Member"
-                            >
-                                <span className="w-20 hidden sm:inline">Add User</span>
-                                <span className="sm:hidden text-lg">+</span>
-                            </button>
-                        </>
+                        <button
+                            onClick={handleAddFaculty}
+                            className={`flex items-center justify-center h-8 sm:h-9 md:h-10 px-2 sm:px-2 md:px-4 text-xs sm:text-sm font-medium ${buttonStyles.primary}`}
+                            title="Add Member"
+                        >
+                            <span className="w-20 hidden sm:inline">Add User</span>
+                            <span className="sm:hidden text-lg">+</span>
+                        </button>
                     )}
                     <UserProfile />
                 </div>

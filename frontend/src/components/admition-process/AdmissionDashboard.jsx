@@ -21,7 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import PageNavbar from '../common-components/navbar/PageNavbar';
 import AttendanceChart from '../dashboard/AttendanceChart';
-import DepartmentSection from '../Departments/departments';
+import DepartmentSection from '../Setting/Departments/departments';
 
 // Auto-Swapping Flow Cards Component
 const FlowSwapCard = () => {
