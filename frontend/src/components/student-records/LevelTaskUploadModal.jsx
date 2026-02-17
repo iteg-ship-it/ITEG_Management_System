@@ -10,7 +10,9 @@ const LevelTaskUploadModal = ({ isOpen, onClose, level, onTasksUploaded, student
   const [showManualForm, setShowManualForm] = useState(false);
   const [assignmentType, setAssignmentType] = useState('all'); // 'all' or 'selected'
   const [selectedStudents, setSelectedStudents] = useState([]);
+  const [studentSearchQuery, setStudentSearchQuery] = useState('');
   const fileInputRef = useRef(null);
+  const manualFormRef = useRef(null);
   
   const [manualTask, setManualTask] = useState({
     title: '',
@@ -270,7 +272,12 @@ const LevelTaskUploadModal = ({ isOpen, onClose, level, onTasksUploaded, student
               <h3 className="font-semibold text-gray-700 mb-2">Add Manually</h3>
               <p className="text-sm text-gray-600 mb-4">Add tasks one by one manually</p>
               <button
-                onClick={() => setShowManualForm(true)}
+                onClick={() => {
+                  setShowManualForm(true);
+                  setTimeout(() => {
+                    manualFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }, 100);
+                }}
                 className="px-4 py-2 bg-[#22C55E] hover:bg-[#16A34A] text-white rounded-lg font-medium transition-colors"
               >
                 Add Task
@@ -327,8 +334,24 @@ const LevelTaskUploadModal = ({ isOpen, onClose, level, onTasksUploaded, student
                   </button>
                 </div>
               </div>
+              
+              {/* Search Bar */}
+              <div className="mb-4">
+                <input
+                  type="text"
+                  value={studentSearchQuery}
+                  onChange={(e) => setStudentSearchQuery(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#FDA92D]"
+                  placeholder="Search students by name..."
+                />
+              </div>
+              
               <div className="max-h-48 overflow-y-auto space-y-2">
-                {students.map((student) => (
+                {students
+                  .filter(student => 
+                    `${student.firstName} ${student.lastName}`.toLowerCase().includes(studentSearchQuery.toLowerCase())
+                  )
+                  .map((student) => (
                   <label key={student._id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md cursor-pointer">
                     <input
                       type="checkbox"
@@ -348,6 +371,13 @@ const LevelTaskUploadModal = ({ isOpen, onClose, level, onTasksUploaded, student
                     </div>
                   </label>
                 ))}
+                {students.filter(student => 
+                  `${student.firstName} ${student.lastName}`.toLowerCase().includes(studentSearchQuery.toLowerCase())
+                ).length === 0 && studentSearchQuery && (
+                  <div className="text-center py-4 text-gray-500">
+                    <p>No students found matching "{studentSearchQuery}"</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -369,7 +399,7 @@ const LevelTaskUploadModal = ({ isOpen, onClose, level, onTasksUploaded, student
 
           {/* Manual Task Form */}
           {showManualForm && (
-            <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+            <div ref={manualFormRef} className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
               <h4 className="font-medium text-gray-800 mb-4">Add New Task</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
