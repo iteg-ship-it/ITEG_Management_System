@@ -13,7 +13,8 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
     departmentName: "",
     description: "",
     headOfDepartment: "",
-    departmentCode: ""
+    departmentCode: "",
+    status: true
   });
 
   const isEditMode = !!editData;
@@ -25,7 +26,8 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
         departmentName: editData.departmentName || "",
         description: editData.description || "",
         headOfDepartment: editData.headOfDepartment || "",
-        departmentCode: editData.departmentCode || ""
+        departmentCode: editData.departmentCode || "",
+        status: editData.status !== undefined ? editData.status : true
       });
     }
   }, [editData]);
@@ -69,7 +71,8 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
       departmentName: "",
       description: "",
       headOfDepartment: "",
-      departmentCode: ""
+      departmentCode: "",
+      status: true
     });
   };
 
@@ -148,6 +151,30 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
               placeholder="Description"
               rows="3"
             />
+          </div>
+
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-medium text-gray-700">Status:</label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="status"
+                checked={formData.status === true}
+                onChange={() => handleInputChange('status', true)}
+                className="w-4 h-4 text-[#FDA92D] focus:ring-[#FDA92D]"
+              />
+              <span className="text-sm text-gray-700">Active</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="status"
+                checked={formData.status === false}
+                onChange={() => handleInputChange('status', false)}
+                className="w-4 h-4 text-[#FDA92D] focus:ring-[#FDA92D]"
+              />
+              <span className="text-sm text-gray-700">Inactive</span>
+            </label>
           </div>
 
           <div className="flex gap-3 mt-6">

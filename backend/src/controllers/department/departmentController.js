@@ -3,7 +3,7 @@ const Department = require("../../models/department/department");
 // Add Department
 exports.addDepartment = async (req, res) => {
   try {
-    const { departmentName, departmentCode, headOfDepartment, description } = req.body;
+    const { departmentName, departmentCode, headOfDepartment, description, status } = req.body;
 
     if (!departmentName || !departmentCode) {
       return res.status(400).json({ message: "Department name and code are required" });
@@ -18,7 +18,8 @@ exports.addDepartment = async (req, res) => {
       departmentName,
       departmentCode,
       headOfDepartment,
-      description
+      description,
+      status: status !== undefined ? status : true
     });
 
     await department.save();
@@ -240,11 +241,11 @@ exports.deleteLevel = async (req, res) => {
 exports.updateDepartment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { departmentName, departmentCode, headOfDepartment, description } = req.body;
+    const { departmentName, departmentCode, headOfDepartment, description, status } = req.body;
 
     const department = await Department.findByIdAndUpdate(
       id,
-      { departmentName, departmentCode, headOfDepartment, description },
+      { departmentName, departmentCode, headOfDepartment, description, status },
       { new: true, runValidators: true }
     );
 

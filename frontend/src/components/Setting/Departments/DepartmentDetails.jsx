@@ -69,9 +69,17 @@ const DepartmentDetails = () => {
               <div className="w-14 h-14 bg-gradient-to-br from-[#FDA92D] to-[#FDB84D] rounded-xl flex items-center justify-center shadow-md">
                 <MdBusiness size={28} className="text-white" />
               </div>
-              <div>
+              <div className="flex-1">
                 <h1 className="text-2xl font-bold text-gray-900">{department.departmentName}</h1>
-                <p className="text-sm text-gray-500 mt-0.5">{department.departmentCode}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-sm text-gray-500">{department.departmentCode}</span>
+                  <span className="text-xs text-gray-500">•</span>
+                  <span className={`inline-block px-3 py-1 text-xs rounded-full ${
+                    department.status ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                  }`}>
+                    {department.status ? "Active" : "Inactive"}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

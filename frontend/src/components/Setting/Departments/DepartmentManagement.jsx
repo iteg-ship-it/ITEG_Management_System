@@ -81,6 +81,18 @@ const DepartmentManagement = () => {
       render: (row) => row.headOfDepartment || "Not assigned",
     },
     {
+      key: "status",
+      label: "Status",
+      align: "center",
+      render: (row) => (
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+          row.status ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+        }`}>
+          {row.status ? "Active" : "Inactive"}
+        </span>
+      ),
+    },
+    {
       key: "description",
       label: "Description",
       render: (row) => (
