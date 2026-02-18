@@ -196,6 +196,7 @@ exports.getStudentsByLevelWithTasks = async (req, res) => {
     
     const studentsWithTasks = await Promise.all(
       students.map(async (student) => {
+        // Overall task statistics
         const taskStats = await StudentTask.aggregate([
           { $match: { studentId: student._id } },
           { $group: { _id: "$status", count: { $sum: 1 } } }
@@ -209,6 +210,46 @@ exports.getStudentsByLevelWithTasks = async (req, res) => {
 
         taskStats.forEach(stat => {
           stats[stat._id] = stat.count;
+        });
+
+        // Subject-wise task statistics
+        const subjectTaskStats = await StudentTask.aggregate([
+          { $match: { studentId: student._id } },
+          {
+            $lookup: {
+              from: 'tasks',
+              localField: 'taskId',
+              foreignField: '_id',
+              as: 'taskDetails'
+            }
+          },
+          { $unwind: '$taskDetails' },
+          {
+            $group: {
+              _id: {
+                subject: '$taskDetails.subject',
+                status: '$status'
+              },
+              count: { $sum: 1 }
+            }
+          }
+        ]);
+
+        // Organize subject-wise stats
+        const subjectStats = {};
+        subjectTaskStats.forEach(stat => {
+          const subject = stat._id.subject || 'Other';
+          const status = stat._id.status;
+          
+          if (!subjectStats[subject]) {
+            subjectStats[subject] = {
+              pending: 0,
+              'in-progress': 0,
+              completed: 0
+            };
+          }
+          
+          subjectStats[subject][status] = stat.count;
         });
 
         const totalTasks = stats.pending + stats['in-progress'] + stats.completed;
@@ -231,6 +272,7 @@ exports.getStudentsByLevelWithTasks = async (req, res) => {
         return {
           ...student.toObject(),
           taskStats: stats,
+          subjectTaskStats: subjectStats,
           totalTasks,
           readinessStatus
         };

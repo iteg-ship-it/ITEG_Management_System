@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { FaUpload, FaUsers, FaEye } from 'react-icons/fa';
+import { FaUpload, FaUsers, FaEye, FaFilter } from 'react-icons/fa';
 import { Search } from 'lucide-react';
 import LevelTaskUploadModal from './LevelTaskUploadModal';
 import { taskAPI } from '../../services/taskService';
@@ -13,6 +13,9 @@ const LevelWiseStudentManagement = () => {
   const [levelStats, setLevelStats] = useState({});
   const [isTaskUploadModalOpen, setIsTaskUploadModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedSubject, setSelectedSubject] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [availableSubjects, setAvailableSubjects] = useState([]);
   
   // Get admitted students data
   const { data: admittedStudents = [], isLoading: isLoadingAdmitted, refetch } = useAdmitedStudentsQuery(undefined, {
@@ -23,8 +26,8 @@ const LevelWiseStudentManagement = () => {
 
   const levels = ['1A', '1B', '1C', '2A', '2B', '2C'];
 
-  // Table columns configuration
-  const tableColumns = [
+  // Table columns configuration - memoized to update when selectedSubject changes
+  const tableColumns = useMemo(() => [
     {
       key: 'fullName',
       label: 'Student Name',
@@ -81,34 +84,95 @@ const LevelWiseStudentManagement = () => {
       }
     },
     {
-      key: 'pendingTasks',
-      label: 'Pending',
+      key: 'subjectProgress',
+      label: 'Subject Progress',
       align: 'center',
-      render: (student) => (
-        <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
-          {student.taskStats?.pending || 0}
-        </span>
-      )
+      render: (student) => {
+        if (selectedSubject === 'all' || !student.subjectTaskStats || !student.subjectTaskStats[selectedSubject]) {
+          return (
+            <div className="text-xs text-gray-500">-</div>
+          );
+        }
+        
+        const subjectStats = student.subjectTaskStats[selectedSubject];
+        const total = subjectStats.pending + subjectStats['in-progress'] + subjectStats.completed;
+        const completed = subjectStats.completed;
+        const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+        
+        return (
+          <div className="flex flex-col items-center gap-1">
+            <div className="text-xs font-medium text-[#FDA92D]">{selectedSubject}</div>
+            <div className="text-sm font-medium">{completed}/{total}</div>
+            <div className="w-12 bg-gray-200 rounded-full h-1.5">
+              <div 
+                className={`h-1.5 rounded-full transition-all ${
+                  percentage >= 80 ? 'bg-green-500' : 
+                  percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                }`}
+                style={{ width: `${percentage}%` }}
+              ></div>
+            </div>
+            <div className="text-xs text-gray-500">{percentage}%</div>
+          </div>
+        );
+      }
+    },
+    {
+      key: 'pendingTasks',
+      label: selectedSubject !== 'all' ? `${selectedSubject} Pending` : 'Pending',
+      align: 'center',
+      render: (student) => {
+        let count = 0;
+        if (selectedSubject !== 'all' && student.subjectTaskStats && student.subjectTaskStats[selectedSubject]) {
+          count = student.subjectTaskStats[selectedSubject].pending || 0;
+        } else {
+          count = student.taskStats?.pending || 0;
+        }
+        
+        return (
+          <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
+            {count}
+          </span>
+        );
+      }
     },
     {
       key: 'inProgressTasks',
-      label: 'In Progress',
+      label: selectedSubject !== 'all' ? `${selectedSubject} In Progress` : 'In Progress',
       align: 'center',
-      render: (student) => (
-        <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-          {student.taskStats?.['in-progress'] || 0}
-        </span>
-      )
+      render: (student) => {
+        let count = 0;
+        if (selectedSubject !== 'all' && student.subjectTaskStats && student.subjectTaskStats[selectedSubject]) {
+          count = student.subjectTaskStats[selectedSubject]['in-progress'] || 0;
+        } else {
+          count = student.taskStats?.['in-progress'] || 0;
+        }
+        
+        return (
+          <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+            {count}
+          </span>
+        );
+      }
     },
     {
       key: 'completedTasks',
-      label: 'Completed',
+      label: selectedSubject !== 'all' ? `${selectedSubject} Completed` : 'Completed',
       align: 'center',
-      render: (student) => (
-        <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-          {student.taskStats?.completed || 0}
-        </span>
-      )
+      render: (student) => {
+        let count = 0;
+        if (selectedSubject !== 'all' && student.subjectTaskStats && student.subjectTaskStats[selectedSubject]) {
+          count = student.subjectTaskStats[selectedSubject].completed || 0;
+        } else {
+          count = student.taskStats?.completed || 0;
+        }
+        
+        return (
+          <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+            {count}
+          </span>
+        );
+      }
     },
     {
       key: 'readinessStatus',
@@ -133,7 +197,7 @@ const LevelWiseStudentManagement = () => {
         </div>
       )
     }
-  ];
+  ], [selectedSubject]);
 
   // Action button for each row
   const actionButton = (student) => (
@@ -152,27 +216,55 @@ const LevelWiseStudentManagement = () => {
     window.open(`/student-profile/${student._id}`, '_blank');
   };
 
-  // Filter students based on search term
+  // Filter students based on search term, subject, and status
   const filteredStudents = useMemo(() => {
-    if (!searchTerm) return students;
+    let filtered = students;
     
-    return students.filter((student) => {
-      const searchFields = [
-        student.firstName,
-        student.lastName,
-        `${student.firstName} ${student.lastName}`,
-        student.studentMobile,
-        student.village,
-        student.course,
-        student.techno,
-        student.readinessStatus
-      ];
-      
-      return searchFields.some(field => 
-        field && String(field).toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    });
-  }, [students, searchTerm]);
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter((student) => {
+        const searchFields = [
+          student.firstName,
+          student.lastName,
+          `${student.firstName} ${student.lastName}`,
+          student.studentMobile,
+          student.village,
+          student.course,
+          student.techno,
+          student.readinessStatus
+        ];
+        
+        return searchFields.some(field => 
+          field && String(field).toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      });
+    }
+    
+    // Apply subject and status filters
+    if (selectedSubject !== 'all' || selectedStatus !== 'all') {
+      filtered = filtered.filter((student) => {
+        if (!student.subjectTaskStats) return false;
+        
+        // If subject is selected, check if student has tasks in that subject
+        if (selectedSubject !== 'all') {
+          const subjectStats = student.subjectTaskStats[selectedSubject];
+          if (!subjectStats) return false;
+          
+          // If status is also selected, check the specific status count
+          if (selectedStatus !== 'all') {
+            return subjectStats[selectedStatus] > 0;
+          }
+          
+          // If only subject is selected, show students with any tasks in that subject
+          return (subjectStats.pending + subjectStats['in-progress'] + subjectStats.completed) > 0;
+        }
+        
+        return true;
+      });
+    }
+    
+    return filtered;
+  }, [students, searchTerm, selectedSubject, selectedStatus]);
 
   useEffect(() => {
     if (admittedStudents.length > 0) {
@@ -208,6 +300,17 @@ const LevelWiseStudentManagement = () => {
           return nameA.localeCompare(nameB);
         });
         setStudents(sortedStudents);
+        
+        // Extract unique subjects from all students' tasks
+        const subjects = new Set();
+        sortedStudents.forEach(student => {
+          if (student.subjectTaskStats) {
+            Object.keys(student.subjectTaskStats).forEach(subject => {
+              subjects.add(subject);
+            });
+          }
+        });
+        setAvailableSubjects(Array.from(subjects).sort());
       } else {
         // Fallback to regular filtering with consistent sorting
         const filteredStudents = admittedStudents
@@ -218,6 +321,7 @@ const LevelWiseStudentManagement = () => {
             return nameA.localeCompare(nameB);
           });
         setStudents(filteredStudents);
+        setAvailableSubjects([]);
       }
     } catch (error) {
       console.error('Error fetching students:', error);
@@ -230,6 +334,7 @@ const LevelWiseStudentManagement = () => {
           return nameA.localeCompare(nameB);
         });
       setStudents(filteredStudents);
+      setAvailableSubjects([]);
     } finally {
       setLoading(false);
     }
@@ -255,6 +360,9 @@ const LevelWiseStudentManagement = () => {
     fetchStudentsByLevel(selectedLevel);
     // Force refetch of admitted students data
     refetch();
+    // Reset filters to show new data
+    setSelectedSubject('all');
+    setSelectedStatus('all');
     // Small delay to ensure backend data is updated
     setTimeout(() => {
       fetchStudentsByLevel(selectedLevel);
@@ -317,38 +425,137 @@ const LevelWiseStudentManagement = () => {
             </div>
           </div>
           
-          <button
-            onClick={() => setIsTaskUploadModalOpen(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-[#FDA92D] hover:bg-[#E6941A] text-white rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
-          >
-            <FaUpload className="text-sm" />
-            Upload Tasks for Level {selectedLevel}
-          </button>
+          <div className="flex items-center gap-4">
+            {/* Dynamic Filters */}
+            <div className="flex items-center gap-3">
+              <FaFilter className="text-gray-600 text-sm" />
+              {/* Subject Filter */}
+              <div className="relative">
+                <select
+                  value={selectedSubject}
+                  onChange={(e) => {
+                    setSelectedSubject(e.target.value);
+                    if (e.target.value === 'all') {
+                      setSelectedStatus('all');
+                    }
+                  }}
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FDA92D] focus:border-transparent min-w-[140px] appearance-none transition-all duration-200"
+                  style={{
+                    background: selectedSubject !== 'all' ? `
+                      linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 20%),
+                      linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 20%),
+                      white
+                    ` : 'white'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (selectedSubject === 'all') {
+                      e.target.style.background = `
+                        linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 20%),
+                        linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 20%),
+                        white
+                      `;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (selectedSubject === 'all') {
+                      e.target.style.background = 'white';
+                    }
+                  }}
+                >
+                  <option value="all">All Subjects</option>
+                  {availableSubjects.map(subject => (
+                    <option key={subject} value={subject}>{subject}</option>
+                  ))}
+                </select>
+              </div>
+              
+              {/* Status Filter - Only show when subject is selected */}
+              {selectedSubject !== 'all' && (
+                <div className="relative">
+                  <select
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FDA92D] focus:border-transparent min-w-[120px] appearance-none transition-all duration-200"
+                    style={{
+                      background: selectedStatus !== 'all' ? `
+                        linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 20%),
+                        linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 20%),
+                        white
+                      ` : 'white'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (selectedStatus === 'all') {
+                        e.target.style.background = `
+                          linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 20%),
+                          linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 20%),
+                          white
+                        `;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (selectedStatus === 'all') {
+                        e.target.style.background = 'white';
+                      }
+                    }}
+                  >
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+              )}
+              
+              {/* Clear Filters */}
+              {(selectedSubject !== 'all' || selectedStatus !== 'all') && (
+                <button
+                  onClick={() => {
+                    setSelectedSubject('all');
+                    setSelectedStatus('all');
+                  }}
+                  className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 font-medium transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            
+            <button
+              onClick={() => setIsTaskUploadModalOpen(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-[#FDA92D] hover:bg-[#E6941A] text-white rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
+            >
+              <FaUpload className="text-sm" />
+              Upload Tasks for Level {selectedLevel}
+            </button>
+          </div>
         </div>
 
         {/* Search Bar */}
         <div className="mb-6">
-          <div className="flex border border-gray-300 rounded-md overflow-hidden w-full max-w-3xl h-12 bg-white relative focus-within:border-black transition-colors">
-            <div className="flex items-center px-3 w-full">
-              <Search className="w-4 h-4 text-gray-600 flex-shrink-0" />
-              <input
-                type="text"
-                placeholder="Search students by name, mobile, village..."
-                className="outline-none border-none ring-0 focus:ring-0 px-2 py-2 w-full h-9 text-sm text-gray-600 bg-white"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex border border-gray-300 rounded-md overflow-hidden w-full max-w-md h-12 bg-white relative focus-within:border-black transition-colors">
+              <div className="flex items-center px-3 w-full">
+                <Search className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Search students by name, mobile, village..."
+                  className="outline-none border-none ring-0 focus:ring-0 px-2 py-2 w-full h-9 text-sm text-gray-600 bg-white"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
-            <div
-              className="absolute inset-0 cursor-text"
-              onClick={() => document.querySelector('input[type="text"]').focus()}
-            ></div>
+            
+            {/* Filter Results Info */}
+            {(searchTerm || selectedSubject !== 'all' || selectedStatus !== 'all') && (
+              <div className="text-sm text-gray-600 whitespace-nowrap">
+                Found {filteredStudents.length} student{filteredStudents.length !== 1 ? 's' : ''}
+                {searchTerm && ` matching "${searchTerm}"`}
+                {selectedSubject !== 'all' && ` in ${selectedSubject}`}
+                {selectedStatus !== 'all' && ` with ${selectedStatus} tasks`}
+              </div>
+            )}
           </div>
-          {searchTerm && (
-            <p className="text-sm text-gray-600 mt-2">
-              Found {filteredStudents.length} student{filteredStudents.length !== 1 ? 's' : ''} matching "{searchTerm}"
-            </p>
-          )}
         </div>
 
         {/* Students Table */}
