@@ -18,6 +18,8 @@ const DepartmentManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [rowsPerPage] = useState(10);
   const [selectedRows, setSelectedRows] = useState([]);
+  const [selectedStatus, setSelectedStatus] = useState([]);
+  const [selectedDepartments, setSelectedDepartments] = useState([]);
 
   const departments = departmentsData?.data || [];
 
@@ -55,7 +57,10 @@ const DepartmentManagement = () => {
         dept.departmentCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
         dept.headOfDepartment?.toLowerCase().includes(searchTerm.toLowerCase());
       
-      return searchMatch;
+      const statusMatch = selectedStatus.length === 0 || selectedStatus.includes(dept.status ? "Active" : "Inactive");
+      const departmentMatch = selectedDepartments.length === 0 || selectedDepartments.includes(dept.departmentName);
+      
+      return searchMatch && statusMatch && departmentMatch;
     });
   };
 
@@ -192,7 +197,20 @@ const DepartmentManagement = () => {
             rowsPerPage={rowsPerPage}
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
-            filtersConfig={[]}
+            filtersConfig={[
+              {
+                title: "Status",
+                options: ["Active", "Inactive"],
+                selected: selectedStatus,
+                setter: setSelectedStatus,
+              },
+              {
+                title: "Department",
+                options: [...new Set(departments.map(d => d.departmentName))],
+                selected: selectedDepartments,
+                setter: setSelectedDepartments,
+              },
+            ]}
             filteredData={getFilteredData()}
             selectedRows={selectedRows}
             allData={departments}
