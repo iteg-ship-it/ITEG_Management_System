@@ -1,7 +1,6 @@
-// /* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
 import logo from '../../../assets/images/doulLogo.png';
 import defaultProfile from '../../../assets/images/profile-img.png';
-import UserProfile from '../user-profile/UserProfile';
 import { X, Upload } from 'lucide-react';
 import { useState } from 'react';
 import { useSignupMutation } from '../../../redux/api/authApi';
@@ -26,7 +25,7 @@ const validationSchema = Yup.object({
     role: Yup.string().required('Role is required')
 });
 
-const Header = () => {
+const Header = ({ sidebarOpen = true }) => {
     const userRole = localStorage.getItem('role');
     const [showModal, setShowModal] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
@@ -83,7 +82,10 @@ const Header = () => {
 
     return (
         <>
-            <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-2 sm:px-4 py-1 sm:py-2 bg-[var(--backgroundColor)] border-b border-gray-300 shadow h-14 sm:h-16 md:h-20">
+            <header 
+                className={`fixed top-0 z-40 flex items-center justify-between px-2 sm:px-4 py-1 sm:py-2 bg-[var(--backgroundColor)] border-b border-gray-300 shadow h-14 sm:h-16 md:h-20 transition-all duration-300`}
+                style={{ left: sidebarOpen ? '256px' : '48px', right: 0 }}
+            >
                 <div className="flex items-center gap-2 sm:gap-4">
                     <img src={logo} alt="SSISM Logo" className="h-12 sm:h-16 md:h-20 lg:h-24" />
                 </div>
@@ -98,7 +100,6 @@ const Header = () => {
                             <span className="sm:hidden text-lg">+</span>
                         </button>
                     )}
-                    <UserProfile />
                 </div>
             </header>
 
