@@ -10,7 +10,7 @@ const PermissionSchema = new mongoose.Schema({
   role: { 
     type: String, 
     required: true,
-    enum: ['superadmin', 'admin', 'faculty']
+    enum: ['superadmin', 'admin', 'faculty', 'user']
   },
   permissions: {
     // Dashboard Section

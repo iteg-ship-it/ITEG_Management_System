@@ -51,6 +51,10 @@ const getDefaultPermissions = (role) => {
         basePermissions[key] = { view: true, edit: true, add: false, delete: false };
       });
       break;
+    case 'user':
+      // Basic user permissions - only view access to dashboard
+      basePermissions.dashboard = { view: true, edit: false, add: false, delete: false };
+      break;
   }
   return basePermissions;
 };
