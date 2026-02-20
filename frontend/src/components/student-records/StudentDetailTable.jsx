@@ -1,13 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Pagination from "../common-components/pagination/Pagination";
-import {
-  useAdmitedStudentsQuery,
-} from "../../redux/api/authApi";
+import { useAdmitedStudentsQuery } from "../../redux/api/authApi";
 import Loader from "../common-components/loader/Loader";
 import CommonTable from "../common-components/table/CommonTable";
-// import edit from "../../assets/icons/edit-fill-icon.png";
-// import interview from "../../assets/icons/interview-icon.png";
 import CreateInterviewModal from "./CreateInterviewModal";
 import PageNavbar from "../common-components/navbar/PageNavbar";
 import { buttonStyles } from "../../styles/buttonStyles";
