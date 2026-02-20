@@ -105,18 +105,18 @@ const CommonTable = ({
   /* ========================================================= */
 
   return (
-    <div className="w-full py-4">
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="w-full ">
+      <div className="rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
 
         {/* ================= TABLE ================= */}
-        <div className="overflow-x-auto max-h-[60vh]">
+        <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
 
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="border-b border-gray-200 ">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr
                   key={headerGroup.id}
-                  className="text-xs uppercase tracking-wider text-gray-500 font-semibold"
+                  className="text-xs uppercase tracking-wider text-gray-500 font-semibold bg-blue-50"
                 >
                   {headerGroup.headers.map((header) => (
                     <th
@@ -153,7 +153,7 @@ const CommonTable = ({
               ))}
             </thead>
 
-            <tbody>
+            <tbody className="bg-white">
               {table.getRowModel().rows.length === 0 ? (
                 <tr>
                   <td colSpan={tableColumns.length} className="text-center py-10 text-gray-400">
@@ -187,7 +187,7 @@ const CommonTable = ({
 
         {/* ================= PAGINATION FOOTER ================= */}
         {pagination && (
-          <div className="border-t border-gray-200 bg-gray-50 px-6 py-4">
+          <div className="border-t border-gray-200 px-6 py-4 bg-blue-50">
             <Pagination
               totalItems={table.getFilteredRowModel().rows.length}
               currentPage={table.getState().pagination.pageIndex + 1}

@@ -297,21 +297,11 @@ const StudentDetailTable = () => {
             ))}
           </div>
 
-          <div className="flex justify-between items-center flex-wrap gap-4 mt-4">
-            <Pagination
-              rowsPerPage={rowsPerPage}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              filtersConfig={filtersConfig}
-              filteredData={filteredData}
-              selectedRows={selectedRows}
-              allData={filteredData}
-              sectionName={activeTab === "Level's Cleared" ? "levelscleared" : `level${selectedLevel}`}
-            />
-          </div>
         </div>
 
-        <CommonTable
+   
+      </div>
+     <CommonTable
           data={filteredData}
           columns={columns}
           editable={true}
@@ -326,8 +316,6 @@ const StudentDetailTable = () => {
             navigate(`/student-profile/${row._id}`, { state: { student: row } });
           }}
         />
-      </div>
-
       <CreateInterviewModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}

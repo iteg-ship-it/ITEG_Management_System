@@ -13,8 +13,36 @@ const Pagination = ({
   const start = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const end = Math.min(currentPage * pageSize, totalItems);
 
-  const visiblePages = [];
-  for (let i = 1; i <= totalPages; i++) visiblePages.push(i);
+  const getVisiblePages = () => {
+    const pages = [];
+    const maxVisible = 4;
+
+    if (totalPages <= maxVisible + 2) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+      return pages;
+    }
+
+    pages.push(1);
+
+    if (currentPage <= 3) {
+      for (let i = 2; i <= Math.min(maxVisible, totalPages - 1); i++) pages.push(i);
+      pages.push('...');
+    } else if (currentPage >= totalPages - 2) {
+      pages.push('...');
+      for (let i = Math.max(totalPages - maxVisible + 1, 2); i < totalPages; i++) pages.push(i);
+    } else {
+      pages.push('...');
+      pages.push(currentPage - 1);
+      pages.push(currentPage);
+      pages.push(currentPage + 1);
+      pages.push('...');
+    }
+
+    pages.push(totalPages);
+    return pages;
+  };
+
+  const visiblePages = getVisiblePages();
 
   return (
     <div className="flex items-center justify-between w-full">
@@ -35,18 +63,24 @@ const Pagination = ({
           <ChevronLeft size={16} />
         </button>
 
-        {visiblePages.map((p) => (
-          <button
-            key={p}
-            onClick={() => onPageChange(p)}
-            className={`w-9 h-9 rounded-lg text-sm font-medium border
-              ${currentPage === p
-                ? "bg-orange-500 text-white border-orange-500"
-                : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"}
-            `}
-          >
-            {p}
-          </button>
+        {visiblePages.map((p, idx) => (
+          p === '...' ? (
+            <span key={`ellipsis-${idx}`} className="w-9 h-9 flex items-center justify-center text-gray-500">
+              ...
+            </span>
+          ) : (
+            <button
+              key={p}
+              onClick={() => onPageChange(p)}
+              className={`w-9 h-9 rounded-lg text-sm font-medium border
+                ${currentPage === p
+                  ? "bg-orange-500 text-white border-orange-500"
+                  : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"}
+              `}
+            >
+              {p}
+            </button>
+          )
         ))}
 
         <button
