@@ -36,39 +36,6 @@ const CommonTable = ({
 
   const tableColumns = useMemo(() => {
     const cols = [
-      {
-        id: "select",
-        header: ({ table }) => (
-          <input
-            type="checkbox"
-            className="w-4 h-4 accent-black"
-            checked={table.getIsAllRowsSelected()}
-            onChange={table.getToggleAllRowsSelectedHandler()}
-          />
-        ),
-        cell: ({ row }) => (
-          <input
-            type="checkbox"
-            className="w-4 h-4 accent-black"
-            checked={row.getIsSelected()}
-            onChange={row.getToggleSelectedHandler()}
-            onClick={(e) => e.stopPropagation()}
-          />
-        ),
-        enableSorting: false,
-      },
-
-      {
-        id: "sno",
-        header: "S.No",
-        cell: ({ row, table }) => {
-          const pageIndex = table.getState().pagination.pageIndex;
-          const pageSize = table.getState().pagination.pageSize;
-          return pageIndex * pageSize + row.index + 1;
-        },
-        enableSorting: false,
-      },
-
       ...columns.map((col) => ({
         accessorKey: col.key,
         header: col.label,
@@ -124,13 +91,16 @@ const CommonTable = ({
   /* ===================== SELECTED IDS ===================== */
 
   useEffect(() => {
+    if (!onSelectionChange) return;
+
     const selectedIds = Object.keys(rowSelection)
       .filter((key) => rowSelection[key])
       .map((index) => data[parseInt(index)]?._id)
       .filter(Boolean);
 
-    onSelectionChange?.(selectedIds);
-  }, [rowSelection, data, onSelectionChange]);
+    onSelectionChange(selectedIds);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rowSelection]);
 
   /* ========================================================= */
 
@@ -151,14 +121,13 @@ const CommonTable = ({
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
-                      className={`px-6 py-4 ${header.id === "select" ? "text-center" : "text-left"
-                        }`}
+                      className="px-6 py-4 text-left"
                     >
                       {header.isPlaceholder ? null : (
                         <div
                           className={`flex items-center gap-2 ${header.column.getCanSort()
-                              ? "cursor-pointer select-none"
-                              : ""
+                            ? "cursor-pointer select-none"
+                            : ""
                             }`}
                           onClick={header.column.getToggleSortingHandler()}
                         >
@@ -201,15 +170,9 @@ const CommonTable = ({
                     {row.getVisibleCells().map((cell) => (
                       <td
                         key={cell.id}
-                        className={`px-6 py-4 ${cell.column.id === "select"
-                            ? "text-center"
-                            : "text-left"
-                          } text-gray-700`}
+                        className="px-6 py-4 text-left text-gray-700"
                         onClick={(e) => {
-                          if (
-                            cell.column.id === "select" ||
-                            cell.column.id === "action"
-                          ) e.stopPropagation();
+                          if (cell.column.id === "action") e.stopPropagation();
                         }}
                       >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -224,14 +187,16 @@ const CommonTable = ({
 
         {/* ================= PAGINATION FOOTER ================= */}
         {pagination && (
-          <Pagination
-            totalItems={table.getFilteredRowModel().rows.length}
-            currentPage={table.getState().pagination.pageIndex + 1}
-            pageSize={table.getState().pagination.pageSize}
-            totalPages={table.getPageCount()}
-            onPageChange={(page) => table.setPageIndex(page - 1)}
-            label="items"
-          />
+          <div className="border-t border-gray-200 bg-gray-50 px-6 py-4">
+            <Pagination
+              totalItems={table.getFilteredRowModel().rows.length}
+              currentPage={table.getState().pagination.pageIndex + 1}
+              pageSize={table.getState().pagination.pageSize}
+              totalPages={table.getPageCount()}
+              onPageChange={(page) => table.setPageIndex(page - 1)}
+              label="entries"
+            />
+          </div>
         )}
 
       </div>

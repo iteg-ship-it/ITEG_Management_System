@@ -147,17 +147,17 @@ const UsersManagement = () => {
     ];
 
     const actionButton = (user) => (
-        <div className="flex space-x-1">
+        <div className="flex space-x-2">
             <button
                 onClick={() => handleEditUser(user)}
-                className="p-2 rounded-md bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
+                className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
                 title="Edit User"
             >
                 <Edit size={14} />
             </button>
             <button
                 onClick={() => handleDeleteUser(user.id, user.name)}
-                className="p-2 rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
                 title="Delete User"
             >
                 <Trash2 size={14} />

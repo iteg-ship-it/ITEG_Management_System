@@ -72,7 +72,7 @@ const DepartmentManagement = () => {
       <div className="flex items-center gap-3">
         
         {/* icon card */}
-        <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
           <MdBusiness className="text-orange-500" size={18} />
         </div>
 
@@ -309,32 +309,6 @@ const DepartmentManagement = () => {
           </div>
         </div>
 
-        {/* Search Section */}
-        <div className="px-6 py-4">
-          <Pagination
-            rowsPerPage={rowsPerPage}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            filtersConfig={[
-              {
-                title: "Status",
-                options: ["Active", "Inactive"],
-                selected: selectedStatus,
-                setter: setSelectedStatus,
-              },
-              {
-                title: "Department",
-                options: [...new Set(departments.map(d => d.departmentName))],
-                selected: selectedDepartments,
-                setter: setSelectedDepartments,
-              },
-            ]}
-            filteredData={getFilteredData()}
-            selectedRows={selectedRows}
-            allData={departments}
-            sectionName="departments"
-          />
-        </div>
 
         {/* Table */}
         <CommonTable
