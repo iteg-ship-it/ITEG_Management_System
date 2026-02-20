@@ -24,7 +24,40 @@ const Sidebar = ({ children }) => {
   const location = useLocation();
   const role = (localStorage.getItem("role") || "").toLowerCase();
 
-  const [openMenus, setOpenMenus] = useState([0]);
+  const [openMenus, setOpenMenus] = useState(() => {
+    const path = location.pathname;
+    const initialMenus = [];
+    
+    // Auto-open relevant menu based on current path
+    if (path === "/" || path === "/attendance-details") initialMenus.push(0);
+    if (path === "/admission-process" || path.startsWith("/admission/")) initialMenus.push(1);
+    if (path === "/student-dashboard" || path === "/student-detail-table" || path === "/student-permission" || path.startsWith("/student-profile/")) initialMenus.push(2);
+    if (path === "/readiness-status" || path === "/company-details" || path === "/placement-post" || path.startsWith("/interview-history/") || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/")) initialMenus.push(3);
+    if (path === "/department-management" || path === "/subdepartments" || path === "/levels" || path === "/user-management" || path === "/user-permission" || path.startsWith("/department-details/") || path === "/subdepartment-details") initialMenus.push(4);
+    
+    return initialMenus.length > 0 ? initialMenus : [0];
+  });
+
+  useEffect(() => {
+    const path = location.pathname;
+    const newMenus = [];
+    
+    if (path === "/" || path === "/attendance-details") newMenus.push(0);
+    if (path === "/admission-process" || path.startsWith("/admission/")) newMenus.push(1);
+    if (path === "/student-dashboard" || path === "/student-detail-table" || path === "/student-permission" || path.startsWith("/student-profile/")) newMenus.push(2);
+    if (path === "/readiness-status" || path === "/company-details" || path === "/placement-post" || path.startsWith("/interview-history/") || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/")) newMenus.push(3);
+    if (path === "/department-management" || path === "/subdepartments" || path === "/levels" || path === "/user-management" || path === "/user-permission" || path.startsWith("/department-details/") || path === "/subdepartment-details") newMenus.push(4);
+    
+    if (newMenus.length > 0) {
+      setOpenMenus(prev => {
+        // Only update if menus actually changed
+        if (JSON.stringify(prev.sort()) !== JSON.stringify(newMenus.sort())) {
+          return newMenus;
+        }
+        return prev;
+      });
+    }
+  }, [location.pathname]);
 
   const toggleMenu = (index) => {
     setOpenMenus((prev) =>

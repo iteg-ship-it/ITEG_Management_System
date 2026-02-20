@@ -136,12 +136,10 @@ const StudentDetailTable = () => {
     };
   });
 
-  const filteredData = enhancedData.filter((student) => {
-    // Search term filter
-    const searchableValues = Object.values(student)
-      .map((val) => String(val ?? "").toLowerCase())
-      .join(" ");
-    if (!searchableValues.includes(searchTerm.toLowerCase())) return false;
+  const filteredData = useMemo(() => {
+    return enhancedData.filter((student) => {
+      // Search term filter handled by CommonTable's global filter
+      // Keep other filters here
 
     // Track filter
     const track = toTitleCase(student.track || "");
@@ -181,8 +179,9 @@ const StudentDetailTable = () => {
       matchesLevel = student.currentLevel === selectedLevel;
     }
 
-    return matchesTrack && matchesCourse && matchesAttempts && matchesLevel;
-  });
+      return matchesTrack && matchesCourse && matchesAttempts && matchesLevel;
+    });
+  }, [enhancedData, selectedTracks, selectedCourses, selectedAttempts, activeTab, selectedLevel]);
 
   const handleTabClick = (tab) => {
     setActiveTab(tab);
