@@ -1,5 +1,6 @@
-// /* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
 import logo from '../../../assets/images/doulLogo.png';
+<<<<<<< HEAD
 import defaultProfile from '../../../assets/images/profile-img.png';
 import UserProfile from '../user-profile/UserProfile';
 import { X, Upload } from 'lucide-react';
@@ -11,77 +12,14 @@ import InputField from '../common-feild/InputField';
 import CustomDropdown from '../common-feild/CustomDropdown';
 import { buttonStyles } from '../../../styles/buttonStyles';
 import BlurBackground from '../BlurBackground';
+=======
+>>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
 
-const validationSchema = Yup.object({
-    name: Yup.string().required('Name is required'),
-    email: Yup.string()
-        .email('Invalid email')
-        .matches(/^[a-zA-Z0-9._%+-]+@ssism\.org$/, 'Email must be from @ssism.org domain')
-        .required('Email is required'),
-    password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
-    mobileNo: Yup.string().matches(/^[0-9]{10}$/, 'Mobile number must be 10 digits').required('Mobile number is required'),
-    adharCard: Yup.string().matches(/^[0-9]{12}$/, 'Adhar card must be 12 digits').required('Adhar card is required'),
-    department: Yup.string().required('Department is required'),
-    position: Yup.string().required('Position is required'),
-    role: Yup.string().required('Role is required')
-});
+const Header = ({ sidebarOpen = true, heading, buttons, searchBox }) => {
 
-const Header = () => {
-    const userRole = localStorage.getItem('role');
-    const [showModal, setShowModal] = useState(false);
-    const [selectedImage, setSelectedImage] = useState(null);
-    const [signup, { isLoading }] = useSignupMutation();
-
-    const initialValues = {
-        name: '',
-        profileImage: '',
-        email: '',
-        password: '',
-        mobileNo: '',
-        adharCard: '',
-        department: '',
-        position: '',
-        role: 'faculty'
-    };
-
-    const handleAddFaculty = () => {
-        setShowModal(true);
-    };
-
-    const handleImageUpload = (file, setFieldValue) => {
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            setFieldValue('profileImage', e.target.result);
-            setSelectedImage(file);
-        };
-        reader.readAsDataURL(file);
-    };
-
-    const handleSubmit = async (values, { resetForm }) => {
-        const facultyData = {
-            ...values,
-            profileImage: values.profileImage || defaultProfile,
-            isActive: true,
-            createdAt: new Date(),
-            updatedAt: new Date()
-        };
-
-        try {
-            await signup(facultyData).unwrap();
-            alert('Faculty added successfully!');
-            setShowModal(false);
-            resetForm();
-            setSelectedImage(null);
-        } catch (error) {
-            console.error('Signup error:', error);
-            const errorMessage = error?.data?.message || error?.message || 'Error adding faculty';
-            alert(errorMessage);
-        }
-    };
 
     return (
+<<<<<<< HEAD
         <>
             <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-2 sm:px-4 py-1 sm:py-2 bg-[var(--backgroundColor)] border-b border-gray-300 shadow h-14 sm:h-16 md:h-20">
                 <div className="flex items-center gap-2 sm:gap-4">
@@ -218,6 +156,25 @@ const Header = () => {
                     </div>
             </BlurBackground>
         </>
+=======
+        <header 
+            className={`fixed top-0 z-40 flex items-center justify-between px-2 sm:px-4 py-1 sm:py-2 bg-[var(--backgroundColor)] border-b border-gray-300 shadow h-14 sm:h-16 md:h-20 transition-all duration-300`}
+            style={{ left: sidebarOpen ? '256px' : '48px', right: 0 }}
+        >
+            <div className="flex items-center gap-2 sm:gap-4">
+                <img src={logo} alt="SSISM Logo" className="h-12 sm:h-16 md:h-20 lg:h-24" />
+                {heading && (
+                    <h1 className="text-lg sm:text-xl md:text-2xl font-semibold">
+                        {heading}
+                    </h1>
+                )}
+            </div>
+            <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+                {searchBox}
+                {buttons}
+            </div>
+        </header>
+>>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
     );
 };
 

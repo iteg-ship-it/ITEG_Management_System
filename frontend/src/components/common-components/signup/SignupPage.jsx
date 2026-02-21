@@ -1,6 +1,6 @@
 import { Formik, Form } from "formik";
 
-import TextInput from "../common-feild/TextInput";
+import InputField from "../common-feild/InputField";
 import CustomDropdown from "../common-feild/CustomDropdown";
 import { signupValidationSchema } from "../../../validationSchema";
 import RadioGroup from "../common-feild/RadioGroup";
@@ -58,8 +58,8 @@ const SignupPage = () => {
           <h2 className="text-3xl font-bold mb-6">Personal Information</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <TextInput label="First Name" name="firstName" />
-            <TextInput label="Last Name" name="lastName" />
+            <InputField label="First Name" name="firstName" />
+            <InputField label="Last Name" name="lastName" />
             <CustomDropdown
               label="Gender"
               name="gender"
@@ -70,10 +70,10 @@ const SignupPage = () => {
                 { value: "other", label: "Other" },
               ]}
             />
-            <TextInput label="Contact Number" name="contactNumber" />
-            <TextInput label="Father's Name" name="fathersName" />
-            <TextInput label="Father's Contact" name="fathersContact" />
-            <TextInput
+            <InputField label="Contact Number" name="contactNumber" />
+            <InputField label="Father's Name" name="fathersName" />
+            <InputField label="Father's Contact" name="fathersContact" />
+            <InputField
               label="Address"
               name="address"
               className="col-span-1 md:col-span-2"
@@ -93,10 +93,10 @@ const SignupPage = () => {
 
           <h2 className="text-3xl font-bold my-6 w-full">Academic details</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <TextInput label="12th Subject" name="twelfthSubject" />
-            <TextInput label="12th Percentage" name="twelfthPercentage" />
-            <TextInput label="10th Percentage" name="tenthPercentage" />
-            <TextInput
+            <InputField label="12th Subject" name="twelfthSubject" />
+            <InputField label="12th Percentage" name="twelfthPercentage" />
+            <InputField label="10th Percentage" name="tenthPercentage" />
+            <InputField
               label="12th Passout Year"
               name="twelfthPassoutYear"
               type="date"

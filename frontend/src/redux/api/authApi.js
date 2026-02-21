@@ -373,10 +373,9 @@ export const authApi = createApi({
       async onQueryStarted({ id, techno }, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
-          // Invalidate specific student data to force refetch
           dispatch(authApi.util.invalidateTags([{ type: 'Student', id }]));
         } catch (error) {
-          console.error('Error updating student:', error);
+          // Error handled by toast
         }
       },
     }),
@@ -460,12 +459,10 @@ export const authApi = createApi({
       async onQueryStarted({ studentId, interviewId, ...data }, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
-          // Invalidate all placement student queries to force refetch
           dispatch(authApi.util.invalidateTags(['PlacementStudent']));
-          // Also invalidate specific student data
           dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
         } catch (error) {
-          console.log('Error updating placed info:', error);
+          // Error handled by toast
         }
       },
     }),
@@ -517,7 +514,7 @@ export const authApi = createApi({
           dispatch(authApi.util.invalidateTags(['PlacementStudent']));
           dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
         } catch (error) {
-          console.log('Error rescheduling interview:', error);
+          // Error handled by toast
         }
       },
     }),
@@ -536,7 +533,7 @@ export const authApi = createApi({
           dispatch(authApi.util.invalidateTags(['PlacementStudent']));
           dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
         } catch (error) {
-          console.log('Error adding interview round:', error);
+          // Error handled by toast
         }
       },
     }),
@@ -714,7 +711,6 @@ export const authApi = createApi({
     // Create report card
     createReportCard: builder.mutation({
       query: (reportData) => {
-        console.log('RTK Query - Creating report card with data:', reportData);
         return {
           url: '/reportcards',
           method: "POST",
@@ -749,12 +745,16 @@ export const authApi = createApi({
     }),
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     // ---------Department Management-------------
     
     // Add department
 =======
     // Add Department
 >>>>>>> b051ea7966eb15b2629550aa3f4c0f448678e164
+=======
+    // Add Department
+>>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
     addDepartment: builder.mutation({
       query: (departmentData) => ({
         url: '/departments/add',
@@ -765,10 +765,14 @@ export const authApi = createApi({
     }),
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     // Get all departments
 =======
     // Get All Departments
 >>>>>>> b051ea7966eb15b2629550aa3f4c0f448678e164
+=======
+    // Get All Departments
+>>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
     getAllDepartments: builder.query({
       query: () => ({
         url: '/departments/all',
@@ -776,8 +780,11 @@ export const authApi = createApi({
       }),
       providesTags: ['Department'],
 <<<<<<< HEAD
+<<<<<<< HEAD
       keepUnusedDataFor: 300,
 =======
+=======
+>>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
     }),
 
     // Update Department
@@ -911,7 +918,10 @@ export const authApi = createApi({
         method: "GET",
       }),
       providesTags: ['Department'],
+<<<<<<< HEAD
 >>>>>>> b051ea7966eb15b2629550aa3f4c0f448678e164
+=======
+>>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
     }),
 
   }),
@@ -973,8 +983,11 @@ export const {
   useUpdateReportCardMutation,
   useAddDepartmentMutation,
 <<<<<<< HEAD
+<<<<<<< HEAD
   useGetAllDepartmentsQuery
 =======
+=======
+>>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
   useGetAllDepartmentsQuery,
   useUpdateDepartmentMutation,
   useDeleteDepartmentMutation,
@@ -990,5 +1003,8 @@ export const {
   useUpdateSubLevelMutation,
   useDeleteSubLevelMutation,
   useGetSubLevelsByLevelQuery
+<<<<<<< HEAD
 >>>>>>> b051ea7966eb15b2629550aa3f4c0f448678e164
+=======
+>>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
 } = authApi;

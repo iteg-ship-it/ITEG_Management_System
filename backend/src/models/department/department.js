@@ -28,6 +28,7 @@ const DepartmentSchema = new mongoose.Schema({
   departmentCode: { type: String, required: true, unique: true },
   headOfDepartment: { type: String, default: "" },
   description: { type: String, default: "" },
+  status: { type: Boolean, default: true },
   studentCount: { type: Number, default: 0 },
   subdepartments: [SubdepartmentSchema],
   createdAt: { type: Date, default: Date.now },

@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+<<<<<<< HEAD
 
 console.log('🚀 Step 1: Imports loaded');
 
@@ -49,3 +50,24 @@ try {
     </div>
   `;
 }
+=======
+import "./index.css";
+import { store } from "./redux/store.js";
+import App from "./App.jsx";
+import { Provider } from "react-redux";
+
+console.log('API URL:', import.meta.env.VITE_API_URL);
+
+const rootElement = document.getElementById("root");
+if (!rootElement) {
+  throw new Error('Root element not found!');
+}
+
+ReactDOM.createRoot(rootElement).render(
+  <React.StrictMode>
+    <Provider store={store}>
+      <App />
+    </Provider>
+  </React.StrictMode>
+);
+>>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7

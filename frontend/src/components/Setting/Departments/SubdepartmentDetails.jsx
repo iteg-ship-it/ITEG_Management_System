@@ -6,7 +6,10 @@ import { useDeleteLevelMutation, useDeleteSubLevelMutation, useGetAllDepartments
 import { toast } from "react-toastify";
 import AddLevelModal from "../Levels/AddLevelModal";
 import AddSubLevelModal from "../Levels/AddSubLevelModal";
+<<<<<<< HEAD
 import { buttonStyles } from "../../../styles/buttonStyles";
+=======
+>>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
 
 const SubdepartmentDetails = () => {
   const navigate = useNavigate();

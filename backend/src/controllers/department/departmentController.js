@@ -7,7 +7,11 @@ const Department = require("../models/department/department"); // adjust path if
 
 exports.addDepartment = async (req, res) => {
   try {
+<<<<<<< HEAD
     console.log("Received request to add department:", req.body);
+=======
+    const { departmentName, departmentCode, headOfDepartment, description, status } = req.body;
+>>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
 
     const {
       department_id,
@@ -26,6 +30,7 @@ exports.addDepartment = async (req, res) => {
 
     const now = Date.now();
 
+<<<<<<< HEAD
     const newDepartment = new Department({
       department_id,
       department_name,
@@ -34,6 +39,14 @@ exports.addDepartment = async (req, res) => {
       created_at: now,
       updated_at: now,
       sub_departments: sub_departments || []
+=======
+    const department = new Department({
+      departmentName,
+      departmentCode,
+      headOfDepartment,
+      description,
+      status: status !== undefined ? status : true
+>>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
     });
 
     await newDepartment.save();
@@ -260,11 +273,19 @@ exports.deleteLevel = async (req, res) => {
 exports.updateDepartment = async (req, res) => {
   try {
     const { id } = req.params;
+<<<<<<< HEAD
     const { departmentName, departmentCode, headOfDepartment, description } = req.body;
 
     const department = await Department.findByIdAndUpdate(
       id,
       { departmentName, departmentCode, headOfDepartment, description },
+=======
+    const { departmentName, departmentCode, headOfDepartment, description, status } = req.body;
+
+    const department = await Department.findByIdAndUpdate(
+      id,
+      { departmentName, departmentCode, headOfDepartment, description, status },
+>>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
       { new: true, runValidators: true }
     );
 

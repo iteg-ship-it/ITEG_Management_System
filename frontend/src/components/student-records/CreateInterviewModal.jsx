@@ -5,9 +5,14 @@ import { useEffect, useState } from 'react';
 import { useCreateLevelInterviewMutation } from '../../redux/api/authApi';
 import { Formik, Form, useFormikContext } from 'formik';
 import * as Yup from 'yup';
+<<<<<<< HEAD
 // import CustomDatePicker from './CustomDatePicker';
 import DatePickerInput from "../common-components/datepickerInput/DatePickerInput";
 import TextInput from '../common-components/common-feild/TextInput';
+=======
+import DatePickerInput from "../common-components/datepickerInput/DatePickerInput";
+import InputField from '../common-components/common-feild/InputField';
+>>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
 import CustomDropdown from '../common-components/common-feild/CustomDropdown';
 import { toast } from 'react-toastify';
 import InterviewSuccessModal from './InterviewSuccessModal';
@@ -193,34 +198,34 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents, int
                                 <div className="col-span-2 text-sm font-semibold text-gray-600 mt-4 ">Technical Evaluation</div>
 
                                 <div className="col-span-2 md:col-span-1">
-                                    <TextInput
+                                    <InputField
                                         label="Theoretical Marks (1-10)"
                                         name="Theoretical_Marks"
                                         type="number"
+                                        placeholder="Enter marks (1-10)"
                                     />
-                                    {/* <p className="text-xs text-gray-500 mt-1">Enter marks between 1 to 10</p> */}
                                 </div>
 
                                 <div className="col-span-2 md:col-span-1">
-                                    <TextInput
+                                    <InputField
                                         label="Practical Marks (1-10)"
                                         name="Practical_Marks"
                                         type="number"
+                                        placeholder="Enter marks (1-10)"
                                     />
-                                    {/* <p className="text-xs text-gray-500 mt-1">Enter marks between 1 to 10</p> */}
                                 </div>
 
                                 <div className="col-span-2 md:col-span-1">
-                                    <TextInput
+                                    <InputField
                                         label="Communication Marks (1-10)"
                                         name="Communication_Marks"
                                         type="number"
+                                        placeholder="Enter marks (1-10)"
                                     />
-                                    {/* <p className="text-xs text-gray-500 mt-1">Enter marks between 1 to 10</p> */}
                                 </div>
 
                                 <div className="col-span-2 md:col-span-1">
-                                    <TextInput
+                                    <InputField
                                         label="Total Marks (Auto-calculated)"
                                         name="marks"
                                         type="number"
@@ -245,17 +250,19 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents, int
                                 </div>
 
                                 <div className="col-span-2 md:col-span-1">
-                                    <TextInput
+                                    <InputField
                                         label="Topic"
                                         name="Topic"
                                         className="[&_input]:bg-white [&_input]:-webkit-autofill:bg-white"
+                                        placeholder="Enter interview topic"
                                     />
                                 </div>
 
                                 <div className="col-span-2">
-                                    <TextInput
+                                    <InputField
                                         label="Remark / Feedback"
                                         name="remark"
+                                        placeholder="Enter feedback or remarks"
                                     />
                                 </div>
 

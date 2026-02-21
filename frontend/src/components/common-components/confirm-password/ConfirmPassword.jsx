@@ -5,18 +5,23 @@ import { useResetPasswordMutation } from "../../../redux/api/authApi";
 import logo from "../../../assets/images/logo-ssism.png";
 import bg from "../../../assets/images/bgImg.png";
 import ReusableForm from "../../../ReusableForm";
-import { resetPasswordValidationSchema } from "../../../validationSchema"; // ✅ Correct schema
-import PasswordField from "../common-feild/PasswordField";
+import { resetPasswordValidationSchema } from "../../../validationSchema";
+import InputField from "../common-feild/InputField";
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 const ConfirmPassword = () => {
   const { token } = useParams();
   const navigate = useNavigate();
   const [resetPassword, { isLoading }] = useResetPasswordMutation();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const initialValues = {
     password: "",
     confirmpassword: "",
   };
+
   const handleSubmit = async (values) => {
     try {
       const payload = {
@@ -58,23 +63,31 @@ const ConfirmPassword = () => {
         >
           {({ values, handleChange, errors, touched }) => (
             <>
-              <div className="mt-4">
-                <PasswordField
-                  value={values.password}
-                  onChange={handleChange}
+              <div className="mt-4 relative">
+                <InputField
                   name="password"
-                  password="New Password"
-                  error={touched.password && errors.password}
+                  type={showPassword ? "text" : "password"}
+                  label="New Password"
                 />
+                <div
+                  className="absolute top-[38px] right-3 transform -translate-y-1/2 text-gray-500 cursor-pointer z-10"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </div>
               </div>
-              <div className="mt-4">
-                <PasswordField
-                  value={values.confirmpassword}
-                  onChange={handleChange}
+              <div className="mt-4 relative">
+                <InputField
                   name="confirmpassword"
-                  password="Confirm Password"
-                  error={touched.confirmpassword && errors.confirmpassword}
+                  type={showConfirmPassword ? "text" : "password"}
+                  label="Confirm Password"
                 />
+                <div
+                  className="absolute top-[38px] right-3 transform -translate-y-1/2 text-gray-500 cursor-pointer z-10"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </div>
               </div>
               <button
                 type="submit"

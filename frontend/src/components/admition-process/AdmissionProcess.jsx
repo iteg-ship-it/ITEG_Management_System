@@ -661,20 +661,10 @@ const StudentList = () => {
               </p>
             ))}
           </div>
-          <div className="flex justify-between items-center flex-wrap gap-4">
-            <Pagination
-              rowsPerPage={rowsPerPage}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              filtersConfig={filtersConfig}
-              filteredData={filteredData}
-              selectedRows={selectedRows}
-              allData={data}
-              sectionName={activeTab.replace(/\s+/g, '').toLowerCase()}
-            />
-          </div>
+
         </div>
-        <CommonTable
+      
+      </div>  <CommonTable
           data={filteredData}
           columns={columns}
           editable={!!actionButton}
@@ -688,7 +678,6 @@ const StudentList = () => {
             navigate(`/admission/edit/${row._id}`, { state: { student: row } });
           }}
         />
-      </div>
       {isModalOpen && selectedStudentId && (
         <CustomTimeDate
           isOpen={isModalOpen}

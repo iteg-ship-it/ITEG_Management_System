@@ -1,13 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Pagination from "../common-components/pagination/Pagination";
-import {
-  useAdmitedStudentsQuery,
-} from "../../redux/api/authApi";
+import { useAdmitedStudentsQuery } from "../../redux/api/authApi";
 import Loader from "../common-components/loader/Loader";
 import CommonTable from "../common-components/table/CommonTable";
-// import edit from "../../assets/icons/edit-fill-icon.png";
-// import interview from "../../assets/icons/interview-icon.png";
 import CreateInterviewModal from "./CreateInterviewModal";
 import PageNavbar from "../common-components/navbar/PageNavbar";
 import { buttonStyles } from "../../styles/buttonStyles";
@@ -136,12 +132,10 @@ const StudentDetailTable = () => {
     };
   });
 
-  const filteredData = enhancedData.filter((student) => {
-    // Search term filter
-    const searchableValues = Object.values(student)
-      .map((val) => String(val ?? "").toLowerCase())
-      .join(" ");
-    if (!searchableValues.includes(searchTerm.toLowerCase())) return false;
+  const filteredData = useMemo(() => {
+    return enhancedData.filter((student) => {
+      // Search term filter handled by CommonTable's global filter
+      // Keep other filters here
 
     // Track filter
     const track = toTitleCase(student.track || "");
@@ -181,8 +175,9 @@ const StudentDetailTable = () => {
       matchesLevel = student.currentLevel === selectedLevel;
     }
 
-    return matchesTrack && matchesCourse && matchesAttempts && matchesLevel;
-  });
+      return matchesTrack && matchesCourse && matchesAttempts && matchesLevel;
+    });
+  }, [enhancedData, selectedTracks, selectedCourses, selectedAttempts, activeTab, selectedLevel]);
 
   const handleTabClick = (tab) => {
     setActiveTab(tab);
@@ -302,21 +297,11 @@ const StudentDetailTable = () => {
             ))}
           </div>
 
-          <div className="flex justify-between items-center flex-wrap gap-4 mt-4">
-            <Pagination
-              rowsPerPage={rowsPerPage}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              filtersConfig={filtersConfig}
-              filteredData={filteredData}
-              selectedRows={selectedRows}
-              allData={filteredData}
-              sectionName={activeTab === "Level's Cleared" ? "levelscleared" : `level${selectedLevel}`}
-            />
-          </div>
         </div>
 
-        <CommonTable
+   
+      </div>
+     <CommonTable
           data={filteredData}
           columns={columns}
           editable={true}
@@ -331,8 +316,6 @@ const StudentDetailTable = () => {
             navigate(`/student-profile/${row._id}`, { state: { student: row } });
           }}
         />
-      </div>
-
       <CreateInterviewModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
