@@ -3,7 +3,6 @@ const router = express.Router();
 
 // Import all route modules
 const userRoutes = require('./userRoutes');
-const permissionRoutes = require('./permissionRoutes');
 const studentRoutes = require('./studentRoutes');
 const studentAdmissionRoutes = require('./studentAdmissionProcessRoutes');
 const otpRoutes = require('./otpRoutes');
@@ -15,7 +14,6 @@ const taskRoutes = require('./taskRoutes');
 
 // Mount routes
 router.use('/user', userRoutes);
-router.use('/permissions', permissionRoutes);
 router.use('/user/otp', otpRoutes);
 router.use('/admitted/students', studentRoutes);
 router.use('/admission/students', studentAdmissionRoutes);

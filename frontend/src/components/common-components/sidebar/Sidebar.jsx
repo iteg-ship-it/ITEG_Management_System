@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { IoMenu } from "react-icons/io5";
@@ -6,10 +5,15 @@ import { FaClipboardList, FaUserGroup } from "react-icons/fa6";
 import { MdWork, MdDashboard } from "react-icons/md";
 import { RiTv2Fill } from "react-icons/ri";
 import { HiChevronUp, HiChevronDown } from "react-icons/hi";
-import { usePermissions } from '../../../hooks/usePermissions';
 
 const Sidebar = ({ children }) => {
-  const { hasPermission } = usePermissions();
+  // Simple permission check based on role
+  const role = (localStorage.getItem("role") || "").toLowerCase();
+  const hasPermission = (permission, action = 'view') => {
+    // For now, allow all permissions for all roles
+    // You can implement proper permission logic later
+    return true;
+  };
   const [isOpen, setIsOpen] = useState(() => {
     // Check if screen is large (lg breakpoint is 1024px)
     return window.innerWidth >= 1024;
@@ -29,7 +33,6 @@ const Sidebar = ({ children }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   const location = useLocation();
-  const role = (localStorage.getItem("role") || "").toLowerCase();
 
   const [openMenus, setOpenMenus] = useState(() => {
     const path = location.pathname;
@@ -52,7 +55,7 @@ const Sidebar = ({ children }) => {
       openMenus.push(3);
     }
     // User Management menu (index 4)
-    if (path === "/users-management" || path === "/permission-management" || path.startsWith("/user-profile/")) {
+    if (path === "/users-management" || path.startsWith("/user-profile/")) {
       openMenus.push(4);
     }
     if (path.startsWith("/student-profile/")) {
@@ -85,7 +88,7 @@ const Sidebar = ({ children }) => {
       newOpenMenus.push(3);
     }
     // User Management menu (index 4)
-    if (path === "/users-management" || path === "/permission-management" || path.startsWith("/user-profile/")) {
+    if (path === "/users-management" || path.startsWith("/user-profile/")) {
       newOpenMenus.push(4);
     }
     if (path.startsWith("/student-profile/")) {
@@ -148,10 +151,6 @@ const Sidebar = ({ children }) => {
       return path === "/users-management" || path.startsWith("/user-profile/");
     }
 
-    if (subPath === "/permission-management") {
-      return path === "/permission-management";
-    }
-
     return path === subPath || path.startsWith(subPath + "/");
   };
 
@@ -199,7 +198,6 @@ const Sidebar = ({ children }) => {
       permission: 'usersManagement',
       subMenu: [
         { name: "Users", path: "/users-management", permission: 'usersManagement' },
-        { name: "Permission", path: "/permission-management", permission: 'permissionManagement' },
       ],
     },
   ];

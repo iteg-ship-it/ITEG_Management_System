@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./components/common-components/login-page/LoginPage";
@@ -14,7 +13,6 @@ import { useSessionTimeout } from "./hooks/useSessionTimeout";
 import ServerError from "./components/common-components/error-pages/ServerError";
 import ErrorBoundary from './components/common-components/protected-route/ErrorBoundary';
 import SessionTimeoutModal from './components/common-components/user-profile/SessionTimeoutModal';
-import { PermissionProvider } from './contexts/PermissionContext';
 
 
 // ✅ Protected Route Component
@@ -54,11 +52,9 @@ function App() {
               path="/*"
               element={
                 <ProtectedRoute>
-                  <PermissionProvider>
-                    <div className="bg-white">
-                      <Layout />
-                    </div>
-                  </PermissionProvider>
+                  <div className="bg-white">
+                    <Layout />
+                  </div>
                 </ProtectedRoute>
               }
             />

@@ -1,8 +1,6 @@
 // ✨ JWT, bcrypt, and other setups
 require("dotenv").config();
 const User = require("../../models/user/user");
-const Permission = require("../../models/user/permission");
-const { getDefaultPermissions } = require("../../utils/permissionUtils");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
@@ -81,15 +79,6 @@ exports.createUser = async (req, res) => {
     });
 
     await newUser.save();
-
-    // Create default permissions for the new user
-    const defaultPermissions = getDefaultPermissions(role);
-    const newPermission = new Permission({
-      userId: newUser._id,
-      role: role,
-      permissions: defaultPermissions
-    });
-    await newPermission.save();
 
     res.status(201).json({
       message: `${role.charAt(0).toUpperCase() + role.slice(1)} created successfully!`,
@@ -392,16 +381,6 @@ exports.googleAuthCallback = async (req, res) => {
         profileImage: _json.picture || "https://via.placeholder.com/150",
       });
       isNewUser = true;
-    }
-
-    // Create permissions if new user or if permissions don't exist
-    if (isNewUser) {
-      const defaultPermissions = getDefaultPermissions(user.role);
-      await Permission.create({
-        userId: user._id,
-        role: user.role,
-        permissions: defaultPermissions
-      });
     }
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
