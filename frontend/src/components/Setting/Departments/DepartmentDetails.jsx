@@ -5,11 +5,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useDeleteSubdepartmentMutation, useGetAllDepartmentsQuery } from "../../../redux/api/authApi";
 import { toast } from "react-toastify";
 import AddSubdepartmentModal from "./AddSubdepartmentModal";
-<<<<<<< HEAD
-import { buttonStyles } from "../../../styles/buttonStyles";
-=======
-
->>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
 import CommonTable from "../../common-components/table/CommonTable";
 
 const DepartmentDetails = () => {
@@ -73,11 +68,6 @@ const DepartmentDetails = () => {
               <div className="w-14 h-14 bg-gradient-to-br from-[#FDA92D] to-[#FDB84D] rounded-xl flex items-center justify-center shadow-md">
                 <MdBusiness size={28} className="text-white" />
               </div>
-<<<<<<< HEAD
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">{department.departmentName}</h1>
-                <p className="text-sm text-gray-500 mt-0.5">{department.departmentCode}</p>
-=======
               <div className="flex-1">
                 <h1 className="text-2xl font-bold text-gray-900">{department.departmentName}</h1>
                 <div className="flex items-center gap-2 mt-1">
@@ -89,7 +79,6 @@ const DepartmentDetails = () => {
                     {department.status ? "Active" : "Inactive"}
                   </span>
                 </div>
->>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
               </div>
             </div>
           </div>

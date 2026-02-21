@@ -1,8 +1,4 @@
 import Sidebar from './../common-components/sidebar/Sidebar';
-<<<<<<< HEAD
-import Header from '../common-components/sidebar/Header';
-import Dashboard from './Dashboard';
-=======
 import { Routes, Route } from "react-router-dom";
 import AdmissionDashboard from "../admition-process/AdmissionDashboard";
 import AdmissionProcess from "../admition-process/AdmissionProcess";
@@ -34,17 +30,11 @@ import SubDepartment from "../Setting/Departments/SubDepartment";
 import ShowLevels from "../Setting/Levels/ShowLevels";
 import DepartmentDetails from "../Setting/Departments/DepartmentDetails";
 import SubdepartmentDetails from "../Setting/Departments/SubdepartmentDetails";
->>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
 
 const Layout = () => {
     return (
         <div className="min-h-screen">
             <Sidebar>
-<<<<<<< HEAD
-                <Dashboard />
-            </Sidebar>
-            <Header />
-=======
                 <Routes>
                     <Route path="/" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionDashboard /></ProtectedRoute>} />
                     <Route path="/attendance-details" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AttendanceDetails /></ProtectedRoute>} />
@@ -78,7 +68,6 @@ const Layout = () => {
                     <Route path="*" element={<PageNotFound />} />
                 </Routes>
             </Sidebar>
->>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
         </div>
     );
 };

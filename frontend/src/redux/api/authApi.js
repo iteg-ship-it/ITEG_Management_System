@@ -744,17 +744,7 @@ export const authApi = createApi({
       invalidatesTags: ['Student'],
     }),
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-    // ---------Department Management-------------
-    
-    // Add department
-=======
     // Add Department
->>>>>>> b051ea7966eb15b2629550aa3f4c0f448678e164
-=======
-    // Add Department
->>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
     addDepartment: builder.mutation({
       query: (departmentData) => ({
         url: '/departments/add',
@@ -764,27 +754,14 @@ export const authApi = createApi({
       invalidatesTags: ['Department'],
     }),
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-    // Get all departments
-=======
     // Get All Departments
->>>>>>> b051ea7966eb15b2629550aa3f4c0f448678e164
-=======
-    // Get All Departments
->>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
     getAllDepartments: builder.query({
       query: () => ({
         url: '/departments/all',
         method: "GET",
       }),
       providesTags: ['Department'],
-<<<<<<< HEAD
-<<<<<<< HEAD
       keepUnusedDataFor: 300,
-=======
-=======
->>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
     }),
 
     // Update Department
@@ -918,10 +895,6 @@ export const authApi = createApi({
         method: "GET",
       }),
       providesTags: ['Department'],
-<<<<<<< HEAD
->>>>>>> b051ea7966eb15b2629550aa3f4c0f448678e164
-=======
->>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
     }),
 
   }),
@@ -982,12 +955,6 @@ export const {
   useGetReportCardForEditQuery,
   useUpdateReportCardMutation,
   useAddDepartmentMutation,
-<<<<<<< HEAD
-<<<<<<< HEAD
-  useGetAllDepartmentsQuery
-=======
-=======
->>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
   useGetAllDepartmentsQuery,
   useUpdateDepartmentMutation,
   useDeleteDepartmentMutation,
@@ -1003,8 +970,4 @@ export const {
   useUpdateSubLevelMutation,
   useDeleteSubLevelMutation,
   useGetSubLevelsByLevelQuery
-<<<<<<< HEAD
->>>>>>> b051ea7966eb15b2629550aa3f4c0f448678e164
-=======
->>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
 } = authApi;

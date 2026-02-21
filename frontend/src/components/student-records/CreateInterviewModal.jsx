@@ -5,14 +5,8 @@ import { useEffect, useState } from 'react';
 import { useCreateLevelInterviewMutation } from '../../redux/api/authApi';
 import { Formik, Form, useFormikContext } from 'formik';
 import * as Yup from 'yup';
-<<<<<<< HEAD
-// import CustomDatePicker from './CustomDatePicker';
-import DatePickerInput from "../common-components/datepickerInput/DatePickerInput";
-import TextInput from '../common-components/common-feild/TextInput';
-=======
 import DatePickerInput from "../common-components/datepickerInput/DatePickerInput";
 import InputField from '../common-components/common-feild/InputField';
->>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
 import CustomDropdown from '../common-components/common-feild/CustomDropdown';
 import { toast } from 'react-toastify';
 import InterviewSuccessModal from './InterviewSuccessModal';

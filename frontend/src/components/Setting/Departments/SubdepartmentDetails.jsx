@@ -1,18 +1,13 @@
 import { useState } from "react";
 import { MdAccountTree, MdLayers, MdAdd, MdEdit, MdDelete, MdBusiness, MdExpandMore, MdExpandLess } from "react-icons/md";
 import PageNavbar from "../../common-components/navbar/PageNavbar";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useDeleteLevelMutation, useDeleteSubLevelMutation, useGetAllDepartmentsQuery } from "../../../redux/api/authApi";
 import { toast } from "react-toastify";
 import AddLevelModal from "../Levels/AddLevelModal";
 import AddSubLevelModal from "../Levels/AddSubLevelModal";
-<<<<<<< HEAD
-import { buttonStyles } from "../../../styles/buttonStyles";
-=======
->>>>>>> 3bc470d053fbcb9087ee7933ac19441ee403e4f7
 
 const SubdepartmentDetails = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const { departmentId, subdepartment: subdepartmentFromState, departmentName } = location.state || {};
   const { refetch, data: departmentsData } = useGetAllDepartmentsQuery();
