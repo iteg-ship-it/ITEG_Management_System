@@ -247,7 +247,7 @@ const UsersManagement = () => {
                                 <div className="col-span-2 text-sm font-semibold text-gray-600 mt-2">User Information</div>
 
                                 <div className="col-span-2 md:col-span-1">
-                                    <InputField label="Name" name="name" />
+                                    <InputField label="Name" name="name" placeholder="Enter user name" />
                                 </div>
 
                                 <div className="col-span-2 md:col-span-1">

@@ -9,7 +9,7 @@ import { Formik, Form, useFormikContext } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
 
-import TextInput from "../common-components/common-feild/TextInput";
+import InputField from "../common-components/common-feild/InputField";
 import CustomDropdown from "../common-components/common-feild/CustomDropdown";
 import DatePickerInput from "../common-components/datepickerInput/DatePickerInput";
 import Loader from "../common-components/loader/Loader";
@@ -198,7 +198,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
               <div className="col-span-2 text-sm font-semibold text-gray-600">
                 Interview Metadata
               </div>
-              <TextInput name="created_by" label="Created By" disabled />
+              <InputField name="created_by" label="Created By" disabled />
               <DatePickerInput name="date" label="Select Date" />
 
               <div className="col-span-2 text-sm font-semibold text-gray-600">
@@ -248,7 +248,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
                 Assignment Evaluation
               </div>
 
-              <TextInput name="attemptNo" label="Attempt No" disabled />
+              <InputField name="attemptNo" label="Attempt No" disabled />
 
               {/* Assignment Marks Field + Conditional Message */}
               <div>
@@ -273,7 +273,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
               <div className="col-span-2 text-sm font-semibold text-gray-600">
                 Summary & Decision
               </div>
-              <TextInput
+              <InputField
                 name="marks"
                 label="Total Mark"
                 type="number"
@@ -288,7 +288,7 @@ const CustomTimeDate = ({ isOpen, onClose, studentId, refetch, activeTab }) => {
                   { value: "Pending", label: "Pending" },
                 ]}
               />
-              <TextInput
+              <InputField
                 name="remark"
                 label="Remark / Feedback..."
                 className="col-span-2"

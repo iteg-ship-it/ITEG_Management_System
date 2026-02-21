@@ -10,8 +10,12 @@ const InputField = ({
   placeholder = "",
   disabled = false,
   className = "",
+  value,                // for controlled inputs outside Formik
+  onChange,             // for controlled inputs outside Formik
 }) => {
-  const [field, meta] = useField(name);
+  // Only use Formik's useField if we're inside a Formik context
+  const isFormikControlled = !value && !onChange;
+  const [field, meta] = isFormikControlled ? useField(name) : [{ name, value: value || "", onChange }, {}];
 
   const baseInputStyle = `
     w-full h-11 px-3 rounded-lg
@@ -68,17 +72,29 @@ const InputField = ({
 
       {/* ================= NORMAL INPUT ================= */}
       {type !== "select" && type !== "textarea" && (
-        <Field
-          {...field}
-          type={type}
-          disabled={disabled}
-          placeholder={placeholder}
-          className={baseInputStyle}
-        />
+        isFormikControlled ? (
+          <Field
+            {...field}
+            type={type}
+            disabled={disabled}
+            placeholder={placeholder}
+            className={baseInputStyle}
+          />
+        ) : (
+          <input
+            {...field}
+            type={type}
+            disabled={disabled}
+            placeholder={placeholder}
+            className={baseInputStyle}
+          />
+        )
       )}
 
       {/* error */}
-      <ErrorMessage name={name} component="p" className="text-red-500 text-xs mt-1" />
+      {isFormikControlled && (
+        <ErrorMessage name={name} component="p" className="text-red-500 text-xs mt-1" />
+      )}
     </div>
   );
 };

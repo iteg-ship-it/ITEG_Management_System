@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { IoClose } from "react-icons/io5";
 import { MdBusiness } from "react-icons/md";
 import { toast } from "react-toastify";
+import { Formik, Form } from "formik";
+import * as Yup from "yup";
+import InputField from "../../common-components/common-feild/InputField";
 import { useAddDepartmentMutation, useUpdateDepartmentMutation } from "../../../redux/api/authApi";
 
 const PRIMARY_COLOR = "#FDA92D";
@@ -9,75 +12,48 @@ const PRIMARY_COLOR = "#FDA92D";
 const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const [addDepartment, { isLoading: isAdding }] = useAddDepartmentMutation();
   const [updateDepartment, { isLoading: isUpdating }] = useUpdateDepartmentMutation();
-  const [formData, setFormData] = useState({
-    departmentName: "",
-    description: "",
-    headOfDepartment: "",
-    departmentCode: "",
-    status: true
-  });
 
   const isEditMode = !!editData;
   const isLoading = isAdding || isUpdating;
 
-  useEffect(() => {
-    if (editData) {
-      setFormData({
-        departmentName: editData.departmentName || "",
-        description: editData.description || "",
-        headOfDepartment: editData.headOfDepartment || "",
-        departmentCode: editData.departmentCode || "",
-        status: editData.status !== undefined ? editData.status : true
-      });
-    }
-  }, [editData]);
+  const validationSchema = Yup.object({
+    departmentName: Yup.string().required("Department name is required"),
+    departmentCode: Yup.string().required("Department code is required"),
+    headOfDepartment: Yup.string(),
+    description: Yup.string(),
+    status: Yup.boolean()
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!formData.departmentName.trim()) {
-      toast.error("Please enter department name");
-      return;
-    }
+  const initialValues = {
+    departmentName: editData?.departmentName || "",
+    description: editData?.description || "",
+    headOfDepartment: editData?.headOfDepartment || "",
+    departmentCode: editData?.departmentCode || "",
+    status: editData?.status !== undefined ? editData.status : true
+  };
 
-    if (!formData.departmentCode.trim()) {
-      toast.error("Please enter department code");
-      return;
-    }
-    
+  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
       if (isEditMode) {
-        const result = await updateDepartment({ id: editData._id, ...formData }).unwrap();
+        const result = await updateDepartment({ id: editData._id, ...values }).unwrap();
         toast.success(result.message || "Department updated successfully!");
       } else {
-        const result = await addDepartment(formData).unwrap();
+        const result = await addDepartment(values).unwrap();
         toast.success(result.message || "Department added successfully!");
       }
-      handleClose();
+      resetForm();
+      onClose();
       onSuccess?.();
     } catch (error) {
       const errorMessage = error?.data?.message || error?.message || "Error saving department. Please try again.";
       toast.error(errorMessage);
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleClose = () => {
-    resetForm();
     onClose();
-  };
-
-  const resetForm = () => {
-    setFormData({
-      departmentName: "",
-      description: "",
-      headOfDepartment: "",
-      departmentCode: "",
-      status: true
-    });
-  };
-
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   if (!isOpen) return null;
@@ -105,100 +81,87 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="relative">
-            <input
-              type="text"
-              id="departmentName"
-              value={formData.departmentName}
-              onChange={(e) => handleInputChange('departmentName', e.target.value)}
-              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full"
-              placeholder="Department Name *"
-              required
-            />
-          </div>
-
-          <div className="relative">
-            <input
-              type="text"
-              id="departmentCode"
-              value={formData.departmentCode}
-              onChange={(e) => handleInputChange('departmentCode', e.target.value.toUpperCase())}
-              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full"
-              placeholder="Department Code *"
-              maxLength="10"
-              required
-            />
-          </div>
-
-          <div className="relative">
-            <input
-              type="text"
-              id="headOfDepartment"
-              value={formData.headOfDepartment}
-              onChange={(e) => handleInputChange('headOfDepartment', e.target.value)}
-              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full"
-              placeholder="Head of Department"
-            />
-          </div>
-
-          <div className="relative">
-            <textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              className="min-h-[80px] border border-gray-300 px-3 py-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full resize-none"
-              placeholder="Description"
-              rows="3"
-            />
-          </div>
-
-          <div className="flex items-center gap-3">
-            <label className="text-sm font-medium text-gray-700">Status:</label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="status"
-                checked={formData.status === true}
-                onChange={() => handleInputChange('status', true)}
-                className="w-4 h-4 text-[#FDA92D] focus:ring-[#FDA92D]"
+        <Formik
+          initialValues={initialValues}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}
+          enableReinitialize
+        >
+          {({ isSubmitting, values, setFieldValue }) => (
+            <Form className="space-y-4">
+              <InputField 
+                label="Department Name" 
+                name="departmentName" 
+                placeholder="Enter department name"
               />
-              <span className="text-sm text-gray-700">Active</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="status"
-                checked={formData.status === false}
-                onChange={() => handleInputChange('status', false)}
-                className="w-4 h-4 text-[#FDA92D] focus:ring-[#FDA92D]"
-              />
-              <span className="text-sm text-gray-700">Inactive</span>
-            </label>
-          </div>
 
-          <div className="flex gap-3 mt-6">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="flex-1 h-12 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="flex-1 h-12 rounded-md transition-colors disabled:opacity-50"
-              style={{ 
-                backgroundColor: PRIMARY_COLOR, 
-                color: 'white',
-                opacity: isLoading ? 0.7 : 1
-              }}
-            >
-              {isLoading ? (isEditMode ? "Updating..." : "Adding...") : (isEditMode ? "Update Department" : "Add Department")}
-            </button>
-          </div>
-        </form>
+              <InputField 
+                label="Department Code" 
+                name="departmentCode" 
+                placeholder="Enter department code (e.g., CS, IT)"
+              />
+
+              <InputField 
+                label="Head of Department" 
+                name="headOfDepartment" 
+                placeholder="Enter HOD name"
+              />
+
+              <InputField 
+                label="Description" 
+                name="description" 
+                type="textarea"
+                placeholder="Enter department description"
+              />
+
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-medium text-gray-700">Status:</label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="status"
+                    checked={values.status === true}
+                    onChange={() => setFieldValue('status', true)}
+                    className="w-4 h-4 text-[#FDA92D] focus:ring-[#FDA92D]"
+                  />
+                  <span className="text-sm text-gray-700">Active</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="status"
+                    checked={values.status === false}
+                    onChange={() => setFieldValue('status', false)}
+                    className="w-4 h-4 text-[#FDA92D] focus:ring-[#FDA92D]"
+                  />
+                  <span className="text-sm text-gray-700">Inactive</span>
+                </label>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="flex-1 h-12 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 h-12 rounded-md transition-colors disabled:opacity-50"
+                  style={{ 
+                    backgroundColor: PRIMARY_COLOR, 
+                    color: 'white',
+                    opacity: isSubmitting ? 0.7 : 1
+                  }}
+                >
+                  {isSubmitting ? (isEditMode ? "Updating..." : "Adding...") : (isEditMode ? "Update Department" : "Add Department")}
+                </button>
+              </div>
+            </Form>
+          )}
+        </Formik>
       </div>
     </div>
   );
