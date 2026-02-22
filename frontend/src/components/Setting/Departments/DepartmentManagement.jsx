@@ -2,39 +2,51 @@ import { useState } from "react";
 import { MdBusiness, MdAdd, MdEdit, MdDelete } from "react-icons/md";
 import AddDepartmentModal from "./AddDepartmentModal";
 import PageNavbar from "../../common-components/navbar/PageNavbar";
-import CommonTable from "../../common-components/table/CommonTable";
-import Pagination from "../../common-components/pagination/Pagination";
-import { useGetAllDepartmentsQuery, useDeleteDepartmentMutation } from "../../../redux/api/authApi";
+import { useGetAllDepartmentsQuery, useDeleteDepartmentMutation, useAddDepartmentMutation, useUpdateDepartmentMutation } from "../../../redux/api/authApi";
 import Loader from "../../common-components/loader/Loader";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import OrangeButton from "./../../common-components/sidebar/OrangeButton";
+import { Formik, Form } from "formik";
+import * as Yup from "yup";
+import InputField from "../../common-components/common-feild/InputField";
+import RadioGroup from "../../common-components/common-feild/RadioGroup";
 
 const DepartmentManagement = () => {
   const navigate = useNavigate();
   const { data: departmentsData, isLoading, refetch } = useGetAllDepartmentsQuery();
   const [deleteDepartment] = useDeleteDepartmentMutation();
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [addDepartment] = useAddDepartmentMutation();
+  const [updateDepartment] = useUpdateDepartmentMutation();
   const [editingDepartment, setEditingDepartment] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [rowsPerPage] = useState(10);
-  const [selectedRows, setSelectedRows] = useState([]);
-  const [selectedStatus, setSelectedStatus] = useState([]);
-  const [selectedDepartments, setSelectedDepartments] = useState([]);
 
   const departments = departmentsData?.data || [];
 
-  const handleAddDepartment = () => {
-    refetch();
-  };
+  const validationSchema = Yup.object({
+    departmentName: Yup.string().required("Department name is required"),
+    departmentCode: Yup.string().required("Department code is required"),
+    headOfDepartment: Yup.string(),
+    description: Yup.string(),
+    status: Yup.boolean()
+  });
 
-  const handleEdit = (department) => {
-    setEditingDepartment(department);
-    setIsAddModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsAddModalOpen(false);
-    setEditingDepartment(null);
+  const handleDepartmentSubmit = async (values, { setSubmitting, resetForm }) => {
+    try {
+      if (editingDepartment) {
+        const result = await updateDepartment({ id: editingDepartment._id, ...values }).unwrap();
+        toast.success(result.message || "Department updated successfully!");
+      } else {
+        const result = await addDepartment(values).unwrap();
+        toast.success(result.message || "Department added successfully!");
+      }
+      resetForm();
+      setEditingDepartment(null);
+      refetch();
+    } catch (error) {
+      toast.error(error?.data?.message || "Error saving department");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -49,228 +61,6 @@ const DepartmentManagement = () => {
     }
   };
 
-  const getFilteredData = () => {
-    return departments.filter((dept) => {
-      const searchMatch =
-        searchTerm.trim() === "" ||
-        dept.departmentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        dept.departmentCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        dept.headOfDepartment?.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const statusMatch = selectedStatus.length === 0 || selectedStatus.includes(dept.status ? "Active" : "Inactive");
-      const departmentMatch = selectedDepartments.length === 0 || selectedDepartments.includes(dept.departmentName);
-      
-      return searchMatch && statusMatch && departmentMatch;
-    });
-  };
-
-  const columns = [
-  {
-    key: "department",
-    label: "Department",
-    render: (row) => (
-      <div className="flex items-center gap-3">
-        
-        {/* icon card */}
-        <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
-          <MdBusiness className="text-orange-500" size={18} />
-        </div>
-
-        {/* name + code */}
-        <div className="flex flex-col leading-tight">
-          <span className="font-semibold text-gray-800">
-            {row.departmentName}
-          </span>
-          <span className="text-xs text-gray-400">
-            {row.departmentCode}
-          </span>
-        </div>
-      </div>
-    ),
-  },
-
-  {
-    key: "headOfDepartment",
-    label: "Head of Department",
-    render: (row) => (
-      <span className="text-gray-700 font-medium">
-        {row.headOfDepartment || "—"}
-      </span>
-    ),
-  },
-
- 
-
-  {
-    key: "description",
-    label: "Description",
-    render: (row) => (
-      <div className="max-w-xs text-gray-600 text-sm">
-        {row.description || "No description"}
-      </div>
-    ),
-  },
-
-  {
-    key: "studentCount",
-    label: "Students",
-    align: "center",
-    render: (row) => (
-      <span className="px-3 py-1 rounded-md bg-blue-50 text-blue-600 text-sm font-medium">
-        {row.studentCount}
-      </span>
-    ),
-  },
-
-   {
-    key: "status",
-    label: "Status",
-    align: "center",
-    render: (row) => {
-      const active = row.status;
-
-      return (
-        <span
-          className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium
-          ${active
-            ? "bg-green-100 text-green-700"
-            : "bg-red-100 text-red-600"
-          }`}
-        >
-          <span
-            className={`w-2 h-2 rounded-full ${
-              active ? "bg-green-500" : "bg-red-500"
-            }`}
-          />
-          {active ? "Active" : "Inactive"}
-        </span>
-      );
-    },
-  },
-
-  {
-    key: "actions",
-    label: "Action",
-    render: (row) => (
-      <div className="flex items-center gap-2">
-        
-        {/* EDIT */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleEdit(row);
-          }}
-          className="text-orange-600 font-medium hover:underline"
-        >
-          Edit
-        </button>
-
-        {/* optional delete icon minimal */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleDelete(row._id);
-          }}
-          className="text-red-500 hover:text-red-600"
-        >
-          <MdDelete size={16} />
-        </button>
-
-      </div>
-    ),
-  },
-];
-
-
-  // const columns = [
-  //   {
-  //     key: "department",
-  //     label: "Department",
-  //     render: (row) => (
-  //       <div className="flex items-center gap-3">
-  //         <div className="w-10 h-10 bg-[#FDA92D20] rounded-lg flex items-center justify-center">
-  //           <MdBusiness className="text-[#FDA92D]" size={20} />
-  //         </div>
-  //         <div className="flex flex-col">
-  //           <span className="font-medium text-gray-800">{row.departmentName}</span>
-  //           <span className="text-xs text-gray-500">{row.departmentCode}</span>
-  //         </div>
-  //       </div>
-  //     ),
-  //   },
-  //   {
-  //     key: "headOfDepartment",
-  //     label: "Head of Department",
-  //     render: (row) => row.headOfDepartment || "Not assigned",
-  //   },
-  //   {
-  //     key: "status",
-  //     label: "Status",
-  //     align: "center",
-  //     render: (row) => (
-  //       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-  //         row.status ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-  //       }`}>
-  //         {row.status ? "Active" : "Inactive"}
-  //       </span>
-  //     ),
-  //   },
-  //   {
-  //     key: "description",
-  //     label: "Description",
-  //     render: (row) => (
-  //       <div className="max-w-xs">
-  //         <span className="text-sm text-gray-600 truncate block">
-  //           {row.description || "No description"}
-  //         </span>
-  //       </div>
-  //     ),
-  //   },
-  //   {
-  //     key: "studentCount",
-  //     label: "Students",
-  //     align: "center",
-  //     render: (row) => (
-  //       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-  //         {row.studentCount}
-  //       </span>
-  //     ),
-  //   },
-  //   {
-  //     key: "createdAt",
-  //     label: "Created Date",
-  //     render: (row) => new Date(row.createdAt).toLocaleDateString(),
-  //   },
-  //   {
-  //     key: "actions",
-  //     label: "Actions",
-  //     render: (row) => (
-  //       <div className="flex gap-2">
-  //         <button
-  //           onClick={(e) => {
-  //             e.stopPropagation();
-  //             handleEdit(row);
-  //           }}
-  //           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-  //           title="Edit Department"
-  //         >
-  //           <MdEdit size={16} />
-  //         </button>
-  //         <button
-  //           onClick={(e) => {
-  //             e.stopPropagation();
-  //             handleDelete(row._id);
-  //           }}
-  //           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-  //           title="Delete Department"
-  //         >
-  //           <MdDelete size={16} />
-  //         </button>
-  //       </div>
-  //     ),
-  //   },
-  // ];
-
   const handleRowClick = (department) => {
     navigate(`/department-details/${department._id}`, { state: { department } });
   };
@@ -281,54 +71,212 @@ const DepartmentManagement = () => {
 
   return (
     <>
-      <PageNavbar
-        title="Department Management"
-        subtitle="Manage your organization departments and their details"
-        showBackButton={false}
-      />
-      <div className="mt-1 ">
-        {/* Header Section */}
-        <div className="border-b border-gray-200">
-          <div className="flex justify-between items-center bg-white py-5 px-3 border rounded">
-            <div className="flex items-center gap-4 ">
-              <div className="w-12 h-12 bg-gradient-to-br from-[#FDA92D] to-[#FDB84D] rounded-xl flex items-center justify-center shadow-md">
-                <MdBusiness className="text-white" size={24} />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">All Departments</h2>
-                <p className="text-sm text-gray-500 mt-0.5">{departments.length} departments registered</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#FDA92D] to-[#FDB84D] text-white rounded-lg hover:shadow-lg transition-all duration-200 font-medium"
+      <div className="px-5">
+
+        <div className="flex justify-between items-center py-4">
+          <PageNavbar
+            title="Department Management"
+            subtitle="Manage your organization departments and their details"
+            showBackButton={false}
+          />
+          <div className="flex-shrink-0">
+            <Formik
+              key={editingDepartment?._id || 'new'}
+              initialValues={{
+                departmentName: editingDepartment?.departmentName || "",
+                departmentCode: editingDepartment?.departmentCode || "",
+                headOfDepartment: editingDepartment?.headOfDepartment || "",
+                description: editingDepartment?.description || "",
+                status: editingDepartment?.status !== undefined ? editingDepartment.status : true
+              }}
+              validationSchema={validationSchema}
+              onSubmit={handleDepartmentSubmit}
+              enableReinitialize
             >
-              <MdAdd size={20} />
-              Add Department
-            </button>
+              {({ values, setFieldValue, isSubmitting, submitForm, resetForm }) => (
+                <OrangeButton
+                  buttonTitle="Add Department"
+                  panelTitle={editingDepartment ? "Edit Department" : "Add New Department"}
+                  drawerContent={
+                    <Form className="space-y-4">
+                      <InputField
+                        label="Department Name"
+                        name="departmentName"
+                        placeholder="Enter department name"
+                      />
+
+                      <InputField
+                        label="Department Code"
+                        name="departmentCode"
+                        placeholder="Enter department code"
+                      />
+
+                      <InputField
+                        label="Head of Department"
+                        name="headOfDepartment"
+                        placeholder="Enter HOD name"
+                      />
+
+                      <InputField
+                        label="Description"
+                        name="description"
+                        type="textarea"
+                        placeholder="Enter description"
+                      />
+
+                      <RadioGroup label="Status" name="status" required={false} />
+                    </Form>
+                  }
+                  leftBtnText="Cancel"
+                  rightBtnText={isSubmitting ? "Saving..." : (editingDepartment ? "Update Department" : "Add Department")}
+                  onLeftClick={() => {
+                    resetForm();
+                    setEditingDepartment(null);
+                  }}
+                  onRightClick={submitForm}
+                />
+              )}
+            </Formik>
           </div>
         </div>
+        <div className="mt-1 ">
 
+          {/* Departments Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-3">
+            {departments.map((dept) => (
+              <div
+                key={dept._id}
+                className="bg-[#f9fafb] border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden min-h-[380px] flex flex-col"
+              >
+                <div className="p-6 flex-1">
 
-        {/* Table */}
-        <CommonTable
-          columns={columns}
-          data={getFilteredData()}
-          editable={true}
-          pagination={true}
-          rowsPerPage={rowsPerPage}
-          searchTerm={searchTerm}
-          onSelectionChange={setSelectedRows}
-          onRowClick={handleRowClick}
-        />
+                  {/* top row */}
+                  <div className="flex items-start justify-between mb-4">
 
-        {/* Add/Edit Department Modal */}
-        <AddDepartmentModal
-          isOpen={isAddModalOpen}
-          onClose={handleCloseModal}
-          onSuccess={handleAddDepartment}
-          editData={editingDepartment}
-        />
+                    {/* icon circle */}
+                    <div className="w-14 h-14 rounded-full border border-orange-200 bg-orange-50 flex items-center justify-center">
+                      <MdBusiness className="text-orange-500" size={26} />
+                    </div>
+
+                    {/* status pill */}
+                    <span
+                      className={`text-xs font-semibold px-3 py-1 rounded-full tracking-wide
+              ${dept.status
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-200 text-gray-600"}
+            `}
+                    >
+                      {dept.status ? "ACTIVE" : "INACTIVE"}
+                    </span>
+                  </div>
+
+                  {/* title */}
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">
+                    {dept.departmentName}
+                  </h3>
+
+                  {/* description */}
+                  <p className="text-sm text-gray-500 mb-4 line-clamp-2">
+                    {dept.description || "No description available"}
+                  </p>
+
+                  {/* divider */}
+                  <div className="border-t border-gray-200 my-4"></div>
+
+                  {/* info */}
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      👤 <span>HOD: {dept.headOfDepartment || "Not assigned"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      👥 <span>Students: {dept.studentCount || 0}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* bottom actions */}
+                <div className="flex gap-3 p-4 bg-gray-50">
+                  <button
+                    onClick={() => handleRowClick(dept)}
+                    className="w-1/2 border border-gray-300 rounded-lg py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 transition"
+                  >
+                    VIEW
+                  </button>
+
+                  <Formik
+                    key={dept._id}
+                    initialValues={{
+                      departmentName: dept.departmentName,
+                      departmentCode: dept.departmentCode,
+                      headOfDepartment: dept.headOfDepartment || "",
+                      description: dept.description || "",
+                      status: dept.status
+                    }}
+                    validationSchema={validationSchema}
+                    onSubmit={async (values, { setSubmitting, resetForm }) => {
+                      try {
+                        const result = await updateDepartment({ id: dept._id, ...values }).unwrap();
+                        toast.success(result.message || "Department updated successfully!");
+                        resetForm();
+                        refetch();
+                      } catch (error) {
+                        toast.error(error?.data?.message || "Error updating department");
+                      } finally {
+                        setSubmitting(false);
+                      }
+                    }}
+                    enableReinitialize
+                  >
+                    {({ isSubmitting, submitForm, resetForm }) => (
+                      <div className="w-1/2">
+                        <OrangeButton
+                          buttonTitle="EDIT"
+                          panelTitle="Edit Department"
+                          customButtonClass="w-full bg-orange-500 text-white rounded-lg py-2 text-sm font-semibold hover:bg-orange-600 transition"
+                          drawerContent={
+                            <Form className="space-y-4">
+                              <InputField
+                                label="Department Name"
+                                name="departmentName"
+                                placeholder="Enter department name"
+                              />
+
+                              <InputField
+                                label="Department Code"
+                                name="departmentCode"
+                                placeholder="Enter department code"
+                              />
+
+                              <InputField
+                                label="Head of Department"
+                                name="headOfDepartment"
+                                placeholder="Enter HOD name"
+                              />
+
+                              <InputField
+                                label="Description"
+                                name="description"
+                                type="textarea"
+                                placeholder="Enter description"
+                              />
+
+                              <RadioGroup label="Status" name="status" required={false} />
+                            </Form>
+                          }
+                          leftBtnText="Cancel"
+                          rightBtnText={isSubmitting ? "Updating..." : "Update Department"}
+                          onLeftClick={resetForm}
+                          onRightClick={submitForm}
+                        />
+                      </div>
+                    )}
+                  </Formik>
+                </div>
+              </div>
+            ))}
+          </div>
+
+        </div>
       </div>
     </>
   );

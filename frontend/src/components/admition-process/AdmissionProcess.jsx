@@ -156,7 +156,7 @@ const StudentList = () => {
 
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
-  }, [location.search, refetch]);
+  }, [location.search]);
 
   // Auto-refresh data when window gains focus
   useEffect(() => {
@@ -644,99 +644,101 @@ const StudentList = () => {
           <TabsCommon tabs={tabs} activeTab={activeTab} onTabChange={handleTabClick} />
         </div>
       </div >
-  <div className="px-5">
-   <div className="flex justify-between">
-         <PageNavbar
-        title="Admission Process"
-        subtitle="Manage student admission workflow and interviews"
-        showBackButton={false}
-      />
-      <SearchBox />
-   </div>
-
-      <CommonTable
-        data={filteredData}
-        columns={columns}
-        editable={!!actionButton}
-        pagination={true}
-        rowsPerPage={rowsPerPage}
-        searchTerm={searchTerm}
-        actionButton={actionButton}
-        onSelectionChange={setSelectedRows}
-        onRowClick={(row) => {
-          localStorage.setItem("lastSection", "admission");
-          navigate(`/admission/edit/${row._id}`, { state: { student: row } });
-        }}
-      />
-      {
-        isModalOpen && selectedStudentId && (
-          <CustomTimeDate
-            isOpen={isModalOpen}
-            onClose={handleCloseModal}
-            studentId={selectedStudentId}
-            attempted={atemendNumber}
-            refetch={refetch}
-            activeTab={activeTab}
+      <div className="px-5">
+        <div className="flex justify-between">
+          <PageNavbar
+            title="Admission Process"
+            subtitle="Manage student admission workflow and interviews"
+            showBackButton={false}
           />
-        )
-      }
-      {
-        AddInterviwModalOpen && (
-          <BlurBackground isOpen={AddInterviwModalOpen} onClose={() => setAddInterviwModalOpen(false)}>
-            <div className="bg-white rounded-xl p-6 w-[95%] max-w-xl max-h-[90vh] overflow-y-auto relative shadow-2xl">
-              <h2 className="text-xl font-bold text-center text-orange-500 mb-6">
-                Add Interview
-              </h2>
-              <Formik
-                initialValues={{
-                  round: "Second",
-                  remark: "",
-                  result: "Pending",
-                }}
-                validationSchema={validationSchema}
-                onSubmit={handleInterviewSubmit}
-              >
-                {() => (
-                  <Form className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <CustomDropdown
-                      label="Round"
-                      name="round"
-                      disabled
-                      options={[{ value: "Second", label: "Final Round" }]}
-                    />
-                    <InputField label="Remark" name="remark" />
-                    <CustomDropdown
-                      label="Result"
-                      name="result"
-                      options={[
-                        { value: "Pass", label: "Pass" },
-                        { value: "Fail", label: "Fail" },
-                        { value: "Pending", label: "Pending" },
-                      ]}
-                    />
-                    <div className="col-span-2 mt-4">
-                      <button
-                        type="submit"
-                        disabled={isLoading}
-                        className={`w-full py-3 rounded-lg disabled:opacity-50 ${buttonStyles.primary}`}
-                      >
-                        {isLoading ? "Submitting..." : "Submit"}
-                      </button>
-                    </div>
-                  </Form>
-                )}
-              </Formik>
-              <button
-                onClick={() => setAddInterviwModalOpen(false)}
-                className="absolute top-3 right-4 text-xl text-gray-400 hover:text-gray-700"
-              >
-                &times;
-              </button>
-            </div>
-          </BlurBackground>
-        )
-      }
-  </div>
+          <div className="py-4 w-full max-w-2xl">
+            <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+          </div>
+        </div>
+
+        <CommonTable
+          data={filteredData}
+          columns={columns}
+          editable={!!actionButton}
+          pagination={true}
+          rowsPerPage={rowsPerPage}
+          searchTerm={searchTerm}
+          actionButton={actionButton}
+          onSelectionChange={setSelectedRows}
+          onRowClick={(row) => {
+            localStorage.setItem("lastSection", "admission");
+            navigate(`/admission/edit/${row._id}`, { state: { student: row } });
+          }}
+        />
+        {
+          isModalOpen && selectedStudentId && (
+            <CustomTimeDate
+              isOpen={isModalOpen}
+              onClose={handleCloseModal}
+              studentId={selectedStudentId}
+              attempted={atemendNumber}
+              refetch={refetch}
+              activeTab={activeTab}
+            />
+          )
+        }
+        {
+          AddInterviwModalOpen && (
+            <BlurBackground isOpen={AddInterviwModalOpen} onClose={() => setAddInterviwModalOpen(false)}>
+              <div className="bg-white rounded-xl p-6 w-[95%] max-w-xl max-h-[90vh] overflow-y-auto relative shadow-2xl">
+                <h2 className="text-xl font-bold text-center text-orange-500 mb-6">
+                  Add Interview
+                </h2>
+                <Formik
+                  initialValues={{
+                    round: "Second",
+                    remark: "",
+                    result: "Pending",
+                  }}
+                  validationSchema={validationSchema}
+                  onSubmit={handleInterviewSubmit}
+                >
+                  {() => (
+                    <Form className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <CustomDropdown
+                        label="Round"
+                        name="round"
+                        disabled
+                        options={[{ value: "Second", label: "Final Round" }]}
+                      />
+                      <InputField label="Remark" name="remark" />
+                      <CustomDropdown
+                        label="Result"
+                        name="result"
+                        options={[
+                          { value: "Pass", label: "Pass" },
+                          { value: "Fail", label: "Fail" },
+                          { value: "Pending", label: "Pending" },
+                        ]}
+                      />
+                      <div className="col-span-2 mt-4">
+                        <button
+                          type="submit"
+                          disabled={isLoading}
+                          className={`w-full py-3 rounded-lg disabled:opacity-50 ${buttonStyles.primary}`}
+                        >
+                          {isLoading ? "Submitting..." : "Submit"}
+                        </button>
+                      </div>
+                    </Form>
+                  )}
+                </Formik>
+                <button
+                  onClick={() => setAddInterviwModalOpen(false)}
+                  className="absolute top-3 right-4 text-xl text-gray-400 hover:text-gray-700"
+                >
+                  &times;
+                </button>
+              </div>
+            </BlurBackground>
+          )
+        }
+      </div>
     </>
   );
 };
