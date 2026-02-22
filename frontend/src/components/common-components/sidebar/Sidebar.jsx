@@ -301,7 +301,7 @@ const Sidebar = ({ children }) => {
 
         {/* MAIN CONTENT */}
         <main
-          className={`flex-1 pt-20 px-4 transition-all duration-300 bg-[#F8F7F5] min-h-screen ${
+          className={`flex-1 pt-20  transition-all duration-300 bg-[#F8F7F5] min-h-screen ${
             isOpen ? "ml-64" : "ml-16"
           }`}
         >

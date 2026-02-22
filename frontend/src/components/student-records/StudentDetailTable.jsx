@@ -7,6 +7,7 @@ import CommonTable from "../common-components/table/CommonTable";
 import CreateInterviewModal from "./CreateInterviewModal";
 import PageNavbar from "../common-components/navbar/PageNavbar";
 import { buttonStyles } from "../../styles/buttonStyles";
+import TabsCommon from "../common-components/table/TabsCommon";
 
 const StudentDetailTable = () => {
   const { data = [], isLoading, refetch } = useAdmitedStudentsQuery();
@@ -279,24 +280,7 @@ const StudentDetailTable = () => {
 
       <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
         <div className="px-6">
-          {/* Level Tabs */}
-          <div className="flex gap-6 mt-4 overflow-x-auto">
-            {levelTabs.map((tab) => (
-              <div key={tab}>
-                <p
-                  onClick={() => handleTabClick(tab)}
-                  className={`cursor-pointer text-md pb-2 border-b-2 whitespace-nowrap ${
-                    activeTab === tab
-                      ? "border-[var(--text-color)] font-semibold text-[var(--text-color)]"
-                      : "border-gray-200 text-[var(--text-color)]"
-                  }`}
-                >
-                  {tab === "Level's Cleared" ? "" + tab : tab}
-                </p>
-              </div>
-            ))}
-          </div>
-
+          <TabsCommon tabs={levelTabs} activeTab={activeTab} onTabChange={handleTabClick} />
         </div>
 
    

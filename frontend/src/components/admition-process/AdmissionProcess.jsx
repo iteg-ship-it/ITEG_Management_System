@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { useGetAllStudentsQuery } from "../../redux/api/authApi";
 import CommonTable from "../common-components/table/CommonTable";
 import { useEffect, useState, useMemo } from "react";
@@ -19,7 +18,8 @@ import { toast } from "react-toastify";
 import PageNavbar from "../common-components/navbar/PageNavbar";
 import { buttonStyles } from "../../styles/buttonStyles";
 import BlurBackground from "../common-components/BlurBackground";
-
+import TabsCommon from "../common-components/table/TabsCommon";
+import SearchBox from "./../common-components/seach-export/SearchBox";
 
 const toTitleCase = (str) =>
   str
@@ -153,7 +153,7 @@ const StudentList = () => {
     } else if (savedTab) {
       setActiveTab(savedTab);
     }
-    
+
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
   }, [location.search, refetch]);
@@ -183,7 +183,7 @@ const StudentList = () => {
       (a, b) => new Date(b.date) - new Date(a.date)
     )[0]?.result;
   };
-  
+
   const handleInterviewSubmit = async (values, { resetForm }) => {
     try {
       const response = await createInterview({ ...values, studentId: id }).unwrap();
@@ -213,8 +213,8 @@ const StudentList = () => {
         return (
           (student.onlineTest?.result === "Fail" && firstRound.length === 0) ||
           (firstRound.length > 0 &&
-          !firstRound.some((i) => i.result === "Pass") &&
-          firstRound.some((i) => i.result === "Fail"))
+            !firstRound.some((i) => i.result === "Pass") &&
+            firstRound.some((i) => i.result === "Fail"))
         );
       case "Final Round":
         return (
@@ -257,7 +257,7 @@ const StudentList = () => {
           const secondRound = student.interviews?.filter((i) => i.round === "Second") || [];
           const isSelected = secondRound.some((i) => i.result === "Pass");
           const isRejected = latestResult === "Fail" || secondRound.some((i) => i.result === "Fail");
-          
+
           if (selected.includes("Selected") && isSelected) return true;
           if (selected.includes("Rejected") && isRejected) return true;
           return false;
@@ -513,7 +513,7 @@ const StudentList = () => {
       actionButton = (row) => {
         const userRole = localStorage.getItem('role');
         const isSuperAdmin = userRole === 'superadmin';
-        
+
         return (
           <div className="flex items-center gap-4">
             <button
@@ -524,11 +524,10 @@ const StudentList = () => {
                 }
               }}
               disabled={!isSuperAdmin}
-              className={`text-md ${
-                isSuperAdmin 
-                  ? buttonStyles.primary + ' cursor-pointer'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed px-3 py-1 rounded-md transition'
-              }`}
+              className={`text-md ${isSuperAdmin
+                ? buttonStyles.primary + ' cursor-pointer'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed px-3 py-1 rounded-md transition'
+                }`}
             >
               Take Interview
             </button>
@@ -640,108 +639,104 @@ const StudentList = () => {
 
   return (
     <>
-      <PageNavbar 
-        title="Admission Process" 
+      <div className=" bg-white  h-20">
+        <div className="px-6">
+          <TabsCommon tabs={tabs} activeTab={activeTab} onTabChange={handleTabClick} />
+        </div>
+      </div >
+  <div className="px-5">
+   <div className="flex justify-between">
+         <PageNavbar
+        title="Admission Process"
         subtitle="Manage student admission workflow and interviews"
         showBackButton={false}
       />
-      <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
-        <div className="px-6">
-          <div className="flex gap-6 mt-4">
-            {tabs.map((tab) => (
-              <p
-                key={tab}
-                onClick={() => handleTabClick(tab)}
-                className={`cursor-pointer text-md text-[var(--text-color)] pb-2 border-b-2 ${activeTab === tab
-                  ? "border-[var(--text-color)] font-semibold"
-                  : "border-gray-200"
-                  }`}
-              >
-                {tab}
-              </p>
-            ))}
-          </div>
+      <SearchBox />
+   </div>
 
-        </div>
-      
-      </div>  <CommonTable
-          data={filteredData}
-          columns={columns}
-          editable={!!actionButton}
-          pagination={true}
-          rowsPerPage={rowsPerPage}
-          searchTerm={searchTerm}
-          actionButton={actionButton}
-          onSelectionChange={setSelectedRows}
-          onRowClick={(row) => {
-            localStorage.setItem("lastSection", "admission");
-            navigate(`/admission/edit/${row._id}`, { state: { student: row } });
-          }}
-        />
-      {isModalOpen && selectedStudentId && (
-        <CustomTimeDate
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          studentId={selectedStudentId}
-          attempted={atemendNumber}
-          refetch={refetch}
-          activeTab={activeTab}
-        />
-      )}
-      {AddInterviwModalOpen && (
-        <BlurBackground isOpen={AddInterviwModalOpen} onClose={() => setAddInterviwModalOpen(false)}>
-          <div className="bg-white rounded-xl p-6 w-[95%] max-w-xl max-h-[90vh] overflow-y-auto relative shadow-2xl">
-            <h2 className="text-xl font-bold text-center text-orange-500 mb-6">
-              Add Interview
-            </h2>
-            <Formik
-              initialValues={{
-                round: "Second",
-                remark: "",
-                result: "Pending",
-              }}
-              validationSchema={validationSchema}
-              onSubmit={handleInterviewSubmit}
-            >
-              {() => (
-                <Form className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <CustomDropdown
-                    label="Round"
-                    name="round"
-                    disabled
-                    options={[{ value: "Second", label: "Final Round" }]}
-                  />
-                  <InputField label="Remark" name="remark" />
-                  <CustomDropdown
-                    label="Result"
-                    name="result"
-                    options={[
-                      { value: "Pass", label: "Pass" },
-                      { value: "Fail", label: "Fail" },
-                      { value: "Pending", label: "Pending" },
-                    ]}
-                  />
-                  <div className="col-span-2 mt-4">
-                                <button 
-                                    type="submit" 
-                                    disabled={isLoading} 
-                                    className={`w-full py-3 rounded-lg disabled:opacity-50 ${buttonStyles.primary}`}
-                                >
-                                    {isLoading ? "Submitting..." : "Submit"}
-                                </button>
-                            </div>
-                </Form>
-              )}
-            </Formik>
-            <button
-              onClick={() => setAddInterviwModalOpen(false)}
-              className="absolute top-3 right-4 text-xl text-gray-400 hover:text-gray-700"
-            >
-              &times;
-            </button>
-          </div>
-        </BlurBackground>
-      )}
+      <CommonTable
+        data={filteredData}
+        columns={columns}
+        editable={!!actionButton}
+        pagination={true}
+        rowsPerPage={rowsPerPage}
+        searchTerm={searchTerm}
+        actionButton={actionButton}
+        onSelectionChange={setSelectedRows}
+        onRowClick={(row) => {
+          localStorage.setItem("lastSection", "admission");
+          navigate(`/admission/edit/${row._id}`, { state: { student: row } });
+        }}
+      />
+      {
+        isModalOpen && selectedStudentId && (
+          <CustomTimeDate
+            isOpen={isModalOpen}
+            onClose={handleCloseModal}
+            studentId={selectedStudentId}
+            attempted={atemendNumber}
+            refetch={refetch}
+            activeTab={activeTab}
+          />
+        )
+      }
+      {
+        AddInterviwModalOpen && (
+          <BlurBackground isOpen={AddInterviwModalOpen} onClose={() => setAddInterviwModalOpen(false)}>
+            <div className="bg-white rounded-xl p-6 w-[95%] max-w-xl max-h-[90vh] overflow-y-auto relative shadow-2xl">
+              <h2 className="text-xl font-bold text-center text-orange-500 mb-6">
+                Add Interview
+              </h2>
+              <Formik
+                initialValues={{
+                  round: "Second",
+                  remark: "",
+                  result: "Pending",
+                }}
+                validationSchema={validationSchema}
+                onSubmit={handleInterviewSubmit}
+              >
+                {() => (
+                  <Form className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <CustomDropdown
+                      label="Round"
+                      name="round"
+                      disabled
+                      options={[{ value: "Second", label: "Final Round" }]}
+                    />
+                    <InputField label="Remark" name="remark" />
+                    <CustomDropdown
+                      label="Result"
+                      name="result"
+                      options={[
+                        { value: "Pass", label: "Pass" },
+                        { value: "Fail", label: "Fail" },
+                        { value: "Pending", label: "Pending" },
+                      ]}
+                    />
+                    <div className="col-span-2 mt-4">
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className={`w-full py-3 rounded-lg disabled:opacity-50 ${buttonStyles.primary}`}
+                      >
+                        {isLoading ? "Submitting..." : "Submit"}
+                      </button>
+                    </div>
+                  </Form>
+                )}
+              </Formik>
+              <button
+                onClick={() => setAddInterviwModalOpen(false)}
+                className="absolute top-3 right-4 text-xl text-gray-400 hover:text-gray-700"
+              >
+                &times;
+              </button>
+            </div>
+          </BlurBackground>
+        )
+      }
+  </div>
     </>
   );
 };
