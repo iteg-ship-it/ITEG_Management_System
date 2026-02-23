@@ -41,7 +41,6 @@ const StudentList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [AddInterviwModalOpen, setAddInterviwModalOpen] = useState(false);
   const [id, setId] = useState(null);
-  const [selectedRows, setSelectedRows] = useState([]);
   const navigate = useNavigate();
 
   const location = useLocation();
@@ -79,7 +78,7 @@ const StudentList = () => {
   }, [data]);
 
 
-  const tabFilterConfig = {
+  const tabFilterConfig = useMemo(() => ({
     "Total Registration": [
       {
         title: "Track",
@@ -138,7 +137,7 @@ const StudentList = () => {
         setter: setResultFilterTab2,
       },
     ],
-  };
+  }), [dynamicTrackOptions, dynamicResultOptions, trackFilterTab1, resultFilterTab2, statusFilterTab3]);
 
   const filtersConfig = tabFilterConfig[activeTab] || [];
 
@@ -164,18 +163,6 @@ const StudentList = () => {
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, [refetch]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader />
-      </div>
-    );
-  }
-
-  if (error) {
-    return <p className="text-center text-red-500">Error fetching students.</p>;
-  }
 
   const getLatestInterviewResult = (interviews = []) => {
     if (!interviews.length) return null;
@@ -231,55 +218,57 @@ const StudentList = () => {
     }
   };
 
-  const filteredData = data.filter((student) => {
-    const searchableValues = Object.values(student)
-      .map((val) => String(val ?? "").toLowerCase())
-      .join(" ");
-    if (!searchableValues.includes(searchTerm.toLowerCase())) return false;
+  const filteredData = useMemo(() => {
+    return data.filter((student) => {
+      const searchableValues = Object.values(student)
+        .map((val) => String(val ?? "").toLowerCase())
+        .join(" ");
+      if (!searchableValues.includes(searchTerm.toLowerCase())) return false;
 
-    const track = toTitleCase(student.track || "");
-    const latestResult = toTitleCase(
-      getLatestInterviewResult(student.interviews || []) || ""
-    );
-    const percentage = parseFloat(student.percentage);
-    const matches = filtersConfig.every(({ title, selected }) => {
-      if (selected.length === 0) return true;
+      const track = toTitleCase(student.track || "");
+      const latestResult = toTitleCase(
+        getLatestInterviewResult(student.interviews || []) || ""
+      );
+      const percentage = parseFloat(student.percentage);
+      const matches = filtersConfig.every(({ title, selected }) => {
+        if (selected.length === 0) return true;
 
-      if (title === "Track") {
-        return selected.includes(track);
-      }
+        if (title === "Track") {
+          return selected.includes(track);
+        }
 
-      if (title === "Result") {
-        if (activeTab === "Online Assessment") {
-          const onlineResult = toTitleCase(student.onlineTest?.result || "Not Attempted");
-          return selected.includes(onlineResult);
-        } else if (activeTab === "Results") {
-          const secondRound = student.interviews?.filter((i) => i.round === "Second") || [];
-          const isSelected = secondRound.some((i) => i.result === "Pass");
-          const isRejected = latestResult === "Fail" || secondRound.some((i) => i.result === "Fail");
+        if (title === "Result") {
+          if (activeTab === "Online Assessment") {
+            const onlineResult = toTitleCase(student.onlineTest?.result || "Not Attempted");
+            return selected.includes(onlineResult);
+          } else if (activeTab === "Results") {
+            const secondRound = student.interviews?.filter((i) => i.round === "Second") || [];
+            const isSelected = secondRound.some((i) => i.result === "Pass");
+            const isRejected = latestResult === "Fail" || secondRound.some((i) => i.result === "Fail");
 
-          if (selected.includes("Selected") && isSelected) return true;
-          if (selected.includes("Rejected") && isRejected) return true;
-          return false;
-        } else {
+            if (selected.includes("Selected") && isSelected) return true;
+            if (selected.includes("Rejected") && isRejected) return true;
+            return false;
+          } else {
+            return selected.includes(latestResult);
+          }
+        }
+
+        if (title === "Tech Status") {
           return selected.includes(latestResult);
         }
-      }
+        if (title === "Interview") {
+          return selected.some((range) => {
+            const [min, max] = range.replace("%", "").split("-").map(Number);
+            return percentage >= min && percentage <= max;
+          });
+        }
+        return true;
+      });
 
-      if (title === "Tech Status") {
-        return selected.includes(latestResult);
-      }
-      if (title === "Interview") {
-        return selected.some((range) => {
-          const [min, max] = range.replace("%", "").split("-").map(Number);
-          return percentage >= min && percentage <= max;
-        });
-      }
-      return true;
+      return matches && matchTabCondition(student);
     });
-
-    return matches && matchTabCondition(student);
-  });
+  }, [data, searchTerm, activeTab, trackFilterTab1, resultFilterTab2, statusFilterTab3]);
 
   const handleTabClick = (tab) => {
     setActiveTab(tab);
@@ -368,12 +357,13 @@ const StudentList = () => {
     "Results",
   ];
 
-  let columns = [];
-  let actionButton;
+  const { columns, actionButton } = useMemo(() => {
+    let cols = [];
+    let action;
 
-  switch (activeTab) {
+    switch (activeTab) {
     case "Online Assessment":
-      columns = [
+      cols = [
         {
           key: "firstName",
           label: "Full Name",
@@ -396,7 +386,7 @@ const StudentList = () => {
           render: (row) => toTitleCase(row.course),
         },
       ];
-      actionButton = (row) => (
+      action = (row) => (
         <button
           onClick={() => scheduleButton(row)}
           className={`text-md ${buttonStyles.primary}`}
@@ -407,7 +397,7 @@ const StudentList = () => {
       break;
 
     case "Technical Round":
-      columns = [
+      cols = [
         {
           key: "firstName",
           label: "Full Name",
@@ -446,7 +436,7 @@ const StudentList = () => {
           render: (row) => handleGetMarks(row.interviews),
         },
       ];
-      actionButton = (row) => (
+      action = (row) => (
         <button
           onClick={() => scheduleButton(row)}
           className={`text-md ${buttonStyles.primary}`}
@@ -457,7 +447,7 @@ const StudentList = () => {
       break;
 
     case "Final Round":
-      columns = [
+      cols = [
         {
           key: "firstName",
           label: "Full Name",
@@ -510,7 +500,7 @@ const StudentList = () => {
           },
         },
       ];
-      actionButton = (row) => {
+      action = (row) => {
         const userRole = localStorage.getItem('role');
         const isSuperAdmin = userRole === 'superadmin';
 
@@ -537,7 +527,7 @@ const StudentList = () => {
       break;
 
     case "Results":
-      columns = [
+      cols = [
         {
           key: "firstName",
           label: "Full Name",
@@ -565,7 +555,7 @@ const StudentList = () => {
           render: (row) => toTitleCase(row.track),
         },
       ];
-      actionButton = (row) => {
+      action = (row) => {
         const secondRound =
           row.interviews?.filter((i) => i.round === "Second") || [];
         const latestResult = getLatestInterviewResult(row.interviews);
@@ -601,7 +591,7 @@ const StudentList = () => {
       break;
 
     default:
-      columns = [
+      cols = [
         {
           key: "firstName",
           label: "Full Name",
@@ -635,6 +625,21 @@ const StudentList = () => {
         },
       ];
       break;
+    }
+
+    return { columns: cols, actionButton: action };
+  }, [activeTab]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader />
+      </div>
+    );
+  }
+
+  if (error) {
+    return <p className="text-center text-red-500">Error fetching students.</p>;
   }
 
   return (
@@ -664,7 +669,6 @@ const StudentList = () => {
           rowsPerPage={rowsPerPage}
           searchTerm={searchTerm}
           actionButton={actionButton}
-          onSelectionChange={setSelectedRows}
           onRowClick={(row) => {
             localStorage.setItem("lastSection", "admission");
             navigate(`/admission/edit/${row._id}`, { state: { student: row } });

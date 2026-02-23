@@ -137,23 +137,31 @@ const CommonTable = ({
               ) : (
                 page.map((row) => {
                   prepareRow(row);
+                  const rowProps = row.getRowProps();
+                  const { key, ...restRowProps } = rowProps;
                   return (
                     <tr
-                      {...row.getRowProps()}
+                      key={key}
+                      {...restRowProps}
                       className="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer"
                       onClick={() => onRowClick?.(row.original)}
                     >
-                      {row.cells.map((cell) => (
-                        <td
-                          {...cell.getCellProps()}
-                          className="px-3 sm:px-6 py-3 sm:py-4 text-gray-700"
-                          onClick={(e) => {
-                            if (cell.column.id === "action") e.stopPropagation();
-                          }}
-                        >
-                          {cell.render("Cell")}
-                        </td>
-                      ))}
+                      {row.cells.map((cell) => {
+                        const cellProps = cell.getCellProps();
+                        const { key: cellKey, ...restCellProps } = cellProps;
+                        return (
+                          <td
+                            key={cellKey}
+                            {...restCellProps}
+                            className="px-3 sm:px-6 py-3 sm:py-4 text-gray-700"
+                            onClick={(e) => {
+                              if (cell.column.id === "action") e.stopPropagation();
+                            }}
+                          >
+                            {cell.render("Cell")}
+                          </td>
+                        );
+                      })}
                     </tr>
                   );
                 })
