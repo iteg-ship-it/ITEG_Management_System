@@ -3,12 +3,23 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const setupSwagger = require("./src/swagger/swagger");
+const { securityHeaders, createRateLimit, validateInput } = require('./src/middlewares/securityMiddleware');
 
 const app = express();
 
+// Security headers
+app.use(securityHeaders);
+
+// Rate limiting
+app.use('/api/', createRateLimit(15 * 60 * 1000, 20)); // 20 requests per 15 minutes
+app.use('/api/user/login', createRateLimit(15 * 60 * 1000, 5)); // 5 login attempts per 15 minutes
+app.use('/api/user/signup', createRateLimit(60 * 60 * 1000, 3)); // 3 signups per hour
+
 // CORS configuration
 app.use(cors({
-  origin: true,
+  origin: process.env.NODE_ENV === 'production' 
+    ? [process.env.FRONTEND_URL] 
+    : true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
@@ -19,6 +30,9 @@ app.options("*", cors());
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
+// Input validation middleware
+app.use(validateInput);
 
 // Import Routes
 const routes = require("./src/routes");

@@ -2,25 +2,23 @@ const express = require("express");
 const usercontroller = require("../controllers/user/userController");
 const passport = require("passport");
 const { googleAuthCallback } = require('../controllers/user/userController');
-const { verifyToken } = require("../middlewares/authMiddleware");
+const { verifyToken, checkRole, checkOwnershipOrAdmin } = require("../middlewares/authMiddleware");
+const { createRateLimit } = require('../middlewares/securityMiddleware');
 
 const router = express.Router();
 
-// POST /api/users/create
-router.post("/signup", verifyToken, usercontroller.createUser);
-router.post("/login", usercontroller.login);
-router.post("/logout", usercontroller.logout);
-router.patch('/update/:id', verifyToken, usercontroller.updateUserFields);
+// Rate limits for sensitive operations
+const strictRateLimit = createRateLimit(15 * 60 * 1000, 5); // 5 requests per 15 minutes
+const authRateLimit = createRateLimit(15 * 60 * 1000, 10); // 10 requests per 15 minutes
 
-router.post("/refresh_token", usercontroller.refreshAccessToken);
+// Authentication routes
+router.post("/login", strictRateLimit, usercontroller.login);
+router.post("/logout", authRateLimit, usercontroller.logout);
+router.post("/refresh_token", authRateLimit, usercontroller.refreshAccessToken);
 
-// Forgot Password - send email
-router.post("/forgot_password", usercontroller.forgotPassword);
-
-// Reset Password using link
-router.post("/reset_password/:token", usercontroller.resetPassword);
-
-router.get("/get/:id", verifyToken, usercontroller.getUserById);
+// Password reset routes
+router.post("/forgot_password", strictRateLimit, usercontroller.forgotPassword);
+router.post("/reset_password/:token", strictRateLimit, usercontroller.resetPassword);
 
 // Google OAuth
 router.get("/google", passport.authenticate('google', {
@@ -28,12 +26,20 @@ router.get("/google", passport.authenticate('google', {
       prompt: 'select_account',
     })
   );
-  
 router.get("/google/callback", passport.authenticate('google', { session: false }), googleAuthCallback);
 
-router.get("/me", verifyToken, usercontroller.getCurrentUser);
-router.get("/all", verifyToken, usercontroller.getAllUsers);
-router.delete("/delete/:id", verifyToken, usercontroller.deleteUser);
+// Protected routes - require authentication
+router.use(verifyToken); // All routes below require authentication
+
+// User management routes
+router.post("/signup", checkRole(['admin', 'superadmin']), usercontroller.createUser);
+router.get("/me", usercontroller.getCurrentUser);
+router.get("/get/:id", checkOwnershipOrAdmin, usercontroller.getUserById);
+router.patch('/update/:id', checkOwnershipOrAdmin, usercontroller.updateUserFields);
+
+// Admin only routes
+router.get("/all", checkRole(['admin', 'superadmin']), usercontroller.getAllUsers);
+router.delete("/delete/:id", checkRole(['superadmin']), usercontroller.deleteUser);
 
 module.exports = router;
 
