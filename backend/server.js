@@ -22,6 +22,11 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Import Routes
 const routes = require("./src/routes");
+const departmentRoutes = require("./src/routes/departmentRoutes");
+const subDepartmentRoutes = require("./src/routes/subDepartmentRoutes");
+const levelRoutes = require("./src/routes/levelRoutes");
+const subLevelRoutes = require("./src/routes/subLevelRoutes");
+const sessionRoutes = require("./src/routes/sessionRoutes");
 const passport = require("./src/config/passport.js");
 
 // Swagger setup
@@ -35,6 +40,11 @@ app.get('/api/health-check', (req, res) => {
 
 // API Routes
 app.use('/api', routes);
+app.use('/api/departments', departmentRoutes);
+app.use('/api/subdepartments', subDepartmentRoutes);
+app.use('/api/levels', levelRoutes);
+app.use('/api/sublevels', subLevelRoutes);
+app.use('/api/sessions', sessionRoutes);
 
 // Passport initialization
 app.use(passport.initialize());
