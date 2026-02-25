@@ -1417,47 +1417,33 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
 };
 
 // Update Email Modal Component
+import { Formik, Form } from 'formik';
+import * as Yup from 'yup';
+import InputField from '../common-components/common-feild/InputField';
+
 const UpdateEmailModal = ({ isOpen, onClose, studentData, onUpdate, isLoading }) => {
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
+  const validationSchema = Yup.object({
+    email: Yup.string()
+      .email('Please enter a valid email address')
+      .required('Email is required')
+      .test('different', 'New email must be different from current email', function(value) {
+        return value !== studentData?.email;
+      })
+  });
 
-  useEffect(() => {
-    if (isOpen && studentData) {
-      setEmail(studentData.email || '');
-      setError('');
-    }
-  }, [isOpen, studentData]);
-
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+  const initialValues = {
+    email: studentData?.email || ''
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!email.trim()) {
-      setError('Email is required');
-      return;
-    }
-    
-    if (!validateEmail(email)) {
-      setError('Please enter a valid email address');
-      return;
-    }
-    
-    if (email === studentData.email) {
-      setError('New email must be different from current email');
-      return;
-    }
-
+  const handleSubmit = async (values, { setSubmitting }) => {
     try {
-      await onUpdate({ id: studentData._id, email }).unwrap();
+      await onUpdate({ id: studentData._id, email: values.email }).unwrap();
       toast.success('Email updated successfully!');
       onClose();
     } catch (err) {
-      // console.error('Error updating email:', err);
       toast.error(err?.data?.message || 'Failed to update email');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -1468,53 +1454,52 @@ const UpdateEmailModal = ({ isOpen, onClose, studentData, onUpdate, isLoading })
       <div className="bg-white rounded-xl py-4 px-4 sm:px-6 w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl sm:text-2xl font-semibold text-center mb-4 sm:mb-6 text-[var(--primary)]">Update Email</h2>
         
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Current Email
-            </label>
-            <input
-              type="text"
-              value={studentData?.email || ''}
-              disabled
-              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500"
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              New Email Address
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setError('');
-              }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-black"
-              placeholder="Enter new email address"
-            />
-            {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
-          </div>
-          
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="flex-1 px-4 py-2 bg-[#FDA92D] hover:bg-[#E6941A] text-white rounded-lg disabled:opacity-50"
-            >
-              {isLoading ? 'Updating...' : 'Update Email'}
-            </button>
-          </div>
-        </form>
+        <Formik
+          initialValues={initialValues}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}
+          enableReinitialize
+        >
+          {({ isSubmitting }) => (
+            <Form>
+              <div className="mb-4">
+                <InputField
+                  label="Current Email"
+                  name="currentEmail"
+                  value={studentData?.email || ''}
+                  disabled
+                  placeholder="Current email address"
+                />
+              </div>
+              
+              <div className="mb-4">
+                <InputField
+                  label="New Email Address"
+                  name="email"
+                  type="email"
+                  placeholder="Enter new email address"
+                />
+              </div>
+              
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 px-4 py-2 bg-[#FDA92D] hover:bg-[#E6941A] text-white rounded-lg disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Updating...' : 'Update Email'}
+                </button>
+              </div>
+            </Form>
+          )}
+        </Formik>
         
         <button
           onClick={onClose}

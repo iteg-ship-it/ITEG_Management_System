@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAdmitedStudentsQuery } from "../../redux/api/authApi";
 import Loader from "../common-components/loader/Loader";
+import TabsCommon from "../common-components/table/TabsCommon";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -67,23 +68,7 @@ const StudentDashboard = () => {
       <h1 className="text-3xl py-4 font-bold">Student Level Progress</h1>
       <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
         <div className="px-6">
-          {/* Level Tabs */}
-          <div className="flex gap-6 mt-4 overflow-x-auto pb-4">
-            {levelTabs.map((tab) => (
-              <div key={tab}>
-                <p
-                  onClick={() => handleTabClick(tab)}
-                  className={`cursor-pointer text-md text-[var(--text-color)] pb-2 border-b-2 whitespace-nowrap min-w-fit px-2 ${
-                    activeTab === tab
-                      ? "border-[var(--text-color)] font-semibold"
-                      : "border-gray-200"
-                  }`}
-                >
-                  {tab}
-                </p>
-              </div>
-            ))}
-          </div>
+          <TabsCommon tabs={levelTabs} activeTab={activeTab} onTabChange={handleTabClick} />
         </div>
       </div>
     </>

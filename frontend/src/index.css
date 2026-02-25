@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --background: #f2f7fc;
+  --background: #F8F7F5;
   --primary: #FDA92D;
   --primary-light: #f7d897;
   --primary-dark: #FDA92D;
@@ -38,6 +38,7 @@
 body, html {
   overflow-x: hidden;
   max-width: 100vw;
+  background: var(--background);
 }
 /* Add to index.css or global.css */
 

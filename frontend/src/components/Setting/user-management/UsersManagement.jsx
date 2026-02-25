@@ -2,16 +2,16 @@ import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { Trash2, Edit, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useGetAllUsersQuery, useDeleteUserMutation, useEditUserMutation } from '../../redux/api/authApi';
-import CommonTable from '../common-components/table/CommonTable';
-import Pagination from '../common-components/pagination/Pagination';
-import Loader from "../common-components/loader/Loader";
-import InputField from '../common-components/common-feild/InputField';
-import CustomDropdown from '../common-components/common-feild/CustomDropdown';
+import { useGetAllUsersQuery, useDeleteUserMutation, useEditUserMutation } from '../../../redux/api/authApi';
+import CommonTable from '../../common-components/table/CommonTable';
+import Pagination from '../../common-components/pagination/Pagination';
+import Loader from "../../common-components/loader/Loader";
+import InputField from '../../common-components/common-feild/InputField';
+import CustomDropdown from '../../common-components/common-feild/CustomDropdown';
 import { Formik, Form } from 'formik';
-import { buttonStyles } from '../../styles/buttonStyles';
-import PageNavbar from '../common-components/navbar/PageNavbar';
-import profile from '../../assets/images/profile-img.png';
+import { buttonStyles } from '../../../styles/buttonStyles';
+import PageNavbar from '../../common-components/navbar/PageNavbar';
+import profile from '../../../assets/images/profile-img.png';
 
 const UsersManagement = () => {
     const navigate = useNavigate();
@@ -147,17 +147,17 @@ const UsersManagement = () => {
     ];
 
     const actionButton = (user) => (
-        <div className="flex space-x-1">
+        <div className="flex space-x-2">
             <button
                 onClick={() => handleEditUser(user)}
-                className="p-2 rounded-md bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
+                className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
                 title="Edit User"
             >
                 <Edit size={14} />
             </button>
             <button
                 onClick={() => handleDeleteUser(user.id, user.name)}
-                className="p-2 rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
                 title="Delete User"
             >
                 <Trash2 size={14} />
@@ -170,7 +170,7 @@ const UsersManagement = () => {
             <PageNavbar
                 title="Users Management"
                 subtitle="Manage all system users"
-                showBackButton={true}
+                showBackButton={false}
             />
 
             <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
@@ -247,7 +247,7 @@ const UsersManagement = () => {
                                 <div className="col-span-2 text-sm font-semibold text-gray-600 mt-2">User Information</div>
 
                                 <div className="col-span-2 md:col-span-1">
-                                    <InputField label="Name" name="name" />
+                                    <InputField label="Name" name="name" placeholder="Enter user name" />
                                 </div>
 
                                 <div className="col-span-2 md:col-span-1">
