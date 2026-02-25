@@ -82,17 +82,11 @@ components:
         order:
           type: number
           example: 1
-        departmentId:
-          oneOf:
-            - type: string
-              example: "64fdb61e7b9a1a1234567890"
-            - $ref: '#/components/schemas/Department'
         subDepartmentId:
           oneOf:
             - type: string
               example: "64fdb61e7b9a1a1234567891"
             - $ref: '#/components/schemas/SubDepartment'
-            - type: "null"
         isActive:
           type: boolean
           example: true
@@ -309,40 +303,34 @@ components:
                     example: 10
                   subcategories:
                     type: array
-                    items:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                          example: "Content & Structure"
-                        value:
-                          type: boolean
-                          example: true
-                  score:
-                    type: number
-                    example: 8
-            totalSoftSkillMarks:
-              type: number
-              example: 40
-        discipline:
-          type: object
-          properties:
-            sectionTitle:
-              type: string
-              example: "Discipline Evaluation (30 Marks)"
-            categories:
-              type: array
-              items:
-                type: object
-                properties:
-                  title:
-                    type: string
-                    example: "Attendance"
-                  maxMarks:
-                    type: number
-                    example: 10
-                  subcategories:
-                    type: array
+    SubDepartment:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64fdb61e7b9a1a1234567891"
+        name:
+          type: string
+          example: "Computer Applications"
+        departmentId:
+          oneOf:
+            - type: string
+              example: "64fdb61e7b9a1a1234567890"
+            - $ref: '#/components/schemas/Department'
+        allowedCourses:
+          type: array
+          items:
+            type: string
+          example: ["BCA", "MCA"]
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
                     items:
                       type: object
                       properties:
@@ -1118,7 +1106,7 @@ paths:
               required:
                 - name
                 - order
-                - departmentId
+                - subDepartmentId
               properties:
                 name:
                   type: string
@@ -1126,13 +1114,9 @@ paths:
                 order:
                   type: number
                   example: 1
-                departmentId:
-                  type: string
-                  example: "64fdb61e7b9a1a1234567890"
                 subDepartmentId:
                   type: string
                   example: "64fdb61e7b9a1a1234567891"
-                  description: "Optional - for sub-department specific levels"
       responses:
         '201':
           description: Level created successfully
@@ -1180,30 +1164,23 @@ paths:
         '500':
           description: Server error
 
-  /api/levels/department/{departmentId}:
+  /api/levels/subdepartment/{subDepartmentId}:
     get:
-      summary: Get levels by department
+      summary: Get levels by subdepartment
       tags:
         - Level
       security:
         - bearerAuth: []
       parameters:
-        - name: departmentId
+        - name: subDepartmentId
           in: path
           required: true
           schema:
             type: string
-          example: "64fdb61e7b9a1a1234567890"
-        - name: subDepartmentId
-          in: query
-          required: false
-          schema:
-            type: string
           example: "64fdb61e7b9a1a1234567891"
-          description: "Optional - filter by sub-department"
       responses:
         '200':
-          description: List of levels for the department
+          description: List of levels for the subdepartment
           content:
             application/json:
               schema:
