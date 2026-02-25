@@ -1,16 +1,14 @@
 import { useState, useMemo, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Pagination from "../common-components/pagination/Pagination";
-import {
-  useAdmitedStudentsQuery,
-} from "../../redux/api/authApi";
+import { useAdmitedStudentsQuery } from "../../redux/api/authApi";
 import Loader from "../common-components/loader/Loader";
 import CommonTable from "../common-components/table/CommonTable";
-// import edit from "../../assets/icons/edit-fill-icon.png";
-// import interview from "../../assets/icons/interview-icon.png";
 import CreateInterviewModal from "./CreateInterviewModal";
 import PageNavbar from "../common-components/navbar/PageNavbar";
 import { buttonStyles } from "../../styles/buttonStyles";
+import TabsCommon from "../common-components/table/TabsCommon";
+import SearchBox from "./../common-components/seach-export/SearchBox";
 
 const StudentDetailTable = () => {
   const { data = [], isLoading, refetch } = useAdmitedStudentsQuery();
@@ -136,12 +134,10 @@ const StudentDetailTable = () => {
     };
   });
 
-  const filteredData = enhancedData.filter((student) => {
-    // Search term filter
-    const searchableValues = Object.values(student)
-      .map((val) => String(val ?? "").toLowerCase())
-      .join(" ");
-    if (!searchableValues.includes(searchTerm.toLowerCase())) return false;
+  const filteredData = useMemo(() => {
+    return enhancedData.filter((student) => {
+      // Search term filter handled by CommonTable's global filter
+      // Keep other filters here
 
     // Track filter
     const track = toTitleCase(student.track || "");
@@ -181,8 +177,9 @@ const StudentDetailTable = () => {
       matchesLevel = student.currentLevel === selectedLevel;
     }
 
-    return matchesTrack && matchesCourse && matchesAttempts && matchesLevel;
-  });
+      return matchesTrack && matchesCourse && matchesAttempts && matchesLevel;
+    });
+  }, [enhancedData, selectedTracks, selectedCourses, selectedAttempts, activeTab, selectedLevel]);
 
   const handleTabClick = (tab) => {
     setActiveTab(tab);
@@ -276,43 +273,20 @@ const StudentDetailTable = () => {
 
   return (
     <>
-      <PageNavbar 
-        title="Admitted Student WorkFlow" 
-        subtitle="Track student progress through different levels"
-        showBackButton={false}
-      />
-
-      <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
+      <div className="bg-white h-20">
         <div className="px-6">
-          {/* Level Tabs */}
-          <div className="flex gap-6 mt-4 overflow-x-auto">
-            {levelTabs.map((tab) => (
-              <div key={tab}>
-                <p
-                  onClick={() => handleTabClick(tab)}
-                  className={`cursor-pointer text-md pb-2 border-b-2 whitespace-nowrap ${
-                    activeTab === tab
-                      ? "border-[var(--text-color)] font-semibold text-[var(--text-color)]"
-                      : "border-gray-200 text-[var(--text-color)]"
-                  }`}
-                >
-                  {tab === "Level's Cleared" ? "" + tab : tab}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex justify-between items-center flex-wrap gap-4 mt-4">
-            <Pagination
-              rowsPerPage={rowsPerPage}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              filtersConfig={filtersConfig}
-              filteredData={filteredData}
-              selectedRows={selectedRows}
-              allData={filteredData}
-              sectionName={activeTab === "Level's Cleared" ? "levelscleared" : `level${selectedLevel}`}
-            />
+          <TabsCommon tabs={levelTabs} activeTab={activeTab} onTabChange={handleTabClick} />
+        </div>
+      </div>
+      <div className="px-5">
+        <div className="flex justify-between">
+          <PageNavbar 
+            title="Admitted Student WorkFlow" 
+            subtitle="Track student progress through different levels"
+            showBackButton={false}
+          />
+          <div className="py-4 w-full max-w-2xl">
+            <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
           </div>
         </div>
 
@@ -326,20 +300,18 @@ const StudentDetailTable = () => {
           actionButton={selectedLevel === "permission" || activeTab === "Level's Cleared" ? null : actionButton}
           onSelectionChange={setSelectedRows}
           onRowClick={(row) => {
-            // Set the source section to 'admitted' before navigating
             localStorage.setItem("lastSection", "admitted");
             navigate(`/student-profile/${row._id}`, { state: { student: row } });
           }}
         />
+        <CreateInterviewModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          studentId={selectedStudentId}
+          refetchStudents={refetch}
+          interviewLevel={selectedLevel}
+        />
       </div>
-
-      <CreateInterviewModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        studentId={selectedStudentId}
-        refetchStudents={refetch}
-        interviewLevel={selectedLevel}
-      />
     </>
   );
 };

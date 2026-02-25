@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Check</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>🔍 ITEG App Status Check</h1>
+    <div id="results"></div>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        // Check if backend is running
+        fetch('http://localhost:5000/api/health-check')
+            .then(res => res.text())
+            .then(data => {
+                results.innerHTML += `<div class="status success">✅ Backend: ${data}</div>`;
+            })
+            .catch(err => {
+                results.innerHTML += `<div class="status error">❌ Backend: Not running or not accessible</div>`;
+            });
+        
+        // Check if frontend is accessible
+        fetch('http://localhost:5173/')
+            .then(res => {
+                if (res.ok) {
+                    results.innerHTML += `<div class="status success">✅ Frontend: Running on port 5173</div>`;
+                }
+            })
+            .catch(err => {
+                results.innerHTML += `<div class="status error">❌ Frontend: Not accessible</div>`;
+            });
+    </script>
+</body>
+</html>
