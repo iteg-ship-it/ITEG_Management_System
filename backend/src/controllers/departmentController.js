@@ -1,14 +1,64 @@
 const Department = require("../models/Department");
+const mongoose = require("mongoose");
+
+// Helper function to validate ObjectId
+const isValidObjectId = (id) => {
+  return mongoose.Types.ObjectId.isValid(id);
+};
+
+// Helper function to validate allowedCourses structure
+const validateAllowedCourses = (courses) => {
+  if (!Array.isArray(courses)) return false;
+  return courses.every(course => 
+    course.courseName && 
+    typeof course.courseName === 'string' &&
+    course.durationInYears && 
+    typeof course.durationInYears === 'number' &&
+    course.durationInYears > 0
+  );
+};
+
+// Helper function to validate reportConfig structure
+const validateReportConfig = (reportConfig) => {
+  if (!reportConfig || typeof reportConfig !== 'object') return false;
+  
+  const validTemplateTypes = ["ITEG_STANDARD", "MEG_WEIGHTED", "BEG_CUTOFF", "BTECH_STAGE"];
+  if (!reportConfig.templateType || !validTemplateTypes.includes(reportConfig.templateType)) {
+    return false;
+  }
+  
+  if (!reportConfig.sections || typeof reportConfig.sections !== 'object') {
+    return false;
+  }
+  
+  return true;
+};
 
 // Create Department
 exports.createDepartment = async (req, res) => {
   try {
     // Validate required fields
-    const { name, code, universityName, reportConfig } = req.body;
+    const { name, code, universityName, reportConfig, allowedCourses } = req.body;
     if (!name || !code || !universityName || !reportConfig) {
       return res.status(400).json({
         success: false,
         message: "Name, code, universityName, and reportConfig are required"
+      });
+    }
+
+    // Validate reportConfig structure
+    if (!validateReportConfig(reportConfig)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid reportConfig structure. Must include templateType and sections."
+      });
+    }
+
+    // Validate allowedCourses if provided
+    if (allowedCourses && !validateAllowedCourses(allowedCourses)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid allowedCourses structure. Each course must have courseName (string) and durationInYears (positive number)."
       });
     }
 
@@ -54,7 +104,7 @@ exports.getAllDepartments = async (req, res) => {
 exports.getDepartmentById = async (req, res) => {
   try {
     // Validate ObjectId format
-    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+    if (!isValidObjectId(req.params.id)) {
       return res.status(400).json({
         success: false,
         message: "Invalid department ID format"
@@ -89,10 +139,26 @@ exports.getDepartmentById = async (req, res) => {
 exports.updateDepartment = async (req, res) => {
   try {
     // Validate ObjectId format
-    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+    if (!isValidObjectId(req.params.id)) {
       return res.status(400).json({
         success: false,
         message: "Invalid department ID format"
+      });
+    }
+
+    // Validate reportConfig if provided
+    if (req.body.reportConfig && !validateReportConfig(req.body.reportConfig)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid reportConfig structure. Must include templateType and sections."
+      });
+    }
+
+    // Validate allowedCourses if provided
+    if (req.body.allowedCourses && !validateAllowedCourses(req.body.allowedCourses)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid allowedCourses structure. Each course must have courseName (string) and durationInYears (positive number)."
       });
     }
 
@@ -134,7 +200,7 @@ exports.updateDepartment = async (req, res) => {
 exports.deleteDepartment = async (req, res) => {
   try {
     // Validate ObjectId format
-    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+    if (!isValidObjectId(req.params.id)) {
       return res.status(400).json({
         success: false,
         message: "Invalid department ID format"

@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
+const { validateDepartmentInput, validateObjectId } = require("../middlewares/departmentValidation");
 const departmentController = require("../controllers/departmentController");
 
 const allowedRoles = ["superadmin", "admin"];
@@ -10,6 +11,7 @@ router.post(
   "/",
   verifyToken,
   checkRole(allowedRoles),
+  validateDepartmentInput,
   departmentController.createDepartment
 );
 
@@ -22,6 +24,7 @@ router.get(
 router.get(
   "/:id",
   verifyToken,
+  validateObjectId,
   departmentController.getDepartmentById
 );
 
@@ -29,6 +32,8 @@ router.put(
   "/:id",
   verifyToken,
   checkRole(allowedRoles),
+  validateObjectId,
+  validateDepartmentInput,
   departmentController.updateDepartment
 );
 
@@ -36,6 +41,7 @@ router.delete(
   "/:id",
   verifyToken,
   checkRole(allowedRoles),
+  validateObjectId,
   departmentController.deleteDepartment
 );
 

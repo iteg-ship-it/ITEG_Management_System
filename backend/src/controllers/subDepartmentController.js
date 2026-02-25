@@ -1,5 +1,11 @@
 const SubDepartment = require("../models/SubDepartment");
 const Department = require("../models/Department");
+const mongoose = require("mongoose");
+
+// Helper function to validate ObjectId
+const isValidObjectId = (id) => {
+  return mongoose.Types.ObjectId.isValid(id);
+};
 
 // Create SubDepartment
 exports.createSubDepartment = async (req, res) => {
@@ -14,7 +20,7 @@ exports.createSubDepartment = async (req, res) => {
     }
 
     // Validate departmentId format
-    if (!departmentId.match(/^[0-9a-fA-F]{24}$/)) {
+    if (!isValidObjectId(departmentId)) {
       return res.status(400).json({
         success: false,
         message: "Invalid departmentId format"
@@ -47,7 +53,7 @@ exports.createSubDepartment = async (req, res) => {
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
-        message: "SubDepartment with this name already exists"
+        message: "SubDepartment with this name already exists in this department"
       });
     }
     
@@ -64,7 +70,7 @@ exports.getSubDepartmentsByDepartment = async (req, res) => {
     const { departmentId } = req.params;
     
     // Validate ObjectId format
-    if (!departmentId.match(/^[0-9a-fA-F]{24}$/)) {
+    if (!isValidObjectId(departmentId)) {
       return res.status(400).json({
         success: false,
         message: "Invalid department ID format"
@@ -108,7 +114,7 @@ exports.getAllSubDepartments = async (req, res) => {
 exports.getSubDepartmentById = async (req, res) => {
   try {
     // Validate ObjectId format
-    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+    if (!isValidObjectId(req.params.id)) {
       return res.status(400).json({
         success: false,
         message: "Invalid subdepartment ID format"
@@ -143,7 +149,7 @@ exports.getSubDepartmentById = async (req, res) => {
 exports.updateSubDepartment = async (req, res) => {
   try {
     // Validate ObjectId format
-    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+    if (!isValidObjectId(req.params.id)) {
       return res.status(400).json({
         success: false,
         message: "Invalid subdepartment ID format"
@@ -152,7 +158,7 @@ exports.updateSubDepartment = async (req, res) => {
 
     // If departmentId is being updated, validate it
     if (req.body.departmentId) {
-      if (!req.body.departmentId.match(/^[0-9a-fA-F]{24}$/)) {
+      if (!isValidObjectId(req.body.departmentId)) {
         return res.status(400).json({
           success: false,
           message: "Invalid departmentId format"
@@ -196,7 +202,7 @@ exports.updateSubDepartment = async (req, res) => {
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
-        message: "SubDepartment with this name already exists"
+        message: "SubDepartment with this name already exists in this department"
       });
     }
     
@@ -211,7 +217,7 @@ exports.updateSubDepartment = async (req, res) => {
 exports.deleteSubDepartment = async (req, res) => {
   try {
     // Validate ObjectId format
-    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+    if (!isValidObjectId(req.params.id)) {
       return res.status(400).json({
         success: false,
         message: "Invalid subdepartment ID format"

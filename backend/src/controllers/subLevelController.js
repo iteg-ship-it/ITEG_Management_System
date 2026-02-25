@@ -1,29 +1,20 @@
 const SubLevel = require("../models/SubLevel");
 const Level = require("../models/Level");
+const mongoose = require("mongoose");
+
+// Helper function to validate ObjectId
+const isValidObjectId = (id) => {
+  return mongoose.Types.ObjectId.isValid(id);
+};
 
 // Create SubLevel
 exports.createSubLevel = async (req, res) => {
   try {
-    // Validate required fields
-    const { name, order, levelId } = req.body;
-    if (!name || !order || !levelId) {
-      return res.status(400).json({
-        success: false,
-        message: "Name, order, and levelId are required"
-      });
-    }
-
-    // Validate levelId format
-    if (!levelId.match(/^[0-9a-fA-F]{24}$/)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid levelId format"
-      });
-    }
+    const { subDepartmentId } = req.body;
 
     // Check if level exists and is active
     const level = await Level.findOne({ 
-      _id: levelId, 
+      _id: req.body.levelId, 
       isActive: true 
     });
     
@@ -62,14 +53,6 @@ exports.createSubLevel = async (req, res) => {
 exports.getSubLevelsByLevel = async (req, res) => {
   try {
     const { levelId } = req.params;
-    
-    // Validate ObjectId format
-    if (!levelId.match(/^[0-9a-fA-F]{24}$/)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid level ID format"
-      });
-    }
     
     const subLevels = await SubLevel.find({ 
       levelId, 
@@ -110,14 +93,6 @@ exports.getAllSubLevels = async (req, res) => {
 // Get SubLevel by ID
 exports.getSubLevelById = async (req, res) => {
   try {
-    // Validate ObjectId format
-    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid sublevel ID format"
-      });
-    }
-
     const subLevel = await SubLevel.findOne({ 
       _id: req.params.id, 
       isActive: true 
@@ -145,24 +120,8 @@ exports.getSubLevelById = async (req, res) => {
 // Update SubLevel
 exports.updateSubLevel = async (req, res) => {
   try {
-    // Validate ObjectId format
-    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid sublevel ID format"
-      });
-    }
-
-    // If levelId is being updated, validate it
+    // If levelId is being updated, validate it exists
     if (req.body.levelId) {
-      if (!req.body.levelId.match(/^[0-9a-fA-F]{24}$/)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid levelId format"
-        });
-      }
-
-      // Check if level exists and is active
       const level = await Level.findOne({ 
         _id: req.body.levelId, 
         isActive: true 
@@ -213,14 +172,6 @@ exports.updateSubLevel = async (req, res) => {
 // Delete SubLevel (soft delete)
 exports.deleteSubLevel = async (req, res) => {
   try {
-    // Validate ObjectId format
-    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid sublevel ID format"
-      });
-    }
-
     const subLevel = await SubLevel.findOneAndUpdate(
       { _id: req.params.id, isActive: true },
       { isActive: false },
