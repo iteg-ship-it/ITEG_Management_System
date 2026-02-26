@@ -14,26 +14,25 @@ router.post("/admitted", studentController.createAdmittedStudent);
 router.get(
   "/getall",
   verifyToken,
-  checkRole(allowedRoles),
   studentController.getAllStudents
 );
 
 router.get(
   "/get_student_by_level/:levelNo",
   verifyToken,
-  checkRole(allowedRoles),
   studentController.getAllStudentsByLevel
 );
 
-router.get("/Ready_Students", verifyToken, checkRole(allowedRoles), studentController.getReadyStudent);
+router.get("/Ready_Students", verifyToken, studentController.getReadyStudent);
 
-router.post("/create_level/:id", verifyToken, checkRole(allowedRoles), studentController.createLevels);
+router.post("/create_level/:id", verifyToken, studentController.createLevels);
 
 
-router.get("/permission_students", verifyToken, checkRole(allowedRoles), studentController.getAllPermissionStudents
+// Student Permission Routes - Keep these intact
+router.get("/permission_students", verifyToken, studentController.getAllPermissionStudents
 );
 
-router.patch("/update_permission_student/:studentId", verifyToken, checkRole(allowedRoles), studentController.updatePermissionStudent);
+router.patch("/update_permission_student/:studentId", verifyToken, studentController.updatePermissionStudent);
 
 // Placement Workflow Routes (before /:id route) - Keep original URLs
 // 1. Interview Management

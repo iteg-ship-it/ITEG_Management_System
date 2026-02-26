@@ -1,47 +1,48 @@
 const express = require("express");
-const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
-const { 
-  addDepartment, 
-  getAllDepartments, 
-  updateDepartment, 
-  deleteDepartment,
-  addSubdepartment,
-  updateSubdepartment,
-  deleteSubdepartment,
-  getSubdepartmentsByDepartment,
-  addLevel,
-  updateLevel,
-  deleteLevel,
-  getLevelsBySubdepartment,
-  addSubLevel,
-  updateSubLevel,
-  deleteSubLevel,
-  getSubLevelsByLevel
-} = require("../controllers/department/departmentController");
-
 const router = express.Router();
+const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
+const { validateDepartmentInput, validateObjectId } = require("../middlewares/departmentValidation");
+const departmentController = require("../controllers/departmentController");
 
-router.post("/add", verifyToken, checkRole(["superadmin", "admin", "faculty"]), addDepartment);
-router.get("/all", verifyToken, checkRole(["superadmin", "admin", "faculty"]), getAllDepartments);
-router.patch("/update/:id", verifyToken, checkRole(["superadmin", "admin", "faculty"]), updateDepartment);
-router.delete("/delete/:id", verifyToken, checkRole(["superadmin", "admin", "faculty"]), deleteDepartment);
+const allowedRoles = ["superadmin", "admin"];
 
-// Subdepartment routes
-router.post("/:departmentId/subdepartments", verifyToken, checkRole(["superadmin", "admin", "faculty"]), addSubdepartment);
-router.get("/:departmentId/subdepartments", verifyToken, checkRole(["superadmin", "admin", "faculty"]), getSubdepartmentsByDepartment);
-router.patch("/:departmentId/subdepartments/:subdepartmentId", verifyToken, checkRole(["superadmin", "admin", "faculty"]), updateSubdepartment);
-router.delete("/:departmentId/subdepartments/:subdepartmentId", verifyToken, checkRole(["superadmin", "admin", "faculty"]), deleteSubdepartment);
+// Department CRUD Routes
+router.post(
+  "/",
+  verifyToken,
+  checkRole(allowedRoles),
+  validateDepartmentInput,
+  departmentController.createDepartment
+);
 
-// Level routes
-router.post("/:departmentId/subdepartments/:subdepartmentId/levels", verifyToken, checkRole(["superadmin", "admin", "faculty"]), addLevel);
-router.get("/:departmentId/subdepartments/:subdepartmentId/levels", verifyToken, checkRole(["superadmin", "admin", "faculty"]), getLevelsBySubdepartment);
-router.patch("/:departmentId/subdepartments/:subdepartmentId/levels/:levelId", verifyToken, checkRole(["superadmin", "admin", "faculty"]), updateLevel);
-router.delete("/:departmentId/subdepartments/:subdepartmentId/levels/:levelId", verifyToken, checkRole(["superadmin", "admin", "faculty"]), deleteLevel);
+router.get(
+  "/",
+  verifyToken,
+  departmentController.getAllDepartments
+);
 
-// SubLevel routes
-router.post("/:departmentId/subdepartments/:subdepartmentId/levels/:levelId/sublevels", verifyToken, checkRole(["superadmin", "admin", "faculty"]), addSubLevel);
-router.get("/:departmentId/subdepartments/:subdepartmentId/levels/:levelId/sublevels", verifyToken, checkRole(["superadmin", "admin", "faculty"]), getSubLevelsByLevel);
-router.patch("/:departmentId/subdepartments/:subdepartmentId/levels/:levelId/sublevels/:subLevelId", verifyToken, checkRole(["superadmin", "admin", "faculty"]), updateSubLevel);
-router.delete("/:departmentId/subdepartments/:subdepartmentId/levels/:levelId/sublevels/:subLevelId", verifyToken, checkRole(["superadmin", "admin", "faculty"]), deleteSubLevel);
+router.get(
+  "/:id",
+  verifyToken,
+  validateObjectId,
+  departmentController.getDepartmentById
+);
+
+router.put(
+  "/:id",
+  verifyToken,
+  checkRole(allowedRoles),
+  validateObjectId,
+  validateDepartmentInput,
+  departmentController.updateDepartment
+);
+
+router.delete(
+  "/:id",
+  verifyToken,
+  checkRole(allowedRoles),
+  validateObjectId,
+  departmentController.deleteDepartment
+);
 
 module.exports = router;

@@ -15,6 +15,149 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    Department:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64fdb61e7b9a1a1234567890"
+        name:
+          type: string
+          example: "ITEG"
+        code:
+          type: string
+          example: "ITEG001"
+        universityName:
+          type: string
+          example: "SSISM"
+        allowedCourses:
+          type: array
+          items:
+            type: object
+            properties:
+              courseName:
+                type: string
+                example: "BCA"
+              durationInYears:
+                type: number
+                example: 3
+        reportConfig:
+          type: object
+          properties:
+            templateType:
+              type: string
+              enum: ["ITEG_STANDARD", "MEG_WEIGHTED", "BEG_CUTOFF", "BTECH_STAGE"]
+              example: "ITEG_STANDARD"
+            sections:
+              type: object
+              properties:
+                showTechnicalSkills:
+                  type: boolean
+                  example: true
+                showSoftSkills:
+                  type: boolean
+                  example: true
+                showDiscipline:
+                  type: boolean
+                  example: true
+                showProjects:
+                  type: boolean
+                  example: true
+                showCareerReadiness:
+                  type: boolean
+                  example: true
+                showUniversityAcademicHistory:
+                  type: boolean
+                  example: true
+                showTaskCompletionPercentage:
+                  type: boolean
+                  example: true
+                showEvaluationBreakdown:
+                  type: boolean
+                  example: true
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Level:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64fdb61e7b9a1a1234567892"
+        name:
+          type: string
+          example: "Level 1"
+        order:
+          type: number
+          example: 1
+        subDepartmentId:
+          oneOf:
+            - type: string
+              example: "64fdb61e7b9a1a1234567891"
+            - $ref: '#/components/schemas/SubDepartment'
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    SubLevel:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64fdb61e7b9a1a1234567893"
+        name:
+          type: string
+          example: "SubLevel 1A"
+        order:
+          type: number
+          example: 1
+        levelId:
+          oneOf:
+            - type: string
+              example: "64fdb61e7b9a1a1234567892"
+            - $ref: '#/components/schemas/Level'
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Session:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64fdb61e7b9a1a1234567894"
+        name:
+          type: string
+          example: "2023-24"
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
     Company:
       type: object
       properties:
@@ -117,6 +260,35 @@ components:
           format: date-time
           example: "2024-04-29T08:30:00.000Z"
     
+    SubDepartment:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64fdb61e7b9a1a1234567891"
+        name:
+          type: string
+          example: "Computer Applications"
+        departmentId:
+          oneOf:
+            - type: string
+              example: "64fdb61e7b9a1a1234567890"
+            - $ref: '#/components/schemas/Department'
+        allowedCourses:
+          type: array
+          items:
+            type: string
+          example: ["BCA", "MCA"]
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    
     StudentReportCard:
       type: object
       required:
@@ -209,88 +381,6 @@ components:
                     example: 10
                   subcategories:
                     type: array
-                    items:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                          example: "Regular Attendance"
-                        value:
-                          type: boolean
-                          example: true
-                  score:
-                    type: number
-                    example: 9
-            totalDisciplineMarks:
-              type: number
-              example: 25
-        careerReadiness:
-          type: object
-          properties:
-            resumeStatus:
-              type: string
-              enum: ["Uploaded", "Not Uploaded"]
-              example: "Uploaded"
-            linkedinStatus:
-              type: string
-              enum: ["Not Created", "Need Improvement", "Up-to-date"]
-              example: "Up-to-date"
-            aptitudeStatus:
-              type: string
-              enum: ["In-progress", "Done"]
-              example: "Done"
-            placementReady:
-              type: string
-              enum: ["Ready", "Not Ready"]
-              example: "Ready"
-        academicPerformance:
-          type: object
-          properties:
-            yearWiseSGPA:
-              type: array
-              items:
-                type: object
-                properties:
-                  year:
-                    type: string
-                    example: "2023"
-                  sgpa:
-                    type: number
-                    example: 8.5
-            cgpa:
-              type: number
-              example: 8.2
-        coCurricular:
-          type: array
-          items:
-            type: object
-            properties:
-              category:
-                type: string
-                example: "Sports"
-              title:
-                type: string
-                example: "Cricket Tournament Winner"
-              remark:
-                type: string
-                example: "Excellent team player"
-        overallGrade:
-          type: string
-          example: "A"
-        facultyRemark:
-          type: string
-          example: "Excellent progress this level."
-        isFinalReport:
-          type: boolean
-          example: false
-        createdAt:
-          type: string
-          format: date-time
-          example: "2025-10-29T10:30:00Z"
-        updatedAt:
-          type: string
-          format: date-time
-          example: "2025-10-29T10:30:00Z"
     Admission:
       type: object
       required:
@@ -597,7 +687,1286 @@ components:
           format: date-time
 
 paths:
-  /api/user/signup:
+  # ===== DEPARTMENT APIs =====
+  /api/departments:
+    post:
+      summary: Create a new department
+      tags:
+        - Department
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - code
+                - universityName
+                - reportConfig
+              properties:
+                name:
+                  type: string
+                  example: "ITEG"
+                code:
+                  type: string
+                  example: "ITEG001"
+                universityName:
+                  type: string
+                  example: "SSISM"
+                allowedCourses:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      courseName:
+                        type: string
+                        example: "BCA"
+                      durationInYears:
+                        type: number
+                        example: 3
+                reportConfig:
+                  type: object
+                  required:
+                    - templateType
+                    - sections
+                  properties:
+                    templateType:
+                      type: string
+                      enum: ["ITEG_STANDARD", "MEG_WEIGHTED", "BEG_CUTOFF", "BTECH_STAGE"]
+                      example: "ITEG_STANDARD"
+                    sections:
+                      type: object
+                      properties:
+                        showTechnicalSkills:
+                          type: boolean
+                          example: true
+                        showSoftSkills:
+                          type: boolean
+                          example: true
+                        showDiscipline:
+                          type: boolean
+                          example: true
+                        showProjects:
+                          type: boolean
+                          example: true
+                        showCareerReadiness:
+                          type: boolean
+                          example: true
+                        showUniversityAcademicHistory:
+                          type: boolean
+                          example: true
+                        showTaskCompletionPercentage:
+                          type: boolean
+                          example: true
+                        showEvaluationBreakdown:
+                          type: boolean
+                          example: true
+      responses:
+        '201':
+          description: Department created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Department created successfully"
+                  data:
+                    $ref: '#/components/schemas/Department'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Invalid reportConfig structure. Must include templateType and sections."
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Access denied. No token provided."
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Access denied. Insufficient permissions."
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Internal server error"
+
+    get:
+      summary: Get all departments
+      tags:
+        - Department
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of departments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Department'
+        '500':
+          description: Server error
+
+  /api/departments/{id}:
+    get:
+      summary: Get department by ID
+      tags:
+        - Department
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "64fdb61e7b9a1a1234567890"
+      responses:
+        '200':
+          description: Department found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Department'
+        '400':
+          description: Invalid ID format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Invalid department ID format"
+        '404':
+          description: Department not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Department not found"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Internal server error"
+
+    put:
+      summary: Update department
+      tags:
+        - Department
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Updated ITEG"
+                universityName:
+                  type: string
+                  example: "SSISM Updated"
+      responses:
+        '200':
+          description: Department updated successfully
+        '404':
+          description: Department not found
+        '500':
+          description: Server error
+
+    delete:
+      summary: Delete department (soft delete)
+      tags:
+        - Department
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Department deleted successfully
+        '404':
+          description: Department not found
+        '500':
+          description: Server error
+
+  # ===== SUBDEPARTMENT APIs =====
+  /api/subdepartments:
+    post:
+      summary: Create a new subdepartment
+      tags:
+        - SubDepartment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - departmentId
+              properties:
+                name:
+                  type: string
+                  example: "Computer Applications"
+                departmentId:
+                  type: string
+                  example: "64fdb61e7b9a1a1234567890"
+                allowedCourses:
+                  type: array
+                  items:
+                    type: string
+                  example: ["BCA", "MCA"]
+      responses:
+        '201':
+          description: SubDepartment created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "SubDepartment created successfully"
+                  data:
+                    $ref: '#/components/schemas/SubDepartment'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Name and departmentId are required"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Access denied. No token provided."
+        '404':
+          description: Department not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Department not found"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Internal server error"
+
+    get:
+      summary: Get all subdepartments
+      tags:
+        - SubDepartment
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of subdepartments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SubDepartment'
+        '500':
+          description: Server error
+
+  /api/subdepartments/department/{departmentId}:
+    get:
+      summary: Get subdepartments by department
+      tags:
+        - SubDepartment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: departmentId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "64fdb61e7b9a1a1234567890"
+      responses:
+        '200':
+          description: List of subdepartments for the department
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SubDepartment'
+        '400':
+          description: Invalid department ID format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Invalid department ID format"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Internal server error"
+
+  /api/subdepartments/{id}:
+    get:
+      summary: Get subdepartment by ID
+      tags:
+        - SubDepartment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: SubDepartment found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/SubDepartment'
+        '400':
+          description: Invalid ID format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Invalid subdepartment ID format"
+        '404':
+          description: SubDepartment not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "SubDepartment not found"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Internal server error"
+
+    put:
+      summary: Update subdepartment
+      tags:
+        - SubDepartment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Updated Computer Applications"
+                allowedCourses:
+                  type: array
+                  items:
+                    type: string
+                  example: ["BCA", "MCA", "MSc"]
+      responses:
+        '200':
+          description: SubDepartment updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "SubDepartment updated successfully"
+                  data:
+                    $ref: '#/components/schemas/SubDepartment'
+        '400':
+          description: Validation error or invalid ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Invalid subdepartment ID format"
+        '404':
+          description: SubDepartment not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "SubDepartment not found"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Internal server error"
+
+    delete:
+      summary: Delete subdepartment (soft delete)
+      tags:
+        - SubDepartment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: SubDepartment deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "SubDepartment deleted successfully"
+        '400':
+          description: Invalid ID format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Invalid subdepartment ID format"
+        '404':
+          description: SubDepartment not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "SubDepartment not found"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Internal server error"
+
+  # ===== LEVEL APIs =====
+  /api/levels:
+    post:
+      summary: Create a new level
+      tags:
+        - Level
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - order
+                - subDepartmentId
+              properties:
+                name:
+                  type: string
+                  example: "Level 1"
+                order:
+                  type: number
+                  example: 1
+                subDepartmentId:
+                  type: string
+                  example: "64fdb61e7b9a1a1234567891"
+      responses:
+        '201':
+          description: Level created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Level created successfully"
+                  data:
+                    $ref: '#/components/schemas/Level'
+        '400':
+          description: Validation error or duplicate order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Level with this order already exists for this subdepartment"
+        '401':
+          description: Unauthorized
+        '404':
+          description: SubDepartment not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "SubDepartment not found"
+        '500':
+          description: Server error
+
+    get:
+      summary: Get all levels
+      tags:
+        - Level
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of levels
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Level'
+        '500':
+          description: Server error
+
+  /api/levels/subdepartment/{subDepartmentId}:
+    get:
+      summary: Get levels by subdepartment
+      tags:
+        - Level
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: subDepartmentId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "64fdb61e7b9a1a1234567891"
+      responses:
+        '200':
+          description: List of levels for the subdepartment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Level'
+        '400':
+          description: Invalid subdepartment ID format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Invalid subDepartment ID format"
+        '500':
+          description: Server error
+
+  /api/levels/{id}:
+    get:
+      summary: Get level by ID
+      tags:
+        - Level
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "64fdb61e7b9a1a1234567892"
+      responses:
+        '200':
+          description: Level found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Level'
+        '404':
+          description: Level not found
+        '500':
+          description: Server error
+
+    put:
+      summary: Update level
+      tags:
+        - Level
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Updated Level 1"
+                order:
+                  type: number
+                  example: 2
+      responses:
+        '200':
+          description: Level updated successfully
+        '400':
+          description: Validation error or duplicate order
+        '404':
+          description: Level not found
+        '500':
+          description: Server error
+
+    delete:
+      summary: Delete level (soft delete)
+      tags:
+        - Level
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Level deleted successfully
+        '404':
+          description: Level not found
+        '500':
+          description: Server error
+
+  # ===== SUBLEVEL APIs =====
+  /api/sublevels:
+    post:
+      summary: Create a new sublevel
+      tags:
+        - SubLevel
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - order
+                - levelId
+              properties:
+                name:
+                  type: string
+                  example: "SubLevel 1A"
+                order:
+                  type: number
+                  example: 1
+                levelId:
+                  type: string
+                  example: "64fdb61e7b9a1a1234567892"
+      responses:
+        '201':
+          description: SubLevel created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "SubLevel created successfully"
+                  data:
+                    $ref: '#/components/schemas/SubLevel'
+        '400':
+          description: Validation error or duplicate order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "SubLevel with this order already exists for this level"
+        '401':
+          description: Unauthorized
+        '404':
+          description: Level not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Level not found"
+        '500':
+          description: Server error
+
+    get:
+      summary: Get all sublevels
+      tags:
+        - SubLevel
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of sublevels
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SubLevel'
+        '500':
+          description: Server error
+
+  /api/sublevels/level/{levelId}:
+    get:
+      summary: Get sublevels by level
+      tags:
+        - SubLevel
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: levelId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "64fdb61e7b9a1a1234567892"
+      responses:
+        '200':
+          description: List of sublevels for the level
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SubLevel'
+        '500':
+          description: Server error
+
+  /api/sublevels/{id}:
+    get:
+      summary: Get sublevel by ID
+      tags:
+        - SubLevel
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "64fdb61e7b9a1a1234567893"
+      responses:
+        '200':
+          description: SubLevel found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/SubLevel'
+        '404':
+          description: SubLevel not found
+        '500':
+          description: Server error
+
+    put:
+      summary: Update sublevel
+      tags:
+        - SubLevel
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Updated SubLevel 1A"
+                order:
+                  type: number
+                  example: 2
+      responses:
+        '200':
+          description: SubLevel updated successfully
+        '400':
+          description: Validation error or duplicate order
+        '404':
+          description: SubLevel not found
+        '500':
+          description: Server error
+
+    delete:
+      summary: Delete sublevel (soft delete)
+      tags:
+        - SubLevel
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: SubLevel deleted successfully
+        '404':
+          description: SubLevel not found
+        '500':
+          description: Server error
+
+  # ===== SESSION APIs =====
+  /api/sessions:
+    post:
+      summary: Create a new session
+      tags:
+        - Session
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: "2023-24"
+      responses:
+        '201':
+          description: Session created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Session created successfully"
+                  data:
+                    $ref: '#/components/schemas/Session'
+        '400':
+          description: Validation error or duplicate name
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+    get:
+      summary: Get all sessions
+      tags:
+        - Session
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of sessions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Session'
+        '500':
+          description: Server error
+
+  /api/sessions/{id}:
+    get:
+      summary: Get session by ID
+      tags:
+        - Session
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "64fdb61e7b9a1a1234567894"
+      responses:
+        '200':
+          description: Session found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Session'
+        '404':
+          description: Session not found
+        '500':
+          description: Server error
+
+    put:
+      summary: Update session
+      tags:
+        - Session
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "2024-25"
+      responses:
+        '200':
+          description: Session updated successfully
+        '400':
+          description: Validation error or duplicate name
+        '404':
+          description: Session not found
+        '500':
+          description: Server error
+
+    delete:
+      summary: Delete session (soft delete)
+      tags:
+        - Session
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Session deleted successfully
+        '404':
+          description: Session not found
     post:
       summary: Register a new user (admin/superadmin/faculty)
       tags:
