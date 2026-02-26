@@ -361,12 +361,11 @@ exports.googleAuthCallback = async (req, res) => {
     const { sub, email, name } = _json;
 
     if (!email.endsWith("@ssism.org")) {
-      return res.status(403).json({
-        message: "Only institutional emails (@ssism.org) are allowed to login.",
-      });
+      return res.redirect(`${process.env.GOOGLE_REDIRECT_URI}?error=unauthorized&message=Only institutional emails are allowed`);
     }
 
     let user = await User.findOne({ email });
+    let isNewUser = false;
 
     if (!user) {
       user = await User.create({
@@ -374,8 +373,14 @@ exports.googleAuthCallback = async (req, res) => {
         email,
         name,
         role: "superadmin",
+        position: "admin",
+        department: "IT",
+        mobileNo: "0000000000",
+        adharCard: `GOOGLE_${sub}`,
+        password: await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10),
         profileImage: _json.picture || "https://via.placeholder.com/150",
       });
+      isNewUser = true;
     }
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
@@ -386,12 +391,12 @@ exports.googleAuthCallback = async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
-    const redirectUrl = `${process.env.GOOGLE_REDIRECT_URI}?token=${token}&refreshToken=${refreshToken}&userId=${user._id}&name=${encodeURIComponent(user.name)}&role=${user.role}&email=${user.email}`;
+    const redirectUrl = `${process.env.GOOGLE_REDIRECT_URI}?token=${token}&refreshToken=${refreshToken}&userId=${user._id}&name=${encodeURIComponent(user.name)}&role=${user.role}&email=${user.email}&positionRole=${user.position || 'admin'}`;
 
     return res.redirect(redirectUrl);
   } catch (error) {
     console.error("Google login failed:", error);
-    res.status(500).json({ error: "Login failed" });
+    return res.redirect(`${process.env.GOOGLE_REDIRECT_URI}?error=server_error&message=Login failed`);
   }
 };
 

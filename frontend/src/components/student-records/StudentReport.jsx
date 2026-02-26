@@ -1,7 +1,8 @@
 // StudentReport.jsx
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetAdmittedStudentsByIdQuery, useGetReportCardQuery } from "../../redux/api/authApi";
+import { taskAPI } from '../../services/taskService';
 import { HiArrowNarrowLeft } from "react-icons/hi";
 import { FaDownload, FaLaptopCode, FaBrain, FaClipboardCheck, FaRocket, FaCertificate, FaGraduationCap, FaEdit, FaTrophy, FaProjectDiagram } from "react-icons/fa";
 import { MdEmail, MdPhone, MdPerson, MdLocationOn, MdSports } from "react-icons/md";
@@ -93,13 +94,40 @@ function LevelStepper({ levels = ['1A','1B','1C','2A','2B','2C'], currentLevel =
 export default function StudentReport() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [taskPerformance, setTaskPerformance] = useState(null);
+  const [taskLoading, setTaskLoading] = useState(true);
 
   const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
   const { data: reportCardResponse, isLoading: reportLoading, isError: reportError } = useGetReportCardQuery(id);
   const reportCardData = reportCardResponse?.data;
 
+  // Debug logs
+  console.log('Student ID:', id);
+  console.log('Task Performance State:', taskPerformance);
+  console.log('Task Loading:', taskLoading);
+
+  // Fetch task performance
+  useEffect(() => {
+    const fetchTaskPerformance = async () => {
+      if (id) {
+        try {
+          console.log('Fetching task performance for student:', id);
+          const result = await taskAPI.getStudentTaskPerformance(id);
+          console.log('Task performance result:', result);
+          setTaskPerformance(result.performance);
+        } catch (error) {
+          console.error('Error fetching task performance:', error);
+        } finally {
+          setTaskLoading(false);
+        }
+      }
+    };
+
+    fetchTaskPerformance();
+  }, [id]);
+
   // show loader while either is loading
-  if (isLoading || reportLoading) {
+  if (isLoading || reportLoading || taskLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <Loader />
@@ -261,7 +289,7 @@ export default function StudentReport() {
               </div>
 
               <div className="space-y-4">
-                {reportCardData?.technicalSkills?.length > 0 ? reportCardData.technicalSkills.map((tech, index) => {
+                {taskPerformance?.technicalSkills?.length > 0 ? taskPerformance.technicalSkills.map((tech, index) => {
                   const colors = ['from-blue-500 to-blue-600', 'from-green-500 to-green-600', 'from-purple-500 to-purple-600', 'from-red-500 to-red-600', 'from-yellow-500 to-yellow-600'];
                   return (
                     <div key={index} className="bg-gray-50 rounded-lg p-4">
@@ -272,7 +300,7 @@ export default function StudentReport() {
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                             tech.totalPercentage >= 90 ? 'bg-green-100 text-green-800' :
                             tech.totalPercentage >= 80 ? 'bg-blue-100 text-blue-800' :
-                            tech.totalPercentage >= 70 ? 'bg-yellow-100 text-yellow-800' :
+                            tech.totalPercentage >= 60 ? 'bg-yellow-100 text-yellow-800' :
                             'bg-red-100 text-red-800'
                           }`}>{tech.remark}</span>
                         </div>
@@ -282,6 +310,9 @@ export default function StudentReport() {
                           className={`h-3 rounded-full bg-gradient-to-r ${colors[index % colors.length]} transition-all duration-1000`}
                           style={{ width: `${tech.totalPercentage}%` }}
                         />
+                      </div>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-xs text-gray-500">Completed: {tech.completedTasks}/{tech.totalTasks} tasks</span>
                       </div>
                     </div>
                   );
@@ -303,7 +334,43 @@ export default function StudentReport() {
               </div>
 
               <div className="space-y-4">
-                {reportCardData?.softSkills?.categories?.length > 0 ? reportCardData.softSkills.categories.map((category, index) => {
+                {taskPerformance?.softSkills?.categories?.length > 0 ? taskPerformance.softSkills.categories.map((category, index) => {
+                  const percentage = category.maxMarks ? (category.score / category.maxMarks) * 100 : category.percentage || 0;
+                  let status = "Poor";
+                  let statusColor = "bg-red-100 text-red-800";
+
+                  if (percentage >= 90) {
+                    status = "Excellent";
+                    statusColor = "bg-green-100 text-green-800";
+                  } else if (percentage >= 70) {
+                    status = "Good";
+                    statusColor = "bg-blue-100 text-blue-800";
+                  } else if (percentage >= 50) {
+                    status = "Average";
+                    statusColor = "bg-yellow-100 text-yellow-800";
+                  }
+
+                  return (
+                    <div key={index} className="bg-gray-50 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-medium text-gray-800">{category.title}</span>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColor}`}>
+                          {category.remark || status}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <span>Score: {category.score}/{category.maxMarks}</span>
+                        <div className="flex-1 bg-gray-200 rounded-full h-2 ml-2">
+                          <div
+                            className="h-2 rounded-full bg-gradient-to-r from-green-400 to-green-600 transition-all duration-1000"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        <span className="font-medium">{Math.round(percentage)}%</span>
+                      </div>
+                    </div>
+                  );
+                }) : reportCardData?.softSkills?.categories?.length > 0 ? reportCardData.softSkills.categories.map((category, index) => {
                   const percentage = category.maxMarks ? (category.score / category.maxMarks) * 100 : 0;
                   let status = "Poor";
                   let statusColor = "bg-red-100 text-red-800";

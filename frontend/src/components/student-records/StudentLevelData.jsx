@@ -4,9 +4,11 @@ import { useGetLevelInterviewQuery } from "../../redux/api/authApi";
 import Loader from "../common-components/loader/Loader";
 import { useState, useMemo } from "react";
 import { IoSearchOutline } from "react-icons/io5";
+import { FaUpload } from "react-icons/fa";
 import CommonTable from "../common-components/table/CommonTable";
 import Pagination from "../common-components/pagination/Pagination";
 import PageNavbar from "../common-components/navbar/PageNavbar";
+import LevelTaskUploadModal from "./LevelTaskUploadModal";
 
 const toTitleCase = (str) =>
   str
@@ -23,9 +25,28 @@ const StudentLevelData = () => {
   const [rowsPerPage] = useState(10);
   const [trackFilter, setTrackFilter] = useState([]);
   const [resultFilter, setResultFilter] = useState([]);
+  const [isTaskUploadModalOpen, setIsTaskUploadModalOpen] = useState(false);
 
   // Define all level tabs
   const levelTabs = ["Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C"];
+
+  // Get current level code for task upload
+  const getCurrentLevelCode = (tabName) => {
+    const levelMapping = {
+      "Level 1A": "1A",
+      "Level 1B": "1B",
+      "Level 1C": "1C",
+      "Level 2A": "2A",
+      "Level 2B": "2B",
+      "Level 2C": "2C"
+    };
+    return levelMapping[tabName];
+  };
+
+  const handleTasksUploaded = () => {
+    // Refresh data or show success message
+    console.log(`Tasks uploaded successfully for ${activeTab}`);
+  };
 
   // Filter data based on active tab
   const filteredData = useMemo(() => {
@@ -145,21 +166,32 @@ const StudentLevelData = () => {
       />
       <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
         <div className="px-6">
-          {/* Level Tabs */}
-          <div className="flex gap-6 mt-4 overflow-x-auto">
-            {levelTabs.map((tab) => (
-              <p
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`cursor-pointer text-md text-[var(--text-color)] pb-2 border-b-2 whitespace-nowrap ${
-                  activeTab === tab
-                    ? "border-[var(--text-color)] font-semibold"
-                    : "border-gray-200"
-                }`}
-              >
-                {tab}
-              </p>
-            ))}
+          {/* Level Tabs and Upload Button */}
+          <div className="flex justify-between items-center mt-4">
+            <div className="flex gap-6 overflow-x-auto">
+              {levelTabs.map((tab) => (
+                <p
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`cursor-pointer text-md text-[var(--text-color)] pb-2 border-b-2 whitespace-nowrap ${
+                    activeTab === tab
+                      ? "border-[var(--text-color)] font-semibold"
+                      : "border-gray-200"
+                  }`}
+                >
+                  {tab}
+                </p>
+              ))}
+            </div>
+            
+            {/* Task Upload Button */}
+            <button
+              onClick={() => setIsTaskUploadModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-[#FDA92D] hover:bg-[#E6941A] text-white rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
+            >
+              <FaUpload className="text-sm" />
+              Upload Tasks for {activeTab}
+            </button>
           </div>
           
           {/* Search and Filters */}
@@ -190,6 +222,14 @@ const StudentLevelData = () => {
           </div>
         )}
       </div>
+      
+      {/* Task Upload Modal */}
+      <LevelTaskUploadModal
+        isOpen={isTaskUploadModalOpen}
+        onClose={() => setIsTaskUploadModalOpen(false)}
+        level={getCurrentLevelCode(activeTab)}
+        onTasksUploaded={handleTasksUploaded}
+      />
     </>
   );
 };

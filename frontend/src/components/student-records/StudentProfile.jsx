@@ -2,6 +2,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import { useGetAdmittedStudentsByIdQuery, useUpdateStudentImageMutation, useUploadResumeMutation, useUpdateStudentEmailMutation, useGetReportCardQuery } from "../../redux/api/authApi";
+import { taskAPI } from '../../services/taskService';
 import PermissionModal from "./PermissionModal";
 import PlacementModal from "./PlacementModal";
 import Loader from "../common-components/loader/Loader";
@@ -346,6 +347,14 @@ export default function StudentProfile() {
               >
                 <span className="hidden sm:inline">Choose Elective</span> 
                 <span className="sm:hidden">Elective</span>
+              </button>
+              <button
+                onClick={() => navigate(`/student/${id}/task-list`)}
+                className="px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 shadow-lg bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-white"
+                title="Manage student tasks and assignments"
+              >
+                <span className="hidden sm:inline">Task List</span>
+                <span className="sm:hidden">Tasks</span>
               </button>
               <button
                 onClick={() => setEmailModalOpen(true)}
@@ -973,7 +982,27 @@ const ProgressMetric = ({ title, value, total, color, suffix = '' }) => {
 
 // Dynamic Progress Overview Component
 const DynamicProgressOverview = ({ studentData, reportCardData, reportLoading }) => {
-  if (reportLoading) {
+  const [taskPerformance, setTaskPerformance] = useState(null);
+  const [taskLoading, setTaskLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTaskPerformance = async () => {
+      if (studentData?._id) {
+        try {
+          const result = await taskAPI.getStudentTaskPerformance(studentData._id);
+          setTaskPerformance(result.performance);
+        } catch (error) {
+          console.error('Error fetching task performance:', error);
+        } finally {
+          setTaskLoading(false);
+        }
+      }
+    };
+
+    fetchTaskPerformance();
+  }, [studentData?._id]);
+
+  if (reportLoading || taskLoading) {
     return (
       <div className="h-48 sm:h-80 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
@@ -981,37 +1010,44 @@ const DynamicProgressOverview = ({ studentData, reportCardData, reportLoading })
     );
   }
 
-  // Calculate dynamic values from report card data
+  // Calculate dynamic values from task performance and report card data
   const calculateDynamicMetrics = () => {
     const passedLevels = studentData?.level?.filter(lvl => lvl.result === "Pass") || [];
-    const totalLevels = 6; // Total levels in the system
+    const totalLevels = 6;
     
-    // Calculate success rate from report card data
+    // Use task completion rate as primary success metric
     let successRate = 0;
-    if (reportCardData?.subjects && reportCardData.subjects.length > 0) {
+    if (taskPerformance?.completionRate) {
+      successRate = taskPerformance.completionRate;
+    } else if (reportCardData?.subjects && reportCardData.subjects.length > 0) {
       const totalMarks = reportCardData.subjects.reduce((sum, subject) => sum + (subject.totalMarks || 0), 0);
       const obtainedMarks = reportCardData.subjects.reduce((sum, subject) => sum + (subject.obtainedMarks || 0), 0);
       successRate = totalMarks > 0 ? Math.round((obtainedMarks / totalMarks) * 100) : 0;
     } else {
-      // Fallback: calculate from attendance if no subject data
       const attendanceRecord = studentData.attendanceRecord || [];
       if (attendanceRecord.length > 0) {
         const totalAttendance = attendanceRecord.reduce((sum, record) => sum + (record.attendancePercentage || 0), 0);
         successRate = Math.round(totalAttendance / attendanceRecord.length);
       } else {
-        // Final fallback: calculate from passed levels
         successRate = totalLevels > 0 ? Math.round((passedLevels.length / totalLevels) * 100) : 0;
       }
     }
     
-    // Calculate overall performance score
-    const performanceScore = Math.round((successRate + (passedLevels.length / totalLevels * 100)) / 2);
+    // Calculate performance score based on task completion and level progress
+    const taskWeight = 0.6; // 60% weight to tasks
+    const levelWeight = 0.4; // 40% weight to levels
+    const taskScore = taskPerformance?.completionRate || 0;
+    const levelScore = (passedLevels.length / totalLevels) * 100;
+    const performanceScore = Math.round((taskScore * taskWeight) + (levelScore * levelWeight));
     
     return {
       successRate,
       levelsCompleted: passedLevels.length,
       totalLevels,
-      performanceScore
+      performanceScore,
+      taskCompletion: taskPerformance?.completionRate || 0,
+      totalTasks: taskPerformance?.overallStats?.totalTasks || 0,
+      completedTasks: taskPerformance?.overallStats?.completedTasks || 0
     };
   };
 
@@ -1020,6 +1056,13 @@ const DynamicProgressOverview = ({ studentData, reportCardData, reportLoading })
   return (
     <div className="h-48 sm:h-80 flex flex-col justify-center space-y-6">
       <ProgressMetric 
+        title="Task Performance" 
+        value={metrics.taskCompletion} 
+        total="100" 
+        color="#FDA92D" 
+        suffix="%"
+      />
+      <ProgressMetric 
         title="Overall Performance" 
         value={metrics.performanceScore} 
         total="100" 
@@ -1027,18 +1070,16 @@ const DynamicProgressOverview = ({ studentData, reportCardData, reportLoading })
         suffix="%"
       />
       <ProgressMetric 
-        title="Success Rate" 
-        value={metrics.successRate} 
-        total="100" 
-        color="#22C55E" 
-        suffix="%" 
-      />
-      <ProgressMetric 
         title="Levels Completed" 
         value={metrics.levelsCompleted} 
         total={metrics.totalLevels} 
         color="#8E33FF" 
       />
+      {metrics.totalTasks > 0 && (
+        <div className="text-xs text-gray-600 text-center">
+          Tasks: {metrics.completedTasks}/{metrics.totalTasks} completed
+        </div>
+      )}
     </div>
   );
 };

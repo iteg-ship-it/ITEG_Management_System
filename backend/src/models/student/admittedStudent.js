@@ -122,7 +122,7 @@ const AdmittedStudentSchema = new mongoose.Schema({
   // 🚦 Status
   readinessStatus: {
     type: String,
-    enum: ['Ready', 'Not Ready'],
+    enum: ['Ready', 'Not Ready', 'In Progress', 'Ready for Interview'],
     default: 'Not Ready'
   },
   resumeURL: { type: String, default: "" },
