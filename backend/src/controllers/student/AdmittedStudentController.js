@@ -585,18 +585,6 @@ exports.getReadyStudent = async (req, res) => {
     console.log('🚀 Ready Students API called');
     
     // Find all students whose readinessStatus is "Ready"
-<<<<<<< HEAD:backend/modules/student/controllers/AdmittedStudentController.js
-    const readyStudents = await AdmittedStudent.find({ readinessStatus: 'Ready' }).sort({ updatedAt: -1 });
-    
-    console.log(`📊 Found ${readyStudents.length} ready students`);
-
-    if (readyStudents.length === 0) {
-      console.log('⚠️ No ready students found');
-      return res.status(200).json({ 
-        message: "No students found with readinessStatus 'Ready'.",
-        data: []
-      });
-=======
     const readyStudents = await AdmittedStudent.find({
       readinessStatus: "Ready",
     }).sort({ updatedAt: -1 });
@@ -605,7 +593,6 @@ exports.getReadyStudent = async (req, res) => {
       return res
         .status(404)
         .json({ message: "No students found with readinessStatus 'Ready'." });
->>>>>>> 74d43714ce46a2c6a591599eed3d103768194ba2:backend/src/controllers/student/AdmittedStudentController.js
     }
 
     return res.status(200).json({

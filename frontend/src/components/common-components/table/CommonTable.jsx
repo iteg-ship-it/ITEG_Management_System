@@ -1,5 +1,6 @@
 
 /* eslint-disable react/prop-types */
+/* eslint-disable react/prop-types */
 import { useMemo, useEffect } from "react";
 import {
   useTable,
@@ -11,10 +12,10 @@ import { ChevronUp, ChevronDown } from "lucide-react";
 import Pagination from "../pagination/Pagination";
 
 const CommonTable = ({
-  columns,
-  data,
-  editable,
-  pagination,
+  columns = [],
+  data = [],
+  editable = false,
+  pagination = true,
   rowsPerPage = 10,
   searchTerm = "",
   actionButton,
@@ -22,18 +23,19 @@ const CommonTable = ({
   onRowClick,
 }) => {
 
-  /* ===================== TABLE COLUMNS ===================== */
+  /* ===================== COLUMNS ===================== */
 
   const tableColumns = useMemo(() => {
-    const cols = columns.map((col) => ({
+    const baseColumns = columns.map((col) => ({
       Header: col.label,
       accessor: col.key,
       Cell: ({ row }) =>
         col.render ? col.render(row.original) : row.original[col.key],
     }));
 
+    // Action Column
     if (editable && actionButton) {
-      cols.push({
+      baseColumns.push({
         Header: "Action",
         id: "action",
         disableSortBy: true,
@@ -41,8 +43,9 @@ const CommonTable = ({
       });
     }
 
+    // Extra Column
     if (extraColumn) {
-      cols.push({
+      baseColumns.push({
         Header: extraColumn.header,
         id: "extra",
         disableSortBy: true,
@@ -50,7 +53,7 @@ const CommonTable = ({
       });
     }
 
-    return cols;
+    return baseColumns;
   }, [columns, editable, actionButton, extraColumn]);
 
   /* ===================== TABLE INSTANCE ===================== */
@@ -79,7 +82,7 @@ const CommonTable = ({
     usePagination
   );
 
-  /* ===================== SEARCH ===================== */
+  /* ===================== GLOBAL SEARCH ===================== */
 
   useEffect(() => {
     setGlobalFilter(searchTerm || undefined);
@@ -89,34 +92,41 @@ const CommonTable = ({
 
   return (
     <div className="w-full">
-      <div className="rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="rounded-2xl border border-gray-200 shadow-sm bg-white">
 
         {/* ================= TABLE ================= */}
-        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-          <table {...getTableProps()} className="min-w-full text-sm">
-
-            <thead className="border-b border-gray-200">
+        <div className="overflow-x-auto rounded-2xl">
+          <table
+            {...getTableProps()}
+            className="min-w-full text-sm"
+          >
+            {/* ================= HEAD ================= */}
+            <thead className="bg-gray-50 border-b  border-gray-200">
               {headerGroups.map((headerGroup) => (
-                <tr
-                  {...headerGroup.getHeaderGroupProps()}
-                  className="text-xs uppercase tracking-wider text-gray-500 font-semibold bg-blue-50"
-                >
+                <tr {...headerGroup.getHeaderGroupProps()}>
                   {headerGroup.headers.map((column) => (
                     <th
-                      {...column.getHeaderProps(column.getSortByToggleProps())}
-                      className="px-3 sm:px-6 py-3 sm:py-4 text-left"
+                      {...column.getHeaderProps(
+                        column.getSortByToggleProps()
+                      )}
+                      className="px-4 py-3  text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap"
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
                         {column.render("Header")}
 
                         {column.canSort && (
                           <span className="text-gray-400">
                             {column.isSorted ? (
-                              column.isSortedDesc
-                                ? <ChevronDown size={14}/>
-                                : <ChevronUp size={14}/>
+                              column.isSortedDesc ? (
+                                <ChevronDown size={14} />
+                              ) : (
+                                <ChevronUp size={14} />
+                              )
                             ) : (
-                              <ChevronDown size={14} className="opacity-30"/>
+                              <ChevronDown
+                                size={14}
+                                className="opacity-30"
+                              />
                             )}
                           </span>
                         )}
@@ -127,53 +137,52 @@ const CommonTable = ({
               ))}
             </thead>
 
-            <tbody {...getTableBodyProps()} className="bg-white">
+            {/* ================= BODY ================= */}
+            <tbody
+              {...getTableBodyProps()}
+              className="divide-y divide-gray-100"
+            >
               {page.length === 0 ? (
                 <tr>
-                  <td colSpan={tableColumns.length} className="text-center py-10 text-gray-400">
+                  <td
+                    colSpan={tableColumns.length}
+                    className="text-center py-10 text-gray-400"
+                  >
                     No data found
                   </td>
                 </tr>
               ) : (
                 page.map((row) => {
                   prepareRow(row);
-                  const rowProps = row.getRowProps();
-                  const { key, ...restRowProps } = rowProps;
                   return (
                     <tr
-                      key={key}
-                      {...restRowProps}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer"
+                      {...row.getRowProps()}
+                      className="hover:bg-gray-50 transition cursor-pointer"
                       onClick={() => onRowClick?.(row.original)}
                     >
-                      {row.cells.map((cell) => {
-                        const cellProps = cell.getCellProps();
-                        const { key: cellKey, ...restCellProps } = cellProps;
-                        return (
-                          <td
-                            key={cellKey}
-                            {...restCellProps}
-                            className="px-3 sm:px-6 py-3 sm:py-4 text-gray-700"
-                            onClick={(e) => {
-                              if (cell.column.id === "action") e.stopPropagation();
-                            }}
-                          >
-                            {cell.render("Cell")}
-                          </td>
-                        );
-                      })}
+                      {row.cells.map((cell) => (
+                        <td
+                          {...cell.getCellProps()}
+                          className="px-4 py-3 text-gray-700 whitespace-nowrap"
+                          onClick={(e) => {
+                            if (cell.column.id === "action")
+                              e.stopPropagation();
+                          }}
+                        >
+                          {cell.render("Cell")}
+                        </td>
+                      ))}
                     </tr>
                   );
                 })
               )}
             </tbody>
-
           </table>
         </div>
 
         {/* ================= PAGINATION ================= */}
         {pagination && (
-          <div className="border-t border-gray-200 px-3 sm:px-6 py-3 sm:py-4 bg-blue-50">
+          <div className="border-t border-gray-200 p-4 bg-gray-50">
             <Pagination
               totalItems={data.length}
               currentPage={pageIndex + 1}
@@ -184,7 +193,6 @@ const CommonTable = ({
             />
           </div>
         )}
-
       </div>
     </div>
   );
