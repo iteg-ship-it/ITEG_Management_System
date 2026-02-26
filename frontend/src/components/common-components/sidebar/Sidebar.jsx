@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { IoMenu } from "react-icons/io5";
-import { FaClipboardList } from "react-icons/fa6";
+import { FaClipboardList, FaUserGroup } from "react-icons/fa6";
 import { MdWork, MdDashboard } from "react-icons/md";
 import { RiTv2Fill } from "react-icons/ri";
 import { HiChevronUp, HiChevronDown } from "react-icons/hi";
@@ -10,6 +10,9 @@ import Header from "./Header";
 import UserProfile from "../user-profile/UserProfile";
 
 const Sidebar = ({ children }) => {
+  // Get user role from localStorage
+  const role = (localStorage.getItem("role") || "").toLowerCase();
+  
   const [isOpen, setIsOpen] = useState(() => window.innerWidth >= 1024);
 
   useEffect(() => {
@@ -204,7 +207,8 @@ const Sidebar = ({ children }) => {
           {isOpen && (
             <nav className="px-2 py-3 overflow-y-auto h-[calc(100vh-180px)]">
               {menuItems.slice(0, 4).map((item, idx) => {
-                if (!item.roles.includes(role)) return null;
+                // Check if user has permission for this menu item
+                if (item.roles && !item.roles.includes(role)) return null;
 
                 const isActive = openMenus.includes(idx);
 
@@ -254,7 +258,9 @@ const Sidebar = ({ children }) => {
               {/* SYSTEM SECTION */}
               <p className="text-xs text-gray-400 px-3 mt-4 mb-2">SYSTEM</p>
               {menuItems.slice(4).map((item, idx) => {
-                if (!item.roles.includes(role)) return null;
+                // Check if user has permission for this menu item
+                if (item.roles && !item.roles.includes(role)) return null;
+                
                 const settingsIdx = 4;
                 const isActive = openMenus.includes(settingsIdx);
 

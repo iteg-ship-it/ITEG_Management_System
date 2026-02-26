@@ -3,36 +3,30 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const setupSwagger = require("./src/swagger/swagger");
-const { securityHeaders, createRateLimit, validateInput } = require('./src/middlewares/securityMiddleware');
 
 const app = express();
 
-// Security headers
-app.use(securityHeaders);
+// Complete CORS fix
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS,PATCH');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+    return;
+  }
+  next();
+});
 
-// Rate limiting
-app.use('/api/', createRateLimit(15 * 60 * 1000, 20)); // 20 requests per 15 minutes
-app.use('/api/user/login', createRateLimit(15 * 60 * 1000, 5)); // 5 login attempts per 15 minutes
-app.use('/api/user/signup', createRateLimit(60 * 60 * 1000, 3)); // 3 signups per hour
-
-// CORS configuration
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? [process.env.FRONTEND_URL] 
-    : true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  credentials: true,
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
-}));
+app.use(cors());
 
 app.options("*", cors());
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
-
-// Input validation middleware
-app.use(validateInput);
 
 // Import Routes
 const routes = require("./src/routes");
