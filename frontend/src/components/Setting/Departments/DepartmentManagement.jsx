@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { MdBusiness, MdAdd, MdEdit, MdDelete } from "react-icons/md";
-import AddDepartmentModal from "./AddDepartmentModal";
 import PageNavbar from "../../common-components/navbar/PageNavbar";
 import { useGetAllDepartmentsQuery, useDeleteDepartmentMutation, useAddDepartmentMutation, useUpdateDepartmentMutation } from "../../../redux/api/authApi";
 import Loader from "../../common-components/loader/Loader";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import OrangeButton from "./../../common-components/sidebar/OrangeButton";
-import { Formik, Form } from "formik";
+import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 import InputField from "../../common-components/common-feild/InputField";
 import RadioGroup from "../../common-components/common-feild/RadioGroup";
+import Header from "./../../common-components/sidebar/Header";
 
 const DepartmentManagement = () => {
   const navigate = useNavigate();
@@ -23,11 +23,22 @@ const DepartmentManagement = () => {
   const departments = departmentsData?.data || [];
 
   const validationSchema = Yup.object({
-    departmentName: Yup.string().required("Department name is required"),
-    departmentCode: Yup.string().required("Department code is required"),
-    headOfDepartment: Yup.string(),
+    name: Yup.string().required("Department name is required"),
+    code: Yup.string().required("Department code is required"),
     description: Yup.string(),
-    status: Yup.boolean()
+    universityName: Yup.string().required("University name is required"),
+    headOfDepartment: Yup.string(),
+    allowedCourses: Yup.array().of(
+      Yup.object({
+        courseName: Yup.string().required("Course name is required"),
+        durationInYears: Yup.number().required("Duration is required").positive("Must be positive")
+      })
+    ),
+    reportConfig: Yup.object({
+      templateType: Yup.string().required("Template type is required"),
+      sections: Yup.object()
+    }).required("Report config is required"),
+    isActive: Yup.boolean()
   });
 
   const handleDepartmentSubmit = async (values, { setSubmitting, resetForm }) => {
@@ -71,6 +82,7 @@ const DepartmentManagement = () => {
 
   return (
     <>
+      <Header sidebarOpen={true} title="Department Management" />
       <div className="px-5">
 
         <div className="flex justify-between items-center py-4">
@@ -83,11 +95,26 @@ const DepartmentManagement = () => {
             <Formik
               key={editingDepartment?._id || 'new'}
               initialValues={{
-                departmentName: editingDepartment?.departmentName || "",
-                departmentCode: editingDepartment?.departmentCode || "",
-                headOfDepartment: editingDepartment?.headOfDepartment || "",
+                name: editingDepartment?.name || "",
+                code: editingDepartment?.code || "",
                 description: editingDepartment?.description || "",
-                status: editingDepartment?.status !== undefined ? editingDepartment.status : true
+                universityName: editingDepartment?.universityName || "",
+                headOfDepartment: editingDepartment?.headOfDepartment || "",
+                allowedCourses: editingDepartment?.allowedCourses || [{ courseName: "", durationInYears: "" }],
+                reportConfig: editingDepartment?.reportConfig || {
+                  templateType: "ITEG_STANDARD",
+                  sections: {
+                    showTechnicalSkills: true,
+                    showSoftSkills: true,
+                    showDiscipline: true,
+                    showProjects: true,
+                    showCareerReadiness: true,
+                    showUniversityAcademicHistory: true,
+                    showTaskCompletionPercentage: true,
+                    showEvaluationBreakdown: true
+                  }
+                },
+                isActive: editingDepartment?.isActive !== undefined ? editingDepartment.isActive : true
               }}
               validationSchema={validationSchema}
               onSubmit={handleDepartmentSubmit}
@@ -101,20 +128,14 @@ const DepartmentManagement = () => {
                     <Form className="space-y-4">
                       <InputField
                         label="Department Name"
-                        name="departmentName"
+                        name="name"
                         placeholder="Enter department name"
                       />
 
                       <InputField
                         label="Department Code"
-                        name="departmentCode"
+                        name="code"
                         placeholder="Enter department code"
-                      />
-
-                      <InputField
-                        label="Head of Department"
-                        name="headOfDepartment"
-                        placeholder="Enter HOD name"
                       />
 
                       <InputField
@@ -124,7 +145,67 @@ const DepartmentManagement = () => {
                         placeholder="Enter description"
                       />
 
-                      <RadioGroup label="Status" name="status" required={false} />
+                      <InputField
+                        label="University Name"
+                        name="universityName"
+                        placeholder="Enter university name"
+                      />
+
+                      <InputField
+                        label="Head of Department"
+                        name="headOfDepartment"
+                        placeholder="Enter HOD name"
+                      />
+
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Allowed Courses</label>
+                        {values.allowedCourses.map((course, index) => (
+                          <div key={index} className="flex gap-2 mb-2">
+                            <Field
+                              name={`allowedCourses.${index}.courseName`}
+                              placeholder="Course name"
+                              className="flex-1 border rounded px-3 py-2"
+                            />
+                            <Field
+                              name={`allowedCourses.${index}.durationInYears`}
+                              type="number"
+                              placeholder="Years"
+                              className="w-24 border rounded px-3 py-2"
+                            />
+                            {values.allowedCourses.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newCourses = values.allowedCourses.filter((_, i) => i !== index);
+                                  setFieldValue('allowedCourses', newCourses);
+                                }}
+                                className="px-3 py-2 bg-red-500 text-white rounded"
+                              >
+                                ✕
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setFieldValue('allowedCourses', [...values.allowedCourses, { courseName: '', durationInYears: '' }])}
+                          className="text-sm text-orange-500 hover:text-orange-600"
+                        >
+                          + Add Course
+                        </button>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Template Type</label>
+                        <Field as="select" name="reportConfig.templateType" className="w-full border rounded px-3 py-2">
+                          <option value="ITEG_STANDARD">ITEG Standard</option>
+                          <option value="MEG_WEIGHTED">MEG Weighted</option>
+                          <option value="BEG_CUTOFF">BEG Cutoff</option>
+                          <option value="BTECH_STAGE">BTech Stage</option>
+                        </Field>
+                      </div>
+
+                      <RadioGroup label="Status" name="isActive" required={false} />
                     </Form>
                   }
                   leftBtnText="Cancel"
@@ -166,18 +247,18 @@ const DepartmentManagement = () => {
                           : "bg-gray-200 text-gray-600"}
             `}
                     >
-                      {dept.status ? "ACTIVE" : "INACTIVE"}
+                      {dept.isActive ? "ACTIVE" : "INACTIVE"}
                     </span>
                   </div>
 
                   {/* title */}
                   <h3 className="text-lg font-bold text-gray-900 mb-1">
-                    {dept.departmentName}
+                    {dept.name}
                   </h3>
 
                   {/* description */}
                   <p className="text-sm text-gray-500 mb-4 line-clamp-2">
-                    {dept.description || "No description available"}
+                    {dept.description || dept.universityName || "No description"}
                   </p>
 
                   {/* divider */}
@@ -186,10 +267,13 @@ const DepartmentManagement = () => {
                   {/* info */}
                   <div className="space-y-2 text-sm text-gray-600">
                     <div className="flex items-center gap-2">
+                      📋 <span>Code: {dept.code}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
                       👤 <span>HOD: {dept.headOfDepartment || "Not assigned"}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      👥 <span>Students: {dept.studentCount || 0}</span>
+                      📚 <span>Courses: {dept.allowedCourses?.length || 0}</span>
                     </div>
                   </div>
                 </div>
@@ -206,11 +290,14 @@ const DepartmentManagement = () => {
                   <Formik
                     key={dept._id}
                     initialValues={{
-                      departmentName: dept.departmentName,
-                      departmentCode: dept.departmentCode,
-                      headOfDepartment: dept.headOfDepartment || "",
+                      name: dept.name,
+                      code: dept.code,
                       description: dept.description || "",
-                      status: dept.status
+                      universityName: dept.universityName,
+                      headOfDepartment: dept.headOfDepartment || "",
+                      allowedCourses: dept.allowedCourses || [{ courseName: "", durationInYears: "" }],
+                      reportConfig: dept.reportConfig,
+                      isActive: dept.isActive
                     }}
                     validationSchema={validationSchema}
                     onSubmit={async (values, { setSubmitting, resetForm }) => {
@@ -227,7 +314,7 @@ const DepartmentManagement = () => {
                     }}
                     enableReinitialize
                   >
-                    {({ isSubmitting, submitForm, resetForm }) => (
+                    {({ isSubmitting, submitForm, resetForm, values, setFieldValue }) => (
                       <div className="w-1/2">
                         <OrangeButton
                           buttonTitle="EDIT"
@@ -237,20 +324,14 @@ const DepartmentManagement = () => {
                             <Form className="space-y-4">
                               <InputField
                                 label="Department Name"
-                                name="departmentName"
+                                name="name"
                                 placeholder="Enter department name"
                               />
 
                               <InputField
                                 label="Department Code"
-                                name="departmentCode"
+                                name="code"
                                 placeholder="Enter department code"
-                              />
-
-                              <InputField
-                                label="Head of Department"
-                                name="headOfDepartment"
-                                placeholder="Enter HOD name"
                               />
 
                               <InputField
@@ -260,7 +341,67 @@ const DepartmentManagement = () => {
                                 placeholder="Enter description"
                               />
 
-                              <RadioGroup label="Status" name="status" required={false} />
+                              <InputField
+                                label="University Name"
+                                name="universityName"
+                                placeholder="Enter university name"
+                              />
+
+                              <InputField
+                                label="Head of Department"
+                                name="headOfDepartment"
+                                placeholder="Enter HOD name"
+                              />
+
+                              <div>
+                                <label className="block text-sm font-medium mb-2">Allowed Courses</label>
+                                {values.allowedCourses.map((course, index) => (
+                                  <div key={index} className="flex gap-2 mb-2">
+                                    <Field
+                                      name={`allowedCourses.${index}.courseName`}
+                                      placeholder="Course name"
+                                      className="flex-1 border rounded px-3 py-2"
+                                    />
+                                    <Field
+                                      name={`allowedCourses.${index}.durationInYears`}
+                                      type="number"
+                                      placeholder="Years"
+                                      className="w-24 border rounded px-3 py-2"
+                                    />
+                                    {values.allowedCourses.length > 1 && (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const newCourses = values.allowedCourses.filter((_, i) => i !== index);
+                                          setFieldValue('allowedCourses', newCourses);
+                                        }}
+                                        className="px-3 py-2 bg-red-500 text-white rounded"
+                                      >
+                                        ✕
+                                      </button>
+                                    )}
+                                  </div>
+                                ))}
+                                <button
+                                  type="button"
+                                  onClick={() => setFieldValue('allowedCourses', [...values.allowedCourses, { courseName: '', durationInYears: '' }])}
+                                  className="text-sm text-orange-500 hover:text-orange-600"
+                                >
+                                  + Add Course
+                                </button>
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium mb-2">Template Type</label>
+                                <Field as="select" name="reportConfig.templateType" className="w-full border rounded px-3 py-2">
+                                  <option value="ITEG_STANDARD">ITEG Standard</option>
+                                  <option value="MEG_WEIGHTED">MEG Weighted</option>
+                                  <option value="BEG_CUTOFF">BEG Cutoff</option>
+                                  <option value="BTECH_STAGE">BTech Stage</option>
+                                </Field>
+                              </div>
+
+                              <RadioGroup label="Status" name="isActive" required={false} />
                             </Form>
                           }
                           leftBtnText="Cancel"

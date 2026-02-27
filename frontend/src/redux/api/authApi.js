@@ -747,7 +747,7 @@ export const authApi = createApi({
     // Add Department
     addDepartment: builder.mutation({
       query: (departmentData) => ({
-        url: '/departments/add',
+        url: '/departments',
         method: "POST",
         body: departmentData,
       }),
@@ -757,7 +757,7 @@ export const authApi = createApi({
     // Get All Departments
     getAllDepartments: builder.query({
       query: () => ({
-        url: '/departments/all',
+        url: '/departments',
         method: "GET",
       }),
       providesTags: ['Department'],
@@ -766,8 +766,8 @@ export const authApi = createApi({
     // Update Department
     updateDepartment: builder.mutation({
       query: ({ id, ...data }) => ({
-        url: `/departments/update/${id}`,
-        method: "PATCH",
+        url: `/departments/${id}`,
+        method: "PUT",
         body: data,
       }),
       invalidatesTags: ['Department'],
@@ -776,7 +776,7 @@ export const authApi = createApi({
     // Delete Department
     deleteDepartment: builder.mutation({
       query: (id) => ({
-        url: `/departments/delete/${id}`,
+        url: `/departments/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ['Department'],
