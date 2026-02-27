@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { IoMenu } from "react-icons/io5";
@@ -10,21 +11,7 @@ import Header from "./Header";
 import UserProfile from "../user-profile/UserProfile";
 
 const Sidebar = ({ children }) => {
-<<<<<<< HEAD
   const [isOpen, setIsOpen] = useState(() => window.innerWidth >= 1024);
-=======
-  // Simple permission check based on role
-  const role = (localStorage.getItem("role") || "").toLowerCase();
-  const hasPermission = (permission, action = 'view') => {
-    // For now, allow all permissions for all roles
-    // You can implement proper permission logic later
-    return true;
-  };
-  const [isOpen, setIsOpen] = useState(() => {
-    // Check if screen is large (lg breakpoint is 1024px)
-    return window.innerWidth >= 1024;
-  });
->>>>>>> 96de5e9bb9348035916b62d65a6884ab7ebca2fc
 
   useEffect(() => {
     const handleResize = () => {
@@ -35,10 +22,10 @@ const Sidebar = ({ children }) => {
   }, []);
 
   const location = useLocation();
+  const role = (localStorage.getItem("role") || "").toLowerCase();
 
   const [openMenus, setOpenMenus] = useState(() => {
     const path = location.pathname;
-<<<<<<< HEAD
     const initialMenus = [];
     
     if (path === "/" || path === "/attendance-details") initialMenus.push(0);
@@ -48,41 +35,10 @@ const Sidebar = ({ children }) => {
     if (path === "/department-management" || path === "/subdepartments" || path === "/levels" || path === "/user-management" || path === "/user-permission" || path.startsWith("/department-details/") || path === "/subdepartment-details") initialMenus.push(4);
     
     return initialMenus.length > 0 ? initialMenus : [0];
-=======
-    const openMenus = [];
-
-    // Dashboard menu (index 0)
-    if (path === "/") {
-      openMenus.push(0);
-    }
-    // Admissions menu (index 1)
-    if (path === "/admission-process" || path.startsWith("/admission/") || path.startsWith("/interview-detail/") || path === "/admission-record") {
-      openMenus.push(1);
-    }
-    // Admitted menu (index 2)
-    if (path === "/student-dashboard" || path === "/student-detail-table" || path.startsWith("/student/") || path === "/student-permission" || path.startsWith("/student-profile/") || path === "/level-wise-management") {
-      openMenus.push(2);
-    }
-    // Placements menu (index 3)
-    if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post" || path.startsWith("/interview-history/") || path === "/company-details" || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/")) {
-      openMenus.push(3);
-    }
-    // User Management menu (index 4)
-    if (path === "/users-management" || path.startsWith("/user-profile/")) {
-      openMenus.push(4);
-    }
-    if (path.startsWith("/student-profile/")) {
-      const lastSection = localStorage.getItem("lastSection");
-      openMenus.push(lastSection === "admission" ? 1 : 2);
-    }
-
-    return openMenus.length > 0 ? openMenus : [0, 1, 2, 3];
->>>>>>> 96de5e9bb9348035916b62d65a6884ab7ebca2fc
   });
 
   useEffect(() => {
     const path = location.pathname;
-<<<<<<< HEAD
     const newMenus = [];
     
     if (path === "/" || path === "/attendance-details") newMenus.push(0);
@@ -98,38 +54,6 @@ const Sidebar = ({ children }) => {
         }
         return prev;
       });
-=======
-    const newOpenMenus = [];
-
-    // Dashboard menu (index 0)
-
-
-    // Admissions menu (index 1)
-    if (path === "/admission-process" || path.startsWith("/admission/") || path.startsWith("/interview-detail/") || path === "/admission-record") {
-      newOpenMenus.push(1);
-      localStorage.setItem("lastSection", "admission");
-    }
-    // Admitted menu (index 2)
-    if (path === "/student-dashboard" || path === "/student-detail-table" || path.startsWith("/student/") || path === "/student-permission" || path.startsWith("/student-profile/") || path === "/level-wise-management") {
-      newOpenMenus.push(2);
-      localStorage.setItem("lastSection", "admitted");
-    }
-    // Placements menu (index 3)
-    if (path === "/readiness-status" || path === "/placement-interview-record" || path === "/placement-post" || path.startsWith("/interview-history/") || path === "/company-details" || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/")) {
-      newOpenMenus.push(3);
-    }
-    // User Management menu (index 4)
-    if (path === "/users-management" || path.startsWith("/user-profile/")) {
-      newOpenMenus.push(4);
-    }
-    if (path.startsWith("/student-profile/")) {
-      const lastSection = localStorage.getItem("lastSection");
-      newOpenMenus.push(lastSection === "admission" ? 1 : 2);
-    }
-
-    if (newOpenMenus.length > 0) {
-      setOpenMenus((prev) => [...new Set([...prev, ...newOpenMenus])]);
->>>>>>> 96de5e9bb9348035916b62d65a6884ab7ebca2fc
     }
   }, [location.pathname]);
 
@@ -155,15 +79,11 @@ const Sidebar = ({ children }) => {
     }
 
     if (subPath === "/student-dashboard") {
-<<<<<<< HEAD
       return (
         path === "/student-dashboard" ||
         path === "/student-detail-table" ||
         path.startsWith("/student-profile/")
       );
-=======
-      return path === "/student-dashboard" || path === "/student-detail-table" || path.startsWith("/student-profile/") || path.includes("/level-interviews") || path.includes("/task-list");
->>>>>>> 96de5e9bb9348035916b62d65a6884ab7ebca2fc
     }
 
     if (subPath === "/student-permission") return path === "/student-permission";
@@ -182,10 +102,6 @@ const Sidebar = ({ children }) => {
 
     if (subPath === "/placement-post") return path === "/placement-post";
 
-    if (subPath === "/users-management") {
-      return path === "/users-management" || path.startsWith("/user-profile/");
-    }
-
     return path === subPath || path.startsWith(subPath + "/");
   };
 
@@ -193,51 +109,35 @@ const Sidebar = ({ children }) => {
     {
       name: "Dashboard",
       icon: <MdDashboard />,
-      permission: 'dashboard',
+      roles: ["superadmin", "admin", "faculty"],
       subMenu: [
-        { name: "Dashboard", path: "/", permission: 'dashboard' },
-        { name: "Attendance Details", path: "/attendance-details", permission: 'attendanceDetails' },
+        { name: "Dashboard", path: "/" },
+        { name: "Attendance Details", path: "/attendance-details" },
       ],
     },
     {
       name: "Admissions",
       icon: <RiTv2Fill />,
-<<<<<<< HEAD
       roles: ["superadmin", "admin", "faculty"],
       subMenu: [{ name: "Admission Workflow", path: "/admission-process" }],
-=======
-      permission: 'admissionProcess',
-      subMenu: [
-        { name: "Admission Workflow", path: "/admission-process", permission: 'admissionProcess' },
-      ],
->>>>>>> 96de5e9bb9348035916b62d65a6884ab7ebca2fc
     },
     {
       name: "Admitted",
       icon: <FaClipboardList />,
-      permission: 'studentDashboard',
+      roles: ["superadmin", "admin", "faculty"],
       subMenu: [
-        { name: "Student Progress", path: "/student-dashboard", permission: 'studentDashboard' },
-        { name: "Level-wise Management", path: "/level-wise-management", permission: 'studentDashboard' },
-        { name: "Dummy Students", path: "/student-permission", permission: 'studentPermission' },
+        { name: "Student Progress", path: "/student-dashboard" },
+        { name: "Dummy Students", path: "/student-permission" },
       ],
     },
     {
       name: "Placements",
       icon: <MdWork />,
-      permission: 'placementReadyStudents',
+      roles: ["superadmin", "admin", "faculty"],
       subMenu: [
-        { name: "Placement Candidates", path: "/readiness-status", permission: 'placementReadyStudents' },
-        { name: "Company Details", path: "/company-details", permission: 'companyDetail' },
-        { name: "Placed Students", path: "/placement-post", permission: 'placementPost' },
-      ],
-    },
-    {
-      name: "User Management",
-      icon: <FaUserGroup />,
-      permission: 'usersManagement',
-      subMenu: [
-        { name: "Users", path: "/users-management", permission: 'usersManagement' },
+        { name: "Placement Candidates", path: "/readiness-status" },
+        { name: "Company Details", path: "/company-details" },
+        { name: "Placed Students", path: "/placement-post" },
       ],
     },
     {
@@ -289,15 +189,6 @@ const Sidebar = ({ children }) => {
               {menuItems.slice(0, 4).map((item, idx) => {
                 if (!item.roles.includes(role)) return null;
 
-<<<<<<< HEAD
-=======
-        {/* Sidebar links */}
-        {isOpen && (
-          <nav className="flex flex-col gap-1 px-2 py-2 overflow-y-auto">
-            {menuItems
-              .filter((item) => hasPermission(item.permission, 'view'))
-              .map((item, idx) => {
->>>>>>> 96de5e9bb9348035916b62d65a6884ab7ebca2fc
                 const isActive = openMenus.includes(idx);
 
                 return (
@@ -320,15 +211,8 @@ const Sidebar = ({ children }) => {
                     </div>
 
                     {isActive && (
-<<<<<<< HEAD
                       <div className="mt-1 space-y-1">
                         {item.subMenu.map((sub, i) => {
-=======
-                      <div className="ml-1">
-                        {item.subMenu
-                          .filter((sub) => hasPermission(sub.permission, 'view'))
-                          .map((sub, i) => {
->>>>>>> 96de5e9bb9348035916b62d65a6884ab7ebca2fc
                           const active = isSubMenuActive(sub.path);
                           return (
                             <Link
@@ -349,14 +233,6 @@ const Sidebar = ({ children }) => {
                   </div>
                 );
               })}
-<<<<<<< HEAD
-=======
-          </nav>
-        )}
-
-
-      </aside>
->>>>>>> 96de5e9bb9348035916b62d65a6884ab7ebca2fc
 
               <p className="text-xs text-gray-400 px-3 mt-4 mb-2">SYSTEM</p>
               {menuItems.slice(4).map((item, idx) => {
