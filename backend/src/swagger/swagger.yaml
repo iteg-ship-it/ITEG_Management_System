@@ -45,6 +45,52 @@ components:
           format: date-time
           example: "2024-04-29T08:00:00.000Z"
 
+    SubLevel:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64fdb61e7b9a1a1234567893"
+        name:
+          type: string
+          example: "SubLevel 1A"
+        order:
+          type: number
+          example: 1
+        levelId:
+          oneOf:
+            - type: string
+              example: "64fdb61e7b9a1a1234567892"
+            - $ref: '#/components/schemas/Level'
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Session:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64fdb61e7b9a1a1234567894"
+        name:
+          type: string
+          example: "2023-24"
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
     Company:
       type: object
       properties:

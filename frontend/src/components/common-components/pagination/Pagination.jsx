@@ -45,34 +45,34 @@ const Pagination = ({
   const visiblePages = getVisiblePages();
 
   return (
-    <div className="flex items-center justify-between w-full">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-3">
 
       {/* left text */}
-      <div className="text-sm text-gray-600">
+      <div className="text-xs sm:text-sm text-gray-600">
         Showing {start} to {end} of {totalItems} {label}
       </div>
 
       {/* buttons */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2">
 
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg bg-white disabled:opacity-40 hover:bg-gray-50"
+          className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center border border-gray-200 rounded-lg bg-white disabled:opacity-40 hover:bg-gray-50"
         >
-          <ChevronLeft size={16} />
+          <ChevronLeft size={16} className="sm:w-4 sm:h-4" />
         </button>
 
         {visiblePages.map((p, idx) => (
           p === '...' ? (
-            <span key={`ellipsis-${idx}`} className="w-9 h-9 flex items-center justify-center text-gray-500">
+            <span key={`ellipsis-${idx}`} className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-gray-500 text-xs sm:text-sm">
               ...
             </span>
           ) : (
             <button
               key={p}
               onClick={() => onPageChange(p)}
-              className={`w-9 h-9 rounded-lg text-sm font-medium border
+              className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg text-xs sm:text-sm font-medium border
                 ${currentPage === p
                   ? "bg-orange-500 text-white border-orange-500"
                   : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"}
@@ -86,9 +86,9 @@ const Pagination = ({
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg bg-white disabled:opacity-40 hover:bg-gray-50"
+          className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center border border-gray-200 rounded-lg bg-white disabled:opacity-40 hover:bg-gray-50"
         >
-          <ChevronRight size={16} />
+          <ChevronRight size={16} className="sm:w-4 sm:h-4" />
         </button>
 
       </div>

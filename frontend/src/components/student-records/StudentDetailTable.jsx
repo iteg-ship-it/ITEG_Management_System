@@ -7,6 +7,8 @@ import CommonTable from "../common-components/table/CommonTable";
 import CreateInterviewModal from "./CreateInterviewModal";
 import PageNavbar from "../common-components/navbar/PageNavbar";
 import { buttonStyles } from "../../styles/buttonStyles";
+import TabsCommon from "../common-components/table/TabsCommon";
+import SearchBox from "./../common-components/seach-export/SearchBox";
 
 const StudentDetailTable = () => {
   const { data = [], isLoading, refetch } = useAdmitedStudentsQuery();
@@ -271,37 +273,24 @@ const StudentDetailTable = () => {
 
   return (
     <>
-      <PageNavbar 
-        title="Admitted Student WorkFlow" 
-        subtitle="Track student progress through different levels"
-        showBackButton={false}
-      />
-
-      <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
+      <div className="bg-white h-20">
         <div className="px-6">
-          {/* Level Tabs */}
-          <div className="flex gap-6 mt-4 overflow-x-auto">
-            {levelTabs.map((tab) => (
-              <div key={tab}>
-                <p
-                  onClick={() => handleTabClick(tab)}
-                  className={`cursor-pointer text-md pb-2 border-b-2 whitespace-nowrap ${
-                    activeTab === tab
-                      ? "border-[var(--text-color)] font-semibold text-[var(--text-color)]"
-                      : "border-gray-200 text-[var(--text-color)]"
-                  }`}
-                >
-                  {tab === "Level's Cleared" ? "" + tab : tab}
-                </p>
-              </div>
-            ))}
+          <TabsCommon tabs={levelTabs} activeTab={activeTab} onTabChange={handleTabClick} />
+        </div>
+      </div>
+      <div className="px-5">
+        <div className="flex justify-between">
+          <PageNavbar 
+            title="Admitted Student WorkFlow" 
+            subtitle="Track student progress through different levels"
+            showBackButton={false}
+          />
+          <div className="py-4 w-full max-w-2xl">
+            <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
           </div>
-
         </div>
 
-   
-      </div>
-     <CommonTable
+        <CommonTable
           data={filteredData}
           columns={columns}
           editable={true}
@@ -311,18 +300,18 @@ const StudentDetailTable = () => {
           actionButton={selectedLevel === "permission" || activeTab === "Level's Cleared" ? null : actionButton}
           onSelectionChange={setSelectedRows}
           onRowClick={(row) => {
-            // Set the source section to 'admitted' before navigating
             localStorage.setItem("lastSection", "admitted");
             navigate(`/student-profile/${row._id}`, { state: { student: row } });
           }}
         />
-      <CreateInterviewModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        studentId={selectedStudentId}
-        refetchStudents={refetch}
-        interviewLevel={selectedLevel}
-      />
+        <CreateInterviewModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          studentId={selectedStudentId}
+          refetchStudents={refetch}
+          interviewLevel={selectedLevel}
+        />
+      </div>
     </>
   );
 };
