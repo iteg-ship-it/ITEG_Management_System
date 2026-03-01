@@ -96,35 +96,50 @@ const CommonTable = ({
           <table {...getTableProps()} className="min-w-full text-sm">
 
             <thead className="border-b border-gray-200">
-              {headerGroups.map((headerGroup) => (
-                <tr
-                  {...headerGroup.getHeaderGroupProps()}
-                  className="text-xs uppercase tracking-wider text-gray-500 font-semibold bg-blue-50"
-                >
-                  {headerGroup.headers.map((column) => (
-                    <th
-                      {...column.getHeaderProps(column.getSortByToggleProps())}
-                      className="px-3 sm:px-6 py-3 sm:py-4 text-left"
-                    >
-                      <div className="flex items-center gap-2">
-                        {column.render("Header")}
+              {headerGroups.map((headerGroup) => {
+                const { key, ...restHeaderGroupProps } =
+                  headerGroup.getHeaderGroupProps();
+                return (
+                  <tr
+                    key={key}
+                    {...restHeaderGroupProps}
+                    className="text-xs uppercase tracking-wider text-gray-500 font-semibold bg-blue-50"
+                  >
+                    {headerGroup.headers.map((column) => {
+                      const { key: colKey, ...restColProps } =
+                        column.getHeaderProps(column.getSortByToggleProps());
+                      return (
+                        <th
+                          key={colKey}
+                          {...restColProps}
+                          className="px-3 sm:px-6 py-3 sm:py-4 text-left"
+                        >
+                          <div className="flex items-center gap-2">
+                            {column.render("Header")}
 
-                        {column.canSort && (
-                          <span className="text-gray-400">
-                            {column.isSorted ? (
-                              column.isSortedDesc
-                                ? <ChevronDown size={14}/>
-                                : <ChevronUp size={14}/>
-                            ) : (
-                              <ChevronDown size={14} className="opacity-30"/>
+                            {column.canSort && (
+                              <span className="text-gray-400">
+                                {column.isSorted ? (
+                                  column.isSortedDesc ? (
+                                    <ChevronDown size={14} />
+                                  ) : (
+                                    <ChevronUp size={14} />
+                                  )
+                                ) : (
+                                  <ChevronDown
+                                    size={14}
+                                    className="opacity-30"
+                                  />
+                                )}
+                              </span>
                             )}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              ))}
+                          </div>
+                        </th>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
             </thead>
 
             <tbody {...getTableBodyProps()} className="bg-white">
