@@ -1,21 +1,32 @@
 import React, { useState } from 'react';
-import { useGetAllUsersQuery, useCreateRoleMutation, useGetAllRolesQuery } from '../../../redux/api/authApi';
-import { FaUserShield, FaUser, FaChalkboardTeacher, FaCrown, FaBriefcase, FaPlus } from 'react-icons/fa';
+import { useGetAllUsersQuery, useCreateRoleMutation, useGetAllRolesQuery, useDeleteUserMutation, useEditUserMutation } from '../../../redux/api/authApi';
+import { FaUserShield, FaUser, FaChalkboardTeacher, FaCrown, FaBriefcase, FaPlus, FaEdit, FaTrash, FaEye } from 'react-icons/fa';
 import Loader from '../../common-components/loader/Loader';
 import { buttonStyles } from '../../../styles/buttonStyles';
 import InputField from '../../common-components/common-feild/InputField';
+import CustomDropdown from '../../common-components/common-feild/CustomDropdown';
 import { Formik, Form } from 'formik';
 import { X, ArrowLeft } from 'lucide-react';
 import { toast } from 'react-toastify';
 import CommonTable from '../../common-components/table/CommonTable';
+import Pagination from '../../common-components/pagination/Pagination';
 import profile from '../../../assets/images/profile-img.png';
+import { useNavigate } from 'react-router-dom';
+import GlobalPermissionMatrix from './GlobalPermissionMatrix';
 
 const RolesPermissions = () => {
+    const navigate = useNavigate();
     const { data: usersData, isLoading: usersLoading, error: usersError } = useGetAllUsersQuery();
     const { data: rolesData, isLoading: rolesLoading, error: rolesError } = useGetAllRolesQuery();
     const [createRole] = useCreateRoleMutation();
+    const [deleteUser] = useDeleteUserMutation();
+    const [editUser] = useEditUserMutation();
     const [showCreateRole, setShowCreateRole] = useState(false);
     const [selectedRole, setSelectedRole] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedDepartments, setSelectedDepartments] = useState([]);
+    const [editModal, setEditModal] = useState({ show: false, user: null });
+    const [showPermissionMatrix, setShowPermissionMatrix] = useState({ show: false, user: null });
     
     const users = usersData?.users || [];
     const customRoles = rolesData?.roles || [];
@@ -85,6 +96,34 @@ const RolesPermissions = () => {
         setSelectedRole(role);
     };
     
+    const handleDeleteUser = async (userId, userName) => {
+        if (window.confirm(`Are you sure you want to delete ${userName}?`)) {
+            try {
+                await deleteUser(userId).unwrap();
+                toast.success('User deleted successfully');
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                toast.error('Failed to delete user');
+            }
+        }
+    };
+
+    const handleEditUser = (user) => {
+        setEditModal({ show: true, user });
+    };
+
+    const handleViewUser = (userId) => {
+        navigate(`/user-profile/${userId}`);
+    };
+
+    const handleUserRowClick = (user) => {
+        console.log('Row clicked, user:', user);
+        console.log('Setting showPermissionMatrix to:', { show: true, user });
+        setShowPermissionMatrix({ show: true, user });
+    };
+    
+    console.log('Current showPermissionMatrix state:', showPermissionMatrix);
+    
     const getRoleBadgeColor = (role) => {
         switch (role?.toLowerCase()) {
             case 'superadmin':
@@ -122,10 +161,18 @@ const RolesPermissions = () => {
     
     return (
         <>
-            {/* If a role is selected, show users table */}
-            {selectedRole ? (
-                <div>
-                    <div className="flex items-center gap-4 mb-6">
+            {/* Global Permission Matrix - Render first to ensure it shows */}
+            {showPermissionMatrix.show ? (
+                <GlobalPermissionMatrix 
+                    user={showPermissionMatrix.user}
+                    onBack={() => setShowPermissionMatrix({ show: false, user: null })}
+                />
+            ) : (
+                <>
+                    {/* If a role is selected, show users table */}
+                    {selectedRole ? (
+                <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
+                    <div className="flex items-center gap-4 mb-6 px-5 pt-4">
                         <button
                             onClick={() => setSelectedRole(null)}
                             className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
@@ -140,6 +187,23 @@ const RolesPermissions = () => {
                                 {users.filter(user => user.role === selectedRole.roleName).length} user{users.filter(user => user.role === selectedRole.roleName).length !== 1 ? 's' : ''} with this role
                             </p>
                         </div>
+                    </div>
+                    
+                    <div className="px-5 flex justify-between items-center flex-wrap gap-4 mt-4">
+                        <Pagination
+                            searchTerm={searchTerm}
+                            setSearchTerm={setSearchTerm}
+                            filtersConfig={[
+                                {
+                                    title: 'Department',
+                                    options: [...new Set(users.filter(user => user.role === selectedRole.roleName).map(user => user.department).filter(Boolean))],
+                                    selected: selectedDepartments,
+                                    setter: setSelectedDepartments
+                                }
+                            ]}
+                            allData={users.filter(user => user.role === selectedRole.roleName)}
+                            sectionName="users"
+                        />
                     </div>
                     
                     <CommonTable
@@ -163,6 +227,15 @@ const RolesPermissions = () => {
                             },
                             { key: 'email', label: 'Email' },
                             { key: 'mobileNo', label: 'Contact No.' },
+                            {
+                                key: 'role',
+                                label: 'Role',
+                                render: (user) => (
+                                    <div className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>
+                                        {user.role}
+                                    </div>
+                                )
+                            },
                             { key: 'department', label: 'Department' },
                             {
                                 key: 'isActive',
@@ -176,8 +249,49 @@ const RolesPermissions = () => {
                                 )
                             }
                         ]}
-                        data={users.filter(user => user.role === selectedRole.roleName)}
+                        data={users.filter(user => {
+                            const matchesRole = user.role === selectedRole.roleName;
+                            const matchesDepartment = selectedDepartments.length === 0 || selectedDepartments.includes(user.department);
+                            return matchesRole && matchesDepartment;
+                        })}
+                        searchTerm={searchTerm}
                         pagination={true}
+                        editable={true}
+                        onRowClick={handleUserRowClick}
+                        actionButton={(user) => (
+                            <div className="flex space-x-1">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleViewUser(user.id);
+                                    }}
+                                    className="p-2 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                                    title="View Details"
+                                >
+                                    <FaEye size={14} />
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEditUser(user);
+                                    }}
+                                    className="p-2 rounded-md bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
+                                    title="Edit User"
+                                >
+                                    <FaEdit size={14} />
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteUser(user.id, user.name);
+                                    }}
+                                    className="p-2 rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                                    title="Delete User"
+                                >
+                                    <FaTrash size={14} />
+                                </button>
+                            </div>
+                        )}
                         rowsPerPage={10}
                     />
                 </div>
@@ -333,6 +447,8 @@ const RolesPermissions = () => {
                         </div>
                     </div>
                 </div>
+            )}
+                </>
             )}
         </>
     );
