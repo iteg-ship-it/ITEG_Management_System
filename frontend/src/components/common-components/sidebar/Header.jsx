@@ -21,12 +21,6 @@ const Header = ({ sidebarOpen = true, heading, buttons, searchBox }) => {
             <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
                 {searchBox}
                 {buttons}
-                <OrangeButton
-                    buttonTitle="Add user"
-                    panelTitle="Panel"
-                    drawerContent={<div>Your content here</div>}
-                />
-
             </div>
         </header>
     );

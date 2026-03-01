@@ -73,12 +73,14 @@ exports.createUser = async (req, res) => {
       department,
       position,
       role,
-      isActive,
+      isActive: isActive !== undefined ? isActive : true, // Default to true if not provided
       updatedAt,
       createdAt,
     });
 
     await newUser.save();
+
+    console.log(`User created successfully: ${email} with isActive: ${newUser.isActive}`);
 
     res.status(201).json({
       message: `${role.charAt(0).toUpperCase() + role.slice(1)} created successfully!`,
@@ -88,6 +90,7 @@ exports.createUser = async (req, res) => {
         email: newUser.email,
         mobileNo: newUser.mobileNo,
         role: newUser.role,
+        isActive: newUser.isActive,
       },
     });
   } catch (error) {
@@ -106,7 +109,7 @@ const generateRefreshToken = (user) => {
 // ✅ LOGIN
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
 
     const collegeEmailRegex = /^[a-zA-Z0-9._%+-]+@ssism\.org$/;
     if (!collegeEmailRegex.test(email)) {
@@ -119,13 +122,26 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
+    // Convert email to lowercase for consistency
+    email = email.toLowerCase();
+
     const user = await User.findOne({ email });
-    if (!user)
+    if (!user) {
+      console.log(`Login attempt failed: User not found for email: ${email}`);
       return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    // Check if user is active
+    if (!user.isActive) {
+      console.log(`Login attempt failed: User account is inactive for email: ${email}`);
+      return res.status(401).json({ message: "Account is inactive. Please contact administrator." });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
+    if (!isMatch) {
+      console.log(`Login attempt failed: Password mismatch for email: ${email}`);
       return res.status(401).json({ message: "Invalid email or password" });
+    }
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
@@ -137,6 +153,7 @@ exports.login = async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
+    console.log(`Login successful for user: ${email}`);
     res.status(200).json({
       message: "Login successful",
       token,

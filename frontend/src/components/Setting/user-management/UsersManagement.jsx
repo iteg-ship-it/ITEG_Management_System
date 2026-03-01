@@ -1,20 +1,25 @@
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { Trash2, Edit, X } from 'lucide-react';
+import { Trash2, Edit, X, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useGetAllUsersQuery, useDeleteUserMutation, useEditUserMutation } from '../../../redux/api/authApi';
 import CommonTable from '../../common-components/table/CommonTable';
+import TabsCommon from '../../common-components/table/TabsCommon';
 import Pagination from '../../common-components/pagination/Pagination';
 import Loader from "../../common-components/loader/Loader";
 import InputField from '../../common-components/common-feild/InputField';
 import CustomDropdown from '../../common-components/common-feild/CustomDropdown';
 import { Formik, Form } from 'formik';
 import { buttonStyles } from '../../../styles/buttonStyles';
-import PageNavbar from '../../common-components/navbar/PageNavbar';
+// import PageNavbar from '../../common-components/navbar/PageNavbar';
 import profile from '../../../assets/images/profile-img.png';
+import RolesPermissions from './RolesPermissions';
+import OrangeButton from '../../common-components/sidebar/OrangeButton';
+import { useSignupMutation } from '../../../redux/api/authApi';
 
 const UsersManagement = () => {
     const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState('Users');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedDepartments, setSelectedDepartments] = useState([]);
     const [selectedRoles, setSelectedRoles] = useState([]);
@@ -22,6 +27,9 @@ const UsersManagement = () => {
     const { data: usersData, isLoading: loading, error } = useGetAllUsersQuery();
     const [deleteUser] = useDeleteUserMutation();
     const [editUser] = useEditUserMutation();
+    const [createUser] = useSignupMutation();
+
+    const tabs = ['Users', 'Roles & Permissions'];
 
     const users = usersData?.users || [];
     const departments = [...new Set(users.map(user => user.department).filter(Boolean))];
@@ -45,6 +53,183 @@ const UsersManagement = () => {
 
     const handleViewUser = (userId) => {
         navigate(`/user-profile/${userId}`);
+    };
+
+    const handleCreateUser = async (values, { resetForm }) => {
+        try {
+            console.log('Creating user with values:', values);
+            await createUser(values).unwrap();
+            toast.success('User created successfully');
+            resetForm();
+        } catch (error) {
+            console.error('Error creating user:', error);
+            toast.error(error?.data?.message || 'Failed to create user');
+        }
+    };
+
+    const CreateUserForm = () => {
+        const [isActive, setIsActive] = useState(true);
+        const [autoGenerate, setAutoGenerate] = useState(false);
+        const [showPassword, setShowPassword] = useState(false);
+        
+        const generatePassword = () => {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%';
+            let password = '';
+            for (let i = 0; i < 12; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return password;
+        };
+        
+        return (
+            <Formik
+                initialValues={{
+                    name: '',
+                    email: '',
+                    mobileNo: '',
+                    adharCard: '',
+                    role: '',
+                    department: '',
+                    position: '',
+                    isActive: true,
+                    password: ''
+                }}
+                onSubmit={handleCreateUser}
+            >
+                {({ setFieldValue, values }) => (
+                    <Form className="space-y-6">
+                        <InputField label="Full Name" name="name" placeholder="Enter full name" />
+                        
+                        <InputField label="Email Address" name="email" type="email" placeholder="user@ssism.org" />
+                        
+                        <InputField label="Mobile Number" name="mobileNo" placeholder="Enter mobile number" />
+                        
+                        <InputField label="Aadhar Number" name="adharCard" placeholder="Enter Aadhar number" />
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                            <CustomDropdown
+                                label="Role"
+                                name="role"
+                                options={[
+                                    { value: 'faculty', label: 'Faculty' },
+                                    { value: 'admin', label: 'Admin' },
+                                    { value: 'superadmin', label: 'Super Admin' }
+                                ]}
+                            />
+                            
+                            <CustomDropdown
+                                label="Department"
+                                name="department"
+                                options={[
+                                    { value: 'SSISM', label: 'SSISM' },
+                                    { value: 'ITEG', label: 'ITEG' },
+                                    { value: 'MEG', label: 'MEG' },
+                                    { value: 'BEG', label: 'BEG' },
+                                    { value: 'BTECH', label: 'BTECH' }
+                                ]}
+                            />
+                        </div>
+                        
+                        <CustomDropdown
+                            label="Position"
+                            name="position"
+                            options={[
+                                { value: 'Assistant Professor', label: 'Assistant Professor' },
+                                { value: 'Associate Professor', label: 'Associate Professor' },
+                                { value: 'Professor', label: 'Professor' },
+                                { value: 'Lecturer', label: 'Lecturer' },
+                                { value: 'Chairman', label: 'Chairman' },
+                                { value: 'CEO', label: 'CEO' }
+                            ]}
+                        />
+                        
+                        <div className="mb-4">
+    <div className="flex items-center justify-between bg-gray-50 border rounded-xl px-5 py-4">
+        
+        {/* Left Content */}
+        <div className="flex-1">
+            <label className="block text-sm font-semibold text-gray-800">
+                Status
+            </label>
+            <p className="text-sm text-gray-500">
+                If the account is active
+            </p>
+        </div>
+
+        {/* Right Content - Toggle + Text */}
+        <div className="flex items-center gap-2">
+            {/* Toggle Switch */}
+            <button
+                type="button"
+                onClick={() => {
+                    const newStatus = !values.isActive;
+                    setFieldValue('isActive', newStatus);
+                    setIsActive(newStatus);
+                }}
+                className={`relative inline-flex items-center h-7 w-14 rounded-full transition-colors duration-300 focus:outline-none ${
+                    values.isActive ? 'bg-orange-500' : 'bg-gray-300'
+                }`}
+            >
+                <span
+                    className={`inline-block w-6 h-6 transform bg-white rounded-full shadow-md transition-transform duration-300 ${
+                        values.isActive ? 'translate-x-7' : 'translate-x-1'
+                    }`}
+                />
+            </button>
+
+            {/* Active Text */}
+            <span className="text-sm font-medium text-gray-800">
+                {values.isActive ? 'Active' : 'Inactive'}
+            </span>
+        </div>
+    </div>
+</div>
+                        
+                        <div>
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="block text-sm font-medium text-gray-700">Password</label>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        id="autoGenerate"
+                                        checked={autoGenerate}
+                                        onChange={(e) => {
+                                            const checked = e.target.checked;
+                                            setAutoGenerate(checked);
+                                            if (checked) {
+                                                const newPassword = generatePassword();
+                                                setFieldValue('password', newPassword);
+                                            }
+                                        }}
+                                        className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
+                                    />
+                                    <label htmlFor="autoGenerate" className="text-sm text-gray-600">
+                                        Autogenerated password
+                                    </label>
+                                </div>
+                            </div>
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    name="password"
+                                    value={values.password}
+                                    onChange={(e) => setFieldValue('password', e.target.value)}
+                                    placeholder="Enter password"
+                                    className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
+                        </div>
+                    </Form>
+                )}
+            </Formik>
+        );
     };
 
 
@@ -167,51 +352,91 @@ const UsersManagement = () => {
 
     return (
         <>
-            <PageNavbar
-                title="Users Management"
-                subtitle="Manage all system users"
-                showBackButton={false}
-            />
+            <div className="bg-[var(--backgroundColor)] min-h-screen">
 
-            <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
-
-                <div className="px-5 flex justify-between items-center flex-wrap gap-4 mt-4">
-                    <Pagination
-                        searchTerm={searchTerm}
-                        setSearchTerm={setSearchTerm}
-                        filtersConfig={[
-                            {
-                                title: 'Department',
-                                options: departments,
-                                selected: selectedDepartments,
-                                setter: setSelectedDepartments
-                            },
-                            {
-                                title: 'Role',
-                                options: roles,
-                                selected: selectedRoles,
-                                setter: setSelectedRoles
-                            }
-                        ]}
-                        allData={users}
-                        sectionName="users"
-                    />
+        {/* Header Section + Tabs Section */}
+        <div className="bg-white shadow-sm border-b">
+            {/* Header */}
+            <div className="flex justify-between items-start flex-wrap gap-4 p-6 pb-0">
+                <div>
+                    <h1 className="text-2xl font-semibold text-gray-800">
+                        User Management
+                    </h1>
+                    <p className="text-sm text-gray-500 mt-1">
+                        Configure user access, define roles and set system-wide permissions.
+                    </p>
                 </div>
 
-                <CommonTable
-                    columns={columns}
-                    data={users.filter(user =>
-                        (selectedDepartments.length === 0 || selectedDepartments.includes(user.department)) &&
-                        (selectedRoles.length === 0 || selectedRoles.includes(user.role))
-                    )}
-                    searchTerm={searchTerm}
-                    pagination={true}
-                    editable={true}
-                    actionButton={actionButton}
-                    onRowClick={(user) => handleViewUser(user.id)}
-                    rowsPerPage={10}
+                <div className="flex gap-3">
+                    <button className="px-4 py-2 border rounded-lg text-sm bg-white hover:bg-gray-50 shadow-sm">
+                        Export
+                    </button>
+                    <OrangeButton
+                        buttonTitle="+ Create New"
+                        panelTitle="Create New User"
+                        drawerContent={<CreateUserForm />}
+                        rightBtnText="Create User"
+                        onRightClick={() => {
+                            // The form submission is now handled by the submit button inside the form
+                            console.log('Create User button clicked');
+                        }}
+                    />
+                </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="px-6 pt-4">
+                <TabsCommon
+                    tabs={tabs}
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
                 />
             </div>
+        </div>
+
+        {/* Main Card */}
+        <div className="p-6 m-6">
+
+            {activeTab === 'Users' ? (
+                <>
+                    {/* Section Header */}
+                    <div className="flex justify-between items-center flex-wrap gap-4 mb-4">
+                        <h2 className="text-lg font-semibold text-gray-800">
+                            Active Staff Directory
+                        </h2>
+
+                        {/* Search */}
+                        <div className="w-full md:w-72">
+                            <input
+                                type="text"
+                                placeholder="Search by name, email..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full px-4 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-400"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Table */}
+                    <CommonTable
+                        columns={columns}
+                        data={users.filter(user =>
+                            (selectedDepartments.length === 0 || selectedDepartments.includes(user.department)) &&
+                            (selectedRoles.length === 0 || selectedRoles.includes(user.role))
+                        )}
+                        searchTerm={searchTerm}
+                        pagination={true}
+                        editable={true}
+                        actionButton={actionButton}
+                        onRowClick={(user) => handleViewUser(user.id)}
+                        rowsPerPage={10}
+                    />
+                </>
+            ) : (
+                <RolesPermissions />
+            )}
+        </div>
+    </div>
 
             {editModal.show && (
                 <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">

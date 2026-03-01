@@ -96,7 +96,7 @@ const Sidebar = ({ children }) => {
       icon: <FaUserGroup />,
       permission: "users",
       subMenu: [
-        { name: "Users", path: "/users-management" },
+        { name: "Users", path: "/user-management" },
       ],
     },
     {
@@ -107,7 +107,6 @@ const Sidebar = ({ children }) => {
         { name: "Department Management", path: "/department-management" },
         { name: "Subdepartments", path: "/subdepartments" },
         { name: "Levels", path: "/levels" },
-        { name: "User Management", path: "/user-management" },
         { name: "User Permission", path: "/user-permission" },
       ],
     },
@@ -115,7 +114,7 @@ const Sidebar = ({ children }) => {
 
   return (
     <>
-      <Header sidebarOpen={isOpen} />
+      {/* <Header sidebarOpen={isOpen} /> */}
 
       <div className="flex">
         {/* SIDEBAR */}
@@ -207,7 +206,7 @@ const Sidebar = ({ children }) => {
 
         {/* MAIN CONTENT */}
         <main
-          className={`flex-1 pt-20 bg-[#F8F7F5] min-h-screen transition-all duration-300 ${
+          className={`flex-1 bg-[#F8F7F5] min-h-screen transition-all duration-300 ${
             isOpen ? "ml-64" : "ml-16"
           }`}
         >

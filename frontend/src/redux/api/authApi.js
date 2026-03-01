@@ -115,7 +115,7 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithAutoRefresh,
-  tagTypes: ['Student', 'PlacementStudent', 'User', 'Department'],
+  tagTypes: ['Student', 'PlacementStudent', 'User', 'Department', 'Role'],
   // Global configuration for better caching
   keepUnusedDataFor: 300, // 5 minutes default cache
   refetchOnMountOrArgChange: 30, // Only refetch if data is older than 30 seconds
@@ -896,6 +896,41 @@ export const authApi = createApi({
       providesTags: ['Department'],
     }),
 
+    // Role Management APIs
+    createRole: builder.mutation({
+      query: (roleData) => ({
+        url: '/roles/create',
+        method: "POST",
+        body: roleData,
+      }),
+      invalidatesTags: ['Role'],
+    }),
+
+    getAllRoles: builder.query({
+      query: () => ({
+        url: '/roles/all',
+        method: "GET",
+      }),
+      providesTags: ['Role'],
+    }),
+
+    updateRole: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `/roles/update/${id}`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ['Role'],
+    }),
+
+    deleteRole: builder.mutation({
+      query: (id) => ({
+        url: `/roles/delete/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ['Role'],
+    }),
+
   }),
 });
 
@@ -968,5 +1003,9 @@ export const {
   useAddSubLevelMutation,
   useUpdateSubLevelMutation,
   useDeleteSubLevelMutation,
-  useGetSubLevelsByLevelQuery
+  useGetSubLevelsByLevelQuery,
+  useCreateRoleMutation,
+  useGetAllRolesQuery,
+  useUpdateRoleMutation,
+  useDeleteRoleMutation
 } = authApi;
