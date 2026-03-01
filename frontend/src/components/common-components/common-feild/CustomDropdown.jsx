@@ -1,55 +1,112 @@
 /* eslint-disable react/prop-types */
+import { useState, useRef, useEffect } from "react";
 import { useField } from "formik";
-import { ErrorMessage } from "formik";
+import { ChevronDown } from "lucide-react";
 
 const CustomDropdown = ({
   label,
   name,
   options = [],
-  placeholder = "",
   disabled = false,
+  variant = "inline", // 🔥 inline | card
   className = "",
 }) => {
-  const [field] = useField(name);
+  const [field, , helpers] = useField(name);
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
-  const baseSelectStyle = `
-    w-full h-11 px-3 rounded-lg
-    border border-gray-200
-    bg-gray-50
-    text-sm text-gray-700
-    focus:outline-none focus:border-orange-400 focus:bg-white
-    transition appearance-none
-    ${disabled ? "cursor-not-allowed opacity-70" : ""}
-  `;
+  const selectedOption = options.find(
+    (opt) => opt.value === field.value
+  );
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelect = (value) => {
+    helpers.setValue(value);
+    setOpen(false);
+  };
+
+  // 🎨 Design Variants
+  const variants = {
+    inline: {
+      wrapper: "flex items-center gap-3",
+      label: "text-base font-medium text-gray-600",
+      button:
+        "bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold text-base px-5 py-2.5 rounded-2xl",
+    },
+    card: {
+      wrapper: "flex flex-col gap-2 w-full",
+      label: "text-xs font-semibold text-gray-400 uppercase tracking-wider",
+      button:
+        "bg-gray-100 text-gray-900 font-semibold text-base px-4 py-3 rounded-xl border border-gray-200 hover:bg-gray-200",
+    },
+  };
+
+  const current = variants[variant];
 
   return (
-    <div className={`w-full ${className}`}>
+    <div className={`${current.wrapper} ${className}`}>
+
+      {/* Label */}
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-          {label}
-        </label>
+        <span className={current.label}>{label}</span>
       )}
 
-      <div className="relative">
-        <select
-          {...field}
+      {/* Dropdown */}
+      <div ref={dropdownRef} className="relative w-full">
+        <button
+          type="button"
           disabled={disabled}
-          className={baseSelectStyle}
+          onClick={() => !disabled && setOpen(!open)}
+          className={`
+            w-full flex items-center justify-between
+            transition-all
+            focus:outline-none
+            ${current.button}
+            ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}
+          `}
         >
-          <option value="">{placeholder || `Select ${label}`}</option>
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          <span>
+            {selectedOption ? selectedOption.label : "Select"}
+          </span>
 
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-          ▼
-        </div>
+          <ChevronDown
+            size={18}
+            className={`transition-transform duration-200 ${
+              open ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+
+        {open && (
+          <ul className="absolute mt-2 w-full bg-white rounded-xl shadow-lg border border-gray-100 max-h-60 overflow-y-auto z-50">
+            {options.map((opt) => (
+              <li
+                key={opt.value}
+                onClick={() => handleSelect(opt.value)}
+                className={`
+                  px-4 py-2 text-sm cursor-pointer transition
+                  ${
+                    field.value === opt.value
+                      ? "bg-orange-200"
+                      : "hover:bg-orange-100"
+                  }
+                `}
+              >
+                {opt.label}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
-
-      <ErrorMessage name={name} component="p" className="text-red-500 text-xs mt-1" />
     </div>
   );
 };

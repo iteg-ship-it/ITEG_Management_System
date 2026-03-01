@@ -5,8 +5,10 @@ import { IoMenu, IoSettingsSharp } from "react-icons/io5";
 import { FaClipboardList } from "react-icons/fa6";
 import { MdWork, MdDashboard } from "react-icons/md";
 import { RiTv2Fill } from "react-icons/ri";
-import { HiChevronUp, HiChevronDown } from "react-icons/hi";
+import { HiChevronUp, HiChevronDown, HiChevronLeft, HiChevronRight } from "react-icons/hi";
 import UserProfile from "../user-profile/UserProfile";
+import logo from '../../../assets/images/logo.png';
+import logoo from '../../../assets/images/logo-ssism.png';
 
 const Sidebar = ({ children }) => {
   const location = useLocation();
@@ -79,7 +81,7 @@ const Sidebar = ({ children }) => {
       permission: "studentDashboard",
       subMenu: [
         { name: "Student Progress", path: "/student-dashboard" },
-        { name: "Level-wise Management", path: "/level-wise-management" },
+        // { name: "Level-wise Management", path: "/level-wise-management" },
         { name: "Dummy Students", path: "/student-permission" },
       ],
     },
@@ -117,25 +119,20 @@ const Sidebar = ({ children }) => {
             isOpen ? "w-64" : "w-16"
           }`}
         >
+          {/* Toggle Button - Mid Sidebar */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="absolute top-1/2 -right-3 transform -translate-y-1/2 w-8 h-8 bg-white text-gray-600 rounded-full shadow-md hover:shadow-lg border border-gray-200 transition-all duration-300 flex items-center justify-center z-40"
+          >
+            {isOpen ? <HiChevronLeft size={16} /> : <HiChevronRight size={16} />}
+          </button>
           {/* BRAND */}
           <div className="flex items-center gap-3 px-4 py-5">
-            <div className="bg-orange-500 text-white p-2 rounded-lg">🎓</div>
-
-            {isOpen && (
-              <div>
-                <h1 className="font-semibold text-gray-800 leading-none">
-                  EduManager
-                </h1>
-                <p className="text-xs text-gray-500">Admin Console</p>
-              </div>
+            {isOpen ? (
+              <img src={logo} alt="Logo" className="h-20 w-auto" />
+            ) : (
+              <img src={logoo} alt="Logo" className="h-8 w-auto" />
             )}
-
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="ml-auto text-xl text-gray-600"
-            >
-              <IoMenu />
-            </button>
           </div>
 
           {/* MENU */}
@@ -207,7 +204,7 @@ const Sidebar = ({ children }) => {
 
         {/* MAIN CONTENT */}
         <main
-          className={`flex-1 pt-20 bg-[#F8F7F5] min-h-screen transition-all duration-300 ${
+          className={`flex-1 bg-[#F8F7F5] min-h-screen transition-all duration-300 ${
             isOpen ? "ml-64" : "ml-16"
           }`}
         >

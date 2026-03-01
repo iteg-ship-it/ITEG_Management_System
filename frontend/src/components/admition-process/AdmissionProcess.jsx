@@ -3,7 +3,6 @@ import CommonTable from "../common-components/table/CommonTable";
 import { useEffect, useState, useMemo } from "react";
 import CustomTimeDate from "./CustomTimeDate";
 import { useLocation, useNavigate } from "react-router-dom";
-import Pagination from "../common-components/pagination/Pagination";
 import { AiFillStop } from "react-icons/ai";
 import { FaCheckCircle } from "react-icons/fa";
 import Loader from "../common-components/loader/Loader";
@@ -20,6 +19,7 @@ import { buttonStyles } from "../../styles/buttonStyles";
 import BlurBackground from "../common-components/BlurBackground";
 import TabsCommon from "../common-components/table/TabsCommon";
 import SearchBox from "./../common-components/seach-export/SearchBox";
+import Header from "./../common-components/sidebar/Header";
 
 const toTitleCase = (str) =>
   str
@@ -644,6 +644,7 @@ const StudentList = () => {
 
   return (
     <>
+    <Header title="Admission Process" />
       <div className=" bg-white  h-20">
         <div className="px-6">
           <TabsCommon tabs={tabs} activeTab={activeTab} onTabChange={handleTabClick} />

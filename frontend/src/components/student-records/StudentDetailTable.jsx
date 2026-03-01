@@ -9,6 +9,7 @@ import PageNavbar from "../common-components/navbar/PageNavbar";
 import { buttonStyles } from "../../styles/buttonStyles";
 import TabsCommon from "../common-components/table/TabsCommon";
 import SearchBox from "./../common-components/seach-export/SearchBox";
+import Header from "../common-components/sidebar/Header";
 
 const StudentDetailTable = () => {
   const { data = [], isLoading, refetch } = useAdmitedStudentsQuery();
@@ -273,6 +274,7 @@ const StudentDetailTable = () => {
 
   return (
     <>
+    <Header title="Student Records"  />
       <div className="bg-white h-20">
         <div className="px-6">
           <TabsCommon tabs={levelTabs} activeTab={activeTab} onTabChange={handleTabClick} />

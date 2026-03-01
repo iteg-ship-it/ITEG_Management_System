@@ -1,7 +1,5 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Pagination from "../common-components/pagination/Pagination";
 import { useGetReadyStudentsForPlacementQuery, useAdmitedStudentsQuery } from "../../redux/api/authApi";
 import Loader from "../common-components/loader/Loader";
 import CommonTable from "../common-components/table/CommonTable";
@@ -9,10 +7,10 @@ import ScheduleInterviewModal from "./ScheduleInterviewModal";
 import ConfirmPlacementModal from "./ConfirmPlacementModal";
 import CreatePostModal from "./CreatePostModal";
 import profile from "../../assets/images/profileImgDummy.jpeg";
-import PageNavbar from "../common-components/navbar/PageNavbar";
+import Header from "../common-components/sidebar/Header";
+import TabsCommon from "../common-components/table/TabsCommon";
 import { buttonStyles } from "../../styles/buttonStyles";
 
-// Capitalize function
 const toTitleCase = (str) =>
   str
     ?.toLowerCase()
@@ -23,12 +21,11 @@ const toTitleCase = (str) =>
 const PlacementReadyStudents = () => {
   const navigate = useNavigate();
   const { data = {}, isLoading, refetch } = useGetReadyStudentsForPlacementQuery(undefined, {
-    refetchOnMountOrArgChange: true, // Always refetch on mount
+    refetchOnMountOrArgChange: true,
     refetchOnFocus: false,
   });
   const students = data?.data || [];
 
-  // Get admitted students data for Placed Student tab
   const { data: admittedStudents } = useAdmitedStudentsQuery();
 
   const [rowsPerPage] = useState(10);
@@ -88,7 +85,6 @@ const PlacementReadyStudents = () => {
   const getFilteredData = () => {
     let filtered = [...students];
 
-    // 🌐 Tab-specific filtering
     if (activeTab === "Ongoing Interviews") {
       filtered = filtered.filter(
         (s) => Array.isArray(s.PlacementinterviewRecord) &&
@@ -106,15 +102,13 @@ const PlacementReadyStudents = () => {
           s.PlacementinterviewRecord.some(
             (rec) => rec.status?.toLowerCase() === "selected"
           ) &&
-          !s.placedInfo // Exclude students who are already placed
+          !s.placedInfo
       );
     } else if (activeTab === "Placed Student") {
-      // Use admitted students data for placed students
       const placedStudents = admittedStudents?.filter(student => student.placedInfo !== null) || [];
       filtered = placedStudents;
     }
 
-    // 🧠 Apply filter + search
     return filtered.filter((student) => {
       const track = toTitleCase(student.track || "");
       const latestResult = toTitleCase(
@@ -148,9 +142,7 @@ const PlacementReadyStudents = () => {
     });
   };
 
-  // Helper function to get latest company info
   const getLatestCompanyInfo = (student) => {
-    // Check placedInfo first (most recent confirmed placement)
     if (student.placedInfo?.companyName) {
       return {
         companyName: student.placedInfo.companyName,
@@ -159,7 +151,6 @@ const PlacementReadyStudents = () => {
       };
     }
 
-    // Fallback to latest selected interview
     const selectedInterviews = student.PlacementinterviewRecord?.filter(
       (interview) => interview.status?.toLowerCase() === "selected"
     ) || [];
@@ -204,7 +195,6 @@ const PlacementReadyStudents = () => {
       align: "center",
       render: (row) => `+91 ${row.studentMobile}`,
     },
-
     {
       key: "companyName",
       label: "Company",
@@ -253,7 +243,6 @@ const PlacementReadyStudents = () => {
         </button>
       ),
     },
-
   ] : activeTab === "Placed Student" ? [
     {
       key: "profile",
@@ -358,7 +347,6 @@ const PlacementReadyStudents = () => {
       label: "Technology",
       render: (row) => toTitleCase(row.techno || "Technology is not selected yet"),
     },
-
   ];
 
   const handleTabClick = (tab) => {
@@ -366,10 +354,9 @@ const PlacementReadyStudents = () => {
     localStorage.setItem('placementActiveTab', tab);
   };
 
-  // Load active tab from localStorage on component mount
   useEffect(() => {
     const savedTab = localStorage.getItem('placementActiveTab');
-    if (savedTab) {
+    if (savedTab && savedTab !== activeTab) {
       setActiveTab(savedTab);
     }
   }, []);
@@ -394,69 +381,25 @@ const PlacementReadyStudents = () => {
 
   return (
     <>
-      <PageNavbar
-        title="Placement Process"
-        subtitle="Manage student placement workflow and interviews"
-        showBackButton={false}
-      />
-      <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
+      <Header title="Placement Candidates" />
+      <div className=" bg-white  h-20">
         <div className="px-6">
-          {/* Tabs */}
-          <div className="flex gap-6 mt-4">
-            {tabs.map((tab) => (
-              <p
-                key={tab}
-                onClick={() => handleTabClick(tab)}
-                className={`cursor-pointer text-md text-[var(--text-color)] pb-2 border-b-2 ${activeTab === tab
-                  ? "border-[var(--text-color)] font-semibold"
-                  : "border-gray-200"
-                  }`}
-              >
-                {tab}
-              </p>
-            ))}
-          </div>
-
-          {/* Filters + Search */}
-          <div className="flex justify-between items-center flex-wrap gap-4">
-            <Pagination
-              rowsPerPage={rowsPerPage}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              filtersConfig={filtersConfig}
-              filteredData={getFilteredData()}
-              selectedRows={selectedRows}
-              allData={students}
-              sectionName={activeTab.replace(/\s+/g, '').toLowerCase()}
-            />
-          </div>
+          <TabsCommon tabs={tabs} activeTab={activeTab} onTabChange={handleTabClick} />
         </div>
+      </div >
+      <div className="min-h-screen p-5">
 
-        {/* Table */}
         <CommonTable
           columns={columns}
           data={getFilteredData()}
-          editable={true}
-          pagination={true}
-          rowsPerPage={rowsPerPage}
           searchTerm={searchTerm}
-          actionButton={activeTab === "Qualified Students" || activeTab === "Ongoing Interviews" ? (student) => (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedStudent(student);
-                setIsModalOpen(true);
-              }}
-              className={buttonStyles.primary}
-            >
-              + Add Interview
-            </button>
-          ) : null}
+          setSearchTerm={setSearchTerm}
+          filtersConfig={filtersConfig}
           onSelectionChange={setSelectedRows}
           onRowClick={handleRowClick}
+          rowsPerPage={rowsPerPage}
         />
 
-        {/* Modal */}
         <ScheduleInterviewModal
           isOpen={isModalOpen}
           onClose={() => {
@@ -465,14 +408,11 @@ const PlacementReadyStudents = () => {
           }}
           studentId={selectedStudent?._id}
           onSuccess={async () => {
-            // Force refetch with cache invalidation
             await refetch();
-            // Small delay to ensure backend has processed the data
             setTimeout(() => refetch(), 500);
           }}
         />
 
-        {/* Confirm Placement Modal */}
         <ConfirmPlacementModal
           isOpen={isConfirmPlacementModalOpen}
           onClose={() => {
@@ -481,14 +421,11 @@ const PlacementReadyStudents = () => {
           }}
           student={selectedStudentForPlacement}
           onSuccess={async () => {
-            // Force refetch with cache invalidation
             await refetch();
-            // Small delay to ensure backend has processed the data
             setTimeout(() => refetch(), 500);
           }}
         />
 
-        {/* Create Post Modal */}
         <CreatePostModal
           isOpen={isCreatePostModalOpen}
           onClose={() => {

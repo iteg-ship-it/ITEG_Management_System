@@ -35,6 +35,7 @@ import SubDepartment from "../Setting/Departments/SubDepartment";
 import ShowLevels from "../Setting/Levels/ShowLevels";
 import DepartmentDetails from "../Setting/Departments/DepartmentDetails";
 import SubdepartmentDetails from "../Setting/Departments/SubdepartmentDetails";
+import Header from "../common-components/sidebar/Header";
 
 const Dashboard = () => {
   return (

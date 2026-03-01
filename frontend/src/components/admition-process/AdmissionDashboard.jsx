@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-key */
-import { 
-  Users, 
+import {
+  Users,
   GraduationCap,
   Building2,
   Award
@@ -10,7 +10,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import admissionFlowBg from '../../assets/images/Group 880.jpg';
 import admittedFlowBg from '../../assets/images/Group 881.jpg';
 // import placementFlowBg from '../../assets/images/Group 882.jpg';
-import { 
+import {
   useGetAllStudentsQuery,
   useAdmitedStudentsQuery,
   useGetReadyStudentsForPlacementQuery
@@ -22,12 +22,15 @@ import { useState, useEffect } from 'react';
 import PageNavbar from '../common-components/navbar/PageNavbar';
 import AttendanceChart from '../dashboard/AttendanceChart';
 import DepartmentSection from '../Setting/Departments/departments';
+import Header from '../common-components/sidebar/Header';
+import { Formik, Form } from 'formik';
+import CustomDropdown from '../common-components/common-feild/CustomDropdown';
 
 // Auto-Swapping Flow Cards Component
 const FlowSwapCard = () => {
   const [currentCard, setCurrentCard] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  
+
   const flowCards = [
     {
       title: 'Admission Module',
@@ -37,7 +40,7 @@ const FlowSwapCard = () => {
       backgroundImage: admissionFlowBg
     },
     {
-      title: 'Admitted Module', 
+      title: 'Admitted Module',
       description: 'Track academic progress, attendance, and performance of students enrolled in ITEG seamlessly.',
       icon: <svg className="w-8 h-8" fill="none" stroke="#8B5CF6" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg>,
       color: '#8B5CF6',
@@ -46,10 +49,10 @@ const FlowSwapCard = () => {
     {
       title: 'Placements Module',
       description: 'Control, manage, and monitor placement drives and interview records with full visibility.',
-      icon: <svg className="w-8 h-8" fill="none" stroke="#10B981" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h4M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>, 
+      icon: <svg className="w-8 h-8" fill="none" stroke="#10B981" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h4M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>,
       color: '#10B981',
       // backgroundImage: 
-      
+
     }
   ];
 
@@ -67,20 +70,19 @@ const FlowSwapCard = () => {
   const currentFlow = flowCards[currentCard];
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden h-full" style={{ boxShadow: '0 0 25px 8px rgba(0, 0, 0, 0.10)' }}>
+    <div className="rounded-2xl overflow-hidden h-full" style={{ boxShadow: '0 0 25px 8px rgba(0, 0, 0, 0.10)' }}>
       <div className="relative h-full">
         {/* Fixed admitted flow background */}
-        <div 
+        <div
           className="absolute inset-0"
-          style={{ 
+          style={{
             backgroundImage: `url(${admittedFlowBg})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center'
           }}
         ></div>
-        <div className={`relative p-6 h-full flex flex-col justify-center transition-all duration-300 ease-out ${
-          isTransitioning ? 'opacity-80 transform translate-y-1' : 'opacity-100 transform translate-y-0'
-        }`}>
+        <div className={`relative p-6 h-full flex flex-col justify-center transition-all duration-300 ease-out ${isTransitioning ? 'opacity-80 transform translate-y-1' : 'opacity-100 transform translate-y-0'
+          }`}>
           <div className="text-center">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-white/20 backdrop-blur-md border border-white/30">
               <div style={{ color: currentFlow.color }}>{currentFlow.icon}</div>
@@ -95,14 +97,13 @@ const FlowSwapCard = () => {
               {currentFlow.subtitle}
             </p>
           </div>
-          
+
           <div className="flex justify-center mt-6 space-x-2">
             {flowCards.map((_, index) => (
               <div
                 key={index}
-                className={`h-2 rounded-full transition-all duration-500 ease-in-out ${
-                  index === currentCard ? 'w-8 bg-white' : 'w-2 bg-white/50'
-                }`}
+                className={`h-2 rounded-full transition-all duration-500 ease-in-out ${index === currentCard ? 'w-8 bg-white' : 'w-2 bg-white/50'
+                  }`}
               />
             ))}
           </div>
@@ -131,7 +132,7 @@ const AdmissionDashboard = () => {
   }, []);
 
   // Calculate placed students from admitted students data
-  const placedStudents = Array.isArray(admittedStudents) ? 
+  const placedStudents = Array.isArray(admittedStudents) ?
     admittedStudents.filter(student => student.placedInfo && student.placedInfo !== null && typeof student.placedInfo === 'object' && Object.keys(student.placedInfo).length > 0).length : 0;
 
   // Calculate trends based on actual data counts
@@ -149,7 +150,7 @@ const AdmissionDashboard = () => {
       trend: enrollmentGrowth
     },
     {
-      title: 'Admitted Students', 
+      title: 'Admitted Students',
       value: admittedStudents.length,
       subtitle: 'Currently admitted',
       icon: GraduationCap,
@@ -171,7 +172,7 @@ const AdmissionDashboard = () => {
   const admitted = admittedStudents.length;
   const underReview = totalRegistered - admitted; // Remaining students who are not yet admitted
   const interviewed = allStudents.filter(student => student.interviewRecord && student.interviewRecord.length > 0).length;
-  
+
   const admissionFlowData = [
     ['Status', 'Count'],
     ['Registered', totalRegistered],
@@ -189,16 +190,16 @@ const AdmissionDashboard = () => {
   // Count students by their current level
   admittedStudents.forEach(student => {
     const currentLevel = student.currentLevel || '1A';
-    
+
     // Only count students who haven't passed Level 2C for Level 2C
     if (currentLevel === '2C') {
       const level2CAttempts = (student.level || []).filter(lvl => lvl.levelNo === '2C');
       const hasPassedLevel2C = level2CAttempts.some(lvl => lvl.result === 'Pass');
-      
+
       if (!hasPassedLevel2C) {
         levelCounts['2C']++;
       }
-    // eslint-disable-next-line no-prototype-builtins
+      // eslint-disable-next-line no-prototype-builtins
     } else if (levelCounts.hasOwnProperty(currentLevel)) {
       levelCounts[currentLevel]++;
     }
@@ -216,15 +217,15 @@ const AdmissionDashboard = () => {
 
   // Calculate real placement flow data
   const readyForPlacement = placementStudents.length;
-  const interviewScheduled = placementStudents.filter(student => 
+  const interviewScheduled = placementStudents.filter(student =>
     student.PlacementinterviewRecord && student.PlacementinterviewRecord.length > 0
   ).length;
-  const interviewCompleted = placementStudents.filter(student => 
-    student.PlacementinterviewRecord && student.PlacementinterviewRecord.some(interview => 
+  const interviewCompleted = placementStudents.filter(student =>
+    student.PlacementinterviewRecord && student.PlacementinterviewRecord.some(interview =>
       interview.status && interview.status !== 'Scheduled' && interview.status !== 'Pending'
     )
   ).length;
-  
+
   const placementFlowData = [
     ['Stage', 'Students'],
     ['Ready for Placement', readyForPlacement],
@@ -239,7 +240,7 @@ const AdmissionDashboard = () => {
     if (student.placedInfo && student.placedInfo.companyName && student.placedInfo.companyRef) {
       const companyName = student.placedInfo.companyName;
       const companyId = student.placedInfo.companyRef;
-      
+
       if (!companyStats[companyName]) {
         companyStats[companyName] = {
           id: companyId,
@@ -251,7 +252,7 @@ const AdmissionDashboard = () => {
   });
 
   const topCompanies = Object.entries(companyStats)
-    .sort(([,a], [,b]) => b.count - a.count)
+    .sort(([, a], [, b]) => b.count - a.count)
     .slice(0, 5)
     .map(([name, data], index) => ({
       name,
@@ -275,33 +276,60 @@ const AdmissionDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <PageNavbar 
-        title="ITEG Management Dashboard" 
-        subtitle="Real-time analytics & performance insights"
-        showBackButton={false}
-        rightContent={
-          <div className="text-right">
-            <div className="text-xl font-bold text-black">{currentTime.toLocaleTimeString()}</div>
-            <div className="text-gray-600 text-sm">{currentTime.toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}</div>
+    <>
+      <Header sidebarOpen={true} title="Dashboard">
+        <Formik initialValues={{ year: "2023-24", department: "all" }} onSubmit={() => {}}>
+          <Form className="flex gap-4">
+            <CustomDropdown
+              label="Year:"
+              name="year"
+              options={[
+                { label: "2023-24", value: "2023-24" },
+                { label: "2022-23", value: "2022-23" },
+                { label: "2021-22", value: "2021-22" },
+              ]}
+            />
+            <CustomDropdown
+              label="Department:"
+              name="department"
+              options={[
+                { label: "All Departments", value: "all" },
+                { label: "Computer Science", value: "cs" },
+                { label: "Information Technology", value: "it" },
+                { label: "Electronics", value: "ece" },
+                { label: "Mechanical", value: "mech" },
+              ]}
+            />
+          </Form>
+        </Formik>
+      </Header>
+      <div className="min-h-screen px-5">
+        <PageNavbar
+          title="ITEG Management Dashboard"
+          subtitle="Real-time analytics & performance insights"
+          showBackButton={false}
+          rightContent={
+            <div className="text-right">
+              <div className="text-xl font-bold text-black">{currentTime.toLocaleTimeString()}</div>
+              <div className="text-gray-600 text-sm">{currentTime.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}</div>
 
-          </div>
-        }
-      />
-          
-      {/* <div className=""> */}
+            </div>
+          }
+        />
+
+        {/* <div className=""> */}
         {/* Welcome Section with Flow Cards */}
         <div className="flex gap-6 mb-8 h-80">
           {/* Welcome Card - 60% width */}
           <div className="w-3/5">
             <div className="bg-white rounded-2xl overflow-hidden h-full" style={{ boxShadow: '0 0 25px 8px rgba(0, 0, 0, 0.10)' }}>
               <div className="relative h-full">
-                <div className="absolute inset-0" style={{ 
+                <div className="absolute inset-0" style={{
                   backgroundImage: `url(${admissionFlowBg})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center'
@@ -311,7 +339,7 @@ const AdmissionDashboard = () => {
                     <h2 className="text-2xl font-bold text-white mb-2">Welcome to 👋</h2>
                     <h1 className="text-3xl font-bold text-white mb-4">ITEG Management System</h1>
                     <p className="text-sm text-gray-200 leading-relaxed">
-                      A comprehensive platform designed to streamline student lifecycle management from admission to successful placement. 
+                      A comprehensive platform designed to streamline student lifecycle management from admission to successful placement.
                       Our system provides real-time analytics, progress tracking, and efficient workflow management for educational institutions.
                     </p>
                   </div>
@@ -344,8 +372,8 @@ const AdmissionDashboard = () => {
                       <p className="text-xs text-black hidden sm:block">{card.subtitle}</p>
                       <div className="text-xs text-green-600 font-medium mt-1">{card.trend}</div>
                     </div>
-                    <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm" 
-                         style={{ backgroundColor: `${card.color}20` }}>
+                    <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm"
+                      style={{ backgroundColor: `${card.color}20` }}>
                       <IconComponent className="h-3 w-3 sm:h-6 sm:w-6" style={{ color: card.color }} />
                     </div>
                   </div>
@@ -413,11 +441,11 @@ const AdmissionDashboard = () => {
                     chartArea: { width: '85%', height: '75%' },
                     colors: ['#1E40AF', '#3B82F6', '#60A5FA', '#93C5FD', '#DBEAFE', '#EFF6FF'],
                     bar: { groupWidth: '60%' },
-                    hAxis: { 
+                    hAxis: {
                       textStyle: { color: '#6B7280', fontSize: 10 },
                       gridlines: { color: 'transparent' }
                     },
-                    vAxis: { 
+                    vAxis: {
                       textStyle: { color: '#6B7280', fontSize: 10 },
                       gridlines: { color: '#F3F4F6' }
                     },
@@ -480,49 +508,49 @@ const AdmissionDashboard = () => {
               </div>
             </div> */}
             <div className="p-6">
-  <div className="h-64">
-    <ResponsiveContainer width="100%" height="100%">
-      <AreaChart
-        data={placementFlowData.slice(1).map(([name, value]) => ({ name, value }))}
-        margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-      >
-        <defs>
-          <linearGradient id="greenGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#00FF00" stopOpacity={0.4} />
-            <stop offset="100%" stopColor="#00FF00" stopOpacity={0.05} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid stroke="#E5E7EB" vertical={false} />  
-        <XAxis
-          dataKey="name"
-          stroke="#6B7280"
-          fontSize={12}
-        />
-        <YAxis
-          stroke="#6B7280"
-          fontSize={12}
-        />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: 'white',
-            border: '1px solid #E5E7EB',
-            borderRadius: '8px',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-          }}
-          labelStyle={{ color: '#374151', fontWeight: 'bold' }}
-          itemStyle={{ color: '#00FF00' }}
-        />
-        <Area
-          type="monotone"
-          dataKey="value"
-          stroke="#00FF00"
-          strokeWidth={2}
-          fill="url(#greenGradient)"
-        />
-      </AreaChart>
-    </ResponsiveContainer>
-  </div>
-</div>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={placementFlowData.slice(1).map(([name, value]) => ({ name, value }))}
+                    margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                  >
+                    <defs>
+                      <linearGradient id="greenGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#00FF00" stopOpacity={0.4} />
+                        <stop offset="100%" stopColor="#00FF00" stopOpacity={0.05} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid stroke="#E5E7EB" vertical={false} />
+                    <XAxis
+                      dataKey="name"
+                      stroke="#6B7280"
+                      fontSize={12}
+                    />
+                    <YAxis
+                      stroke="#6B7280"
+                      fontSize={12}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'white',
+                        border: '1px solid #E5E7EB',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                      }}
+                      labelStyle={{ color: '#374151', fontWeight: 'bold' }}
+                      itemStyle={{ color: '#00FF00' }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#00FF00"
+                      strokeWidth={2}
+                      fill="url(#greenGradient)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -542,8 +570,8 @@ const AdmissionDashboard = () => {
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               {topCompanies.length > 0 ? topCompanies.map((company, index) => (
-                <div 
-                  key={`${company.name}-${index}`} 
+                <div
+                  key={`${company.name}-${index}`}
                   className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors border border-gray-200 cursor-pointer hover:shadow-md"
                   onClick={() => navigate(`/placement/company/${company.id}`, {
                     state: { companyName: company.name }
@@ -573,8 +601,9 @@ const AdmissionDashboard = () => {
         </div>
 
 
-      {/* </div> */}
-    </div>
+        {/* </div> */}
+      </div>
+    </>
   );
 };
 
