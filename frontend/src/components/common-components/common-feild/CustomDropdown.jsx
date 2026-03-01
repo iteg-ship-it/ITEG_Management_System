@@ -46,7 +46,7 @@ const CustomDropdown = ({
       wrapper: "flex flex-col gap-2 w-full",
       label: "text-xs font-semibold text-gray-400 uppercase tracking-wider",
       button:
-        "bg-gray-100 text-gray-900 font-semibold text-base px-4 py-3 rounded-xl border border-gray-200 hover:bg-gray-200",
+        "border-2 border-gray-300 bg-gray-50 text-base px-4 py-3 rounded-xl",
     },
   };
 

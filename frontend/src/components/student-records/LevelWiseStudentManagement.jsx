@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { FaUpload, FaUsers, FaEye, FaFilter } from 'react-icons/fa';
-import { Search } from 'lucide-react';
 import LevelTaskUploadModal from './LevelTaskUploadModal';
 import { taskAPI } from '../../services/taskService';
 import { useAdmitedStudentsQuery } from '../../redux/api/authApi';
 import CommonTable from '../common-components/table/CommonTable';
+import SearchBox from '../common-components/seach-export/SearchBox';
 
 const LevelWiseStudentManagement = () => {
   const [selectedLevel, setSelectedLevel] = useState('1A');
@@ -533,18 +533,7 @@ const LevelWiseStudentManagement = () => {
         {/* Search Bar */}
         <div className="mb-6">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex border border-gray-300 rounded-md overflow-hidden w-full max-w-md h-12 bg-white relative focus-within:border-black transition-colors">
-              <div className="flex items-center px-3 w-full">
-                <Search className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Search students by name, mobile, village..."
-                  className="outline-none border-none ring-0 focus:ring-0 px-2 py-2 w-full h-9 text-sm text-gray-600 bg-white"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
+            <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
             
             {/* Filter Results Info */}
             {(searchTerm || selectedSubject !== 'all' || selectedStatus !== 'all') && (
