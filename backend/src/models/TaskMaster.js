@@ -10,13 +10,26 @@ const taskMasterSchema = new mongoose.Schema({
     required: true,
     index: true
   },
-  
   // Task location in syllabus hierarchy
   // Task topic ke sath ya subtopic ke sath attach ho sakta hai.
-  subjectName: { type: String, required: true, index: true },
-  topicName: { type: String, required: true },
-  subTopicName: { type: String }, // null if task is at topic level
-  
+  subjectId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: "Subject", 
+    required: true, 
+    index: true 
+  },
+  topicId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: "Topic", 
+    required: true, 
+    index: true 
+  },
+  subTopicId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: "SubTopic", 
+    required: true, 
+    index: true 
+  },
   // Task definition (master copy)
   title: { type: String, required: true },
   description: String,
@@ -44,16 +57,10 @@ const taskMasterSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // ==================== INDEXES ====================
-taskMasterSchema.index({ 
-  syllabusVersionId: 1, 
-  subjectName: 1, 
-  topicName: 1, 
-  subTopicName: 1, 
-  title: 1 
-}, { unique: true });
-
 taskMasterSchema.index({ syllabusVersionId: 1, isActive: 1 });
-taskMasterSchema.index({ syllabusVersionId: 1, subjectName: 1 });
 taskMasterSchema.index({ originalTaskId: 1 });
+taskMasterSchema.index({ subjectId: 1, topicId: 1, subTopicId: 1 });
+taskMasterSchema.index({ topicId: 1, isActive: 1 });
+taskMasterSchema.index({ subTopicId: 1, isActive: 1 });
 
 module.exports = mongoose.model("TaskMaster", taskMasterSchema);
