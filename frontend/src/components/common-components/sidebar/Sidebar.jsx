@@ -8,11 +8,11 @@ import { HiChevronUp, HiChevronDown } from "react-icons/hi";
 
 import Header from "./Header";
 import UserProfile from "../user-profile/UserProfile";
+import { usePermissions } from "../../../hooks/usePermissions";
 
 const Sidebar = ({ children }) => {
   const location = useLocation();
-
-  const hasPermission = () => true; // Future permission logic
+  const { hasPermission } = usePermissions();
 
   const [isOpen, setIsOpen] = useState(() => window.innerWidth >= 1024);
   const [openMenus, setOpenMenus] = useState([0]);
@@ -57,60 +57,62 @@ const Sidebar = ({ children }) => {
     {
       name: "Dashboard",
       icon: <MdDashboard />,
-      permission: "dashboard",
+      permission: "Page_Dashboard", // Example permission
       subMenu: [
-        { name: "Dashboard", path: "/" },
-        { name: "Attendance Details", path: "/attendance-details" },
+        { name: "Dashboard", path: "/", permission: "Page_Dashboard" },
+        { name: "Attendance Details", path: "/attendance-details", permission: "Page_AttendanceDetails" },
       ],
     },
     {
       name: "Admissions",
       icon: <RiTv2Fill />,
-      permission: "admissionProcess",
+      permission: "Page_Admission",
       subMenu: [
-        { name: "Admission Workflow", path: "/admission-process" },
+        { name: "Admission Workflow", path: "/admission-process", permission: "Page_Admission" },
       ],
     },
     {
       name: "Admitted",
       icon: <FaClipboardList />,
-      permission: "studentDashboard",
+      permission: "Page_AdmittedStudents",
       subMenu: [
-        { name: "Student Progress", path: "/student-dashboard" },
-        { name: "Level-wise Management", path: "/level-wise-management" },
-        { name: "Dummy Students", path: "/student-permission" },
+        { name: "Student Progress", path: "/student-dashboard", permission: "Page_AdmittedStudents" },
+        { name: "Level-wise Management", path: "/level-wise-management", permission: "Page_LevelWiseManagement" },
+        { name: "Dummy Students", path: "/student-permission", permission: "Page_DummyStudents" },
       ],
     },
     {
       name: "Placements",
       icon: <MdWork />,
-      permission: "placement",
+      permission: "Page_Placement",
       subMenu: [
-        { name: "Placement Candidates", path: "/readiness-status" },
-        { name: "Company Details", path: "/company-details" },
-        { name: "Placed Students", path: "/placement-post" },
+        { name: "Placement Candidates", path: "/readiness-status", permission: "Page_Placement" },
+        { name: "Company Details", path: "/company-details", permission: "Page_CompanyDetails" },
+        { name: "Placed Students", path: "/placement-post", permission: "Page_PlacedStudents" },
       ],
     },
     {
       name: "User Management",
       icon: <FaUserGroup />,
-      permission: "users",
+      permission: "Page_UserManagement",
       subMenu: [
-        { name: "Users", path: "/user-management" },
+        { name: "Users", path: "/user-management", permission: "Page_UserManagement" },
       ],
     },
     {
       name: "Settings",
       icon: <IoSettingsSharp />,
-      permission: "settings",
+      permission: "Page_Settings",
       subMenu: [
-        { name: "Department Management", path: "/department-management" },
-        { name: "Subdepartments", path: "/subdepartments" },
-        { name: "Levels", path: "/levels" },
-        { name: "User Permission", path: "/user-permission" },
+        { name: "Department Management", path: "/department-management", permission: "Page_Department" },
+        { name: "Subdepartments", path: "/subdepartments", permission: "Page_SubDepartment" },
+        { name: "Levels", path: "/levels", permission: "Page_Level" },
+        { name: "User Permission", path: "/user-permission", permission: "Page_GlobalPermissionMatrix" },
       ],
     },
   ];
+
+  const filteredMenuItems = menuItems.filter(item => hasPermission(item.permission, 'read'));
 
   return (
     <>
@@ -147,10 +149,13 @@ const Sidebar = ({ children }) => {
           {/* MENU */}
           {isOpen && (
             <nav className="flex flex-col gap-1 px-2 py-2 overflow-y-auto h-[calc(100vh-180px)]">
-              {menuItems
-                .filter((item) => hasPermission(item.permission))
-                .map((item, idx) => {
+              {filteredMenuItems.map((item, idx) => {
                   const isActive = openMenus.includes(idx);
+                  const filteredSubMenu = item.subMenu.filter(subItem => hasPermission(subItem.permission, 'read'));
+
+                  if (filteredSubMenu.length === 0) {
+                    return null; // Do not render main menu if no sub-items are accessible
+                  }
 
                   return (
                     <div key={idx}>
@@ -172,7 +177,7 @@ const Sidebar = ({ children }) => {
 
                       {isActive && (
                         <div className="ml-2 mt-1">
-                          {item.subMenu.map((sub, i) => {
+                          {filteredSubMenu.map((sub, i) => {
                             const active = isSubMenuActive(sub.path);
                             return (
                               <Link
@@ -216,6 +221,7 @@ const Sidebar = ({ children }) => {
     </>
   );
 };
+
 
 export default Sidebar;
 // /* eslint-disable react/prop-types */

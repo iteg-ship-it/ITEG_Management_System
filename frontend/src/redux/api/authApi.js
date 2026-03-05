@@ -7,21 +7,12 @@ import { logout, setCredentials } from "../auth/authSlice";
 const secretKey = "ITEG@123";
 
 //  Decrypt from localStorage
-// const decrypt = (encrypted) => {
-//   try {
-//     const bytes = CryptoJS.AES.decrypt(encrypted, secretKey);
-//     return bytes.toString(CryptoJS.enc.Utf8);
-//   } catch (err) {
-//     console.error("Decryption failed:", err);
-//     return null;
-//   }
-// };
 const decrypt = (encrypted) => {
   try {
-    if (!encrypted || typeof encrypted !== "string") return null; // ✅ Prevent decryption of null or invalid input
+    if (!encrypted || typeof encrypted !== "string") return null;
     const bytes = CryptoJS.AES.decrypt(encrypted, secretKey);
     const decrypted = bytes.toString(CryptoJS.enc.Utf8);
-    return decrypted || null; // If decryption fails silently, still return null
+    return decrypted || null;
   } catch (err) {
     console.error("Decryption failed:", err);
     return null;
@@ -30,6 +21,21 @@ const decrypt = (encrypted) => {
 
 //  Encrypt before storing
 const encrypt = (data) => CryptoJS.AES.encrypt(data, secretKey).toString();
+
+// Function to decode JWT payload
+const jwtDecode = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    console.error("Invalid token:", e);
+    return null;
+  }
+};
 
 //  Base query with token in headers
 const rawBaseQuery = fetchBaseQuery({
@@ -92,11 +98,10 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
       // Store encrypted token
       localStorage.setItem("token", encrypt(accessToken));
       
+      const user = jwtDecode(accessToken);
+
       // Update Redux state
-      api.dispatch(setCredentials({ 
-        token: accessToken, 
-        role: localStorage.getItem("role") 
-      }));
+      api.dispatch(setCredentials({ token: accessToken, user }));
 
       // Retry original query
       result = await rawBaseQuery(args, api, extraOptions);
@@ -115,7 +120,7 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithAutoRefresh,
-  tagTypes: ['Student', 'PlacementStudent', 'User', 'Department', 'Role'],
+  tagTypes: ['Student', 'PlacementStudent', 'User', 'Department', 'Role', 'Permission'],
   // Global configuration for better caching
   keepUnusedDataFor: 300, // 5 minutes default cache
   refetchOnMountOrArgChange: 30, // Only refetch if data is older than 30 seconds
@@ -131,13 +136,14 @@ export const authApi = createApi({
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          const { token, refreshToken, role } = data;
+          const { token, refreshToken } = data;
+          const user = jwtDecode(token);
 
           localStorage.setItem("token", encrypt(token));
           localStorage.setItem("refreshToken", encrypt(refreshToken));
-          localStorage.setItem("role", role);
+          localStorage.setItem("role", user.role);
 
-          dispatch(setCredentials({ token, role }));
+          dispatch(setCredentials({ token, user }));
           window.location.replace("/");
         } catch (error) {
           console.error("Login failed:", error);
@@ -931,6 +937,26 @@ export const authApi = createApi({
       invalidatesTags: ['Role'],
     }),
 
+    // Permissions Management APIs
+    getAllPossiblePermissions: builder.query({
+      query: () => '/user/permissions/all',
+      providesTags: ['Permission'],
+    }),
+
+    getUserPermissions: builder.query({
+      query: (id) => `/user/permissions/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Permission', id }],
+    }),
+
+    updateUserPermissions: builder.mutation({
+      query: ({ id, permissions }) => ({
+        url: `/user/permissions/${id}`,
+        method: 'PUT',
+        body: { permissions },
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: 'Permission', id }],
+    }),
+
   }),
 });
 
@@ -1007,5 +1033,8 @@ export const {
   useCreateRoleMutation,
   useGetAllRolesQuery,
   useUpdateRoleMutation,
-  useDeleteRoleMutation
+  useDeleteRoleMutation,
+  useGetAllPossiblePermissionsQuery,
+  useGetUserPermissionsQuery,
+  useUpdateUserPermissionsMutation
 } = authApi;

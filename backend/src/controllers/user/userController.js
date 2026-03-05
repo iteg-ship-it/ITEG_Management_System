@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const { sendResetLinkEmail } = require("../../services/emailService");
+const { getPermissionsForRole } = require("../../config/permissions");
 const cloudinary = require("cloudinary").v2;
 const mongoose = require("mongoose");
 
@@ -63,6 +64,8 @@ exports.createUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    const permissions = getPermissionsForRole(role);
+
     const newUser = new User({
       profileImage,
       name,
@@ -73,6 +76,7 @@ exports.createUser = async (req, res) => {
       department,
       position,
       role,
+      permissions,
       isActive: isActive !== undefined ? isActive : true, // Default to true if not provided
       updatedAt,
       createdAt,
@@ -81,6 +85,7 @@ exports.createUser = async (req, res) => {
     await newUser.save();
 
     console.log(`User created successfully: ${email} with isActive: ${newUser.isActive}`);
+
 
     res.status(201).json({
       message: `${role.charAt(0).toUpperCase() + role.slice(1)} created successfully!`,
@@ -143,8 +148,16 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
+    // Self-healing: If user has no permissions, assign default ones based on their role
+    if (!user.permissions || user.permissions.length === 0) {
+      console.log(`User ${user.email} has no permissions. Assigning defaults for role ${user.role}.`);
+      const defaultPermissions = getPermissionsForRole(user.role);
+      user.permissions = defaultPermissions;
+      // The save is implicitly handled by the refreshToken update below
+    }
+
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { id: user._id, role: user.role, permissions: user.permissions },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -385,11 +398,13 @@ exports.googleAuthCallback = async (req, res) => {
     let isNewUser = false;
 
     if (!user) {
+      const permissions = getPermissionsForRole("superadmin");
       user = await User.create({
         googleId: sub,
         email,
         name,
         role: "superadmin",
+        permissions,
         position: "admin",
         department: "IT",
         mobileNo: "0000000000",
@@ -463,3 +478,56 @@ exports.getAllUsers = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+//  इजाज़त (Permissions) Management
+exports.getAllPossiblePermissions = (req, res) => {
+  try {
+    // We are importing all defined permissions from our config file
+    const { allPermissions } = require("../../config/permissions");
+    res.status(200).json({ success: true, permissions: allPermissions });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.getUserPermissions = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select("permissions");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({ success: true, permissions: user.permissions });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.updateUserPermissions = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { permissions } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { permissions: permissions, updatedAt: new Date() },
+      { new: true, runValidators: true }
+    ).select("name role permissions");
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User permissions updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error", error });
+  }
+};
+

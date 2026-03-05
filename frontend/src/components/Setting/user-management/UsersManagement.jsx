@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { Trash2, Edit, X, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -16,9 +16,12 @@ import profile from '../../../assets/images/profile-img.png';
 import RolesPermissions from './RolesPermissions';
 import OrangeButton from '../../common-components/sidebar/OrangeButton';
 import { useSignupMutation } from '../../../redux/api/authApi';
+import { usePermissions } from '../../../hooks/usePermissions';
 
 const UsersManagement = () => {
     const navigate = useNavigate();
+    const { hasPermission } = usePermissions();
+    const createUserFormRef = useRef();
     const [activeTab, setActiveTab] = useState('Users');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedDepartments, setSelectedDepartments] = useState([]);
@@ -67,7 +70,7 @@ const UsersManagement = () => {
         }
     };
 
-    const CreateUserForm = () => {
+    const CreateUserForm = ({ formikRef }) => {
         const [isActive, setIsActive] = useState(true);
         const [autoGenerate, setAutoGenerate] = useState(false);
         const [showPassword, setShowPassword] = useState(false);
@@ -83,6 +86,7 @@ const UsersManagement = () => {
         
         return (
             <Formik
+                innerRef={formikRef}
                 initialValues={{
                     name: '',
                     email: '',
@@ -371,16 +375,19 @@ const UsersManagement = () => {
                     <button className="px-4 py-2 border rounded-lg text-sm bg-white hover:bg-gray-50 shadow-sm">
                         Export
                     </button>
-                    <OrangeButton
-                        buttonTitle="+ Create New"
-                        panelTitle="Create New User"
-                        drawerContent={<CreateUserForm />}
-                        rightBtnText="Create User"
-                        onRightClick={() => {
-                            // The form submission is now handled by the submit button inside the form
-                            console.log('Create User button clicked');
-                        }}
-                    />
+                    {hasPermission('Button_CreateUser', 'read') && (
+                        <OrangeButton
+                            buttonTitle="+ Create New"
+                            panelTitle="Create New User"
+                            drawerContent={<CreateUserForm formikRef={createUserFormRef} />}
+                            rightBtnText="Create User"
+                            onRightClick={() => {
+                                if (createUserFormRef.current) {
+                                    createUserFormRef.current.submitForm();
+                                }
+                            }}
+                        />
+                    )}
                 </div>
             </div>
 
