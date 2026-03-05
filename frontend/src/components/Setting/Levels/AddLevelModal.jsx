@@ -8,41 +8,43 @@ import { useAddLevelMutation, useUpdateLevelMutation } from "../../../redux/api/
 
 const PRIMARY_COLOR = "#FDA92D";
 
-const AddLevelModal = ({ isOpen, onClose, onSuccess, departmentId, subdepartmentId, editData }) => {
+const AddLevelModal = ({ isOpen, onClose, onSuccess, subdepartmentId, editData }) => {
   const [addLevel] = useAddLevelMutation();
   const [updateLevel] = useUpdateLevelMutation();
 
   const isEditMode = !!editData;
 
   const validationSchema = Yup.object({
-    levelName: Yup.string().required("Level name is required"),
-    duration: Yup.string(),
-    status: Yup.string()
+    name: Yup.string().required("Level name is required"),
+    order: Yup.number().required("Order is required").positive("Must be positive"),
+    isActive: Yup.boolean()
   });
 
   const initialValues = {
-    levelName: editData?.levelName || "",
-    duration: editData?.duration || "",
-    status: editData?.status || "Active"
+    name: editData?.name || "",
+    order: editData?.order || "",
+    isActive: editData?.isActive !== undefined ? editData.isActive : true
   };
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
-    if (!departmentId || !subdepartmentId) {
-      toast.error("Department and Subdepartment are required");
+    if (!subdepartmentId) {
+      toast.error("Subdepartment is required");
       return;
     }
 
     try {
+      const payload = {
+        name: values.name,
+        order: Number(values.order),
+        subDepartmentId: subdepartmentId,
+        isActive: values.isActive
+      };
+
       if (isEditMode) {
-        await updateLevel({
-          departmentId,
-          subdepartmentId,
-          levelId: editData._id,
-          ...values
-        }).unwrap();
+        await updateLevel({ levelId: editData._id, ...payload }).unwrap();
         toast.success("Level updated successfully!");
       } else {
-        await addLevel({ departmentId, subdepartmentId, ...values }).unwrap();
+        await addLevel(payload).unwrap();
         toast.success("Level added successfully!");
       }
       resetForm();
@@ -84,29 +86,42 @@ const AddLevelModal = ({ isOpen, onClose, onSuccess, departmentId, subdepartment
           onSubmit={handleSubmit}
           enableReinitialize
         >
-          {({ isSubmitting }) => (
+          {({ isSubmitting, values, setFieldValue }) => (
             <Form className="space-y-4">
               <InputField 
                 label="Level Name" 
-                name="levelName" 
+                name="name" 
                 placeholder="Enter level name"
               />
 
               <InputField 
-                label="Duration" 
-                name="duration" 
-                placeholder="Enter duration (e.g., 3 months)"
+                label="Order" 
+                name="order" 
+                type="number"
+                placeholder="Enter order number"
               />
 
-              <InputField 
-                label="Status" 
-                name="status" 
-                type="select"
-                options={[
-                  { value: "Active", label: "Active" },
-                  { value: "Inactive", label: "Inactive" }
-                ]}
-              />
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-medium text-gray-700">Status:</label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    checked={values.isActive === true}
+                    onChange={() => setFieldValue('isActive', true)}
+                    className="w-4 h-4 text-[#FDA92D] focus:ring-[#FDA92D]"
+                  />
+                  <span className="text-sm text-gray-700">Active</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    checked={values.isActive === false}
+                    onChange={() => setFieldValue('isActive', false)}
+                    className="w-4 h-4 text-[#FDA92D] focus:ring-[#FDA92D]"
+                  />
+                  <span className="text-sm text-gray-700">Inactive</span>
+                </label>
+              </div>
 
               <div className="flex gap-3 mt-6">
                 <button

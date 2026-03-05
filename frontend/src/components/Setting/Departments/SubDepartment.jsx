@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import PageNavbar from '../../common-components/navbar/PageNavbar';
-import { useGetAllDepartmentsQuery, useDeleteSubdepartmentMutation } from '../../../redux/api/authApi';
+import { useGetAllSubdepartmentsQuery, useDeleteSubdepartmentMutation } from '../../../redux/api/authApi';
 import Loader from '../../common-components/loader/Loader';
 import { MdEdit, MdDelete } from 'react-icons/md';
 import { toast } from 'react-toastify';
@@ -10,7 +10,7 @@ import CommonTable from '../../common-components/table/CommonTable';
 import Pagination from '../../common-components/pagination/Pagination';
 
 const SubDepartment = () => {
-    const { data: departmentsData, isLoading, refetch } = useGetAllDepartmentsQuery();
+    const { data: subdepartmentsData, isLoading, refetch } = useGetAllSubdepartmentsQuery();
     const [deleteSubdepartment] = useDeleteSubdepartmentMutation();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSubdept, setEditingSubdept] = useState(null);
@@ -20,25 +20,12 @@ const SubDepartment = () => {
     const [selectedRows, setSelectedRows] = useState([]);
     const navigate = useNavigate();
 
-    const departments = departmentsData?.data || [];
-    
-    // Flatten all subdepartments with department info
-    const allSubdepartments = departments.flatMap(dept => 
-        (dept.subdepartments || []).map(subdept => ({
-            ...subdept,
-            departmentId: dept._id,
-            departmentName: dept.departmentName,
-            departmentCode: dept.departmentCode
-        }))
-    );
+    const subdepartments = subdepartmentsData?.data || [];
 
     const handleDelete = async (subdept) => {
         if (window.confirm("Are you sure you want to delete this subdepartment?")) {
             try {
-                await deleteSubdepartment({ 
-                    departmentId: subdept.departmentId, 
-                    subdepartmentId: subdept._id 
-                }).unwrap();
+                await deleteSubdepartment(subdept._id).unwrap();
                 toast.success("Subdepartment deleted successfully!");
                 refetch();
             } catch (error) {
@@ -48,7 +35,7 @@ const SubDepartment = () => {
     };
 
     const handleEdit = (subdept) => {
-        setSelectedDeptId(subdept.departmentId);
+        setSelectedDeptId(subdept.departmentId?._id || subdept.departmentId);
         setEditingSubdept(subdept);
         setIsModalOpen(true);
     };
@@ -78,31 +65,31 @@ const SubDepartment = () => {
                             searchTerm={searchTerm}
                             setSearchTerm={setSearchTerm}
                             filtersConfig={[]}
-                            filteredData={allSubdepartments}
+                            filteredData={subdepartments}
                             selectedRows={selectedRows}
-                            allData={allSubdepartments}
+                            allData={subdepartments}
                             sectionName="subdepartments"
                         />
                     </div>
                 </div>
                 <CommonTable
                     columns={[
-                        { key: 'subdepartmentName', label: 'Subdepartment Name' },
-                        { key: 'departmentName', label: 'Department' },
+                        { key: 'name', label: 'Subdepartment Name' },
+                        { key: 'departmentId.name', label: 'Department', render: (row) => row.departmentId?.name || 'N/A' },
                         { 
-                            key: 'status', 
+                            key: 'isActive', 
                             label: 'Status',
                             render: (row) => (
                                 <span className={`inline-block px-3 py-1 text-xs rounded-full ${
-                                    row.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                                    row.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
                                 }`}>
-                                    {row.status}
+                                    {row.isActive ? "Active" : "Inactive"}
                                 </span>
                             )
                         },
-                        { key: 'description', label: 'Description' },
+                        { key: 'allowedCourses', label: 'Courses', render: (row) => row.allowedCourses?.length || 0 },
                     ]}
-                    data={allSubdepartments}
+                    data={subdepartments}
                     editable={true}
                     pagination={true}
                     rowsPerPage={rowsPerPage}
@@ -124,7 +111,7 @@ const SubDepartment = () => {
                         </div>
                     )}
                     onRowClick={(row) => navigate('/subdepartment-details', { 
-                        state: { departmentId: row.departmentId, subdepartment: row, departmentName: row.departmentName } 
+                        state: { departmentId: row.departmentId?._id, subdepartment: row, departmentName: row.departmentId?.name } 
                     })}
                     onSelectionChange={setSelectedRows}
                 />

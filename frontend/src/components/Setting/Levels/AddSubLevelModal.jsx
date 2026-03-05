@@ -5,42 +5,38 @@ import InputField from "../../common-components/common-feild/InputField";
 import { useAddSubLevelMutation, useUpdateSubLevelMutation } from "../../../redux/api/authApi";
 import { toast } from "react-toastify";
 
-const AddSubLevelModal = ({ isOpen, onClose, onSuccess, departmentId, subdepartmentId, levelId, editData }) => {
+const AddSubLevelModal = ({ isOpen, onClose, onSuccess, levelId, editData }) => {
   const [addSubLevel] = useAddSubLevelMutation();
   const [updateSubLevel] = useUpdateSubLevelMutation();
 
   const isEditMode = !!editData;
 
   const validationSchema = Yup.object({
-    subLevelName: Yup.string().required("SubLevel name is required"),
-    description: Yup.string(),
-    status: Yup.string()
+    name: Yup.string().required("SubLevel name is required"),
+    order: Yup.number().required("Order is required").positive("Must be positive"),
+    isActive: Yup.boolean()
   });
 
   const initialValues = {
-    subLevelName: editData?.subLevelName || "",
-    description: editData?.description || "",
-    status: editData?.status || "Active"
+    name: editData?.name || "",
+    order: editData?.order || "",
+    isActive: editData?.isActive !== undefined ? editData.isActive : true
   };
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
+      const payload = {
+        name: values.name,
+        order: Number(values.order),
+        levelId,
+        isActive: values.isActive
+      };
+
       if (editData) {
-        await updateSubLevel({
-          departmentId,
-          subdepartmentId,
-          levelId,
-          subLevelId: editData._id,
-          ...values
-        }).unwrap();
+        await updateSubLevel({ subLevelId: editData._id, ...payload }).unwrap();
         toast.success("SubLevel updated successfully!");
       } else {
-        await addSubLevel({
-          departmentId,
-          subdepartmentId,
-          levelId,
-          ...values
-        }).unwrap();
+        await addSubLevel(payload).unwrap();
         toast.success("SubLevel added successfully!");
       }
       resetForm();
@@ -71,30 +67,42 @@ const AddSubLevelModal = ({ isOpen, onClose, onSuccess, departmentId, subdepartm
           onSubmit={handleSubmit}
           enableReinitialize
         >
-          {({ isSubmitting }) => (
+          {({ isSubmitting, values, setFieldValue }) => (
             <Form className="space-y-4">
               <InputField 
                 label="SubLevel Name" 
-                name="subLevelName" 
+                name="name" 
                 placeholder="Enter sublevel name"
               />
 
               <InputField 
-                label="Description" 
-                name="description" 
-                type="textarea"
-                placeholder="Enter description"
+                label="Order" 
+                name="order" 
+                type="number"
+                placeholder="Enter order number"
               />
 
-              <InputField 
-                label="Status" 
-                name="status" 
-                type="select"
-                options={[
-                  { value: "Active", label: "Active" },
-                  { value: "Inactive", label: "Inactive" }
-                ]}
-              />
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-medium text-gray-700">Status:</label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    checked={values.isActive === true}
+                    onChange={() => setFieldValue('isActive', true)}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm text-gray-700">Active</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    checked={values.isActive === false}
+                    onChange={() => setFieldValue('isActive', false)}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm text-gray-700">Inactive</span>
+                </label>
+              </div>
 
               <div className="flex gap-3 mt-6">
                 <button

@@ -1,39 +1,14 @@
 /* eslint-disable react/prop-types */
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Search, Bell } from "lucide-react";
+import { ArrowLeft, Bell } from "lucide-react";
 
-<<<<<<< HEAD
-const Header = ({ sidebarOpen = true, heading, buttons, searchBox }) => {
-    return (
-        <header 
-            className={`fixed top-0 z-40 flex items-center justify-between px-2 sm:px-4 py-1 sm:py-2 bg-[var(--backgroundColor)] border-b border-gray-300 shadow h-14 sm:h-16 md:h-20 transition-all duration-300`}
-            style={{ left: sidebarOpen ? '256px' : '48px', right: 0 }}
-        >
-            <div className="flex items-center gap-2 sm:gap-4">
-                <img src={logo} alt="SSISM Logo" className="h-12 sm:h-16 md:h-20 lg:h-24" />
-                {heading && (
-                    <h1 className="text-lg sm:text-xl md:text-2xl font-semibold">
-                        {heading}
-                    </h1>
-                )}
-            </div>
-            <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
-                {searchBox}
-                {buttons}
-            </div>
-        </header>
-    );
-};
-
-export default Header;
-=======
 const Header = ({
   sidebarOpen = true,
   title,
-  badge,              // ID badge like "ID: 2024-SSC-042"
-  showBack = false,   // back button toggle
-  onBack,             // optional custom back handler
-  children,           // custom right-side content
+  badge,
+  showBack = false,
+  onBack,
+  children,
 }) => {
   const navigate = useNavigate();
 
@@ -51,11 +26,7 @@ const Header = ({
       }}
     >
       <div className="flex items-center justify-between px-4 sm:px-6 h-16">
-
-        {/* ================= LEFT SIDE ================= */}
         <div className="flex items-center gap-4">
-
-          {/* Back Button */}
           {showBack && (
             <button
               onClick={handleBack}
@@ -65,7 +36,6 @@ const Header = ({
             </button>
           )}
 
-          {/* Title + Badge */}
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-lg sm:text-xl font-semibold text-gray-800">
               {title}
@@ -79,20 +49,13 @@ const Header = ({
           </div>
         </div>
 
-        {/* ================= RIGHT SIDE ================= */}
         <div className="flex items-center gap-3">
-
-         
-
-          {/* Bell Icon */}
           <button className="relative p-2 rounded-lg hover:bg-gray-100 transition">
             <Bell size={20} className="text-gray-600" />
             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </button>
 
-          {/* Custom Children (Buttons etc.) */}
           {children}
-
         </div>
       </div>
     </header>
@@ -100,43 +63,3 @@ const Header = ({
 };
 
 export default Header;
-
-
-// /* eslint-disable react/prop-types */
-// import logo from '../../../assets/images/doulLogo.png';
-// import OrangeButton from './OrangeButton';
-
-// const Header = ({ sidebarOpen = true, heading, buttons, searchBox }) => {
-
-
-//     return (
-//         <header
-//             className={`fixed top-0 z-40 flex items-center justify-between px-2 sm:px-4 py-1 sm:py-2 bg-white h-14 sm:h-16 md:h-20 transition-all duration-300`}
-//             style={{ left: sidebarOpen ? '256px' : '48px', right: 0 }}
-//         >
-//             <div className="flex items-center gap-2 sm:gap-4">
-//                 <img src={logo} alt="SSISM Logo" className="h-12 sm:h-16 md:h-20 lg:h-24" />
-//                 {heading && (
-//                     <h1 className="text-lg sm:text-xl md:text-2xl font-semibold">
-//                         {heading}
-//                     </h1>
-//                 )}
-//             </div>
-//             <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
-//                 {searchBox}
-//                 {buttons}
-//                 <OrangeButton
-//                     buttonTitle="Add user"
-//                     panelTitle="Panel"
-//                     drawerContent={<div>Your content here</div>}
-//                 />
-
-//             </div>
-//         </header>
-//     );
-// };
-
-// export default Header;
-
-
->>>>>>> 83363b7e24d8d7af61fc3c63decb9ca77d3f85da

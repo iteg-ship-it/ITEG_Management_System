@@ -1,16 +1,21 @@
 import { useState } from "react";
 import { MdAccountTree, MdLayers, MdAdd, MdEdit, MdDelete, MdBusiness, MdExpandMore, MdExpandLess } from "react-icons/md";
 import PageNavbar from "../../common-components/navbar/PageNavbar";
-import { useLocation } from "react-router-dom";
-import { useDeleteLevelMutation, useDeleteSubLevelMutation, useGetAllDepartmentsQuery } from "../../../redux/api/authApi";
+import { useLocation, useParams } from "react-router-dom";
+import { useDeleteLevelMutation, useDeleteSubLevelMutation, useGetSubdepartmentByIdQuery, useGetLevelsBySubdepartmentQuery, useGetSubLevelsByLevelQuery } from "../../../redux/api/authApi";
 import { toast } from "react-toastify";
 import AddLevelModal from "../Levels/AddLevelModal";
 import AddSubLevelModal from "../Levels/AddSubLevelModal";
 
 const SubdepartmentDetails = () => {
   const location = useLocation();
-  const { departmentId, subdepartment: subdepartmentFromState, departmentName } = location.state || {};
-  const { refetch, data: departmentsData } = useGetAllDepartmentsQuery();
+  const subdepartmentId = location.state?.subdepartment?._id;
+  const { data: subdepartmentData } = useGetSubdepartmentByIdQuery(subdepartmentId, {
+    skip: !subdepartmentId
+  });
+  const { data: levelsData, refetch } = useGetLevelsBySubdepartmentQuery(subdepartmentId, {
+    skip: !subdepartmentId
+  });
   const [deleteLevel] = useDeleteLevelMutation();
   const [deleteSubLevel] = useDeleteSubLevelMutation();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -20,18 +25,15 @@ const SubdepartmentDetails = () => {
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [expandedLevels, setExpandedLevels] = useState({});
 
-  // Get fresh subdepartment data from query
-  const department = departmentsData?.data?.find(d => d._id === departmentId);
-  const subdepartment = department?.subdepartments?.find(s => s._id === subdepartmentFromState?._id) || subdepartmentFromState;
-  const levels = subdepartment?.levels || [];
-  
-  // Get department name if not passed in state
-  const deptName = departmentName || departmentsData?.data?.find(d => d._id === departmentId)?.departmentName || "Unknown Department";
+  const subdepartment = subdepartmentData?.data || location.state?.subdepartment;
+  const departmentId = location.state?.departmentId || subdepartment?.departmentId?._id;
+  const departmentName = location.state?.departmentName || subdepartment?.departmentId?.name;
+  const levels = levelsData?.data || [];
 
   const handleDelete = async (levelId) => {
     if (window.confirm("Are you sure you want to delete this level?")) {
       try {
-        await deleteLevel({ departmentId, subdepartmentId: subdepartment._id, levelId }).unwrap();
+        await deleteLevel(levelId).unwrap();
         toast.success("Level deleted successfully!");
         refetch();
       } catch (error) {
@@ -56,10 +58,10 @@ const SubdepartmentDetails = () => {
     setIsSubLevelModalOpen(true);
   };
 
-  const handleDeleteSubLevel = async (levelId, subLevelId) => {
+  const handleDeleteSubLevel = async (subLevelId) => {
     if (window.confirm("Are you sure you want to delete this sublevel?")) {
       try {
-        await deleteSubLevel({ departmentId, subdepartmentId: subdepartment._id, levelId, subLevelId }).unwrap();
+        await deleteSubLevel(subLevelId).unwrap();
         toast.success("SubLevel deleted successfully!");
         refetch();
       } catch (error) {
@@ -91,17 +93,17 @@ const SubdepartmentDetails = () => {
                 <MdAccountTree size={28} className="text-white" />
               </div>
               <div className="flex-1">
-                <h1 className="text-2xl font-bold text-gray-900">{subdepartment.subdepartmentName}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{subdepartment.name}</h1>
                 <div className="flex items-center gap-2 mt-1">
                   <span className={`inline-block px-3 py-1 text-xs rounded-full ${
-                    subdepartment.status === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                    subdepartment.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
                   }`}>
-                    {subdepartment.status}
+                    {subdepartment.isActive ? "Active" : "Inactive"}
                   </span>
                   <span className="text-xs text-gray-500">•</span>
                   <div className="flex items-center gap-1 text-xs text-gray-600">
                     <MdBusiness size={14} />
-                    <span>{deptName}</span>
+                    <span>{departmentName || "Unknown Department"}</span>
                   </div>
                 </div>
               </div>
@@ -235,7 +237,7 @@ const SubdepartmentDetails = () => {
                                     <MdEdit size={16} />
                                   </button>
                                   <button
-                                    onClick={() => handleDeleteSubLevel(level._id, sublevel._id)}
+                                    onClick={() => handleDeleteSubLevel(sublevel._id)}
                                     className="p-1.5 text-red-600 hover:bg-red-50 rounded"
                                   >
                                     <MdDelete size={16} />
@@ -261,7 +263,6 @@ const SubdepartmentDetails = () => {
         isOpen={isModalOpen}
         onClose={() => { setIsModalOpen(false); setEditingLevel(null); }}
         onSuccess={refetch}
-        departmentId={departmentId}
         subdepartmentId={subdepartment._id}
         editData={editingLevel}
       />
@@ -270,8 +271,6 @@ const SubdepartmentDetails = () => {
         isOpen={isSubLevelModalOpen}
         onClose={() => { setIsSubLevelModalOpen(false); setEditingSubLevel(null); setSelectedLevel(null); }}
         onSuccess={refetch}
-        departmentId={departmentId}
-        subdepartmentId={subdepartment._id}
         levelId={selectedLevel?._id}
         editData={editingSubLevel}
       />

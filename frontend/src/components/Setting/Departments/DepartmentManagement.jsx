@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MdBusiness, MdAdd, MdEdit, MdDelete } from "react-icons/md";
+import { MdBusiness, MdAdd } from "react-icons/md";
 import PageNavbar from "../../common-components/navbar/PageNavbar";
 import { useGetAllDepartmentsQuery, useDeleteDepartmentMutation, useAddDepartmentMutation, useUpdateDepartmentMutation } from "../../../redux/api/authApi";
 import Loader from "../../common-components/loader/Loader";
@@ -43,11 +43,22 @@ const DepartmentManagement = () => {
 
   const handleDepartmentSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
+      const payload = {
+        name: values.name,
+        code: values.code,
+        universityName: values.universityName,
+        description: values.description,
+        headOfDepartment: values.headOfDepartment,
+        allowedCourses: values.allowedCourses.filter(c => c.courseName && c.durationInYears),
+        reportConfig: values.reportConfig,
+        isActive: values.isActive
+      };
+
       if (editingDepartment) {
-        const result = await updateDepartment({ id: editingDepartment._id, ...values }).unwrap();
+        const result = await updateDepartment({ id: editingDepartment._id, ...payload }).unwrap();
         toast.success(result.message || "Department updated successfully!");
       } else {
-        const result = await addDepartment(values).unwrap();
+        const result = await addDepartment(payload).unwrap();
         toast.success(result.message || "Department added successfully!");
       }
       resetForm();
@@ -302,7 +313,17 @@ const DepartmentManagement = () => {
                     validationSchema={validationSchema}
                     onSubmit={async (values, { setSubmitting, resetForm }) => {
                       try {
-                        const result = await updateDepartment({ id: dept._id, ...values }).unwrap();
+                        const payload = {
+                          name: values.name,
+                          code: values.code,
+                          universityName: values.universityName,
+                          description: values.description,
+                          headOfDepartment: values.headOfDepartment,
+                          allowedCourses: values.allowedCourses.filter(c => c.courseName && c.durationInYears),
+                          reportConfig: values.reportConfig,
+                          isActive: values.isActive
+                        };
+                        const result = await updateDepartment({ id: dept._id, ...payload }).unwrap();
                         toast.success(result.message || "Department updated successfully!");
                         resetForm();
                         refetch();
