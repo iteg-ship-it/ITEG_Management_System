@@ -43,11 +43,22 @@ const DepartmentManagement = () => {
 
   const handleDepartmentSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
+      const payload = {
+        name: values.name,
+        code: values.code,
+        description: values.description,
+        universityName: values.universityName,
+        headOfDepartment: values.headOfDepartment,
+        allowedCourses: values.allowedCourses,
+        reportConfig: values.reportConfig,
+        isActive: values.isActive
+      };
+
       if (editingDepartment) {
-        const result = await updateDepartment({ id: editingDepartment._id, ...values }).unwrap();
+        const result = await updateDepartment({ id: editingDepartment._id, ...payload }).unwrap();
         toast.success(result.message || "Department updated successfully!");
       } else {
-        const result = await addDepartment(values).unwrap();
+        const result = await addDepartment(payload).unwrap();
         toast.success(result.message || "Department added successfully!");
       }
       resetForm();
@@ -135,7 +146,7 @@ const DepartmentManagement = () => {
                       <InputField
                         label="Department Code"
                         name="code"
-                        placeholder="Enter department code"
+                        placeholder="e.g., ITEG, MEG, BEG (unique code)"
                       />
 
                       <InputField
@@ -302,7 +313,17 @@ const DepartmentManagement = () => {
                     validationSchema={validationSchema}
                     onSubmit={async (values, { setSubmitting, resetForm }) => {
                       try {
-                        const result = await updateDepartment({ id: dept._id, ...values }).unwrap();
+                        const payload = {
+                          name: values.name,
+                          code: values.code,
+                          description: values.description,
+                          universityName: values.universityName,
+                          headOfDepartment: values.headOfDepartment,
+                          allowedCourses: values.allowedCourses,
+                          reportConfig: values.reportConfig,
+                          isActive: values.isActive
+                        };
+                        const result = await updateDepartment({ id: dept._id, ...payload }).unwrap();
                         toast.success(result.message || "Department updated successfully!");
                         resetForm();
                         refetch();
@@ -332,6 +353,7 @@ const DepartmentManagement = () => {
                                 label="Department Code"
                                 name="code"
                                 placeholder="Enter department code"
+                                disabled={true}
                               />
 
                               <InputField
