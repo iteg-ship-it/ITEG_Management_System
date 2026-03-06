@@ -928,6 +928,16 @@ export const authApi = createApi({
       providesTags: ['Department'],
     }),
 
+    // Get All Levels
+    getAllLevels: builder.query({
+      query: () => ({
+        url: '/levels',
+        method: "GET",
+      }),
+      providesTags: ['Department'],
+      keepUnusedDataFor: 300,
+    }),
+
   }),
 });
 
@@ -1002,5 +1012,6 @@ export const {
   useAddSubLevelMutation,
   useUpdateSubLevelMutation,
   useDeleteSubLevelMutation,
-  useGetSubLevelsByLevelQuery
+  useGetSubLevelsByLevelQuery,
+  useGetAllLevelsQuery
 } = authApi;
