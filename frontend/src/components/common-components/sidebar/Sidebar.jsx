@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { IoMenu } from "react-icons/io5";
+import { IoMenu, IoSettingsSharp } from "react-icons/io5";
 import { FaClipboardList } from "react-icons/fa6";
 import { MdWork, MdDashboard } from "react-icons/md";
 import { RiTv2Fill } from "react-icons/ri";
@@ -157,7 +157,6 @@ const Sidebar = ({ children }) => {
 
   return (
     <>
-      <Header sidebarOpen={isOpen} />
 
       <div className="flex">
         <aside
