@@ -1,44 +1,71 @@
-import { useState, useEffect } from "react";
 import { IoClose } from "react-icons/io5";
 import { MdBusiness } from "react-icons/md";
 import { toast } from "react-toastify";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
+import PropTypes from "prop-types";
 import InputField from "../../common-components/common-feild/InputField";
 import { useAddDepartmentMutation, useUpdateDepartmentMutation } from "../../../redux/api/authApi";
 
 const PRIMARY_COLOR = "#FDA92D";
 
 const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
-  const [addDepartment, { isLoading: isAdding }] = useAddDepartmentMutation();
-  const [updateDepartment, { isLoading: isUpdating }] = useUpdateDepartmentMutation();
+  const [addDepartment] = useAddDepartmentMutation();
+  const [updateDepartment] = useUpdateDepartmentMutation();
 
   const isEditMode = !!editData;
-  const isLoading = isAdding || isUpdating;
 
   const validationSchema = Yup.object({
-    departmentName: Yup.string().required("Department name is required"),
-    departmentCode: Yup.string().required("Department code is required"),
+    name: Yup.string().required("Department name is required"),
+    code: Yup.string().required("Department code is required"),
+    universityName: Yup.string().required("University name is required"),
     headOfDepartment: Yup.string(),
     description: Yup.string(),
-    status: Yup.boolean()
+    templateType: Yup.string().required("Template type is required"),
+    isActive: Yup.boolean()
   });
 
   const initialValues = {
-    departmentName: editData?.departmentName || "",
-    description: editData?.description || "",
+    name: editData?.name || "",
+    code: editData?.code || "",
+    universityName: editData?.universityName || "",
     headOfDepartment: editData?.headOfDepartment || "",
-    departmentCode: editData?.departmentCode || "",
-    status: editData?.status !== undefined ? editData.status : true
+    description: editData?.description || "",
+    templateType: editData?.reportConfig?.templateType || "ITEG_STANDARD",
+    allowedCourses: editData?.allowedCourses || [],
+    isActive: editData?.isActive !== undefined ? editData.isActive : true
   };
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
+      const payload = {
+        name: values.name,
+        code: values.code,
+        universityName: values.universityName,
+        headOfDepartment: values.headOfDepartment,
+        description: values.description,
+        allowedCourses: values.allowedCourses,
+        reportConfig: {
+          templateType: values.templateType,
+          sections: {
+            showTechnicalSkills: true,
+            showSoftSkills: true,
+            showDiscipline: true,
+            showProjects: true,
+            showCareerReadiness: true,
+            showUniversityAcademicHistory: true,
+            showTaskCompletionPercentage: true,
+            showEvaluationBreakdown: true
+          }
+        },
+        isActive: values.isActive
+      };
+
       if (isEditMode) {
-        const result = await updateDepartment({ id: editData._id, ...values }).unwrap();
+        const result = await updateDepartment({ id: editData._id, ...payload }).unwrap();
         toast.success(result.message || "Department updated successfully!");
       } else {
-        const result = await addDepartment(values).unwrap();
+        const result = await addDepartment(payload).unwrap();
         toast.success(result.message || "Department added successfully!");
       }
       resetForm();
@@ -88,17 +115,23 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
           enableReinitialize
         >
           {({ isSubmitting, values, setFieldValue }) => (
-            <Form className="space-y-4">
+            <Form className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
               <InputField 
                 label="Department Name" 
-                name="departmentName" 
+                name="name" 
                 placeholder="Enter department name"
               />
 
               <InputField 
                 label="Department Code" 
-                name="departmentCode" 
+                name="code" 
                 placeholder="Enter department code (e.g., CS, IT)"
+              />
+
+              <InputField 
+                label="University Name" 
+                name="universityName" 
+                placeholder="Enter university name"
               />
 
               <InputField 
@@ -114,14 +147,29 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
                 placeholder="Enter department description"
               />
 
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Template Type</label>
+                <select
+                  name="templateType"
+                  value={values.templateType}
+                  onChange={(e) => setFieldValue('templateType', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FDA92D]"
+                >
+                  <option value="ITEG_STANDARD">ITEG Standard</option>
+                  <option value="MEG_WEIGHTED">MEG Weighted</option>
+                  <option value="BEG_CUTOFF">BEG Cutoff</option>
+                  <option value="BTECH_STAGE">BTech Stage</option>
+                </select>
+              </div>
+
               <div className="flex items-center gap-3">
                 <label className="text-sm font-medium text-gray-700">Status:</label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio"
-                    name="status"
-                    checked={values.status === true}
-                    onChange={() => setFieldValue('status', true)}
+                    name="isActive"
+                    checked={values.isActive === true}
+                    onChange={() => setFieldValue('isActive', true)}
                     className="w-4 h-4 text-[#FDA92D] focus:ring-[#FDA92D]"
                   />
                   <span className="text-sm text-gray-700">Active</span>
@@ -129,9 +177,9 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio"
-                    name="status"
-                    checked={values.status === false}
-                    onChange={() => setFieldValue('status', false)}
+                    name="isActive"
+                    checked={values.isActive === false}
+                    onChange={() => setFieldValue('isActive', false)}
                     className="w-4 h-4 text-[#FDA92D] focus:ring-[#FDA92D]"
                   />
                   <span className="text-sm text-gray-700">Inactive</span>
@@ -165,6 +213,13 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
       </div>
     </div>
   );
+};
+
+AddDepartmentModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSuccess: PropTypes.func,
+  editData: PropTypes.object
 };
 
 export default AddDepartmentModal;

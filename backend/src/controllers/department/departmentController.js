@@ -1,4 +1,4 @@
-const Department = require("../../models/department/department");
+const Department = require("../../models/Department");
 
 // Add Department
 exports.addDepartment = async (req, res) => {
@@ -45,6 +45,52 @@ exports.getAllDepartments = async (req, res) => {
   }
 };
 
+// Update Department
+exports.updateDepartment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { departmentName, departmentCode, headOfDepartment, description, status } = req.body;
+
+    const department = await Department.findByIdAndUpdate(
+      id,
+      { departmentName, departmentCode, headOfDepartment, description, status },
+      { new: true, runValidators: true }
+    );
+
+    if (!department) {
+      return res.status(404).json({ message: "Department not found" });
+    }
+
+    res.status(200).json({
+      message: "Department updated successfully",
+      data: department
+    });
+  } catch (error) {
+    console.error("Error updating department:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Delete Department
+exports.deleteDepartment = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const department = await Department.findByIdAndDelete(id);
+
+    if (!department) {
+      return res.status(404).json({ message: "Department not found" });
+    }
+
+    res.status(200).json({
+      message: "Department deleted successfully"
+    });
+  } catch (error) {
+    console.error("Error deleting department:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 // Add Subdepartment
 exports.addSubdepartment = async (req, res) => {
   try {
@@ -60,13 +106,12 @@ exports.addSubdepartment = async (req, res) => {
       return res.status(404).json({ message: "Department not found" });
     }
 
-    const subdepartment = {
+    department.subdepartments.push({
       subdepartmentName,
       description,
       status: status || "Active"
-    };
+    });
 
-    department.subdepartments.push(subdepartment);
     await department.save();
 
     res.status(201).json({
@@ -134,6 +179,25 @@ exports.deleteSubdepartment = async (req, res) => {
   }
 };
 
+// Get Subdepartments by Department
+exports.getSubdepartmentsByDepartment = async (req, res) => {
+  try {
+    const { departmentId } = req.params;
+
+    const department = await Department.findById(departmentId);
+    if (!department) {
+      return res.status(404).json({ message: "Department not found" });
+    }
+
+    res.status(200).json({
+      data: department.subdepartments
+    });
+  } catch (error) {
+    console.error("Error fetching subdepartments:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 // Add Level
 exports.addLevel = async (req, res) => {
   try {
@@ -154,12 +218,13 @@ exports.addLevel = async (req, res) => {
       return res.status(404).json({ message: "Subdepartment not found" });
     }
 
-    subdepartment.levels.push({ 
-      levelName, 
+    subdepartment.levels.push({
+      levelName,
       duration: duration || "",
       status: status || "Active",
       subLevels: []
     });
+
     await department.save();
 
     res.status(201).json({
@@ -237,51 +302,6 @@ exports.deleteLevel = async (req, res) => {
   }
 };
 
-// Update Department
-exports.updateDepartment = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { departmentName, departmentCode, headOfDepartment, description, status } = req.body;
-
-    const department = await Department.findByIdAndUpdate(
-      id,
-      { departmentName, departmentCode, headOfDepartment, description, status },
-      { new: true, runValidators: true }
-    );
-
-    if (!department) {
-      return res.status(404).json({ message: "Department not found" });
-    }
-
-    res.status(200).json({
-      message: "Department updated successfully",
-      data: department
-    });
-  } catch (error) {
-    console.error("Error updating department:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-};
-
-// Get Subdepartments by Department
-exports.getSubdepartmentsByDepartment = async (req, res) => {
-  try {
-    const { departmentId } = req.params;
-
-    const department = await Department.findById(departmentId);
-    if (!department) {
-      return res.status(404).json({ message: "Department not found" });
-    }
-
-    res.status(200).json({
-      data: department.subdepartments
-    });
-  } catch (error) {
-    console.error("Error fetching subdepartments:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-};
-
 // Get Levels by Subdepartment
 exports.getLevelsBySubdepartment = async (req, res) => {
   try {
@@ -331,11 +351,12 @@ exports.addSubLevel = async (req, res) => {
       return res.status(404).json({ message: "Level not found" });
     }
 
-    level.subLevels.push({ 
-      subLevelName, 
-      description: description || "",
+    level.subLevels.push({
+      subLevelName,
+      description,
       status: status || "Active"
     });
+
     await department.save();
 
     res.status(201).json({
@@ -448,27 +469,6 @@ exports.getSubLevelsByLevel = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching sublevels:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-};
-
-// Delete Department
-exports.deleteDepartment = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const department = await Department.findByIdAndDelete(id);
-
-    if (!department) {
-      return res.status(404).json({ message: "Department not found" });
-    }
-
-    res.status(200).json({
-      message: "Department deleted successfully",
-      data: department
-    });
-  } catch (error) {
-    console.error("Error deleting department:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
