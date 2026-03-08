@@ -703,6 +703,15 @@ export const authApi = createApi({
       ],
     }),
 
+    // Get current user
+    getCurrentUser: builder.query({
+      query: () => ({
+        url: '/user/me',
+        method: "GET",
+      }),
+      providesTags: ['User'],
+    }),
+
     // Get report card by student ID
     getReportCard: builder.query({
       query: (studentId) => ({
@@ -1010,6 +1019,7 @@ export const {
   useDeleteUserMutation,
   useEditUserMutation,
   useGetUserByIdQuery,
+  useGetCurrentUserQuery,
   useGetReportCardQuery,
   useCreateReportCardMutation,
   useGetReportCardForEditQuery,

@@ -59,9 +59,23 @@ const allPermissions = {
     
     // Admin has a subset of permissions
     admin: [
-        { feature: 'Page_UserManagement', description: 'Access to the User Management page', access: ['read'] },
-        { feature: 'Tab_Users', description: 'Access to the Users tab', access: ['read'] },
-        { feature: 'Action_EditUser', description: 'Ability to edit a user', access: ['read', 'update'] },
+        // Dashboard Access
+        { feature: 'Page_Dashboard', description: 'Access to the main dashboard', access: ['read'] },
+        { feature: 'Page_AttendanceDetails', description: 'Access to attendance details', access: ['read'] },
+        
+        // Admission Process
+        { feature: 'Page_Admission', description: 'Access to the Admission section', access: ['read'] },
+        
+        // Student Management
+        { feature: 'Page_AdmittedStudents', description: 'Access to the Admitted Students section', access: ['read'] },
+        { feature: 'Page_LevelWiseManagement', description: 'Access to level-wise management', access: ['read'] },
+        
+        // Placement
+        { feature: 'Page_Placement', description: 'Access to the Placement section', access: ['read'] },
+        { feature: 'Page_CompanyDetails', description: 'Access to company details', access: ['read'] },
+        { feature: 'Page_PlacedStudents', description: 'Access to placed students list', access: ['read'] },
+        
+        // Academic Management
         { feature: 'Page_Syllabus', description: 'Access to the Syllabus page', access: ['read', 'update'] },
         { feature: 'Page_Level', description: 'Access to the Level management page', access: ['read'] },
         { feature: 'Page_SubLevel', description: 'Access to the Sub-Level management page', access: ['read'] }
@@ -69,6 +83,14 @@ const allPermissions = {
     
     // Faculty has limited permissions
     faculty: [
+        // Dashboard Access
+        { feature: 'Page_Dashboard', description: 'Access to the main dashboard', access: ['read'] },
+        { feature: 'Page_AttendanceDetails', description: 'Access to attendance details', access: ['read'] },
+        
+        // Student Management (Read Only)
+        { feature: 'Page_AdmittedStudents', description: 'Access to the Admitted Students section', access: ['read'] },
+        
+        // Academic Content
         { feature: 'Page_Syllabus', description: 'Access to the Syllabus page', access: ['read'] },
     ]
 };
