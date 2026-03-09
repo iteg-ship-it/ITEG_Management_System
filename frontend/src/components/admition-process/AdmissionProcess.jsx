@@ -358,7 +358,7 @@ const StudentList = () => {
     "Results",
   ];
 
-  const { columns, actionButton } = useMemo(() => {
+  const TabComponent = useMemo(() => {
     const tabComponents = {
       "Total Registration": TotalRegistration,
       "Online Assessment": OnlineAssessment,
@@ -366,21 +366,39 @@ const StudentList = () => {
       "Final Round": FinalRound,
       "Results": Results,
     };
+    return tabComponents[activeTab];
+  }, [activeTab]);
 
-    const TabComponent = tabComponents[activeTab];
-    if (!TabComponent) return { columns: [], actionButton: null };
+  const renderTabContent = () => {
 
-    return TabComponent({
+    if (!TabComponent) return null;
+
+    const commonProps = {
       data: filteredData,
       toTitleCase,
-      scheduleButton,
-      setAddInterviwModalOpen,
-      setId,
-      handleGetStatus,
-      handleGetMarks,
-      getLatestInterviewResult,
-    });
-  }, [activeTab, filteredData]);
+      searchTerm,
+      rowsPerPage,
+      onRowClick: (row) => {
+        localStorage.setItem("lastSection", "admission");
+        navigate(`/admission/edit/${row._id}`, { state: { student: row } });
+      },
+    };
+
+    switch (activeTab) {
+      case "Total Registration":
+        return <TabComponent {...commonProps} setSearchTerm={setSearchTerm} />;
+      case "Online Assessment":
+        return <TabComponent {...commonProps} scheduleButton={scheduleButton} setSearchTerm={setSearchTerm} />;
+      case "Technical Round":
+        return <TabComponent {...commonProps} scheduleButton={scheduleButton} handleGetStatus={handleGetStatus} handleGetMarks={handleGetMarks} setSearchTerm={setSearchTerm} />;
+      case "Final Round":
+        return <TabComponent {...commonProps} setAddInterviwModalOpen={setAddInterviwModalOpen} setId={setId} handleGetStatus={handleGetStatus} handleGetMarks={handleGetMarks} setSearchTerm={setSearchTerm} />;
+      case "Results":
+        return <TabComponent {...commonProps} getLatestInterviewResult={getLatestInterviewResult} setSearchTerm={setSearchTerm} />;
+      default:
+        return null;
+    }
+  };
 
   if (isLoading) {
     return (
@@ -396,37 +414,14 @@ const StudentList = () => {
 
   return (
     <>
-    <Header title="Admission Process" />
+      <Header title="Admission Process" />
       <div className=" bg-white  h-20">
         <div className="px-6">
           <TabsCommon tabs={tabs} activeTab={activeTab} onTabChange={handleTabClick} />
         </div>
       </div >
       <div className="px-5">
-        <div className="flex justify-between">
-          <PageNavbar
-            title="Admission Process"
-            subtitle="Manage student admission workflow and interviews"
-            showBackButton={false}
-          />
-          <div className="py-4 w-full max-w-2xl">
-            <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-          </div>
-        </div>
-
-        <CommonTable
-          data={filteredData}
-          columns={columns}
-          editable={!!actionButton}
-          pagination={true}
-          rowsPerPage={rowsPerPage}
-          searchTerm={searchTerm}
-          actionButton={actionButton}
-          onRowClick={(row) => {
-            localStorage.setItem("lastSection", "admission");
-            navigate(`/admission/edit/${row._id}`, { state: { student: row } });
-          }}
-        />
+            {renderTabContent()}
         {
           isModalOpen && selectedStudentId && (
             <CustomTimeDate

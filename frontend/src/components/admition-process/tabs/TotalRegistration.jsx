@@ -1,4 +1,8 @@
-const TotalRegistration = ({ data, toTitleCase }) => {
+import CommonTable from "../../common-components/table/CommonTable";
+import PageNavbar from "../../common-components/navbar/PageNavbar";
+import SearchBox from "./../../common-components/seach-export/SearchBox";
+
+const TotalRegistration = ({ data, toTitleCase, searchTerm, setSearchTerm, rowsPerPage, onRowClick }) => {
   const columns = [
     {
       key: "firstName",
@@ -33,7 +37,28 @@ const TotalRegistration = ({ data, toTitleCase }) => {
     },
   ];
 
-  return { columns, actionButton: null };
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <PageNavbar
+          title="Total Registration"
+          subtitle="View all registered students"
+          showBackButton={false}
+        />
+        <div className="w-80 ml-auto">
+          <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        </div>
+      </div>
+      <CommonTable
+        data={data}
+        columns={columns}
+        pagination={true}
+        rowsPerPage={rowsPerPage}
+        searchTerm={searchTerm}
+        onRowClick={onRowClick}
+      />
+    </div>
+  );
 };
 
 export default TotalRegistration;

@@ -1,7 +1,10 @@
 import { AiFillStop } from "react-icons/ai";
 import { FaCheckCircle } from "react-icons/fa";
+import CommonTable from "../../common-components/table/CommonTable";
+import PageNavbar from "../../common-components/navbar/PageNavbar";
+import SearchBox from "./../../common-components/seach-export/SearchBox";
 
-const Results = ({ data, toTitleCase, getLatestInterviewResult }) => {
+const Results = ({ data, toTitleCase, getLatestInterviewResult, searchTerm, setSearchTerm, rowsPerPage, onRowClick }) => {
   const columns = [
     {
       key: "firstName",
@@ -62,7 +65,30 @@ const Results = ({ data, toTitleCase, getLatestInterviewResult }) => {
     }
   };
 
-  return { columns, actionButton };
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <PageNavbar
+          title="Results"
+          subtitle="Final admission results - Selected and Rejected students"
+          showBackButton={false}
+        />
+        <div className="w-80 ml-auto">
+          <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        </div>
+      </div>
+      <CommonTable
+        data={data}
+        columns={columns}
+        editable={true}
+        pagination={true}
+        rowsPerPage={rowsPerPage}
+        searchTerm={searchTerm}
+        actionButton={actionButton}
+        onRowClick={onRowClick}
+      />
+    </div>
+  );
 };
 
 export default Results;

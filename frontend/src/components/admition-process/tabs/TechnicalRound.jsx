@@ -1,6 +1,9 @@
 import { buttonStyles } from "../../../styles/buttonStyles";
+import CommonTable from "../../common-components/table/CommonTable";
+import PageNavbar from "../../common-components/navbar/PageNavbar";
+import SearchBox from "./../../common-components/seach-export/SearchBox";
 
-const TechnicalRound = ({ data, toTitleCase, scheduleButton, handleGetStatus, handleGetMarks }) => {
+const TechnicalRound = ({ data, toTitleCase, scheduleButton, handleGetStatus, handleGetMarks, searchTerm, setSearchTerm, rowsPerPage, onRowClick }) => {
   const columns = [
     {
       key: "firstName",
@@ -50,7 +53,30 @@ const TechnicalRound = ({ data, toTitleCase, scheduleButton, handleGetStatus, ha
     </button>
   );
 
-  return { columns, actionButton };
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <PageNavbar
+          title="Technical Round"
+          subtitle="Students eligible for technical interview"
+          showBackButton={false}
+        />
+        <div className="w-80 ml-auto">
+          <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        </div>
+      </div>
+      <CommonTable
+        data={data}
+        columns={columns}
+        editable={true}
+        pagination={true}
+        rowsPerPage={rowsPerPage}
+        searchTerm={searchTerm}
+        actionButton={actionButton}
+        onRowClick={onRowClick}
+      />
+    </div>
+  );
 };
 
 export default TechnicalRound;
