@@ -1,20 +1,19 @@
-import { useState, useRef, useEffect } from "react";
-import { FiSettings, FiLogOut } from "react-icons/fi";
+import { useState, useRef } from "react";
+import { FiLogOut } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import profileImg from "../../../assets/images/profile-img.png";
 import { useLogoutMutation } from "../../../redux/api/authApi";
 import { useDispatch } from "react-redux";
 import { logout as logoutAction } from "../../../redux/auth/authSlice";
 import { toast } from "react-toastify";
-import SettingsModal from "./SettingModal";
+import OrangeButton from "../sidebar/OrangeButton";
+import SettingsDrawerContent from "./SettingsDrawerContent";
 
 const UserProfile = () => {
-  const [open, setOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const saveButtonRef = useRef(null);
 
-  const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -25,7 +24,6 @@ const UserProfile = () => {
 
   const handleLogoutClick = () => {
     setShowLogoutConfirm(true);
-    setOpen(false);
   };
 
   const handleLogout = async () => {
@@ -55,86 +53,50 @@ const UserProfile = () => {
     }
   };
 
-  /* ---------------- CLICK OUTSIDE ---------------- */
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   /* ---------------- UI ---------------- */
 
   return (
     <div className="border-t bg-white">
-
-      <div className="relative" ref={dropdownRef}>
-
-        {/* PROFILE CARD */}
-        <div
-          onClick={() => setOpen((prev) => !prev)}
-          className="flex items-center gap-4 bg-[#F4EFE9] px-4 py-3 cursor-pointer hover:shadow-sm transition"
-        >
-          {/* Avatar */}
-          <img
-            src={user?.avatar || profileImg}
-            alt="User avatar"
-            className="w-12 h-12 rounded-full object-cover border-2 border-orange-500"
-          />
-
-          {/* Name + Role */}
-          <div className="flex-1 min-w-0">
-            <p className="text-[16px] font-semibold text-gray-800 truncate">
-              {user?.name || "User Name"}
-            </p>
-            <p className="text-sm text-gray-500">
-              {user?.role || "System Admin"}
-            </p>
-          </div>
-
-          {/* Logout icon */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleLogoutClick();
-            }}
-            className="text-gray-400 hover:text-orange-500 transition text-xl"
-          >
-            <FiLogOut />
-          </button>
-        </div>
-
-        {/* DROPDOWN */}
-        {open && (
-          <div className="absolute bottom-full left-0 mb-2 w-56 bg-white rounded-xl shadow-lg border z-50">
-            <button
-              onClick={() => setIsSettingsOpen(true)}
-              className="flex items-center w-full px-4 py-3 hover:bg-gray-100 text-sm"
-            >
-              <FiSettings className="mr-2" /> Settings
-            </button>
-
-            <button
-              onClick={handleLogoutClick}
-              className="flex items-center w-full px-4 py-3 hover:bg-gray-100 text-sm"
-            >
-              <FiLogOut className="mr-2" /> Logout
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* SETTINGS MODAL */}
-      {isSettingsOpen && (
-        <SettingsModal
-          user={user}
-          onClose={() => setIsSettingsOpen(false)}
+      {/* PROFILE CARD */}
+      <div className="flex items-center gap-4 bg-[#F4EFE9] px-4 py-3">
+        {/* Avatar + Name with OrangeButton */}
+        <OrangeButton
+          buttonTitle={
+            <div className="flex items-center gap-4 flex-1">
+              <img
+                src={user?.avatar || profileImg}
+                alt="User avatar"
+                className="w-12 h-12 rounded-full object-cover border-2 border-orange-500"
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-[16px] font-semibold text-gray-800 truncate">
+                  {user?.name || "User Name"}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {user?.role || "System Admin"}
+                </p>
+              </div>
+            </div>
+          }
+          customButtonClass="flex items-center w-full hover:opacity-80 transition bg-transparent p-0"
+          panelTitle="Edit Profile"
+          panelSubtitle="Update your profile information and settings"
+          drawerContent={<SettingsDrawerContent user={user} saveButtonRef={saveButtonRef} />}
+          leftBtnText="Cancel"
+          rightBtnText="Save"
+          onRightClick={() => saveButtonRef.current?.click()}
         />
-      )}
+
+        {/* Logout icon */}
+        <button
+          onClick={handleLogoutClick}
+          className="text-gray-400 hover:text-orange-500 transition text-xl"
+        >
+          <FiLogOut />
+        </button>
+      </div>
 
       {/* LOGOUT CONFIRM MODAL */}
       {showLogoutConfirm && (

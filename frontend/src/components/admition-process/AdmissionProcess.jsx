@@ -415,11 +415,7 @@ const StudentList = () => {
   return (
     <>
       <Header title="Admission Process" />
-      <div className=" bg-white  h-20">
-        <div className="px-6">
-          <TabsCommon tabs={tabs} activeTab={activeTab} onTabChange={handleTabClick} />
-        </div>
-      </div >
+      <TabsCommon tabs={tabs} activeTab={activeTab} onTabChange={handleTabClick} />
       <div className="px-5">
             {renderTabContent()}
         {

@@ -24,7 +24,7 @@ const StudentDetailTable = () => {
   const [activeTab, setActiveTab] = useState(`Level ${selectedLevel}`);
   const [selectedRows, setSelectedRows] = useState([]);
 
-  const levelTabs = ["Total Students","Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C", "Level's Cleared"];
+  const levelTabs = ["Total Students", "Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C", "Level's Cleared"];
 
   // Update active tab when selectedLevel changes
   useEffect(() => {
@@ -140,43 +140,43 @@ const StudentDetailTable = () => {
       // Search term filter handled by CommonTable's global filter
       // Keep other filters here
 
-    // Track filter
-    const track = toTitleCase(student.track || "");
-    const matchesTrack = selectedTracks.length === 0 || selectedTracks.includes(track);
+      // Track filter
+      const track = toTitleCase(student.track || "");
+      const matchesTrack = selectedTracks.length === 0 || selectedTracks.includes(track);
 
-    // Course filter
-    const course = (student.course || "").toUpperCase();
-    const matchesCourse = selectedCourses.length === 0 || selectedCourses.includes(course);
+      // Course filter
+      const course = (student.course || "").toUpperCase();
+      const matchesCourse = selectedCourses.length === 0 || selectedCourses.includes(course);
 
-    // Attempts filter (only for non-cleared and non-total tabs)
-    let matchesAttempts = true;
-    if (activeTab !== "Level's Cleared" && activeTab !== "Total Students") {
-      const currentLevelAttempts = student.levelAttempts?.[selectedLevel] || [];
-      const attemptCount = currentLevelAttempts.length;
-      matchesAttempts = selectedAttempts.length === 0 || selectedAttempts.some(filter => {
-        if (filter === "4+") return attemptCount >= 4;
-        return attemptCount.toString() === filter;
-      });
-    }
+      // Attempts filter (only for non-cleared and non-total tabs)
+      let matchesAttempts = true;
+      if (activeTab !== "Level's Cleared" && activeTab !== "Total Students") {
+        const currentLevelAttempts = student.levelAttempts?.[selectedLevel] || [];
+        const attemptCount = currentLevelAttempts.length;
+        matchesAttempts = selectedAttempts.length === 0 || selectedAttempts.some(filter => {
+          if (filter === "4+") return attemptCount >= 4;
+          return attemptCount.toString() === filter;
+        });
+      }
 
-    // Level filter
-    let matchesLevel;
-    if (activeTab === "Total Students") {
-      // Show all students for Total Students tab
-      matchesLevel = true;
-    } else if (activeTab === "Level's Cleared") {
-      // Show students who have passed Level 2C
-      const level2CAttempts = student.levelAttempts?.["2C"] || [];
-      matchesLevel = level2CAttempts.some(lvl => lvl.result === "Pass");
-    } else if (selectedLevel === "2C") {
-      // For Level 2C tab, exclude students who have passed Level 2C
-      const level2CAttempts = student.levelAttempts?.["2C"] || [];
-      const hasPassedLevel2C = level2CAttempts.some(lvl => lvl.result === "Pass");
-      matchesLevel = student.currentLevel === selectedLevel && !hasPassedLevel2C;
-    } else {
-      // For other tabs, show students whose current level matches the selected tab
-      matchesLevel = student.currentLevel === selectedLevel;
-    }
+      // Level filter
+      let matchesLevel;
+      if (activeTab === "Total Students") {
+        // Show all students for Total Students tab
+        matchesLevel = true;
+      } else if (activeTab === "Level's Cleared") {
+        // Show students who have passed Level 2C
+        const level2CAttempts = student.levelAttempts?.["2C"] || [];
+        matchesLevel = level2CAttempts.some(lvl => lvl.result === "Pass");
+      } else if (selectedLevel === "2C") {
+        // For Level 2C tab, exclude students who have passed Level 2C
+        const level2CAttempts = student.levelAttempts?.["2C"] || [];
+        const hasPassedLevel2C = level2CAttempts.some(lvl => lvl.result === "Pass");
+        matchesLevel = student.currentLevel === selectedLevel && !hasPassedLevel2C;
+      } else {
+        // For other tabs, show students whose current level matches the selected tab
+        matchesLevel = student.currentLevel === selectedLevel;
+      }
 
       return matchesTrack && matchesCourse && matchesAttempts && matchesLevel;
     });
@@ -274,16 +274,14 @@ const StudentDetailTable = () => {
 
   return (
     <>
-    <Header title="Student Records"  />
-      <div className="bg-white h-20">
-        <div className="px-6">
-          <TabsCommon tabs={levelTabs} activeTab={activeTab} onTabChange={handleTabClick} />
-        </div>
-      </div>
+      <Header title="Student Records" />
+
+      <TabsCommon tabs={levelTabs} activeTab={activeTab} onTabChange={handleTabClick} />
+
       <div className="px-5">
         <div className="flex justify-between">
-          <PageNavbar 
-            title="Admitted Student WorkFlow" 
+          <PageNavbar
+            title="Admitted Student WorkFlow"
             subtitle="Track student progress through different levels"
             showBackButton={false}
           />

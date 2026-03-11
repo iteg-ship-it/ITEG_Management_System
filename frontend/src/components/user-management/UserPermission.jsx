@@ -1,4 +1,4 @@
-import PageNavbar from "../../common-components/navbar/PageNavbar";
+import PageNavbar from "./../common-components/navbar/PageNavbar";
 
 const UserPermission = () => {
   return (

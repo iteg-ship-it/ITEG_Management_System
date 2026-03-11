@@ -7,22 +7,22 @@ import {
     useDeleteUserMutation,
     useEditUserMutation,
     useSignupMutation,
-} from "../../../redux/api/authApi";
+} from "../../redux/api/authApi";
 
-import CommonTable from "../../common-components/table/CommonTable";
-import Loader from "../../common-components/loader/Loader";
-import InputField from "../../common-components/common-feild/InputField";
-import CustomDropdown from "../../common-components/common-feild/CustomDropdown";
-import RadioGroup from "../../common-components/common-feild/RadioGroup";
+import CommonTable from "./../common-components/table/CommonTable";
+import Loader from "./../common-components/loader/Loader";
+import InputField from "./../common-components/common-feild/InputField";
+import CustomDropdown from "./../common-components/common-feild/CustomDropdown";
+import RadioGroup from "./../common-components/common-feild/RadioGroup";
 import { Formik, Form } from "formik";
-import { buttonStyles } from "../../../styles/buttonStyles";
-import profile from "../../../assets/images/profile-img.png";
-import Header from "../../common-components/sidebar/Header";
-import TabsCommon from "../../common-components/table/TabsCommon";
-import PageNavbar from "../../common-components/navbar/PageNavbar";
-import SearchBox from "../../common-components/seach-export/SearchBox";
-import Export from "../../common-components/seach-export/ExportDropdown";
-import OrangeButton from "../../common-components/sidebar/OrangeButton";
+import { buttonStyles } from "./../../styles/buttonStyles";
+import profile from "./../../assets/images/profile-img.png";
+import Header from "./../common-components/sidebar/Header";
+import TabsCommon from "./../common-components/table/TabsCommon";
+import PageNavbar from "./../common-components/navbar/PageNavbar";
+import SearchBox from "./../common-components/seach-export/SearchBox";
+import Export from "./../common-components/seach-export/ExportDropdown";
+import OrangeButton from "./../common-components/sidebar/OrangeButton";
 
 const UsersManagement = () => {
     const navigate = useNavigate();
@@ -329,27 +329,22 @@ const UsersManagement = () => {
                 </div>
             </Header>
 
-            <div className="bg-white h-20">
-                <div className="px-6">
-                    <TabsCommon
-                        tabs={tabs}
-                        activeTab={activeTab}
-                        onTabChange={setActiveTab}
-                    />
+            <TabsCommon
+                tabs={tabs}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+            />
+            
+            <div className="p-5">
+         <div className="flex justify-between">
+                <PageNavbar
+                    title="Active Staff Directory"
+                    showBackButton={false}
+                />
+                <div className="py-4 w-full max-w-xl">
+                    <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
                 </div>
             </div>
-
-            <div className="p-5">
-                <div className="flex justify-between items-center mb-4">
-                    <PageNavbar
-                        title="Active Staff Directory"
-                        showBackButton={false}
-                    />
-                    <SearchBox
-                        searchTerm={searchTerm}
-                        setSearchTerm={setSearchTerm}
-                    />
-                </div>
 
                 <CommonTable
                     columns={columns}

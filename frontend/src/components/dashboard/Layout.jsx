@@ -22,14 +22,14 @@ import InterviewRoundsHistory from "../placement/InterviewRoundsHistory";
 import PageNotFound from "../common-components/error-pages/PageNotFound";
 import ProtectedRoute from '../common-components/protected-route/ProtectedRoute';
 import AttendanceDetails from "./AttendanceDetails";
-import UsersManagement from "../Setting/user-management/UsersManagement";
-import UserProfile from "../Setting/user-management/UserProfile";
+import UsersManagement from "./../user-management/UsersManagement";
+import UserProfile from "./../user-management/UserProfile";
 import DepartmentManagement from "../Setting/Departments/DepartmentManagement";
-import UserPermission from "../Setting/user-management/UserPermission";
+import UserPermission from "./../user-management/UserPermission";
 import SubDepartment from "../Setting/Departments/SubDepartment";
 import ShowLevels from "../Setting/Levels/ShowLevels";
-import DepartmentDetails from "../Setting/Departments/DepartmentDetails";
-import SubdepartmentDetails from "../Setting/Departments/SubdepartmentDetails";
+import DepartmentDetails from "./../Setting/Departments/DepartmentDetails";
+import SubdepartmentDetails from "./../Setting/Departments/SubdepartmentDetails";
 
 const Layout = () => {
     return (
@@ -38,7 +38,7 @@ const Layout = () => {
                 <Routes>
                     <Route path="/" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionDashboard /></ProtectedRoute>} />
                     <Route path="/attendance-details" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AttendanceDetails /></ProtectedRoute>} />
-                    <Route path="/user-management" element={<ProtectedRoute allowedRoles={["superadmin"]}><UsersManagement /></ProtectedRoute>} />
+                    <Route path="/user-management" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><UsersManagement /></ProtectedRoute>} />
                     <Route path="/user-profile/:id" element={<ProtectedRoute allowedRoles={["superadmin"]}><UserProfile /></ProtectedRoute>} />
                     <Route path="/admission-process" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionProcess /></ProtectedRoute>} />
                     <Route path="/admission/edit/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionEditPage /></ProtectedRoute>} />

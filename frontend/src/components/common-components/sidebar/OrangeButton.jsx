@@ -6,6 +6,7 @@ const OrangeButton = ({
   buttonTitle,
   drawerContent,
   panelTitle,
+  panelSubtitle = "Fill in the details to create a new division.",
   customButtonClass,
 
   // footer buttons
@@ -39,7 +40,7 @@ const OrangeButton = ({
 
       {/* DRAWER */}
       {isMounted && (
-        <div className="fixed inset-0 z-50 flex justify-end">
+        <div className="fixed inset-0 z-[60] flex justify-end">
 
           {/* BACKDROP */}
           <div
@@ -63,9 +64,11 @@ const OrangeButton = ({
                 <h2 className="text-xl font-semibold text-gray-900">
                   {panelTitle}
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  Fill in the details to create a new division.
-                </p>
+                {panelSubtitle && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    {panelSubtitle}
+                  </p>
+                )}
               </div>
 
               <button

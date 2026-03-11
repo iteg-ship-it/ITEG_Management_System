@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { IoMenu, IoSettingsSharp } from "react-icons/io5";
+import { IoSettingsSharp } from "react-icons/io5";
 import { FaClipboardList } from "react-icons/fa6";
 import { MdWork, MdDashboard } from "react-icons/md";
 import { RiTv2Fill } from "react-icons/ri";
@@ -30,9 +30,9 @@ const Sidebar = ({ children }) => {
     
     if (path === "/" || path === "/attendance-details") initialMenus.push(0);
     if (path === "/admission-process" || path.startsWith("/admission/")) initialMenus.push(1);
-    if (path === "/student-dashboard" || path === "/student-detail-table" || path === "/student-permission" || path.startsWith("/student-profile/")) initialMenus.push(2);
+    if (path === "/student-dashboard" || path === "/student-detail-table" || path === "/student-permission" || path.startsWith("/student-profile/") || path === "/department-management" || path.startsWith("/department-details/") || path === "/subdepartment-details" || path === "/task-management") initialMenus.push(2);
     if (path === "/readiness-status" || path === "/company-details" || path === "/placement-post" || path.startsWith("/interview-history/") || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/")) initialMenus.push(3);
-    if (path === "/department-management" || path === "/subdepartments" || path === "/levels" || path === "/user-management" || path === "/user-permission" || path.startsWith("/department-details/") || path === "/subdepartment-details") initialMenus.push(4);
+    if (path === "/user-management" || path === "/user-permission") initialMenus.push(4);
     
     return initialMenus.length > 0 ? initialMenus : [0];
   });
@@ -43,9 +43,9 @@ const Sidebar = ({ children }) => {
     
     if (path === "/" || path === "/attendance-details") newMenus.push(0);
     if (path === "/admission-process" || path.startsWith("/admission/")) newMenus.push(1);
-    if (path === "/student-dashboard" || path === "/student-detail-table" || path === "/student-permission" || path.startsWith("/student-profile/")) newMenus.push(2);
+    if (path === "/student-dashboard" || path === "/student-detail-table" || path === "/student-permission" || path.startsWith("/student-profile/") || path === "/department-management" || path.startsWith("/department-details/") || path === "/subdepartment-details" || path === "/task-management") newMenus.push(2);
     if (path === "/readiness-status" || path === "/company-details" || path === "/placement-post" || path.startsWith("/interview-history/") || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/")) newMenus.push(3);
-    if (path === "/department-management" || path === "/subdepartments" || path === "/levels" || path === "/user-management" || path === "/user-permission" || path.startsWith("/department-details/") || path === "/subdepartment-details") newMenus.push(4);
+    if (path === "/user-management" || path === "/user-permission") newMenus.push(4);
     
     if (newMenus.length > 0) {
       setOpenMenus(prev => {
@@ -59,7 +59,7 @@ const Sidebar = ({ children }) => {
 
   const toggleMenu = (index) => {
     setOpenMenus((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+      prev.includes(index) ? prev.filter((i) => i !== index) : [index]
     );
   };
 
@@ -85,6 +85,16 @@ const Sidebar = ({ children }) => {
         path.startsWith("/student-profile/")
       );
     }
+
+    if (subPath === "/department-management") {
+      return (
+        path === "/department-management" ||
+        path.startsWith("/department-details/") ||
+        path === "/subdepartment-details"
+      );
+    }
+
+    if (subPath === "/task-management") return path === "/task-management";
 
     if (subPath === "/student-permission") return path === "/student-permission";
 
@@ -122,13 +132,13 @@ const Sidebar = ({ children }) => {
       subMenu: [{ name: "Admission Workflow", path: "/admission-process" }],
     },
     {
-      name: "Admitted",
+      name: "Academics",
       icon: <FaClipboardList />,
       roles: ["superadmin", "admin", "faculty"],
       subMenu: [
         { name: "Student Progress", path: "/student-dashboard" },
-        // { name: "Level-wise Management", path: "/level-wise-management" },
-        { name: "Dummy Students", path: "/student-permission" },
+        { name: "Department", path: "/department-management" },
+        { name: "Task Management", path: "/task-management" },
       ],
     },
     {
@@ -142,36 +152,45 @@ const Sidebar = ({ children }) => {
       ],
     },
     {
-      name: "Settings",
+      name: "User Management",
       icon: <IoSettingsSharp />,
       roles: ["superadmin", "admin", "faculty"],
       subMenu: [
-        { name: "Department Management", path: "/department-management" },
-        { name: "Subdepartments", path: "/subdepartments" },
-        { name: "Levels", path: "/levels" },
-        { name: "User Management", path: "/user-management" },
-        { name: "User Permission", path: "/user-permission" },
+        { name: "Users", path: "/user-management" },
       ],
+    },
+  ];
+
+  const systemMenuItems = [
+    {
+      name: "Settings",
+      icon: <IoSettingsSharp />,
+      roles: ["superadmin", "admin", "faculty"],
+      path: "/settings",
+    },
+    {
+      name: "Support",
+      icon: <IoSettingsSharp />,
+      roles: ["superadmin", "admin", "faculty"],
+      path: "/support",
     },
   ];
 
   return (
     <>
-
       <div className="flex">
         <aside
-          className={`fixed top-0 left-0 z-30 h-screen transition-all duration-300 bg-white border-r border-gray-200 ${
+          className={`fixed top-0 left-0 z-20 h-screen transition-all duration-300 bg-white border-r border-gray-200 ${
             isOpen ? "w-64" : "w-16"
           }`}
         >
-          {/* Toggle Button - Mid Sidebar */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="absolute top-1/2 -right-3 transform -translate-y-1/2 w-8 h-8 bg-white text-gray-600 rounded-full shadow-md hover:shadow-lg border border-gray-200 transition-all duration-300 flex items-center justify-center z-40"
+            className="absolute top-1/2 -right-3 transform -translate-y-1/2 w-10 h-10 bg-white text-gray-600 rounded-full shadow-md hover:shadow-lg border border-gray-200 transition-all duration-300 flex items-center justify-center z-10"
           >
-            {isOpen ? <HiChevronLeft size={16} /> : <HiChevronRight size={16} />}
+            {isOpen ? <HiChevronLeft size={20} /> : <HiChevronRight size={20} />}
           </button>
-          {/* BRAND */}
+          
           <div className="flex items-center gap-3 px-4 py-5">
             {isOpen ? (
               <img src={logo} alt="Logo" className="h-20 w-auto" />
@@ -182,7 +201,7 @@ const Sidebar = ({ children }) => {
 
           {isOpen && (
             <nav className="px-2 py-3 overflow-y-auto h-[calc(100vh-180px)]">
-              {menuItems.slice(0, 4).map((item, idx) => {
+              {menuItems.map((item, idx) => {
                 if (!item.roles.includes(role)) return null;
 
                 const isActive = openMenus.includes(idx);
@@ -191,10 +210,10 @@ const Sidebar = ({ children }) => {
                   <div key={idx} className="mb-1">
                     <div
                       onClick={() => toggleMenu(idx)}
-                      className={`group flex items-center justify-between px-2 py-2.5 rounded-lg cursor-pointer transition border-l-4 ${
+                      className={`group flex items-center justify-between px-2 py-2.5 rounded-lg cursor-pointer transition ${
                         isActive
-                          ? "bg-orange-100 text-orange-400 font-semibold border-orange-500"
-                          : "text-gray-700 hover:bg-gray-100 border-transparent"
+                          ? "bg-orange-100 text-orange-400 font-semibold"
+                          : "text-gray-700 hover:bg-gray-100"
                       }`}
                     >
                       <div className="flex items-center gap-3 text-[15px]">
@@ -214,10 +233,10 @@ const Sidebar = ({ children }) => {
                             <Link
                               key={i}
                               to={sub.path}
-                              className={`block ml-6 rounded-lg px-2 py-2 text-sm transition border-l-4 ${
+                              className={`block ml-6 px-2 py-2 text-sm transition border-l-4 ${
                                 active
                                   ? "bg-orange-50 text-orange-400 font-medium border-orange-500"
-                                  : "text-gray-600 hover:bg-gray-100 border-transparent"
+                                  : "text-gray-600 hover:bg-gray-100 border-gray-300"
                               }`}
                             >
                               {sub.name}
@@ -231,51 +250,23 @@ const Sidebar = ({ children }) => {
               })}
 
               <p className="text-xs text-gray-400 px-3 mt-4 mb-2">SYSTEM</p>
-              {menuItems.slice(4).map((item, idx) => {
+              {systemMenuItems.map((item, idx) => {
                 if (!item.roles.includes(role)) return null;
-                const settingsIdx = 4;
-                const isActive = openMenus.includes(settingsIdx);
+                const isActive = location.pathname === item.path;
 
                 return (
-                  <div key={idx} className="mb-1">
-                    <div
-                      onClick={() => toggleMenu(settingsIdx)}
-                      className={`group flex items-center justify-between px-2 py-2.5 rounded-lg cursor-pointer transition border-l-4 ${
-                        isActive
-                          ? "bg-orange-100 text-orange-400 font-semibold border-orange-500"
-                          : "text-gray-700 hover:bg-gray-100 border-transparent"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 text-[15px]">
-                        {item.icon}
-                        {item.name}
-                      </div>
-                      <span className={`${isActive ? 'block' : 'hidden group-hover:block'}`}>
-                        {isActive ? <HiChevronUp /> : <HiChevronDown />}
-                      </span>
-                    </div>
-
-                    {isActive && (
-                      <div className="mt-1 space-y-1">
-                        {item.subMenu.map((sub, i) => {
-                          const active = isSubMenuActive(sub.path);
-                          return (
-                            <Link
-                              key={i}
-                              to={sub.path}
-                              className={`block ml-6 rounded-lg px-2 py-2 text-sm transition border-l-4 ${
-                                active
-                                  ? "bg-orange-50 text-orange-400 font-medium border-orange-500"
-                                  : "text-gray-600 hover:bg-gray-100 border-transparent"
-                              }`}
-                            >
-                              {sub.name}
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
+                  <Link
+                    key={idx}
+                    to={item.path}
+                    className={`flex items-center gap-3 px-2 py-2.5 rounded-lg transition mb-1 ${
+                      isActive
+                        ? "bg-orange-100 text-orange-400 font-semibold"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {item.icon}
+                    <span className="text-[15px]">{item.name}</span>
+                  </Link>
                 );
               })}
             </nav>

@@ -382,11 +382,7 @@ const PlacementReadyStudents = () => {
   return (
     <>
       <Header title="Placement Candidates" />
-      <div className=" bg-white  h-20">
-        <div className="px-6">
-          <TabsCommon tabs={tabs} activeTab={activeTab} onTabChange={handleTabClick} />
-        </div>
-      </div >
+      <TabsCommon tabs={tabs} activeTab={activeTab} onTabChange={handleTabClick} />
       <div className="min-h-screen p-5">
 
         <CommonTable
