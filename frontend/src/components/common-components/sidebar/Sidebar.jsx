@@ -136,7 +136,7 @@ const Sidebar = ({ children }) => {
       icon: <FaClipboardList />,
       roles: ["superadmin", "admin", "faculty"],
       subMenu: [
-        { name: "Student Progress", path: "/student-dashboard" },
+        { name: "Student Progress", path: "/student-detail-table" },
         { name: "Department", path: "/department-management" },
         { name: "Task Management", path: "/task-management" },
       ],

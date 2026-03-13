@@ -1,6 +1,5 @@
 import { buttonStyles } from "../../../styles/buttonStyles";
 import CommonTable from "../../common-components/table/CommonTable";
-import PageNavbar from "../../common-components/navbar/PageNavbar";
 import Avatar from "../../common-components/Avatar";
 
 const FinalRound = ({ data, toTitleCase, setAddInterviwModalOpen, setId, handleGetStatus, handleGetMarks, searchTerm, rowsPerPage, onRowClick }) => {
@@ -91,11 +90,7 @@ const FinalRound = ({ data, toTitleCase, setAddInterviwModalOpen, setId, handleG
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <PageNavbar
-          title="Final Round"
-          subtitle="Students qualified for final interview"
-          showBackButton={false}
-        />
+  
       </div>
       <CommonTable
         data={data}

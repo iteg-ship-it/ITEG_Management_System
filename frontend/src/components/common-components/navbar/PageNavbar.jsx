@@ -1,13 +1,18 @@
 /* eslint-disable react/prop-types */
 import { HiArrowNarrowLeft } from "react-icons/hi";
+import { useNavigate } from "react-router-dom";
+import { HiChevronRight } from "react-icons/hi";
 
 const PageNavbar = ({
   title,
   subtitle,
   onBack = () => window.history.back(),
   rightContent = null,
-  showBackButton = true
+  showBackButton = true,
+  breadcrumbs = []
 }) => {
+  const navigate = useNavigate();
+
   return (
     <div className="sticky top-0 z-10">
       <div className="px-1 py-4">
@@ -24,6 +29,27 @@ const PageNavbar = ({
             )}
             {showBackButton && <div className="h-8 w-px bg-gray-300"></div>}
             <div>
+              {breadcrumbs.length > 0 && (
+                <div className="flex items-center gap-2 mb-1">
+                  {breadcrumbs.map((crumb, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <button
+                        onClick={() => crumb.path && navigate(crumb.path)}
+                        className={`text-sm font-medium transition-colors ${
+                          crumb.path
+                            ? "text-orange-500 hover:text-orange-600 cursor-pointer"
+                            : "text-gray-500 cursor-default"
+                        }`}
+                      >
+                        {crumb.label}
+                      </button>
+                      {index < breadcrumbs.length - 1 && (
+                        <HiChevronRight className="text-gray-400 text-sm" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
               <h1 className="text-2xl font-bold text-black">{title}</h1>
               {subtitle && <p className="text-sm text-black">{subtitle}</p>}
             </div>

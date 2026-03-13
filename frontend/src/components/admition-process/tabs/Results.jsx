@@ -1,7 +1,6 @@
 import { AiFillStop } from "react-icons/ai";
 import { FaCheckCircle } from "react-icons/fa";
 import CommonTable from "../../common-components/table/CommonTable";
-import PageNavbar from "../../common-components/navbar/PageNavbar";
 import Avatar from "../../common-components/Avatar";
 
 const Results = ({ data, toTitleCase, getLatestInterviewResult, searchTerm, rowsPerPage, onRowClick }) => {
@@ -73,11 +72,7 @@ const Results = ({ data, toTitleCase, getLatestInterviewResult, searchTerm, rows
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <PageNavbar
-          title="Results"
-          subtitle="Final admission results - Selected and Rejected students"
-          showBackButton={false}
-        />
+
       </div>
       <CommonTable
         data={data}

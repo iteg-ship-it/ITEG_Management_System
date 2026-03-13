@@ -1,6 +1,5 @@
 import { buttonStyles } from "../../../styles/buttonStyles";
 import CommonTable from "../../common-components/table/CommonTable";
-import PageNavbar from "../../common-components/navbar/PageNavbar";
 import Avatar from "../../common-components/Avatar";
 
 const OnlineAssessment = ({ data, toTitleCase, scheduleButton, searchTerm, rowsPerPage, onRowClick }) => {
@@ -45,11 +44,7 @@ const OnlineAssessment = ({ data, toTitleCase, scheduleButton, searchTerm, rowsP
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <PageNavbar
-          title="Online Assessment"
-          subtitle="Students pending for technical interview"
-          showBackButton={false}
-        />
+      
       </div>
       <CommonTable
         data={data}

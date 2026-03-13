@@ -1,6 +1,5 @@
 import { buttonStyles } from "../../../styles/buttonStyles";
 import CommonTable from "../../common-components/table/CommonTable";
-import PageNavbar from "../../common-components/navbar/PageNavbar";
 import Avatar from "../../common-components/Avatar";
 
 const TechnicalRound = ({ data, toTitleCase, scheduleButton, handleGetStatus, handleGetMarks, searchTerm, rowsPerPage, onRowClick }) => {
@@ -61,11 +60,7 @@ const TechnicalRound = ({ data, toTitleCase, scheduleButton, handleGetStatus, ha
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <PageNavbar
-          title="Technical Round"
-          subtitle="Students eligible for technical interview"
-          showBackButton={false}
-        />
+
       </div>
       <CommonTable
         data={data}
