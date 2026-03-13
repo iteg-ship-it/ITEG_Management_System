@@ -1,14 +1,19 @@
 import { buttonStyles } from "../../../styles/buttonStyles";
 import CommonTable from "../../common-components/table/CommonTable";
 import PageNavbar from "../../common-components/navbar/PageNavbar";
-import SearchBox from "./../../common-components/seach-export/SearchBox";
+import Avatar from "../../common-components/Avatar";
 
-const TechnicalRound = ({ data, toTitleCase, scheduleButton, handleGetStatus, handleGetMarks, searchTerm, setSearchTerm, rowsPerPage, onRowClick }) => {
+const TechnicalRound = ({ data, toTitleCase, scheduleButton, handleGetStatus, handleGetMarks, searchTerm, rowsPerPage, onRowClick }) => {
   const columns = [
     {
       key: "firstName",
       label: "Full Name",
-      render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          <Avatar firstName={row.firstName} lastName={row.lastName} imageUrl={row.profileImage} />
+          <span>{toTitleCase(`${row.firstName} ${row.lastName}`)}</span>
+        </div>
+      ),
     },
     {
       key: "fatherName",
@@ -61,9 +66,6 @@ const TechnicalRound = ({ data, toTitleCase, scheduleButton, handleGetStatus, ha
           subtitle="Students eligible for technical interview"
           showBackButton={false}
         />
-        <div className="w-80 ml-auto">
-          <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-        </div>
       </div>
       <CommonTable
         data={data}

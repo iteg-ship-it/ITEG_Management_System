@@ -5,6 +5,7 @@ import Loader from '../common-components/loader/Loader';
 import PageNavbar from '../common-components/navbar/PageNavbar';
 import CommonTable from '../common-components/table/CommonTable';
 import Header from '../common-components/sidebar/Header';
+import Avatar from '../common-components/Avatar';
 
 const PlacedStudents = () => {
   const { companyId } = useParams();
@@ -45,7 +46,7 @@ const PlacedStudents = () => {
       label: "Student Name",
       render: (row) => (
         <div className="flex items-center gap-3">
-      
+          <Avatar firstName={row.firstName} lastName={row.lastName} imageUrl={row.profileImage} />
           <div className="flex flex-col">
             <span className="font-semibold text-gray-900">{`${row.firstName} ${row.lastName}`}</span>
             <span className="text-xs text-gray-500">{row.course} - {row.stream}</span>

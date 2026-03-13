@@ -6,10 +6,10 @@ import CommonTable from "../common-components/table/CommonTable";
 import ScheduleInterviewModal from "./ScheduleInterviewModal";
 import ConfirmPlacementModal from "./ConfirmPlacementModal";
 import CreatePostModal from "./CreatePostModal";
-import profile from "../../assets/images/profileImgDummy.jpeg";
 import Header from "../common-components/sidebar/Header";
 import TabsCommon from "../common-components/table/TabsCommon";
 import { buttonStyles } from "../../styles/buttonStyles";
+import Avatar from "../common-components/Avatar";
 
 const toTitleCase = (str) =>
   str
@@ -171,12 +171,8 @@ const PlacementReadyStudents = () => {
       key: "profile",
       label: "Full Name",
       render: (row) => (
-        <div className="flex items-center gap-2">
-          <img
-            src={row.image || profile}
-            alt="avatar"
-            className="w-9 h-9 rounded-full object-cover"
-          />
+        <div className="flex items-center gap-3">
+          <Avatar firstName={row.firstName} lastName={row.lastName} imageUrl={row.profileImage} />
           <div className="flex flex-col">
             <span className="font-medium text-gray-800">{`${row.firstName} ${row.lastName}`}</span>
             <span className="text-xs text-gray-500">{row.email}</span>
@@ -248,12 +244,8 @@ const PlacementReadyStudents = () => {
       key: "profile",
       label: "Full Name",
       render: (row) => (
-        <div className="flex items-center gap-2">
-          <img
-            src={row.image || profile}
-            alt="avatar"
-            className="w-9 h-9 rounded-full object-cover"
-          />
+        <div className="flex items-center gap-3">
+          <Avatar firstName={row.firstName} lastName={row.lastName} imageUrl={row.profileImage} />
           <div className="flex flex-col">
             <span className="font-medium text-gray-800">{`${row.firstName} ${row.lastName}`}</span>
             <span className="text-xs text-gray-500">{row.email}</span>
@@ -313,12 +305,8 @@ const PlacementReadyStudents = () => {
       key: "profile",
       label: "Full Name",
       render: (row) => (
-        <div className="flex items-center gap-2">
-          <img
-            src={row.image || profile}
-            alt="avatar"
-            className="w-9 h-9 rounded-full object-cover"
-          />
+        <div className="flex items-center gap-3">
+          <Avatar firstName={row.firstName} lastName={row.lastName} imageUrl={row.profileImage} />
           <div className="flex flex-col">
             <span className="font-medium text-gray-800">{`${row.firstName} ${row.lastName}`}</span>
             <span className="text-xs text-gray-500">{row.email}</span>

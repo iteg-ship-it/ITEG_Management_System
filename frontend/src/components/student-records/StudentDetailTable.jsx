@@ -10,6 +10,7 @@ import { buttonStyles } from "../../styles/buttonStyles";
 import TabsCommon from "../common-components/table/TabsCommon";
 import SearchBox from "./../common-components/seach-export/SearchBox";
 import Header from "../common-components/sidebar/Header";
+import Avatar from "../common-components/Avatar";
 
 const StudentDetailTable = () => {
   const { data = [], isLoading, refetch } = useAdmitedStudentsQuery();
@@ -199,7 +200,12 @@ const StudentDetailTable = () => {
     {
       key: "fullName",
       label: "Full Name",
-      render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          <Avatar firstName={row.firstName} lastName={row.lastName} imageUrl={row.profileImage} />
+          <span>{toTitleCase(`${row.firstName} ${row.lastName}`)}</span>
+        </div>
+      ),
     },
     {
       key: "fatherName",

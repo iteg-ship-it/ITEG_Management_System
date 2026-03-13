@@ -2,14 +2,19 @@ import { AiFillStop } from "react-icons/ai";
 import { FaCheckCircle } from "react-icons/fa";
 import CommonTable from "../../common-components/table/CommonTable";
 import PageNavbar from "../../common-components/navbar/PageNavbar";
-import SearchBox from "./../../common-components/seach-export/SearchBox";
+import Avatar from "../../common-components/Avatar";
 
-const Results = ({ data, toTitleCase, getLatestInterviewResult, searchTerm, setSearchTerm, rowsPerPage, onRowClick }) => {
+const Results = ({ data, toTitleCase, getLatestInterviewResult, searchTerm, rowsPerPage, onRowClick }) => {
   const columns = [
     {
       key: "firstName",
       label: "Full Name",
-      render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          <Avatar firstName={row.firstName} lastName={row.lastName} imageUrl={row.profileImage} />
+          <span>{toTitleCase(`${row.firstName} ${row.lastName}`)}</span>
+        </div>
+      ),
     },
     {
       key: "fatherName",
@@ -73,9 +78,6 @@ const Results = ({ data, toTitleCase, getLatestInterviewResult, searchTerm, setS
           subtitle="Final admission results - Selected and Rejected students"
           showBackButton={false}
         />
-        <div className="w-80 ml-auto">
-          <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-        </div>
       </div>
       <CommonTable
         data={data}

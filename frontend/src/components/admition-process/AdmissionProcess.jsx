@@ -1,5 +1,4 @@
 import { useGetAllStudentsQuery } from "../../redux/api/authApi";
-import CommonTable from "../common-components/table/CommonTable";
 import { useEffect, useState, useMemo } from "react";
 import CustomTimeDate from "./CustomTimeDate";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -10,7 +9,6 @@ import InputField from "../common-components/common-feild/InputField";
 import CustomDropdown from "../common-components/common-feild/CustomDropdown";
 import { useInterviewCreateMutation } from "../../redux/api/authApi";
 import { toast } from "react-toastify";
-import PageNavbar from "../common-components/navbar/PageNavbar";
 import { buttonStyles } from "../../styles/buttonStyles";
 import BlurBackground from "../common-components/BlurBackground";
 import TabsCommon from "../common-components/table/TabsCommon";
@@ -386,15 +384,15 @@ const StudentList = () => {
 
     switch (activeTab) {
       case "Total Registration":
-        return <TabComponent {...commonProps} setSearchTerm={setSearchTerm} />;
+        return <TabComponent {...commonProps} />;
       case "Online Assessment":
-        return <TabComponent {...commonProps} scheduleButton={scheduleButton} setSearchTerm={setSearchTerm} />;
+        return <TabComponent {...commonProps} scheduleButton={scheduleButton} />;
       case "Technical Round":
-        return <TabComponent {...commonProps} scheduleButton={scheduleButton} handleGetStatus={handleGetStatus} handleGetMarks={handleGetMarks} setSearchTerm={setSearchTerm} />;
+        return <TabComponent {...commonProps} scheduleButton={scheduleButton} handleGetStatus={handleGetStatus} handleGetMarks={handleGetMarks} />;
       case "Final Round":
-        return <TabComponent {...commonProps} setAddInterviwModalOpen={setAddInterviwModalOpen} setId={setId} handleGetStatus={handleGetStatus} handleGetMarks={handleGetMarks} setSearchTerm={setSearchTerm} />;
+        return <TabComponent {...commonProps} setAddInterviwModalOpen={setAddInterviwModalOpen} setId={setId} handleGetStatus={handleGetStatus} handleGetMarks={handleGetMarks} />;
       case "Results":
-        return <TabComponent {...commonProps} getLatestInterviewResult={getLatestInterviewResult} setSearchTerm={setSearchTerm} />;
+        return <TabComponent {...commonProps} getLatestInterviewResult={getLatestInterviewResult} />;
       default:
         return null;
     }
@@ -414,10 +412,14 @@ const StudentList = () => {
 
   return (
     <>
-      <Header title="Admission Process" />
+      <Header title="Admission Process" >
+        <div className="w-80 ml-auto">
+          <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        </div>
+      </Header>
       <TabsCommon tabs={tabs} activeTab={activeTab} onTabChange={handleTabClick} />
       <div className="px-5">
-            {renderTabContent()}
+        {renderTabContent()}
         {
           isModalOpen && selectedStudentId && (
             <CustomTimeDate

@@ -4,10 +4,10 @@ import {
   useUpdatePlacedInfoMutation,
 } from "../../redux/api/authApi";
 import Loader from "../common-components/loader/Loader";
-import profile from "../../assets/images/profileImgDummy.jpeg";
 import { Dialog } from "@headlessui/react";
 import { toast } from "react-toastify";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
+import Avatar from "../common-components/Avatar";
 
 const PlacementRecords = () => {
   const { data = {}, refetch, isLoading } = useGetReadyStudentsForPlacementQuery(undefined, {
@@ -97,12 +97,8 @@ const PlacementRecords = () => {
           >
             {/* Left Side - Profile Info */}
             <div className="flex-shrink-0 flex flex-col items-center text-center md:w-60">
-              <img
-                src={student.image || profile}
-                alt="profile"
-                className="w-24 h-24 rounded-full object-cover ring-2 ring-indigo-500 mb-2"
-              />
-              <h2 className="text-lg font-semibold text-gray-800 capitalize">
+              <Avatar firstName={student.firstName} lastName={student.lastName} imageUrl={student.profileImage} size="lg" />
+              <h2 className="text-lg font-semibold text-gray-800 capitalize mt-2">
                 {student.firstName} {student.lastName}
               </h2>
               <p className="text-sm text-gray-500">{student.email}</p>

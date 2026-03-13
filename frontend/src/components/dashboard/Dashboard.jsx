@@ -5,7 +5,6 @@ import AdmissionProcess from "../admition-process/AdmissionProcess";
 import AdmissionEditPage from "../admition-process/AdmissionEditPage";
 
 // Student records components
-import StudentDashboard from "../student-records/StudentDashboard";
 import StudentDetailTable from "../student-records/StudentDetailTable";
 import StudentEditPage from "../student-records/StudentEditPage";
 import StudentProfile from "../student-records/StudentProfile";
@@ -53,7 +52,6 @@ const Dashboard = () => {
       <Route path="/admission/edit/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionEditPage /></ProtectedRoute>} />
       
       {/* Student & Faculty Routes - All roles */}
-      <Route path="/student-dashboard" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentDashboard /></ProtectedRoute>} />
       <Route path="/student-detail-table" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentDetailTable /></ProtectedRoute>} />
       <Route path="/student/edit/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentEditPage /></ProtectedRoute>} />
       <Route path="/student/leveldata/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentLevelData /></ProtectedRoute>} />

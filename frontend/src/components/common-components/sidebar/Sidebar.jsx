@@ -226,14 +226,14 @@ const Sidebar = ({ children }) => {
                     </div>
 
                     {isActive && (
-                      <div className="mt-1 space-y-1">
+                      <div className="mt-1">
                         {item.subMenu.map((sub, i) => {
                           const active = isSubMenuActive(sub.path);
                           return (
                             <Link
                               key={i}
                               to={sub.path}
-                              className={`block ml-6 px-2 py-2 text-sm transition border-l-4 ${
+                              className={`block ml-6 px-2 py-2 text-sm transition border-l-2 ${
                                 active
                                   ? "bg-orange-50 text-orange-400 font-medium border-orange-500"
                                   : "text-gray-600 hover:bg-gray-100 border-gray-300"

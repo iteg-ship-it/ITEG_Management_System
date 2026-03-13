@@ -1,13 +1,18 @@
 import CommonTable from "../../common-components/table/CommonTable";
 import PageNavbar from "../../common-components/navbar/PageNavbar";
-import SearchBox from "./../../common-components/seach-export/SearchBox";
+import Avatar from "../../common-components/Avatar";
 
-const TotalRegistration = ({ data, toTitleCase, searchTerm, setSearchTerm, rowsPerPage, onRowClick }) => {
+const TotalRegistration = ({ data, toTitleCase, searchTerm, rowsPerPage, onRowClick }) => {
   const columns = [
     {
       key: "firstName",
       label: "Full Name",
-      render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          <Avatar firstName={row.firstName} lastName={row.lastName} imageUrl={row.profileImage} />
+          <span>{toTitleCase(`${row.firstName} ${row.lastName}`)}</span>
+        </div>
+      ),
     },
     {
       key: "fatherName",
@@ -45,9 +50,6 @@ const TotalRegistration = ({ data, toTitleCase, searchTerm, setSearchTerm, rowsP
           subtitle="View all registered students"
           showBackButton={false}
         />
-        <div className="w-80 ml-auto">
-          <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-        </div>
       </div>
       <CommonTable
         data={data}
