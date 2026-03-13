@@ -3,6 +3,7 @@ const router = express.Router();
 const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
 const { validateDepartmentInput, validateObjectId } = require("../middlewares/departmentValidation");
 const departmentController = require("../controllers/departmentController");
+const imageUpload = require("../config/imageUploadConfig");
 
 const allowedRoles = ["superadmin", "admin"];
 
@@ -11,6 +12,7 @@ router.post(
   "/",
   verifyToken,
   checkRole(allowedRoles),
+  imageUpload.single('logo'),
   validateDepartmentInput,
   departmentController.createDepartment
 );
@@ -33,6 +35,7 @@ router.put(
   verifyToken,
   checkRole(allowedRoles),
   validateObjectId,
+  imageUpload.single('logo'),
   validateDepartmentInput,
   departmentController.updateDepartment
 );

@@ -1,5 +1,6 @@
 const Department = require("../models/Department");
 const mongoose = require("mongoose");
+const cloudinary = require("../config/cloudinaryConfig");
 
 // Helper function to validate ObjectId
 const isValidObjectId = (id) => {
@@ -62,7 +63,20 @@ exports.createDepartment = async (req, res) => {
       });
     }
 
-    const department = await Department.create(req.body);
+    // Handle logo upload if file is provided
+    let logoUrl = null;
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "department_logos",
+        resource_type: "image"
+      });
+      logoUrl = result.secure_url;
+    }
+
+    const departmentData = { ...req.body };
+    if (logoUrl) departmentData.logo = logoUrl;
+
+    const department = await Department.create(departmentData);
     res.status(201).json({
       success: true,
       message: "Department created successfully",
@@ -162,9 +176,19 @@ exports.updateDepartment = async (req, res) => {
       });
     }
 
+    // Handle logo upload if file is provided
+    let updateData = { ...req.body };
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "department_logos",
+        resource_type: "image"
+      });
+      updateData.logo = result.secure_url;
+    }
+
     const department = await Department.findOneAndUpdate(
       { _id: req.params.id, isActive: true },
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     );
     

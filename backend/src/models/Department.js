@@ -4,6 +4,7 @@ const departmentSchema = new mongoose.Schema({
   name: { type: String, required: true },
   code: { type: String, required: true, unique: true },
   universityName: { type: String, required: true },
+  logo: { type: String, required: true },
   
   allowedCourses: [
     {
