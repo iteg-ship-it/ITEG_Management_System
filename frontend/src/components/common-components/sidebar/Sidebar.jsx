@@ -7,10 +7,12 @@ import { MdWork, MdDashboard } from "react-icons/md";
 import { RiTv2Fill } from "react-icons/ri";
 import { HiChevronUp, HiChevronDown, HiChevronLeft, HiChevronRight } from "react-icons/hi";
 import UserProfile from "../user-profile/UserProfile";
-import logo from '../../../assets/images/logo.png';
-import logoo from '../../../assets/images/logo-ssism.png';
+import { usePermissions } from "../../../hooks/usePermissions";
 
 const Sidebar = ({ children }) => {
+  const location = useLocation();
+  const { hasPermission } = usePermissions();
+
   const [isOpen, setIsOpen] = useState(() => window.innerWidth >= 1024);
 
   useEffect(() => {
@@ -21,7 +23,6 @@ const Sidebar = ({ children }) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const location = useLocation();
   const role = (localStorage.getItem("role") || "").toLowerCase();
 
   const [openMenus, setOpenMenus] = useState(() => {
@@ -119,44 +120,46 @@ const Sidebar = ({ children }) => {
     {
       name: "Dashboard",
       icon: <MdDashboard />,
-      roles: ["superadmin", "admin", "faculty"],
+      permission: "Page_Dashboard", // Example permission
       subMenu: [
-        { name: "Dashboard", path: "/" },
-        { name: "Attendance Details", path: "/attendance-details" },
+        { name: "Dashboard", path: "/", permission: "Page_Dashboard" },
+        { name: "Attendance Details", path: "/attendance-details", permission: "Page_AttendanceDetails" },
       ],
     },
     {
       name: "Admissions",
       icon: <RiTv2Fill />,
-      roles: ["superadmin", "admin", "faculty"],
-      subMenu: [{ name: "Admission Workflow", path: "/admission-process" }],
+      permission: "Page_Admission",
+      subMenu: [
+        { name: "Admission Workflow", path: "/admission-process", permission: "Page_Admission" },
+      ],
     },
     {
       name: "Academics",
       icon: <FaClipboardList />,
-      roles: ["superadmin", "admin", "faculty"],
+      permission: "Page_AdmittedStudents",
       subMenu: [
-        { name: "Student Progress", path: "/student-detail-table" },
-        { name: "Department", path: "/department-management" },
-        { name: "Task Management", path: "/task-management" },
+        { name: "Student Progress", path: "/student-dashboard", permission: "Page_AdmittedStudents" },
+        { name: "Level-wise Management", path: "/level-wise-management", permission: "Page_LevelWiseManagement" },
+        { name: "Dummy Students", path: "/student-permission", permission: "Page_DummyStudents" },
       ],
     },
     {
       name: "Placements",
       icon: <MdWork />,
-      roles: ["superadmin", "admin", "faculty"],
+      permission: "Page_Placement",
       subMenu: [
-        { name: "Placement Candidates", path: "/readiness-status" },
-        { name: "Company Details", path: "/company-details" },
-        { name: "Placed Students", path: "/placement-post" },
+        { name: "Placement Candidates", path: "/readiness-status", permission: "Page_Placement" },
+        { name: "Company Details", path: "/company-details", permission: "Page_CompanyDetails" },
+        { name: "Placed Students", path: "/placement-post", permission: "Page_PlacedStudents" },
       ],
     },
     {
       name: "User Management",
-      icon: <IoSettingsSharp />,
-      roles: ["superadmin", "admin", "faculty"],
+      icon: <FaUserGroup />,
+      permission: "Page_UserManagement",
       subMenu: [
-        { name: "Users", path: "/user-management" },
+        { name: "Users", path: "/user-management", permission: "Page_UserManagement" },
       ],
     },
   ];
@@ -165,19 +168,22 @@ const Sidebar = ({ children }) => {
     {
       name: "Settings",
       icon: <IoSettingsSharp />,
-      roles: ["superadmin", "admin", "faculty"],
-      path: "/settings",
-    },
-    {
-      name: "Support",
-      icon: <IoSettingsSharp />,
-      roles: ["superadmin", "admin", "faculty"],
-      path: "/support",
+      permission: "Page_Settings",
+      subMenu: [
+        { name: "Department Management", path: "/department-management", permission: "Page_Department" },
+        { name: "Subdepartments", path: "/subdepartments", permission: "Page_SubDepartment" },
+        { name: "Levels", path: "/levels", permission: "Page_Level" },
+        { name: "User Permission", path: "/user-permission", permission: "Page_GlobalPermissionMatrix" },
+      ],
     },
   ];
 
+  const filteredMenuItems = menuItems.filter(item => hasPermission(item.permission, 'read'));
+
   return (
     <>
+      {/* <Header sidebarOpen={isOpen} /> */}
+
       <div className="flex">
         <aside
           className={`fixed top-0 left-0 z-20 h-screen transition-all duration-300 bg-white border-r border-gray-200 ${
@@ -200,9 +206,13 @@ const Sidebar = ({ children }) => {
           </div>
 
           {isOpen && (
-            <nav className="px-2 py-3 overflow-y-auto h-[calc(100vh-180px)]">
-              {menuItems.map((item, idx) => {
-                if (!item.roles.includes(role)) return null;
+            <nav className="flex flex-col gap-1 px-2 py-2 overflow-y-auto h-[calc(100vh-180px)]">
+              {filteredMenuItems.map((item, idx) => {
+                  const filteredSubMenu = item.subMenu.filter(subItem => hasPermission(subItem.permission, 'read'));
+
+                  if (filteredSubMenu.length === 0) {
+                    return null; // Do not render main menu if no sub-items are accessible
+                  }
 
                 const isActive = openMenus.includes(idx);
 
@@ -220,9 +230,27 @@ const Sidebar = ({ children }) => {
                         {item.icon}
                         {item.name}
                       </div>
-                      <span className={`${isActive ? 'block' : 'hidden group-hover:block'}`}>
-                        {isActive ? <HiChevronUp /> : <HiChevronDown />}
-                      </span>
+
+                      {isActive && (
+                        <div className="ml-2 mt-1">
+                          {filteredSubMenu.map((sub, i) => {
+                            const active = isSubMenuActive(sub.path);
+                            return (
+                              <Link
+                                key={i}
+                                to={sub.path}
+                                className={`block ml-6 px-3 py-2 text-sm rounded-lg border-l-4 transition ${
+                                  active
+                                    ? "bg-orange-50 text-orange-500 border-orange-500 font-medium"
+                                    : "text-gray-600 hover:bg-gray-100 border-transparent"
+                                }`}
+                              >
+                                {sub.name}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
 
                     {isActive && (
@@ -290,5 +318,6 @@ const Sidebar = ({ children }) => {
     </>
   );
 };
+
 
 export default Sidebar;

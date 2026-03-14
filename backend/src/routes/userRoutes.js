@@ -35,5 +35,11 @@ router.get("/me", verifyToken, usercontroller.getCurrentUser);
 router.get("/all", verifyToken, usercontroller.getAllUsers);
 router.delete("/delete/:id", verifyToken, usercontroller.deleteUser);
 
+// Permissions Management
+router.get("/permissions/all", verifyToken, usercontroller.getAllPossiblePermissions);
+router.get("/permissions/:id", verifyToken, usercontroller.getUserPermissions);
+router.put("/permissions/:id", verifyToken, usercontroller.updateUserPermissions);
+
+
 module.exports = router;
 

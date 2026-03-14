@@ -4,6 +4,7 @@ import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import Layout from "./components/dashboard/Layout.jsx";
 import { useSessionTimeout } from "./hooks/useSessionTimeout";
+import { PermissionProvider } from './contexts/PermissionContext';
 
 // Lazy load components
 const LoginPage = React.lazy(() => import("./components/common-components/login-page/LoginPage"));
@@ -54,9 +55,11 @@ function App() {
             path="/*"
             element={
               <ProtectedRoute>
-                <div className="bg-white">
-                  <Layout />
-                </div>
+                <PermissionProvider>
+                  <div className="bg-white">
+                    <Layout />
+                  </div>
+                </PermissionProvider>
               </ProtectedRoute>
             }
           />
