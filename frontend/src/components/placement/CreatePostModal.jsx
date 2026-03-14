@@ -8,6 +8,7 @@ import InputField from "../common-components/common-feild/InputField";
 import { useCreatePlacementPostMutation, useUpdatePlacementPostMutation } from "../../redux/api/authApi";
 import { buttonStyles } from "../../styles/buttonStyles";
 import BlurBackground from "../common-components/BlurBackground";
+import Header from "../common-components/sidebar/Header";
 
 const PRIMARY_COLOR = "#FDA92D";
 const TEXT_COLOR = "#4B4B4B";
@@ -97,23 +98,14 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess, isUpdateMode = f
   if (!isOpen) return null;
 
   return (
-    <BlurBackground isOpen={isOpen} onClose={handleClose}>
-      <div className="bg-white rounded-2xl w-full max-w-2xl shadow-lg p-8 relative max-h-[90vh] overflow-y-auto">
-        {/* Close Button */}
-        <button
-          onClick={handleClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-        >
-          <IoClose size={22} />
-        </button>
-
-        {/* Title */}
-        <h2
-          className="text-2xl font-semibold text-center mb-6"
-          style={{ color: PRIMARY_COLOR }}
-        >
-          {isUpdateMode ? 'Update Placement Post' : 'Create Placement Post'}
-        </h2>
+    <>
+      <Header 
+        title={isUpdateMode ? 'Update Placement Post' : 'Create Placement Post'}
+        showBack={true}
+        onBack={handleClose}
+      />
+      <BlurBackground isOpen={isOpen} onClose={handleClose}>
+        <div className="bg-white rounded-2xl w-full max-w-2xl shadow-lg p-8 relative max-h-[90vh] overflow-y-auto">
 
         {/* Student Info */}
         {student && (
@@ -262,6 +254,7 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess, isUpdateMode = f
         </Formik>
       </div>
     </BlurBackground>
+    </>
   );
 };
 

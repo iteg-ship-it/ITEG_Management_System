@@ -1,11 +1,11 @@
 import { useParams } from "react-router-dom";
-import { useGetUserByIdQuery, useUpdateUserMutation } from "../../../redux/api/authApi";
-import Loader from "../../common-components/loader/Loader";
+import { useGetUserByIdQuery, useUpdateUserMutation } from "../../redux/api/authApi";
+import Loader from "./../common-components/loader/Loader";
 import { HiArrowNarrowLeft } from "react-icons/hi";
 import { IoCamera } from "react-icons/io5";
 import { FiUser, FiBriefcase, FiShield, FiSettings, FiMail, FiPhone, FiMapPin, FiCalendar, FiClock, FiUserCheck } from "react-icons/fi";
-import profilePlaceholder from '../../../assets/images/profile-img.png';
-import studentProfileBg from "../../../assets/images/Student_profile_2nd_bg.jpg";
+import profilePlaceholder from './../../assets/images/profile-img.png';
+import studentProfileBg from "./../../assets/images/Student_profile_2nd_bg.jpg";
 import { toast } from 'react-toastify';
 import { useState, useRef } from 'react';
 

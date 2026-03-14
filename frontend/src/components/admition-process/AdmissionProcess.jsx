@@ -1,25 +1,24 @@
 import { useGetAllStudentsQuery } from "../../redux/api/authApi";
-import CommonTable from "../common-components/table/CommonTable";
 import { useEffect, useState, useMemo } from "react";
 import CustomTimeDate from "./CustomTimeDate";
 import { useLocation, useNavigate } from "react-router-dom";
-import Pagination from "../common-components/pagination/Pagination";
-import { AiFillStop } from "react-icons/ai";
-import { FaCheckCircle } from "react-icons/fa";
 import Loader from "../common-components/loader/Loader";
 import * as Yup from "yup";
 import { Formik, Form } from "formik";
 import InputField from "../common-components/common-feild/InputField";
 import CustomDropdown from "../common-components/common-feild/CustomDropdown";
-import {
-  useInterviewCreateMutation,
-} from "../../redux/api/authApi";
+import { useInterviewCreateMutation } from "../../redux/api/authApi";
 import { toast } from "react-toastify";
-import PageNavbar from "../common-components/navbar/PageNavbar";
 import { buttonStyles } from "../../styles/buttonStyles";
 import BlurBackground from "../common-components/BlurBackground";
 import TabsCommon from "../common-components/table/TabsCommon";
 import SearchBox from "./../common-components/seach-export/SearchBox";
+import Header from "./../common-components/sidebar/Header";
+import TotalRegistration from "./tabs/TotalRegistration";
+import OnlineAssessment from "./tabs/OnlineAssessment";
+import TechnicalRound from "./tabs/TechnicalRound";
+import FinalRound from "./tabs/FinalRound";
+import Results from "./tabs/Results";
 
 const toTitleCase = (str) =>
   str
@@ -357,278 +356,47 @@ const StudentList = () => {
     "Results",
   ];
 
-  const { columns, actionButton } = useMemo(() => {
-    let cols = [];
-    let action;
+  const TabComponent = useMemo(() => {
+    const tabComponents = {
+      "Total Registration": TotalRegistration,
+      "Online Assessment": OnlineAssessment,
+      "Technical Round": TechnicalRound,
+      "Final Round": FinalRound,
+      "Results": Results,
+    };
+    return tabComponents[activeTab];
+  }, [activeTab]);
+
+  const renderTabContent = () => {
+
+    if (!TabComponent) return null;
+
+    const commonProps = {
+      data: filteredData,
+      toTitleCase,
+      searchTerm,
+      rowsPerPage,
+      onRowClick: (row) => {
+        localStorage.setItem("lastSection", "admission");
+        navigate(`/admission/edit/${row._id}`, { state: { student: row } });
+      },
+    };
 
     switch (activeTab) {
-    case "Online Assessment":
-      cols = [
-        {
-          key: "firstName",
-          label: "Full Name",
-          render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
-        },
-        {
-          key: "fatherName",
-          label: "Father's Name",
-          render: (row) => toTitleCase(row.fatherName),
-        },
-        { key: "studentMobile", label: "Mobile No.", align: "center" },
-        {
-          key: "subject12",
-          label: "12th Subject",
-          render: (row) => toTitleCase(row.stream),
-        },
-        {
-          key: "course",
-          label: "Course",
-          render: (row) => toTitleCase(row.course),
-        },
-      ];
-      action = (row) => (
-        <button
-          onClick={() => scheduleButton(row)}
-          className={`text-md ${buttonStyles.primary}`}
-        >
-          Take Interview
-        </button>
-      );
-      break;
-
-    case "Technical Round":
-      cols = [
-        {
-          key: "firstName",
-          label: "Full Name",
-          render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
-        },
-        {
-          key: "fatherName",
-          label: "Father's Name",
-          render: (row) => toTitleCase(row.fatherName),
-        },
-        { key: "studentMobile", label: "Mobile No.", align: "center" },
-        {
-          key: "course",
-          label: "Course",
-          render: (row) => toTitleCase(row.course),
-        },
-        {
-          key: "onlineTestResult",
-          label: (
-            <div className="flex flex-col ">
-              <span>Result</span>
-              <span className="text-xs text-gray-500">(1st Round)</span>
-            </div>
-          ),
-          render: (row) => handleGetStatus(row.interviews),
-        },
-        {
-          key: "techMarks",
-          label: (
-            <div className="flex flex-col ">
-              <span>Marks</span>
-              <span className="text-xs text-gray-500">(1st Round)</span>
-            </div>
-          ),
-          align: "center",
-          render: (row) => handleGetMarks(row.interviews),
-        },
-      ];
-      action = (row) => (
-        <button
-          onClick={() => scheduleButton(row)}
-          className={`text-md ${buttonStyles.primary}`}
-        >
-          Take Interview
-        </button>
-      );
-      break;
-
-    case "Final Round":
-      cols = [
-        {
-          key: "firstName",
-          label: "Full Name",
-          render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
-        },
-        {
-          key: "fatherName",
-          label: "Father's Name",
-          render: (row) => toTitleCase(row.fatherName),
-        },
-        { key: "studentMobile", label: "Mobile No.", align: "center" },
-        {
-          key: "course",
-          label: "Course",
-          render: (row) => toTitleCase(row.course),
-        },
-        {
-          key: "onlineTestStatus",
-          label: (
-            <div className="flex flex-col ">
-              <span>Result</span>
-              <span className="text-xs text-gray-500">(1st Round)</span>
-            </div>
-          ),
-          render: (row) => handleGetStatus(row.interviews),
-        },
-        {
-          key: "techMarks",
-          label: (
-            <div className="flex flex-col ">
-              <span>Marks</span>
-              <span className="text-xs text-gray-500">(Tech Round)</span>
-            </div>
-          ),
-          align: "center",
-          render: (row) => handleGetMarks(row.interviews),
-        },
-        {
-          key: "attempts",
-          label: (
-            <div className="flex flex-col ">
-              <span>Attempts</span>
-              <span className="text-xs text-gray-500">(1st Round)</span>
-            </div>
-          ),
-          align: "center",
-          render: (row) => {
-            const firstRoundAttempts = row.interviews?.filter((i) => i.round === "First") || [];
-            return firstRoundAttempts.length;
-          },
-        },
-      ];
-      action = (row) => {
-        const userRole = localStorage.getItem('role');
-        const isSuperAdmin = userRole === 'superadmin';
-
-        return (
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => {
-                if (isSuperAdmin) {
-                  setAddInterviwModalOpen(true)
-                  setId(row._id)
-                }
-              }}
-              disabled={!isSuperAdmin}
-              className={`text-md ${isSuperAdmin
-                ? buttonStyles.primary + ' cursor-pointer'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed px-3 py-1 rounded-md transition'
-                }`}
-            >
-              Take Interview
-            </button>
-          </div>
-        );
-      };
-      break;
-
-    case "Results":
-      cols = [
-        {
-          key: "firstName",
-          label: "Full Name",
-          render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
-        },
-        {
-          key: "fatherName",
-          label: "Father's Name",
-          render: (row) => toTitleCase(row.fatherName),
-        },
-        { key: "studentMobile", label: "Mobile No.", align: "center" },
-        {
-          key: "stream",
-          label: "Subject",
-          render: (row) => toTitleCase(row.stream),
-        },
-        {
-          key: "village",
-          label: "Village",
-          render: (row) => toTitleCase(row.village),
-        },
-        {
-          key: "track",
-          label: "Track",
-          render: (row) => toTitleCase(row.track),
-        },
-      ];
-      action = (row) => {
-        const secondRound =
-          row.interviews?.filter((i) => i.round === "Second") || [];
-        const latestResult = getLatestInterviewResult(row.interviews);
-        const isSelected = secondRound.some((i) => i.result === "Pass");
-        const isRejected =
-          latestResult === "Fail" ||
-          secondRound.some((i) => i.result === "Fail");
-
-        if (isSelected) {
-          return (
-            <button
-              className="bg-[#22C55E]/20 flex items-center gap-2 text-md text-[#118D57] px-3 py-1 rounded-md cursor-not-allowed"
-              disabled
-            >
-              <FaCheckCircle className="text-lg" />
-              <span>Selected</span>
-            </button>
-          );
-        } else if (isRejected) {
-          return (
-            <button
-              className="bg-[#FFCEC3] flex items-center gap-2 text-md text-[#D32F2F] px-3 py-1 rounded-md cursor-not-allowed"
-              disabled
-            >
-              <AiFillStop className="text-lg" />
-              <span>Rejected</span>
-            </button>
-          );
-        } else {
-          return null;
-        }
-      };
-      break;
-
-    default:
-      cols = [
-        {
-          key: "firstName",
-          label: "Full Name",
-          render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
-        },
-        {
-          key: "fatherName",
-          label: "Father's Name",
-          render: (row) => toTitleCase(row.fatherName),
-        },
-        { key: "studentMobile", label: "Mobile No.", align: "center" },
-        {
-          key: "subject12",
-          label: "12th Subject",
-          render: (row) => toTitleCase(row.stream),
-        },
-        {
-          key: "course",
-          label: "Course",
-          render: (row) => toTitleCase(row.course),
-        },
-        {
-          key: "village",
-          label: "Village",
-          render: (row) => toTitleCase(row.village),
-        },
-        {
-          key: "track",
-          label: "Bus Route",
-          render: (row) => toTitleCase(row.track),
-        },
-      ];
-      break;
+      case "Total Registration":
+        return <TabComponent {...commonProps} />;
+      case "Online Assessment":
+        return <TabComponent {...commonProps} scheduleButton={scheduleButton} />;
+      case "Technical Round":
+        return <TabComponent {...commonProps} scheduleButton={scheduleButton} handleGetStatus={handleGetStatus} handleGetMarks={handleGetMarks} />;
+      case "Final Round":
+        return <TabComponent {...commonProps} setAddInterviwModalOpen={setAddInterviwModalOpen} setId={setId} handleGetStatus={handleGetStatus} handleGetMarks={handleGetMarks} />;
+      case "Results":
+        return <TabComponent {...commonProps} getLatestInterviewResult={getLatestInterviewResult} />;
+      default:
+        return null;
     }
-
-    return { columns: cols, actionButton: action };
-  }, [activeTab]);
+  };
 
   if (isLoading) {
     return (
@@ -644,36 +412,16 @@ const StudentList = () => {
 
   return (
     <>
-      <div className=" bg-white  h-20">
-        <div className="px-6">
-          <TabsCommon tabs={tabs} activeTab={activeTab} onTabChange={handleTabClick} />
+      <Header 
+        title="Admission Process"
+      >
+        <div className="w-80 ml-auto">
+          <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </div>
-      </div >
+      </Header>
+      <TabsCommon tabs={tabs} activeTab={activeTab} onTabChange={handleTabClick} />
       <div className="px-5">
-        <div className="flex justify-between">
-          <PageNavbar
-            title="Admission Process"
-            subtitle="Manage student admission workflow and interviews"
-            showBackButton={false}
-          />
-          <div className="py-4 w-full max-w-2xl">
-            <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-          </div>
-        </div>
-
-        <CommonTable
-          data={filteredData}
-          columns={columns}
-          editable={!!actionButton}
-          pagination={true}
-          rowsPerPage={rowsPerPage}
-          searchTerm={searchTerm}
-          actionButton={actionButton}
-          onRowClick={(row) => {
-            localStorage.setItem("lastSection", "admission");
-            navigate(`/admission/edit/${row._id}`, { state: { student: row } });
-          }}
-        />
+        {renderTabContent()}
         {
           isModalOpen && selectedStudentId && (
             <CustomTimeDate

@@ -5,8 +5,7 @@ import {
 } from "../../redux/api/authApi";
 import Loader from '../common-components/loader/Loader';
 import CommonTable from '../common-components/table/CommonTable';
-import Pagination from '../common-components/pagination/Pagination';
-import PageNavbar from "../common-components/navbar/PageNavbar";
+import Header from "../common-components/sidebar/Header";
 // import { HiArrowNarrowLeft } from "react-icons/hi";
 
 const StudentPermission = () => {
@@ -122,75 +121,32 @@ const StudentPermission = () => {
     );
   }
 
-  if (isLoading) {
+  if (isError) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader />
+        <div className="text-center text-red-600 font-medium">
+          Error: {error?.data?.message || "Something went wrong."}
+        </div>
       </div>
     );
   }
 
   return (
-  <>
-   <div className="min-h-screen bg-white">
-       <PageNavbar
-        title="Dummy Student"
-        subtitle="Manage and track student permission requests"
-        showBackButton={false}
-      />
-       {/* <div className="flex items-center gap-3">
-              <div className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                {students.length} Records
-              </div>
-            </div> */}
+    <>
+      <Header title="Dummy Students" />
+      <div className="min-h-screen px-5">
 
-      {/* ❌ Error */}
-      {isError && (
-        <div className="text-center text-red-600 font-medium py-4 px-6">
-          Error: {error?.data?.message || "Something went wrong."}
-        </div>
-      )}
-
-      {/* ⚠️ No Data */}
-      {!isError && students.length === 0 && (
-        <div className="text-center text-gray-500 py-6 px-6">
-          No student permissions found.
-        </div>
-      )}
-
-      {/* ✅ Data Table */}
-      {!isError && students.length > 0 && (
-      <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
-          <div className="px-6 py-4">
-            <div className="flex justify-between items-center flex-wrap gap-4">
-              <Pagination
-                rowsPerPage={rowsPerPage}
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                filtersConfig={filtersConfig}
-                filteredData={filteredData}
-                sectionName="permissionstudents"
-              />
-            </div>
-          </div>
-
-          <CommonTable
-            data={filteredData}
-            columns={columns}
-            editable={true}
-            pagination={true}
-            rowsPerPage={rowsPerPage}
-            searchTerm={searchTerm}
-            actionButton={null}
-            onRowClick={(row) => {
-              localStorage.setItem("lastSection", "permission");
-              navigate(`/student-profile/${row._id}`, { state: { student: row } });
-            }}
-          />
-        </div>
-      )}
-    </div>
-  </>
+        <CommonTable
+          data={filteredData}
+          columns={columns}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          filtersConfig={filtersConfig}
+          onRowClick={(row) => navigate(`/student-profile/${row._id}`)}
+          rowsPerPage={rowsPerPage}
+        />
+      </div>
+    </>
   );
 };
 

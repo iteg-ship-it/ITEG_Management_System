@@ -1,0 +1,66 @@
+import CommonTable from "../../common-components/table/CommonTable";
+import PageNavbar from "../../common-components/navbar/PageNavbar";
+import Avatar from "../../common-components/Avatar";
+
+const TotalRegistration = ({ data, toTitleCase, searchTerm, rowsPerPage, onRowClick }) => {
+  const columns = [
+    {
+      key: "firstName",
+      label: "Full Name",
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          <Avatar firstName={row.firstName} lastName={row.lastName} imageUrl={row.profileImage} />
+          <span>{toTitleCase(`${row.firstName} ${row.lastName}`)}</span>
+        </div>
+      ),
+    },
+    {
+      key: "fatherName",
+      label: "Father's Name",
+      render: (row) => toTitleCase(row.fatherName),
+    },
+    { key: "studentMobile", label: "Mobile No.", align: "center" },
+    {
+      key: "subject12",
+      label: "12th Subject",
+      render: (row) => toTitleCase(row.stream),
+    },
+    {
+      key: "course",
+      label: "Course",
+      render: (row) => toTitleCase(row.course),
+    },
+    {
+      key: "village",
+      label: "Village",
+      render: (row) => toTitleCase(row.village),
+    },
+    {
+      key: "track",
+      label: "Bus Route",
+      render: (row) => toTitleCase(row.track),
+    },
+  ];
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <PageNavbar
+          title="Total Registration"
+          subtitle="View all registered students"
+          showBackButton={false}
+        />
+      </div>
+      <CommonTable
+        data={data}
+        columns={columns}
+        pagination={true}
+        rowsPerPage={rowsPerPage}
+        searchTerm={searchTerm}
+        onRowClick={onRowClick}
+      />
+    </div>
+  );
+};
+
+export default TotalRegistration;

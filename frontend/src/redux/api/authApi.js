@@ -762,7 +762,7 @@ export const authApi = createApi({
     // Add Department
     addDepartment: builder.mutation({
       query: (departmentData) => ({
-        url: '/departments/add',
+        url: '/departments',
         method: "POST",
         body: departmentData,
       }),
@@ -772,26 +772,39 @@ export const authApi = createApi({
     // Get All Departments
     getAllDepartments: builder.query({
       query: () => ({
-        url: '/departments/all',
+        url: '/departments',
         method: "GET",
       }),
       providesTags: ['Department'],
+      keepUnusedDataFor: 300,
     }),
 
     // Update Department
     updateDepartment: builder.mutation({
-      query: ({ id, ...data }) => ({
-        url: `/departments/update/${id}`,
-        method: "PATCH",
-        body: data,
-      }),
+      query: ({ id, ...data }) => {
+        const payload = {
+          name: data.name,
+          code: data.code,
+          universityName: data.universityName,
+          description: data.description,
+          headOfDepartment: data.headOfDepartment,
+          allowedCourses: data.allowedCourses || [],
+          reportConfig: data.reportConfig,
+          isActive: data.isActive
+        };
+        return {
+          url: `/departments/${id}`,
+          method: "PUT",
+          body: payload,
+        };
+      },
       invalidatesTags: ['Department'],
     }),
 
     // Delete Department
     deleteDepartment: builder.mutation({
       query: (id) => ({
-        url: `/departments/delete/${id}`,
+        url: `/departments/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ['Department'],
@@ -799,8 +812,8 @@ export const authApi = createApi({
 
     // Add Subdepartment
     addSubdepartment: builder.mutation({
-      query: ({ departmentId, ...data }) => ({
-        url: `/departments/${departmentId}/subdepartments`,
+      query: (data) => ({
+        url: '/subdepartments',
         method: "POST",
         body: data,
       }),
@@ -809,9 +822,9 @@ export const authApi = createApi({
 
     // Update Subdepartment
     updateSubdepartment: builder.mutation({
-      query: ({ departmentId, subdepartmentId, ...data }) => ({
-        url: `/departments/${departmentId}/subdepartments/${subdepartmentId}`,
-        method: "PATCH",
+      query: ({ subdepartmentId, ...data }) => ({
+        url: `/subdepartments/${subdepartmentId}`,
+        method: "PUT",
         body: data,
       }),
       invalidatesTags: ['Department'],
@@ -819,8 +832,8 @@ export const authApi = createApi({
 
     // Delete Subdepartment
     deleteSubdepartment: builder.mutation({
-      query: ({ departmentId, subdepartmentId }) => ({
-        url: `/departments/${departmentId}/subdepartments/${subdepartmentId}`,
+      query: (subdepartmentId) => ({
+        url: `/subdepartments/${subdepartmentId}`,
         method: "DELETE",
       }),
       invalidatesTags: ['Department'],
@@ -829,16 +842,35 @@ export const authApi = createApi({
     // Get Subdepartments by Department
     getSubdepartmentsByDepartment: builder.query({
       query: (departmentId) => ({
-        url: `/departments/${departmentId}/subdepartments`,
+        url: `/subdepartments/department/${departmentId}`,
         method: "GET",
       }),
       providesTags: ['Department'],
     }),
 
+    // Get All Subdepartments
+    getAllSubdepartments: builder.query({
+      query: () => ({
+        url: '/subdepartments',
+        method: "GET",
+      }),
+      providesTags: ['Department'],
+      keepUnusedDataFor: 300,
+    }),
+
+    // Get Subdepartment by ID
+    getSubdepartmentById: builder.query({
+      query: (id) => ({
+        url: `/subdepartments/${id}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, id) => [{ type: 'Department', id }],
+    }),
+
     // Get Levels by Subdepartment
     getLevelsBySubdepartment: builder.query({
-      query: ({ departmentId, subdepartmentId }) => ({
-        url: `/departments/${departmentId}/subdepartments/${subdepartmentId}/levels`,
+      query: (subdepartmentId) => ({
+        url: `/levels/subdepartment/${subdepartmentId}`,
         method: "GET",
       }),
       providesTags: ['Department'],
@@ -846,8 +878,8 @@ export const authApi = createApi({
 
     // Add Level
     addLevel: builder.mutation({
-      query: ({ departmentId, subdepartmentId, ...data }) => ({
-        url: `/departments/${departmentId}/subdepartments/${subdepartmentId}/levels`,
+      query: (data) => ({
+        url: '/levels',
         method: "POST",
         body: data,
       }),
@@ -856,9 +888,9 @@ export const authApi = createApi({
 
     // Update Level
     updateLevel: builder.mutation({
-      query: ({ departmentId, subdepartmentId, levelId, ...data }) => ({
-        url: `/departments/${departmentId}/subdepartments/${subdepartmentId}/levels/${levelId}`,
-        method: "PATCH",
+      query: ({ levelId, ...data }) => ({
+        url: `/levels/${levelId}`,
+        method: "PUT",
         body: data,
       }),
       invalidatesTags: ['Department'],
@@ -866,8 +898,8 @@ export const authApi = createApi({
 
     // Delete Level
     deleteLevel: builder.mutation({
-      query: ({ departmentId, subdepartmentId, levelId }) => ({
-        url: `/departments/${departmentId}/subdepartments/${subdepartmentId}/levels/${levelId}`,
+      query: (levelId) => ({
+        url: `/levels/${levelId}`,
         method: "DELETE",
       }),
       invalidatesTags: ['Department'],
@@ -875,8 +907,8 @@ export const authApi = createApi({
 
     // Add SubLevel
     addSubLevel: builder.mutation({
-      query: ({ departmentId, subdepartmentId, levelId, ...data }) => ({
-        url: `/departments/${departmentId}/subdepartments/${subdepartmentId}/levels/${levelId}/sublevels`,
+      query: (data) => ({
+        url: '/sublevels',
         method: "POST",
         body: data,
       }),
@@ -885,9 +917,9 @@ export const authApi = createApi({
 
     // Update SubLevel
     updateSubLevel: builder.mutation({
-      query: ({ departmentId, subdepartmentId, levelId, subLevelId, ...data }) => ({
-        url: `/departments/${departmentId}/subdepartments/${subdepartmentId}/levels/${levelId}/sublevels/${subLevelId}`,
-        method: "PATCH",
+      query: ({ subLevelId, ...data }) => ({
+        url: `/sublevels/${subLevelId}`,
+        method: "PUT",
         body: data,
       }),
       invalidatesTags: ['Department'],
@@ -895,8 +927,8 @@ export const authApi = createApi({
 
     // Delete SubLevel
     deleteSubLevel: builder.mutation({
-      query: ({ departmentId, subdepartmentId, levelId, subLevelId }) => ({
-        url: `/departments/${departmentId}/subdepartments/${subdepartmentId}/levels/${levelId}/sublevels/${subLevelId}`,
+      query: (subLevelId) => ({
+        url: `/sublevels/${subLevelId}`,
         method: "DELETE",
       }),
       invalidatesTags: ['Department'],
@@ -904,8 +936,8 @@ export const authApi = createApi({
 
     // Get SubLevels by Level
     getSubLevelsByLevel: builder.query({
-      query: ({ departmentId, subdepartmentId, levelId }) => ({
-        url: `/departments/${departmentId}/subdepartments/${subdepartmentId}/levels/${levelId}/sublevels`,
+      query: (levelId) => ({
+        url: `/sublevels/level/${levelId}`,
         method: "GET",
       }),
       providesTags: ['Department'],
@@ -965,8 +997,23 @@ export const authApi = createApi({
       }),
       invalidatesTags: (result, error, { id }) => [{ type: 'Permission', id }],
     }),
-
-  }),
+    
+      getAllLevels: builder.query({
+      query: () => ({
+        url: '/levels',
+        method: "GET",
+      }),
+      providesTags: ['Department'],
+      keepUnusedDataFor: 300,
+    }),
+    // getAllLevels: builder.query({
+    //   query: () => ({
+    //     url: '/levels',
+    //     method: "GET",
+    //   }),
+    //   providesTags: ['Department'],
+    //   keepUnusedDataFor: 300,
+    }),
 });
 
 export const {
@@ -1032,6 +1079,8 @@ export const {
   useUpdateSubdepartmentMutation,
   useDeleteSubdepartmentMutation,
   useGetSubdepartmentsByDepartmentQuery,
+  useGetAllSubdepartmentsQuery,
+  useGetSubdepartmentByIdQuery,
   useGetLevelsBySubdepartmentQuery,
   useAddLevelMutation,
   useUpdateLevelMutation,
@@ -1046,5 +1095,6 @@ export const {
   useDeleteRoleMutation,
   useGetAllPossiblePermissionsQuery,
   useGetUserPermissionsQuery,
-  useUpdateUserPermissionsMutation
+  useUpdateUserPermissionsMutation,
+  useGetAllLevelsQuery
 } = authApi;

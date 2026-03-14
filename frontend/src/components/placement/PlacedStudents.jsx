@@ -4,9 +4,8 @@ import { useGetPlacedStudentsByCompanyQuery } from '../../redux/api/authApi';
 import Loader from '../common-components/loader/Loader';
 import PageNavbar from '../common-components/navbar/PageNavbar';
 import CommonTable from '../common-components/table/CommonTable';
-import Pagination from '../common-components/pagination/Pagination';
-import SearchBox from "../common-components/seach-export/SearchBox";
-import TabsCommon from "../common-components/table/TabsCommon";
+import Header from '../common-components/sidebar/Header';
+import Avatar from '../common-components/Avatar';
 
 const PlacedStudents = () => {
   const { companyId } = useParams();
@@ -25,9 +24,21 @@ const PlacedStudents = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRows, setSelectedRows] = useState([]);
-  const [activeTab, setActiveTab] = useState('All Students');
 
-  const tabs = ['All Students'];
+  const filteredStudents = students.filter((student) => {
+    const searchableValues = [
+      student.firstName,
+      student.lastName,
+      student.email,
+      student.studentMobile,
+      student.course,
+      student.stream,
+      student.placedInfo?.jobProfile,
+      student.placedInfo?.jobType,
+      student.placedInfo?.location,
+    ].join(' ').toLowerCase();
+    return searchableValues.includes(searchTerm.toLowerCase());
+  });
 
   const columns = [
     {
@@ -35,7 +46,7 @@ const PlacedStudents = () => {
       label: "Student Name",
       render: (row) => (
         <div className="flex items-center gap-3">
-      
+          <Avatar firstName={row.firstName} lastName={row.lastName} imageUrl={row.profileImage} />
           <div className="flex flex-col">
             <span className="font-semibold text-gray-900">{`${row.firstName} ${row.lastName}`}</span>
             <span className="text-xs text-gray-500">{row.course} - {row.stream}</span>
@@ -174,30 +185,21 @@ const PlacedStudents = () => {
 
   return (
     <>
-      <div className="bg-white h-20">
-        <div className="px-6">
-          <TabsCommon tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
-        </div>
-      </div>
-      <div className="px-5">
-        <div className="flex justify-between">
-          <PageNavbar
-            title={`Placed Students`}
-            subtitle={`Students placed in ${companyName}`}
-            showBackButton={true}
-          />
-          <div className="py-4 w-full max-w-2xl">
-            <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-          </div>
-        </div>
+      <Header title={`Placed Students - ${apiCompanyName}`} />
+      <div className="min-h-screen px-5">
+        <PageNavbar
+          title={`Placed Students in ${apiCompanyName}`}
+          subtitle={`Total Placements: ${totalPlaced}`}
+          showBackButton={true}
+        />
 
         <CommonTable
           columns={columns}
-          data={students}
+          data={filteredStudents}
           searchTerm={searchTerm}
-          pagination={true}
-          rowsPerPage={10}
+          setSearchTerm={setSearchTerm}
           onSelectionChange={setSelectedRows}
+          rowsPerPage={10}
         />
       </div>
     </>

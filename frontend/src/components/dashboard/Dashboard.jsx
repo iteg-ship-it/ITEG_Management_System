@@ -6,7 +6,6 @@ import AdmissionProcess from "../admition-process/AdmissionProcess";
 import AdmissionEditPage from "../admition-process/AdmissionEditPage";
 
 // Student records components
-import StudentDashboard from "../student-records/StudentDashboard";
 import StudentDetailTable from "../student-records/StudentDetailTable";
 import StudentEditPage from "../student-records/StudentEditPage";
 import StudentProfile from "../student-records/StudentProfile";
@@ -27,15 +26,16 @@ import InterviewHistory from "../placement/InterviewHistory";
 import InterviewRoundsHistory from "../placement/InterviewRoundsHistory";
 import PageNotFound from "../common-components/error-pages/PageNotFound";
 import ProtectedRoute from '../common-components/protected-route/ProtectedRoute';
-import AttendanceDetails from "../dashboard/AttendanceDetails";
-import UsersManagement from "../Setting/user-management/UsersManagement";
-import UserProfile from "../Setting/user-management/UserProfile";
+import AttendanceDetails from "./AttendanceDetails";
+import UsersManagement from "../user-management/UsersManagement";
+import UserProfile from "../user-management/UserProfile";
 import DepartmentManagement from "../Setting/Departments/DepartmentManagement";
-import UserPermission from "../Setting/user-management/UserPermission";
+import UserPermission from "../user-management/UserPermission";
 import SubDepartment from "../Setting/Departments/SubDepartment";
 import ShowLevels from "../Setting/Levels/ShowLevels";
 import DepartmentDetails from "../Setting/Departments/DepartmentDetails";
 import SubdepartmentDetails from "../Setting/Departments/SubdepartmentDetails";
+import Header from "../common-components/sidebar/Header";
 
 const Dashboard = () => {
   const { hasPermission } = usePermissions();
@@ -79,9 +79,21 @@ const Dashboard = () => {
           <Route path="/student/:id/report" element={<StudentReport />} />
           <Route path="/student/:studentId/level-interviews" element={<StudentLevelInterviewHistory />} />
           <Route path="/student/:id/task-list" element={<TaskList />} />
+          <Route path="/level-wise-management" element={<LevelWiseStudentManagement />} />
           <Route path="/student-permission" element={<StudentPermission />} />
         </>
       )}
+      {/* Student & Faculty Routes - All roles
+      <Route path="/student-detail-table" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentDetailTable /></ProtectedRoute>} />
+      <Route path="/student/edit/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentEditPage /></ProtectedRoute>} />
+      <Route path="/student/leveldata/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentLevelData /></ProtectedRoute>} />
+      <Route path="/student-profile/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentProfile /></ProtectedRoute>} />
+      <Route path="/student/:id/report/edit" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentReportForm /></ProtectedRoute>} />
+      <Route path="/student/:id/report" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentReport /></ProtectedRoute>} />
+      <Route path="/student/:studentId/level-interviews" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentLevelInterviewHistory /></ProtectedRoute>} />
+      <Route path="/student/:id/task-list" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><TaskList /></ProtectedRoute>} />
+      <Route path="/level-wise-management" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><LevelWiseStudentManagement /></ProtectedRoute>} />
+      <Route path="/student-permission" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentPermission /></ProtectedRoute>} /> */}
       
       {hasPermission('Page_LevelWiseManagement') && (
         <Route path="/level-wise-management" element={<LevelWiseStudentManagement />} />

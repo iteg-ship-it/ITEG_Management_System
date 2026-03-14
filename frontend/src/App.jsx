@@ -55,11 +55,9 @@ function App() {
             path="/*"
             element={
               <ProtectedRoute>
-                <PermissionProvider>
-                  <div className="bg-white">
-                    <Layout />
-                  </div>
-                </PermissionProvider>
+                <div className="bg-white">
+                  <Layout />
+                </div>
               </ProtectedRoute>
             }
           />

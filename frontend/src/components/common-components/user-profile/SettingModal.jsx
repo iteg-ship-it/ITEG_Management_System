@@ -5,14 +5,17 @@ import { useUpdateUserMutation } from "../../../redux/api/authApi";
 import { toast } from "react-toastify";
 import profileImg from "../../../assets/images/profile-img.png";
 import FaceRegistration from "../../face-auth/FaceRegistration";
+import { X } from "lucide-react";
 
-const SettingsModal = ({ user, onClose }) => {
+const SettingsModal = ({ user, isOpen, onClose }) => {
+    const [isMounted, setIsMounted] = useState(false);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [formData, setFormData] = useState({
         name: user?.name || "",
         position: user?.position || "",
         role: user?.role || "",
         department: user?.department || "",
-        isActive: user?.isActive ?? true, // Keep boolean state intact
+        isActive: user?.isActive ?? true,
     });
     const [showFaceRegistration, setShowFaceRegistration] = useState(false);
     const [hasFaceRegistered, setHasFaceRegistered] = useState(false);
@@ -20,8 +23,15 @@ const SettingsModal = ({ user, onClose }) => {
     const [updateUser, { isLoading }] = useUpdateUserMutation();
 
     useEffect(() => {
-        checkFaceRegistration();
-    }, []);
+        if (isOpen) {
+            setIsMounted(true);
+            setTimeout(() => setIsDrawerOpen(true), 10);
+            checkFaceRegistration();
+        } else {
+            setIsDrawerOpen(false);
+            setTimeout(() => setIsMounted(false), 300);
+        }
+    }, [isOpen]);
 
     const checkFaceRegistration = async () => {
         try {
@@ -69,15 +79,31 @@ const SettingsModal = ({ user, onClose }) => {
         }
     };
 
+    if (!isMounted) return null;
+
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl overflow-hidden shadow-2xl w-11/12 max-w-md">
-                <div className="bg-[#FCD2AA] p-6 flex flex-col items-center relative">
+        <div className="fixed inset-0 z-50 flex justify-end">
+            {/* BACKDROP */}
+            <div
+                onClick={onClose}
+                className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
+                    isDrawerOpen ? "opacity-100" : "opacity-0"
+                }`}
+            />
+
+            {/* DRAWER PANEL */}
+            <div
+                className={`relative w-full max-w-md h-full bg-white shadow-xl flex flex-col transform transition-transform duration-300 ease-in-out ${
+                    isDrawerOpen ? "translate-x-0" : "translate-x-full"
+                }`}
+            >
+                {/* HEADER */}
+                <div className="bg-[#FCD2AA] p-6 flex flex-col items-center relative border-b">
                     <button
                         onClick={onClose}
-                        className="absolute top-4 right-4 text-gray-700 text-xl hover:text-black"
+                        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
                     >
-                        ✕
+                        <X size={20} />
                     </button>
                     <div className="relative">
                         <img
@@ -91,7 +117,8 @@ const SettingsModal = ({ user, onClose }) => {
                     <h2 className="font-bold text-lg mt-1">Edit Profile</h2>
                 </div>
 
-                <div className="px-8 py-6 bg-white">
+                {/* CONTENT (scrollable) */}
+                <div className="flex-1 overflow-y-auto px-6 py-6">
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="relative">
                             <input
@@ -170,15 +197,26 @@ const SettingsModal = ({ user, onClose }) => {
                                 </button>
                             </div>
                         </div>
+                    </form>
+                </div>
 
+                {/* FOOTER BUTTONS */}
+                <div className="px-6 py-5 border-t bg-white">
+                    <div className="flex gap-4">
                         <button
-                            type="submit"
+                            onClick={onClose}
+                            className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition shadow-sm"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSubmit}
                             disabled={isLoading}
-                            className="w-full mt-6 bg-[#FDA92D]  hover:bg-[#ED9A21] active:bg-[#B66816] text-white py-3 rounded-3xl font-medium focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
+                            className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#FDA92D] to-[#FDB84D] text-white font-semibold shadow-md hover:shadow-lg transition"
                         >
                             {isLoading ? "Saving..." : "Save"}
                         </button>
-                    </form>
+                    </div>
                 </div>
             </div>
             

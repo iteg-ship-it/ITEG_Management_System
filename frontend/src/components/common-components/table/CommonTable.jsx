@@ -83,7 +83,7 @@ const CommonTable = ({
 
   useEffect(() => {
     setGlobalFilter(searchTerm || undefined);
-  }, [searchTerm, setGlobalFilter]);
+  }, [searchTerm]);
 
   /* ========================================================= */
 

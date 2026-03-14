@@ -1,18 +1,16 @@
 import { useState, useRef } from "react";
 import { useAdmitedStudentsQuery, useUpdateStudentImageMutation, useGetAllCompaniesQuery } from "../../redux/api/authApi";
 import { pdf } from "@react-pdf/renderer";
-import PageNavbar from "../common-components/navbar/PageNavbar";
 import CreatePostModal from "./CreatePostModal";
 import CommonTable from "../common-components/table/CommonTable";
 import Loader from "../common-components/loader/Loader";
+import Header from "../common-components/sidebar/Header";
 import profile from "../../assets/images/profileImgDummy.jpeg";
 import iteg from "../../assets/images/logo.png";
 import ssism from "../../assets/images/iteg-logo.png";
-import Pagination from "../common-components/pagination/Pagination";
 import PlacementPostPDF from "./PlacementPostPDF";
 
 const PlacementPost = () => {
-  console.log("PlacementPost component loaded");
   const [isCreatePostModalOpen, setCreatePostModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [viewMode, setViewMode] = useState('grid');
@@ -23,32 +21,24 @@ const PlacementPost = () => {
   const [updateStudentImage] = useUpdateStudentImageMutation();
   const fileInputRef = useRef(null);
   
-  // Get admitted students data from API with refetch function
   const { data: admittedStudents, isLoading, error, refetch } = useAdmitedStudentsQuery();
-  
-  // Get all companies data (optional)
   const { data: companiesData } = useGetAllCompaniesQuery(undefined, {
-    skip: false, // Always try to fetch
-    refetchOnMountOrArgChange: false, // Don't refetch on every mount
+    skip: false,
+    refetchOnMountOrArgChange: false,
   });
 
-  // Helper function to capitalize first letter
   const toTitleCase = (str) => {
     return str?.toLowerCase().split(' ').map(word =>
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join(' ');
   };
 
-  // Smart capitalization for company names
   const smartCapitalize = (str) => {
     if (!str) return str;
-    // If all uppercase, keep as is
     if (str === str.toUpperCase()) return str;
-    // Otherwise, capitalize first letter only
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   };
 
-  // Get company details by company name
   const getCompanyDetails = (companyName) => {
     try {
       if (!companiesData || !Array.isArray(companiesData) || !companyName) return null;
@@ -61,48 +51,17 @@ const PlacementPost = () => {
     }
   };
 
-
-
-  // Filter only placed students (those with placedInfo)
   const allPlacedStudents = admittedStudents?.filter(student => student.placedInfo !== null) || [];
 
-  // Dynamic filter options
-  const dynamicTrackOptions = [...new Set(allPlacedStudents.map(s => toTitleCase(s.track || "")))].filter(Boolean);
-  const dynamicSubjectOptions = [...new Set(allPlacedStudents.map(s => toTitleCase(s.course || "")))].filter(Boolean);
-
-  // Filter configuration for Pagination
-  const filtersConfig = [
-    {
-      title: "Track",
-      options: dynamicTrackOptions,
-      selected: selectedTracks,
-      setter: setSelectedTracks,
-    },
-    {
-      title: "Subject",
-      options: dynamicSubjectOptions,
-      selected: selectedSubjects,
-      setter: setSelectedSubjects,
-    },
-  ];
-
-  // Apply filters to get final data
   const placedStudents = allPlacedStudents.filter((student) => {
-    const track = toTitleCase(student.track || "");
-    const subject = toTitleCase(student.course || "");
-
-    const trackMatch = selectedTracks.length === 0 || selectedTracks.includes(track);
-    const subjectMatch = selectedSubjects.length === 0 || selectedSubjects.includes(subject);
-
     const searchMatch = searchTerm.trim() === "" ||
       `${student.firstName} ${student.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.placedInfo?.companyName?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    return trackMatch && subjectMatch && searchMatch;
+    return searchMatch;
   });
 
-  // Image upload function
   const handleImageUpload = async (event, student) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -128,7 +87,6 @@ const PlacementPost = () => {
           image: base64Image
         }).unwrap();
         
-        // Refetch data to update UI immediately
         refetch();
       } catch (error) {
         const errorMessage = error?.data?.message || error?.message || 'Unknown error';
@@ -151,59 +109,37 @@ const PlacementPost = () => {
     fileInputRef.current.onchange = (e) => handleImageUpload(e, student);
   };
 
-  // Download post function using react-pdf-renderer
   const downloadPost = async (student) => {
     try {
-      console.log('Starting download for student:', student.firstName, student.lastName);
-      
-      // Generate PDF blob
       const blob = await pdf(<PlacementPostPDF student={student} />).toBlob();
-      console.log('PDF blob generated successfully');
-      
-      // Create download link
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
       link.download = `${student.firstName}_${student.lastName}_placement_post.pdf`;
-      
-      // Append to body, click, and remove
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
-      // Clean up
       URL.revokeObjectURL(link.href);
-      console.log('Download completed successfully');
     } catch (error) {
       console.error('Error downloading post:', error);
       alert('Failed to download post. Please try again.');
     }
   };
 
-  // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <PageNavbar
-          title="Placement Post"
-          subtitle="Loading..."
-          showBackButton={false}
-        />
+      <>
+        <Header title="Placement Post" />
         <div className="flex justify-center items-center h-96">
           <Loader />
         </div>
-      </div>
+      </>
     );
   }
 
-  // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <PageNavbar
-          title="Placement Post"
-          subtitle="Error occurred"
-          showBackButton={false}
-        />
+      <>
+        <Header title="Placement Post" />
         <div className="flex justify-center items-center h-96">
           <div className="text-center bg-white p-6 sm:p-8 rounded-2xl shadow-lg mx-4">
             <div className="text-4xl sm:text-6xl mb-4">❌</div>
@@ -211,62 +147,42 @@ const PlacementPost = () => {
             <p className="text-sm sm:text-base text-gray-600">Please try refreshing the page</p>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen pb-7">
-      {/* Header */}
-      <PageNavbar
-        title="Placement Post"
-        subtitle="Placed students post and details"
-        showBackButton={false}
-        rightContent={
-          <div className="bg-gray-100 p-1 rounded-lg">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`px-2 py-2 rounded-md transition-colors ${viewMode === 'grid'
-                ? 'bg-orange-600 text-white'
-                : 'text-gray-600 hover:text-gray-800'
-                }`}
-            >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-              </svg>
-            </button>
-            <button
-              onClick={() => setViewMode('table')}
-              className={`px-2 py-2 rounded-md transition-colors ${viewMode === 'table'
-                ? 'bg-orange-600 text-white'
-                : 'text-gray-600 hover:text-gray-800'
-                }`}
-            >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" clipRule="evenodd" />
-              </svg>
-            </button>
-          </div>
-        }
-      />
-
-      <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg pb-5">
-        {/* Pagination Controls - Show in both modes */}
-        <div className="px-6">
-          <Pagination
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            filtersConfig={filtersConfig}
-            allData={allPlacedStudents}
-            selectedRows={[]}
-            sectionName="placement-posts"
-          />
+    <>
+      <Header title="Placement Post">
+        <div className="bg-gray-100 p-1 rounded-lg flex">
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`px-2 py-2 rounded-md transition-colors ${viewMode === 'grid'
+              ? 'bg-orange-600 text-white'
+              : 'text-gray-600 hover:text-gray-800'
+              }`}
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+          </button>
+          <button
+            onClick={() => setViewMode('table')}
+            className={`px-2 py-2 rounded-md transition-colors ${viewMode === 'table'
+              ? 'bg-orange-600 text-white'
+              : 'text-gray-600 hover:text-gray-800'
+              }`}
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" clipRule="evenodd" />
+            </svg>
+          </button>
         </div>
-
-        {/* Empty state when no placed students */}
+      </Header>
+      <div className="min-h-screen pb-7 p-5">
         {placedStudents.length === 0 ? (
           <div className="flex justify-center items-center min-h-96">
-            <div className="text-center py-12 sm:py-16 px-4 sm:px-8 bg-white rounded-2xl shadow-lg max-w-md mx-auto">
+            <div className="text-center sm:py-16  sm:px-8 bg-white rounded-2xl shadow-lg max-w-md mx-auto">
               <div className="text-4xl sm:text-6xl mb-4">🎓</div>
               <h3 className="text-lg sm:text-2xl font-semibold text-gray-600 mb-2">
                 No Placement Stories Yet
@@ -277,7 +193,6 @@ const PlacementPost = () => {
             </div>
           </div>
         ) : viewMode === 'table' ? (
-          /* Table View */
           <CommonTable
             columns={[
               {
@@ -372,19 +287,12 @@ const PlacementPost = () => {
             rowsPerPage={10}
           />
         ) : (
-          /* Cards Grid - Fully Responsive */
           <div className="mt-8 px-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {placedStudents.map((student, index) => (
                 <div
                   key={student._id || index}
-                  data-student-id={student._id}
-                  className="bg-cover bg-center bg-no-repeat rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 aspect-square flex flex-col items-center justify-between p-4 relative"
-                // style={{
-                //   backgroundImage: `url(${placementTemplate})`,
-                //   backgroundSize: 'cover',
-                //   backgroundPosition: 'center'
-                // }}
+                  className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 aspect-square flex flex-col items-center justify-between p-4 relative"
                 >
                   <div className="w-full text-center">
                     <div className="flex justify-between items-center mb-1">
@@ -400,7 +308,7 @@ const PlacementPost = () => {
                         <div className="rounded-full p-1 bg-orange-500">
                           <div className="rounded-full p-1 bg-white">
                             <img
-                              src={student.image || student.profileImage || "https://via.placeholder.com/150x150/e2e8f0/64748b?text=Student"}
+                              src={student.image || profile}
                               alt={`${student.firstName} ${student.lastName}`}
                               className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover shadow-md"
                             />
@@ -434,44 +342,11 @@ const PlacementPost = () => {
                         {toTitleCase(student.placedInfo?.jobProfile) || "Position"}
                       </span> in</p>
                       <div className="flex items-center justify-center gap-2">
-                        {(() => {
-                          try {
-                            const companyInfo = getCompanyDetails(student.placedInfo?.companyName);
-                            const logoSrc = student.placedInfo?.companyLogo || companyInfo?.companyLogo;
-                            
-                            return (
-                              <>
-                                {logoSrc && (
-                                  <img
-                                    src={logoSrc}
-                                    alt="Company Logo"
-                                    className="w-6 h-6 object-contain"
-                                    onError={(e) => { e.target.style.display = 'none'; }}
-                                  />
-                                )}
-                                <div className="text-center">
-                                  <p className="text-sm font-bold text-[#133783]">
-                                    {smartCapitalize(student.placedInfo?.companyName) || "Company"}
-                                  </p>
-                                  {(student.placedInfo?.location || companyInfo?.location) && (
-                                    <p className="text-xs text-gray-600">
-                                      {student.placedInfo?.location || companyInfo?.location}
-                                    </p>
-                                  )}
-                                </div>
-                              </>
-                            );
-                          } catch (error) {
-                            console.warn('Error rendering company info:', error);
-                            return (
-                              <div className="text-center">
-                                <p className="text-sm font-bold text-[#133783]">
-                                  {smartCapitalize(student.placedInfo?.companyName) || "Company"}
-                                </p>
-                              </div>
-                            );
-                          }
-                        })()}
+                        <div className="text-center">
+                          <p className="text-sm font-bold text-[#133783]">
+                            {smartCapitalize(student.placedInfo?.companyName) || "Company"}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -512,7 +387,6 @@ const PlacementPost = () => {
         )}
       </div>
 
-      {/* Hidden file input for image upload */}
       <input
         ref={fileInputRef}
         type="file"
@@ -520,20 +394,17 @@ const PlacementPost = () => {
         className="hidden"
       />
 
-      {/* Create Post Modal */}
       <CreatePostModal
         isOpen={isCreatePostModalOpen}
         onClose={() => setCreatePostModalOpen(false)}
         student={selectedStudent}
         isUpdateMode={true}
         onSuccess={() => {
-          // Refresh data or show success message
           console.log('Post updated successfully');
         }}
       />
-
-    </div >
+    </>
   );
 };
 
-export default PlacementPost;  
+export default PlacementPost;
