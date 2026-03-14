@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
-import { useGetAllUsersQuery, useCreateRoleMutation, useGetAllRolesQuery, useDeleteUserMutation, useEditUserMutation } from '../../../redux/api/authApi';
+import { useGetAllUsersQuery, useCreateRoleMutation, useGetAllRolesQuery, useDeleteUserMutation, useEditUserMutation } from './../../redux/api/authApi';
 import { FaUserShield, FaUser, FaChalkboardTeacher, FaCrown, FaBriefcase, FaPlus, FaEdit, FaTrash, FaEye } from 'react-icons/fa';
-import Loader from '../../common-components/loader/Loader';
-import { buttonStyles } from '../../../styles/buttonStyles';
-import InputField from '../../common-components/common-feild/InputField';
-import CustomDropdown from '../../common-components/common-feild/CustomDropdown';
+import Loader from './../common-components/loader/Loader';
+import { buttonStyles } from './../../styles/buttonStyles';
+import InputField from './../common-components/common-feild/InputField';
 import { Formik, Form } from 'formik';
 import { X, ArrowLeft } from 'lucide-react';
 import { toast } from 'react-toastify';
-import CommonTable from '../../common-components/table/CommonTable';
-import Pagination from '../../common-components/pagination/Pagination';
-import profile from '../../../assets/images/profile-img.png';
+import CommonTable from './../common-components/table/CommonTable';
+import Pagination from './../common-components/pagination/Pagination';
+import profile from './../../assets/images/profile-img.png';
 import { useNavigate } from 'react-router-dom';
 import GlobalPermissionMatrix from './GlobalPermissionMatrix';
 

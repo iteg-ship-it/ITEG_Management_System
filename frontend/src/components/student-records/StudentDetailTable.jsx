@@ -110,33 +110,17 @@ const StudentDetailTable = () => {
   ];
 
   // Use regular admitted students data
-  const currentData = data;
-  const currentLoading = isLoading;
-
-  const enhancedData = currentData.map((student) => {
-    // Get all level attempts grouped by levelNo
+  const enhancedData = useMemo(() => data.map((student) => {
     const levelAttempts = {};
     (student.level || []).forEach(lvl => {
-      if (!levelAttempts[lvl.levelNo]) {
-        levelAttempts[lvl.levelNo] = [];
-      }
+      if (!levelAttempts[lvl.levelNo]) levelAttempts[lvl.levelNo] = [];
       levelAttempts[lvl.levelNo].push(lvl);
     });
-
-    // Check if the student has passed their current level
     const currentLevel = student.currentLevel || "1A";
     const currentLevelAttempts = levelAttempts[currentLevel] || [];
-
-    // Check if any attempt for the current level has a Pass result
     const hasPassedCurrentLevel = currentLevelAttempts.some(lvl => lvl.result === "Pass");
-
-    return {
-      ...student,
-      latestLevel: currentLevel,
-      hasPassedCurrentLevel,
-      levelAttempts
-    };
-  });
+    return { ...student, latestLevel: currentLevel, hasPassedCurrentLevel, levelAttempts };
+  }), [data]);
 
   const filteredData = useMemo(() => {
     return enhancedData.filter((student) => {
@@ -272,7 +256,7 @@ const StudentDetailTable = () => {
   );
 
   // Show loader when data is loading
-  if (currentLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <Loader />

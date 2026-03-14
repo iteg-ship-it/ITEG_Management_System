@@ -25,7 +25,6 @@ import PlacedStudents from "../placement/PlacedStudents";
 import InterviewHistory from "../placement/InterviewHistory";
 import InterviewRoundsHistory from "../placement/InterviewRoundsHistory";
 import PageNotFound from "../common-components/error-pages/PageNotFound";
-import ProtectedRoute from '../common-components/protected-route/ProtectedRoute';
 import AttendanceDetails from "./AttendanceDetails";
 import UsersManagement from "../user-management/UsersManagement";
 import UserProfile from "../user-management/UserProfile";

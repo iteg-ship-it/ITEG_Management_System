@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useGetAllPossiblePermissionsQuery, useGetUserPermissionsQuery, useUpdateUserPermissionsMutation } from '../../../redux/api/authApi';
+import { useGetAllPossiblePermissionsQuery, useGetUserPermissionsQuery, useUpdateUserPermissionsMutation } from './../../redux/api/authApi';
 import { ArrowLeft, Save } from 'lucide-react';
-import Loader from '../../common-components/loader/Loader';
+import Loader from './../common-components/loader/Loader';
 import { toast } from 'react-toastify';
 
 const GlobalPermissionMatrix = ({ user, onBack }) => {
