@@ -29,13 +29,15 @@ const StudentDetailTable = () => {
 
   // Update active tab when selectedLevel changes
   useEffect(() => {
+    let newTab;
     if (selectedLevel === "cleared") {
-      setActiveTab("Level's Cleared");
+      newTab = "Level's Cleared";
     } else if (selectedLevel === "total") {
-      setActiveTab("Total Students");
+      newTab = "Total Students";
     } else {
-      setActiveTab(`Level ${selectedLevel}`);
+      newTab = `Level ${selectedLevel}`;
     }
+    if (newTab !== activeTab) setActiveTab(newTab);
   }, [selectedLevel]);
 
   const toTitleCase = (str) =>
@@ -184,15 +186,15 @@ const StudentDetailTable = () => {
   }, [enhancedData, selectedTracks, selectedCourses, selectedAttempts, activeTab, selectedLevel]);
 
   const handleTabClick = (tab) => {
+    if (tab === activeTab) return;
     setActiveTab(tab);
     if (tab === "Total Students") {
-      navigate(`/student-detail-table`, { state: { level: "total" } });
+      navigate(`/student-detail-table`, { state: { level: "total" }, replace: true });
     } else if (tab === "Level's Cleared") {
-      navigate(`/student-detail-table`, { state: { level: "cleared" } });
+      navigate(`/student-detail-table`, { state: { level: "cleared" }, replace: true });
     } else {
-      // Extract level code from tab name (e.g., "Level 1A" -> "1A")
       const levelCode = tab.replace("Level ", "");
-      navigate(`/student-detail-table`, { state: { level: levelCode } });
+      navigate(`/student-detail-table`, { state: { level: levelCode }, replace: true });
     }
   };
 
