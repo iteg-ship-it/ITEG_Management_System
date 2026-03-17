@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { IoSettingsSharp } from "react-icons/io5";
+import { MdSupportAgent } from "react-icons/md";
 import { FaClipboardList , FaUserGroup} from "react-icons/fa6";
 import { MdWork, MdDashboard } from "react-icons/md";
 import { RiTv2Fill } from "react-icons/ri";
@@ -31,6 +32,7 @@ const Sidebar = ({ children }) => {
     if (path === "/" || path === "/attendance-details") return [0];
     if (path === "/admission-process" || path.startsWith("/admission/")) return [1];
     if (path === "/student-detail-table" || path === "/student-permission" || path.startsWith("/student-profile/") || path === "/department-management" || path.startsWith("/department-details/") || path === "/subdepartment-details" || path === "/task-management") return [2];
+    if (path === "/settings" || path === "/support") return [];
     if (path === "/readiness-status" || path === "/company-details" || path === "/placement-post" || path.startsWith("/interview-history/") || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/")) return [3];
     if (path === "/user-management" || path.startsWith("/user-profile/") || path === "/user-permission") return [4];
     return [0];
@@ -124,8 +126,9 @@ const Sidebar = ({ children }) => {
       permission: "Page_AdmittedStudents",
       subMenu: [
         { name: "Student Progress", path: "/student-detail-table", permission: "Page_AdmittedStudents" },
-        { name: "Level-wise Management", path: "/level-wise-management", permission: "Page_LevelWiseManagement" },
+
         { name: "Dummy Students", path: "/student-permission", permission: "Page_DummyStudents" },
+        { name: "Department", path: "/department-management", permission: "Page_Department" },
       ],
     },
     {
@@ -148,18 +151,9 @@ const Sidebar = ({ children }) => {
     },
   ];
 
-  const systemMenuItems = [
-    {
-      name: "Settings",
-      icon: <IoSettingsSharp />,
-      permission: "Page_Settings",
-      subMenu: [
-        { name: "Department Management", path: "/department-management", permission: "Page_Department" },
-        { name: "Subdepartments", path: "/subdepartments", permission: "Page_SubDepartment" },
-        { name: "Levels", path: "/levels", permission: "Page_Level" },
-        { name: "User Permission", path: "/user-permission", permission: "Page_GlobalPermissionMatrix" },
-      ],
-    },
+  const systemDirectLinks = [
+    { name: "Settings", path: "/settings", icon: <IoSettingsSharp />, permission: "Page_Settings" },
+    { name: "Support", path: "/support", icon: <MdSupportAgent />, permission: "Page_Support" },
   ];
 
   const filteredMenuItems = menuItems.filter(item => hasPermission(item.permission, 'read'));
@@ -246,50 +240,21 @@ const Sidebar = ({ children }) => {
               })}
 
               <p className="text-xs text-gray-400 px-3 mt-4 mb-2">SYSTEM</p>
-              {systemMenuItems.map((item, idx) => {
-                const filteredSystemSub = anyPermissionsLoaded
-                  ? item.subMenu.filter(subItem => hasPermission(subItem.permission, 'read'))
-                  : item.subMenu;
-                if (filteredSystemSub.length === 0) return null;
-                const sysIdx = menuItems.length + idx;
-                const isActive = openMenus.includes(sysIdx);
+              {systemDirectLinks.map((item, idx) => {
+                const active = location.pathname === item.path;
                 return (
-                  <div key={idx} className="mb-1">
-                    <div
-                      onClick={() => toggleMenu(sysIdx)}
-                      className={`flex items-center justify-between px-2 py-2.5 rounded-lg cursor-pointer transition ${
-                        isActive
-                          ? "bg-orange-100 text-orange-400 font-semibold"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 text-[15px]">
-                        {item.icon}
-                        {item.name}
-                      </div>
-                      {isActive ? <HiChevronUp size={16} /> : <HiChevronDown size={16} />}
-                    </div>
-                    {isActive && (
-                      <div className="mt-1">
-                        {filteredSystemSub.map((sub, i) => {
-                          const active = isSubMenuActive(sub.path);
-                          return (
-                            <Link
-                              key={i}
-                              to={sub.path}
-                              className={`block ml-6 px-2 py-2 text-sm transition border-l-2 ${
-                                active
-                                  ? "bg-orange-50 text-orange-400 font-medium border-orange-500"
-                                  : "text-gray-600 hover:bg-gray-100 border-gray-300"
-                              }`}
-                            >
-                              {sub.name}
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
+                  <Link
+                    key={idx}
+                    to={item.path}
+                    className={`flex items-center gap-3 px-2 py-2.5 rounded-lg text-[15px] transition mb-1 ${
+                      active
+                        ? "bg-orange-100 text-orange-400 font-semibold"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {item.icon}
+                    {item.name}
+                  </Link>
                 );
               })}
             </nav>
