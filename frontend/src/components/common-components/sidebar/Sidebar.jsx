@@ -30,7 +30,7 @@ const Sidebar = ({ children }) => {
   const getActiveMenus = (path) => {
     if (path === "/" || path === "/attendance-details") return [0];
     if (path === "/admission-process" || path.startsWith("/admission/")) return [1];
-    if (path === "/student-dashboard" || path === "/student-detail-table" || path === "/student-permission" || path.startsWith("/student-profile/") || path === "/department-management" || path.startsWith("/department-details/") || path === "/subdepartment-details" || path === "/task-management") return [2];
+    if (path === "/student-detail-table" || path === "/student-permission" || path.startsWith("/student-profile/") || path === "/department-management" || path.startsWith("/department-details/") || path === "/subdepartment-details" || path === "/task-management") return [2];
     if (path === "/readiness-status" || path === "/company-details" || path === "/placement-post" || path.startsWith("/interview-history/") || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/")) return [3];
     if (path === "/user-management" || path.startsWith("/user-profile/") || path === "/user-permission") return [4];
     return [0];
@@ -64,9 +64,8 @@ const Sidebar = ({ children }) => {
       );
     }
 
-    if (subPath === "/student-dashboard") {
+    if (subPath === "/student-detail-table") {
       return (
-        path === "/student-dashboard" ||
         path === "/student-detail-table" ||
         path.startsWith("/student-profile/")
       );
@@ -124,7 +123,7 @@ const Sidebar = ({ children }) => {
       icon: <FaClipboardList />,
       permission: "Page_AdmittedStudents",
       subMenu: [
-        { name: "Student Progress", path: "/student-dashboard", permission: "Page_AdmittedStudents" },
+        { name: "Student Progress", path: "/student-detail-table", permission: "Page_AdmittedStudents" },
         { name: "Level-wise Management", path: "/level-wise-management", permission: "Page_LevelWiseManagement" },
         { name: "Dummy Students", path: "/student-permission", permission: "Page_DummyStudents" },
       ],
