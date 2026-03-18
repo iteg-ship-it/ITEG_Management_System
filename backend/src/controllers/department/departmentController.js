@@ -3,23 +3,30 @@ const Department = require("../../models/Department");
 // Add Department
 exports.addDepartment = async (req, res) => {
   try {
-    const { departmentName, departmentCode, headOfDepartment, description, status } = req.body;
+    const { name, code, headOfDepartment, description, universityName, allowedCourses, reportConfig, isActive } = req.body;
 
-    if (!departmentName || !departmentCode) {
+    if (!name || !code) {
       return res.status(400).json({ message: "Department name and code are required" });
     }
 
-    const existingDepartment = await Department.findOne({ departmentCode });
+    if (!universityName) {
+      return res.status(400).json({ message: "University name is required" });
+    }
+
+    const existingDepartment = await Department.findOne({ code });
     if (existingDepartment) {
       return res.status(400).json({ message: "Department code already exists" });
     }
 
     const department = new Department({
-      departmentName,
-      departmentCode,
+      name,
+      code,
       headOfDepartment,
       description,
-      status: status !== undefined ? status : true
+      universityName,
+      allowedCourses,
+      reportConfig,
+      isActive: isActive !== undefined ? isActive : true
     });
 
     await department.save();
@@ -49,11 +56,19 @@ exports.getAllDepartments = async (req, res) => {
 exports.updateDepartment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { departmentName, departmentCode, headOfDepartment, description, status } = req.body;
+    const { name, code, headOfDepartment, description, universityName, allowedCourses, reportConfig, isActive } = req.body;
+
+    // Check if code is being changed and if it already exists
+    if (code) {
+      const existingDepartment = await Department.findOne({ code, _id: { $ne: id } });
+      if (existingDepartment) {
+        return res.status(400).json({ message: "Department code already exists" });
+      }
+    }
 
     const department = await Department.findByIdAndUpdate(
       id,
-      { departmentName, departmentCode, headOfDepartment, description, status },
+      { name, code, headOfDepartment, description, universityName, allowedCourses, reportConfig, isActive },
       { new: true, runValidators: true }
     );
 
