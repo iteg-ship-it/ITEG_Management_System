@@ -62,7 +62,20 @@ exports.createDepartment = async (req, res) => {
       });
     }
 
-    const department = await Department.create(req.body);
+    // Handle logo upload if file is provided
+    let logoUrl = null;
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "department_logos",
+        resource_type: "image"
+      });
+      logoUrl = result.secure_url;
+    }
+
+    const departmentData = { ...req.body };
+    if (logoUrl) departmentData.logo = logoUrl;
+
+    const department = await Department.create(departmentData);
     res.status(201).json({
       success: true,
       message: "Department created successfully",
@@ -83,7 +96,6 @@ exports.createDepartment = async (req, res) => {
     });
   }
 };
-
 // Get All Departments
 exports.getAllDepartments = async (req, res) => {
   try {
