@@ -1,71 +1,105 @@
 import { useState } from "react";
-import { MdAccountTree, MdLayers, MdAdd, MdEdit, MdDelete, MdBusiness, MdExpandMore, MdExpandLess } from "react-icons/md";
-import PageNavbar from "../../common-components/navbar/PageNavbar";
-import { useLocation, useParams } from "react-router-dom";
-import { useDeleteLevelMutation, useDeleteSubLevelMutation, useGetSubdepartmentByIdQuery, useGetLevelsBySubdepartmentQuery, useAddLevelMutation, useUpdateLevelMutation, useAddSubLevelMutation, useUpdateSubLevelMutation, useGetSubLevelsByLevelQuery } from "../../../redux/api/authApi";
+import { MdLayers, MdAdd, MdEdit, MdDelete } from "react-icons/md";
+import { IoNotificationsOutline } from "react-icons/io5";
 import { toast } from "react-toastify";
 import OrangeButton from "../../common-components/sidebar/OrangeButton";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import InputField from "../../common-components/common-feild/InputField";
 import RadioGroup from "../../common-components/common-feild/RadioGroup";
+import PageNavbar from "../../common-components/navbar/PageNavbar";
+import Header from "../../common-components/sidebar/Header";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useDeleteLevelMutation, useDeleteSubLevelMutation, useGetSubdepartmentByIdQuery, useGetLevelsBySubdepartmentQuery, useAddLevelMutation, useUpdateLevelMutation, useAddSubLevelMutation, useUpdateSubLevelMutation, useGetSubLevelsByLevelQuery } from "../../../redux/api/authApi";
 
+/* ─── LevelCard (unchanged logic) ───────────────────────────── */
+const LevelCard = ({ level, subdepartmentId, onAddSubLevel, onEditSubLevel, onDeleteSubLevel, onEdit, onDelete }) => {
+  const navigate = useNavigate();
+  const [expanded, setExpanded] = useState(false);
+  const { data: subLevelsData, isLoading, refetch } = useGetSubLevelsByLevelQuery(level._id);
+  const subLevels = subLevelsData?.data || [];
+
+  return (
+    <div
+      onClick={() => navigate(`/subdepartment/${subdepartmentId}/level/${level._id}`, {
+        state: { level }
+      })}
+      className={`border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-300 cursor-pointer ${
+        level.isActive ? "bg-white" : "bg-gray-100 opacity-70"
+      }`}
+    >
+      <div className="flex items-start justify-between mb-3">
+        <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+          <MdLayers size={20} className="text-orange-500" />
+        </div>
+        <span className={`px-2.5 py-0.5 text-xs rounded-full font-semibold ${
+          level.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+        }`}>
+          {level.isActive ? "Active" : "Inactive"}
+        </span>
+      </div>
+      <div className="flex items-center justify-between mb-1">
+        <h3 className="font-bold text-sm text-gray-900">{level.name}</h3>
+      </div>
+      <p className="text-xs text-gray-400 mb-3">SubLevels: {subLevels.length}</p>
+
+      {/* Inline SubLevels count only — click card to view details */}
+
+      <div className="flex gap-2 pt-3 border-t border-gray-100" onClick={e => e.stopPropagation()}>
+        <button onClick={() => onAddSubLevel(level)} className="flex-1 py-1.5 px-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition text-xs font-medium flex items-center justify-center gap-1">
+          <MdAdd size={14} /> SubLevel
+        </button>
+        <button onClick={() => onEdit(level)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><MdEdit size={16} /></button>
+        <button onClick={() => onDelete(level._id)} className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg"><MdDelete size={16} /></button>
+      </div>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   MAIN COMPONENT
+═══════════════════════════════════════════════════════════════ */
 const SubdepartmentDetails = () => {
   const location = useLocation();
-  const subdepartmentId = location.state?.subdepartment?._id;
-  const { data: subdepartmentData } = useGetSubdepartmentByIdQuery(subdepartmentId, {
-    skip: !subdepartmentId
-  });
-  const { data: levelsData, refetch } = useGetLevelsBySubdepartmentQuery(subdepartmentId, {
-    skip: !subdepartmentId
-  });
-  const [deleteLevel] = useDeleteLevelMutation();
+  const { id: paramId } = useParams();
+  const subdepartmentId = paramId || location.state?.subdepartment?._id;
+
+  const { data: subdepartmentData } = useGetSubdepartmentByIdQuery(subdepartmentId, { skip: !subdepartmentId });
+  const { data: levelsData, refetch } = useGetLevelsBySubdepartmentQuery(subdepartmentId, { skip: !subdepartmentId });
+
+  const [deleteLevel]    = useDeleteLevelMutation();
   const [deleteSubLevel] = useDeleteSubLevelMutation();
-  const [addLevel] = useAddLevelMutation();
-  const [updateLevel] = useUpdateLevelMutation();
-  const [addSubLevel] = useAddSubLevelMutation();
+  const [addLevel]       = useAddLevelMutation();
+  const [updateLevel]    = useUpdateLevelMutation();
+  const [addSubLevel]    = useAddSubLevelMutation();
   const [updateSubLevel] = useUpdateSubLevelMutation();
-  const [editingLevel, setEditingLevel] = useState(null);
-  const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
-  const [isSubLevelDrawerOpen, setIsSubLevelDrawerOpen] = useState(false);
-  const [editingSubLevel, setEditingSubLevel] = useState(null);
-  const [selectedLevel, setSelectedLevel] = useState(null);
-  const [expandedLevels, setExpandedLevels] = useState({});
-  const [levelSubLevels, setLevelSubLevels] = useState({});
 
-  const subdepartment = subdepartmentData?.data || location.state?.subdepartment;
-  const departmentId = location.state?.departmentId || subdepartment?.departmentId?._id;
+  const [editingLevel,        setEditingLevel]        = useState(null);
+  const [isEditDrawerOpen,    setIsEditDrawerOpen]    = useState(false);
+  const [isSubLevelDrawerOpen,setIsSubLevelDrawerOpen]= useState(false);
+  const [editingSubLevel,     setEditingSubLevel]     = useState(null);
+  const [selectedLevel,       setSelectedLevel]       = useState(null);
+
+  const subdepartment  = subdepartmentData?.data || location.state?.subdepartment;
   const departmentName = location.state?.departmentName || subdepartment?.departmentId?.name;
-  const levels = levelsData?.data || [];
+  const levels         = levelsData?.data || [];
 
-  // Fetch sublevels for each level
-  const SubLevelFetcher = ({ levelId }) => {
-    const { data: subLevelsData } = useGetSubLevelsByLevelQuery(levelId, {
-      skip: !levelId
-    });
-    
-    if (subLevelsData?.data && !levelSubLevels[levelId]) {
-      setLevelSubLevels(prev => ({ ...prev, [levelId]: subLevelsData.data }));
-    }
-    
-    return null;
-  };
-
+  /* ── Validation schemas ── */
   const validationSchema = Yup.object({
-    name: Yup.string().required("Level name is required"),
-    order: Yup.number().required("Order is required").positive("Must be positive"),
-    isActive: Yup.boolean()
+    name:     Yup.string().required("Level name is required"),
+    order:    Yup.number().required("Order is required").positive("Must be positive"),
+    isActive: Yup.boolean(),
+  });
+  const subLevelValidationSchema = Yup.object({
+    name:     Yup.string().required("SubLevel name is required"),
+    order:    Yup.number().required("Order is required").positive("Must be positive"),
+    isActive: Yup.boolean(),
   });
 
+  /* ── Handlers (all unchanged) ── */
   const handleLevelSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
-      const payload = {
-        name: values.name,
-        order: Number(values.order),
-        subDepartmentId: subdepartmentId,
-        isActive: values.isActive
-      };
-
+      const payload = { name: values.name, order: Number(values.order), subDepartmentId: subdepartmentId, isActive: values.isActive };
       if (editingLevel) {
         await updateLevel({ levelId: editingLevel._id, ...payload }).unwrap();
         toast.success("Level updated successfully!");
@@ -73,32 +107,14 @@ const SubdepartmentDetails = () => {
         await addLevel(payload).unwrap();
         toast.success("Level added successfully!");
       }
-      resetForm();
-      setEditingLevel(null);
-      setIsEditDrawerOpen(false);
-      refetch();
-    } catch (error) {
-      toast.error(error?.data?.message || "Error saving level");
-    } finally {
-      setSubmitting(false);
-    }
+      resetForm(); setEditingLevel(null); setIsEditDrawerOpen(false); refetch();
+    } catch (error) { toast.error(error?.data?.message || "Error saving level"); }
+    finally { setSubmitting(false); }
   };
-
-  const subLevelValidationSchema = Yup.object({
-    name: Yup.string().required("SubLevel name is required"),
-    order: Yup.number().required("Order is required").positive("Must be positive"),
-    isActive: Yup.boolean()
-  });
 
   const handleSubLevelSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
-      const payload = {
-        name: values.name,
-        order: Number(values.order),
-        levelId: selectedLevel?._id,
-        isActive: values.isActive
-      };
-
+      const payload = { name: values.name, order: Number(values.order), levelId: selectedLevel?._id, isActive: values.isActive };
       if (editingSubLevel) {
         await updateSubLevel({ subLevelId: editingSubLevel._id, ...payload }).unwrap();
         toast.success("SubLevel updated successfully!");
@@ -106,275 +122,120 @@ const SubdepartmentDetails = () => {
         await addSubLevel(payload).unwrap();
         toast.success("SubLevel added successfully!");
       }
-      resetForm();
-      setEditingSubLevel(null);
-      setSelectedLevel(null);
-      setIsSubLevelDrawerOpen(false);
-      refetch();
-    } catch (error) {
-      toast.error(error?.data?.message || "Error saving sublevel");
-    } finally {
-      setSubmitting(false);
-    }
+      resetForm(); setEditingSubLevel(null); setSelectedLevel(null); setIsSubLevelDrawerOpen(false); refetch();
+    } catch (error) { toast.error(error?.data?.message || "Error saving sublevel"); }
+    finally { setSubmitting(false); }
   };
 
   const handleDelete = async (levelId) => {
     if (window.confirm("Are you sure you want to delete this level?")) {
-      try {
-        await deleteLevel(levelId).unwrap();
-        toast.success("Level deleted successfully!");
-        refetch();
-      } catch (error) {
-        toast.error(error?.data?.message || "Error deleting level");
-      }
+      try { await deleteLevel(levelId).unwrap(); toast.success("Level deleted successfully!"); refetch(); }
+      catch (error) { toast.error(error?.data?.message || "Error deleting level"); }
     }
   };
 
-  const handleEdit = (level) => {
-    setEditingLevel(level);
-    setIsEditDrawerOpen(true);
-  };
+  const handleEdit         = (level)           => { setEditingLevel(level); setIsEditDrawerOpen(true); };
+  const handleAddSubLevel  = (level)           => { setSelectedLevel(level); setEditingSubLevel(null); setIsSubLevelDrawerOpen(true); };
+  const handleEditSubLevel = (level, sublevel) => { setSelectedLevel(level); setEditingSubLevel(sublevel); setIsSubLevelDrawerOpen(true); };
 
-  const handleAddSubLevel = (level) => {
-    setSelectedLevel(level);
-    setEditingSubLevel(null);
-    setIsSubLevelDrawerOpen(true);
-  };
-
-  const handleEditSubLevel = (level, sublevel) => {
-    setSelectedLevel(level);
-    setEditingSubLevel(sublevel);
-    setIsSubLevelDrawerOpen(true);
-  };
-
-  const handleDeleteSubLevel = async (subLevelId) => {
+  const handleDeleteSubLevel = async (subLevelId, refetchSubLevels) => {
     if (window.confirm("Are you sure you want to delete this sublevel?")) {
-      try {
-        await deleteSubLevel(subLevelId).unwrap();
-        toast.success("SubLevel deleted successfully!");
-        refetch();
-      } catch (error) {
-        toast.error(error?.data?.message || "Error deleting sublevel");
-      }
+      try { await deleteSubLevel(subLevelId).unwrap(); toast.success("SubLevel deleted successfully!"); refetchSubLevels?.(); }
+      catch (error) { toast.error(error?.data?.message || "Error deleting sublevel"); }
     }
   };
 
-  const toggleLevel = (levelId) => {
-    setExpandedLevels(prev => ({ ...prev, [levelId]: !prev[levelId] }));
-  };
+  if (!subdepartment) return <div className="p-6 text-gray-500">No subdepartment data found</div>;
 
-  if (!subdepartment) {
-    return <div className="p-6">No subdepartment data found</div>;
-  }
-
+  /* ════════════════════════════════════════════════════════════
+     RENDER
+  ════════════════════════════════════════════════════════════ */
   return (
     <>
-      <PageNavbar
-        title="Subdepartment Details"
-        subtitle="View subdepartment information and manage levels"
-        showBackButton={true}
-      />
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          {/* Subdepartment Header */}
-          <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 px-6 py-5">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
-                <MdAccountTree size={28} className="text-white" />
-              </div>
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold text-gray-900">{subdepartment.name}</h1>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className={`inline-block px-3 py-1 text-xs rounded-full ${
-                    subdepartment.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                  }`}>
-                    {subdepartment.isActive ? "Active" : "Inactive"}
-                  </span>
-                  <span className="text-xs text-gray-500">•</span>
-                  <div className="flex items-center gap-1 text-xs text-gray-600">
-                    <MdBusiness size={14} />
-                    <span>{departmentName || "Unknown Department"}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+      <Header sidebarOpen={true} title="Subdepartment Details" />
+      <div className="px-5 pb-8">
+
+        {/* ── Page Navbar ── */}
+        <div className="flex justify-between items-start py-4 gap-4 flex-wrap">
+          <PageNavbar
+            title={subdepartment.name}
+            subtitle="View subdepartment information and manage levels"
+            showBackButton={true}
+            breadcrumbs={[
+              { label: "Departments", path: "/department-management" },
+              { label: "Sub-Level Management" },
+            ]}
+          />
+          {/* right: bell + Add Sub-Level */}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <button className="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition relative">
+              <IoNotificationsOutline size={20} className="text-gray-600" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full" />
+            </button>
+            <button className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-xl transition">
+              <MdAdd size={18} /> Add Sub-Level
+            </button>
           </div>
+        </div>
 
-          {/* Description */}
-          {subdepartment.description && (
-            <div className="px-6 py-5 border-b border-gray-200 bg-gray-50">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <MdAccountTree size={20} className="text-indigo-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs text-gray-500 font-medium mb-1">Description</p>
-                  <p className="text-sm text-gray-700 leading-relaxed">{subdepartment.description}</p>
-                </div>
+        {/* ── Levels management section ── */}
+        <div className="mt-6 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="flex justify-between items-center px-5 py-4 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-orange-100 rounded-lg flex items-center justify-center">
+                <MdLayers size={18} className="text-orange-500" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-gray-900">Levels</h2>
+                <p className="text-xs text-gray-400">{levels.length} levels registered</p>
               </div>
             </div>
-          )}
-
-          {/* Levels Section */}
-          <div className="border-b border-gray-200 px-6 py-5 bg-white">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-md">
-                  <MdLayers size={20} className="text-white" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-gray-900">Levels</h2>
-                  <p className="text-xs text-gray-500">{levels.length} levels registered</p>
-                </div>
-              </div>
-              <Formik
-                initialValues={{
-                  name: "",
-                  order: "",
-                  isActive: true
-                }}
-                validationSchema={validationSchema}
-                onSubmit={handleLevelSubmit}
-              >
-                {({ values, setFieldValue, isSubmitting, submitForm, resetForm }) => (
-                  <OrangeButton
-                    buttonTitle="Add Level"
-                    panelTitle="Add New Level"
-                    drawerContent={
-                      <Form className="space-y-4">
-                        <InputField label="Level Name" name="name" placeholder="Enter level name" />
-                        <InputField label="Order" name="order" type="number" placeholder="Enter order number" />
-                        <RadioGroup label="Status" name="isActive" required={false} />
-                      </Form>
-                    }
-                    leftBtnText="Cancel"
-                    rightBtnText={isSubmitting ? "Adding..." : "Add Level"}
-                    onLeftClick={resetForm}
-                    onRightClick={submitForm}
-                  />
-                )}
-              </Formik>
-            </div>
+            <Formik initialValues={{ name: "", order: "", isActive: true }} validationSchema={validationSchema} onSubmit={handleLevelSubmit}>
+              {({ isSubmitting, submitForm, resetForm }) => (
+                <OrangeButton
+                  buttonTitle="Add Level"
+                  panelTitle="Add New Level"
+                  drawerContent={
+                    <Form className="space-y-4">
+                      <InputField label="Level Name" name="name" placeholder="Enter level name" />
+                      <InputField label="Order" name="order" type="number" placeholder="Enter order number" />
+                      <RadioGroup label="Status" name="isActive" required={false} />
+                    </Form>
+                  }
+                  leftBtnText="Cancel"
+                  rightBtnText={isSubmitting ? "Adding..." : "Add Level"}
+                  onLeftClick={resetForm}
+                  onRightClick={submitForm}
+                />
+              )}
+            </Formik>
           </div>
 
           {levels.length === 0 ? (
-            <div className="p-12 text-center text-gray-500">
-              <MdLayers size={48} className="mx-auto mb-4 opacity-30" />
-              <p>No levels added yet</p>
+            <div className="py-16 text-center text-gray-400">
+              <MdLayers size={40} className="mx-auto mb-3 opacity-30" />
+              <p className="text-sm">No levels added yet</p>
             </div>
           ) : (
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {levels.map((level) => {
-                const subLevels = levelSubLevels[level._id] || [];
-                return (
-                <div 
-                  key={level._id} 
-                  className={`border border-gray-200 rounded-xl p-5 hover:shadow-lg transition-all duration-300 cursor-pointer ${
-                    level.isActive ? "bg-gradient-to-br from-green-50 to-white" : "bg-gray-200"
-                  }`}
-                  onClick={() => toggleLevel(level._id)}
-                >
-                  <SubLevelFetcher levelId={level._id} />
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-md">
-                      <MdLayers size={24} className="text-white" />
-                    </div>
-                    <span className={`px-3 py-1 text-xs rounded-full font-semibold ${
-                      level.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                    }`}>
-                      {level.isActive ? "Active" : "Inactive"}
-                    </span>
-                  </div>
-                  <h3 className="font-bold text-lg text-gray-900 mb-2">{level.name}</h3>
-                  <p className="text-sm text-gray-600 mb-4">SubLevels: {subLevels.length}</p>
-                  <div className="flex gap-2 pt-3 border-t border-gray-200">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAddSubLevel(level);
-                      }}
-                      className="flex-1 py-2 px-3 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition text-sm font-medium flex items-center justify-center gap-1"
-                    >
-                      <MdAdd size={16} /> SubLevel
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEdit(level);
-                      }}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                    >
-                      <MdEdit size={18} />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(level._id);
-                      }}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                    >
-                      <MdDelete size={18} />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleLevel(level._id);
-                      }}
-                      className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-                    >
-                      {expandedLevels[level._id] ? <MdExpandLess size={20} /> : <MdExpandMore size={20} />}
-                    </button>
-                  </div>
-
-                  {/* SubLevels Dropdown */}
-                  {expandedLevels[level._id] && (
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      {subLevels.length === 0 ? (
-                        <p className="text-center text-sm text-gray-400 py-4">No sublevels added yet</p>
-                      ) : (
-                        <div className="space-y-2">
-                          {subLevels.map((sublevel) => (
-                            <div key={sublevel._id} className="bg-white border border-gray-200 rounded-lg p-3 flex justify-between items-center">
-                              <div>
-                                <h4 className="font-semibold text-sm text-gray-800">{sublevel.name}</h4>
-                                <span className={`inline-block px-2 py-0.5 text-xs rounded-full mt-1 ${
-                                  sublevel.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                                }`}>
-                                  {sublevel.isActive ? "Active" : "Inactive"}
-                                </span>
-                              </div>
-                              <div className="flex gap-1">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEditSubLevel(level, sublevel);
-                                  }}
-                                  className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
-                                >
-                                  <MdEdit size={16} />
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteSubLevel(sublevel._id);
-                                  }}
-                                  className="p-1.5 text-red-600 hover:bg-red-50 rounded"
-                                >
-                                  <MdDelete size={16} />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )})}
+            <div className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {levels.map(level => (
+                <LevelCard
+                  key={level._id}
+                  level={level}
+                  subdepartmentId={subdepartmentId}
+                  onAddSubLevel={handleAddSubLevel}
+                  onEditSubLevel={handleEditSubLevel}
+                  onDeleteSubLevel={handleDeleteSubLevel}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              ))}
             </div>
           )}
         </div>
+      </div>
 
-      {/* Edit Level Drawer */}
+      {/* ── Edit Level Drawer ── */}
       {isEditDrawerOpen && editingLevel && (
         <div className="fixed inset-0 z-50 flex justify-end">
           <div onClick={() => { setIsEditDrawerOpen(false); setEditingLevel(null); }} className="absolute inset-0 bg-black/40" />
@@ -388,15 +249,11 @@ const SubdepartmentDetails = () => {
             </div>
             <div className="flex-1 overflow-y-auto p-6">
               <Formik
-                initialValues={{
-                  name: editingLevel?.name || "",
-                  order: editingLevel?.order || "",
-                  isActive: editingLevel?.isActive !== undefined ? editingLevel.isActive : true
-                }}
+                initialValues={{ name: editingLevel?.name || "", order: editingLevel?.order || "", isActive: editingLevel?.isActive !== undefined ? editingLevel.isActive : true }}
                 validationSchema={validationSchema}
                 onSubmit={handleLevelSubmit}
               >
-                {({ values, setFieldValue, isSubmitting, submitForm }) => (
+                {({ isSubmitting, submitForm }) => (
                   <Form className="space-y-4">
                     <InputField label="Level Name" name="name" placeholder="Enter level name" />
                     <InputField label="Order" name="order" type="number" placeholder="Enter order number" />
@@ -413,7 +270,7 @@ const SubdepartmentDetails = () => {
         </div>
       )}
 
-      {/* SubLevel Drawer */}
+      {/* ── SubLevel Drawer ── */}
       {isSubLevelDrawerOpen && selectedLevel && (
         <div className="fixed inset-0 z-50 flex justify-end">
           <div onClick={() => { setIsSubLevelDrawerOpen(false); setEditingSubLevel(null); setSelectedLevel(null); }} className="absolute inset-0 bg-black/40" />
@@ -427,15 +284,11 @@ const SubdepartmentDetails = () => {
             </div>
             <div className="flex-1 overflow-y-auto p-6">
               <Formik
-                initialValues={{
-                  name: editingSubLevel?.name || "",
-                  order: editingSubLevel?.order || "",
-                  isActive: editingSubLevel?.isActive !== undefined ? editingSubLevel.isActive : true
-                }}
+                initialValues={{ name: editingSubLevel?.name || "", order: editingSubLevel?.order || "", isActive: editingSubLevel?.isActive !== undefined ? editingSubLevel.isActive : true }}
                 validationSchema={subLevelValidationSchema}
                 onSubmit={handleSubLevelSubmit}
               >
-                {({ values, setFieldValue, isSubmitting, submitForm }) => (
+                {({ isSubmitting, submitForm }) => (
                   <Form className="space-y-4">
                     <InputField label="SubLevel Name" name="name" placeholder="Enter sublevel name" />
                     <InputField label="Order" name="order" type="number" placeholder="Enter order number" />

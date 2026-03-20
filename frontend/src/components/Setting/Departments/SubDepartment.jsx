@@ -181,8 +181,8 @@ const SubDepartment = () => {
                                 { icon: "📚", label: "Courses", value: subdept.allowedCourses?.length || 0 },
                                 { icon: "🏢", label: "Department", value: subdept.departmentId?.name || "N/A" }
                             ]}
-                            onView={() => navigate('/subdepartment-details', { 
-                                state: { departmentId: subdept.departmentId?._id, subdepartment: subdept, departmentName: subdept.departmentId?.name } 
+                            onView={() => navigate(`/subdepartment/${subdept._id}/levels`, {
+                                state: { departmentId: subdept.departmentId?._id, subdepartment: subdept, departmentName: subdept.departmentId?.name }
                             })}
                             onEdit={
                                 <Formik
