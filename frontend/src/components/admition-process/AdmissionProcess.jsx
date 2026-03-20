@@ -1,25 +1,24 @@
-/* eslint-disable no-unused-vars */
 import { useGetAllStudentsQuery } from "../../redux/api/authApi";
-import CommonTable from "../common-components/table/CommonTable";
 import { useEffect, useState, useMemo } from "react";
 import CustomTimeDate from "./CustomTimeDate";
 import { useLocation, useNavigate } from "react-router-dom";
-import Pagination from "../common-components/pagination/Pagination";
-import { AiFillStop } from "react-icons/ai";
-import { FaCheckCircle } from "react-icons/fa";
 import Loader from "../common-components/loader/Loader";
 import * as Yup from "yup";
 import { Formik, Form } from "formik";
 import InputField from "../common-components/common-feild/InputField";
 import CustomDropdown from "../common-components/common-feild/CustomDropdown";
-import {
-  useInterviewCreateMutation,
-} from "../../redux/api/authApi";
+import { useInterviewCreateMutation } from "../../redux/api/authApi";
 import { toast } from "react-toastify";
-import PageNavbar from "../common-components/navbar/PageNavbar";
 import { buttonStyles } from "../../styles/buttonStyles";
 import BlurBackground from "../common-components/BlurBackground";
-
+import TabsCommon from "../common-components/table/TabsCommon";
+import SearchBox from "./../common-components/seach-export/SearchBox";
+import Header from "./../common-components/sidebar/Header";
+import TotalRegistration from "./tabs/TotalRegistration";
+import OnlineAssessment from "./tabs/OnlineAssessment";
+import TechnicalRound from "./tabs/TechnicalRound";
+import FinalRound from "./tabs/FinalRound";
+import Results from "./tabs/Results";
 
 const toTitleCase = (str) =>
   str
@@ -41,7 +40,6 @@ const StudentList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [AddInterviwModalOpen, setAddInterviwModalOpen] = useState(false);
   const [id, setId] = useState(null);
-  const [selectedRows, setSelectedRows] = useState([]);
   const navigate = useNavigate();
 
   const location = useLocation();
@@ -79,7 +77,7 @@ const StudentList = () => {
   }, [data]);
 
 
-  const tabFilterConfig = {
+  const tabFilterConfig = useMemo(() => ({
     "Total Registration": [
       {
         title: "Track",
@@ -138,7 +136,7 @@ const StudentList = () => {
         setter: setResultFilterTab2,
       },
     ],
-  };
+  }), [dynamicTrackOptions, dynamicResultOptions, trackFilterTab1, resultFilterTab2, statusFilterTab3]);
 
   const filtersConfig = tabFilterConfig[activeTab] || [];
 
@@ -153,10 +151,10 @@ const StudentList = () => {
     } else if (savedTab) {
       setActiveTab(savedTab);
     }
-    
+
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
-  }, [location.search, refetch]);
+  }, [location.search]);
 
   // Auto-refresh data when window gains focus
   useEffect(() => {
@@ -165,25 +163,13 @@ const StudentList = () => {
     return () => window.removeEventListener('focus', handleFocus);
   }, [refetch]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader />
-      </div>
-    );
-  }
-
-  if (error) {
-    return <p className="text-center text-red-500">Error fetching students.</p>;
-  }
-
   const getLatestInterviewResult = (interviews = []) => {
     if (!interviews.length) return null;
     return [...interviews].sort(
       (a, b) => new Date(b.date) - new Date(a.date)
     )[0]?.result;
   };
-  
+
   const handleInterviewSubmit = async (values, { resetForm }) => {
     try {
       const response = await createInterview({ ...values, studentId: id }).unwrap();
@@ -213,8 +199,8 @@ const StudentList = () => {
         return (
           (student.onlineTest?.result === "Fail" && firstRound.length === 0) ||
           (firstRound.length > 0 &&
-          !firstRound.some((i) => i.result === "Pass") &&
-          firstRound.some((i) => i.result === "Fail"))
+            !firstRound.some((i) => i.result === "Pass") &&
+            firstRound.some((i) => i.result === "Fail"))
         );
       case "Final Round":
         return (
@@ -231,55 +217,57 @@ const StudentList = () => {
     }
   };
 
-  const filteredData = data.filter((student) => {
-    const searchableValues = Object.values(student)
-      .map((val) => String(val ?? "").toLowerCase())
-      .join(" ");
-    if (!searchableValues.includes(searchTerm.toLowerCase())) return false;
+  const filteredData = useMemo(() => {
+    return data.filter((student) => {
+      const searchableValues = Object.values(student)
+        .map((val) => String(val ?? "").toLowerCase())
+        .join(" ");
+      if (!searchableValues.includes(searchTerm.toLowerCase())) return false;
 
-    const track = toTitleCase(student.track || "");
-    const latestResult = toTitleCase(
-      getLatestInterviewResult(student.interviews || []) || ""
-    );
-    const percentage = parseFloat(student.percentage);
-    const matches = filtersConfig.every(({ title, selected }) => {
-      if (selected.length === 0) return true;
+      const track = toTitleCase(student.track || "");
+      const latestResult = toTitleCase(
+        getLatestInterviewResult(student.interviews || []) || ""
+      );
+      const percentage = parseFloat(student.percentage);
+      const matches = filtersConfig.every(({ title, selected }) => {
+        if (selected.length === 0) return true;
 
-      if (title === "Track") {
-        return selected.includes(track);
-      }
+        if (title === "Track") {
+          return selected.includes(track);
+        }
 
-      if (title === "Result") {
-        if (activeTab === "Online Assessment") {
-          const onlineResult = toTitleCase(student.onlineTest?.result || "Not Attempted");
-          return selected.includes(onlineResult);
-        } else if (activeTab === "Results") {
-          const secondRound = student.interviews?.filter((i) => i.round === "Second") || [];
-          const isSelected = secondRound.some((i) => i.result === "Pass");
-          const isRejected = latestResult === "Fail" || secondRound.some((i) => i.result === "Fail");
-          
-          if (selected.includes("Selected") && isSelected) return true;
-          if (selected.includes("Rejected") && isRejected) return true;
-          return false;
-        } else {
+        if (title === "Result") {
+          if (activeTab === "Online Assessment") {
+            const onlineResult = toTitleCase(student.onlineTest?.result || "Not Attempted");
+            return selected.includes(onlineResult);
+          } else if (activeTab === "Results") {
+            const secondRound = student.interviews?.filter((i) => i.round === "Second") || [];
+            const isSelected = secondRound.some((i) => i.result === "Pass");
+            const isRejected = latestResult === "Fail" || secondRound.some((i) => i.result === "Fail");
+
+            if (selected.includes("Selected") && isSelected) return true;
+            if (selected.includes("Rejected") && isRejected) return true;
+            return false;
+          } else {
+            return selected.includes(latestResult);
+          }
+        }
+
+        if (title === "Tech Status") {
           return selected.includes(latestResult);
         }
-      }
+        if (title === "Interview") {
+          return selected.some((range) => {
+            const [min, max] = range.replace("%", "").split("-").map(Number);
+            return percentage >= min && percentage <= max;
+          });
+        }
+        return true;
+      });
 
-      if (title === "Tech Status") {
-        return selected.includes(latestResult);
-      }
-      if (title === "Interview") {
-        return selected.some((range) => {
-          const [min, max] = range.replace("%", "").split("-").map(Number);
-          return percentage >= min && percentage <= max;
-        });
-      }
-      return true;
+      return matches && matchTabCondition(student);
     });
-
-    return matches && matchTabCondition(student);
-  });
+  }, [data, searchTerm, activeTab, trackFilterTab1, resultFilterTab2, statusFilterTab3]);
 
   const handleTabClick = (tab) => {
     setActiveTab(tab);
@@ -368,391 +356,141 @@ const StudentList = () => {
     "Results",
   ];
 
-  let columns = [];
-  let actionButton;
+  const TabComponent = useMemo(() => {
+    const tabComponents = {
+      "Total Registration": TotalRegistration,
+      "Online Assessment": OnlineAssessment,
+      "Technical Round": TechnicalRound,
+      "Final Round": FinalRound,
+      "Results": Results,
+    };
+    return tabComponents[activeTab];
+  }, [activeTab]);
 
-  switch (activeTab) {
-    case "Online Assessment":
-      columns = [
-        {
-          key: "firstName",
-          label: "Full Name",
-          render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
-        },
-        {
-          key: "fatherName",
-          label: "Father's Name",
-          render: (row) => toTitleCase(row.fatherName),
-        },
-        { key: "studentMobile", label: "Mobile No.", align: "center" },
-        {
-          key: "subject12",
-          label: "12th Subject",
-          render: (row) => toTitleCase(row.stream),
-        },
-        {
-          key: "course",
-          label: "Course",
-          render: (row) => toTitleCase(row.course),
-        },
-      ];
-      actionButton = (row) => (
-        <button
-          onClick={() => scheduleButton(row)}
-          className={`text-md ${buttonStyles.primary}`}
-        >
-          Take Interview
-        </button>
-      );
-      break;
+  const renderTabContent = () => {
 
-    case "Technical Round":
-      columns = [
-        {
-          key: "firstName",
-          label: "Full Name",
-          render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
-        },
-        {
-          key: "fatherName",
-          label: "Father's Name",
-          render: (row) => toTitleCase(row.fatherName),
-        },
-        { key: "studentMobile", label: "Mobile No.", align: "center" },
-        {
-          key: "course",
-          label: "Course",
-          render: (row) => toTitleCase(row.course),
-        },
-        {
-          key: "onlineTestResult",
-          label: (
-            <div className="flex flex-col ">
-              <span>Result</span>
-              <span className="text-xs text-gray-500">(1st Round)</span>
-            </div>
-          ),
-          render: (row) => handleGetStatus(row.interviews),
-        },
-        {
-          key: "techMarks",
-          label: (
-            <div className="flex flex-col ">
-              <span>Marks</span>
-              <span className="text-xs text-gray-500">(1st Round)</span>
-            </div>
-          ),
-          align: "center",
-          render: (row) => handleGetMarks(row.interviews),
-        },
-      ];
-      actionButton = (row) => (
-        <button
-          onClick={() => scheduleButton(row)}
-          className={`text-md ${buttonStyles.primary}`}
-        >
-          Take Interview
-        </button>
-      );
-      break;
+    if (!TabComponent) return null;
 
-    case "Final Round":
-      columns = [
-        {
-          key: "firstName",
-          label: "Full Name",
-          render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
-        },
-        {
-          key: "fatherName",
-          label: "Father's Name",
-          render: (row) => toTitleCase(row.fatherName),
-        },
-        { key: "studentMobile", label: "Mobile No.", align: "center" },
-        {
-          key: "course",
-          label: "Course",
-          render: (row) => toTitleCase(row.course),
-        },
-        {
-          key: "onlineTestStatus",
-          label: (
-            <div className="flex flex-col ">
-              <span>Result</span>
-              <span className="text-xs text-gray-500">(1st Round)</span>
-            </div>
-          ),
-          render: (row) => handleGetStatus(row.interviews),
-        },
-        {
-          key: "techMarks",
-          label: (
-            <div className="flex flex-col ">
-              <span>Marks</span>
-              <span className="text-xs text-gray-500">(Tech Round)</span>
-            </div>
-          ),
-          align: "center",
-          render: (row) => handleGetMarks(row.interviews),
-        },
-        {
-          key: "attempts",
-          label: (
-            <div className="flex flex-col ">
-              <span>Attempts</span>
-              <span className="text-xs text-gray-500">(1st Round)</span>
-            </div>
-          ),
-          align: "center",
-          render: (row) => {
-            const firstRoundAttempts = row.interviews?.filter((i) => i.round === "First") || [];
-            return firstRoundAttempts.length;
-          },
-        },
-      ];
-      actionButton = (row) => {
-        const userRole = localStorage.getItem('role');
-        const isSuperAdmin = userRole === 'superadmin';
-        
-        return (
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => {
-                if (isSuperAdmin) {
-                  setAddInterviwModalOpen(true)
-                  setId(row._id)
-                }
-              }}
-              disabled={!isSuperAdmin}
-              className={`text-md ${
-                isSuperAdmin 
-                  ? buttonStyles.primary + ' cursor-pointer'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed px-3 py-1 rounded-md transition'
-              }`}
-            >
-              Take Interview
-            </button>
-          </div>
-        );
-      };
-      break;
+    const commonProps = {
+      data: filteredData,
+      toTitleCase,
+      searchTerm,
+      rowsPerPage,
+      onRowClick: (row) => {
+        localStorage.setItem("lastSection", "admission");
+        navigate(`/admission/edit/${row._id}`, { state: { student: row } });
+      },
+    };
 
-    case "Results":
-      columns = [
-        {
-          key: "firstName",
-          label: "Full Name",
-          render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
-        },
-        {
-          key: "fatherName",
-          label: "Father's Name",
-          render: (row) => toTitleCase(row.fatherName),
-        },
-        { key: "studentMobile", label: "Mobile No.", align: "center" },
-        {
-          key: "stream",
-          label: "Subject",
-          render: (row) => toTitleCase(row.stream),
-        },
-        {
-          key: "village",
-          label: "Village",
-          render: (row) => toTitleCase(row.village),
-        },
-        {
-          key: "track",
-          label: "Track",
-          render: (row) => toTitleCase(row.track),
-        },
-      ];
-      actionButton = (row) => {
-        const secondRound =
-          row.interviews?.filter((i) => i.round === "Second") || [];
-        const latestResult = getLatestInterviewResult(row.interviews);
-        const isSelected = secondRound.some((i) => i.result === "Pass");
-        const isRejected =
-          latestResult === "Fail" ||
-          secondRound.some((i) => i.result === "Fail");
+    switch (activeTab) {
+      case "Total Registration":
+        return <TabComponent {...commonProps} />;
+      case "Online Assessment":
+        return <TabComponent {...commonProps} scheduleButton={scheduleButton} />;
+      case "Technical Round":
+        return <TabComponent {...commonProps} scheduleButton={scheduleButton} handleGetStatus={handleGetStatus} handleGetMarks={handleGetMarks} />;
+      case "Final Round":
+        return <TabComponent {...commonProps} setAddInterviwModalOpen={setAddInterviwModalOpen} setId={setId} handleGetStatus={handleGetStatus} handleGetMarks={handleGetMarks} />;
+      case "Results":
+        return <TabComponent {...commonProps} getLatestInterviewResult={getLatestInterviewResult} />;
+      default:
+        return null;
+    }
+  };
 
-        if (isSelected) {
-          return (
-            <button
-              className="bg-[#22C55E]/20 flex items-center gap-2 text-md text-[#118D57] px-3 py-1 rounded-md cursor-not-allowed"
-              disabled
-            >
-              <FaCheckCircle className="text-lg" />
-              <span>Selected</span>
-            </button>
-          );
-        } else if (isRejected) {
-          return (
-            <button
-              className="bg-[#FFCEC3] flex items-center gap-2 text-md text-[#D32F2F] px-3 py-1 rounded-md cursor-not-allowed"
-              disabled
-            >
-              <AiFillStop className="text-lg" />
-              <span>Rejected</span>
-            </button>
-          );
-        } else {
-          return null;
-        }
-      };
-      break;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader />
+      </div>
+    );
+  }
 
-    default:
-      columns = [
-        {
-          key: "firstName",
-          label: "Full Name",
-          render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
-        },
-        {
-          key: "fatherName",
-          label: "Father's Name",
-          render: (row) => toTitleCase(row.fatherName),
-        },
-        { key: "studentMobile", label: "Mobile No.", align: "center" },
-        {
-          key: "subject12",
-          label: "12th Subject",
-          render: (row) => toTitleCase(row.stream),
-        },
-        {
-          key: "course",
-          label: "Course",
-          render: (row) => toTitleCase(row.course),
-        },
-        {
-          key: "village",
-          label: "Village",
-          render: (row) => toTitleCase(row.village),
-        },
-        {
-          key: "track",
-          label: "Bus Route",
-          render: (row) => toTitleCase(row.track),
-        },
-      ];
-      break;
+  if (error) {
+    return <p className="text-center text-red-500">Error fetching students.</p>;
   }
 
   return (
     <>
-      <PageNavbar 
-        title="Admission Process" 
-        subtitle="Manage student admission workflow and interviews"
-        showBackButton={false}
-      />
-      <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
-        <div className="px-6">
-          <div className="flex gap-6 mt-4">
-            {tabs.map((tab) => (
-              <p
-                key={tab}
-                onClick={() => handleTabClick(tab)}
-                className={`cursor-pointer text-md text-[var(--text-color)] pb-2 border-b-2 ${activeTab === tab
-                  ? "border-[var(--text-color)] font-semibold"
-                  : "border-gray-200"
-                  }`}
-              >
-                {tab}
-              </p>
-            ))}
-          </div>
-          <div className="flex justify-between items-center flex-wrap gap-4">
-            <Pagination
-              rowsPerPage={rowsPerPage}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              filtersConfig={filtersConfig}
-              filteredData={filteredData}
-              selectedRows={selectedRows}
-              allData={data}
-              sectionName={activeTab.replace(/\s+/g, '').toLowerCase()}
-            />
-          </div>
+      <Header 
+        title="Admission Process"
+      >
+        <div className="w-80 ml-auto">
+          <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </div>
-        <CommonTable
-          data={filteredData}
-          columns={columns}
-          editable={!!actionButton}
-          pagination={true}
-          rowsPerPage={rowsPerPage}
-          searchTerm={searchTerm}
-          actionButton={actionButton}
-          onSelectionChange={setSelectedRows}
-          onRowClick={(row) => {
-            localStorage.setItem("lastSection", "admission");
-            navigate(`/admission/edit/${row._id}`, { state: { student: row } });
-          }}
-        />
+      </Header>
+      <TabsCommon tabs={tabs} activeTab={activeTab} onTabChange={handleTabClick} />
+      <div className="px-5">
+        {renderTabContent()}
+        {
+          isModalOpen && selectedStudentId && (
+            <CustomTimeDate
+              isOpen={isModalOpen}
+              onClose={handleCloseModal}
+              studentId={selectedStudentId}
+              attempted={atemendNumber}
+              refetch={refetch}
+              activeTab={activeTab}
+            />
+          )
+        }
+        {
+          AddInterviwModalOpen && (
+            <BlurBackground isOpen={AddInterviwModalOpen} onClose={() => setAddInterviwModalOpen(false)}>
+              <div className="bg-white rounded-xl p-6 w-[95%] max-w-xl max-h-[90vh] overflow-y-auto relative shadow-2xl">
+                <h2 className="text-xl font-bold text-center text-orange-500 mb-6">
+                  Add Interview
+                </h2>
+                <Formik
+                  initialValues={{
+                    round: "Second",
+                    remark: "",
+                    result: "Pending",
+                  }}
+                  validationSchema={validationSchema}
+                  onSubmit={handleInterviewSubmit}
+                >
+                  {() => (
+                    <Form className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <CustomDropdown
+                        label="Round"
+                        name="round"
+                        disabled
+                        options={[{ value: "Second", label: "Final Round" }]}
+                      />
+                      <InputField label="Remark" name="remark" />
+                      <CustomDropdown
+                        label="Result"
+                        name="result"
+                        options={[
+                          { value: "Pass", label: "Pass" },
+                          { value: "Fail", label: "Fail" },
+                          { value: "Pending", label: "Pending" },
+                        ]}
+                      />
+                      <div className="col-span-2 mt-4">
+                        <button
+                          type="submit"
+                          disabled={isLoading}
+                          className={`w-full py-3 rounded-lg disabled:opacity-50 ${buttonStyles.primary}`}
+                        >
+                          {isLoading ? "Submitting..." : "Submit"}
+                        </button>
+                      </div>
+                    </Form>
+                  )}
+                </Formik>
+                <button
+                  onClick={() => setAddInterviwModalOpen(false)}
+                  className="absolute top-3 right-4 text-xl text-gray-400 hover:text-gray-700"
+                >
+                  &times;
+                </button>
+              </div>
+            </BlurBackground>
+          )
+        }
       </div>
-      {isModalOpen && selectedStudentId && (
-        <CustomTimeDate
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          studentId={selectedStudentId}
-          attempted={atemendNumber}
-          refetch={refetch}
-          activeTab={activeTab}
-        />
-      )}
-      {AddInterviwModalOpen && (
-        <BlurBackground isOpen={AddInterviwModalOpen} onClose={() => setAddInterviwModalOpen(false)}>
-          <div className="bg-white rounded-xl p-6 w-[95%] max-w-xl max-h-[90vh] overflow-y-auto relative shadow-2xl">
-            <h2 className="text-xl font-bold text-center text-orange-500 mb-6">
-              Add Interview
-            </h2>
-            <Formik
-              initialValues={{
-                round: "Second",
-                remark: "",
-                result: "Pending",
-              }}
-              validationSchema={validationSchema}
-              onSubmit={handleInterviewSubmit}
-            >
-              {() => (
-                <Form className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <CustomDropdown
-                    label="Round"
-                    name="round"
-                    disabled
-                    options={[{ value: "Second", label: "Final Round" }]}
-                  />
-                  <InputField label="Remark" name="remark" />
-                  <CustomDropdown
-                    label="Result"
-                    name="result"
-                    options={[
-                      { value: "Pass", label: "Pass" },
-                      { value: "Fail", label: "Fail" },
-                      { value: "Pending", label: "Pending" },
-                    ]}
-                  />
-                  <div className="col-span-2 mt-4">
-                                <button 
-                                    type="submit" 
-                                    disabled={isLoading} 
-                                    className={`w-full py-3 rounded-lg disabled:opacity-50 ${buttonStyles.primary}`}
-                                >
-                                    {isLoading ? "Submitting..." : "Submit"}
-                                </button>
-                            </div>
-                </Form>
-              )}
-            </Formik>
-            <button
-              onClick={() => setAddInterviwModalOpen(false)}
-              className="absolute top-3 right-4 text-xl text-gray-400 hover:text-gray-700"
-            >
-              &times;
-            </button>
-          </div>
-        </BlurBackground>
-      )}
     </>
   );
 };

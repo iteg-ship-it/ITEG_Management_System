@@ -4,6 +4,7 @@
 
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import InputField from "../common-components/common-feild/InputField";
 import { useAddPlacementInterviewRecordMutation } from "../../redux/api/authApi";
 import { toast } from "react-toastify";
 import { IoClose } from "react-icons/io5";
@@ -123,105 +124,11 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
         </h2>
 
         <form onSubmit={formik.handleSubmit} className="grid grid-cols-2 gap-4 text-[15px]" style={{ color: TEXT_COLOR }}>
-          {/* Company Name */}
-          <div className="relative">
-            <input
-              type="text"
-              id="companyName"
-              name="companyName"
-              placeholder=" "
-              onChange={formik.handleChange}
-              value={formik.values.companyName}
-              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full peer"
-            />
-            <label
-              htmlFor="companyName"
-              className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
-            >
-              Company Name
-            </label>
-          </div>
-
-          {/* HR Email */}
-          <div className="relative">
-            <input
-              type="email"
-              id="hrEmail"
-              name="hrEmail"
-              placeholder=" "
-              onChange={formik.handleChange}
-              value={formik.values.hrEmail}
-              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full peer"
-            />
-            <label
-              htmlFor="hrEmail"
-              className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
-            >
-              HR Email
-            </label>
-          </div>
-
-          {/* HR Contact */}
-          <div className="relative">
-            <input
-              type="tel"
-              id="hrContact"
-              name="hrContact"
-              placeholder=" "
-              onChange={formik.handleChange}
-              value={formik.values.hrContact}
-              maxLength={10}
-              pattern="[0-9]{10}"
-              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full peer"
-            />
-            <label
-              htmlFor="hrContact"
-              className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
-            >
-              HR Contact
-            </label>
-            {formik.touched.hrContact && formik.errors.hrContact && (
-              <div className="text-red-500 text-xs mt-1">{formik.errors.hrContact}</div>
-            )}
-          </div>
-
-          {/* Location */}
-          <div className="relative">
-            <input
-              type="text"
-              id="location"
-              name="location"
-              placeholder=" "
-              onChange={formik.handleChange}
-              value={formik.values.location}
-              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full peer"
-            />
-            <label
-              htmlFor="location"
-              className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
-            >
-              Location
-            </label>
-          </div>
-
-          {/* Job Profile */}
-          <div className="relative">
-            <input
-              type="text"
-              id="jobProfile"
-              name="jobProfile"
-              placeholder=" "
-              onChange={formik.handleChange}
-              value={formik.values.jobProfile}
-              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-black w-full peer"
-            />
-            <label
-              htmlFor="jobProfile"
-              className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
-            >
-              Job Profile
-            </label>
-          </div>
+          <InputField label="Company Name" name="companyName" placeholder="Enter company name" />
+          <InputField label="HR Email" name="hrEmail" type="email" placeholder="Enter HR email" />
+          <InputField label="HR Contact" name="hrContact" type="tel" placeholder="Enter 10-digit contact" />
+          <InputField label="Location" name="location" placeholder="Enter location" />
+          <InputField label="Job Profile" name="jobProfile" placeholder="Enter job profile" />
 
           {/* Schedule Date */}
           <div className="relative">

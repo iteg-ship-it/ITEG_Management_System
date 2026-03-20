@@ -4,7 +4,8 @@ import { useGetPlacedStudentsByCompanyQuery } from '../../redux/api/authApi';
 import Loader from '../common-components/loader/Loader';
 import PageNavbar from '../common-components/navbar/PageNavbar';
 import CommonTable from '../common-components/table/CommonTable';
-import Pagination from '../common-components/pagination/Pagination';
+import Header from '../common-components/sidebar/Header';
+import Avatar from '../common-components/Avatar';
 
 const PlacedStudents = () => {
   const { companyId } = useParams();
@@ -24,13 +25,28 @@ const PlacedStudents = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRows, setSelectedRows] = useState([]);
 
+  const filteredStudents = students.filter((student) => {
+    const searchableValues = [
+      student.firstName,
+      student.lastName,
+      student.email,
+      student.studentMobile,
+      student.course,
+      student.stream,
+      student.placedInfo?.jobProfile,
+      student.placedInfo?.jobType,
+      student.placedInfo?.location,
+    ].join(' ').toLowerCase();
+    return searchableValues.includes(searchTerm.toLowerCase());
+  });
+
   const columns = [
     {
       key: "profile",
       label: "Student Name",
       render: (row) => (
         <div className="flex items-center gap-3">
-      
+          <Avatar firstName={row.firstName} lastName={row.lastName} imageUrl={row.profileImage} />
           <div className="flex flex-col">
             <span className="font-semibold text-gray-900">{`${row.firstName} ${row.lastName}`}</span>
             <span className="text-xs text-gray-500">{row.course} - {row.stream}</span>
@@ -168,65 +184,25 @@ const PlacedStudents = () => {
   }
 
   return (
-    <div className="min-h-screen">
-      <PageNavbar
-        title={`Placed Students`}
-        subtitle={`Students placed in ${companyName}`}
-        showBackButton={true}
-      />
+    <>
+      <Header title={`Placed Students - ${apiCompanyName}`} />
+      <div className="min-h-screen px-5">
+        <PageNavbar
+          title={`Placed Students in ${apiCompanyName}`}
+          subtitle={`Total Placements: ${totalPlaced}`}
+          showBackButton={true}
+        />
 
-      
-        <div className=" rounded-xl shadow-sm border border-gray-200">
-          {/* Header Stats */}
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">{apiCompanyName}</h2>
-                {/* <p className="text-gray-600 mt-1">
-                  {totalPlaced} student{totalPlaced !== 1 ? 's' : ''} placed
-                </p> */}
-              </div>
-              <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg font-semibold">
-                Total Placements: {totalPlaced}
-              </div>
-            </div>
-          </div>
-
-          {/* Search and Filters */}
-          <div className="px-6">
-            <Pagination
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              allData={students}
-              selectedRows={selectedRows}
-              sectionName="placed-students"
-              filtersConfig={[]}
-            />
-          </div>
-
-          {/* Table */}
-          {students.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Students Placed</h3>
-              <p className="text-gray-500">No students have been placed in this company yet.</p>
-            </div>
-          ) : (
-            <CommonTable
-              columns={columns}
-              data={students}
-              searchTerm={searchTerm}
-              pagination={true}
-              rowsPerPage={10}
-              onSelectionChange={setSelectedRows}
-            />
-          )}
-        </div>
+        <CommonTable
+          columns={columns}
+          data={filteredStudents}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          onSelectionChange={setSelectedRows}
+          rowsPerPage={10}
+        />
       </div>
+    </>
   );
 };
 

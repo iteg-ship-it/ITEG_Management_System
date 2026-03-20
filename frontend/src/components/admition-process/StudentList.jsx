@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import Table from "../components/tables/Table";
+import Table from "../common-components/table/tables/Table";
 // import Student from "../components/data/Student";
 import { useGetAllStudentsQuery } from "../../redux/api/authApi";
 const columns = [

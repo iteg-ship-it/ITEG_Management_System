@@ -1,21 +1,28 @@
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect } from "react";
-import { useField, ErrorMessage } from "formik";
-import { HiChevronDown } from "react-icons/hi";
+import { useField } from "formik";
+import { ChevronDown } from "lucide-react";
 
-const CustomDropdown = ({ name, label, options, className = "", disabled = false }) => {
+const CustomDropdown = ({
+  label,
+  name,
+  options = [],
+  disabled = false,
+  variant = "inline", // 🔥 inline | card
+  className = "",
+}) => {
   const [field, , helpers] = useField(name);
-  const [isOpen, setIsOpen] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
+  const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  const hasValue = field.value !== "";
-  const selectedOption = options.find(opt => opt.value === field.value);
+  const selectedOption = options.find(
+    (opt) => opt.value === field.value
+  );
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setIsOpen(false);
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -24,75 +31,82 @@ const CustomDropdown = ({ name, label, options, className = "", disabled = false
 
   const handleSelect = (value) => {
     helpers.setValue(value);
-    setIsOpen(false);
+    setOpen(false);
   };
 
+  // 🎨 Design Variants
+  const variants = {
+    inline: {
+      wrapper: "flex items-center gap-3",
+      label: "text-base font-medium text-gray-600",
+      button:
+        "bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold text-base px-5 py-2.5 rounded-2xl",
+    },
+    card: {
+      wrapper: "flex flex-col gap-2 w-full",
+      label: "text-xs font-semibold text-gray-400 uppercase tracking-wider",
+      button:
+        "border-2 border-gray-300 bg-gray-50 text-base px-4 py-3 rounded-xl",
+    },
+  };
+
+  const current = variants[variant];
+
   return (
-    <div className={`relative w-full ${className}`} ref={dropdownRef}>
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => !disabled && setIsOpen(!isOpen)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        className={`
-          peer h-12 w-full border border-gray-300 rounded-md
-          px-3 py-2 leading-tight bg-white text-left
-          focus:outline-none focus:border-black 
-          focus:ring-0 appearance-none flex items-center justify-between
-          ${disabled ? "bg-gray-100 cursor-not-allowed" : "cursor-pointer"}
-          ${isOpen ? "border-black" : ""}
-          transition-all duration-200
-        `}
-      >
-        <span className={selectedOption ? 'text-gray-900' : 'text-gray-400'}>
-          {selectedOption ? selectedOption.label : 'Select'}
-        </span>
-        <HiChevronDown 
-          className={`ml-2 w-4 h-4 text-[#FDA92D] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-        />
-      </button>
+    <div className={`${current.wrapper} ${className}`}>
 
-      <label
-        className={`
-          absolute left-3 bg-white px-1 transition-all duration-200
-          pointer-events-none
-          ${isFocused || hasValue || isOpen
-            ? "text-xs -top-2 text-black"
-            : "text-gray-500 top-3"}
-        `}
-      >
-        {label}
-      </label>
-
-      {isOpen && (
-        <div
-          className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden border"
-          style={{
-            background: `
-              linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 20%),
-              linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 20%),
-              white
-            `
-          }}
-        >
-          {options.map((option) => (
-            <div
-              key={option.value}
-              onClick={() => handleSelect(option.value)}
-              className="px-3 py-2 hover:bg-gray-100 hover:px-3 cursor-pointer text-left transition-colors duration-150"
-            >
-              {option.label}
-            </div>
-          ))}
-        </div>
+      {/* Label */}
+      {label && (
+        <span className={current.label}>{label}</span>
       )}
 
-      <ErrorMessage
-        name={name}
-        component="p"
-        className="text-red-500 text-sm font-semibold mt-1"
-      />
+      {/* Dropdown */}
+      <div ref={dropdownRef} className="relative w-full">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => !disabled && setOpen(!open)}
+          className={`
+            w-full flex items-center justify-between
+            transition-all
+            focus:outline-none
+            ${current.button}
+            ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}
+          `}
+        >
+          <span>
+            {selectedOption ? selectedOption.label : "Select"}
+          </span>
+
+          <ChevronDown
+            size={18}
+            className={`transition-transform duration-200 ${
+              open ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+
+        {open && (
+          <ul className="absolute mt-2 w-full bg-white rounded-xl shadow-lg border border-gray-100 max-h-60 overflow-y-auto z-50">
+            {options.map((opt) => (
+              <li
+                key={opt.value}
+                onClick={() => handleSelect(opt.value)}
+                className={`
+                  px-4 py-2 text-sm cursor-pointer transition
+                  ${
+                    field.value === opt.value
+                      ? "bg-orange-200"
+                      : "hover:bg-orange-100"
+                  }
+                `}
+              >
+                {opt.label}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 };

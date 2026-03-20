@@ -17,7 +17,7 @@ const UserSchema = new mongoose.Schema({
   resetTokenUsed: { type: Boolean, default: false },
   googleId: { type: String },
   faceDescriptor: { type: Array },
- 
+  permissions: { type: [Object] },
 
 
   isActive: { type: Boolean, default: true },

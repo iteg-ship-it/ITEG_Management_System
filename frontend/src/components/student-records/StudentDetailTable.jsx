@@ -1,16 +1,16 @@
 import { useState, useMemo, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Pagination from "../common-components/pagination/Pagination";
-import {
-  useAdmitedStudentsQuery,
-} from "../../redux/api/authApi";
+import { useAdmitedStudentsQuery } from "../../redux/api/authApi";
 import Loader from "../common-components/loader/Loader";
 import CommonTable from "../common-components/table/CommonTable";
-// import edit from "../../assets/icons/edit-fill-icon.png";
-// import interview from "../../assets/icons/interview-icon.png";
 import CreateInterviewModal from "./CreateInterviewModal";
 import PageNavbar from "../common-components/navbar/PageNavbar";
 import { buttonStyles } from "../../styles/buttonStyles";
+import TabsCommon from "../common-components/table/TabsCommon";
+import SearchBox from "./../common-components/seach-export/SearchBox";
+import Header from "../common-components/sidebar/Header";
+import Avatar from "../common-components/Avatar";
 
 const StudentDetailTable = () => {
   const { data = [], isLoading, refetch } = useAdmitedStudentsQuery();
@@ -25,17 +25,19 @@ const StudentDetailTable = () => {
   const [activeTab, setActiveTab] = useState(`Level ${selectedLevel}`);
   const [selectedRows, setSelectedRows] = useState([]);
 
-  const levelTabs = ["Total Students","Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C", "Level's Cleared"];
+  const levelTabs = ["Total Students", "Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C", "Level's Cleared"];
 
   // Update active tab when selectedLevel changes
   useEffect(() => {
+    let newTab;
     if (selectedLevel === "cleared") {
-      setActiveTab("Level's Cleared");
+      newTab = "Level's Cleared";
     } else if (selectedLevel === "total") {
-      setActiveTab("Total Students");
+      newTab = "Total Students";
     } else {
-      setActiveTab(`Level ${selectedLevel}`);
+      newTab = `Level ${selectedLevel}`;
     }
+    if (newTab !== activeTab) setActiveTab(newTab);
   }, [selectedLevel]);
 
   const toTitleCase = (str) =>
@@ -108,92 +110,75 @@ const StudentDetailTable = () => {
   ];
 
   // Use regular admitted students data
-  const currentData = data;
-  const currentLoading = isLoading;
-
-  const enhancedData = currentData.map((student) => {
-    // Get all level attempts grouped by levelNo
+  const enhancedData = useMemo(() => data.map((student) => {
     const levelAttempts = {};
     (student.level || []).forEach(lvl => {
-      if (!levelAttempts[lvl.levelNo]) {
-        levelAttempts[lvl.levelNo] = [];
-      }
+      if (!levelAttempts[lvl.levelNo]) levelAttempts[lvl.levelNo] = [];
       levelAttempts[lvl.levelNo].push(lvl);
     });
-
-    // Check if the student has passed their current level
     const currentLevel = student.currentLevel || "1A";
     const currentLevelAttempts = levelAttempts[currentLevel] || [];
-
-    // Check if any attempt for the current level has a Pass result
     const hasPassedCurrentLevel = currentLevelAttempts.some(lvl => lvl.result === "Pass");
+    return { ...student, latestLevel: currentLevel, hasPassedCurrentLevel, levelAttempts };
+  }), [data]);
 
-    return {
-      ...student,
-      latestLevel: currentLevel,
-      hasPassedCurrentLevel,
-      levelAttempts
-    };
-  });
+  const filteredData = useMemo(() => {
+    return enhancedData.filter((student) => {
+      // Search term filter handled by CommonTable's global filter
+      // Keep other filters here
 
-  const filteredData = enhancedData.filter((student) => {
-    // Search term filter
-    const searchableValues = Object.values(student)
-      .map((val) => String(val ?? "").toLowerCase())
-      .join(" ");
-    if (!searchableValues.includes(searchTerm.toLowerCase())) return false;
+      // Track filter
+      const track = toTitleCase(student.track || "");
+      const matchesTrack = selectedTracks.length === 0 || selectedTracks.includes(track);
 
-    // Track filter
-    const track = toTitleCase(student.track || "");
-    const matchesTrack = selectedTracks.length === 0 || selectedTracks.includes(track);
+      // Course filter
+      const course = (student.course || "").toUpperCase();
+      const matchesCourse = selectedCourses.length === 0 || selectedCourses.includes(course);
 
-    // Course filter
-    const course = (student.course || "").toUpperCase();
-    const matchesCourse = selectedCourses.length === 0 || selectedCourses.includes(course);
+      // Attempts filter (only for non-cleared and non-total tabs)
+      let matchesAttempts = true;
+      if (activeTab !== "Level's Cleared" && activeTab !== "Total Students") {
+        const currentLevelAttempts = student.levelAttempts?.[selectedLevel] || [];
+        const attemptCount = currentLevelAttempts.length;
+        matchesAttempts = selectedAttempts.length === 0 || selectedAttempts.some(filter => {
+          if (filter === "4+") return attemptCount >= 4;
+          return attemptCount.toString() === filter;
+        });
+      }
 
-    // Attempts filter (only for non-cleared and non-total tabs)
-    let matchesAttempts = true;
-    if (activeTab !== "Level's Cleared" && activeTab !== "Total Students") {
-      const currentLevelAttempts = student.levelAttempts?.[selectedLevel] || [];
-      const attemptCount = currentLevelAttempts.length;
-      matchesAttempts = selectedAttempts.length === 0 || selectedAttempts.some(filter => {
-        if (filter === "4+") return attemptCount >= 4;
-        return attemptCount.toString() === filter;
-      });
-    }
+      // Level filter
+      let matchesLevel;
+      if (activeTab === "Total Students") {
+        // Show all students for Total Students tab
+        matchesLevel = true;
+      } else if (activeTab === "Level's Cleared") {
+        // Show students who have passed Level 2C
+        const level2CAttempts = student.levelAttempts?.["2C"] || [];
+        matchesLevel = level2CAttempts.some(lvl => lvl.result === "Pass");
+      } else if (selectedLevel === "2C") {
+        // For Level 2C tab, exclude students who have passed Level 2C
+        const level2CAttempts = student.levelAttempts?.["2C"] || [];
+        const hasPassedLevel2C = level2CAttempts.some(lvl => lvl.result === "Pass");
+        matchesLevel = student.currentLevel === selectedLevel && !hasPassedLevel2C;
+      } else {
+        // For other tabs, show students whose current level matches the selected tab
+        matchesLevel = student.currentLevel === selectedLevel;
+      }
 
-    // Level filter
-    let matchesLevel;
-    if (activeTab === "Total Students") {
-      // Show all students for Total Students tab
-      matchesLevel = true;
-    } else if (activeTab === "Level's Cleared") {
-      // Show students who have passed Level 2C
-      const level2CAttempts = student.levelAttempts?.["2C"] || [];
-      matchesLevel = level2CAttempts.some(lvl => lvl.result === "Pass");
-    } else if (selectedLevel === "2C") {
-      // For Level 2C tab, exclude students who have passed Level 2C
-      const level2CAttempts = student.levelAttempts?.["2C"] || [];
-      const hasPassedLevel2C = level2CAttempts.some(lvl => lvl.result === "Pass");
-      matchesLevel = student.currentLevel === selectedLevel && !hasPassedLevel2C;
-    } else {
-      // For other tabs, show students whose current level matches the selected tab
-      matchesLevel = student.currentLevel === selectedLevel;
-    }
-
-    return matchesTrack && matchesCourse && matchesAttempts && matchesLevel;
-  });
+      return matchesTrack && matchesCourse && matchesAttempts && matchesLevel;
+    });
+  }, [enhancedData, selectedTracks, selectedCourses, selectedAttempts, activeTab, selectedLevel]);
 
   const handleTabClick = (tab) => {
+    if (tab === activeTab) return;
     setActiveTab(tab);
     if (tab === "Total Students") {
-      navigate(`/student-detail-table`, { state: { level: "total" } });
+      navigate(`/student-detail-table`, { state: { level: "total" }, replace: true });
     } else if (tab === "Level's Cleared") {
-      navigate(`/student-detail-table`, { state: { level: "cleared" } });
+      navigate(`/student-detail-table`, { state: { level: "cleared" }, replace: true });
     } else {
-      // Extract level code from tab name (e.g., "Level 1A" -> "1A")
       const levelCode = tab.replace("Level ", "");
-      navigate(`/student-detail-table`, { state: { level: levelCode } });
+      navigate(`/student-detail-table`, { state: { level: levelCode }, replace: true });
     }
   };
 
@@ -201,7 +186,12 @@ const StudentDetailTable = () => {
     {
       key: "fullName",
       label: "Full Name",
-      render: (row) => toTitleCase(`${row.firstName} ${row.lastName}`),
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          <Avatar firstName={row.firstName} lastName={row.lastName} imageUrl={row.profileImage} />
+          <span>{toTitleCase(`${row.firstName} ${row.lastName}`)}</span>
+        </div>
+      ),
     },
     {
       key: "fatherName",
@@ -266,7 +256,7 @@ const StudentDetailTable = () => {
   );
 
   // Show loader when data is loading
-  if (currentLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <Loader />
@@ -276,43 +266,19 @@ const StudentDetailTable = () => {
 
   return (
     <>
-      <PageNavbar 
-        title="Admitted Student WorkFlow" 
-        subtitle="Track student progress through different levels"
-        showBackButton={false}
-      />
+      <Header title="Student Records" />
 
-      <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
-        <div className="px-6">
-          {/* Level Tabs */}
-          <div className="flex gap-6 mt-4 overflow-x-auto">
-            {levelTabs.map((tab) => (
-              <div key={tab}>
-                <p
-                  onClick={() => handleTabClick(tab)}
-                  className={`cursor-pointer text-md pb-2 border-b-2 whitespace-nowrap ${
-                    activeTab === tab
-                      ? "border-[var(--text-color)] font-semibold text-[var(--text-color)]"
-                      : "border-gray-200 text-[var(--text-color)]"
-                  }`}
-                >
-                  {tab === "Level's Cleared" ? "" + tab : tab}
-                </p>
-              </div>
-            ))}
-          </div>
+      <TabsCommon tabs={levelTabs} activeTab={activeTab} onTabChange={handleTabClick} />
 
-          <div className="flex justify-between items-center flex-wrap gap-4 mt-4">
-            <Pagination
-              rowsPerPage={rowsPerPage}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              filtersConfig={filtersConfig}
-              filteredData={filteredData}
-              selectedRows={selectedRows}
-              allData={filteredData}
-              sectionName={activeTab === "Level's Cleared" ? "levelscleared" : `level${selectedLevel}`}
-            />
+      <div className="px-5">
+        <div className="flex justify-between">
+          <PageNavbar
+            title="Admitted Student WorkFlow"
+            subtitle="Track student progress through different levels"
+            showBackButton={false}
+          />
+          <div className="py-4 w-full max-w-2xl">
+            <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
           </div>
         </div>
 
@@ -326,20 +292,18 @@ const StudentDetailTable = () => {
           actionButton={selectedLevel === "permission" || activeTab === "Level's Cleared" ? null : actionButton}
           onSelectionChange={setSelectedRows}
           onRowClick={(row) => {
-            // Set the source section to 'admitted' before navigating
             localStorage.setItem("lastSection", "admitted");
             navigate(`/student-profile/${row._id}`, { state: { student: row } });
           }}
         />
+        <CreateInterviewModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          studentId={selectedStudentId}
+          refetchStudents={refetch}
+          interviewLevel={selectedLevel}
+        />
       </div>
-
-      <CreateInterviewModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        studentId={selectedStudentId}
-        refetchStudents={refetch}
-        interviewLevel={selectedLevel}
-      />
     </>
   );
 };

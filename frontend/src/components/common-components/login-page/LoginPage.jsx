@@ -9,9 +9,9 @@ import { toast } from 'react-toastify';
 import ReusableForm from "../../../ReusableForm";
 import { loginValidationSchema } from "../../../validationSchema";
 
-import EmailField from "../common-feild/EmailField";
-import PasswordField from "../common-feild/PasswordField";
+import InputField from "../common-feild/InputField";
 import { buttonStyles } from "../../../styles/buttonStyles";
+import { Eye, EyeOff } from "lucide-react";
 
 import logo from "../../../assets/images/logo-ssism.png";
 import bg from "../../../assets/images/bgImg.png";
@@ -23,6 +23,7 @@ const LoginPage = () => {
   const [loginError, setLoginError] = useState("");
   const [login, { isLoading }] = useLoginMutation();
   const [showFaceLogin, setShowFaceLogin] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
 
   const secretKey = "ITEG@123";
@@ -101,8 +102,21 @@ const LoginPage = () => {
               </div>
 
               <div className="mt-6 space-y-4">
-                <EmailField value={values.email} onChange={handleChange} />
-                <PasswordField name="password" password="Password" />
+                <InputField name="email" type="email" label="Email" />
+                
+                <div className="relative">
+                  <InputField 
+                    name="password" 
+                    type={showPassword ? "text" : "password"} 
+                    label="Password" 
+                  />
+                  <div
+                    className="absolute top-[38px] right-3 transform -translate-y-1/2 text-gray-500 cursor-pointer z-10"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </div>
+                </div>
 
                 {loginError && (
                   <p className="text-red-600 text-sm">{loginError}</p>

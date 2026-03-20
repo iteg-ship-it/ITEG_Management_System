@@ -5,47 +5,29 @@ import { useParams } from "react-router-dom";
 import {
   useGetStudentByIdQuery,
   useGetInterviewDetailByIdQuery,
-  useInterviewCreateMutation,
 } from "../../redux/api/authApi";
 import InputField from "../common-components/common-feild/InputField";
 import CustomDropdown from "../common-components/common-feild/CustomDropdown";
 import { HiChevronUp, HiChevronDown } from "react-icons/hi";
 import Loader from "../common-components/loader/Loader";
-import * as Yup from "yup";
-import { toast } from "react-toastify";
-import PageNavbar from "../common-components/navbar/PageNavbar";
-import { buttonStyles } from "../../styles/buttonStyles";
+import Header from "../common-components/sidebar/Header";
 
 const Section = ({ title, children }) => {
   const [open, setOpen] = useState(true);
   return (
-    <div className="w-full mb-6 rounded-lg border bg-white shadow-sm">
+    <div className="w-full mb-4 rounded-xl border border-gray-200 bg-white shadow-sm">
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center justify-between w-full px-4 py-3 text-base font-semibold rounded-t-lg"
+        className="flex items-center justify-between w-full px-6 py-4 text-base font-semibold text-gray-800 hover:bg-gray-50 rounded-t-xl transition"
       >
         {title}
-        <span>{open ? <HiChevronUp /> : <HiChevronDown />}</span>
+        <span className="text-gray-500">{open ? <HiChevronUp size={20} /> : <HiChevronDown size={20} />}</span>
       </button>
-      {open && <div className="p-6">{children}</div>}
+      {open && <div className="p-6 pt-2">{children}</div>}
     </div>
   );
 };
-
-const MetricCard = ({ icon, label, value, isTotal = false }) => (
-  <div className={`${isTotal ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'} border rounded-xl p-4 hover:shadow-md transition-shadow`}>
-    <div className="flex items-center justify-between mb-2">
-      <div className="flex items-center justify-center">{icon}</div>
-      <span className={`text-2xl font-bold ${isTotal ? 'text-red-600' : 'text-gray-800'}`}>
-        {value || 'N/A'}
-      </span>
-    </div>
-    <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-      {label}
-    </div>
-  </div>
-);
 
 const ResultBadge = ({ result }) => {
   const getResultStyle = (result) => {
@@ -81,34 +63,11 @@ const AdmissionEditPage = () => {
     data: interviewData,
     isLoading: interviewLoading,
     error: interviewError,
-    refetch,
   } = useGetInterviewDetailByIdQuery(id, {
     refetchOnMountOrArgChange: true,
     refetchOnFocus: true,
-    pollingInterval: 15000, // Poll every 15 seconds
+    pollingInterval: 15000,
   });
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [createInterview, { isLoading: isSubmitting }] =
-    useInterviewCreateMutation();
-
-  const validationSchema = Yup.object().shape({
-    round: Yup.string().required("Required"),
-    remark: Yup.string().required("Remark is required"),
-    result: Yup.string().required("Result is required"),
-  });
-
-  const handleInterviewSubmit = async (values, { resetForm }) => {
-    try {
-      await createInterview({ ...values, studentId: id }).unwrap();
-      toast.success("Interview created successfully");
-      setIsModalOpen(false);
-      resetForm();
-      await refetch();
-    } catch (err) {
-      toast.error(err?.data?.message || "Failed to create interview");
-    }
-  };
 
   if (isLoading || interviewLoading) {
     return (
@@ -148,324 +107,166 @@ const AdmissionEditPage = () => {
 
   const handleSubmit = (values) => {
     console.log("Updated data:", values);
-    // Add update logic here
   };
 
   return (
-    <div className="w-full">
-      <PageNavbar
-        title="Student Profile"
-        subtitle="View and manage student admission details"
-      />
-      <div className="py-2">
-
-        <Formik
-          enableReinitialize
-          initialValues={initialValues}
-          onSubmit={handleSubmit}
-        >
-          {({ values, handleChange, handleBlur }) => (
-            <Form className="space-y-6">
-              {/* Personal Info */}
-              <Section title="Personal Information">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-[var(--backgroundColor)]">
-                  <InputField
-                    name="firstName"
-                    label="First Name"
-                    value={values.firstName}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    disabled
-                  />
-                  <InputField
-                    name="lastName"
-                    label="Last Name"
-                    value={values.lastName}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    disabled
-                  />
-                  <InputField
-                    name="studentMobile"
-                    label="Contact Number"
-                    value={values.studentMobile}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    disabled
-                  />
-                  <InputField
-                    name="fatherName"
-                    label="Father's Name"
-                    value={values.fatherName}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    disabled
-                  />
-                  <CustomDropdown
-                    name="gender"
-                    label="Gender"
-                    value={values.gender}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    disabled
-                    options={[
-                      { label: "Male", value: "male" },
-                      { label: "Female", value: "female" },
-                      { label: "Other", value: "other" },
-                    ]}
-                  />
-                  <CustomDropdown
-                    name="track"
-                    label="Track"
-                    value={values.track}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    disabled
-                    options={[
-                      { label: "Harda", value: "Harda" },
-                      { label: "Rehti", value: "Rehti" },
-                      { label: "Khategaon", value: "Khategaon" },
-                    ]}
-                  />
-                  <InputField
-                    name="address"
-                    as="textarea"
-                    label="Address"
-                    value={values.address}
-                    disabled
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    className="col-span-3"
-                  />
-                </div>
-              </Section>
-
-              {/* Academic Info */}
-              <Section title="Academic Information">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-[var(--backgroundColor)]">
-                  <InputField
-                    name="subject12"
-                    label="12th Subject"
-                    value={values.subject12}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    disabled
-                  />
-                  <InputField
-                    name="percent12"
-                    label="12th %"
-                    value={values.percent12}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    disabled
-                  />
-                  <InputField
-                    name="percent10"
-                    label="10th %"
-                    value={values.percent10}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    disabled
-                  />
-                  <InputField
-                    name="year12"
-                    label="Passout Year"
-                    value={values.year12}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    disabled
-                  />
-                </div>
-              </Section>
-
-              {/* Interview History */}
-              <Section title="Interview History">
-                <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
-                  <div className="flex justify-between items-center mb-6">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-800">
-                        Interview Rounds
-                      </h3>
-                    </div>
-                    {interviews.length >= 2 && (
-                      <button
-                        onClick={() => setIsModalOpen(true)}
-                        className={`px-6 py-3 rounded-xl font-medium flex items-center space-x-2 ${buttonStyles.primary}`}
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                        </svg>
-                        <span>Add Interview</span>
-                      </button>
-                    )}
-                  </div>
-
-                  {interviews.length === 0 ? (
-                    <div className="text-center py-12">
-                      <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                      </div>
-                      <p className="text-gray-500 text-lg">No interview records available</p>
-                      <p className="text-gray-400 text-sm mt-1">Click &quot;Add Interview&quot; to create the first record</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      {interviews.map((item, index) => (
-                        <div
-                          key={item._id || index}
-                          className="bg-white border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300"
-                        >
-                          {/* Header */}
-                          <div className="flex justify-between items-center mb-6">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                                {index + 1}
-                              </div>
-                              <div>
-                                <h3 className="text-xl font-bold text-gray-800">{item.round} Round</h3>
-                                <p className="text-sm text-gray-500 flex items-center">
-                                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                  </svg>
-                                  {new Date(item.date).toLocaleDateString('en-GB', {
-                                    day: '2-digit',
-                                    month: 'short',
-                                    year: 'numeric'
-                                  })}
-                                </p>
-                              </div>
-                            </div>
-                            <ResultBadge result={item.result} />
-                          </div>
-
-                          {/* Performance Metrics */}
-                          <div className="mb-6">
-                            <div className="flex items-center mb-4">
-                              <div className="w-6 h-6 bg-blue-100 rounded flex items-center justify-center mr-2">
-                                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                </svg>
-                              </div>
-                              <h4 className="text-lg font-semibold text-gray-700">Performance Metrics</h4>
-                            </div>
-
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                              <MetricCard icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>} label="COMMUNICATION" value={item.communication} />
-                              <MetricCard icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" /></svg>} label="CONFIDENCE" value={item.confidence} />
-                              <MetricCard icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>} label="SUBJECT KNOWLEDGE" value={item.subjectKnowlage} />
-                              <MetricCard icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg>} label="MATHEMATICS" value={item.maths} />
-                              <MetricCard icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>} label="REASONING" value={item.reasoning} />
-                              <MetricCard icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} label="SINCERITY" value={item.sincerity} />
-                              <MetricCard icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" /></svg>} label="GOAL CLARITY" value={item.goal} />
-                              <MetricCard icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>} label="TOTAL MARKS" value={item.marks} isTotal={true} />
-                            </div>
-                          </div>
-
-                          {/* Bottom Section */}
-                          <div className="flex justify-between items-start">
-                            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-                              <div className="flex items-center mb-1">
-                                <svg className="w-4 h-4 text-blue-600 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-                                </svg>
-                                <span className="text-sm font-semibold text-blue-700">Attempt Number</span>
-                              </div>
-                              <span className="text-2xl font-bold text-blue-800">{item.attemptNo}</span>
-                            </div>
-
-                            {item.remark && (
-                              <div className="bg-orange-50 border-l-4 border-orange-400 p-4 rounded flex-1 ml-4">
-                                <div className="flex items-center mb-2">
-                                  <svg className="w-4 h-4 text-orange-600 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                  </svg>
-                                  <span className="text-sm font-semibold text-orange-700">Interviewer Remarks</span>
-                                </div>
-                                <p className="text-gray-700">{item.remark}</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </Section>
-            </Form>
-          )}
-        </Formik>
-
-        {/* Modal UI */}
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm">
-            <div className="bg-white rounded-xl p-6 w-[95%] max-w-xl max-h-[90vh] overflow-y-auto relative shadow-2xl">
-              <h2 className="text-xl font-bold text-center text-orange-500 mb-6">
-                Add Interview
-              </h2>
-              <Formik
-                initialValues={{
-                  round: "Second",
-                  remark: "",
-                  result: "Pending",
-                }}
-                validationSchema={validationSchema}
-                onSubmit={handleInterviewSubmit}
-              >
-                {() => (
-                  <Form className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <CustomDropdown
-                      label="Round"
-                      name="round"
+    <>
+    <Header 
+    title="Student Detail"
+    breadcrumbs={[
+      { label: "Admission Process", path: "/admission-process" },
+      { label: "Details", path: null },
+    ]}
+    />
+      <div className="w-full">
+        <div className="py-2 p-5">
+          <Formik
+            enableReinitialize
+            initialValues={initialValues}
+            onSubmit={handleSubmit}
+          >
+            {({ values, handleChange }) => (
+              <Form className="space-y-6">
+                {/* Personal Info */}
+                <Section title="Personal Information">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <InputField
+                      name="firstName"
+                      label="First Name"
+                      value={values.firstName}
+                      onChange={handleChange}
                       disabled
-                      options={[{ value: "Second", label: "Final Round" }]}
                     />
-                    <InputField label="Remark" name="remark" />
+                    <InputField
+                      name="lastName"
+                      label="Last Name"
+                      value={values.lastName}
+                      onChange={handleChange}
+                      disabled
+                    />
+                    <InputField
+                      name="studentMobile"
+                      label="Contact Number"
+                      value={values.studentMobile}
+                      onChange={handleChange}
+                      disabled
+                    />
+                    <InputField
+                      name="fatherName"
+                      label="Father's Name"
+                      value={values.fatherName}
+                      onChange={handleChange}
+                      disabled
+                    />
                     <CustomDropdown
-                      label="Result"
-                      name="result"
+                      name="gender"
+                      label="Gender"
+                      variant="card"
+                      disabled
                       options={[
-                        { value: "Pass", label: "Pass" },
-                        { value: "Fail", label: "Fail" },
-                        { value: "Pending", label: "Pending" },
+                        { label: "Male", value: "male" },
+                        { label: "Female", value: "female" },
+                        { label: "Other", value: "other" },
                       ]}
                     />
-                    <div className="md:col-span-2 mt-4">
-                      <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className={`w-full py-3 rounded-md transition disabled:opacity-50 flex items-center justify-center ${buttonStyles.primary}`}
-                      >
-                        {isSubmitting ? (
-                          <>
-                            <span className="ml-2">Submitting...</span>
-                          </>
-                        ) : "Submit"}
-                      </button>
+                    <CustomDropdown
+                      name="track"
+                      label="Track"
+                      variant="card"
+                      disabled
+                      options={[
+                        { label: "Harda", value: "Harda" },
+                        { label: "Rehti", value: "Rehti" },
+                        { label: "Khategaon", value: "Khategaon" },
+                      ]}
+                    />
+                    <InputField
+                      name="address"
+                      type="textarea"
+                      label="Address"
+                      value={values.address}
+                      disabled
+                      onChange={handleChange}
+                      className="md:col-span-3"
+                    />
+                  </div>
+                </Section>
+
+                {/* Academic Info */}
+                <Section title="Academic Information">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <InputField
+                      name="subject12"
+                      label="12th Subject"
+                      value={values.subject12}
+                      onChange={handleChange}
+                      disabled
+                    />
+                    <InputField
+                      name="percent12"
+                      label="12th Percentage"
+                      value={values.percent12}
+                      onChange={handleChange}
+                      disabled
+                    />
+                    <InputField
+                      name="year12"
+                      label="12th Year"
+                      value={values.year12}
+                      onChange={handleChange}
+                      disabled
+                    />
+                    <InputField
+                      name="percent10"
+                      label="10th Percentage"
+                      value={values.percent10}
+                      onChange={handleChange}
+                      disabled
+                    />
+                  </div>
+                </Section>
+
+                {/* Interview Section */}
+                <Section title="Interview Details">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <InputField
+                        name="interviewMarks"
+                        label="Interview Marks"
+                        value={values.interviewMarks}
+                        onChange={handleChange}
+                        disabled
+                      />
+                      <div className="flex items-end">
+                        <ResultBadge result={values.result} />
+                      </div>
                     </div>
-                  </Form>
-                )}
-              </Formik>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="absolute top-3 right-4 text-xl text-gray-400 hover:text-gray-700"
-              >
-                &times;
-              </button>
-            </div>
-          </div>
-        )}
+
+                    {interviews.length > 0 && (
+                      <div className="mt-6">
+                        <h3 className="text-sm font-semibold text-gray-700 mb-3">Interview History</h3>
+                        <div className="space-y-3">
+                          {interviews.map((interview, idx) => (
+                            <div key={idx} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                              <div className="flex justify-between items-start mb-2">
+                                <span className="text-sm font-medium text-gray-700">Round {interview.round}</span>
+                                <ResultBadge result={interview.result} />
+                              </div>
+                              <p className="text-sm text-gray-600">{interview.remark}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </Section>
+              </Form>
+            )}
+          </Formik>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
-
-
 
 export default AdmissionEditPage;

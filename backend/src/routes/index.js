@@ -11,6 +11,7 @@ const reportCardRoutes = require('./reportCardRoutes');
 const protectedRoutes = require('./protectedRoutes');
 const webhookRoutes = require('./webhookRoutes');
 const taskRoutes = require('./taskRoutes');
+const roleRoutes = require('./roleRoutes');
 
 // Mount routes
 router.use('/user', userRoutes);
@@ -21,9 +22,11 @@ router.use('/face-auth', faceAuthRoutes);
 router.use('/reportcards', reportCardRoutes);
 router.use('/protected', protectedRoutes);
 router.use('/tasks', taskRoutes);
+router.use('/roles', roleRoutes);
 
 // Webhook routes
 router.use('/admission/students/webhook', webhookRoutes);
 router.use('/admitted/students/webhook', webhookRoutes);
+
 
 module.exports = router;

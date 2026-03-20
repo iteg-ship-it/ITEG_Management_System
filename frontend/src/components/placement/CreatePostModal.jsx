@@ -2,49 +2,50 @@
 import { useState, useEffect } from "react";
 import { IoClose, IoCloudUploadOutline, IoDocumentTextOutline } from "react-icons/io5";
 import { toast } from "react-toastify";
+import { Formik, Form } from "formik";
+import * as Yup from "yup";
+import InputField from "../common-components/common-feild/InputField";
 import { useCreatePlacementPostMutation, useUpdatePlacementPostMutation } from "../../redux/api/authApi";
 import { buttonStyles } from "../../styles/buttonStyles";
 import BlurBackground from "../common-components/BlurBackground";
+import Header from "../common-components/sidebar/Header";
 
 const PRIMARY_COLOR = "#FDA92D";
 const TEXT_COLOR = "#4B4B4B";
 
 const CreatePostModal = ({ isOpen, onClose, student, onSuccess, isUpdateMode = false }) => {
-  const [formData, setFormData] = useState({
-    position: "",
-    companyName: "",
-    headOffice: ""
-  });
   const [companyLogoFile, setCompanyLogoFile] = useState(null);
   const [studentImageFile, setStudentImageFile] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [createPlacementPost] = useCreatePlacementPostMutation();
   const [updatePlacementPost] = useUpdatePlacementPostMutation();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const validationSchema = Yup.object({
+    position: Yup.string().required("Position is required"),
+    companyName: Yup.string().required("Company name is required"),
+    headOffice: Yup.string().required("Head office is required")
+  });
 
+  const initialValues = {
+    position: student?.placedInfo?.jobProfile || "",
+    companyName: student?.placedInfo?.companyName || "",
+    headOffice: ""
+  };
+
+  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     if (!isUpdateMode && (!companyLogoFile || !studentImageFile)) {
       toast.error("Please upload both company logo and student image");
+      setSubmitting(false);
       return;
     }
-
-    if (!formData.headOffice) {
-      toast.error("Please fill in head office location");
-      return;
-    }
-
-    setIsSubmitting(true);
 
     try {
       const postData = {
         studentId: student._id,
-        position: formData.position,
-        companyName: formData.companyName,
-        headOffice: formData.headOffice
+        position: values.position,
+        companyName: values.companyName,
+        headOffice: values.headOffice
       };
 
-      // Add images if provided
       if (companyLogoFile) {
         postData.companyLogo = await fileToBase64(companyLogoFile);
       }
@@ -52,7 +53,6 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess, isUpdateMode = f
         postData.studentImage = await fileToBase64(studentImageFile);
       }
 
-      // Call appropriate API
       if (isUpdateMode) {
         await updatePlacementPost(postData).unwrap();
         toast.success("Placement post updated successfully!");
@@ -62,13 +62,15 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess, isUpdateMode = f
       }
 
       onSuccess?.();
-      onClose();
       resetForm();
+      setCompanyLogoFile(null);
+      setStudentImageFile(null);
+      onClose();
     } catch (error) {
       console.error(`Error ${isUpdateMode ? 'updating' : 'creating'} placement post:`, error);
       toast.error(`Error ${isUpdateMode ? 'updating' : 'creating'} placement post. Please try again.`);
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
 
@@ -82,56 +84,28 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess, isUpdateMode = f
   };
 
   const handleClose = () => {
-    resetForm();
+    setCompanyLogoFile(null);
+    setStudentImageFile(null);
     onClose();
   };
 
-  const resetForm = () => {
-    setFormData({
-      position: student?.placedInfo?.jobProfile || "",
-      companyName: student?.placedInfo?.companyName || "",
-      headOffice: ""
-    });
-    setCompanyLogoFile(null);
-    setStudentImageFile(null);
-  };
-
-  // Update form data when student prop changes
+  // Update initial values when student prop changes
   useEffect(() => {
-    if (student?.placedInfo) {
-      setFormData({
-        position: student.placedInfo.jobProfile || "",
-        companyName: student.placedInfo.companyName || "",
-        headOffice: ""
-      });
-    }
+    // This will be handled by Formik's initialValues
   }, [student]);
-
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
 
 
   if (!isOpen) return null;
 
   return (
-    <BlurBackground isOpen={isOpen} onClose={handleClose}>
-      <div className="bg-white rounded-2xl w-full max-w-2xl shadow-lg p-8 relative max-h-[90vh] overflow-y-auto">
-        {/* Close Button */}
-        <button
-          onClick={handleClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-        >
-          <IoClose size={22} />
-        </button>
-
-        {/* Title */}
-        <h2
-          className="text-2xl font-semibold text-center mb-6"
-          style={{ color: PRIMARY_COLOR }}
-        >
-          {isUpdateMode ? 'Update Placement Post' : 'Create Placement Post'}
-        </h2>
+    <>
+      <Header 
+        title={isUpdateMode ? 'Update Placement Post' : 'Create Placement Post'}
+        showBack={true}
+        onBack={handleClose}
+      />
+      <BlurBackground isOpen={isOpen} onClose={handleClose}>
+        <div className="bg-white rounded-2xl w-full max-w-2xl shadow-lg p-8 relative max-h-[90vh] overflow-y-auto">
 
         {/* Student Info */}
         {student && (
@@ -147,65 +121,33 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess, isUpdateMode = f
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 text-[15px]" style={{ color: TEXT_COLOR }}>
-          {/* Position */}
-          <div className="relative">
-            <input
-              type="text"
-              id="position"
-              value={formData.position}
-              onChange={(e) => handleInputChange('position', e.target.value)}
-              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer"
-              placeholder=" "
-              required
-              readOnly={!isUpdateMode}
-            />
-            <label
-              htmlFor="position"
-              className="absolute left-3 -top-2 text-xs bg-white px-1 text-black"
-            >
-              Position *
-            </label>
-          </div>
+        <Formik
+          initialValues={initialValues}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}
+          enableReinitialize
+        >
+          {({ isSubmitting }) => (
+            <Form className="grid grid-cols-1 gap-4 text-[15px]" style={{ color: TEXT_COLOR }}>
+              <InputField 
+                label="Position" 
+                name="position" 
+                disabled={!isUpdateMode}
+                placeholder="Enter position"
+              />
 
-          {/* Company Name */}
-          <div className="relative">
-            <input
-              type="text"
-              id="companyName"
-              value={formData.companyName}
-              onChange={(e) => handleInputChange('companyName', e.target.value)}
-              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer"
-              placeholder=" "
-              required
-              readOnly={!isUpdateMode}
-            />
-            <label
-              htmlFor="companyName"
-              className="absolute left-3 -top-2 text-xs bg-white px-1 text-black"
-            >
-              Company Name *
-            </label>
-          </div>
+              <InputField 
+                label="Company Name" 
+                name="companyName" 
+                disabled={!isUpdateMode}
+                placeholder="Enter company name"
+              />
 
-          {/* Head Office */}
-          <div className="relative">
-            <input
-              type="text"
-              id="headOffice"
-              value={formData.headOffice}
-              onChange={(e) => handleInputChange('headOffice', e.target.value)}
-              className="h-12 border border-gray-300 px-3 rounded-md focus:outline-none focus:border-[#FDA92D] w-full peer"
-              placeholder=" "
-              required
-            />
-            <label
-              htmlFor="headOffice"
-              className="absolute left-3 top-3 text-gray-500 transition-all duration-200 cursor-text peer-focus:-top-2 peer-focus:left-2 peer-focus:text-xs peer-focus:bg-white peer-focus:px-1 peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-black"
-            >
-              Head Office *
-            </label>
-          </div>
+              <InputField 
+                label="Head Office" 
+                name="headOffice" 
+                placeholder="Enter head office location"
+              />
 
           {/* Company Logo Upload */}
           <div className="relative">
@@ -297,19 +239,22 @@ const CreatePostModal = ({ isOpen, onClose, student, onSuccess, isUpdateMode = f
             </div>
           </div>
 
-          {/* Submit Button */}
-          <div className="mt-4">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className={`w-full h-12 rounded-md transition disabled:opacity-50 ${buttonStyles.primary}`}
-            >
-              {isSubmitting ? (isUpdateMode ? "Updating Post..." : "Creating Post...") : (isUpdateMode ? "Update Post" : "Create Post")}
-            </button>
-          </div>
-        </form>
+              {/* Submit Button */}
+              <div className="mt-4">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`w-full h-12 rounded-md transition disabled:opacity-50 ${buttonStyles.primary}`}
+                >
+                  {isSubmitting ? (isUpdateMode ? "Updating Post..." : "Creating Post...") : (isUpdateMode ? "Update Post" : "Create Post")}
+                </button>
+              </div>
+            </Form>
+          )}
+        </Formik>
       </div>
     </BlurBackground>
+    </>
   );
 };
 

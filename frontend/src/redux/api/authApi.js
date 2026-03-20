@@ -7,21 +7,12 @@ import { logout, setCredentials } from "../auth/authSlice";
 const secretKey = "ITEG@123";
 
 //  Decrypt from localStorage
-// const decrypt = (encrypted) => {
-//   try {
-//     const bytes = CryptoJS.AES.decrypt(encrypted, secretKey);
-//     return bytes.toString(CryptoJS.enc.Utf8);
-//   } catch (err) {
-//     console.error("Decryption failed:", err);
-//     return null;
-//   }
-// };
 const decrypt = (encrypted) => {
   try {
-    if (!encrypted || typeof encrypted !== "string") return null; // ✅ Prevent decryption of null or invalid input
+    if (!encrypted || typeof encrypted !== "string") return null;
     const bytes = CryptoJS.AES.decrypt(encrypted, secretKey);
     const decrypted = bytes.toString(CryptoJS.enc.Utf8);
-    return decrypted || null; // If decryption fails silently, still return null
+    return decrypted || null;
   } catch (err) {
     console.error("Decryption failed:", err);
     return null;
@@ -30,6 +21,21 @@ const decrypt = (encrypted) => {
 
 //  Encrypt before storing
 const encrypt = (data) => CryptoJS.AES.encrypt(data, secretKey).toString();
+
+// Function to decode JWT payload
+const jwtDecode = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    console.error("Invalid token:", e);
+    return null;
+  }
+};
 
 //  Base query with token in headers
 const rawBaseQuery = fetchBaseQuery({
@@ -92,11 +98,10 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
       // Store encrypted token
       localStorage.setItem("token", encrypt(accessToken));
       
+      const user = jwtDecode(accessToken);
+
       // Update Redux state
-      api.dispatch(setCredentials({ 
-        token: accessToken, 
-        role: localStorage.getItem("role") 
-      }));
+      api.dispatch(setCredentials({ token: accessToken, user }));
 
       // Retry original query
       result = await rawBaseQuery(args, api, extraOptions);
@@ -115,7 +120,7 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithAutoRefresh,
-  tagTypes: ['Student', 'PlacementStudent', 'User'],
+  tagTypes: ['Student', 'PlacementStudent', 'User', 'Department', 'Role', 'Permission'],
   // Global configuration for better caching
   keepUnusedDataFor: 300, // 5 minutes default cache
   refetchOnMountOrArgChange: 30, // Only refetch if data is older than 30 seconds
@@ -131,13 +136,14 @@ export const authApi = createApi({
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          const { token, refreshToken, role } = data;
+          const { token, refreshToken } = data;
+          const user = jwtDecode(token);
 
           localStorage.setItem("token", encrypt(token));
           localStorage.setItem("refreshToken", encrypt(refreshToken));
-          localStorage.setItem("role", role);
+          localStorage.setItem("role", user.role);
 
-          dispatch(setCredentials({ token, role }));
+          dispatch(setCredentials({ token, user }));
           window.location.replace("/");
         } catch (error) {
           console.error("Login failed:", error);
@@ -373,10 +379,9 @@ export const authApi = createApi({
       async onQueryStarted({ id, techno }, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
-          // Invalidate specific student data to force refetch
           dispatch(authApi.util.invalidateTags([{ type: 'Student', id }]));
         } catch (error) {
-          console.error('Error updating student:', error);
+          // Error handled by toast
         }
       },
     }),
@@ -460,12 +465,10 @@ export const authApi = createApi({
       async onQueryStarted({ studentId, interviewId, ...data }, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
-          // Invalidate all placement student queries to force refetch
           dispatch(authApi.util.invalidateTags(['PlacementStudent']));
-          // Also invalidate specific student data
           dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
         } catch (error) {
-          console.log('Error updating placed info:', error);
+          // Error handled by toast
         }
       },
     }),
@@ -517,7 +520,7 @@ export const authApi = createApi({
           dispatch(authApi.util.invalidateTags(['PlacementStudent']));
           dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
         } catch (error) {
-          console.log('Error rescheduling interview:', error);
+          // Error handled by toast
         }
       },
     }),
@@ -536,7 +539,7 @@ export const authApi = createApi({
           dispatch(authApi.util.invalidateTags(['PlacementStudent']));
           dispatch(authApi.util.invalidateTags([{ type: 'PlacementStudent', id: studentId }]));
         } catch (error) {
-          console.log('Error adding interview round:', error);
+          // Error handled by toast
         }
       },
     }),
@@ -700,6 +703,15 @@ export const authApi = createApi({
       ],
     }),
 
+    // Get current user
+    getCurrentUser: builder.query({
+      query: () => ({
+        url: '/user/me',
+        method: "GET",
+      }),
+      providesTags: ['User'],
+    }),
+
     // Get report card by student ID
     getReportCard: builder.query({
       query: (studentId) => ({
@@ -714,7 +726,6 @@ export const authApi = createApi({
     // Create report card
     createReportCard: builder.mutation({
       query: (reportData) => {
-        console.log('RTK Query - Creating report card with data:', reportData);
         return {
           url: '/reportcards',
           method: "POST",
@@ -746,6 +757,254 @@ export const authApi = createApi({
         body: reportData,
       }),
       invalidatesTags: ['Student'],
+    }),
+
+    // Add Department
+    addDepartment: builder.mutation({
+      query: (departmentData) => ({
+        url: '/departments',
+        method: "POST",
+        body: departmentData,
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Get All Departments
+    getAllDepartments: builder.query({
+      query: () => ({
+        url: '/departments',
+        method: "GET",
+      }),
+      providesTags: ['Department'],
+      keepUnusedDataFor: 300,
+    }),
+
+    // Update Department
+    updateDepartment: builder.mutation({
+      query: ({ id, ...data }) => {
+        const payload = {
+          name: data.name,
+          code: data.code,
+          universityName: data.universityName,
+          description: data.description,
+          headOfDepartment: data.headOfDepartment,
+          allowedCourses: data.allowedCourses || [],
+          reportConfig: data.reportConfig,
+          isActive: data.isActive
+        };
+        return {
+          url: `/departments/${id}`,
+          method: "PUT",
+          body: payload,
+        };
+      },
+      invalidatesTags: ['Department'],
+    }),
+
+    // Delete Department
+    deleteDepartment: builder.mutation({
+      query: (id) => ({
+        url: `/departments/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Add Subdepartment
+    addSubdepartment: builder.mutation({
+      query: (data) => ({
+        url: '/subdepartments',
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Update Subdepartment
+    updateSubdepartment: builder.mutation({
+      query: ({ subdepartmentId, ...data }) => ({
+        url: `/subdepartments/${subdepartmentId}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Delete Subdepartment
+    deleteSubdepartment: builder.mutation({
+      query: (subdepartmentId) => ({
+        url: `/subdepartments/${subdepartmentId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Get Subdepartments by Department
+    getSubdepartmentsByDepartment: builder.query({
+      query: (departmentId) => ({
+        url: `/subdepartments/department/${departmentId}`,
+        method: "GET",
+      }),
+      providesTags: ['Department'],
+    }),
+
+    // Get All Subdepartments
+    getAllSubdepartments: builder.query({
+      query: () => ({
+        url: '/subdepartments',
+        method: "GET",
+      }),
+      providesTags: ['Department'],
+      keepUnusedDataFor: 300,
+    }),
+
+    // Get Subdepartment by ID
+    getSubdepartmentById: builder.query({
+      query: (id) => ({
+        url: `/subdepartments/${id}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, id) => [{ type: 'Department', id }],
+    }),
+
+    // Get Levels by Subdepartment
+    getLevelsBySubdepartment: builder.query({
+      query: (subdepartmentId) => ({
+        url: `/levels/subdepartment/${subdepartmentId}`,
+        method: "GET",
+      }),
+      providesTags: ['Department'],
+    }),
+
+    // Add Level
+    addLevel: builder.mutation({
+      query: (data) => ({
+        url: '/levels',
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Update Level
+    updateLevel: builder.mutation({
+      query: ({ levelId, ...data }) => ({
+        url: `/levels/${levelId}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Delete Level
+    deleteLevel: builder.mutation({
+      query: (levelId) => ({
+        url: `/levels/${levelId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Add SubLevel
+    addSubLevel: builder.mutation({
+      query: (data) => ({
+        url: '/sublevels',
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Update SubLevel
+    updateSubLevel: builder.mutation({
+      query: ({ subLevelId, ...data }) => ({
+        url: `/sublevels/${subLevelId}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Delete SubLevel
+    deleteSubLevel: builder.mutation({
+      query: (subLevelId) => ({
+        url: `/sublevels/${subLevelId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ['Department'],
+    }),
+
+    // Get SubLevels by Level
+    getSubLevelsByLevel: builder.query({
+      query: (levelId) => ({
+        url: `/sublevels/level/${levelId}`,
+        method: "GET",
+      }),
+      providesTags: ['Department'],
+    }),
+
+ // Get All Levels
+    getAllLevels: builder.query({
+      query: () => ({
+        url: '/levels',
+        method: "GET",
+      }),
+      providesTags: ['Department'],
+      keepUnusedDataFor: 300,
+    }),
+    // Role Management APIs
+    createRole: builder.mutation({
+      query: (roleData) => ({
+        url: '/roles/create',
+        method: "POST",
+        body: roleData,
+      }),
+      invalidatesTags: ['Role'],
+    }),
+
+    getAllRoles: builder.query({
+      query: () => ({
+        url: '/roles/all',
+        method: "GET",
+      }),
+      providesTags: ['Role'],
+    }),
+
+    updateRole: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `/roles/update/${id}`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ['Role'],
+    }),
+
+    deleteRole: builder.mutation({
+      query: (id) => ({
+        url: `/roles/delete/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ['Role'],
+    }),
+
+    // Permissions Management APIs
+    getAllPossiblePermissions: builder.query({
+      query: () => '/user/permissions/all',
+      providesTags: ['Permission'],
+    }),
+
+    getUserPermissions: builder.query({
+      query: (id) => `/user/permissions/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Permission', id }],
+    }),
+
+    updateUserPermissions: builder.mutation({
+      query: ({ id, permissions }) => ({
+        url: `/user/permissions/${id}`,
+        method: 'PUT',
+        body: { permissions },
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: 'Permission', id }],
     }),
 
   }),
@@ -801,8 +1060,35 @@ export const {
   useDeleteUserMutation,
   useEditUserMutation,
   useGetUserByIdQuery,
+  useGetCurrentUserQuery,
   useGetReportCardQuery,
   useCreateReportCardMutation,
   useGetReportCardForEditQuery,
-  useUpdateReportCardMutation
+  useUpdateReportCardMutation,
+  useAddDepartmentMutation,
+  useGetAllDepartmentsQuery,
+  useUpdateDepartmentMutation,
+  useDeleteDepartmentMutation,
+  useAddSubdepartmentMutation,
+  useUpdateSubdepartmentMutation,
+  useDeleteSubdepartmentMutation,
+  useGetSubdepartmentsByDepartmentQuery,
+  useGetAllSubdepartmentsQuery,
+  useGetSubdepartmentByIdQuery,
+  useGetLevelsBySubdepartmentQuery,
+  useAddLevelMutation,
+  useUpdateLevelMutation,
+  useDeleteLevelMutation,
+  useAddSubLevelMutation,
+  useUpdateSubLevelMutation,
+  useDeleteSubLevelMutation,
+  useGetSubLevelsByLevelQuery,  
+  useGetAllLevelsQuery,
+  useCreateRoleMutation,
+  useGetAllRolesQuery,
+  useUpdateRoleMutation,
+  useDeleteRoleMutation,
+  useGetAllPossiblePermissionsQuery,
+  useGetUserPermissionsQuery,
+  useUpdateUserPermissionsMutation
 } = authApi;

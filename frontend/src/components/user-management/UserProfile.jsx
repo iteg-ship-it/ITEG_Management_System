@@ -1,11 +1,11 @@
 import { useParams } from "react-router-dom";
 import { useGetUserByIdQuery, useUpdateUserMutation } from "../../redux/api/authApi";
 import Loader from "../common-components/loader/Loader";
-import { HiArrowNarrowLeft } from "react-icons/hi";
 import { IoCamera } from "react-icons/io5";
-import { FiUser, FiBriefcase, FiShield, FiSettings, FiMail, FiPhone, FiMapPin, FiCalendar, FiClock, FiUserCheck } from "react-icons/fi";
-import profilePlaceholder from '../../assets/images/profile-img.png';
-import studentProfileBg from "../../assets/images/Student_profile_2nd_bg.jpg";
+import { HiArrowNarrowLeft } from "react-icons/hi";
+import { FiUser, FiBriefcase, FiShield, FiSettings, FiMail, FiPhone, FiCalendar, FiClock, FiUserCheck } from "react-icons/fi";
+import profilePlaceholder from './../../assets/images/profile-img.png';
+import studentProfileBg from "./../../assets/images/Student_profile_2nd_bg.jpg";
 import { toast } from 'react-toastify';
 import { useState, useRef } from 'react';
 
@@ -87,7 +87,7 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen p-5">
       {/* Professional Header */}
       <div className="sticky top-0 z-10">
         <div className="py-2 sm:py-4">

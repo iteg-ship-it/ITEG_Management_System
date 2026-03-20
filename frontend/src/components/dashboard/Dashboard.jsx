@@ -1,11 +1,11 @@
 import { Routes, Route } from "react-router-dom";
+import { usePermissions } from '../contexts/PermissionContext';
 // Admission process components
 import AdmissionDashboard from "../admition-process/AdmissionDashboard";
 import AdmissionProcess from "../admition-process/AdmissionProcess";
 import AdmissionEditPage from "../admition-process/AdmissionEditPage";
 
 // Student records components
-import StudentDashboard from "../student-records/StudentDashboard";
 import StudentDetailTable from "../student-records/StudentDetailTable";
 import StudentEditPage from "../student-records/StudentEditPage";
 import StudentProfile from "../student-records/StudentProfile";
@@ -25,48 +25,103 @@ import PlacedStudents from "../placement/PlacedStudents";
 import InterviewHistory from "../placement/InterviewHistory";
 import InterviewRoundsHistory from "../placement/InterviewRoundsHistory";
 import PageNotFound from "../common-components/error-pages/PageNotFound";
-import ProtectedRoute from '../common-components/protected-route/ProtectedRoute';
-import AttendanceDetails from "../dashboard/AttendanceDetails";
+import AttendanceDetails from "./AttendanceDetails";
 import UsersManagement from "../user-management/UsersManagement";
 import UserProfile from "../user-management/UserProfile";
+import DepartmentManagement from "../Setting/Departments/DepartmentManagement";
+import UserPermission from "../user-management/UserPermission";
+import SubDepartment from "../Setting/Departments/SubDepartment";
+import ShowLevels from "../Setting/Levels/ShowLevels";
+import DepartmentDetails from "../Setting/Departments/DepartmentDetails";
+import SubdepartmentDetails from "../Setting/Departments/SubdepartmentDetails";
+import Header from "../common-components/sidebar/Header";
 
 const Dashboard = () => {
-  console.log('Dashboard routes loaded');
+  const { hasPermission } = usePermissions();
+  
   return (
     <Routes>
-      {/* Dashboard Routes - All roles */}
-      <Route path="/" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionDashboard /></ProtectedRoute>} />
-      <Route path="/attendance-details" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AttendanceDetails /></ProtectedRoute>} />
+      {/* Dashboard Routes - Permission based */}
+      {hasPermission('Page_Dashboard') && (
+        <Route path="/" element={<AdmissionDashboard />} />
+      )}
+      {hasPermission('Page_AttendanceDetails') && (
+        <Route path="/attendance-details" element={<AttendanceDetails />} />
+      )}
       
-      {/* Superadmin Only Routes */}
-      <Route path="/users-management" element={<ProtectedRoute allowedRoles={["superadmin"]}><UsersManagement /></ProtectedRoute>} />
-      <Route path="/user-profile/:id" element={<ProtectedRoute allowedRoles={["superadmin"]}><UserProfile /></ProtectedRoute>} />
+      {/* User Management - Superadmin only */}
+      {hasPermission('Page_UserManagement') && (
+        <>
+          <Route path="/user-management" element={<UsersManagement />} />
+          <Route path="/user-profile/:id" element={<UserProfile />} />
+          <Route path="/user-permission" element={<UserPermission />} />
+        </>
+      )}
       
-      {/* Admission Routes - All roles */}
-      <Route path="/admission-process" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionProcess /></ProtectedRoute>} />
-      <Route path="/admission/edit/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionEditPage /></ProtectedRoute>} />
+      {/* Admission Routes - Permission based */}
+      {hasPermission('Page_Admission') && (
+        <>
+          <Route path="/admission-process" element={<AdmissionProcess />} />
+          <Route path="/admission/edit/:id" element={<AdmissionEditPage />} />
+        </>
+      )}
       
-      {/* Student & Faculty Routes - All roles */}
-      <Route path="/student-dashboard" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentDashboard /></ProtectedRoute>} />
-      <Route path="/student-detail-table" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentDetailTable /></ProtectedRoute>} />
-      <Route path="/student/edit/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentEditPage /></ProtectedRoute>} />
-      <Route path="/student/leveldata/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentLevelData /></ProtectedRoute>} />
-      <Route path="/student-profile/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentProfile /></ProtectedRoute>} />
-      <Route path="/student/:id/report/edit" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentReportForm /></ProtectedRoute>} />
-      <Route path="/student/:id/report" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentReport /></ProtectedRoute>} />
-      <Route path="/student/:studentId/level-interviews" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentLevelInterviewHistory /></ProtectedRoute>} />
-      <Route path="/student/:id/task-list" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><TaskList /></ProtectedRoute>} />
-      <Route path="/level-wise-management" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><LevelWiseStudentManagement /></ProtectedRoute>} />
-      <Route path="/student-permission" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentPermission /></ProtectedRoute>} />
+      {/* Student Routes - Permission based */}
+      {hasPermission('Page_AdmittedStudents') && (
+        <>
+          <Route path="/student-dashboard" element={<StudentDashboard />} />
+          <Route path="/student-detail-table" element={<StudentDetailTable />} />
+          <Route path="/student/edit/:id" element={<StudentEditPage />} />
+          <Route path="/student/leveldata/:id" element={<StudentLevelData />} />
+          <Route path="/student-profile/:id" element={<StudentProfile />} />
+          <Route path="/student/:id/report/edit" element={<StudentReportForm />} />
+          <Route path="/student/:id/report" element={<StudentReport />} />
+          <Route path="/student/:studentId/level-interviews" element={<StudentLevelInterviewHistory />} />
+          <Route path="/student/:id/task-list" element={<TaskList />} />
+          <Route path="/student-permission" element={<StudentPermission />} />
+        </>
+      )}
       
-      {/* Placement Routes - All roles */}
-      <Route path="/readiness-status" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><PlacementReadyStudents /></ProtectedRoute>} />
-      <Route path="/placement-interview-record" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><PlacementRecords /></ProtectedRoute>} />
-      <Route path="/company-details" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><CompanyDetail /></ProtectedRoute>} />
-      <Route path="/placement/company/:companyId" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><PlacedStudents /></ProtectedRoute>} />
-      <Route path="/placement-post" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><PlacementPost /></ProtectedRoute>} />
-      <Route path="/interview-history/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><InterviewHistory /></ProtectedRoute>} />
-      <Route path="/interview-rounds-history/:studentId/:interviewId" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><InterviewRoundsHistory /></ProtectedRoute>} />
+      {hasPermission('Page_LevelWiseManagement') && (
+        <Route path="/level-wise-management" element={<LevelWiseStudentManagement />} />
+      )}
+      
+      {/* Placement Routes - Permission based */}
+      {hasPermission('Page_Placement') && (
+        <>
+          <Route path="/readiness-status" element={<PlacementReadyStudents />} />
+          <Route path="/placement-interview-record" element={<PlacementRecords />} />
+          <Route path="/placement-post" element={<PlacementPost />} />
+          <Route path="/interview-history/:id" element={<InterviewHistory />} />
+          <Route path="/interview-rounds-history/:studentId/:interviewId" element={<InterviewRoundsHistory />} />
+        </>
+      )}
+      
+      {hasPermission('Page_CompanyDetails') && (
+        <>
+          <Route path="/company-details" element={<CompanyDetail />} />
+          <Route path="/placement/company/:companyId" element={<PlacedStudents />} />
+        </>
+      )}
+      
+      {/* Settings Routes - Permission based */}
+      {hasPermission('Page_Department') && (
+        <>
+          <Route path="/department-management" element={<DepartmentManagement />} />
+          <Route path="/department-details/:id" element={<DepartmentDetails />} />
+        </>
+      )}
+      
+      {hasPermission('Page_SubDepartment') && (
+        <>
+          <Route path="/subdepartment-details" element={<SubdepartmentDetails />} />
+          <Route path="/subdepartments" element={<SubDepartment />} />
+        </>
+      )}
+      
+      {hasPermission('Page_Level') && (
+        <Route path="/levels" element={<ShowLevels />} />
+      )}
       
       {/* Error Routes */}
       <Route path="/unauthorized" element={<PageNotFound />} />
