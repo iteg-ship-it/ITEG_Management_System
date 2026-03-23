@@ -765,6 +765,7 @@ export const authApi = createApi({
         url: '/departments',
         method: "POST",
         body: departmentData,
+        headers: { 'Content-Type': 'application/json' },
       }),
       invalidatesTags: ['Department'],
     }),

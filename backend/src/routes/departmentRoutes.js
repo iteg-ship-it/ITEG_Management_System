@@ -7,12 +7,20 @@ const imageUpload = require("../config/imageUploadConfig");
 
 const allowedRoles = ["superadmin", "admin"];
 
+const conditionalUpload = (req, res, next) => {
+  const contentType = req.headers['content-type'] || '';
+  if (contentType.includes('multipart/form-data')) {
+    return imageUpload.single('logo')(req, res, next);
+  }
+  next();
+};
+
 // Department CRUD Routes
 router.post(
   "/",
   verifyToken,
   checkRole(allowedRoles),
-  imageUpload.single('logo'),
+  conditionalUpload,
   validateDepartmentInput,
   departmentController.createDepartment
 );
