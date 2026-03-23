@@ -32,6 +32,7 @@ import SubdepartmentDetails from "./../Setting/Departments/SubdepartmentDetails"
 import SubLevelManagement from "../Setting/Levels/SubLevelManagement";
 import SettingFIle from "./../Setting/SettingFIle";
 import Supportfile from "./../Setting/Supportfile";
+import TaskManagement from "../task-management/TaskManagement";
 
 const Layout = () => {
     return (
@@ -60,6 +61,7 @@ const Layout = () => {
                     <Route path="/interview-history/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><InterviewHistory /></ProtectedRoute>} />
                     <Route path="/interview-rounds-history/:studentId/:interviewId" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><InterviewRoundsHistory /></ProtectedRoute>} />
                     <Route path="/department-management" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><DepartmentManagement /></ProtectedRoute>} />
+                    <Route path="/task-management" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><TaskManagement /></ProtectedRoute>} />
                     <Route path="/department-details/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><DepartmentDetails /></ProtectedRoute>} />
                     <Route path="/subdepartment/:id/levels" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><SubdepartmentDetails /></ProtectedRoute>} />
                     <Route path="/subdepartment/:id/level/:levelId" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><SubLevelManagement /></ProtectedRoute>} />

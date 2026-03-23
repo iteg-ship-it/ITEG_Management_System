@@ -38,6 +38,9 @@ const allPermissions = {
         // Department Management
         { feature: 'Page_Department', description: 'Access to the Department management page', access: ['read', 'create', 'update', 'delete'] },
 
+        // Task Management
+        { feature: 'Page_TaskManagement', description: 'Access to the Task Management page', access: ['read', 'create', 'update', 'delete'] },
+
         // Sub-Department Management
         { feature: 'Page_SubDepartment', description: 'Access to the Sub-Department management page', access: ['read', 'create', 'update', 'delete'] },
 
@@ -78,7 +81,10 @@ const allPermissions = {
         // Academic Management
         { feature: 'Page_Syllabus', description: 'Access to the Syllabus page', access: ['read', 'update'] },
         { feature: 'Page_Level', description: 'Access to the Level management page', access: ['read'] },
-        { feature: 'Page_SubLevel', description: 'Access to the Sub-Level management page', access: ['read'] }
+        { feature: 'Page_SubLevel', description: 'Access to the Sub-Level management page', access: ['read'] },
+        
+        // Task Management
+        { feature: 'Page_TaskManagement', description: 'Access to the Task Management page', access: ['read', 'create', 'update'] }
     ],
     
     // Faculty has limited permissions
@@ -92,6 +98,9 @@ const allPermissions = {
         
         // Academic Content
         { feature: 'Page_Syllabus', description: 'Access to the Syllabus page', access: ['read'] },
+        
+        // Task Management
+        { feature: 'Page_TaskManagement', description: 'Access to the Task Management page', access: ['read'] }
     ]
 };
 

@@ -8,6 +8,7 @@ import PlacementModal from "./PlacementModal";
 import Loader from "../common-components/loader/Loader";
 import UpdateTechnologyModal from "./UpdateTechnologyModal";
 import { toast } from "react-toastify";
+import { Chart } from "react-google-charts";
 
 // Icons & Images
 import profilePlaceholder from "../../assets/images/profile-img.png";

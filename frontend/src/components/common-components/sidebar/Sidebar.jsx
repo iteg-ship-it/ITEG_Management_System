@@ -126,9 +126,9 @@ const Sidebar = ({ children }) => {
       permission: "Page_AdmittedStudents",
       subMenu: [
         { name: "Student Progress", path: "/student-detail-table", permission: "Page_AdmittedStudents" },
-
         { name: "Dummy Students", path: "/student-permission", permission: "Page_DummyStudents" },
         { name: "Department", path: "/department-management", permission: "Page_Department" },
+        { name: "Task Management", path: "/task-management", permission: "Page_TaskManagement" },
       ],
     },
     {
