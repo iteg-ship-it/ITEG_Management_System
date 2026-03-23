@@ -3,7 +3,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetAdmittedStudentsByIdQuery, useGetReportCardQuery } from "../../redux/api/authApi";
 import { taskAPI } from '../../services/taskService';
-import { HiArrowNarrowLeft } from "react-icons/hi";
+import Header from '../common-components/sidebar/Header';
 import { FaDownload, FaLaptopCode, FaBrain, FaClipboardCheck, FaRocket, FaCertificate, FaGraduationCap, FaEdit, FaTrophy, FaProjectDiagram } from "react-icons/fa";
 import { MdEmail, MdPhone, MdPerson, MdLocationOn, MdSports } from "react-icons/md";
 import Loader from "../common-components/loader/Loader";
@@ -141,56 +141,30 @@ export default function StudentReport() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Top sticky header */}
-      <div className="sticky top-0 z-10 print:hidden bg-white">
-        <div className="py-2 sm:py-4 ">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 ">
-            <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
-              <button
-                onClick={() => window.history.back()}
-                className="group flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 text-gray-700 hover:text-gray-900"
-              >
-                <HiArrowNarrowLeft className="text-base sm:text-lg group-hover:-translate-x-1 transition-transform" />
-                <span className="text-xs sm:text-sm font-medium">Back</span>
-              </button>
-              <div className="h-6 sm:h-8 w-px bg-gray-300 hidden sm:block"></div>
-              <div className="flex-1 sm:flex-none">
-                <h1 className="text-lg sm:text-2xl font-bold text-black">Student Report Card</h1>
-                <p className="text-gray-600">Comprehensive performance report for {studentData.firstName} {studentData.lastName}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <PDFDownloadLink
-                document={<StudentReportPDF studentData={studentData} reportCardData={reportCardData} />}
-                fileName={`${studentData.firstName}_${studentData.lastName}_Report_Card.pdf`}
-                className="p-2 bg-green-500 text-white rounded-full text-2xl font-medium hover:bg-green-600 transition-colors"
-              >
-                {({ loading }) =>
-                  loading ? (
-                    <div className="animate-spin">⏳</div>
-                  ) : (
-                    <FaDownload />
-                  )
-                }
-              </PDFDownloadLink>
-
-              <button
-                onClick={() => {
-                  try {
-                    navigate(`/student/${id}/report/edit`);
-                  } catch (error) {
-                    console.error('Navigation error:', error);
-                    navigate('edit');
-                  }
-                }}
-                className="p-2 bg-orange-400 text-white rounded-full text-2xl font-medium hover:bg-orange-500 transition-colors"
-              >
-                <RiEdit2Fill />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Header
+        title="Student Report Card"
+        showBack={true}
+        breadcrumbs={[
+          { label: 'Academics', path: '/student-detail-table' },
+          { label: 'Student Progress', path: '/student-detail-table' },
+          { label: 'Profile', path: `/student-profile/${id}` },
+          { label: 'Report Card' }
+        ]}
+      >
+        <PDFDownloadLink
+          document={<StudentReportPDF studentData={studentData} reportCardData={reportCardData} />}
+          fileName={`${studentData.firstName}_${studentData.lastName}_Report_Card.pdf`}
+          className="p-2 bg-green-500 text-white rounded-full text-2xl font-medium hover:bg-green-600 transition-colors"
+        >
+          {({ loading }) => loading ? <div className="animate-spin">⏳</div> : <FaDownload />}
+        </PDFDownloadLink>
+        <button
+          onClick={() => navigate(`/student/${id}/report/edit`)}
+          className="p-2 bg-orange-400 text-white rounded-full text-2xl font-medium hover:bg-orange-500 transition-colors"
+        >
+          <RiEdit2Fill />
+        </button>
+      </Header>
 
       {/* Main content */}
       <div className="min-h-screen p-6 print:p-0 print:m-0">

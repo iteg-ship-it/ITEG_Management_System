@@ -133,7 +133,7 @@ const StudentPermission = () => {
 
   return (
     <>
-      <Header title="Dummy Students" />
+      <Header title="Dummy Students" showBack={false} />
       <div className="min-h-screen px-5">
 
         <CommonTable

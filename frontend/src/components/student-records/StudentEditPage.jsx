@@ -7,6 +7,7 @@ import {
 } from "../../redux/api/authApi";
 import { toast } from "react-toastify";
 import imageCompression from "browser-image-compression";
+import Header from "../common-components/sidebar/Header";
 
 const StudentEditPage = () => {
   const { id } = useParams();
@@ -76,10 +77,17 @@ const StudentEditPage = () => {
   };
 
   return (
+    <>
+      <Header
+        title={`Edit Student: ${student?.firstName || ''} ${student?.lastName || ''}`}
+        showBack={true}
+        breadcrumbs={[
+          { label: 'Academics', path: '/student-detail-table' },
+          { label: 'Student Progress', path: '/student-detail-table' },
+          { label: 'Edit Student' }
+        ]}
+      />
     <div className="p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-md mt-6">
-      <h2 className="text-2xl font-bold mb-4">
-        Edit Student: {student?.firstName} {student?.lastName}
-      </h2>
 
       {/* Permission Details */}
       <div className="mb-8">
@@ -227,6 +235,7 @@ const StudentEditPage = () => {
         Go Back
       </button>
     </div>
+    </>
   );
 };
 

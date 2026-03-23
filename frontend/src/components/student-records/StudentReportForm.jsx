@@ -7,7 +7,7 @@ import {
   useGetReportCardForEditQuery,
   useUpdateReportCardMutation
 } from "../../redux/api/authApi";
-import { HiArrowNarrowLeft } from "react-icons/hi";
+import Header from '../common-components/sidebar/Header';
 import Loader from "../common-components/loader/Loader";
 import { toast } from "react-toastify";
 
@@ -461,25 +461,17 @@ export default function StudentReportForm() {
 
   return (
     <div className="min-h-screen py-4">
-      {/* Header */}
-      <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto mb-6">
-        <button
-          onClick={() => window.history.back()}
-          className="group flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 text-gray-700 hover:text-gray-900"
-        >
-          <HiArrowNarrowLeft className="text-base sm:text-lg group-hover:-translate-x-1 transition-transform" />
-          <span className="text-xs sm:text-sm font-medium">Back</span>
-        </button>
-        <div className="h-6 sm:h-8 w-px bg-gray-300 hidden sm:block"></div>
-        <div className="flex-1 sm:flex-none">
-          <h1 className="text-lg sm:text-2xl font-bold text-black">
-            {existingReportData?.data ? 'Edit Student Report' : 'Create Student Report'}
-          </h1>
-          <p className="text-gray-600">
-            {existingReportData?.data ? 'Edit' : 'Create'} performance report for {studentData.firstName} {studentData.lastName}
-          </p>
-        </div>
-      </div>
+      <Header
+        title={existingReportData?.data ? 'Edit Student Report' : 'Create Student Report'}
+        showBack={true}
+        breadcrumbs={[
+          { label: 'Academics', path: '/student-detail-table' },
+          { label: 'Student Progress', path: '/student-detail-table' },
+          { label: 'Profile', path: `/student-profile/${id}` },
+          { label: 'Report Card', path: `/student/${id}/report` },
+          { label: existingReportData?.data ? 'Edit' : 'Create' }
+        ]}
+      />
 
       <form onSubmit={handleSubmit} className="max-w-6xl mx-auto space-y-6">
         {/* Basic Info */}
