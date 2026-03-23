@@ -21,9 +21,8 @@ import loca from "../../assets/icons/location-icon.png";
 import date from "../../assets/icons/calendar-icon.png";
 import download from "../../assets/icons/download-icon.png";
 import studentProfileBg from "../../assets/images/Student_profile_2nd_bg.jpg";
-import { HiArrowNarrowLeft } from "react-icons/hi";
+import Header from '../common-components/sidebar/Header';
 import { IoCamera } from "react-icons/io5";
-import { Chart } from "react-google-charts";
 
 export default function StudentProfile() {
   const { id } = useParams();
@@ -293,33 +292,15 @@ export default function StudentProfile() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Professional Header */}
-      <div className="sticky top-0 z-10">
-        <div className="py-2 sm:py-4 ">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-            <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
-              <button
-                onClick={() => window.history.back()}
-                className="group flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 text-gray-700 hover:text-gray-900"
-              >
-                <HiArrowNarrowLeft className="text-base sm:text-lg group-hover:-translate-x-1 transition-transform" />
-                <span className="text-xs sm:text-sm font-medium">Back</span>
-              </button>
-              <div className="h-6 sm:h-8 w-px bg-gray-300 hidden sm:block"></div>
-              <div className="flex-1 sm:flex-none">
-                <h1 className="text-lg sm:text-2xl font-bold text-black">Student Profile</h1>
-                <p className="text-xs sm:text-sm text-black hidden sm:block">Comprehensive analytics & performance insights</p>
-              </div>
-            </div>
-            {/* <div className="flex items-center gap-3">
-              <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                Active Student
-              </div>
-            </div> */}
-
-          </div>
-        </div>
-      </div>
+      <Header
+        title="Student Profile"
+        showBack={true}
+        breadcrumbs={[
+          { label: 'Academics', path: '/student-detail-table' },
+          { label: 'Student Progress', path: '/student-detail-table' },
+          { label: 'Profile' }
+        ]}
+      />
 
       <div className="py-2 sm:py-4">
         {/* Hero Section with Student Info */}

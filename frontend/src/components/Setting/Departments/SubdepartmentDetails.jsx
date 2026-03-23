@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { MdAccountTree, MdLayers, MdAdd, MdEdit, MdDelete, MdBusiness, MdExpandMore, MdExpandLess } from "react-icons/md";
-import PageNavbar from "../../common-components/navbar/PageNavbar";
+import Header from "../../common-components/sidebar/Header";
 import { useLocation, useParams } from "react-router-dom";
 import { useDeleteLevelMutation, useDeleteSubLevelMutation, useGetSubdepartmentByIdQuery, useGetLevelsBySubdepartmentQuery, useAddLevelMutation, useUpdateLevelMutation, useAddSubLevelMutation, useUpdateSubLevelMutation, useGetSubLevelsByLevelQuery } from "../../../redux/api/authApi";
 import { toast } from "react-toastify";
@@ -169,11 +169,11 @@ const SubdepartmentDetails = () => {
 
   return (
     <>
-      <PageNavbar
-        title="Subdepartment Details"
-        subtitle="View subdepartment information and manage levels"
-        showBackButton={true}
-      />
+      <Header title={subdepartment.name} showBack={true} breadcrumbs={[
+        { label: 'Department', path: '/department-management' },
+        { label: departmentName, path: -1 },
+        { label: subdepartment.name }
+      ]} />
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           {/* Subdepartment Header */}
           <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 px-6 py-5">

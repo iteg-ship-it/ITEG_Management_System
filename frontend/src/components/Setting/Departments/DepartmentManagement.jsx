@@ -93,7 +93,7 @@ const DepartmentManagement = () => {
 
   return (
     <>
-      <Header sidebarOpen={true} title="Department Management" />
+      <Header title="Department Management" showBack={false} />
       <div className="px-5">
 
         <div className="flex justify-between items-center py-4">

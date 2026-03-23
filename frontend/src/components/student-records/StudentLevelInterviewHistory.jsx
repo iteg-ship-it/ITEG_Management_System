@@ -6,7 +6,7 @@ import { useGetAdmittedStudentsByIdQuery, useGetStudentLevelInterviewsQuery } fr
 // import { HiArrowNarrowLeft } from "react-icons/hi";
 import CreateInterviewModal from "./CreateInterviewModal";
 import Loader from "../common-components/loader/Loader";
-import PageNavbar from "../common-components/navbar/PageNavbar";
+import Header from "../common-components/sidebar/Header";
 
 const StudentLevelInterviewHistory = () => {
     const { studentId } = useParams();
@@ -57,10 +57,15 @@ const StudentLevelInterviewHistory = () => {
         if (error.status === 404 || error.data?.message?.includes('not found')) {
             return (
                 <>
-                    <PageNavbar
+                    <Header
                         title="Level Interview History"
-                        subtitle="Student level assessment records and progress tracking"
-                        showBackButton={true}
+                        showBack={true}
+                        breadcrumbs={[
+                            { label: 'Academics', path: '/student-detail-table' },
+                            { label: 'Student Progress', path: '/student-detail-table' },
+                            { label: 'Profile', path: `/student-profile/${studentId}` },
+                            { label: 'Level History' }
+                        ]}
                     />
 
                     {studentData && (
@@ -117,10 +122,15 @@ const StudentLevelInterviewHistory = () => {
 
     return (
         <>
-            <PageNavbar
+            <Header
                 title="Level Interview History"
-                subtitle="Student level assessment records and progress tracking"
-                showBackButton={true}
+                showBack={true}
+                breadcrumbs={[
+                    { label: 'Academics', path: '/student-detail-table' },
+                    { label: 'Student Progress', path: '/student-detail-table' },
+                    { label: 'Profile', path: `/student-profile/${studentId}` },
+                    { label: 'Level History' }
+                ]}
             />
 
 

@@ -7,7 +7,7 @@ import { IoSearchOutline } from "react-icons/io5";
 import { FaUpload } from "react-icons/fa";
 import CommonTable from "../common-components/table/CommonTable";
 import Pagination from "../common-components/pagination/Pagination";
-import PageNavbar from "../common-components/navbar/PageNavbar";
+import Header from "../common-components/sidebar/Header";
 import LevelTaskUploadModal from "./LevelTaskUploadModal";
 
 const toTitleCase = (str) =>
@@ -160,9 +160,14 @@ const StudentLevelData = () => {
 
   return (
     <>
-      <PageNavbar 
-        title="Student Level Progress" 
-        subtitle="Detailed level-wise student performance analytics"
+      <Header
+        title="Student Level Progress"
+        showBack={true}
+        breadcrumbs={[
+          { label: 'Academics', path: '/student-detail-table' },
+          { label: 'Student Progress', path: '/student-detail-table' },
+          { label: 'Level Progress' }
+        ]}
       />
       <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
         <div className="px-6">
