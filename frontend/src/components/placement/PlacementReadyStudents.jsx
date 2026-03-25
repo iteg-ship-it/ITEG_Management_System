@@ -342,13 +342,6 @@ const PlacementReadyStudents = () => {
     localStorage.setItem('placementActiveTab', tab);
   };
 
-  useEffect(() => {
-    const savedTab = localStorage.getItem('placementActiveTab');
-    if (savedTab && savedTab !== activeTab) {
-      setActiveTab(savedTab);
-    }
-  }, []);
-
   const handleRowClick = (student) => {
     if (activeTab === "Qualified Students") {
       navigate(`/student-profile/${student._id}`);

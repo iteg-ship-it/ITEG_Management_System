@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import PageNavbar from '../../common-components/navbar/PageNavbar';
+import Header from '../../common-components/sidebar/Header';
 import { useGetAllSubdepartmentsQuery, useDeleteSubdepartmentMutation, useAddSubdepartmentMutation, useUpdateSubdepartmentMutation } from '../../../redux/api/authApi';
 import Loader from '../../common-components/loader/Loader';
 import { MdAccountTree } from 'react-icons/md';
@@ -80,13 +80,9 @@ const SubDepartment = () => {
 
     return (
         <>
-            <div className="flex justify-between items-center py-4">
-                <PageNavbar
-                    title="All Subdepartments"
-                    subtitle="View and manage all subdepartments across departments"
-                    showBackButton={false}
-                />
-                <div className="flex items-center gap-4">
+            <Header title="Subdepartments" showBack={false} />
+            <div className="px-5">
+                <div className="flex justify-end items-center gap-4 py-4">
                     <div className="w-80">
                         <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
                     </div>
@@ -161,9 +157,8 @@ const SubDepartment = () => {
                         )}
                     </Formik>
                 </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-3 px-5">
                 {filteredSubdepartments.length === 0 ? (
                     <div className="col-span-full text-center py-12">
                         <MdAccountTree size={48} className="mx-auto text-gray-300 mb-4" />
@@ -279,6 +274,7 @@ const SubDepartment = () => {
                         />
                     ))
                 )}
+            </div>
             </div>
         </>
     );

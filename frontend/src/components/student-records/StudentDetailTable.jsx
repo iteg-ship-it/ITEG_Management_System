@@ -266,7 +266,7 @@ const StudentDetailTable = () => {
 
   return (
     <>
-      <Header title="Student Records" />
+      <Header title="Student Progress" showBack={false} />
 
       <TabsCommon tabs={levelTabs} activeTab={activeTab} onTabChange={handleTabClick} />
 

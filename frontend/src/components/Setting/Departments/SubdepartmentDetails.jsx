@@ -1,6 +1,13 @@
 import { useState } from "react";
+<<<<<<< HEAD
 import { MdLayers, MdAdd, MdEdit, MdDelete } from "react-icons/md";
 import { IoNotificationsOutline } from "react-icons/io5";
+=======
+import { MdAccountTree, MdLayers, MdAdd, MdEdit, MdDelete, MdBusiness, MdExpandMore, MdExpandLess } from "react-icons/md";
+import Header from "../../common-components/sidebar/Header";
+import { useLocation, useParams } from "react-router-dom";
+import { useDeleteLevelMutation, useDeleteSubLevelMutation, useGetSubdepartmentByIdQuery, useGetLevelsBySubdepartmentQuery, useAddLevelMutation, useUpdateLevelMutation, useAddSubLevelMutation, useUpdateSubLevelMutation, useGetSubLevelsByLevelQuery } from "../../../redux/api/authApi";
+>>>>>>> b7f8fc11d1d1976bc6dcb352e74b7d1b168b593e
 import { toast } from "react-toastify";
 import OrangeButton from "../../common-components/sidebar/OrangeButton";
 import { Formik, Form } from "formik";
@@ -152,29 +159,34 @@ const SubdepartmentDetails = () => {
   ════════════════════════════════════════════════════════════ */
   return (
     <>
-      <Header sidebarOpen={true} title="Subdepartment Details" />
-      <div className="px-5 pb-8">
-
-        {/* ── Page Navbar ── */}
-        <div className="flex justify-between items-start py-4 gap-4 flex-wrap">
-          <PageNavbar
-            title={subdepartment.name}
-            subtitle="View subdepartment information and manage levels"
-            showBackButton={true}
-            breadcrumbs={[
-              { label: "Departments", path: "/department-management" },
-              { label: "Sub-Level Management" },
-            ]}
-          />
-          {/* right: bell + Add Sub-Level */}
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <button className="w-9 h-9 flex items-center justify-center border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition relative">
-              <IoNotificationsOutline size={20} className="text-gray-600" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full" />
-            </button>
-            <button className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-xl transition">
-              <MdAdd size={18} /> Add Sub-Level
-            </button>
+      <Header title={subdepartment.name} showBack={true} breadcrumbs={[
+        { label: 'Department', path: '/department-management' },
+        { label: departmentName, path: -1 },
+        { label: subdepartment.name }
+      ]} />
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          {/* Subdepartment Header */}
+          <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 px-6 py-5">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
+                <MdAccountTree size={28} className="text-white" />
+              </div>
+              <div className="flex-1">
+                <h1 className="text-2xl font-bold text-gray-900">{subdepartment.name}</h1>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={`inline-block px-3 py-1 text-xs rounded-full ${
+                    subdepartment.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                  }`}>
+                    {subdepartment.isActive ? "Active" : "Inactive"}
+                  </span>
+                  <span className="text-xs text-gray-500">•</span>
+                  <div className="flex items-center gap-1 text-xs text-gray-600">
+                    <MdBusiness size={14} />
+                    <span>{departmentName || "Unknown Department"}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
