@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MdBusiness, MdAdd, MdEdit, MdDelete } from "react-icons/md";
+import { MdBusiness } from "react-icons/md";
 import PageNavbar from "../../common-components/navbar/PageNavbar";
 import { useGetAllDepartmentsQuery, useDeleteDepartmentMutation, useAddDepartmentMutation, useUpdateDepartmentMutation } from "../../../redux/api/authApi";
 import Loader from "../../common-components/loader/Loader";
@@ -11,6 +11,7 @@ import * as Yup from "yup";
 import InputField from "../../common-components/common-feild/InputField";
 import RadioGroup from "../../common-components/common-feild/RadioGroup";
 import Header from "./../../common-components/sidebar/Header";
+import CommonCard from "../CommonCard";
 
 const DepartmentManagement = () => {
   const navigate = useNavigate();
@@ -227,7 +228,7 @@ const DepartmentManagement = () => {
         <div className="mt-1 ">
 
           {/* Departments Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-3">
             {departments.map((dept) => (
               <div
                 key={dept._id}

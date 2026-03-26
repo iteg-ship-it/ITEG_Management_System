@@ -9,7 +9,7 @@ const SearchBox = ({ searchTerm = "", setSearchTerm = () => {} }) => {
         <input
           type="text"
           placeholder="Search..."
-          className="outline-none border-none ring-0 focus:ring-0 px-2 w-full text-sm bg-transparent"
+          className="outline-none border-none ring-0 focus:ring-0 focus:outline-none px-2 w-full text-sm bg-transparent"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
