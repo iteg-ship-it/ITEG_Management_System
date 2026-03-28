@@ -47,7 +47,7 @@ const SubdepartmentDetails = () => {
         showBack={true}
         breadcrumbs={[
           { label: "Departments", path: "/department-management" },
-          { label: departmentName, path: "/department-details", state: { department: subdepartment?.departmentId } },
+          { label: departmentName || "Department", path: `/department-details/${departmentId}`, state: { department: subdepartment?.departmentId } },
           { label: subdepartment.name },
         ]}
       />
