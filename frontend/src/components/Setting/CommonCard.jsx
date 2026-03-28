@@ -1,37 +1,78 @@
-import React from 'react';
 import { MdBusiness } from 'react-icons/md';
 
-const CommonCard = ({ icon: Icon = MdBusiness, title, description, status, statusLabel, infoItems, onView, onEdit, children, variant = 'card2' }) => {
 
-  // card1 - Exact screenshot style
+const ActionButtons = ({ onView, onEdit, inactive }) => (
+  <div className="flex gap-2 px-4 pb-4">
+    {onView && (
+      <button
+        onClick={inactive ? undefined : onView}
+        disabled={inactive}
+        className={`flex-1 border rounded-lg py-2 text-sm font-semibold transition ${
+          inactive
+            ? 'border-gray-200 text-gray-300 cursor-not-allowed'
+            : 'border-gray-300 text-gray-600 hover:bg-gray-50 cursor-pointer'
+        }`}
+      >
+        VIEW
+      </button>
+    )}
+    {onEdit && (
+      <div className={`${onView ? 'flex-1' : 'w-full'} ${inactive ? '[&_button]:!bg-gray-400 [&_button]:!text-white [&_button]:!border-0' : ''}`}>{onEdit}</div>
+    )}
+  </div>
+);
+
+const CommonCard = ({
+  icon: Icon = MdBusiness,
+  title,
+  description,
+  status,
+  statusLabel,
+  infoItems,
+  onView,
+  onEdit,
+  children,
+  variant = 'card2',
+}) => {
+  const inactive = status === false;
+
+  // card1 — icon + title side by side, status badge below title, single-row info, VIEW + EDIT buttons
   if (variant === 'card1') {
     return (
-      <div className={`bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col ${!status ? 'opacity-70' : ''}`}>
-        <div className="p-6 flex-1">
+      <div className={`bg-white border rounded-2xl shadow-sm transition-all duration-300 overflow-hidden flex flex-col ${
+        inactive ? 'border-gray-200' : 'border-gray-200 hover:shadow-md'
+      }`}>
+        <div className="p-4 flex-1">
 
-          {/* Icon left + Title & Status right */}
-          <div className="flex items-start gap-4 mb-5">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${status ? 'bg-orange-100' : 'bg-gray-100'}`}>
-              <Icon size={28} className={status ? 'text-orange-500' : 'text-gray-400'} />
+          {/* Icon + Title + Status */}
+          <div className="flex items-center gap-3 mb-4">
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
+              inactive ? 'bg-gray-200' : 'bg-orange-50 border border-orange-100'
+            }`}>
+              <Icon size={22} className={inactive ? 'text-gray-400' : 'text-orange-500'} />
             </div>
-            <div className="flex flex-col justify-center">
-              <h3 className={`text-lg font-bold leading-snug ${status ? 'text-gray-900' : 'text-gray-400'}`}>
+            <div className="min-w-0">
+              <h3 className={`text-sm font-bold leading-tight truncate ${inactive ? 'text-gray-400' : 'text-gray-900'}`}>
                 {title}
               </h3>
-              <span className={`mt-1 self-start text-xs font-semibold px-3 py-0.5 rounded-full ${
-                status ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+              <span className={`mt-1 inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${
+                inactive ? 'bg-gray-200 text-gray-400' : 'bg-green-100 text-green-600'
               }`}>
-                {statusLabel || (status ? 'Active' : 'Inactive')}
+                {statusLabel || (inactive ? 'Inactive' : 'Active')}
               </span>
             </div>
           </div>
 
-          {/* Single line stats row */}
-          <div className="flex items-center gap-5 text-sm text-gray-500 flex-wrap">
+          {/* Divider */}
+          <div className={`border-t mb-3 ${inactive ? 'border-gray-200' : 'border-gray-100'}`} />
+
+          {/* Info — single row */}
+          <div className="flex items-center gap-4 flex-wrap text-xs text-gray-500">
             {infoItems?.map((item, i) => (
               <span key={i} className="flex items-center gap-1.5 whitespace-nowrap">
-                <span className={status ? 'text-orange-400' : 'text-gray-300'}>{item.icon}</span>
-                <span>{item.value}{item.label ? ` ${item.label}` : ''}</span>
+                {item.icon}
+                <span className={`font-semibold ${inactive ? 'text-gray-400' : 'text-gray-700'}`}>{item.value}</span>
+                {item.label && <span>{item.label}</span>}
               </span>
             ))}
           </div>
@@ -39,61 +80,53 @@ const CommonCard = ({ icon: Icon = MdBusiness, title, description, status, statu
           {children}
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center border-t border-gray-100">
-          {onView && (
-            <button
-              onClick={onView}
-              disabled={!status}
-              className={`flex-1 py-3.5 text-sm font-semibold transition rounded-bl-2xl ${
-                status
-                  ? 'bg-orange-500 text-white hover:bg-orange-600'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              }`}
-            >
-              View Details
-            </button>
-          )}
-          {onEdit && (
-            <div className="flex-1 border-l border-gray-100 text-center">{onEdit}</div>
-          )}
-        </div>
+        <ActionButtons onView={onView} onEdit={onEdit} inactive={inactive} />
       </div>
     );
   }
 
-  // card2 - Screenshot 2 style: icon circle left + ACTIVE badge right, title, description, divider, info list, VIEW outline + EDIT orange
+  // card2 — icon + status badge top row, title with more space, description, divider, info list, VIEW + EDIT
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col">
-      <div className="p-5 flex-1">
+    <div className={`bg-white border rounded-2xl shadow-sm transition-all duration-300 overflow-hidden flex flex-col ${
+      inactive ? 'border-gray-200' : 'border-gray-200 hover:shadow-md'
+    }`}>
+      <div className="p-4 flex-1">
+
         {/* Top row: icon + status badge */}
         <div className="flex items-start justify-between mb-3">
-          <div className="w-12 h-12 rounded-full bg-orange-50 border border-orange-100 flex items-center justify-center">
-            <Icon size={22} className={status ? 'text-orange-500' : 'text-gray-400'} />
+          <div className={`w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 ${
+            inactive ? 'bg-gray-200' : 'bg-orange-50 border border-orange-100'
+          }`}>
+            <Icon size={20} className={inactive ? 'text-gray-400' : 'text-orange-500'} />
           </div>
           {status !== undefined && (
-            <span className={`text-xs font-bold px-3 py-1 rounded-full tracking-wide ${status ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
-              {statusLabel || (status ? 'ACTIVE' : 'INACTIVE')}
+            <span className={`text-xs font-bold px-2.5 py-1 rounded-full tracking-wide ${
+              inactive ? 'bg-gray-200 text-gray-500' : 'bg-green-100 text-green-600'
+            }`}>
+              {statusLabel || (inactive ? 'INACTIVE' : 'ACTIVE')}
             </span>
           )}
         </div>
 
         {/* Title */}
-        <h3 className={`text-base font-bold mb-1 ${status ? 'text-gray-900' : 'text-gray-400'}`}>{title}</h3>
+        <h3 className={`text-xl font-bold mb-1 min-h-[2.5rem] leading-snug ${inactive ? 'text-gray-400' : 'text-gray-900'}`}>
+          {title}
+        </h3>
 
         {/* Description */}
         {description && (
-          <p className="text-xs text-gray-500 line-clamp-2 mb-3">{description}</p>
+          <p className={`text-md min-h-[4.5rem] line-clamp-2 mb-3 ${inactive ? 'text-gray-400' : 'text-gray-500'}`}>{description}</p>
         )}
 
         {/* Divider */}
-        <div className="border-t border-gray-100 my-3" />
+        <div className={`border-t my-3 ${inactive ? 'border-gray-200' : 'border-gray-100'}`} />
 
         {/* Info items */}
-        <div className="space-y-1.5 text-sm text-gray-600">
+        <div className="space-y-1.5 h-20">
           {infoItems?.map((item, i) => (
-            <div key={i} className="flex items-center gap-2">
-              {item.icon} <span>{item.label ? `${item.label}: ` : ''}<span className="font-medium">{item.value}</span></span>
+            <div key={i} className={`flex items-center gap-2 text-md ${inactive ? 'text-gray-400' : 'text-gray-500'}`}>
+              <span>{item.icon}</span>
+              <span>{item.label ? `${item.label}: ` : ''}<span className={`font-semibold ${inactive ? 'text-gray-400' : 'text-gray-700'}`}>{item.value}</span></span>
             </div>
           ))}
         </div>
@@ -101,20 +134,7 @@ const CommonCard = ({ icon: Icon = MdBusiness, title, description, status, statu
         {children}
       </div>
 
-      {/* Actions */}
-      <div className="flex gap-2 px-5 pb-5">
-        {onView && (
-          <button
-            onClick={onView}
-            className="flex-1 border border-gray-300 rounded-lg py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition"
-          >
-            VIEW
-          </button>
-        )}
-        {onEdit && (
-          <div className={onView ? 'flex-1' : 'w-full'}>{onEdit}</div>
-        )}
-      </div>
+      <ActionButtons onView={onView} onEdit={onEdit} inactive={inactive} />
     </div>
   );
 };

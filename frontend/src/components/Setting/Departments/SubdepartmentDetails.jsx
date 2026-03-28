@@ -175,9 +175,9 @@ const SubdepartmentDetails = () => {
 
   return (
     <>
-      <Header title={subdepartment.name} showBack={true} breadcrumbs={[
+      <Header title={subdepartment.name} breadcrumbs={[
         { label: 'Department', path: '/department-management' },
-        { label: departmentName, path: -1 },
+        { label: departmentName, path: `/department-details/${departmentId}`, state: { department: subdepartment?.departmentId } },
         { label: subdepartment.name }
       ]} />
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">

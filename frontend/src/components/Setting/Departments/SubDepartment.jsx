@@ -127,9 +127,10 @@ const SubDepartment = () => {
                                 title={subdept.name}
                                 status={subdept.isActive}
                                 infoItems={[
-                                    { icon: '👥', value: subdept.totalStudents || 0, label: 'Students' },
-                                    { icon: '#', value: `Dept Code: ${subdept.code || subdept.departmentId?.code || 'N/A'}` },
-                                    { icon: '🎓', value: subdept.allowedCourses?.length || 0, label: 'Levels' },
+                                    { icon: '', value: subdept.totalStudents || 0, label: 'Students' },
+                                    { icon: '', value: subdept.allowedCourses?.length || 0, label: 'Levels' },
+                                    { icon: '', value: subdept.allowedCourses?.length || 0, label: 'Levels' },
+                                    { icon: '', value: subdept.allowedCourses?.length || 0, label: 'Levels' },
                                 ]}
                                 onView={() => navigate('/subdepartment-details', {
                                     state: { departmentId: subdept.departmentId?._id, subdepartment: subdept, departmentName: subdept.departmentId?.name }

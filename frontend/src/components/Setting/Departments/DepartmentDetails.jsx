@@ -10,6 +10,8 @@ import InputField from "../../common-components/common-feild/InputField";
 import RadioGroup from "../../common-components/common-feild/RadioGroup";
 import CommonCard from "../CommonCard";
 import { MdAccountTree } from "react-icons/md";
+import { HiOutlineUserGroup } from "react-icons/hi";
+import { MdOutlineMenuBook } from "react-icons/md";
 import Loader from "../../common-components/loader/Loader";
 
 const DepartmentDetails = () => {
@@ -23,7 +25,7 @@ const DepartmentDetails = () => {
   const [addSubdepartment] = useAddSubdepartmentMutation();
   const [updateSubdepartment] = useUpdateSubdepartmentMutation();
 
-  const subdepartments = subdepartmentsData?.data || [];
+  const subdepartments = [...(subdepartmentsData?.data || [])].sort((a, b) => b.isActive - a.isActive);
 
   const validationSchema = Yup.object({
     name: Yup.string().required("Subdepartment name is required"),
@@ -116,7 +118,7 @@ const DepartmentDetails = () => {
         </div>
 
         {/* Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {subdepartments.length === 0 ? (
             <div className="col-span-full text-center py-16">
               <MdAccountTree size={48} className="mx-auto text-gray-300 mb-3" />
@@ -131,9 +133,8 @@ const DepartmentDetails = () => {
                 title={subdept.name}
                 status={subdept.isActive}
                 infoItems={[
-                  { icon: "👥", value: subdept.totalStudents || 0, label: "Students" },
-                  { icon: "#", value: `Dept Code: ${department.code}` },
-                  { icon: "🎓", value: subdept.allowedCourses?.length || 0, label: "Levels" },
+                  { icon: <HiOutlineUserGroup size={14} className="text-orange-400" />, label: "Students", value: subdept.totalStudents || 0 },
+                  { icon: <MdOutlineMenuBook size={14} className="text-orange-400" />, label: "Courses", value: subdept.allowedCourses?.length || 0 },
                 ]}
                 onView={() => navigate("/subdepartment-details", {
                   state: { departmentId: department._id, subdepartment: subdept, departmentName: department.name }
@@ -171,7 +172,7 @@ const DepartmentDetails = () => {
                       <OrangeButton
                         buttonTitle="Edit"
                         panelTitle="Edit Subdepartment"
-                        customButtonClass="w-full py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition bg-white"
+                        customButtonClass="w-full bg-orange-500 text-white rounded-lg py-2 text-sm font-semibold hover:bg-orange-600 transition"
                         drawerContent={
                           <Form className="space-y-4">
                             <InputField label="Subdepartment Name" name="name" placeholder="Enter subdepartment name" />

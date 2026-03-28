@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { MdBusiness } from "react-icons/md";
+import { MdBusiness, MdOutlinePersonOutline } from "react-icons/md";
+import { HiOutlineUserGroup } from "react-icons/hi";
 import PageNavbar from "../../common-components/navbar/PageNavbar";
 import { useGetAllDepartmentsQuery, useDeleteDepartmentMutation, useAddDepartmentMutation, useUpdateDepartmentMutation } from "../../../redux/api/authApi";
 import Loader from "../../common-components/loader/Loader";
@@ -21,7 +22,7 @@ const DepartmentManagement = () => {
   const [updateDepartment] = useUpdateDepartmentMutation();
   const [editingDepartment, setEditingDepartment] = useState(null);
 
-  const departments = departmentsData?.data || [];
+  const departments = [...(departmentsData?.data || [])].sort((a, b) => b.isActive - a.isActive);
 
   const validationSchema = Yup.object({
     name: Yup.string().required("Department name is required"),
@@ -228,214 +229,104 @@ const DepartmentManagement = () => {
         <div className="mt-1 ">
 
           {/* Departments Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-3">
             {departments.map((dept) => (
-              <div
+              <Formik
                 key={dept._id}
-                className="bg-[#f9fafb] border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden min-h-[380px] flex flex-col"
+                initialValues={{
+                  name: dept.name,
+                  code: dept.code,
+                  description: dept.description || "",
+                  universityName: dept.universityName,
+                  headOfDepartment: dept.headOfDepartment || "",
+                  allowedCourses: dept.allowedCourses || [{ courseName: "", durationInYears: "" }],
+                  reportConfig: dept.reportConfig,
+                  isActive: dept.isActive
+                }}
+                validationSchema={validationSchema}
+                onSubmit={async (values, { setSubmitting, resetForm }) => {
+                  try {
+                    const updatePayload = {
+                      name: values.name,
+                      code: values.code,
+                      description: values.description,
+                      universityName: values.universityName,
+                      headOfDepartment: values.headOfDepartment,
+                      allowedCourses: values.allowedCourses
+                        .filter(c => c.courseName && c.durationInYears)
+                        .map(c => ({ ...c, durationInYears: Number(c.durationInYears) })),
+                      reportConfig: values.reportConfig,
+                      isActive: values.isActive
+                    };
+                    const result = await updateDepartment({ id: dept._id, ...updatePayload }).unwrap();
+                    toast.success(result.message || "Department updated successfully!");
+                    resetForm();
+                    refetch();
+                  } catch (error) {
+                    toast.error(error?.data?.message || "Error updating department");
+                  } finally {
+                    setSubmitting(false);
+                  }
+                }}
+                enableReinitialize
               >
-                <div className="p-6 flex-1">
-
-                  {/* top row */}
-                  <div className="flex items-start justify-between mb-4">
-
-                    {/* icon circle */}
-                    <div className="w-14 h-14 rounded-full border border-orange-200 bg-orange-50 flex items-center justify-center">
-                      <MdBusiness className="text-orange-500" size={26} />
-                    </div>
-
-                    {/* status pill */}
-                    <span
-                      className={`text-xs font-semibold px-3 py-1 rounded-full tracking-wide
-              ${dept.status
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-200 text-gray-600"}
-            `}
-                    >
-                      {dept.isActive ? "ACTIVE" : "INACTIVE"}
-                    </span>
-                  </div>
-
-                  {/* title */}
-                  <h3 className="text-lg font-bold text-gray-900 mb-1">
-                    {dept.name}
-                  </h3>
-
-                  {/* description */}
-                  <p className="text-sm text-gray-500 mb-4 line-clamp-2">
-                    {dept.description || dept.universityName || "No description"}
-                  </p>
-
-                  {/* divider */}
-                  <div className="border-t border-gray-200 my-4"></div>
-
-                  {/* info */}
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
-                      📋 <span>Code: {dept.code}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      👤 <span>HOD: {dept.headOfDepartment || "Not assigned"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      📚 <span>Courses: {dept.allowedCourses?.length || 0}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* bottom actions */}
-                <div className="flex gap-3 p-4 bg-gray-50">
-                  <button
-                    onClick={() => handleRowClick(dept)}
-                    className="w-1/2 border border-gray-300 rounded-lg py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 transition"
-                  >
-                    VIEW
-                  </button>
-
-                  <Formik
-                    key={dept._id}
-                    initialValues={{
-                      name: dept.name,
-                      code: dept.code,
-                      description: dept.description || "",
-                      universityName: dept.universityName,
-                      headOfDepartment: dept.headOfDepartment || "",
-                      allowedCourses: dept.allowedCourses || [{ courseName: "", durationInYears: "" }],
-                      reportConfig: dept.reportConfig,
-                      isActive: dept.isActive
-                    }}
-                    validationSchema={validationSchema}
-                    onSubmit={async (values, { setSubmitting, resetForm }) => {
-                      try {
-                        const payload = {
-                          name: values.name,
-                          code: values.code,
-                          description: values.description,
-                          universityName: values.universityName,
-                          headOfDepartment: values.headOfDepartment,
-                          allowedCourses: values.allowedCourses,
-                          reportConfig: values.reportConfig,
-                          isActive: values.isActive
-                        };
-                        const updatePayload = {
-                          ...payload,
-                          allowedCourses: values.allowedCourses
-                            .filter(c => c.courseName && c.durationInYears)
-                            .map(c => ({ ...c, durationInYears: Number(c.durationInYears) }))
-                        };
-                        const result = await updateDepartment({ id: dept._id, ...updatePayload }).unwrap();
-                        toast.success(result.message || "Department updated successfully!");
-                        resetForm();
-                        refetch();
-                      } catch (error) {
-                        toast.error(error?.data?.message || "Error updating department");
-                      } finally {
-                        setSubmitting(false);
-                      }
-                    }}
-                    enableReinitialize
-                  >
-                    {({ isSubmitting, submitForm, resetForm, values, setFieldValue }) => (
-                      <div className="w-1/2">
-                        <OrangeButton
-                          buttonTitle="EDIT"
-                          panelTitle="Edit Department"
-                          customButtonClass="w-full bg-orange-500 text-white rounded-lg py-2 text-sm font-semibold hover:bg-orange-600 transition"
-                          drawerContent={
-                            <Form className="space-y-4">
-                              <InputField
-                                label="Department Name"
-                                name="name"
-                                placeholder="Enter department name"
-                              />
-
-                              <InputField
-                                label="Department Code"
-                                name="code"
-                                placeholder="Enter department code"
-                                disabled={true}
-                              />
-
-                              <InputField
-                                label="Description"
-                                name="description"
-                                type="textarea"
-                                placeholder="Enter description"
-                              />
-
-                              <InputField
-                                label="University Name"
-                                name="universityName"
-                                placeholder="Enter university name"
-                              />
-
-                              <InputField
-                                label="Head of Department"
-                                name="headOfDepartment"
-                                placeholder="Enter HOD name"
-                              />
-
-                              <div>
-                                <label className="block text-sm font-medium mb-2">Allowed Courses</label>
-                                {values.allowedCourses.map((course, index) => (
-                                  <div key={index} className="flex gap-2 mb-2">
-                                    <Field
-                                      name={`allowedCourses.${index}.courseName`}
-                                      placeholder="Course name"
-                                      className="flex-1 border rounded px-3 py-2"
-                                    />
-                                    <Field
-                                      name={`allowedCourses.${index}.durationInYears`}
-                                      type="number"
-                                      placeholder="Years"
-                                      className="w-24 border rounded px-3 py-2"
-                                    />
-                                    {values.allowedCourses.length > 1 && (
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          const newCourses = values.allowedCourses.filter((_, i) => i !== index);
-                                          setFieldValue('allowedCourses', newCourses);
-                                        }}
-                                        className="px-3 py-2 bg-red-500 text-white rounded"
-                                      >
-                                        ✕
-                                      </button>
-                                    )}
-                                  </div>
-                                ))}
-                                <button
-                                  type="button"
-                                  onClick={() => setFieldValue('allowedCourses', [...values.allowedCourses, { courseName: '', durationInYears: '' }])}
-                                  className="text-sm text-orange-500 hover:text-orange-600"
-                                >
-                                  + Add Course
-                                </button>
-                              </div>
-
-                              <div>
-                                <label className="block text-sm font-medium mb-2">Template Type</label>
-                                <Field as="select" name="reportConfig.templateType" className="w-full border rounded px-3 py-2">
-                                  <option value="ITEG_STANDARD">ITEG Standard</option>
-                                  <option value="MEG_WEIGHTED">MEG Weighted</option>
-                                  <option value="BEG_CUTOFF">BEG Cutoff</option>
-                                  <option value="BTECH_STAGE">BTech Stage</option>
-                                </Field>
-                              </div>
-
-                              <RadioGroup label="Status" name="isActive" required={false} />
-                            </Form>
-                          }
-                          leftBtnText="Cancel"
-                          rightBtnText={isSubmitting ? "Updating..." : "Update Department"}
-                          onLeftClick={resetForm}
-                          onRightClick={submitForm}
-                        />
-                      </div>
-                    )}
-                  </Formik>
-                </div>
-              </div>
+                {({ isSubmitting, submitForm, resetForm, values, setFieldValue }) => (
+                  <CommonCard
+                    icon={MdBusiness}
+                    title={dept.name}
+                    description={dept.description || dept.universityName || "No description"}
+                    status={dept.isActive}
+                    infoItems={[
+                      { icon: <MdOutlinePersonOutline size={18}  />, label: "HOD", value: dept.headOfDepartment || "Not assigned" },
+                      { icon: <HiOutlineUserGroup size={18}  />, label: "Students", value: dept.totalStudents ?? 0 },
+                    ]}
+                    onView={() => handleRowClick(dept)}
+                    onEdit={
+                      <OrangeButton
+                        buttonTitle="EDIT"
+                        panelTitle="Edit Department"
+                        customButtonClass="w-full bg-orange-500 text-white rounded-lg py-2 text-sm font-semibold hover:bg-orange-600 transition"
+                        drawerContent={
+                          <Form className="space-y-4">
+                            <InputField label="Department Name" name="name" placeholder="Enter department name" />
+                            <InputField label="Department Code" name="code" placeholder="Enter department code" disabled={true} />
+                            <InputField label="Description" name="description" type="textarea" placeholder="Enter description" />
+                            <InputField label="University Name" name="universityName" placeholder="Enter university name" />
+                            <InputField label="Head of Department" name="headOfDepartment" placeholder="Enter HOD name" />
+                            <div>
+                              <label className="block text-sm font-medium mb-2">Allowed Courses</label>
+                              {values.allowedCourses.map((course, index) => (
+                                <div key={index} className="flex gap-2 mb-2">
+                                  <Field name={`allowedCourses.${index}.courseName`} placeholder="Course name" className="flex-1 border rounded px-3 py-2" />
+                                  <Field name={`allowedCourses.${index}.durationInYears`} type="number" placeholder="Years" className="w-24 border rounded px-3 py-2" />
+                                  {values.allowedCourses.length > 1 && (
+                                    <button type="button" onClick={() => setFieldValue('allowedCourses', values.allowedCourses.filter((_, i) => i !== index))} className="px-3 py-2 bg-red-500 text-white rounded">✕</button>
+                                  )}
+                                </div>
+                              ))}
+                              <button type="button" onClick={() => setFieldValue('allowedCourses', [...values.allowedCourses, { courseName: '', durationInYears: '' }])} className="text-sm text-orange-500 hover:text-orange-600">+ Add Course</button>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium mb-2">Template Type</label>
+                              <Field as="select" name="reportConfig.templateType" className="w-full border rounded px-3 py-2">
+                                <option value="ITEG_STANDARD">ITEG Standard</option>
+                                <option value="MEG_WEIGHTED">MEG Weighted</option>
+                                <option value="BEG_CUTOFF">BEG Cutoff</option>
+                                <option value="BTECH_STAGE">BTech Stage</option>
+                              </Field>
+                            </div>
+                            <RadioGroup label="Status" name="isActive" required={false} />
+                          </Form>
+                        }
+                        leftBtnText="Cancel"
+                        rightBtnText={isSubmitting ? "Updating..." : "Update Department"}
+                        onLeftClick={resetForm}
+                        onRightClick={submitForm}
+                      />
+                    }
+                  />
+                )}
+              </Formik>
             ))}
           </div>
 
