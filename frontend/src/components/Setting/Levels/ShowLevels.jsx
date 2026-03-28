@@ -5,6 +5,9 @@ import Loader from '../../common-components/loader/Loader';
 import { Layers } from 'lucide-react';
 import Pagination from '../../common-components/pagination/Pagination';
 import { useNavigate } from 'react-router-dom';
+import CommonCard from '../CommonCard';
+import { MdOutlineMenuBook } from 'react-icons/md';
+import { HiOutlineUserGroup } from 'react-icons/hi';
 
 const ShowLevels = () => {
   const { data: levelsData, isLoading, refetch } = useGetAllLevelsQuery();
@@ -49,33 +52,24 @@ const ShowLevels = () => {
               </div>
             ) : (
               allLevels.map((level) => (
-                <div
+                <CommonCard
                   key={level._id}
-                  className="group relative bg-white rounded-xl overflow-hidden cursor-pointer border border-gray-200 hover:shadow-lg transition-all duration-300"
-                  onClick={() => navigate('/subdepartment-details', {
-                    state: { 
+                  variant="card1"
+                  icon={Layers}
+                  title={level.name}
+                  status={level.isActive}
+                  infoItems={[
+                    { icon: <HiOutlineUserGroup size={14} className="text-orange-400" />, label: level.subDepartmentId?.name || 'N/A' },
+                    { icon: <MdOutlineMenuBook size={14} className="text-orange-400" />, label: level.subDepartmentId?.departmentId?.name || 'N/A' },
+                  ]}
+                  onView={() => navigate('/subdepartment-details', {
+                    state: {
                       departmentId: level.subDepartmentId?.departmentId?._id,
                       subdepartment: level.subDepartmentId,
                       departmentName: level.subDepartmentId?.departmentId?.name
                     }
                   })}
-                >
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: level.isActive ? '#10B98120' : '#EF444420' }}>
-                        <Layers className="h-6 w-6" style={{ color: level.isActive ? '#10B981' : '#EF4444' }} />
-                      </div>
-                      <span className={`px-3 py-1 text-xs rounded-full font-semibold ${
-                        level.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                      }`}>
-                        {level.isActive ? "Active" : "Inactive"}
-                      </span>
-                    </div>
-                    <h4 className="font-semibold text-gray-900 mb-1">{level.name}</h4>
-                    <p className="text-sm text-gray-600 mb-1">{level.subDepartmentId?.name || 'N/A'}</p>
-                    <p className="text-xs text-gray-500">{level.subDepartmentId?.departmentId?.name || 'N/A'}</p>
-                  </div>
-                </div>
+                />
               ))
             )}
           </div>
