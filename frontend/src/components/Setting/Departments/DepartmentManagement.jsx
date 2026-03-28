@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { MdBusiness, MdAdd, MdEdit, MdDelete } from "react-icons/md";
 import PageNavbar from "../../common-components/navbar/PageNavbar";
 import { useGetAllDepartmentsQuery, useDeleteDepartmentMutation, useAddDepartmentMutation, useUpdateDepartmentMutation } from "../../../redux/api/authApi";
@@ -12,6 +12,7 @@ import InputField from "../../common-components/common-feild/InputField";
 import ImageUploadField from "../../common-components/common-feild/ImageUploadField";
 import RadioGroup from "../../common-components/common-feild/RadioGroup";
 import Header from "./../../common-components/sidebar/Header";
+import CommonCard from "../CommonCard";
 
 const DepartmentManagement = () => {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ const DepartmentManagement = () => {
   const addLogoRef = useRef(null);
   const editLogoRefs = useRef({});
 
-  const departments = departmentsData?.data || [];
+  const departments = [...(departmentsData?.data || [])].sort((a, b) => b.isActive - a.isActive);
 
   const validationSchema = Yup.object({
     name: Yup.string().required("Department name is required"),
@@ -237,7 +238,7 @@ const DepartmentManagement = () => {
         <div className="mt-1 ">
 
           {/* Departments Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-3">
             {departments.map((dept) => (
               <div
                 key={dept._id}
@@ -249,11 +250,8 @@ const DepartmentManagement = () => {
                   <div className="flex items-start justify-between mb-4">
 
                     {/* icon circle */}
-                    <div className="w-14 h-14 rounded-full border border-orange-200 bg-orange-50 flex items-center justify-center overflow-hidden">
-                      {dept.logo
-                        ? <img src={dept.logo} alt={dept.name} className="w-full h-full object-cover" />
-                        : <MdBusiness className="text-orange-500" size={26} />
-                      }
+                    <div className="w-14 h-14 rounded-full border border-orange-200 bg-orange-50 flex items-center justify-center">
+                      <MdBusiness className="text-orange-500" size={26} />
                     </div>
 
                     {/* status pill */}
@@ -319,23 +317,24 @@ const DepartmentManagement = () => {
                     validationSchema={validationSchema}
                     onSubmit={async (values, { setSubmitting, resetForm }) => {
                       try {
-                        const formData = new FormData();
-                        formData.append("name", values.name);
-                        formData.append("description", values.description || "");
-                        formData.append("universityName", values.universityName);
-                        formData.append("headOfDepartment", values.headOfDepartment || "");
-                        formData.append("allowedCourses", JSON.stringify(
-                          values.allowedCourses.filter(c => c.courseName && c.durationInYears)
+                        const payload = {
+                          name: values.name,
+                          code: values.code,
+                          description: values.description,
+                          universityName: values.universityName,
+                          headOfDepartment: values.headOfDepartment,
+                          allowedCourses: values.allowedCourses,
+                          reportConfig: values.reportConfig,
+                          isActive: values.isActive
+                        };
+                        const updatePayload = {
+                          ...payload,
+                          allowedCourses: values.allowedCourses
+                            .filter(c => c.courseName && c.durationInYears)
                             .map(c => ({ ...c, durationInYears: Number(c.durationInYears) }))
-                        ));
-                        formData.append("reportConfig", JSON.stringify(values.reportConfig));
-                        formData.append("isActive", values.isActive);
-                        const logoFile = editLogoRefs.current[dept._id];
-                        if (logoFile) formData.append("logo", logoFile);
-
-                        const result = await updateDepartment({ id: dept._id, formData }).unwrap();
+                        };
+                        const result = await updateDepartment({ id: dept._id, ...updatePayload }).unwrap();
                         toast.success(result.message || "Department updated successfully!");
-                        delete editLogoRefs.current[dept._id];
                         resetForm();
                         refetch();
                       } catch (error) {
@@ -358,12 +357,6 @@ const DepartmentManagement = () => {
                                 label="Department Name"
                                 name="name"
                                 placeholder="Enter department name"
-                              />
-
-                              <ImageUploadField
-                                label="Department Logo"
-                                preview={dept.logo || null}
-                                onChange={(e) => { editLogoRefs.current[dept._id] = e.target.files[0]; }}
                               />
 
                               <InputField

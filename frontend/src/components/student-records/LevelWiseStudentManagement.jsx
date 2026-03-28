@@ -533,7 +533,9 @@ const LevelWiseStudentManagement = () => {
         {/* Search Bar */}
         <div className="mb-6">
           <div className="flex items-center justify-between gap-4">
-            <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+            <div className="w-72">
+              <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+            </div>
             
             {/* Filter Results Info */}
             {(searchTerm || selectedSubject !== 'all' || selectedStatus !== 'all') && (
