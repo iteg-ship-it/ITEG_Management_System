@@ -126,23 +126,10 @@ exports.createDepartment = async (req, res) => {
 // Get All Departments
 exports.getAllDepartments = async (req, res) => {
   try {
-    const SubDepartment = require("../models/SubDepartment");
-    const Student = require("../models/Student");
-
-    const departments = await Department.find();
-
-    const departmentsWithCounts = await Promise.all(
-      departments.map(async (dept) => {
-        const subDepts = await SubDepartment.find({ departmentId: dept._id, isActive: true }).select('_id');
-        const subDeptIds = subDepts.map(s => s._id);
-        const totalStudents = await Student.countDocuments({ subDepartmentId: { $in: subDeptIds } });
-        return { ...dept.toObject(), totalStudents };
-      })
-    );
-
+    const departments = await Department.find({ isActive: true });
     res.status(200).json({
       success: true,
-      data: departmentsWithCounts
+      data: departments
     });
   } catch (error) {
     res.status(500).json({
@@ -226,7 +213,7 @@ exports.updateDepartment = async (req, res) => {
     }
 
     const department = await Department.findOneAndUpdate(
-      { _id: req.params.id },
+      { _id: req.params.id, isActive: true },
       updateData,
       { new: true, runValidators: true }
     );

@@ -10,7 +10,6 @@ import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import InputField from "../../common-components/common-feild/InputField";
 import RadioGroup from "../../common-components/common-feild/RadioGroup";
-import Header from "../../common-components/sidebar/Header";
 
 const SubdepartmentDetails = () => {
   const location = useLocation();
@@ -177,9 +176,9 @@ const SubdepartmentDetails = () => {
 
   return (
     <>
-      <Header title={subdepartment.name} breadcrumbs={[
+      <Header title={subdepartment.name} showBack={true} breadcrumbs={[
         { label: 'Department', path: '/department-management' },
-        { label: departmentName, path: `/department-details/${departmentId}`, state: { department: subdepartment?.departmentId } },
+        { label: departmentName, path: -1 },
         { label: subdepartment.name }
       ]} />
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
