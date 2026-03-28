@@ -36,14 +36,20 @@ const validateReportConfig = (reportConfig) => {
 };
 
 const generateDeptCode = async (name) => {
-  const initials = name.trim().split(/\s+/).filter(Boolean).map(w => w[0].toUpperCase()).join("");
-  let counter = 1, code, exists = true;
-  while (exists) {
-    code = `${initials}-${String(counter).padStart(3, "0")}`;
-    exists = await Department.exists({ code });
+  const words = name.trim().split(/\s+/);
+  const initials = words.length === 1
+    ? words[0].slice(0, 3).toUpperCase()
+    : words.map(w => w[0].toUpperCase()).join("");
+
+  // Check ALL documents (including soft-deleted) to avoid unique index conflict
+  if (!await Department.exists({ code: initials })) return initials;
+
+  let counter = 1;
+  while (true) {
+    const code = `${initials}${String(counter).padStart(3, "0")}`;
+    if (!await Department.exists({ code })) return code;
     counter++;
   }
-  return code;
 };
 
 // Create Department
@@ -75,19 +81,21 @@ exports.createDepartment = async (req, res) => {
       });
     }
 
-    // 🌩️ Upload Logo
     let logoUrl = null;
     if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "department_logos",
-        resource_type: "image"
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { folder: "department_logos", resource_type: "image" },
+          (error, result) => error ? reject(error) : resolve(result)
+        ).end(req.file.buffer);
       });
       logoUrl = result.secure_url;
     }
 
+    const { code: _ignored, ...bodyWithoutCode } = req.body;
     const departmentData = {
-      ...req.body,
-      code: autoCode // ✅ override manual code
+      ...bodyWithoutCode,
+      code: autoCode
     };
 
     if (logoUrl) departmentData.logo = logoUrl;
@@ -193,12 +201,13 @@ exports.updateDepartment = async (req, res) => {
       });
     }
 
-    // Handle logo upload if file is provided
     let updateData = { ...req.body };
     if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "department_logos",
-        resource_type: "image"
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { folder: "department_logos", resource_type: "image" },
+          (error, result) => error ? reject(error) : resolve(result)
+        ).end(req.file.buffer);
       });
       updateData.logo = result.secure_url;
     }

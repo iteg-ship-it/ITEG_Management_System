@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { MdBusiness, MdAdd, MdEdit, MdDelete } from "react-icons/md";
 import PageNavbar from "../../common-components/navbar/PageNavbar";
 import { useGetAllDepartmentsQuery, useDeleteDepartmentMutation, useAddDepartmentMutation, useUpdateDepartmentMutation } from "../../../redux/api/authApi";
@@ -9,6 +9,7 @@ import OrangeButton from "./../../common-components/sidebar/OrangeButton";
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 import InputField from "../../common-components/common-feild/InputField";
+import ImageUploadField from "../../common-components/common-feild/ImageUploadField";
 import RadioGroup from "../../common-components/common-feild/RadioGroup";
 import Header from "./../../common-components/sidebar/Header";
 
@@ -19,6 +20,8 @@ const DepartmentManagement = () => {
   const [addDepartment] = useAddDepartmentMutation();
   const [updateDepartment] = useUpdateDepartmentMutation();
   const [editingDepartment, setEditingDepartment] = useState(null);
+  const addLogoRef = useRef(null);
+  const editLogoRefs = useRef({});
 
   const departments = departmentsData?.data || [];
 
@@ -42,26 +45,28 @@ const DepartmentManagement = () => {
 
   const handleDepartmentSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
-      const payload = {
-        name: values.name,
-        description: values.description,
-        universityName: values.universityName,
-        headOfDepartment: values.headOfDepartment,
-        allowedCourses: values.allowedCourses
-          .filter(c => c.courseName && c.durationInYears)
-          .map(c => ({ ...c, durationInYears: Number(c.durationInYears) })),
-        reportConfig: values.reportConfig,
-        isActive: values.isActive
-      };
+      const formData = new FormData();
+      formData.append("name", values.name);
+      formData.append("description", values.description || "");
+      formData.append("universityName", values.universityName);
+      formData.append("headOfDepartment", values.headOfDepartment || "");
+      formData.append("allowedCourses", JSON.stringify(
+        values.allowedCourses.filter(c => c.courseName && c.durationInYears)
+          .map(c => ({ ...c, durationInYears: Number(c.durationInYears) }))
+      ));
+      formData.append("reportConfig", JSON.stringify(values.reportConfig));
+      formData.append("isActive", values.isActive);
+      if (addLogoRef.current) formData.append("logo", addLogoRef.current);
 
       if (editingDepartment) {
-        const result = await updateDepartment({ id: editingDepartment._id, ...payload }).unwrap();
+        const result = await updateDepartment({ id: editingDepartment._id, formData }).unwrap();
         toast.success(result.message || "Department updated successfully!");
       } else {
-        const result = await addDepartment(payload).unwrap();
+        const result = await addDepartment(formData).unwrap();
         toast.success(result.message || "Department added successfully!");
       }
       resetForm();
+      addLogoRef.current = null;
       setEditingDepartment(null);
       refetch();
     } catch (error) {
@@ -140,6 +145,11 @@ const DepartmentManagement = () => {
                         label="Department Name"
                         name="name"
                         placeholder="Enter department name"
+                      />
+
+                      <ImageUploadField
+                        label="Department Logo"
+                        onChange={(e) => { addLogoRef.current = e.target.files[0]; }}
                       />
 
                       <InputField
@@ -239,8 +249,11 @@ const DepartmentManagement = () => {
                   <div className="flex items-start justify-between mb-4">
 
                     {/* icon circle */}
-                    <div className="w-14 h-14 rounded-full border border-orange-200 bg-orange-50 flex items-center justify-center">
-                      <MdBusiness className="text-orange-500" size={26} />
+                    <div className="w-14 h-14 rounded-full border border-orange-200 bg-orange-50 flex items-center justify-center overflow-hidden">
+                      {dept.logo
+                        ? <img src={dept.logo} alt={dept.name} className="w-full h-full object-cover" />
+                        : <MdBusiness className="text-orange-500" size={26} />
+                      }
                     </div>
 
                     {/* status pill */}
@@ -306,24 +319,23 @@ const DepartmentManagement = () => {
                     validationSchema={validationSchema}
                     onSubmit={async (values, { setSubmitting, resetForm }) => {
                       try {
-                        const payload = {
-                          name: values.name,
-                          code: values.code,
-                          description: values.description,
-                          universityName: values.universityName,
-                          headOfDepartment: values.headOfDepartment,
-                          allowedCourses: values.allowedCourses,
-                          reportConfig: values.reportConfig,
-                          isActive: values.isActive
-                        };
-                        const updatePayload = {
-                          ...payload,
-                          allowedCourses: values.allowedCourses
-                            .filter(c => c.courseName && c.durationInYears)
+                        const formData = new FormData();
+                        formData.append("name", values.name);
+                        formData.append("description", values.description || "");
+                        formData.append("universityName", values.universityName);
+                        formData.append("headOfDepartment", values.headOfDepartment || "");
+                        formData.append("allowedCourses", JSON.stringify(
+                          values.allowedCourses.filter(c => c.courseName && c.durationInYears)
                             .map(c => ({ ...c, durationInYears: Number(c.durationInYears) }))
-                        };
-                        const result = await updateDepartment({ id: dept._id, ...updatePayload }).unwrap();
+                        ));
+                        formData.append("reportConfig", JSON.stringify(values.reportConfig));
+                        formData.append("isActive", values.isActive);
+                        const logoFile = editLogoRefs.current[dept._id];
+                        if (logoFile) formData.append("logo", logoFile);
+
+                        const result = await updateDepartment({ id: dept._id, formData }).unwrap();
                         toast.success(result.message || "Department updated successfully!");
+                        delete editLogoRefs.current[dept._id];
                         resetForm();
                         refetch();
                       } catch (error) {
@@ -346,6 +358,12 @@ const DepartmentManagement = () => {
                                 label="Department Name"
                                 name="name"
                                 placeholder="Enter department name"
+                              />
+
+                              <ImageUploadField
+                                label="Department Logo"
+                                preview={dept.logo || null}
+                                onChange={(e) => { editLogoRefs.current[dept._id] = e.target.files[0]; }}
                               />
 
                               <InputField
