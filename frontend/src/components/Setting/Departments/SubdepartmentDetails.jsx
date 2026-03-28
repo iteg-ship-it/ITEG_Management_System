@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MdAccountTree, MdLayers, MdAdd, MdEdit, MdDelete, MdBusiness, MdExpandMore, MdExpandLess } from "react-icons/md";
-import Header from "../../common-components/sidebar/Header";
-import { useLocation, useParams } from "react-router-dom";
+import PageNavbar from "../../common-components/navbar/PageNavbar";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDeleteLevelMutation, useDeleteSubLevelMutation, useGetSubdepartmentByIdQuery, useGetLevelsBySubdepartmentQuery, useAddLevelMutation, useUpdateLevelMutation, useAddSubLevelMutation, useUpdateSubLevelMutation, useGetSubLevelsByLevelQuery } from "../../../redux/api/authApi";
 import { toast } from "react-toastify";
 import OrangeButton from "../../common-components/sidebar/OrangeButton";
@@ -12,6 +12,7 @@ import RadioGroup from "../../common-components/common-feild/RadioGroup";
 
 const SubdepartmentDetails = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const subdepartmentId = location.state?.subdepartment?._id;
   const { data: subdepartmentData } = useGetSubdepartmentByIdQuery(subdepartmentId, {
     skip: !subdepartmentId
@@ -44,9 +45,14 @@ const SubdepartmentDetails = () => {
       skip: !levelId
     });
     
-    if (subLevelsData?.data && !levelSubLevels[levelId]) {
-      setLevelSubLevels(prev => ({ ...prev, [levelId]: subLevelsData.data }));
-    }
+    useEffect(() => {
+      if (subLevelsData?.data) {
+        setLevelSubLevels(prev => {
+          if (prev[levelId]) return prev;
+          return { ...prev, [levelId]: subLevelsData.data };
+        });
+      }
+    }, [subLevelsData, levelId]);
     
     return null;
   };
@@ -271,7 +277,7 @@ const SubdepartmentDetails = () => {
                   className={`border border-gray-200 rounded-xl p-5 hover:shadow-lg transition-all duration-300 cursor-pointer ${
                     level.isActive ? "bg-gradient-to-br from-green-50 to-white" : "bg-gray-200"
                   }`}
-                  onClick={() => toggleLevel(level._id)}
+                  onClick={() => navigate("/show-sublevel-tables", { state: { level, subdepartment, departmentId, departmentName } })}
                 >
                   <SubLevelFetcher levelId={level._id} />
                   <div className="flex items-start justify-between mb-3">

@@ -43,7 +43,7 @@ const Header = ({
                 {breadcrumbs.map((crumb, index) => (
                   <div key={index} className="flex items-center gap-1.5">
                     <button
-                      onClick={() => crumb.path && navigate(crumb.path)}
+                      onClick={() => crumb.path && navigate(crumb.path, { state: crumb.state })}
                       className={`text-xs sm:text-sm font-medium transition-colors ${
                         crumb.path
                           ? "text-orange-500 hover:text-orange-600 cursor-pointer"

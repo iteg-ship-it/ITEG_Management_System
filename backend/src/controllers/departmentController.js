@@ -1,5 +1,6 @@
 const Department = require("../models/Department");
 const mongoose = require("mongoose");
+const cloudinary = require("../config/cloudinaryConfig");
 
 // Helper function to validate ObjectId
 const isValidObjectId = (id) => {
@@ -34,49 +35,79 @@ const validateReportConfig = (reportConfig) => {
   return true;
 };
 
+const generateDeptCode = async (name) => {
+  const initials = name.trim().split(/\s+/).filter(Boolean).map(w => w[0].toUpperCase()).join("");
+  let counter = 1, code, exists = true;
+  while (exists) {
+    code = `${initials}-${String(counter).padStart(3, "0")}`;
+    exists = await Department.exists({ code });
+    counter++;
+  }
+  return code;
+};
+
 // Create Department
 exports.createDepartment = async (req, res) => {
   try {
-    // Validate required fields
-    const { name, code, universityName, reportConfig, allowedCourses } = req.body;
-    if (!name || !code || !universityName || !reportConfig) {
+    const { name, universityName, reportConfig, allowedCourses } = req.body;
+
+    if (!name || !universityName || !reportConfig) {
       return res.status(400).json({
         success: false,
-        message: "Name, code, universityName, and reportConfig are required"
+        message: "Name, universityName, and reportConfig are required"
       });
     }
 
-    // Validate reportConfig structure
+    const autoCode = await generateDeptCode(name);
+
+    // Validate reportConfig
     if (!validateReportConfig(reportConfig)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid reportConfig structure. Must include templateType and sections."
+        message: "Invalid reportConfig structure"
       });
     }
 
-    // Validate allowedCourses if provided
     if (allowedCourses && !validateAllowedCourses(allowedCourses)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid allowedCourses structure. Each course must have courseName (string) and durationInYears (positive number)."
+        message: "Invalid allowedCourses structure"
       });
     }
 
-    const department = await Department.create(req.body);
+    // 🌩️ Upload Logo
+    let logoUrl = null;
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "department_logos",
+        resource_type: "image"
+      });
+      logoUrl = result.secure_url;
+    }
+
+    const departmentData = {
+      ...req.body,
+      code: autoCode // ✅ override manual code
+    };
+
+    if (logoUrl) departmentData.logo = logoUrl;
+
+    const department = await Department.create(departmentData);
+    console.log(`✅ Department created with code: ${department}`);
     res.status(201).json({
       success: true,
       message: "Department created successfully",
       data: department
     });
+
   } catch (error) {
-    // Handle duplicate key error
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
         message: "Department code already exists"
       });
     }
-    
+
     res.status(400).json({
       success: false,
       message: error.message
@@ -162,9 +193,19 @@ exports.updateDepartment = async (req, res) => {
       });
     }
 
+    // Handle logo upload if file is provided
+    let updateData = { ...req.body };
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "department_logos",
+        resource_type: "image"
+      });
+      updateData.logo = result.secure_url;
+    }
+
     const department = await Department.findOneAndUpdate(
       { _id: req.params.id, isActive: true },
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     );
     

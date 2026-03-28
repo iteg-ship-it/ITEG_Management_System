@@ -17,7 +17,6 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
   const validationSchema = Yup.object({
     name: Yup.string().required("Department name is required"),
-    code: Yup.string().required("Department code is required"),
     universityName: Yup.string().required("University name is required"),
     headOfDepartment: Yup.string(),
     description: Yup.string(),
@@ -27,7 +26,6 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
   const initialValues = {
     name: editData?.name || "",
-    code: editData?.code || "",
     universityName: editData?.universityName || "",
     headOfDepartment: editData?.headOfDepartment || "",
     description: editData?.description || "",
@@ -40,7 +38,6 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
     try {
       const payload = {
         name: values.name,
-        code: values.code,
         universityName: values.universityName,
         headOfDepartment: values.headOfDepartment,
         description: values.description,
@@ -120,12 +117,6 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
                 label="Department Name" 
                 name="name" 
                 placeholder="Enter department name"
-              />
-
-              <InputField 
-                label="Department Code" 
-                name="code" 
-                placeholder="Enter department code (e.g., CS, IT)"
               />
 
               <InputField 

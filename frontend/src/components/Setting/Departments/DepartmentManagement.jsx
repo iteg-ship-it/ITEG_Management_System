@@ -24,7 +24,6 @@ const DepartmentManagement = () => {
 
   const validationSchema = Yup.object({
     name: Yup.string().required("Department name is required"),
-    code: Yup.string().required("Department code is required"),
     description: Yup.string(),
     universityName: Yup.string().required("University name is required"),
     headOfDepartment: Yup.string(),
@@ -45,11 +44,12 @@ const DepartmentManagement = () => {
     try {
       const payload = {
         name: values.name,
-        code: values.code,
         description: values.description,
         universityName: values.universityName,
         headOfDepartment: values.headOfDepartment,
-        allowedCourses: values.allowedCourses,
+        allowedCourses: values.allowedCourses
+          .filter(c => c.courseName && c.durationInYears)
+          .map(c => ({ ...c, durationInYears: Number(c.durationInYears) })),
         reportConfig: values.reportConfig,
         isActive: values.isActive
       };
@@ -107,7 +107,6 @@ const DepartmentManagement = () => {
               key={editingDepartment?._id || 'new'}
               initialValues={{
                 name: editingDepartment?.name || "",
-                code: editingDepartment?.code || "",
                 description: editingDepartment?.description || "",
                 universityName: editingDepartment?.universityName || "",
                 headOfDepartment: editingDepartment?.headOfDepartment || "",
@@ -141,12 +140,6 @@ const DepartmentManagement = () => {
                         label="Department Name"
                         name="name"
                         placeholder="Enter department name"
-                      />
-
-                      <InputField
-                        label="Department Code"
-                        name="code"
-                        placeholder="e.g., ITEG, MEG, BEG (unique code)"
                       />
 
                       <InputField
@@ -323,7 +316,13 @@ const DepartmentManagement = () => {
                           reportConfig: values.reportConfig,
                           isActive: values.isActive
                         };
-                        const result = await updateDepartment({ id: dept._id, ...payload }).unwrap();
+                        const updatePayload = {
+                          ...payload,
+                          allowedCourses: values.allowedCourses
+                            .filter(c => c.courseName && c.durationInYears)
+                            .map(c => ({ ...c, durationInYears: Number(c.durationInYears) }))
+                        };
+                        const result = await updateDepartment({ id: dept._id, ...updatePayload }).unwrap();
                         toast.success(result.message || "Department updated successfully!");
                         resetForm();
                         refetch();
