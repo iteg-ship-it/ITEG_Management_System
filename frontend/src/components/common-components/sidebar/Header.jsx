@@ -3,15 +3,20 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Bell, ChevronRight } from "lucide-react";
 
 const Header = ({
+  sidebarOpen = true,
   title,
   badge,
+  showBack = false,
   onBack,
   children,
   breadcrumbs = [],
 }) => {
   const navigate = useNavigate();
 
-
+  const handleBack = () => {
+    if (onBack) return onBack();
+    navigate(-1);
+  };
 
   return (
     <header className="sticky top-0 z-10 bg-white border-b border-gray-200">
@@ -20,7 +25,16 @@ const Header = ({
         {/* LEFT SIDE */}
         <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
 
-     
+          {/* Back Button */}
+          {showBack && (
+            <button
+              onClick={handleBack}
+              className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition flex-shrink-0"
+            >
+              <ArrowLeft size={18} className="sm:w-5 sm:h-5" />
+            </button>
+          )}
+
           {/* Title + Badge + Breadcrumbs */}
           <div className="flex flex-col gap-1 min-w-0">
             {/* Breadcrumbs */}
