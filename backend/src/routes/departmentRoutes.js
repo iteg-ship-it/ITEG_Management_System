@@ -3,14 +3,24 @@ const router = express.Router();
 const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
 const { validateDepartmentInput, validateObjectId } = require("../middlewares/departmentValidation");
 const departmentController = require("../controllers/departmentController");
+const imageUpload = require("../config/imageUploadConfig");
 
 const allowedRoles = ["superadmin", "admin"];
+
+const conditionalUpload = (req, res, next) => {
+  const contentType = req.headers['content-type'] || '';
+  if (contentType.includes('multipart/form-data')) {
+    return imageUpload.single('logo')(req, res, next);
+  }
+  next();
+};
 
 // Department CRUD Routes
 router.post(
   "/",
   verifyToken,
   checkRole(allowedRoles),
+  conditionalUpload,
   validateDepartmentInput,
   departmentController.createDepartment
 );
@@ -33,6 +43,7 @@ router.put(
   verifyToken,
   checkRole(allowedRoles),
   validateObjectId,
+  imageUpload.single('logo'),
   validateDepartmentInput,
   departmentController.updateDepartment
 );

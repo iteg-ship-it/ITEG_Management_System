@@ -277,7 +277,7 @@ const StudentDetailTable = () => {
             subtitle="Track student progress through different levels"
             showBackButton={false}
           />
-          <div className="py-4 w-full max-w-2xl">
+          <div className="py-4 w-72">
             <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
           </div>
         </div>

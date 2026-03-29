@@ -57,7 +57,7 @@ const ExportDropdown = ({
       {/* Button */}
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-3 py-1.5 text-sm
+        className="flex items-center gap-2 px-3 h-10 text-sm
                    border border-gray-200 rounded-md
                    bg-white hover:bg-gray-50
                    text-gray-700 shadow-sm"

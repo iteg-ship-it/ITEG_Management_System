@@ -55,10 +55,7 @@ exports.getLevelsBySubDepartment = async (req, res) => {
   try {
     const { subDepartmentId } = req.params;
     
-    const levels = await Level.find({ 
-      subDepartmentId, 
-      isActive: true 
-    })
+    const levels = await Level.find({ subDepartmentId })
       .populate('subDepartmentId')
       .sort({ order: 1 });
     
@@ -140,7 +137,7 @@ exports.updateLevel = async (req, res) => {
     }
 
     const level = await Level.findOneAndUpdate(
-      { _id: req.params.id, isActive: true },
+      { _id: req.params.id },
       req.body,
       { new: true, runValidators: true }
     ).populate('subDepartmentId');
