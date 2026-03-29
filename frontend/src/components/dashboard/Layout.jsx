@@ -30,6 +30,7 @@ import ShowLevels from "../Setting/Levels/ShowLevels";
 import DepartmentDetails from "./../Setting/Departments/DepartmentDetails";
 import SubdepartmentDetails from "./../Setting/Departments/SubdepartmentDetails";
 import ShowSubLevelTablesData from "./../Setting/Levels/ShowSubLevelTablesData";
+import SubLevelManagement from "./../Setting/Levels/SubLevelManagement";
 import SettingFIle from "./../Setting/SettingFIle";
 import Supportfile from "./../Setting/Supportfile";
 
