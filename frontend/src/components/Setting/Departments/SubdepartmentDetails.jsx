@@ -22,53 +22,7 @@ const validationSchema = Yup.object({
   isActive: Yup.boolean(),
 });
 
-/* ─── LevelCard (unchanged logic) ───────────────────────────── */
-const LevelCard = ({ level, subdepartmentId, onAddSubLevel, onEditSubLevel, onDeleteSubLevel, onEdit, onDelete }) => {
-  const navigate = useNavigate();
-  const [expanded, setExpanded] = useState(false);
-  const { data: subLevelsData, isLoading, refetch } = useGetSubLevelsByLevelQuery(level._id);
-  const subLevels = subLevelsData?.data || [];
 
-  return (
-    <div
-      onClick={() => navigate(`/subdepartment/${subdepartmentId}/level/${level._id}`, {
-        state: { level }
-      })}
-      className={`border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-300 cursor-pointer ${
-        level.isActive ? "bg-white" : "bg-gray-100 opacity-70"
-      }`}
-    >
-      <div className="flex items-start justify-between mb-3">
-        <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-          <MdLayers size={20} className="text-orange-500" />
-        </div>
-        <span className={`px-2.5 py-0.5 text-xs rounded-full font-semibold ${
-          level.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-        }`}>
-          {level.isActive ? "Active" : "Inactive"}
-        </span>
-      </div>
-      <div className="flex items-center justify-between mb-1">
-        <h3 className="font-bold text-sm text-gray-900">{level.name}</h3>
-      </div>
-      <p className="text-xs text-gray-400 mb-3">SubLevels: {subLevels.length}</p>
-
-      {/* Inline SubLevels count only — click card to view details */}
-
-      <div className="flex gap-2 pt-3 border-t border-gray-100" onClick={e => e.stopPropagation()}>
-        <button onClick={() => onAddSubLevel(level)} className="flex-1 py-1.5 px-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition text-xs font-medium flex items-center justify-center gap-1">
-          <MdAdd size={14} /> SubLevel
-        </button>
-        <button onClick={() => onEdit(level)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><MdEdit size={16} /></button>
-        <button onClick={() => onDelete(level._id)} className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg"><MdDelete size={16} /></button>
-      </div>
-    </div>
-  );
-};
-
-/* ═══════════════════════════════════════════════════════════════
-   MAIN COMPONENT
-═══════════════════════════════════════════════════════════════ */
 const SubdepartmentDetails = () => {
   const location = useLocation();
   const navigate = useNavigate();
