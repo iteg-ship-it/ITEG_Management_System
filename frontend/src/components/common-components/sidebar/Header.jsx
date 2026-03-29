@@ -3,15 +3,20 @@ import { useNavigate } from "react-router-dom";
 import { Bell, ChevronRight } from "lucide-react";
 
 const Header = ({
+  sidebarOpen = true,
   title,
   badge,
+  showBack = false,
   onBack,
   children,
   breadcrumbs = [],
 }) => {
   const navigate = useNavigate();
 
-
+  const handleBack = () => {
+    if (onBack) return onBack();
+    navigate(-1);
+  };
 
   return (
     <header className="sticky top-0 z-10 bg-white">

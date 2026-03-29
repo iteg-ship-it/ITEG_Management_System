@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import Header from "../../common-components/sidebar/Header";
 import OrangeButton from "../../common-components/sidebar/OrangeButton";
@@ -6,7 +6,6 @@ import TabsCommon from "../../common-components/table/TabsCommon";
 import { useGetSubLevelsByLevelQuery } from "../../../redux/api/authApi";
 import SearchBox from "../../common-components/seach-export/SearchBox";
 import ExportDropdown from "../../common-components/seach-export/ExportDropdown";
-import FilterButton from "../../common-components/seach-export/FilterButton";
 import CommonTable from "../../common-components/table/CommonTable";
 
 const columns = [
@@ -44,21 +43,6 @@ const ShowSubLevelTablesData = () => {
     const levelTabs = subLevels.map((sl) => sl.name);
 
     const [activeTab, setActiveTab] = useState("");
-    const [searchTerm, setSearchTerm] = useState("");
-    const [filterData, setFilterData] = useState(dummyData);
-
-    const filterableColumns = [
-        { label: "Course", key: "course" },
-        { label: "Bus Route", key: "busRoute" },
-        { label: "Attempts", key: "attempts" },
-    ];
-
-    const filteredData = useMemo(() => {
-        if (!searchTerm) return filterData;
-        return filterData.filter((row) =>
-            Object.values(row).join(" ").toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }, [searchTerm, filterData]);
 
     const handleTabClick = (tab) => setActiveTab(tab);
 
@@ -94,27 +78,20 @@ const ShowSubLevelTablesData = () => {
                         </button>
                     ))}
                 </div>
-                <div className="bg-white my-5 border justify-between rounded-xl p-6 flex items-center">
-                    <div className="w-72">
-                        <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+                <div className="bg-white my-5 border justify-between rounded-xl p-6 flex">
+                    <div className="w-96">
+                        <SearchBox />
                     </div>
-                    <div className="flex items-center gap-2">
-                        <FilterButton
-                            data={dummyData}
-                            filterableColumns={filterableColumns}
-                            onFilteredData={setFilterData}
-                        />
-                        <ExportDropdown data={filteredData} sectionName="sublevel-students" />
-                    </div>
+                    <ExportDropdown />
                 </div>
 
                 <CommonTable
                     columns={columns}
-                    data={filteredData}
+                    data={dummyData}
                     editable={false}
                     pagination={true}
                     rowsPerPage={10}
-                    searchTerm={searchTerm}
+                    searchTerm={""}
                     actionButton={null}
                     extraColumn={null}
                     onRowClick={null}
