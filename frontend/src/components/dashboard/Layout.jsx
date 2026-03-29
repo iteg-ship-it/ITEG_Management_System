@@ -1,4 +1,5 @@
 import Sidebar from './../common-components/sidebar/Sidebar';
+import { SidebarProvider } from '../../contexts/SidebarContext';
 import { Routes, Route } from "react-router-dom";
 import AdmissionDashboard from "../admition-process/AdmissionDashboard";
 import AdmissionProcess from "../admition-process/AdmissionProcess";
@@ -37,7 +38,8 @@ import Supportfile from "./../Setting/Supportfile";
 const Layout = () => {
     return (
         <div className="min-h-screen">
-            <Sidebar>
+            <SidebarProvider>
+                <Sidebar>
                 <Routes>
                     <Route path="/" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionDashboard /></ProtectedRoute>} />
                     <Route path="/attendance-details" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AttendanceDetails /></ProtectedRoute>} />
@@ -75,6 +77,7 @@ const Layout = () => {
                     <Route path="*" element={<PageNotFound />} />
                 </Routes>
             </Sidebar>
+            </SidebarProvider>
         </div>
     );
 };

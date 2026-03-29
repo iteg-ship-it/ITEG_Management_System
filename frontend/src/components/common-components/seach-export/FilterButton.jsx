@@ -83,7 +83,7 @@ const FilterButton = ({ data = [], filterableColumns = [], onFilteredData }) => 
         className="flex items-center gap-2 px-3 h-10 text-sm border border-gray-200 rounded-md bg-white hover:bg-gray-50 text-gray-700 shadow-sm"
       >
         <SlidersHorizontal size={14} />
-        Filter
+        <span className="hidden sm:inline">Filter</span>
         {totalSelected > 0 && (
           <span className="flex items-center justify-center w-4 h-4 rounded-full bg-gray-600 text-white text-[10px] font-semibold">
             {totalSelected}

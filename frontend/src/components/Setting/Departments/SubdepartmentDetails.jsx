@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useGetSubdepartmentByIdQuery, useGetLevelsBySubdepartmentQuery, useGetSubLevelsByLevelQuery, useAddLevelMutation, useUpdateLevelMutation } from "../../../redux/api/authApi";
 import { toast } from "react-toastify";
@@ -27,6 +28,7 @@ const SubdepartmentDetails = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const subdepartmentId = location.state?.subdepartment?._id;
+  const departmentId = location.state?.departmentId || location.state?.subdepartment?.departmentId?._id;
 
   const { data: subdepartmentData } = useGetSubdepartmentByIdQuery(subdepartmentId, { skip: !subdepartmentId });
   const { data: levelsData, isLoading, refetch } = useGetLevelsBySubdepartmentQuery(subdepartmentId, { skip: !subdepartmentId });
