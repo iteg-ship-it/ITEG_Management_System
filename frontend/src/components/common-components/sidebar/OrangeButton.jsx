@@ -52,7 +52,7 @@ const OrangeButton = ({
 
           {/* PANEL */}
           <div
-            className={`relative w-full max-w-md h-full bg-white shadow-xl flex flex-col
+            className={`relative w-full sm:max-w-md h-full bg-white shadow-xl flex flex-col
             transform transition-transform duration-300 ease-in-out
             ${isOpen ? "translate-x-0" : "translate-x-full"}
             `}

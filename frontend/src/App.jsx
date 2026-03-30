@@ -26,15 +26,6 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   const { showModal, handleContinue, handleLogout } = useSessionTimeout();
 
-  React.useEffect(() => {
-    console.log('✅ App component mounted');
-    const handleError = (error) => {
-      console.error('❌ App Error:', error);
-    };
-    window.addEventListener('error', handleError);
-    return () => window.removeEventListener('error', handleError);
-  }, []);
-
   return (
     <React.Suspense fallback={
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -43,7 +34,6 @@ function App() {
     }>
       <Router>
         <Routes>
-          {/* <Route path="/" element={<Navigate to={localStorage.getItem("token") ? "/" : "/login"} replace />} /> */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/otp-verification" element={<OtpVerification />} />
           <Route path="/reset-password/:token" element={<ConfirmPassword />} />
