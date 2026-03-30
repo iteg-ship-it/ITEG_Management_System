@@ -1,6 +1,8 @@
 /* eslint-disable react/prop-types */
 import { useNavigate } from "react-router-dom";
 import { Bell, ChevronRight, ArrowLeft } from "lucide-react";
+import { HiChevronRight } from "react-icons/hi";
+import { useSidebar } from "../../../contexts/SidebarContext";
 
 const Header = ({
   sidebarOpen = true,
