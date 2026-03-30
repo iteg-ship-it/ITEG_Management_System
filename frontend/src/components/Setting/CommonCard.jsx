@@ -33,6 +33,7 @@ const CommonCard = ({
   onEdit,
   children,
   variant = 'card2',
+  logo,
 }) => {
   const inactive = status === false;
 
@@ -92,12 +93,16 @@ const CommonCard = ({
     }`}>
       <div className="p-4 flex-1">
 
-        {/* Top row: icon + status badge */}
+        {/* Top row: icon/logo + status badge */}
         <div className="flex items-start justify-between mb-3">
-          <div className={`w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 ${
+          <div className={`w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden ${
             inactive ? 'bg-gray-200' : 'bg-orange-50 border border-orange-100'
           }`}>
-            <Icon size={20} className={inactive ? 'text-gray-400' : 'text-orange-500'} />
+            {logo ? (
+              <img src={logo} alt="logo" className="w-full h-full object-cover" />
+            ) : (
+              <Icon size={20} className={inactive ? 'text-gray-400' : 'text-orange-500'} />
+            )}
           </div>
           {status !== undefined && (
             <span className={`text-xs font-bold px-2.5 py-1 rounded-full tracking-wide ${

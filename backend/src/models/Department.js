@@ -32,6 +32,7 @@ const departmentSchema = new mongoose.Schema({
     }
   },
 
+  headOfDepartment: { type: String },
   isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 

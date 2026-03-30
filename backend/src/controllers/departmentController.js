@@ -49,9 +49,9 @@ const generateDeptCode = async (name) => {
 // Create Department
 exports.createDepartment = async (req, res) => {
   try {
-    const { name, universityName, reportConfig, allowedCourses } = req.body;
+    const { name, universityName, reportConfig: rawReportConfig, allowedCourses: rawCourses } = req.body;
 
-    if (!name || !universityName || !reportConfig) {
+    if (!name || !universityName || !rawReportConfig) {
       return res.status(400).json({
         success: false,
         message: "Name, universityName, and reportConfig are required"
@@ -59,6 +59,18 @@ exports.createDepartment = async (req, res) => {
     }
 
     const autoCode = await generateDeptCode(name);
+
+    let reportConfig = rawReportConfig;
+    if (typeof rawReportConfig === 'string') {
+      try { reportConfig = JSON.parse(rawReportConfig); } catch (_) {}
+    }
+    let allowedCourses = rawCourses;
+    if (typeof rawCourses === 'string') {
+      try { allowedCourses = JSON.parse(rawCourses); } catch (_) {}
+    }
+    if (req.body.isActive !== undefined) {
+      req.body.isActive = req.body.isActive === 'true' || req.body.isActive === true;
+    }
 
     // Validate reportConfig
     if (!validateReportConfig(reportConfig)) {
@@ -78,18 +90,21 @@ exports.createDepartment = async (req, res) => {
     // 🌩️ Upload Logo
     let logoUrl = null;
     if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "department_logos",
-        resource_type: "image"
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { folder: "department_logos", resource_type: "image" },
+          (error, result) => error ? reject(error) : resolve(result)
+        ).end(req.file.buffer);
       });
       logoUrl = result.secure_url;
     }
 
     const departmentData = {
       ...req.body,
-      code: autoCode // ✅ override manual code
+      reportConfig,
+      allowedCourses: allowedCourses || [],
+      code: autoCode
     };
-
     if (logoUrl) departmentData.logo = logoUrl;
 
     const department = await Department.create(departmentData);
@@ -190,28 +205,29 @@ exports.updateDepartment = async (req, res) => {
       });
     }
 
-    // Validate reportConfig if provided
-    if (req.body.reportConfig && !validateReportConfig(req.body.reportConfig)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid reportConfig structure. Must include templateType and sections."
-      });
-    }
-
-    // Validate allowedCourses if provided
-    if (req.body.allowedCourses && !validateAllowedCourses(req.body.allowedCourses)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid allowedCourses structure. Each course must have courseName (string) and durationInYears (positive number)."
-      });
-    }
-
     // Handle logo upload if file is provided
     let updateData = { ...req.body };
+    if (updateData.allowedCourses && typeof updateData.allowedCourses === 'string') {
+      try { updateData.allowedCourses = JSON.parse(updateData.allowedCourses); } catch (_) {}
+    }
+    if (updateData.reportConfig && typeof updateData.reportConfig === 'string') {
+      try { updateData.reportConfig = JSON.parse(updateData.reportConfig); } catch (_) {}
+    }
+    if (updateData.isActive !== undefined) updateData.isActive = updateData.isActive === 'true' || updateData.isActive === true;
+
+    // Validate after parsing
+    if (updateData.reportConfig && !validateReportConfig(updateData.reportConfig)) {
+      return res.status(400).json({ success: false, message: "Invalid reportConfig structure." });
+    }
+    if (updateData.allowedCourses && !validateAllowedCourses(updateData.allowedCourses)) {
+      return res.status(400).json({ success: false, message: "Invalid allowedCourses structure." });
+    }
     if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "department_logos",
-        resource_type: "image"
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { folder: "department_logos", resource_type: "image" },
+          (error, result) => error ? reject(error) : resolve(result)
+        ).end(req.file.buffer);
       });
       updateData.logo = result.secure_url;
     }
