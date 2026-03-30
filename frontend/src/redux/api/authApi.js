@@ -761,10 +761,11 @@ export const authApi = createApi({
 
     // Add Department
     addDepartment: builder.mutation({
-      query: (formData) => ({
+      query: (departmentData) => ({
         url: '/departments',
         method: "POST",
-        body: formData,
+        body: departmentData,
+        headers: { 'Content-Type': 'application/json' },
       }),
       invalidatesTags: ['Department'],
     }),
@@ -781,11 +782,23 @@ export const authApi = createApi({
 
     // Update Department
     updateDepartment: builder.mutation({
-      query: ({ id, formData }) => ({
-        url: `/departments/${id}`,
-        method: "PUT",
-        body: formData,
-      }),
+      query: ({ id, ...data }) => {
+        const payload = {
+          name: data.name,
+          code: data.code,
+          universityName: data.universityName,
+          description: data.description,
+          headOfDepartment: data.headOfDepartment,
+          allowedCourses: data.allowedCourses || [],
+          reportConfig: data.reportConfig,
+          isActive: data.isActive
+        };
+        return {
+          url: `/departments/${id}`,
+          method: "PUT",
+          body: payload,
+        };
+      },
       invalidatesTags: ['Department'],
     }),
 

@@ -36,20 +36,14 @@ const validateReportConfig = (reportConfig) => {
 };
 
 const generateDeptCode = async (name) => {
-  const words = name.trim().split(/\s+/);
-  const initials = words.length === 1
-    ? words[0].slice(0, 3).toUpperCase()
-    : words.map(w => w[0].toUpperCase()).join("");
-
-  // Check ALL documents (including soft-deleted) to avoid unique index conflict
-  if (!await Department.exists({ code: initials })) return initials;
-
-  let counter = 1;
-  while (true) {
-    const code = `${initials}${String(counter).padStart(3, "0")}`;
-    if (!await Department.exists({ code })) return code;
+  const initials = name.trim().split(/\s+/).filter(Boolean).map(w => w[0].toUpperCase()).join("");
+  let counter = 1, code, exists = true;
+  while (exists) {
+    code = `${initials}-${String(counter).padStart(3, "0")}`;
+    exists = await Department.exists({ code });
     counter++;
   }
+  return code;
 };
 
 // Create Department
@@ -81,21 +75,19 @@ exports.createDepartment = async (req, res) => {
       });
     }
 
+    // 🌩️ Upload Logo
     let logoUrl = null;
     if (req.file) {
-      const result = await new Promise((resolve, reject) => {
-        cloudinary.uploader.upload_stream(
-          { folder: "department_logos", resource_type: "image" },
-          (error, result) => error ? reject(error) : resolve(result)
-        ).end(req.file.buffer);
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "department_logos",
+        resource_type: "image"
       });
       logoUrl = result.secure_url;
     }
 
-    const { code: _ignored, ...bodyWithoutCode } = req.body;
     const departmentData = {
-      ...bodyWithoutCode,
-      code: autoCode
+      ...req.body,
+      code: autoCode // ✅ override manual code
     };
 
     if (logoUrl) departmentData.logo = logoUrl;
@@ -126,10 +118,23 @@ exports.createDepartment = async (req, res) => {
 // Get All Departments
 exports.getAllDepartments = async (req, res) => {
   try {
-    const departments = await Department.find({ isActive: true });
+    const SubDepartment = require("../models/SubDepartment");
+    const Student = require("../models/Student");
+
+    const departments = await Department.find();
+
+    const departmentsWithCounts = await Promise.all(
+      departments.map(async (dept) => {
+        const subDepts = await SubDepartment.find({ departmentId: dept._id, isActive: true }).select('_id');
+        const subDeptIds = subDepts.map(s => s._id);
+        const totalStudents = await Student.countDocuments({ subDepartmentId: { $in: subDeptIds } });
+        return { ...dept.toObject(), totalStudents };
+      })
+    );
+
     res.status(200).json({
       success: true,
-      data: departments
+      data: departmentsWithCounts
     });
   } catch (error) {
     res.status(500).json({
@@ -201,19 +206,18 @@ exports.updateDepartment = async (req, res) => {
       });
     }
 
+    // Handle logo upload if file is provided
     let updateData = { ...req.body };
     if (req.file) {
-      const result = await new Promise((resolve, reject) => {
-        cloudinary.uploader.upload_stream(
-          { folder: "department_logos", resource_type: "image" },
-          (error, result) => error ? reject(error) : resolve(result)
-        ).end(req.file.buffer);
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "department_logos",
+        resource_type: "image"
       });
       updateData.logo = result.secure_url;
     }
 
     const department = await Department.findOneAndUpdate(
-      { _id: req.params.id, isActive: true },
+      { _id: req.params.id },
       updateData,
       { new: true, runValidators: true }
     );
