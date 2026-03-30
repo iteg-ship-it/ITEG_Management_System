@@ -77,7 +77,10 @@ exports.getSubDepartmentsByDepartment = async (req, res) => {
       });
     }
     
-    const subDepartments = await SubDepartment.find({ departmentId }).populate('departmentId');
+    const subDepartments = await SubDepartment.find({ 
+      departmentId, 
+      isActive: true 
+    }).populate('departmentId');
     
     res.status(200).json({
       success: true,
@@ -94,7 +97,7 @@ exports.getSubDepartmentsByDepartment = async (req, res) => {
 // Get All SubDepartments
 exports.getAllSubDepartments = async (req, res) => {
   try {
-    const subDepartments = await SubDepartment.find().populate('departmentId');
+    const subDepartments = await SubDepartment.find({ isActive: true }).populate('departmentId');
     res.status(200).json({
       success: true,
       data: subDepartments
@@ -118,7 +121,10 @@ exports.getSubDepartmentById = async (req, res) => {
       });
     }
 
-    const subDepartment = await SubDepartment.findById(req.params.id).populate('departmentId');
+    const subDepartment = await SubDepartment.findOne({ 
+      _id: req.params.id, 
+      isActive: true 
+    }).populate('departmentId');
     
     if (!subDepartment) {
       return res.status(404).json({
@@ -173,8 +179,8 @@ exports.updateSubDepartment = async (req, res) => {
       }
     }
 
-    const subDepartment = await SubDepartment.findByIdAndUpdate(
-      req.params.id,
+    const subDepartment = await SubDepartment.findOneAndUpdate(
+      { _id: req.params.id, isActive: true },
       req.body,
       { new: true, runValidators: true }
     ).populate('departmentId');
