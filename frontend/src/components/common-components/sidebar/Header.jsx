@@ -6,10 +6,12 @@ const Header = ({
   sidebarOpen = true,
   title,
   badge,
+  subtitle = null,
   showBack = false,
   onBack,
   children,
   breadcrumbs = [],
+  bottomRow = null,
 }) => {
   const navigate = useNavigate();
 
@@ -60,6 +62,9 @@ const Header = ({
                 </span>
               )}
             </div>
+            {subtitle && (
+              <p className="text-xs sm:text-sm text-gray-500 font-medium">{subtitle}</p>
+            )}
           </div>
         </div>
 
@@ -72,6 +77,13 @@ const Header = ({
           </button>
         </div>
       </div>
+
+      {/* Bottom Row (e.g. level tabs) */}
+      {bottomRow && (
+        <div className="px-3 sm:px-4 md:px-6 border-b border-gray-200 bg-white">
+          {bottomRow}
+        </div>
+      )}
 
     </header>
   );

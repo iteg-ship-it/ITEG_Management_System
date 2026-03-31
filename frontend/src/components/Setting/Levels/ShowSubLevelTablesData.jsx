@@ -1,12 +1,23 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
+import { Formik, Form } from "formik";
+import * as Yup from "yup";
+import { toast } from "react-toastify";
 import Header from "../../common-components/sidebar/Header";
 import OrangeButton from "../../common-components/sidebar/OrangeButton";
 import TabsCommon from "../../common-components/table/TabsCommon";
-import { useGetSubLevelsByLevelQuery } from "../../../redux/api/authApi";
+import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation } from "../../../redux/api/authApi";
 import SearchBox from "../../common-components/seach-export/SearchBox";
 import ExportDropdown from "../../common-components/seach-export/ExportDropdown";
 import CommonTable from "../../common-components/table/CommonTable";
+import InputField from "../../common-components/common-feild/InputField";
+import RadioGroup from "../../common-components/common-feild/RadioGroup";
+
+const validationSchema = Yup.object({
+    name: Yup.string().required("SubLevel name is required"),
+    order: Yup.number().required("Order is required").positive("Must be positive"),
+    isActive: Yup.boolean(),
+});
 
 const columns = [
     { label: "S.No", key: "sno" },
@@ -32,6 +43,7 @@ const ShowSubLevelTablesData = () => {
     const subdepartment = location.state?.subdepartment;
     const departmentId = location.state?.departmentId;
     const departmentName = location.state?.departmentName;
+    const session = location.state?.session || location.state?.sessionName;
     const tabs = ["Students", "Tasks", "Syllabus", "Progress"];
     const [activeDataTab, setActiveDataTab] = useState("Students");
 
@@ -40,15 +52,18 @@ const ShowSubLevelTablesData = () => {
     });
 
     const subLevels = subLevelsData?.data || [];
-    const levelTabs = subLevels.map((sl) => sl.name);
+    const levelTabs = subLevels.length > 0
+        ? subLevels.map((sl) => sl.name)
+        : ["Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C"];
 
     const [activeTab, setActiveTab] = useState("");
+    const [addSubLevel] = useAddSubLevelMutation();
 
     const handleTabClick = (tab) => setActiveTab(tab);
 
     const breadcrumbs = [
         { label: "Departments", path: "/department-management" },
-        { label: departmentName || "Department", path: `/department-details/${departmentId}`, state: { department: subdepartment?.departmentId } },
+        { label: session ? `${departmentName || "Department"} • ${session}` : departmentName || "Department", path: `/department-details/${departmentId}`, state: { department: subdepartment?.departmentId } },
         { label: subdepartment?.name || "Subdepartment", path: "/subdepartment-details", state: { subdepartment, departmentId, departmentName } },
         { label: level?.name || "Level" },
     ];
@@ -57,12 +72,62 @@ const ShowSubLevelTablesData = () => {
         <>
             <Header
                 title={level?.name || "SubLevel Tables"}
+                badge={session || undefined}
+                subtitle={subdepartment?.name ? `Sub-Department: ${subdepartment.name}` : undefined}
                 showBack={true}
                 breadcrumbs={breadcrumbs}
+                bottomRow={
+                    <div className="flex gap-1 overflow-x-auto">
+                        {levelTabs.map((tab) => (
+                            <button
+                                key={tab}
+                                onClick={() => handleTabClick(tab)}
+                                className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-all duration-200 border-b-2 ${
+                                    activeTab === tab
+                                        ? "border-orange-500 text-orange-500 font-semibold"
+                                        : "border-transparent text-gray-500 hover:text-gray-700"
+                                }`}
+                            >
+                                {tab}
+                            </button>
+                        ))}
+                    </div>
+                }
             >
-                <OrangeButton buttonTitle="+ Add Sub Level" />
+                <Formik
+                    initialValues={{ name: "", order: "", isActive: true }}
+                    validationSchema={validationSchema}
+                    onSubmit={async (values, { setSubmitting, resetForm }) => {
+                        try {
+                            await addSubLevel({ name: values.name, order: Number(values.order), levelId: level?._id, isActive: values.isActive }).unwrap();
+                            toast.success("SubLevel added successfully!");
+                            resetForm();
+                        } catch (error) {
+                            toast.error(error?.data?.message || "Error adding sublevel");
+                        } finally {
+                            setSubmitting(false);
+                        }
+                    }}
+                >
+                    {({ isSubmitting, submitForm, resetForm }) => (
+                        <OrangeButton
+                            buttonTitle="+ Add Sub Level"
+                            panelTitle="Add New Sub Level"
+                            drawerContent={
+                                <Form className="space-y-4">
+                                    <InputField label="SubLevel Name" name="name" placeholder="Enter sublevel name" />
+                                    <InputField label="Order" name="order" type="number" placeholder="Enter order number" />
+                                    <RadioGroup label="Status" name="isActive" required={false} />
+                                </Form>
+                            }
+                            leftBtnText="Cancel"
+                            rightBtnText={isSubmitting ? "Adding..." : "Add Sub Level"}
+                            onLeftClick={resetForm}
+                            onRightClick={submitForm}
+                        />
+                    )}
+                </Formik>
             </Header>
-            <TabsCommon tabs={levelTabs} activeTab={activeDataTab} onTabChange={handleTabClick} />
             <div className="flex flex-col  justify-start p-6">
                 <div className="flex gap-2 w-[34%] bg-gray-200 p-2 rounded-xl shadow-inner">
                     {tabs.map((tab) => (
@@ -97,10 +162,6 @@ const ShowSubLevelTablesData = () => {
                     onRowClick={null}
                 />
             </div>
-
-
-
-
         </>
     );
 };
