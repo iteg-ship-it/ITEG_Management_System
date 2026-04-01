@@ -58,7 +58,6 @@ const DepartmentDetails = () => {
   return (
     <>
       <Header
-        title={department.name}
         showBack={true}
         breadcrumbs={[
           { label: "Departments", path: "/department-management" },
@@ -66,9 +65,7 @@ const DepartmentDetails = () => {
         ]}
       />
 
-      <div className="px-6">
-        {/* Top bar */}
-        <div className="flex items-end justify-between py-5">
+      <div className="px-6 py-5 flex items-center justify-between border-b bg-white">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{department.name}</h1>
             <p className="text-sm text-gray-500 mt-0.5">Manage academic structure</p>
@@ -118,7 +115,7 @@ const DepartmentDetails = () => {
         </div>
 
         {/* Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
           {subdepartments.length === 0 ? (
             <div className="col-span-full text-center py-16">
               <MdAccountTree size={48} className="mx-auto text-gray-300 mb-3" />
@@ -211,7 +208,6 @@ const DepartmentDetails = () => {
             ))
           )}
         </div>
-      </div>
     </>
   );
 };

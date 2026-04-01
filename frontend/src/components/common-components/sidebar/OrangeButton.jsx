@@ -33,7 +33,7 @@ const OrangeButton = ({
       {/* OPEN BUTTON */}
       <button
         onClick={openDrawer}
-        className={customButtonClass || "rounded-md bg-orange-500 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-400"}
+        className={customButtonClass || "rounded-md bg-orange-500 px-3 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-orange-600 hover:shadow-md hover:scale-[1.03] active:scale-[0.97]"}
       >
         {buttonTitle}
       </button>
@@ -91,7 +91,7 @@ const OrangeButton = ({
                 {/* cancel */}
                 <button
                   onClick={onLeftClick ? onLeftClick : closeDrawer}
-                  className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition shadow-sm"
+                  className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-700 font-semibold transition-all duration-200 hover:bg-gray-200 hover:scale-[1.02] active:scale-[0.98] shadow-sm"
                 >
                   {leftBtnText}
                 </button>
@@ -99,7 +99,7 @@ const OrangeButton = ({
                 {/* save */}
                 <button
                   onClick={onRightClick}
-                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#FDA92D] to-[#FDB84D] text-white font-semibold shadow-md hover:shadow-lg transition"
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#FDA92D] to-[#FDB84D] text-white font-semibold shadow-md transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
                 >
                   {rightBtnText}
                 </button>
@@ -115,112 +115,3 @@ const OrangeButton = ({
 };
 
 export default OrangeButton;
-
-// /* eslint-disable react/prop-types */
-// import { useState, useEffect } from "react";
-
-// const OrangeButton = ({ buttonTitle, drawerContent, panelTitle }) => {
-//   const [isMounted, setIsMounted] = useState(false);
-//   const [isOpen, setIsOpen] = useState(false);
-
-//   // open drawer
-//   const openDrawer = () => {
-//     setIsMounted(true);
-//     setTimeout(() => setIsOpen(true), 10); // allow render before animation
-//   };
-
-//   // close drawer
-//   const closeDrawer = () => {
-//     setIsOpen(false);
-//     setTimeout(() => setIsMounted(false), 300); // match transition duration
-//   };
-
-//   return (
-//     <>
-//       {/* Open Button */}
-//       <button
-//         onClick={openDrawer}
-//         className="rounded-md bg-orange-500 px-2.5 py-1.5 text-md font-semibold text-white hover:bg-orange-400"
-//       >
-//         {buttonTitle}
-//       </button>
-
-//       {/* Drawer */}
-//       {isMounted && (
-//         <div className="fixed inset-0 z-50 flex justify-end">
-
-//           {/* backdrop */}
-//           <div
-//             onClick={closeDrawer}
-//             className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
-//               isOpen ? "opacity-100" : "opacity-0"
-//             }`}
-//           />
-
-//           {/* panel */}
-//           <div
-//             className={`relative w-full max-w-md h-full bg-white shadow-xl p-6 overflow-y-auto
-//               transform transition-transform duration-300 ease-in-out
-//               ${isOpen ? "translate-x-0" : "translate-x-full"}
-//             `}
-//           >
-//             {/* close button */}
-//             <button
-//               onClick={closeDrawer}
-//               className="absolute top-3 right-3 text-gray-500 hover:text-black"
-//             >
-//               ✕
-//             </button>
-
-//             {/* title */}
-//             <h2 className="text-lg font-semibold mb-4">{panelTitle}</h2>
-
-//             {/* content */}
-//             {drawerContent}
-//           </div>
-//         </div>
-//       )}
-//     </>
-//   );
-// };
-
-// export default OrangeButton;
-
-// // /* eslint-disable react/prop-types */
-// // const OrangeButton = ({ buttonTitle, drawerContent, panelTitle }) => {
-// //     return (
-// //         <>
-// //             <button command="show-modal" commandfor="drawer" class="rounded-md bg-orange-500 px-2.5 py-1.5 text-md font-semibold text-white hover:bg-orange-300">{buttonTitle}</button>
-// //             <el-dialog>
-// //                 <dialog id="drawer" aria-labelledby="drawer-title" class="fixed inset-0 size-auto max-h-none max-w-none overflow-hidden bg-transparent not-open:hidden backdrop:bg-transparent">
-// //                     <el-dialog-backdrop class="absolute inset-0 bg-gray-500/75 transition-opacity duration-500 ease-in-out data-closed:opacity-0"></el-dialog-backdrop>
-
-// //                     <div tabindex="0" class="absolute inset-0 pl-10 focus:outline-none sm:pl-16">
-// //                         <el-dialog-panel class="group/dialog-panel relative ml-auto block size-full max-w-md transform transition-all duration-700 ease-in-out data-closed:translate-x-full">
-// //                             <div class="absolute top-0 left-0 -ml-8 flex pt-4 pr-2 duration-500 ease-in-out group-data-closed/dialog-panel:opacity-0 sm:-ml-10 sm:pr-4">
-// //                                 <button type="button" command="close" commandfor="drawer" class="relative rounded-md text-gray-300 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-// //                                     <span class="absolute -inset-2.5"></span>
-// //                                     <span class="sr-only">Close panel</span>
-// //                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6">
-// //                                         <path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" />
-// //                                     </svg>
-// //                                 </button>
-// //                             </div>
-
-// //                             <div class="relative flex h-full flex-col overflow-y-auto bg-white py-6 shadow-xl">
-// //                                 <div class="px-4 sm:px-6">
-// //                                     <h2 id="drawer-title" class="text-base font-semibold text-gray-900">{panelTitle}</h2>
-// //                                 </div>
-// //                                 <div class="relative mt-6 flex-1 px-4 sm:px-6">
-// //                                     {drawerContent}
-// //                                 </div>
-// //                             </div>
-// //                         </el-dialog-panel>
-// //                     </div>
-// //                 </dialog>
-// //             </el-dialog>
-// //         </>
-// //     );
-// // };
-
-// // export default OrangeButton;
