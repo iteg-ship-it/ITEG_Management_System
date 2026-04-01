@@ -55,8 +55,8 @@ const Header = ({
                     index === breadcrumbs.length - 1
                       ? "text-gray-700 font-semibold cursor-default"
                       : crumb.path
-                      ? "text-orange-500 hover:text-orange-600 cursor-pointer"
-                      : "text-gray-400 cursor-default"
+                      ? "text-gray-600  cursor-pointer"
+                      : "text-orange-500 cursor-default"
                   }`}
                 >
                   {crumb.label}
