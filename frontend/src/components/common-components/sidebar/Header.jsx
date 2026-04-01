@@ -5,10 +5,12 @@ import { HiChevronRight } from "react-icons/hi";
 import { useSidebar } from "../../../contexts/SidebarContext";
 
 const Header = ({
+  sidebarOpen = true,
   title,
   badge,
   children,
   breadcrumbs = [],
+  bottomRow = null,
 }) => {
   const navigate = useNavigate();
   const { openMobileSidebar } = useSidebar();
@@ -88,7 +90,14 @@ const Header = ({
             </button>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Bottom Row (e.g. level tabs) */}
+      {bottomRow && (
+        <div className="px-3 sm:px-4 md:px-6 border-b border-gray-200 bg-white">
+          {bottomRow}
+        </div>
+      )}
 
     </header>
   );

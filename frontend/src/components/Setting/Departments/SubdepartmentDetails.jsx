@@ -54,7 +54,6 @@ const SubdepartmentDetails = () => {
   return (
     <>
       <Header
-        title={subdepartment.name}
         showBack={true}
         breadcrumbs={[
           { label: "Departments", path: "/department-management" },
@@ -64,10 +63,10 @@ const SubdepartmentDetails = () => {
       />
 
       <div className="px-6">
-        <div className="flex items-end justify-between py-5">
+        <div className="flex items-center justify-between px-3 sm:px-4 md:px-6 h-16 sm:h-18 md:h-20 border-b border-white-200">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{subdepartment.name}</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Manage levels</p>
+            <h1 className="text-xl font-bold text-gray-900">{subdepartment.name}</h1>
+            <p className="text-sm text-gray-500 mt-1">Manage academic levels and sub-levels for this department. Track progression and configurations.</p>
           </div>
           <Formik
             initialValues={{ name: "", order: "", isActive: true }}
@@ -87,7 +86,7 @@ const SubdepartmentDetails = () => {
           >
             {({ isSubmitting, submitForm, resetForm }) => (
               <OrangeButton
-                buttonTitle="+ Add Level"
+                buttonTitle="+ New Level"
                 panelTitle="Add New Level"
                 drawerContent={
                   <Form className="space-y-4">
