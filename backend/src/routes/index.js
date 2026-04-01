@@ -12,6 +12,7 @@ const protectedRoutes = require('./protectedRoutes');
 const webhookRoutes = require('./webhookRoutes');
 const taskRoutes = require('./taskRoutes');
 const roleRoutes = require('./roleRoutes');
+const taskMasterRoutes = require('./taskMasterRoutes');
 
 // Mount routes
 router.use('/user', userRoutes);
@@ -23,6 +24,7 @@ router.use('/reportcards', reportCardRoutes);
 router.use('/protected', protectedRoutes);
 router.use('/tasks', taskRoutes);
 router.use('/roles', roleRoutes);
+router.use('/task-master', taskMasterRoutes);
 
 // Webhook routes
 router.use('/admission/students/webhook', webhookRoutes);
