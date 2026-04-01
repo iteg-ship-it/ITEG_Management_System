@@ -53,10 +53,10 @@ const Header = ({
                   onClick={() => crumb.path && navigate(crumb.path, { state: crumb.state })}
                   className={`text-xs font-medium transition-colors whitespace-nowrap ${
                     index === breadcrumbs.length - 1
-                      ? "text-gray-700 font-semibold cursor-default"
+                      ? "text-orange-500 cursor-default"
                       : crumb.path
-                      ? "text-gray-600  cursor-pointer"
-                      : "text-orange-500 cursor-default"
+                      ? "text-gray-400 hover:text-gray-600 cursor-pointer"
+                      : "text-gray-400 cursor-default"
                   }`}
                 >
                   {crumb.label}
