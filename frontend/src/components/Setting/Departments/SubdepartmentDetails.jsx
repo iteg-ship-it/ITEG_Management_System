@@ -62,8 +62,7 @@ const SubdepartmentDetails = () => {
         ]}
       />
 
-      <div className="px-6">
-        <div className="flex items-center justify-between px-3 sm:px-4 md:px-6 h-16 sm:h-18 md:h-20 border-b border-white-200">
+      <div className="px-6 py-5 flex items-center justify-between border-b bg-white">
           <div>
             <h1 className="text-xl font-bold text-gray-900">{subdepartment.name}</h1>
             <p className="text-sm text-gray-500 mt-1">Manage academic levels and sub-levels for this department. Track progression and configurations.</p>
@@ -104,7 +103,7 @@ const SubdepartmentDetails = () => {
           </Formik>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="px-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 mt-6">
           {levels.length === 0 ? (
             <div className="col-span-full text-center py-16">
               <MdLayers size={48} className="mx-auto text-gray-300 mb-3" />
@@ -170,7 +169,6 @@ const SubdepartmentDetails = () => {
             ))
           )}
         </div>
-      </div>
     </>
   );
 };

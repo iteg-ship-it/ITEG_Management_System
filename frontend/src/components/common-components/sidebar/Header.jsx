@@ -24,7 +24,7 @@ const Header = ({
     <header className="sticky top-0 z-10 bg-white">
 
       {/* Top Row: Breadcrumbs + Bell */}
-      <div className="flex items-center justify-between flex-wrap px-3 sm:px-4 md:px-6 min-h-9 py-1.5 border-b border-gray-200 bg-gray-50">
+      <div className="flex items-center justify-between flex-wrap px-3 sm:px-4 md:px-6 min-h-9 py-1.5 border-b border-gray-200 bg-white">
         <div className="flex items-center gap-1.5 flex-wrap">
           {breadcrumbs.map((crumb, index) => (
             <div key={index} className="flex items-center gap-1.5">
@@ -32,9 +32,9 @@ const Header = ({
                 onClick={() => crumb.path && navigate(crumb.path, { state: crumb.state })}
                 className={`text-xs sm:text-sm font-medium transition-colors ${
                   index === breadcrumbs.length - 1
-                    ? 'text-gray-700 font-semibold cursor-default'
+                    ? 'text-orange-500 font-semibold cursor-default'
                     : crumb.path
-                    ? 'text-orange-500 hover:text-orange-600 cursor-pointer'
+                    ? 'text-gray-400 hover:text-gray-600 cursor-pointer'
                     : 'text-gray-400 cursor-default'
                 }`}
               >

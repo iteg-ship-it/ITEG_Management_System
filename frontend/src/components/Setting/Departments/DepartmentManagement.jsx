@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { MdBusiness, MdOutlinePersonOutline } from "react-icons/md";
 import { HiOutlineUserGroup } from "react-icons/hi";
-import PageNavbar from "../../common-components/navbar/PageNavbar";
 import { useGetAllDepartmentsQuery, useDeleteDepartmentMutation, useAddDepartmentMutation, useUpdateDepartmentMutation } from "../../../redux/api/authApi";
 import Loader from "../../common-components/loader/Loader";
 import { toast } from "react-toastify";
@@ -95,16 +94,14 @@ const DepartmentManagement = () => {
 
   return (
     <>
-      <Header title="Department Management" showBack={false} />
-      <div className="px-5">
+      <Header showBack={false} breadcrumbs={[{ label: "Departments" }]} />
 
-        <div className="flex justify-between items-center py-4">
-          <PageNavbar
-            title="Department Management"
-            subtitle="Manage your organization departments and their details"
-            showBackButton={false}
-          />
-          <div className="flex-shrink-0">
+      <div className="px-6 py-5 flex items-center justify-between border-b bg-white">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Department Management</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Manage your organization departments and their details</p>
+        </div>
+        <div className="flex-shrink-0">
             <Formik
               key={editingDepartment?._id || 'new'}
               initialValues={{
@@ -225,11 +222,11 @@ const DepartmentManagement = () => {
               )}
             </Formik>
           </div>
-        </div>
-        <div className="mt-1 ">
+      </div>
 
-          {/* Departments Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-3">
+      <div className="px-6 mt-6">
+        {/* Departments Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {departments.map((dept) => (
               <Formik
                 key={dept._id}
@@ -328,8 +325,6 @@ const DepartmentManagement = () => {
                 )}
               </Formik>
             ))}
-          </div>
-
         </div>
       </div>
     </>
