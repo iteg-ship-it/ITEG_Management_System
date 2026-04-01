@@ -78,8 +78,7 @@ exports.getSubDepartmentsByDepartment = async (req, res) => {
     }
     
     const subDepartments = await SubDepartment.find({ 
-      departmentId, 
-      isActive: true 
+      departmentId
     }).populate('departmentId');
     
     res.status(200).json({
@@ -180,7 +179,7 @@ exports.updateSubDepartment = async (req, res) => {
     }
 
     const subDepartment = await SubDepartment.findOneAndUpdate(
-      { _id: req.params.id, isActive: true },
+      { _id: req.params.id },
       req.body,
       { new: true, runValidators: true }
     ).populate('departmentId');

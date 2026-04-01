@@ -90,7 +90,7 @@ const Header = ({
             </button>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Bottom Row (e.g. level tabs) */}
       {bottomRow && (

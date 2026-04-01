@@ -18,7 +18,7 @@ const ActionButtons = ({ onView, onEdit, inactive }) => (
       </button>
     )}
     {onEdit && (
-      <div className={`${onView ? 'flex-1' : 'w-full'} ${inactive ? '[&_button]:!bg-gray-400 [&_button]:!text-white [&_button]:!border-0' : ''}`}>{onEdit}</div>
+      <div className={onView ? 'flex-1' : 'w-full'}>{onEdit}</div>
     )}
   </div>
 );

@@ -125,7 +125,7 @@ exports.createDepartment = async (req, res) => {
 // Get All Departments
 exports.getAllDepartments = async (req, res) => {
   try {
-    const departments = await Department.find({ isActive: true });
+    const departments = await Department.find({});
     res.status(200).json({
       success: true,
       data: departments
@@ -212,7 +212,7 @@ exports.updateDepartment = async (req, res) => {
     }
 
     const department = await Department.findOneAndUpdate(
-      { _id: req.params.id, isActive: true },
+      { _id: req.params.id },
       updateData,
       { new: true, runValidators: true }
     );
