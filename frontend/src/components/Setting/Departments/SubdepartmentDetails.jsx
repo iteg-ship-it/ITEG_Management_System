@@ -53,21 +53,7 @@ const SubdepartmentDetails = () => {
   ════════════════════════════════════════════════════════════ */
   return (
     <>
-      <Header
-        showBack={true}
-        breadcrumbs={[
-          { label: "Departments", path: "/department-management" },
-          { label: departmentName || "Department", path: `/department-details/${departmentId}`, state: { department: subdepartment?.departmentId } },
-          { label: subdepartment.name },
-        ]}
-      />
-
-      <div className="px-6 py-5 flex items-center justify-between border-b bg-white">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">{subdepartment.name}</h1>
-            <p className="text-sm text-gray-500 mt-1">Manage academic levels and sub-levels for this department. Track progression and configurations.</p>
-          </div>
-          <Formik
+      <Formik
             initialValues={{ name: "", order: "", isActive: true }}
             validationSchema={validationSchema}
             onSubmit={async (values, { setSubmitting, resetForm }) => {
@@ -84,9 +70,17 @@ const SubdepartmentDetails = () => {
             }}
           >
             {({ isSubmitting, submitForm, resetForm }) => (
-              <OrangeButton
-                buttonTitle="+ New Level"
-                panelTitle="Add New Level"
+              <Header
+                title={subdepartment.name}
+                breadcrumbs={[
+                  { label: "Departments", path: "/department-management" },
+                  { label: departmentName || "Department", path: `/department-details/${departmentId}`, state: { department: subdepartment?.departmentId } },
+                  { label: subdepartment.name },
+                ]}
+              >
+                <OrangeButton
+                  buttonTitle="+ New Level"
+                  panelTitle="Add New Level"
                 drawerContent={
                   <Form className="space-y-4">
                     <InputField label="Level Name" name="name" placeholder="Enter level name" />
@@ -99,9 +93,9 @@ const SubdepartmentDetails = () => {
                 onLeftClick={resetForm}
                 onRightClick={submitForm}
               />
+              </Header>
             )}
           </Formik>
-        </div>
 
         <div className="px-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 mt-6">
           {levels.length === 0 ? (

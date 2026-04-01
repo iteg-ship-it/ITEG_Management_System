@@ -94,15 +94,7 @@ const DepartmentManagement = () => {
 
   return (
     <>
-      <Header showBack={false} breadcrumbs={[{ label: "Departments" }]} />
-
-      <div className="px-6 py-5 flex items-center justify-between border-b bg-white">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Department Management</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Manage your organization departments and their details</p>
-        </div>
-        <div className="flex-shrink-0">
-            <Formik
+      <Formik
               key={editingDepartment?._id || 'new'}
               initialValues={{
                 name: editingDepartment?.name || "",
@@ -130,8 +122,12 @@ const DepartmentManagement = () => {
               enableReinitialize
             >
               {({ values, setFieldValue, isSubmitting, submitForm, resetForm }) => (
-                <OrangeButton
-                  buttonTitle="Add Department"
+                <Header
+                  title="Department Management"
+                  breadcrumbs={[{ label: "Departments" }]}
+                >
+                  <OrangeButton
+                    buttonTitle="Add Department"
                   panelTitle={editingDepartment ? "Edit Department" : "Add New Department"}
                   drawerContent={
                     <Form className="space-y-4">
@@ -217,12 +213,11 @@ const DepartmentManagement = () => {
                     resetForm();
                     setEditingDepartment(null);
                   }}
-                  onRightClick={submitForm}
-                />
+                    onRightClick={submitForm}
+                  />
+                </Header>
               )}
             </Formik>
-          </div>
-      </div>
 
       <div className="px-6 mt-6">
         {/* Departments Cards Grid */}

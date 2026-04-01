@@ -8,19 +8,17 @@ const ActionButtons = ({ onView, onEdit, inactive }) => (
       <button
         onClick={inactive ? undefined : onView}
         disabled={inactive}
-        className={`flex-1 border rounded-lg py-2 text-sm font-semibold transition-all duration-200 ${
+        className={`flex-1 border rounded-lg py-2 text-sm font-semibold transition ${
           inactive
             ? 'border-gray-200 text-gray-300 cursor-not-allowed'
-            : 'border-gray-300 text-gray-600 hover:bg-gray-100 hover:border-gray-400 hover:text-gray-800 hover:scale-[1.02] active:scale-[0.98] cursor-pointer'
+            : 'border-gray-300 text-gray-600 hover:bg-gray-50 cursor-pointer'
         }`}
       >
         VIEW
       </button>
     )}
     {onEdit && (
-      <div className={`${onView ? 'flex-1' : 'w-full'} transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${
-        inactive ? '[&_button]:!bg-gray-400 [&_button]:!text-white [&_button]:!border-0' : ''
-      }`}>{onEdit}</div>
+      <div className={`${onView ? 'flex-1' : 'w-full'} ${inactive ? '[&_button]:!bg-gray-500 [&_button]:!text-white [&_button]:!border-0' : ''}`}>{onEdit}</div>
     )}
   </div>
 );
@@ -43,23 +41,23 @@ const CommonCard = ({
   if (variant === 'card1') {
     return (
       <div className={`bg-white border rounded-2xl shadow-sm transition-all duration-300 overflow-hidden flex flex-col ${
-        inactive ? 'border-gray-200 opacity-60' : 'border-gray-200 hover:shadow-lg hover:-translate-y-0.5'
+        inactive ? 'border-gray-200' : 'border-gray-200 hover:shadow-md'
       }`}>
-        <div className="p-5 flex-1">
+        <div className="p-4 flex-1">
 
           {/* Icon + Title + Status */}
           <div className="flex items-center gap-3 mb-4">
             <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
-              inactive ? 'bg-gray-100' : 'bg-orange-50 border border-orange-100'
+              inactive ? 'bg-gray-200' : 'bg-orange-50 border border-orange-100'
             }`}>
               <Icon size={22} className={inactive ? 'text-gray-400' : 'text-orange-500'} />
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0">
               <h3 className={`text-sm font-bold leading-tight truncate ${inactive ? 'text-gray-400' : 'text-gray-900'}`}>
                 {title}
               </h3>
               <span className={`mt-1 inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${
-                inactive ? 'bg-gray-100 text-gray-400' : 'bg-green-100 text-green-600'
+                inactive ? 'bg-gray-200 text-gray-400' : 'bg-green-100 text-green-600'
               }`}>
                 {statusLabel || (inactive ? 'Inactive' : 'Active')}
               </span>
@@ -67,15 +65,15 @@ const CommonCard = ({
           </div>
 
           {/* Divider */}
-          <div className={`border-t mb-4 ${inactive ? 'border-gray-100' : 'border-gray-100'}`} />
+          <div className={`border-t mb-3 ${inactive ? 'border-gray-200' : 'border-gray-100'}`} />
 
-          {/* Info — single row, fixed height for alignment */}
-          <div className="flex items-center gap-6 h-8">
+          {/* Info — single row */}
+          <div className="flex items-center gap-4 flex-wrap text-xs text-gray-500">
             {infoItems?.map((item, i) => (
               <span key={i} className="flex items-center gap-1.5 whitespace-nowrap">
-                {item.icon}
-                <span className={`text-xs font-semibold ${inactive ? 'text-gray-400' : 'text-gray-700'}`}>{item.value}</span>
-                {item.label && <span className="text-xs text-gray-400">{item.label}</span>}
+                <span className={inactive ? 'text-gray-400 [&_svg]:text-gray-400' : ''}>{item.icon}</span>
+                <span className={`font-semibold ${inactive ? 'text-gray-400' : 'text-gray-700'}`}>{item.value}</span>
+                {item.label && <span className={inactive ? 'text-gray-400' : ''}>{item.label}</span>}
               </span>
             ))}
           </div>
@@ -128,7 +126,7 @@ const CommonCard = ({
         <div className="space-y-1.5 h-20">
           {infoItems?.map((item, i) => (
             <div key={i} className={`flex items-center gap-2 text-md ${inactive ? 'text-gray-400' : 'text-gray-500'}`}>
-              <span>{item.icon}</span>
+              <span className={inactive ? 'text-gray-400 [&_svg]:text-gray-400' : ''}>{item.icon}</span>
               <span>{item.label ? `${item.label}: ` : ''}<span className={`font-semibold ${inactive ? 'text-gray-400' : 'text-gray-700'}`}>{item.value}</span></span>
             </div>
           ))}
