@@ -1,4 +1,5 @@
 import Sidebar from './../common-components/sidebar/Sidebar';
+import { SidebarProvider } from '../../contexts/SidebarContext';
 import { Routes, Route } from "react-router-dom";
 import AdmissionDashboard from "../admition-process/AdmissionDashboard";
 import AdmissionProcess from "../admition-process/AdmissionProcess";
@@ -30,13 +31,15 @@ import ShowLevels from "../Setting/Levels/ShowLevels";
 import DepartmentDetails from "./../Setting/Departments/DepartmentDetails";
 import SubdepartmentDetails from "./../Setting/Departments/SubdepartmentDetails";
 import ShowSubLevelTablesData from "./../Setting/Levels/ShowSubLevelTablesData";
+import SubLevelManagement from "./../Setting/Levels/SubLevelManagement";
 import SettingFIle from "./../Setting/SettingFIle";
 import Supportfile from "./../Setting/Supportfile";
 
 const Layout = () => {
     return (
         <div className="min-h-screen">
-            <Sidebar>
+            <SidebarProvider>
+                <Sidebar>
                 <Routes>
                     <Route path="/" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdmissionDashboard /></ProtectedRoute>} />
                     <Route path="/attendance-details" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AttendanceDetails /></ProtectedRoute>} />
@@ -61,6 +64,8 @@ const Layout = () => {
                     <Route path="/interview-rounds-history/:studentId/:interviewId" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><InterviewRoundsHistory /></ProtectedRoute>} />
                     <Route path="/department-management" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><DepartmentManagement /></ProtectedRoute>} />
                     <Route path="/department-details/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><DepartmentDetails /></ProtectedRoute>} />
+                    <Route path="/subdepartment/:id/levels" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><SubdepartmentDetails /></ProtectedRoute>} />
+                    <Route path="/subdepartment/:id/level/:levelId" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><SubLevelManagement /></ProtectedRoute>} />
                     <Route path="/subdepartment-details" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><SubdepartmentDetails /></ProtectedRoute>} />
                     <Route path="/show-sublevel-tables" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><ShowSubLevelTablesData /></ProtectedRoute>} />
                     <Route path="/subdepartments" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><SubDepartment /></ProtectedRoute>} />
@@ -72,6 +77,7 @@ const Layout = () => {
                     <Route path="*" element={<PageNotFound />} />
                 </Routes>
             </Sidebar>
+            </SidebarProvider>
         </div>
     );
 };
