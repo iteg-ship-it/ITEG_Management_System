@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
-import { MdFilterList, MdEdit, MdVisibility, MdBlock, MdCheckCircle } from "react-icons/md";
+import { MdFilterList, MdEdit, MdVisibility, MdBlock, MdCheckCircle, MdDownload, MdPictureAsPdf, MdDescription, MdTableChart, MdCloudUpload } from "react-icons/md";
 import Header from "../../common-components/sidebar/Header";
 import OrangeButton from "../../common-components/sidebar/OrangeButton";
 import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation } from "../../../redux/api/authApi";
@@ -28,6 +28,41 @@ const DUMMY_STUDENTS = [
     { sno: 4, fullName: "Sneha Joshi",   fatherName: "Mahesh Joshi",    mobile: "9765432109", course: "B.Tech", busRoute: "Route 5", attempts: 1 },
     { sno: 5, fullName: "Vikram Singh",  fatherName: "Rajendra Singh",  mobile: "9654321098", course: "MBA",    busRoute: "Route 4", attempts: 2 },
 ];
+
+const DUMMY_SYLLABUS = [];
+
+const FILE_ICON = {
+    PDF:  <MdPictureAsPdf size={28} className="text-red-500" />,
+    DOCX: <MdDescription  size={28} className="text-blue-500" />,
+    XLSX: <MdTableChart   size={28} className="text-green-600" />,
+};
+
+const SYLLABUS_COLUMNS = [
+    {
+        key: "fileName", label: "Syllabus File Name",
+        render: (row) => (
+            <div className="flex items-center gap-3 min-w-[200px]">
+                <div className="flex-shrink-0">{FILE_ICON[row.ext] || <MdDescription size={28} className="text-gray-400" />}</div>
+                <div>
+                    <p className="font-semibold text-sm text-gray-800">{row.fileName}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{row.size} • {row.description}</p>
+                </div>
+            </div>
+        ),
+    },
+    { key: "uploadDate",   label: "Upload Date",    render: (row) => <span className="text-sm text-gray-600">{row.uploadDate}</span> },
+    {
+        key: "academicYear", label: "Academic Year",
+        render: (row) => <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-600 whitespace-nowrap">{row.academicYear}</span>,
+    },
+];
+
+const SyllabusActions = () => (
+    <div className="flex items-center gap-1">
+        <button title="View"     className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition"><MdVisibility size={16} /></button>
+        <button title="Download" className="p-1.5 rounded-lg text-gray-400 hover:bg-orange-50 hover:text-orange-500 transition"><MdDownload size={16} /></button>
+    </div>
+);
 
 const DUMMY_TASKS = [
     { _id: "T001", title: "Complete Python Assignment",    description: "Build a REST API using Flask",              priority: "HIGH",   assignedTo: "Rahul Sharma",  type: "MANUAL", status: "ACTIVE"    },
@@ -275,7 +310,52 @@ const ShowSubLevelTablesData = () => {
 
                     {/* ── Syllabus ── */}
                     {activeSection === "Syllabus" && (
-                        <div className="py-16 text-center text-gray-400 text-sm">Syllabus content coming soon</div>
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-3">
+                                <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+                                <div className="ml-auto flex items-center gap-3">
+                                    <button className="flex items-center gap-1.5 h-10 px-4 text-sm border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 transition flex-shrink-0">
+                                        <MdFilterList size={16} /> Filter
+                                    </button>
+                                    <ExportDropdown data={DUMMY_SYLLABUS} sectionName="syllabus" />
+                                </div>
+                            </div>
+                            {DUMMY_SYLLABUS.length === 0 ? (
+                                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm flex flex-col items-center justify-center py-16 px-8 text-center">
+                                    <div className="relative mb-6">
+                                        <div className="w-24 h-24 rounded-full bg-orange-50 flex items-center justify-center">
+                                            <MdCloudUpload size={44} className="text-orange-400" />
+                                        </div>
+                                    </div>
+                                    <h3 className="text-base font-bold text-gray-800 mb-2">No syllabus uploaded for this level.</h3>
+                                    <p className="text-sm text-gray-400 max-w-sm mb-6 leading-relaxed">
+                                        Upload the academic syllabus to get started. Once uploaded, you can assign lessons to specific weeks and track coverage.
+                                    </p>
+                                    <div className="flex items-center gap-3">
+                                        <button className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-all duration-200 hover:shadow-md">
+                                            <MdCloudUpload size={16} /> Upload Syllabus
+                                        </button>
+                                        <button className="px-5 py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200">
+                                            Browse Template
+                                        </button>
+                                    </div>
+                                    <p className="mt-5 text-xs text-orange-500 hover:text-orange-600 cursor-pointer underline underline-offset-2">
+                                        Learn how to structure your syllabus files
+                                    </p>
+                                </div>
+                            ) : (
+                                <CommonTable
+                                    key={`syllabus-${activeTab}`}
+                                    columns={SYLLABUS_COLUMNS}
+                                    data={DUMMY_SYLLABUS}
+                                    editable={true}
+                                    pagination={true}
+                                    rowsPerPage={10}
+                                    searchTerm={searchTerm}
+                                    actionButton={() => <SyllabusActions />}
+                                />
+                            )}
+                        </div>
                     )}
 
                     {/* ── Progress ── */}
