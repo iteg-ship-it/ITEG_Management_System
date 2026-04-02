@@ -113,6 +113,13 @@ const FinalRound = ({ data, toTitleCase, setAddInterviwModalOpen, setId, handleG
   };
 
   return (
+    <>
+     <div className="flex items-center justify-between mb-4">
+        <PageNavbar
+          title=" Interview"
+          showBackButton={false}
+        />
+      </div>
     <CommonTable
       data={data}
       columns={columns}
@@ -123,6 +130,7 @@ const FinalRound = ({ data, toTitleCase, setAddInterviwModalOpen, setId, handleG
       actionButton={actionButton}
       onRowClick={onRowClick}
     />
+    </>
   );
 };
 

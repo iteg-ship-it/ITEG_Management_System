@@ -9,6 +9,7 @@ import { Formik, Form, useFormikContext } from "formik";
 import * as Yup from "yup";
 import { useInterviewCreateMutation, useGetInterviewDetailByIdQuery } from "../../../redux/api/authApi";
 import { toast } from "react-toastify";
+import PageNavbar from "../../common-components/navbar/PageNavbar";
 
 const fivePointOptions = [
   { value: 1, label: "1. Very Weak" },
@@ -182,6 +183,13 @@ const TechnicalRound = ({ data, toTitleCase, scheduleButton, handleGetStatus, ha
   );
 
   return (
+    <>
+     <div className="flex items-center justify-between mb-4">
+        <PageNavbar
+          title="Technical Round"
+          showBackButton={false}
+        />
+      </div>
     <CommonTable
       data={data}
       columns={columns}
@@ -191,7 +199,7 @@ const TechnicalRound = ({ data, toTitleCase, scheduleButton, handleGetStatus, ha
       searchTerm={searchTerm}
       actionButton={actionButton}
       onRowClick={onRowClick}
-    />
+    /></>
   );
 };
 

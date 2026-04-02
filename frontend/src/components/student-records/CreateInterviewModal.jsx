@@ -10,7 +10,6 @@ import InputField from '../common-components/common-feild/InputField';
 import CustomDropdown from '../common-components/common-feild/CustomDropdown';
 import { toast } from 'react-toastify';
 import InterviewSuccessModal from './InterviewSuccessModal';
-import { buttonStyles } from '../../styles/buttonStyles';
 import BlurBackground from '../common-components/BlurBackground';
 
 
@@ -264,7 +263,7 @@ const CreateInterviewModal = ({ isOpen, onClose, studentId, refetchStudents, int
                                     <button
                                         type="submit"
                                         disabled={isLoading}
-                                        className={`w-full py-3 rounded-lg disabled:opacity-50 ${buttonStyles.primary}`}
+                                        className="w-full py-3 rounded-lg disabled:opacity-50 bg-orange-500 hover:bg-orange-600 text-white font-semibold"
                                     >
                                         {isLoading ? "Submitting..." : "Submit"}
                                     </button>

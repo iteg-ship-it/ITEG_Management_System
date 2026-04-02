@@ -2,6 +2,7 @@ import { AiFillStop } from "react-icons/ai";
 import { FaCheckCircle } from "react-icons/fa";
 import CommonTable from "../../common-components/table/CommonTable";
 import Avatar from "../../common-components/Avatar";
+import PageNavbar from "../../common-components/navbar/PageNavbar";
 
 const Results = ({ data, toTitleCase, getLatestInterviewResult, searchTerm, rowsPerPage, onRowClick }) => {
   const columns = [
@@ -72,7 +73,11 @@ const Results = ({ data, toTitleCase, getLatestInterviewResult, searchTerm, rows
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-
+        <PageNavbar
+          title="Result"
+          subtitle="View result"
+          showBackButton={false}
+        />
       </div>
       <CommonTable
         data={data}
