@@ -8,7 +8,6 @@ import { FaUpload } from "react-icons/fa";
 import CommonTable from "../common-components/table/CommonTable";
 import Pagination from "../common-components/pagination/Pagination";
 import Header from "../common-components/sidebar/Header";
-import LevelTaskUploadModal from "./LevelTaskUploadModal";
 
 const toTitleCase = (str) =>
   str
@@ -229,12 +228,7 @@ const StudentLevelData = () => {
       </div>
       
       {/* Task Upload Modal */}
-      <LevelTaskUploadModal
-        isOpen={isTaskUploadModalOpen}
-        onClose={() => setIsTaskUploadModalOpen(false)}
-        level={getCurrentLevelCode(activeTab)}
-        onTasksUploaded={handleTasksUploaded}
-      />
+      {/* Task Upload Button removed */}
     </>
   );
 };

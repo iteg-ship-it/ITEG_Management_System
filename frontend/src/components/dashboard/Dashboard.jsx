@@ -14,7 +14,6 @@ import StudentReportForm from "../student-records/StudentReportForm";
 import StudentLevelData from "../student-records/StudentLevelData";
 import StudentLevelInterviewHistory from "../student-records/StudentLevelInterviewHistory";
 import TaskList from "../student-records/TaskList";
-import LevelWiseStudentManagement from "../student-records/LevelWiseStudentManagement";
 // Placement components
 import PlacementReadyStudents from "../placement/PlacementReadyStudents";
 import StudentPermission from "../student-records/StudentPermission";
@@ -80,10 +79,6 @@ const Dashboard = () => {
           <Route path="/student/:id/task-list" element={<TaskList />} />
           <Route path="/student-permission" element={<StudentPermission />} />
         </>
-      )}
-      
-      {hasPermission('Page_LevelWiseManagement') && (
-        <Route path="/level-wise-management" element={<LevelWiseStudentManagement />} />
       )}
       
       {/* Placement Routes - Permission based */}

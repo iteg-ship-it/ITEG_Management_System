@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAdmitedStudentsQuery, useCreateLevelInterviewMutation } from "../../redux/api/authApi";
 import Loader from "../common-components/loader/Loader";
 import CommonTable from "../common-components/table/CommonTable";
-import CreateInterviewModal from "./CreateInterviewModal";
 import PageNavbar from "../common-components/navbar/PageNavbar";
 import TabsCommon from "../common-components/table/TabsCommon";
 import SearchBox from "./../common-components/seach-export/SearchBox";
@@ -60,6 +59,9 @@ const InterviewDrawer = ({ student, interviewLevel, refetch }) => {
             const nextLevel = values.result === 'Pass' ? (levelProgression[currentLevel] || currentLevel) : currentLevel;
             setInterviewResult({ studentName, currentLevel, nextLevel, result: values.result });
             setShowSuccessModal(true);
+            if (values.result === 'Pass') toast.success(`${studentName} promoted to Level ${nextLevel}!`);
+            else if (values.result === 'Fail') toast.warning(`${studentName} failed Level ${currentLevel}.`);
+            else toast.info('Interview submitted with status: Pending.');
             resetForm();
             refetch?.();
           } catch (err) {
@@ -383,13 +385,6 @@ const StudentDetailTable = () => {
             localStorage.setItem("lastSection", "admitted");
             navigate(`/student-profile/${row._id}`, { state: { student: row } });
           }}
-        />
-        <CreateInterviewModal
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-          studentId={selectedStudentId}
-          refetchStudents={refetch}
-          interviewLevel={selectedLevel}
         />
       </div>
     </>
