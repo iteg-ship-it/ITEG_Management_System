@@ -5,6 +5,7 @@ import Avatar from "../../common-components/Avatar";
 import OrangeButton from "../../common-components/sidebar/OrangeButton";
 import InputField from "../../common-components/common-feild/InputField";
 import CustomDropdown from "../../common-components/common-feild/CustomDropdown";
+import CustomDatePicker from "../../student-records/CustomDatePicker";
 import { Formik, Form, useFormikContext } from "formik";
 import * as Yup from "yup";
 import { useInterviewCreateMutation, useGetInterviewDetailByIdQuery } from "../../../redux/api/authApi";
@@ -120,7 +121,7 @@ const InterviewDrawer = ({ row, refetch, activeTab }) => {
 
               <p className="text-sm font-bold text-gray-700 uppercase tracking-wider">Interview Metadata</p>
               <InputField name="created_by" label="Created By" disabled />
-              <InputField name="date" label="Select Date" type="date" />
+              <CustomDatePicker name="date" label="Select Date" />
 
               <p className="text-sm font-bold text-gray-700 uppercase tracking-wider">Technical Knowledge & Aptitude</p>
               <CustomDropdown variant="card" name="maths" label="Mathematics Marks" options={fivePointOptions} />
