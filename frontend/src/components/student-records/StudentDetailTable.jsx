@@ -11,6 +11,7 @@ import Avatar from "../common-components/Avatar";
 import OrangeButton from "../common-components/sidebar/OrangeButton";
 import InputField from "../common-components/common-feild/InputField";
 import CustomDropdown from "../common-components/common-feild/CustomDropdown";
+import CustomDatePicker from "./CustomDatePicker";
 import { Formik, Form, useFormikContext } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
@@ -79,7 +80,7 @@ const InterviewDrawer = ({ student, interviewLevel, refetch }) => {
                 <p className="text-base font-semibold text-gray-800">{studentName}</p>
 
                 <p className="text-sm font-bold text-gray-700 uppercase tracking-wider">Interview Details</p>
-                <InputField name="date" label="Select Date" type="date" />
+                <CustomDatePicker name="date" label="Select Date" />
 
                 <p className="text-sm font-bold text-gray-700 uppercase tracking-wider">Technical Evaluation</p>
                 <InputField label="Theoretical Marks (1-10)" name="Theoretical_Marks" type="number" placeholder="Enter marks (1-10)" />
