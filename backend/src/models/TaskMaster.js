@@ -1,3 +1,5 @@
+const mongoose = require("mongoose");
+
 const taskMasterSchema = new mongoose.Schema({
   syllabusVersionId: { 
     type: mongoose.Schema.Types.ObjectId, 

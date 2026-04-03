@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MdBusiness, MdOutlinePersonOutline } from "react-icons/md";
+import { MdBusiness, MdOutlinePersonOutline, MdOutlineAddPhotoAlternate } from "react-icons/md";
 import { HiOutlineUserGroup } from "react-icons/hi";
 import { useGetAllDepartmentsQuery, useDeleteDepartmentMutation, useAddDepartmentMutation, useUpdateDepartmentMutation } from "../../../redux/api/authApi";
 import Loader from "../../common-components/loader/Loader";
@@ -218,12 +218,9 @@ const DepartmentManagement = () => {
                     resetForm();
                     setEditingDepartment(null);
                   }}
-                    onRightClick={submitForm}
-                  />
-                </Header>
-                  onLeftClick={() => { resetForm(); setEditingDepartment(null); }}
                   onRightClick={submitForm}
                 />
+                </Header>
               )}
             </Formik>
 
