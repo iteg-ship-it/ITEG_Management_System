@@ -57,31 +57,22 @@ const DepartmentDetails = () => {
 
   return (
     <>
-      <Header
-        title={department.name}
-        showBack={true}
-        breadcrumbs={[
-          { label: "Departments", path: "/department-management" },
-          { label: department.name }
-        ]}
-      />
-
-      <div className="px-6">
-        {/* Top bar */}
-        <div className="flex items-end justify-between py-5">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{department.name}</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Manage academic structure</p>
-          </div>
-          <Formik
+      <Formik
             initialValues={{ name: "", departmentId: department?._id || "", allowedCourses: [], isActive: true }}
             validationSchema={validationSchema}
             onSubmit={handleSubmit}
           >
             {({ values, setFieldValue, isSubmitting, submitForm, resetForm }) => (
-              <OrangeButton
-                buttonTitle="+ Create Sub-Department"
-                panelTitle="Add New Subdepartment"
+              <Header
+                title={department.name}
+                breadcrumbs={[
+                  { label: "Departments", path: "/department-management" },
+                  { label: department.name }
+                ]}
+              >
+                <OrangeButton
+                  buttonTitle="+ Create Sub-Department"
+                  panelTitle="Add New Subdepartment"
                 drawerContent={
                   <Form className="space-y-4">
                     <InputField label="Subdepartment Name" name="name" placeholder="Enter subdepartment name" />
@@ -113,12 +104,12 @@ const DepartmentDetails = () => {
                 onLeftClick={resetForm}
                 onRightClick={submitForm}
               />
+              </Header>
             )}
           </Formik>
-        </div>
 
         {/* Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
           {subdepartments.length === 0 ? (
             <div className="col-span-full text-center py-16">
               <MdAccountTree size={48} className="mx-auto text-gray-300 mb-3" />
@@ -211,7 +202,6 @@ const DepartmentDetails = () => {
             ))
           )}
         </div>
-      </div>
     </>
   );
 };

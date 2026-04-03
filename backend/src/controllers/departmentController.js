@@ -129,7 +129,6 @@ exports.createDepartment = async (req, res) => {
     });
   }
 };
-
 // Get All Departments
 exports.getAllDepartments = async (req, res) => {
   try {

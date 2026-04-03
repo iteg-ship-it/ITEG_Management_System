@@ -9,6 +9,7 @@ import { RiTv2Fill } from "react-icons/ri";
 import { HiChevronUp, HiChevronDown, HiChevronLeft, HiChevronRight } from "react-icons/hi";
 import UserProfile from "../user-profile/UserProfile";
 import { usePermissions } from "../../../hooks/usePermissions";
+import { useSidebar } from "../../../contexts/SidebarContext";
 import logo from "../../../assets/images/logo.png";
 import logoo from "../../../assets/images/logo-ssism.png";
 
@@ -16,15 +17,9 @@ const Sidebar = ({ children }) => {
   const location = useLocation();
   const { hasPermission } = usePermissions();
 
-  const [isOpen, setIsOpen] = useState(() => window.innerWidth >= 1024);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsOpen(window.innerWidth >= 1024);
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  const isMobile = () => window.innerWidth < 1024;
+  const [isOpen, setIsOpen] = useState(() => !isMobile());
+  const { isMobileOpen, closeMobileSidebar } = useSidebar();
 
   const role = (localStorage.getItem("role") || "").toLowerCase();
 
@@ -160,11 +155,103 @@ const Sidebar = ({ children }) => {
 
   const anyPermissionsLoaded = filteredMenuItems.length > 0;
 
+  const NavContent = ({ onClose }) => (
+    <>
+      <nav className="flex flex-col gap-1 px-2 py-2 overflow-y-auto h-[calc(100vh-180px)]">
+        {(anyPermissionsLoaded ? filteredMenuItems : menuItems).map((item, idx) => {
+          const filteredSubMenu = anyPermissionsLoaded
+            ? item.subMenu.filter(subItem => hasPermission(subItem.permission, 'read'))
+            : item.subMenu;
+
+          if (filteredSubMenu.length === 0) return null;
+
+          const isActive = openMenus.includes(idx);
+
+          return (
+            <div key={idx} className="mb-1">
+              <div
+                onClick={() => toggleMenu(idx)}
+                className={`flex items-center justify-between px-2 py-2.5 rounded-lg cursor-pointer transition ${
+                  isActive ? "bg-orange-100 text-orange-400 font-semibold" : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <div className="flex items-center gap-3 text-[15px]">
+                  {item.icon}
+                  {item.name}
+                </div>
+                {isActive ? <HiChevronUp size={16} /> : <HiChevronDown size={16} />}
+              </div>
+
+              {isActive && (
+                <div className="mt-1">
+                  {filteredSubMenu.map((sub, i) => {
+                    const active = isSubMenuActive(sub.path);
+                    return (
+                      <Link
+                        key={i}
+                        to={sub.path}
+                        onClick={onClose}
+                        className={`block ml-6 px-2 py-2 text-sm transition border-l-2 ${
+                          active
+                            ? "bg-orange-50 text-orange-400 font-medium border-orange-500"
+                            : "text-gray-600 hover:bg-gray-100 border-gray-300"
+                        }`}
+                      >
+                        {sub.name}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        <p className="text-xs text-gray-400 px-3 mt-4 mb-2">SYSTEM</p>
+        {systemDirectLinks.map((item, idx) => {
+          const active = location.pathname === item.path;
+          return (
+            <Link
+              key={idx}
+              to={item.path}
+              onClick={onClose}
+              className={`flex items-center gap-3 px-2 py-2.5 rounded-lg text-[15px] transition mb-1 ${
+                active ? "bg-orange-100 text-orange-400 font-semibold" : "text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              {item.icon}
+              {item.name}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="absolute bottom-0 left-0 right-0 border-t bg-gray-50">
+        <UserProfile />
+      </div>
+    </>
+  );
+
   return (
     <>
-      {/* <Header sidebarOpen={isOpen} /> */}
+      {/* ── MOBILE OVERLAY DRAWER ── */}
+      {isMobileOpen && (
+        <div className="lg:hidden fixed inset-0 z-40 flex">
+          <div className="absolute inset-0 bg-black/40" onClick={closeMobileSidebar} />
+          <aside className="relative w-64 h-full bg-white border-r border-gray-200 flex flex-col z-10">
+            <div className="flex items-center justify-between px-4 py-5">
+              <img src={logo} alt="Logo" className="h-16 w-auto" />
+              <button onClick={closeMobileSidebar} className="text-gray-500 hover:text-gray-700">
+                <HiChevronLeft size={22} />
+              </button>
+            </div>
+            <NavContent onClose={closeMobileSidebar} />
+          </aside>
+        </div>
+      )}
 
-      <div className="flex">
+      {/* ── DESKTOP SIDEBAR ── */}
+      <div className="hidden lg:flex">
         <aside
           className={`fixed top-0 left-0 z-20 h-screen transition-all duration-300 bg-white border-r border-gray-200 ${
             isOpen ? "w-64" : "w-16"
@@ -172,11 +259,11 @@ const Sidebar = ({ children }) => {
         >
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="absolute top-1/2 -right-3 transform -translate-y-1/2 w-10 h-10 bg-white text-gray-600 rounded-full shadow-md hover:shadow-lg border border-gray-200 transition-all duration-300 flex items-center justify-center z-10"
+            className="absolute top-16 -right-3 transform -translate-y-1/2 w-10 h-10 bg-white text-gray-600 rounded-full shadow-md hover:shadow-lg border border-gray-200 transition-all duration-300 flex items-center justify-center z-10"
           >
             {isOpen ? <HiChevronLeft size={20} /> : <HiChevronRight size={20} />}
           </button>
-          
+
           <div className="flex items-center gap-3 px-4 py-5">
             {isOpen ? (
               <img src={logo} alt="Logo" className="h-20 w-auto" />
@@ -185,96 +272,18 @@ const Sidebar = ({ children }) => {
             )}
           </div>
 
-          {isOpen && (
-            <nav className="flex flex-col gap-1 px-2 py-2 overflow-y-auto h-[calc(100vh-180px)]">
-              {(anyPermissionsLoaded ? filteredMenuItems : menuItems).map((item, idx) => {
-                  const filteredSubMenu = anyPermissionsLoaded
-                    ? item.subMenu.filter(subItem => hasPermission(subItem.permission, 'read'))
-                    : item.subMenu;
-
-                  if (filteredSubMenu.length === 0) {
-                    return null; // Do not render main menu if no sub-items are accessible
-                  }
-
-                const isActive = openMenus.includes(idx);
-
-                return (
-                  <div key={idx} className="mb-1">
-                    <div
-                      onClick={() => toggleMenu(idx)}
-                      className={`flex items-center justify-between px-2 py-2.5 rounded-lg cursor-pointer transition ${
-                        isActive
-                          ? "bg-orange-100 text-orange-400 font-semibold"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 text-[15px]">
-                        {item.icon}
-                        {item.name}
-                      </div>
-                      {isActive ? <HiChevronUp size={16} /> : <HiChevronDown size={16} />}
-                    </div>
-
-                    {isActive && (
-                      <div className="mt-1">
-                        {filteredSubMenu.map((sub, i) => {
-                          const active = isSubMenuActive(sub.path);
-                          return (
-                            <Link
-                              key={i}
-                              to={sub.path}
-                              className={`block ml-6 px-2 py-2 text-sm transition border-l-2 ${
-                                active
-                                  ? "bg-orange-50 text-orange-400 font-medium border-orange-500"
-                                  : "text-gray-600 hover:bg-gray-100 border-gray-300"
-                              }`}
-                            >
-                              {sub.name}
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-
-              <p className="text-xs text-gray-400 px-3 mt-4 mb-2">SYSTEM</p>
-              {systemDirectLinks.map((item, idx) => {
-                const active = location.pathname === item.path;
-                return (
-                  <Link
-                    key={idx}
-                    to={item.path}
-                    className={`flex items-center gap-3 px-2 py-2.5 rounded-lg text-[15px] transition mb-1 ${
-                      active
-                        ? "bg-orange-100 text-orange-400 font-semibold"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    {item.icon}
-                    {item.name}
-                  </Link>
-                );
-              })}
-            </nav>
-          )}
-
-          {isOpen && (
-            <div className="absolute bottom-0 left-0 right-0 border-t bg-gray-50">
-              <UserProfile />
-            </div>
-          )}
+          {isOpen && <NavContent onClose={null} />}
         </aside>
-
-        <main
-          className={`flex-1 bg-[#F8F7F5] min-h-screen transition-all duration-300 ${
-            isOpen ? "ml-64" : "ml-16"
-          }`}
-        >
-          {children}
-        </main>
       </div>
+
+      {/* ── MAIN CONTENT ── */}
+      <main
+        className={`bg-[#F8F7F5] min-h-screen transition-all duration-300 ${
+          isOpen ? "lg:ml-64" : "lg:ml-16"
+        }`}
+      >
+        {children}
+      </main>
     </>
   );
 };

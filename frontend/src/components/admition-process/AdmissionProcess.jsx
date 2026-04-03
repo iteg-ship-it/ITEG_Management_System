@@ -1,6 +1,5 @@
 import { useGetAllStudentsQuery } from "../../redux/api/authApi";
 import { useEffect, useState, useMemo } from "react";
-import CustomTimeDate from "./CustomTimeDate";
 import { useLocation, useNavigate } from "react-router-dom";
 import Loader from "../common-components/loader/Loader";
 import * as Yup from "yup";
@@ -386,11 +385,11 @@ const StudentList = () => {
       case "Total Registration":
         return <TabComponent {...commonProps} />;
       case "Online Assessment":
-        return <TabComponent {...commonProps} scheduleButton={scheduleButton} />;
+        return <TabComponent {...commonProps} scheduleButton={scheduleButton} refetch={refetch} activeTab={activeTab} />;
       case "Technical Round":
-        return <TabComponent {...commonProps} scheduleButton={scheduleButton} handleGetStatus={handleGetStatus} handleGetMarks={handleGetMarks} />;
+        return <TabComponent {...commonProps} scheduleButton={scheduleButton} handleGetStatus={handleGetStatus} handleGetMarks={handleGetMarks} refetch={refetch} activeTab={activeTab} />;
       case "Final Round":
-        return <TabComponent {...commonProps} setAddInterviwModalOpen={setAddInterviwModalOpen} setId={setId} handleGetStatus={handleGetStatus} handleGetMarks={handleGetMarks} />;
+        return <TabComponent {...commonProps} setAddInterviwModalOpen={setAddInterviwModalOpen} setId={setId} handleGetStatus={handleGetStatus} handleGetMarks={handleGetMarks} refetch={refetch} />;
       case "Results":
         return <TabComponent {...commonProps} getLatestInterviewResult={getLatestInterviewResult} />;
       default:
@@ -422,18 +421,7 @@ const StudentList = () => {
       <TabsCommon tabs={tabs} activeTab={activeTab} onTabChange={handleTabClick} />
       <div className="px-5">
         {renderTabContent()}
-        {
-          isModalOpen && selectedStudentId && (
-            <CustomTimeDate
-              isOpen={isModalOpen}
-              onClose={handleCloseModal}
-              studentId={selectedStudentId}
-              attempted={atemendNumber}
-              refetch={refetch}
-              activeTab={activeTab}
-            />
-          )
-        }
+    
         {
           AddInterviwModalOpen && (
             <BlurBackground isOpen={AddInterviwModalOpen} onClose={() => setAddInterviwModalOpen(false)}>

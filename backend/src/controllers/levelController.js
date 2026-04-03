@@ -74,7 +74,7 @@ exports.getLevelsBySubDepartment = async (req, res) => {
 // Get All Levels
 exports.getAllLevels = async (req, res) => {
   try {
-    const levels = await Level.find({ isActive: true })
+    const levels = await Level.find({})
       .populate('subDepartmentId')
       .sort({ subDepartmentId: 1, order: 1 });
       

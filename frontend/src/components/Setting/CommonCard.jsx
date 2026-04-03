@@ -1,3 +1,4 @@
+
 import { MdBusiness } from 'react-icons/md';
 
 
@@ -17,7 +18,7 @@ const ActionButtons = ({ onView, onEdit, inactive }) => (
       </button>
     )}
     {onEdit && (
-      <div className={`${onView ? 'flex-1' : 'w-full'} ${inactive ? '[&_button]:!bg-gray-400 [&_button]:!text-white [&_button]:!border-0' : ''}`}>{onEdit}</div>
+      <div className={`${onView ? 'flex-1' : 'w-full'} ${inactive ? '[&_button]:!bg-gray-500 [&_button]:!text-white [&_button]:!border-0' : ''}`}>{onEdit}</div>
     )}
   </div>
 );
@@ -33,7 +34,6 @@ const CommonCard = ({
   onEdit,
   children,
   variant = 'card2',
-  logo,
 }) => {
   const inactive = status === false;
 
@@ -71,9 +71,9 @@ const CommonCard = ({
           <div className="flex items-center gap-4 flex-wrap text-xs text-gray-500">
             {infoItems?.map((item, i) => (
               <span key={i} className="flex items-center gap-1.5 whitespace-nowrap">
-                {item.icon}
+                <span className={inactive ? 'text-gray-400 [&_svg]:text-gray-400' : ''}>{item.icon}</span>
                 <span className={`font-semibold ${inactive ? 'text-gray-400' : 'text-gray-700'}`}>{item.value}</span>
-                {item.label && <span>{item.label}</span>}
+                {item.label && <span className={inactive ? 'text-gray-400' : ''}>{item.label}</span>}
               </span>
             ))}
           </div>
@@ -93,16 +93,12 @@ const CommonCard = ({
     }`}>
       <div className="p-4 flex-1">
 
-        {/* Top row: icon/logo + status badge */}
+        {/* Top row: icon + status badge */}
         <div className="flex items-start justify-between mb-3">
-          <div className={`w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden ${
+          <div className={`w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 ${
             inactive ? 'bg-gray-200' : 'bg-orange-50 border border-orange-100'
           }`}>
-            {logo ? (
-              <img src={logo} alt="logo" className="w-full h-full object-cover" />
-            ) : (
-              <Icon size={20} className={inactive ? 'text-gray-400' : 'text-orange-500'} />
-            )}
+            <Icon size={20} className={inactive ? 'text-gray-400' : 'text-orange-500'} />
           </div>
           {status !== undefined && (
             <span className={`text-xs font-bold px-2.5 py-1 rounded-full tracking-wide ${
@@ -130,7 +126,7 @@ const CommonCard = ({
         <div className="space-y-1.5 h-20">
           {infoItems?.map((item, i) => (
             <div key={i} className={`flex items-center gap-2 text-md ${inactive ? 'text-gray-400' : 'text-gray-500'}`}>
-              <span>{item.icon}</span>
+              <span className={inactive ? 'text-gray-400 [&_svg]:text-gray-400' : ''}>{item.icon}</span>
               <span>{item.label ? `${item.label}: ` : ''}<span className={`font-semibold ${inactive ? 'text-gray-400' : 'text-gray-700'}`}>{item.value}</span></span>
             </div>
           ))}

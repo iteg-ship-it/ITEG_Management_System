@@ -77,7 +77,9 @@ exports.getSubDepartmentsByDepartment = async (req, res) => {
       });
     }
     
-    const subDepartments = await SubDepartment.find({ departmentId }).populate('departmentId');
+    const subDepartments = await SubDepartment.find({ 
+      departmentId
+    }).populate('departmentId');
     
     res.status(200).json({
       success: true,
@@ -173,8 +175,8 @@ exports.updateSubDepartment = async (req, res) => {
       }
     }
 
-    const subDepartment = await SubDepartment.findByIdAndUpdate(
-      req.params.id,
+    const subDepartment = await SubDepartment.findOneAndUpdate(
+      { _id: req.params.id },
       req.body,
       { new: true, runValidators: true }
     ).populate('departmentId');

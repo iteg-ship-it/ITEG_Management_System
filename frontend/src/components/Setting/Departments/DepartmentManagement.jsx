@@ -1,8 +1,6 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { MdBusiness, MdOutlinePersonOutline } from "react-icons/md";
 import { HiOutlineUserGroup } from "react-icons/hi";
-import { MdOutlineAddPhotoAlternate } from "react-icons/md";
-import PageNavbar from "../../common-components/navbar/PageNavbar";
 import { useGetAllDepartmentsQuery, useDeleteDepartmentMutation, useAddDepartmentMutation, useUpdateDepartmentMutation } from "../../../redux/api/authApi";
 import Loader from "../../common-components/loader/Loader";
 import { toast } from "react-toastify";
@@ -61,13 +59,23 @@ const DepartmentManagement = () => {
 
   const handleDepartmentSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
-      const fd = buildFormData(values);
+      const payload = {
+        name: values.name,
+        description: values.description,
+        universityName: values.universityName,
+        headOfDepartment: values.headOfDepartment,
+        allowedCourses: values.allowedCourses
+          .filter(c => c.courseName && c.durationInYears)
+          .map(c => ({ ...c, durationInYears: Number(c.durationInYears) })),
+        reportConfig: values.reportConfig,
+        isActive: values.isActive
+      };
+
       if (editingDepartment) {
-        fd.append("code", values.code || "");
-        const result = await updateDepartment({ id: editingDepartment._id, ...Object.fromEntries(fd), _formData: fd }).unwrap();
+        const result = await updateDepartment({ id: editingDepartment._id, ...payload }).unwrap();
         toast.success(result.message || "Department updated successfully!");
       } else {
-        const result = await addDepartment(fd).unwrap();
+        const result = await addDepartment(payload).unwrap();
         toast.success(result.message || "Department added successfully!");
       }
       resetForm();
@@ -102,17 +110,7 @@ const DepartmentManagement = () => {
 
   return (
     <>
-      <Header title="Department Management" showBack={false} />
-      <div className="px-5">
-
-        <div className="flex justify-between items-center py-4">
-          <PageNavbar
-            title="Department Management"
-            subtitle="Manage your organization departments and their details"
-            showBackButton={false}
-          />
-          <div className="flex-shrink-0">
-            <Formik
+      <Formik
               key={editingDepartment?._id || 'new'}
               initialValues={{
                 name: editingDepartment?.name || "",
@@ -142,8 +140,12 @@ const DepartmentManagement = () => {
               enableReinitialize
             >
               {({ values, setFieldValue, isSubmitting, submitForm, resetForm }) => (
-                <OrangeButton
-                  buttonTitle="Add Department"
+                <Header
+                  title="Department Management"
+                  breadcrumbs={[{ label: "Departments" }]}
+                >
+                  <OrangeButton
+                    buttonTitle="Add Department"
                   panelTitle={editingDepartment ? "Edit Department" : "Add New Department"}
                   drawerContent={
                     <Form className="space-y-4">
@@ -212,17 +214,22 @@ const DepartmentManagement = () => {
                   }
                   leftBtnText="Cancel"
                   rightBtnText={isSubmitting ? "Saving..." : (editingDepartment ? "Update Department" : "Add Department")}
+                  onLeftClick={() => {
+                    resetForm();
+                    setEditingDepartment(null);
+                  }}
+                    onRightClick={submitForm}
+                  />
+                </Header>
                   onLeftClick={() => { resetForm(); setEditingDepartment(null); }}
                   onRightClick={submitForm}
                 />
               )}
             </Formik>
-          </div>
-        </div>
-        <div className="mt-1 ">
 
-          {/* Departments Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-3">
+      <div className="px-6 mt-6">
+        {/* Departments Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {departments.map((dept) => (
               <Formik
                 key={dept._id}
@@ -344,8 +351,6 @@ const DepartmentManagement = () => {
                 )}
               </Formik>
             ))}
-          </div>
-
         </div>
       </div>
     </>

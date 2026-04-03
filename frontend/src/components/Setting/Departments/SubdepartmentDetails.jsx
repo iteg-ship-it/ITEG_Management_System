@@ -22,24 +22,34 @@ const validationSchema = Yup.object({
   isActive: Yup.boolean(),
 });
 
+
 const SubdepartmentDetails = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const subdepartmentId = location.state?.subdepartment?._id;
+  const departmentId = location.state?.departmentId || location.state?.subdepartment?.departmentId?._id;
 
   const { data: subdepartmentData } = useGetSubdepartmentByIdQuery(subdepartmentId, { skip: !subdepartmentId });
   const { data: levelsData, isLoading, refetch } = useGetLevelsBySubdepartmentQuery(subdepartmentId, { skip: !subdepartmentId });
   const [addLevel] = useAddLevelMutation();
   const [updateLevel] = useUpdateLevelMutation();
 
-  const subdepartment = subdepartmentData?.data || location.state?.subdepartment;
-  const departmentId = location.state?.departmentId || subdepartment?.departmentId?._id;
+  const [editingLevel,        setEditingLevel]        = useState(null);
+  const [isEditDrawerOpen,    setIsEditDrawerOpen]    = useState(false);
+  const [isSubLevelDrawerOpen,setIsSubLevelDrawerOpen]= useState(false);
+  const [editingSubLevel,     setEditingSubLevel]     = useState(null);
+  const [selectedLevel,       setSelectedLevel]       = useState(null);
+
+  const subdepartment  = subdepartmentData?.data || location.state?.subdepartment;
   const departmentName = location.state?.departmentName || subdepartment?.departmentId?.name;
   const levels = [...(levelsData?.data || [])].sort((a, b) => b.isActive - a.isActive);
 
   if (!subdepartment) return <div className="p-6">No subdepartment data found</div>;
   if (isLoading) return <Loader />;
 
+  /* ════════════════════════════════════════════════════════════
+     RENDER
+  ════════════════════════════════════════════════════════════ */
   return (
     <>
       <Header
@@ -59,6 +69,7 @@ const SubdepartmentDetails = () => {
             <p className="text-sm text-gray-500 mt-0.5">Manage levels</p>
           </div>
           <Formik
+      <Formik
             initialValues={{ name: "", order: "", isActive: true }}
             validationSchema={validationSchema}
             onSubmit={async (values, { setSubmitting, resetForm }) => {
@@ -75,9 +86,17 @@ const SubdepartmentDetails = () => {
             }}
           >
             {({ isSubmitting, submitForm, resetForm }) => (
-              <OrangeButton
-                buttonTitle="+ Add Level"
-                panelTitle="Add New Level"
+              <Header
+                title={subdepartment.name}
+                breadcrumbs={[
+                  { label: "Departments", path: "/department-management" },
+                  { label: departmentName || "Department", path: `/department-details/${departmentId}`, state: { department: subdepartment?.departmentId } },
+                  { label: subdepartment.name },
+                ]}
+              >
+                <OrangeButton
+                  buttonTitle="+ New Level"
+                  panelTitle="Add New Level"
                 drawerContent={
                   <Form className="space-y-4">
                     <InputField label="Level Name" name="name" placeholder="Enter level name" />
@@ -90,11 +109,11 @@ const SubdepartmentDetails = () => {
                 onLeftClick={resetForm}
                 onRightClick={submitForm}
               />
+              </Header>
             )}
           </Formik>
-        </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="px-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 mt-6">
           {levels.length === 0 ? (
             <div className="col-span-full text-center py-16">
               <MdLayers size={48} className="mx-auto text-gray-300 mb-3" />
@@ -160,7 +179,6 @@ const SubdepartmentDetails = () => {
             ))
           )}
         </div>
-      </div>
     </>
   );
 };

@@ -1,12 +1,79 @@
 import { buttonStyles } from "../../../styles/buttonStyles";
 import CommonTable from "../../common-components/table/CommonTable";
 import Avatar from "../../common-components/Avatar";
+import OrangeButton from "../../common-components/sidebar/OrangeButton";
+import InputField from "../../common-components/common-feild/InputField";
+import CustomDropdown from "../../common-components/common-feild/CustomDropdown";
+import { Formik, Form } from "formik";
+import * as Yup from "yup";
+import { useInterviewCreateMutation } from "../../../redux/api/authApi";
+import { toast } from "react-toastify";
 
-const FinalRound = ({ data, toTitleCase, setAddInterviwModalOpen, setId, handleGetStatus, handleGetMarks, searchTerm, rowsPerPage, onRowClick }) => {
+const FinalInterviewDrawer = ({ row, refetch }) => {
+  const [createInterview, { isLoading }] = useInterviewCreateMutation();
+
+  const validationSchema = Yup.object().shape({
+    round: Yup.string().required("Required"),
+    remark: Yup.string().required("Remark is required"),
+    result: Yup.string().required("Result is required"),
+  });
+
+  return (
+    <Formik
+      initialValues={{ round: "Second", remark: "", result: "Pending" }}
+      validationSchema={validationSchema}
+      onSubmit={async (values, { resetForm }) => {
+        try {
+          const response = await createInterview({ ...values, studentId: row._id }).unwrap();
+          toast.success(response.message || "Interview submitted successfully!");
+          await refetch?.();
+          resetForm();
+        } catch (err) {
+          toast.error(err?.data?.message || "Failed to create interview");
+        }
+      }}
+    >
+      {({ isSubmitting, submitForm, resetForm }) => (
+        <OrangeButton
+          buttonTitle="Schedule"
+          panelTitle={`Final Round`}
+          panelSubtitle="Fill in the final round interview details."
+          drawerContent={
+            <Form className="space-y-4">
+              <CustomDropdown
+                variant="card"
+                label="Round"
+                name="round"
+                disabled
+                options={[{ value: "Second", label: "Final Round" }]}
+              />
+              <InputField label="Remark" name="remark" />
+              <CustomDropdown
+                variant="card"
+                label="Result"
+                name="result"
+                options={[
+                  { value: "Pass", label: "Pass" },
+                  { value: "Fail", label: "Fail" },
+                  { value: "Pending", label: "Pending" },
+                ]}
+              />
+            </Form>
+          }
+          leftBtnText="Cancel"
+          rightBtnText={isLoading ? "Submitting..." : "Submit"}
+          onLeftClick={resetForm}
+          onRightClick={submitForm}
+        />
+      )}
+    </Formik>
+  );
+};
+
+const FinalRound = ({ data, toTitleCase, setAddInterviwModalOpen, setId, handleGetStatus, handleGetMarks, searchTerm, rowsPerPage, onRowClick, refetch }) => {
   const columns = [
     {
-      key: "firstName",
-      label: "Full Name",
+      key: "firstName", label: "Full Name",
       render: (row) => (
         <div className="flex items-center gap-3">
           <Avatar firstName={row.firstName} lastName={row.lastName} imageUrl={row.profileImage} />
@@ -14,95 +81,56 @@ const FinalRound = ({ data, toTitleCase, setAddInterviwModalOpen, setId, handleG
         </div>
       ),
     },
-    {
-      key: "fatherName",
-      label: "Father's Name",
-      render: (row) => toTitleCase(row.fatherName),
-    },
+    { key: "fatherName", label: "Father's Name", render: (row) => toTitleCase(row.fatherName) },
     { key: "studentMobile", label: "Mobile No.", align: "center" },
-    {
-      key: "course",
-      label: "Course",
-      render: (row) => toTitleCase(row.course),
-    },
+    { key: "course", label: "Course", render: (row) => toTitleCase(row.course) },
     {
       key: "onlineTestStatus",
-      label: (
-        <div className="flex flex-col ">
-          <span>Result</span>
-          <span className="text-xs text-gray-500">(1st Round)</span>
-        </div>
-      ),
+      label: (<div className="flex flex-col"><span>Result</span><span className="text-xs text-gray-500">(1st Round)</span></div>),
       render: (row) => handleGetStatus(row.interviews),
     },
     {
       key: "techMarks",
-      label: (
-        <div className="flex flex-col ">
-          <span>Marks</span>
-          <span className="text-xs text-gray-500">(Tech Round)</span>
-        </div>
-      ),
+      label: (<div className="flex flex-col"><span>Marks</span><span className="text-xs text-gray-500">(Tech Round)</span></div>),
       align: "center",
       render: (row) => handleGetMarks(row.interviews),
     },
     {
       key: "attempts",
-      label: (
-        <div className="flex flex-col ">
-          <span>Attempts</span>
-          <span className="text-xs text-gray-500">(1st Round)</span>
-        </div>
-      ),
+      label: (<div className="flex flex-col"><span>Attempts</span><span className="text-xs text-gray-500">(1st Round)</span></div>),
       align: "center",
-      render: (row) => {
-        const firstRoundAttempts = row.interviews?.filter((i) => i.round === "First") || [];
-        return firstRoundAttempts.length;
-      },
+      render: (row) => (row.interviews?.filter((i) => i.round === "First") || []).length,
     },
   ];
 
   const actionButton = (row) => {
-    const userRole = localStorage.getItem('role');
-    const isSuperAdmin = userRole === 'superadmin';
-
+    const isSuperAdmin = localStorage.getItem("role") === "superadmin";
     return (
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => {
-            if (isSuperAdmin) {
-              setAddInterviwModalOpen(true);
-              setId(row._id);
-            }
-          }}
-          disabled={!isSuperAdmin}
-          className={`text-md ${isSuperAdmin
-            ? buttonStyles.primary + ' cursor-pointer'
-            : 'bg-gray-300 text-gray-500 cursor-not-allowed px-3 py-1 rounded-md transition'
-            }`}
-        >
-          Take Interview
-        </button>
+      <div className="flex items-center gap-2">
+        <FinalInterviewDrawer row={row} refetch={refetch} />
       </div>
     );
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-  
+    <>
+     <div className="flex items-center justify-between mb-4">
+        <PageNavbar
+          title=" Interview"
+          showBackButton={false}
+        />
       </div>
-      <CommonTable
-        data={data}
-        columns={columns}
-        editable={true}
-        pagination={true}
-        rowsPerPage={rowsPerPage}
-        searchTerm={searchTerm}
-        actionButton={actionButton}
-        onRowClick={onRowClick}
-      />
-    </div>
+    <CommonTable
+      data={data}
+      columns={columns}
+      editable={true}
+      pagination={true}
+      rowsPerPage={rowsPerPage}
+      searchTerm={searchTerm}
+      actionButton={actionButton}
+      onRowClick={onRowClick}
+    />
+    </>
   );
 };
 

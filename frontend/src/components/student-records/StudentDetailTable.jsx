@@ -1,16 +1,123 @@
 import { useState, useMemo, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import Pagination from "../common-components/pagination/Pagination";
-import { useAdmitedStudentsQuery } from "../../redux/api/authApi";
+import { useAdmitedStudentsQuery, useCreateLevelInterviewMutation } from "../../redux/api/authApi";
 import Loader from "../common-components/loader/Loader";
 import CommonTable from "../common-components/table/CommonTable";
-import CreateInterviewModal from "./CreateInterviewModal";
 import PageNavbar from "../common-components/navbar/PageNavbar";
-import { buttonStyles } from "../../styles/buttonStyles";
 import TabsCommon from "../common-components/table/TabsCommon";
 import SearchBox from "./../common-components/seach-export/SearchBox";
 import Header from "../common-components/sidebar/Header";
 import Avatar from "../common-components/Avatar";
+import OrangeButton from "../common-components/sidebar/OrangeButton";
+import InputField from "../common-components/common-feild/InputField";
+import CustomDropdown from "../common-components/common-feild/CustomDropdown";
+import CustomDatePicker from "./CustomDatePicker";
+import { Formik, Form, useFormikContext } from "formik";
+import * as Yup from "yup";
+import { toast } from "react-toastify";
+import InterviewSuccessModal from "./InterviewSuccessModal";
+
+
+const levelProgression = { '1A': '1B', '1B': '1C', '1C': '2A', '2A': '2B', '2B': '2C', '2C': 'Completed' };
+
+const AutoMarksCalculator = () => {
+  const { values, setFieldValue } = useFormikContext();
+  useEffect(() => {
+    const total = (parseFloat(values.Theoretical_Marks) || 0) +
+      (parseFloat(values.Practical_Marks) || 0) +
+      (parseFloat(values.Communication_Marks) || 0);
+    setFieldValue("marks", total);
+  }, [values.Theoretical_Marks, values.Practical_Marks, values.Communication_Marks, setFieldValue]);
+  return null;
+};
+
+const InterviewDrawer = ({ student, interviewLevel, refetch }) => {
+  const [createInterview, { isLoading }] = useCreateLevelInterviewMutation();
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [interviewResult, setInterviewResult] = useState(null);
+  const studentName = `${student.firstName || ''} ${student.lastName || ''}`.trim();
+  const currentLevel = interviewLevel || student.currentLevel || "1A";
+
+  const validationSchema = Yup.object().shape({
+    Theoretical_Marks: Yup.number().typeError('Must be a number').min(1).max(10).required('Required'),
+    Practical_Marks: Yup.number().typeError('Must be a number').min(1).max(10).required('Required'),
+    Communication_Marks: Yup.number().typeError('Must be a number').min(1).max(10).required('Required'),
+    marks: Yup.number().nullable(),
+    remark: Yup.string(),
+    date: Yup.date().required('Required'),
+    result: Yup.string().required('Required'),
+    Topic: Yup.string(),
+  });
+
+  return (
+    <>
+      <Formik
+        initialValues={{ Theoretical_Marks: '', Practical_Marks: '', Communication_Marks: '', marks: '', remark: '', date: '', result: 'Pending', Topic: '' }}
+        validationSchema={validationSchema}
+        onSubmit={async (values, { resetForm }) => {
+          try {
+            await createInterview({ id: student._id, data: values }).unwrap();
+            const nextLevel = values.result === 'Pass' ? (levelProgression[currentLevel] || currentLevel) : currentLevel;
+            setInterviewResult({ studentName, currentLevel, nextLevel, result: values.result });
+            setShowSuccessModal(true);
+            if (values.result === 'Pass') toast.success(`${studentName} promoted to Level ${nextLevel}!`);
+            else if (values.result === 'Fail') toast.warning(`${studentName} failed Level ${currentLevel}.`);
+            else toast.info('Interview submitted with status: Pending.');
+            resetForm();
+            refetch?.();
+          } catch (err) {
+            toast.error(err?.data?.message || 'Failed to submit interview');
+          }
+        }}
+      >
+        {({ isSubmitting, submitForm, resetForm }) => (
+          <OrangeButton
+            buttonTitle="Schedule"
+            panelTitle={`Interview — ${currentLevel}`}
+            drawerContent={
+              <Form className="space-y-4">
+                <AutoMarksCalculator />
+                <p className="text-base font-semibold text-gray-800">{studentName}</p>
+
+                <p className="text-sm font-bold text-gray-700 uppercase tracking-wider">Interview Details</p>
+                <CustomDatePicker name="date" label="Select Date" />
+
+                <p className="text-sm font-bold text-gray-700 uppercase tracking-wider">Technical Evaluation</p>
+                <InputField label="Theoretical Marks (1-10)" name="Theoretical_Marks" type="number" placeholder="Enter marks (1-10)" />
+                <InputField label="Practical Marks (1-10)" name="Practical_Marks" type="number" placeholder="Enter marks (1-10)" />
+                <InputField label="Communication Marks (1-10)" name="Communication_Marks" type="number" placeholder="Enter marks (1-10)" />
+                <InputField label="Total Marks (Auto-calculated)" name="marks" type="number" disabled />
+
+                <p className="text-sm font-bold text-gray-700 uppercase tracking-wider">Summary & Decision</p>
+                <CustomDropdown variant="card" label="Result" name="result" options={[
+                  { value: "Pending", label: "Pending" },
+                  { value: "Pass", label: "Pass" },
+                  { value: "Fail", label: "Fail" },
+                ]} />
+                <InputField label="Topic" name="Topic" placeholder="Enter interview topic" />
+                <InputField label="Remark / Feedback" name="remark" placeholder="Enter feedback or remarks" />
+              </Form>
+            }
+            leftBtnText="Cancel"
+            rightBtnText={isLoading ? "Submitting..." : "Submit"}
+            onLeftClick={resetForm}
+            onRightClick={submitForm}
+          />
+        )}
+      </Formik>
+      {showSuccessModal && (
+        <InterviewSuccessModal
+          isOpen={showSuccessModal}
+          onClose={() => setShowSuccessModal(false)}
+          studentName={interviewResult?.studentName}
+          currentLevel={interviewResult?.currentLevel}
+          nextLevel={interviewResult?.nextLevel}
+          result={interviewResult?.result}
+        />
+      )}
+    </>
+  );
+};
 
 const StudentDetailTable = () => {
   const { data = [], isLoading, refetch } = useAdmitedStudentsQuery();
@@ -236,23 +343,7 @@ const StudentDetailTable = () => {
   ];
 
   const actionButton = (student) => (
-    <div className="flex space-x-2">
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setSelectedStudentId(student._id);
-          // Store student data in localStorage for the modal to access
-          const students = JSON.parse(localStorage.getItem("students") || "[]");
-          if (!students.some(s => s._id === student._id)) {
-            localStorage.setItem("students", JSON.stringify([...students, student]));
-          }
-          setShowModal(true);
-        }}
-        className={buttonStyles.primary}
-      >
-        Take Interview
-      </button>
-    </div>
+    <InterviewDrawer student={student} interviewLevel={selectedLevel} refetch={refetch} />
   );
 
   // Show loader when data is loading
@@ -289,19 +380,12 @@ const StudentDetailTable = () => {
           pagination={true}
           rowsPerPage={rowsPerPage}
           searchTerm={searchTerm}
-          actionButton={selectedLevel === "permission" || activeTab === "Level's Cleared" ? null : actionButton}
+          actionButton={selectedLevel === "permission" || activeTab === "Level's Cleared" || activeTab === "Total Students" ? null : actionButton}
           onSelectionChange={setSelectedRows}
           onRowClick={(row) => {
             localStorage.setItem("lastSection", "admitted");
             navigate(`/student-profile/${row._id}`, { state: { student: row } });
           }}
-        />
-        <CreateInterviewModal
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-          studentId={selectedStudentId}
-          refetchStudents={refetch}
-          interviewLevel={selectedLevel}
         />
       </div>
     </>

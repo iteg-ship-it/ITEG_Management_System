@@ -1397,7 +1397,7 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
   );
 };
 
-// Update Email Modal Component
+import { Chart } from 'react-google-charts';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import InputField from '../common-components/common-feild/InputField';
