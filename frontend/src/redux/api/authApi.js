@@ -120,7 +120,7 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithAutoRefresh,
-  tagTypes: ['Student', 'PlacementStudent', 'User', 'Department', 'Role', 'Permission'],
+  tagTypes: ['Student', 'PlacementStudent', 'User', 'Department', 'Role', 'Permission', 'SyllabusVersion', 'Session'],
   // Global configuration for better caching
   keepUnusedDataFor: 300, // 5 minutes default cache
   refetchOnMountOrArgChange: 30, // Only refetch if data is older than 30 seconds
@@ -995,6 +995,118 @@ export const authApi = createApi({
       invalidatesTags: (result, error, { id }) => [{ type: 'Permission', id }],
     }),
 
+    // --- Session APIs ---
+    getAllSessions: builder.query({
+      query: () => ({ url: '/sessions', method: 'GET' }),
+      providesTags: ['Session'],
+    }),
+
+    createSession: builder.mutation({
+      query: (data) => ({ url: '/sessions', method: 'POST', body: data }),
+      invalidatesTags: ['Session'],
+    }),
+
+    updateSession: builder.mutation({
+      query: ({ id, ...data }) => ({ url: `/sessions/${id}`, method: 'PUT', body: data }),
+      invalidatesTags: ['Session'],
+    }),
+
+    deleteSession: builder.mutation({
+      query: (id) => ({ url: `/sessions/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['Session'],
+    }),
+
+    // --- Syllabus Version APIs ---
+    createSyllabusVersion: builder.mutation({
+      query: (data) => ({
+        url: '/syllabus-versions',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['SyllabusVersion'],
+    }),
+
+    getAllSyllabusVersions: builder.query({
+      query: (params = '') => ({
+        url: `/syllabus-versions${params ? `?${params}` : ''}`,
+        method: 'GET',
+      }),
+      providesTags: ['SyllabusVersion'],
+    }),
+
+    getSyllabusVersionById: builder.query({
+      query: (id) => ({
+        url: `/syllabus-versions/${id}`,
+        method: 'GET',
+      }),
+      providesTags: (result, error, id) => [{ type: 'SyllabusVersion', id }],
+    }),
+
+    getSyllabusVersionWithHierarchy: builder.query({
+      query: (id) => ({
+        url: `/syllabus-versions/${id}/hierarchy`,
+        method: 'GET',
+      }),
+      providesTags: (result, error, id) => [{ type: 'SyllabusVersion', id }],
+    }),
+
+    getSyllabusVersionsBySession: builder.query({
+      query: (sessionId) => ({
+        url: `/syllabus-versions/session/${sessionId}`,
+        method: 'GET',
+      }),
+      providesTags: ['SyllabusVersion'],
+    }),
+
+    getSyllabusVersionsBySubLevel: builder.query({
+      query: ({ subLevelId, sessionId } = {}) => {
+        const params = sessionId ? `?sessionId=${sessionId}` : "";
+        return { url: `/syllabus-versions/sublevel/${subLevelId}${params}`, method: 'GET' };
+      },
+      providesTags: ['SyllabusVersion'],
+    }),
+
+    updateSyllabusVersion: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `/syllabus-versions/${id}`,
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: ['SyllabusVersion'],
+    }),
+
+    deleteSyllabusVersion: builder.mutation({
+      query: (id) => ({
+        url: `/syllabus-versions/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['SyllabusVersion'],
+    }),
+
+    approveSyllabusVersion: builder.mutation({
+      query: (id) => ({
+        url: `/syllabus-versions/${id}/approve`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: ['SyllabusVersion'],
+    }),
+
+    activateSyllabusVersion: builder.mutation({
+      query: (id) => ({
+        url: `/syllabus-versions/${id}/activate`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: ['SyllabusVersion'],
+    }),
+
+    archiveSyllabusVersion: builder.mutation({
+      query: (id) => ({
+        url: `/syllabus-versions/${id}/archive`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: ['SyllabusVersion'],
+    }),
+
   }),
 });
 
@@ -1078,5 +1190,20 @@ export const {
   useDeleteRoleMutation,
   useGetAllPossiblePermissionsQuery,
   useGetUserPermissionsQuery,
-  useUpdateUserPermissionsMutation
+  useUpdateUserPermissionsMutation,
+  useGetAllSessionsQuery,
+  useCreateSessionMutation,
+  useUpdateSessionMutation,
+  useDeleteSessionMutation,
+  useCreateSyllabusVersionMutation,
+  useGetAllSyllabusVersionsQuery,
+  useGetSyllabusVersionByIdQuery,
+  useGetSyllabusVersionWithHierarchyQuery,
+  useGetSyllabusVersionsBySessionQuery,
+  useGetSyllabusVersionsBySubLevelQuery,
+  useUpdateSyllabusVersionMutation,
+  useDeleteSyllabusVersionMutation,
+  useApproveSyllabusVersionMutation,
+  useActivateSyllabusVersionMutation,
+  useArchiveSyllabusVersionMutation,
 } = authApi;

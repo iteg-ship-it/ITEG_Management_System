@@ -1,18 +1,18 @@
-import { useState, useMemo } from "react";
+import { useState, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
-import { MdFilterList, MdEdit, MdVisibility, MdBlock, MdCheckCircle, MdDownload, MdPictureAsPdf, MdDescription, MdTableChart, MdCloudUpload } from "react-icons/md";
+import { MdFilterList, MdEdit, MdVisibility, MdBlock, MdCheckCircle, MdCloudUpload } from "react-icons/md";
 import Header from "../../common-components/sidebar/Header";
 import OrangeButton from "../../common-components/sidebar/OrangeButton";
-import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation } from "../../../redux/api/authApi";
+import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation, useGetSyllabusVersionsBySubLevelQuery } from "../../../redux/api/authApi";
 import SearchBox from "../../common-components/seach-export/SearchBox";
 import ExportDropdown from "../../common-components/seach-export/ExportDropdown";
-import FilterButton from "../../common-components/seach-export/FilterButton";
 import CommonTable from "../../common-components/table/CommonTable";
 import InputField from "../../common-components/common-feild/InputField";
 import RadioGroup from "../../common-components/common-feild/RadioGroup";
+import SyllabusTab, { SyllabusUploadDrawer } from "./SyllabusTab";
 
 /* ── Validation ── */
 const validationSchema = Yup.object({
@@ -30,40 +30,6 @@ const DUMMY_STUDENTS = [
     { sno: 5, fullName: "Vikram Singh",  fatherName: "Rajendra Singh",  mobile: "9654321098", course: "MBA",    busRoute: "Route 4", attempts: 2 },
 ];
 
-const DUMMY_SYLLABUS = [];
-
-const FILE_ICON = {
-    PDF:  <MdPictureAsPdf size={28} className="text-red-500" />,
-    DOCX: <MdDescription  size={28} className="text-blue-500" />,
-    XLSX: <MdTableChart   size={28} className="text-green-600" />,
-};
-
-const SYLLABUS_COLUMNS = [
-    {
-        key: "fileName", label: "Syllabus File Name",
-        render: (row) => (
-            <div className="flex items-center gap-3 min-w-[200px]">
-                <div className="flex-shrink-0">{FILE_ICON[row.ext] || <MdDescription size={28} className="text-gray-400" />}</div>
-                <div>
-                    <p className="font-semibold text-sm text-gray-800">{row.fileName}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{row.size} • {row.description}</p>
-                </div>
-            </div>
-        ),
-    },
-    { key: "uploadDate",   label: "Upload Date",    render: (row) => <span className="text-sm text-gray-600">{row.uploadDate}</span> },
-    {
-        key: "academicYear", label: "Academic Year",
-        render: (row) => <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-600 whitespace-nowrap">{row.academicYear}</span>,
-    },
-];
-
-const SyllabusActions = () => (
-    <div className="flex items-center gap-1">
-        <button title="View"     className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition"><MdVisibility size={16} /></button>
-        <button title="Download" className="p-1.5 rounded-lg text-gray-400 hover:bg-orange-50 hover:text-orange-500 transition"><MdDownload size={16} /></button>
-    </div>
-);
 
 const DUMMY_TASKS = [
     { _id: "T001", title: "Complete Python Assignment",    description: "Build a REST API using Flask",              priority: "HIGH",   assignedTo: "Rahul Sharma",  type: "MANUAL", status: "ACTIVE"    },
@@ -153,15 +119,23 @@ const ShowSubLevelTablesData = () => {
     const departmentName = location.state?.departmentName;
     const session       = location.state?.session || location.state?.sessionName;
 
-    const [activeTab,     setActiveTab]     = useState("");
+    const [activeTab,     setActiveTab]     = useState(null);  // stores subLevel object
     const [activeSection, setActiveSection] = useState("Students");
     const [searchTerm,    setSearchTerm]    = useState("");
+    const syllabusDrawerRef = useRef(null);
 
     const { data: subLevelsData } = useGetSubLevelsByLevelQuery(level?._id, { skip: !level?._id });
     const subLevels  = subLevelsData?.data || [];
-    const levelTabs  = subLevels.length > 0
-        ? subLevels.map((sl) => sl.name)
-        : ["Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C"];
+
+    // Auto-select first subLevel when data loads
+    const activeSubLevel = activeTab || subLevels[0] || null;
+
+    // Check if syllabus exists for active subLevel
+    const { data: syllabusData, refetch: refetchSyllabus } = useGetSyllabusVersionsBySubLevelQuery(
+        { subLevelId: activeSubLevel?._id },
+        { skip: !activeSubLevel?._id }
+    );
+    const hasSyllabus = (syllabusData?.data?.length || 0) > 0;
 
     const [addSubLevel] = useAddSubLevelMutation();
 
@@ -187,17 +161,17 @@ const ShowSubLevelTablesData = () => {
                 breadcrumbs={breadcrumbs}
                 bottomRow={
                     <div className="flex gap-1 overflow-x-auto">
-                        {levelTabs.map((tab) => (
+                        {subLevels.map((sl) => (
                             <button
-                                key={tab}
-                                onClick={() => setActiveTab(tab)}
+                                key={sl._id}
+                                onClick={() => setActiveTab(sl)}
                                 className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-all duration-200 border-b-2 ${
-                                    activeTab === tab
+                                    activeSubLevel?._id === sl._id
                                         ? "border-orange-500 text-orange-500 font-semibold"
                                         : "border-transparent text-gray-500 hover:text-gray-700"
                                 }`}
                             >
-                                {tab}
+                                {sl.name}
                             </button>
                         ))}
                     </div>
@@ -236,6 +210,30 @@ const ShowSubLevelTablesData = () => {
                         />
                     )}
                 </Formik>
+
+                {/* Upload Syllabus — only when Syllabus tab active AND syllabus already exists */}
+                {activeSection === "Syllabus" && hasSyllabus && (
+                    <OrangeButton
+                        buttonTitle={
+                            <span className="flex items-center gap-1.5">
+                                <MdCloudUpload size={15} /> Upload Syllabus
+                            </span>
+                        }
+                        panelTitle="Upload Syllabus"
+                        panelSubtitle="Upload an Excel file with Session, Subject, Topic, SubTopic columns."
+                        drawerContent={
+                            <SyllabusUploadDrawer
+                                ref={syllabusDrawerRef}
+                                level={level}
+                                subLevel={activeSubLevel}
+                                onSaved={refetchSyllabus}
+                            />
+                        }
+                        leftBtnText="Close"
+                        rightBtnText=""
+                        onLeftClick={() => syllabusDrawerRef.current?.reset()}
+                    />
+                )}
             </Header>
 
             <div className="px-6 pb-10">
@@ -273,7 +271,7 @@ const ShowSubLevelTablesData = () => {
                                 </div>
                             </div>
                             <CommonTable
-                                key={`students-${activeTab}`}
+                                key={`students-${activeSubLevel?._id}`}
                                 columns={STUDENT_COLUMNS}
                                 data={DUMMY_STUDENTS}
                                 editable={false}
@@ -297,7 +295,7 @@ const ShowSubLevelTablesData = () => {
                                 </div>
                             </div>
                             <CommonTable
-                                key={`tasks-${activeTab}`}
+                                key={`tasks-${activeSubLevel?._id}`}
                                 columns={TASK_COLUMNS}
                                 data={DUMMY_TASKS}
                                 editable={true}
@@ -311,52 +309,11 @@ const ShowSubLevelTablesData = () => {
 
                     {/* ── Syllabus ── */}
                     {activeSection === "Syllabus" && (
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-3">
-                                <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-                                <div className="ml-auto flex items-center gap-3">
-                                    <button className="flex items-center gap-1.5 h-10 px-4 text-sm border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 transition flex-shrink-0">
-                                        <MdFilterList size={16} /> Filter
-                                    </button>
-                                    <ExportDropdown data={DUMMY_SYLLABUS} sectionName="syllabus" />
-                                </div>
-                            </div>
-                            {DUMMY_SYLLABUS.length === 0 ? (
-                                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm flex flex-col items-center justify-center py-16 px-8 text-center">
-                                    <div className="relative mb-6">
-                                        <div className="w-24 h-24 rounded-full bg-orange-50 flex items-center justify-center">
-                                            <MdCloudUpload size={44} className="text-orange-400" />
-                                        </div>
-                                    </div>
-                                    <h3 className="text-base font-bold text-gray-800 mb-2">No syllabus uploaded for this level.</h3>
-                                    <p className="text-sm text-gray-400 max-w-sm mb-6 leading-relaxed">
-                                        Upload the academic syllabus to get started. Once uploaded, you can assign lessons to specific weeks and track coverage.
-                                    </p>
-                                    <div className="flex items-center gap-3">
-                                        <button className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-all duration-200 hover:shadow-md">
-                                            <MdCloudUpload size={16} /> Upload Syllabus
-                                        </button>
-                                        <button className="px-5 py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200">
-                                            Browse Template
-                                        </button>
-                                    </div>
-                                    <p className="mt-5 text-xs text-orange-500 hover:text-orange-600 cursor-pointer underline underline-offset-2">
-                                        Learn how to structure your syllabus files
-                                    </p>
-                                </div>
-                            ) : (
-                                <CommonTable
-                                    key={`syllabus-${activeTab}`}
-                                    columns={SYLLABUS_COLUMNS}
-                                    data={DUMMY_SYLLABUS}
-                                    editable={true}
-                                    pagination={true}
-                                    rowsPerPage={10}
-                                    searchTerm={searchTerm}
-                                    actionButton={() => <SyllabusActions />}
-                                />
-                            )}
-                        </div>
+                        <SyllabusTab
+                            key={activeSubLevel?._id}
+                            level={level}
+                            subLevel={activeSubLevel}
+                        />
                     )}
 
                     {/* ── Progress ── */}

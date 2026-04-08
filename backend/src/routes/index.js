@@ -13,6 +13,8 @@ const webhookRoutes = require('./webhookRoutes');
 const taskRoutes = require('./taskRoutes');
 const roleRoutes = require('./roleRoutes');
 const taskMasterRoutes = require('./taskMasterRoutes');
+const syllabusVersionRoutes = require('./syllabusVersionRoutes');
+const sessionRoutes = require('./sessionRoutes');
 
 // Mount routes
 router.use('/user', userRoutes);
@@ -25,6 +27,8 @@ router.use('/protected', protectedRoutes);
 router.use('/tasks', taskRoutes);
 router.use('/roles', roleRoutes);
 router.use('/task-master', taskMasterRoutes);
+router.use('/syllabus-versions', syllabusVersionRoutes);
+router.use('/sessions', sessionRoutes);
 
 // Webhook routes
 router.use('/admission/students/webhook', webhookRoutes);
