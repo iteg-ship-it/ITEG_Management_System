@@ -43,9 +43,10 @@ exports.getTaskById = async (req, res) => {
 
 exports.getAllTasks = async (req, res) => {
   try {
-    const { levelId, subLevelId, subjectId, type, priority, isActive } = req.query;
+    const { syllabusVersionId, levelId, subLevelId, subjectId, type, priority, isActive } = req.query;
 
     const filter = {};
+    if (syllabusVersionId) filter.syllabusVersionId = syllabusVersionId;
     if (levelId) filter.levelId = levelId;
     if (subLevelId) filter.subLevelId = subLevelId;
     if (subjectId) filter.subjectId = subjectId;

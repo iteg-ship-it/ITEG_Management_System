@@ -120,7 +120,7 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithAutoRefresh,
-  tagTypes: ['Student', 'PlacementStudent', 'User', 'Department', 'Role', 'Permission', 'SyllabusVersion', 'Session'],
+  tagTypes: ['Student', 'PlacementStudent', 'User', 'Department', 'Role', 'Permission', 'SyllabusVersion', 'Session', 'TaskMaster'],
   // Global configuration for better caching
   keepUnusedDataFor: 300, // 5 minutes default cache
   refetchOnMountOrArgChange: 30, // Only refetch if data is older than 30 seconds
@@ -1060,6 +1060,7 @@ export const authApi = createApi({
 
     getSyllabusVersionsBySubLevel: builder.query({
       query: ({ subLevelId, sessionId } = {}) => {
+        if (!subLevelId) return { url: '/syllabus-versions', method: 'GET' };
         const params = sessionId ? `?sessionId=${sessionId}` : "";
         return { url: `/syllabus-versions/sublevel/${subLevelId}${params}`, method: 'GET' };
       },
@@ -1105,6 +1106,36 @@ export const authApi = createApi({
         method: 'PATCH',
       }),
       invalidatesTags: ['SyllabusVersion'],
+    }),
+
+    // --- TaskMaster APIs ---
+    getTasksBySyllabusVersion: builder.query({
+      query: (syllabusVersionId) => ({
+        url: `/task-master?syllabusVersionId=${syllabusVersionId}`,
+        method: 'GET',
+      }),
+      providesTags: (result, error, syllabusVersionId) => [
+        { type: 'TaskMaster', id: syllabusVersionId },
+      ],
+    }),
+
+    createTaskMaster: builder.mutation({
+      query: (data) => ({ url: '/task-master', method: 'POST', body: data }),
+      invalidatesTags: (result, error, data) => [
+        { type: 'TaskMaster', id: data.syllabusVersionId },
+      ],
+    }),
+
+    updateTaskMaster: builder.mutation({
+      query: ({ id, ...data }) => ({ url: `/task-master/${id}`, method: 'PUT', body: data }),
+      invalidatesTags: ['TaskMaster'],
+    }),
+
+    bulkUploadTasks: builder.mutation({
+      query: (data) => ({ url: '/task-master/bulk-upload', method: 'POST', body: data }),
+      invalidatesTags: (result, error, data) => [
+        { type: 'TaskMaster', id: data.syllabusVersionId },
+      ],
     }),
 
   }),
@@ -1206,4 +1237,8 @@ export const {
   useApproveSyllabusVersionMutation,
   useActivateSyllabusVersionMutation,
   useArchiveSyllabusVersionMutation,
+  useGetTasksBySyllabusVersionQuery,
+  useCreateTaskMasterMutation,
+  useUpdateTaskMasterMutation,
+  useBulkUploadTasksMutation,
 } = authApi;

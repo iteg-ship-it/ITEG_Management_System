@@ -1,9 +1,10 @@
 const SyllabusVersion = require("../models/SyllabusVersion");
-const Subject  = require("../models/syllabus/Subject");
-const Topic    = require("../models/syllabus/Topic");
-const SubTopic = require("../models/syllabus/SubTopic");
-const Session  = require("../models/Session");
-const mongoose = require("mongoose");
+const Subject    = require("../models/syllabus/Subject");
+const Topic      = require("../models/syllabus/Topic");
+const SubTopic   = require("../models/syllabus/SubTopic");
+const Session    = require("../models/Session");
+const TaskMaster = require("../models/TaskMaster");
+const mongoose   = require("mongoose");
 
 // ==================== CREATE ====================
 // Body: { sessionName, levelId, subLevelId, version, hierarchy }
@@ -70,7 +71,9 @@ exports.createSyllabusVersion = async (req, res) => {
         );
         topicIds.push(topicDoc._id);
 
-        for (const [stIdx, stName] of (tItem.subTopics || []).entries()) {
+        for (const [stIdx, stRaw] of (tItem.subTopics || []).entries()) {
+          if (!stRaw) continue;
+          const stName = typeof stRaw === "object" ? stRaw.name : stRaw;
           if (!stName) continue;
           const [stDoc] = await SubTopic.create(
             [{ name: stName, syllabusVersionId: svId, topicId: topicDoc._id, subjectId: subjectDoc._id, order: stIdx + 1 }],
@@ -85,6 +88,54 @@ exports.createSyllabusVersion = async (req, res) => {
         { subjectIds, topicIds, subTopicIds },
         { session: dbSession }
       );
+
+      // ── Auto-generate TaskMaster entries from task fields in hierarchy ──
+      const taskDocs = [];
+      for (const tItem of (sItem.topics || [])) {
+        if (!tItem.topic) continue;
+        const topicDoc = topicIds.length
+          ? await Topic.findOne({ name: tItem.topic, syllabusVersionId: svId }).session(dbSession)
+          : null;
+        if (!topicDoc) continue;
+
+        const subTopicsWithTasks = (tItem.subTopics || []).filter(
+          (st) => typeof st === "object" && st.taskTitle
+        );
+
+        for (const st of subTopicsWithTasks) {
+          const stDoc = await SubTopic.findOne({ name: st.name, topicId: topicDoc._id }).session(dbSession);
+          if (!stDoc) continue;
+
+          const taskCode = `TM-${svId.toString().slice(-4)}-${topicDoc._id.toString().slice(-4)}-${stDoc._id.toString().slice(-4)}`;
+
+          taskDocs.push({
+            syllabusVersionId: svId,
+            levelId,
+            subLevelId,
+            subjectId: subjectDoc._id,
+            topicId:   topicDoc._id,
+            subTopicId: stDoc._id,
+            taskCode,
+            title:       st.taskTitle,
+            description: st.taskDescription || "",
+            type:        st.taskType        || "assessment",
+            maxMarks:    Number(st.maxMarks) || 100,
+            cutoff:      Number(st.cutoff)   || 40,
+            mandatory:   st.mandatory !== undefined ? st.mandatory : true,
+            priority:    st.priority         || "medium",
+            originalTaskId: stDoc._id,
+          });
+        }
+      }
+
+      if (taskDocs.length > 0) {
+        await TaskMaster.insertMany(taskDocs, { session: dbSession });
+        await SyllabusVersion.findByIdAndUpdate(
+          svId,
+          { taskMasterGenerated: true, taskMasterGeneratedAt: new Date() },
+          { session: dbSession }
+        );
+      }
 
       createdVersions.push(svId);
     }

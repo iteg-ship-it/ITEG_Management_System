@@ -1,18 +1,18 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
-import { MdFilterList, MdEdit, MdVisibility, MdBlock, MdCheckCircle, MdCloudUpload } from "react-icons/md";
+import { MdFilterList, MdCloudUpload } from "react-icons/md";
 import Header from "../../common-components/sidebar/Header";
 import OrangeButton from "../../common-components/sidebar/OrangeButton";
-import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation, useGetSyllabusVersionsBySubLevelQuery } from "../../../redux/api/authApi";
+import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation, useGetSyllabusVersionsBySubLevelQuery, useGetTasksBySyllabusVersionQuery } from "../../../redux/api/authApi";
 import SearchBox from "../../common-components/seach-export/SearchBox";
 import ExportDropdown from "../../common-components/seach-export/ExportDropdown";
 import CommonTable from "../../common-components/table/CommonTable";
 import InputField from "../../common-components/common-feild/InputField";
 import RadioGroup from "../../common-components/common-feild/RadioGroup";
-import SyllabusTab, { SyllabusUploadDrawer } from "./SyllabusTab";
+import SyllabusTab, { SyllabusUploadDrawer, TaskUploadDrawer, VersionTasksTable } from "./SyllabusTab";
 
 /* ── Validation ── */
 const validationSchema = Yup.object({
@@ -31,27 +31,6 @@ const DUMMY_STUDENTS = [
 ];
 
 
-const DUMMY_TASKS = [
-    { _id: "T001", title: "Complete Python Assignment",    description: "Build a REST API using Flask",              priority: "HIGH",   assignedTo: "Rahul Sharma",  type: "MANUAL", status: "ACTIVE"    },
-    { _id: "T002", title: "Database Design Project",       description: "Design ER diagram for e-commerce system",   priority: "MEDIUM", assignedTo: "Priya Verma",   type: "BULK",   status: "ACTIVE"    },
-    { _id: "T003", title: "React Component Development",   description: "Create reusable UI components",             priority: "HIGH",   assignedTo: "Amit Patel",    type: "MANUAL", status: "COMPLETED" },
-    { _id: "T004", title: "Unit Testing",                  description: "Write test cases for authentication module", priority: "LOW",    assignedTo: "Sneha Joshi",   type: "MANUAL", status: "ACTIVE"    },
-    { _id: "T005", title: "Code Review",                   description: "Review pull requests from team members",    priority: "MEDIUM", assignedTo: "Vikram Singh",  type: "BULK",   status: "DISABLED"  },
-    { _id: "T006", title: "Documentation Update",          description: "Update API docs with new endpoints",        priority: "LOW",    assignedTo: "Rahul Sharma",  type: "MANUAL", status: "COMPLETED" },
-];
-
-/* ── Badge style maps ── */
-const PRIORITY_STYLES = { HIGH: "bg-red-100 text-red-700", MEDIUM: "bg-yellow-100 text-yellow-700", LOW: "bg-green-100 text-green-700" };
-const TYPE_STYLES     = { MANUAL: "bg-gray-100 text-gray-600", BULK: "bg-blue-100 text-blue-700" };
-const STATUS_STYLES   = { ACTIVE: "bg-green-100 text-green-700", COMPLETED: "bg-blue-100 text-blue-700", DISABLED: "bg-gray-100 text-gray-500" };
-
-const Badge = ({ label, styleMap }) => (
-    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${styleMap[label] || "bg-gray-100 text-gray-500"}`}>
-        {label}
-    </span>
-);
-
-/* ── Column definitions ── */
 const STUDENT_COLUMNS = [
     { label: "S.No",        key: "sno" },
     { label: "Full Name",   key: "fullName" },
@@ -70,42 +49,6 @@ const STUDENT_COLUMNS = [
     },
 ];
 
-const TASK_COLUMNS = [
-    { key: "_id",   label: "Task ID",      render: (row) => <span className="text-xs font-mono text-gray-500">{row._id}</span> },
-    {
-        key: "title", label: "Task Details",
-        render: (row) => (
-            <div className="min-w-[160px]">
-                <p className="font-semibold text-sm text-gray-800">{row.title}</p>
-                <p className="text-xs text-gray-400 mt-0.5 truncate max-w-[220px]">{row.description}</p>
-            </div>
-        ),
-    },
-    { key: "priority",   label: "Priority",    render: (row) => <Badge label={row.priority}   styleMap={PRIORITY_STYLES} /> },
-    {
-        key: "assignedTo", label: "Assigned To",
-        render: (row) => (
-            <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" />
-                <span className="text-sm text-gray-700">{row.assignedTo}</span>
-            </div>
-        ),
-    },
-    { key: "type",   label: "Type",   render: (row) => <Badge label={row.type}   styleMap={TYPE_STYLES} /> },
-    { key: "status", label: "Status", render: (row) => <Badge label={row.status} styleMap={STATUS_STYLES} /> },
-];
-
-const TaskActions = ({ row }) => (
-    <div className="flex items-center gap-1">
-        <button title="View"   className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition"><MdVisibility size={16} /></button>
-        <button title="Edit"   className="p-1.5 rounded-lg text-gray-400 hover:bg-blue-50 hover:text-blue-600 transition"><MdEdit size={16} /></button>
-        {row.status === "DISABLED"
-            ? <button title="Enable"  className="p-1.5 rounded-lg text-gray-400 hover:bg-green-50 hover:text-green-600 transition"><MdCheckCircle size={16} /></button>
-            : <button title="Disable" className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition"><MdBlock size={16} /></button>
-        }
-    </div>
-);
-
 const SECTION_TABS = ["Students", "Tasks", "Syllabus", "Progress"];
 
 /* ══════════════════════════════════════════════════════════════
@@ -119,9 +62,10 @@ const ShowSubLevelTablesData = () => {
     const departmentName = location.state?.departmentName;
     const session       = location.state?.session || location.state?.sessionName;
 
-    const [activeTab,     setActiveTab]     = useState(null);  // stores subLevel object
+    const [activeTab,     setActiveTab]     = useState(null);
     const [activeSection, setActiveSection] = useState("Students");
     const [searchTerm,    setSearchTerm]    = useState("");
+    const [activeTaskVersionId, setActiveTaskVersionId] = useState("");
     const syllabusDrawerRef = useRef(null);
 
     const { data: subLevelsData } = useGetSubLevelsByLevelQuery(level?._id, { skip: !level?._id });
@@ -136,6 +80,13 @@ const ShowSubLevelTablesData = () => {
         { skip: !activeSubLevel?._id }
     );
     const hasSyllabus = (syllabusData?.data?.length || 0) > 0;
+
+    // Check if tasks exist for active version (for header button)
+    const { data: tasksData } = useGetTasksBySyllabusVersionQuery(
+        activeTaskVersionId,
+        { skip: !activeTaskVersionId || activeSection !== "Tasks" }
+    );
+    const hasTasks = (tasksData?.tasks?.length || 0) > 0;
 
     const [addSubLevel] = useAddSubLevelMutation();
 
@@ -234,6 +185,29 @@ const ShowSubLevelTablesData = () => {
                         onLeftClick={() => syllabusDrawerRef.current?.reset()}
                     />
                 )}
+                {/* Upload Tasks — only when Tasks tab active AND tasks already exist */}
+                {activeSection === "Tasks" && hasTasks && activeTaskVersionId && (
+                    <OrangeButton
+                        buttonTitle={
+                            <span className="flex items-center gap-1.5">
+                                <MdCloudUpload size={15} /> Upload Tasks
+                            </span>
+                        }
+                        panelTitle="Upload Tasks"
+                        panelSubtitle="Upload an Excel file with Topic, SubTopic, TaskTitle columns."
+                        drawerContent={
+                            <TaskUploadDrawer
+                                syllabusVersionId={activeTaskVersionId}
+                                subjectName={syllabusData?.data?.find(v => v._id === activeTaskVersionId)?.subjectName || ""}
+                                version={syllabusData?.data?.find(v => v._id === activeTaskVersionId)?.version || ""}
+                                onSaved={refetchSyllabus}
+                            />
+                        }
+                        leftBtnText="Close"
+                        rightBtnText=""
+                        onLeftClick={() => {}}
+                    />
+                )}
             </Header>
 
             <div className="px-6 pb-10">
@@ -284,27 +258,7 @@ const ShowSubLevelTablesData = () => {
 
                     {/* ── Tasks ── */}
                     {activeSection === "Tasks" && (
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-3">
-                                <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-                                <div className="ml-auto flex items-center gap-3">
-                                    <button className="flex items-center gap-1.5 h-10 px-4 text-sm border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 transition flex-shrink-0">
-                                        <MdFilterList size={16} /> Filter
-                                    </button>
-                                    <ExportDropdown data={DUMMY_TASKS} sectionName="tasks" />
-                                </div>
-                            </div>
-                            <CommonTable
-                                key={`tasks-${activeSubLevel?._id}`}
-                                columns={TASK_COLUMNS}
-                                data={DUMMY_TASKS}
-                                editable={true}
-                                pagination={true}
-                                rowsPerPage={10}
-                                searchTerm={searchTerm}
-                                actionButton={(row) => <TaskActions row={row} />}
-                            />
-                        </div>
+                        <TasksTab level={level} subLevel={activeSubLevel} onVersionChange={setActiveTaskVersionId} />
                     )}
 
                     {/* ── Syllabus ── */}
@@ -324,6 +278,72 @@ const ShowSubLevelTablesData = () => {
                 </div>
             </div>
         </>
+    );
+};
+
+const TasksTab = ({ level, subLevel, onVersionChange }) => {
+    const subLevelId = subLevel?._id;
+    const [selectedVersionId, setSelectedVersionId] = useState("");
+
+    const { data: versionsData, refetch } = useGetSyllabusVersionsBySubLevelQuery(
+        { subLevelId, sessionId: "" },
+        { skip: !subLevelId }
+    );
+    const versions = versionsData?.data || [];
+
+    const activeVersion = versions.find((v) => v._id === selectedVersionId) || versions[0];
+    const versionId = activeVersion?._id || "";
+
+    // Notify parent of active version
+    useEffect(() => { onVersionChange?.(versionId); }, [versionId]);
+
+    const { data: tasksData, refetch: refetchTasks } = useGetTasksBySyllabusVersionQuery(
+        versionId,
+        { skip: !versionId }
+    );
+    const hasTasks = (tasksData?.tasks?.length || 0) > 0;
+
+    if (!versions.length) {
+        return (
+            <div className="py-16 text-center text-gray-400 text-sm">
+                No syllabus found. Please upload a syllabus first from the Syllabus tab.
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-4">
+            <div className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3">
+                <span className="text-sm font-medium text-gray-600">Subject:</span>
+                <select
+                    value={versionId}
+                    onChange={(e) => { setSelectedVersionId(e.target.value); onVersionChange?.(e.target.value); }}
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white"
+                >
+                    {versions.map((v) => (
+                        <option key={v._id} value={v._id}>
+                            {v.subjectName} — {v.version} ({v.status})
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            {versionId && (
+                <div className="space-y-4">
+                    {!hasTasks && (
+                        <TaskUploadDrawer
+                            syllabusVersionId={versionId}
+                            subjectName={activeVersion?.subjectName || ""}
+                            version={activeVersion?.version || ""}
+                            onSaved={refetchTasks}
+                        />
+                    )}
+                    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                        <VersionTasksTable versionId={versionId} />
+                    </div>
+                </div>
+            )}
+        </div>
     );
 };
 

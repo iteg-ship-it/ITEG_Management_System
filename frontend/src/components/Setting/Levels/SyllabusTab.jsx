@@ -3,6 +3,7 @@ import * as XLSX from "xlsx";
 import {
   MdCloudUpload, MdCheckCircle, MdExpandMore, MdExpandLess,
   MdBook, MdTopic, MdSubject, MdDelete, MdSave, MdEdit, MdVisibility,
+  MdAssignment, MdPriorityHigh,
 } from "react-icons/md";
 import { toast } from "react-toastify";
 import {
@@ -13,6 +14,8 @@ import {
   useApproveSyllabusVersionMutation,
   useActivateSyllabusVersionMutation,
   useGetAllSessionsQuery,
+  useGetTasksBySyllabusVersionQuery,
+  useBulkUploadTasksMutation,
 } from "../../../redux/api/authApi";
 
 /* ─── helpers ─────────────────────────────────────────── */
@@ -43,21 +46,45 @@ const extractSessionName = (rows) => {
 const buildHierarchy = (rows) => {
   const subjectMap = new Map();
   rows.forEach((row) => {
-    const subject  = normalize(row["Subject"]  || row["subject"]);
-    const topic    = normalize(row["Topic"]    || row["topic"]);
-    const subTopic = normalize(row["SubTopic"] || row["subtopic"] || row["sub_topic"]);
+    const subject      = normalize(row["Subject"]     || row["subject"]);
+    const topic        = normalize(row["Topic"]       || row["topic"]);
+    const subTopicName = normalize(row["SubTopic"]    || row["subtopic"] || row["sub_topic"]);
     if (!subject) return;
     if (!subjectMap.has(subject)) subjectMap.set(subject, new Map());
     const topicMap = subjectMap.get(subject);
     if (!topic) return;
-    if (!topicMap.has(topic)) topicMap.set(topic, new Set());
-    if (subTopic) topicMap.get(topic).add(subTopic);
+    if (!topicMap.has(topic)) topicMap.set(topic, new Map());
+    if (!subTopicName) return;
+    const stMap = topicMap.get(topic);
+    if (!stMap.has(subTopicName)) {
+      // Task fields (optional)
+      const taskTitle       = normalize(row["TaskTitle"]       || row["Task Title"]       || row["taskTitle"]);
+      const taskDescription = normalize(row["TaskDescription"] || row["Task Description"] || row["taskDescription"]);
+      const taskType        = normalize(row["TaskType"]        || row["Task Type"]        || row["taskType"]);
+      const maxMarks        = normalize(row["MaxMarks"]        || row["Max Marks"]        || row["maxMarks"]);
+      const cutoff          = normalize(row["Cutoff"]          || row["cutoff"]);
+      const priority        = normalize(row["Priority"]        || row["priority"]);
+      const mandatory       = normalize(row["Mandatory"]       || row["mandatory"]);
+
+      stMap.set(subTopicName, {
+        name: subTopicName,
+        ...(taskTitle ? {
+          taskTitle,
+          taskDescription,
+          taskType:  taskType  || "assessment",
+          maxMarks:  maxMarks  || "100",
+          cutoff:    cutoff    || "40",
+          priority:  priority  || "medium",
+          mandatory: mandatory !== "false" && mandatory !== "0",
+        } : {}),
+      });
+    }
   });
   return Array.from(subjectMap.entries()).map(([subjectName, topicMap]) => ({
     subject: subjectName,
-    topics: Array.from(topicMap.entries()).map(([topicName, subTopics]) => ({
+    topics: Array.from(topicMap.entries()).map(([topicName, stMap]) => ({
       topic: topicName,
-      subTopics: Array.from(subTopics),
+      subTopics: Array.from(stMap.values()),
     })),
   }));
 };
@@ -104,11 +131,14 @@ const SubjectAccordion = ({ item, index }) => {
               </button>
               {openTopics[t.topic] && t.subTopics.length > 0 && (
                 <div className="bg-gray-50 px-10 py-2 space-y-1">
-                  {t.subTopics.map((st) => (
-                    <div key={st} className="flex items-center gap-2 text-xs text-gray-600 py-0.5">
-                      <MdSubject size={13} className="text-gray-400 flex-shrink-0" />{st}
-                    </div>
-                  ))}
+                  {t.subTopics.map((st) => {
+                    const stName = typeof st === "object" ? st.name : st;
+                    return (
+                      <div key={stName} className="flex items-center gap-2 text-xs text-gray-600 py-0.5">
+                        <MdSubject size={13} className="text-gray-400 flex-shrink-0" />{stName}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -335,6 +365,223 @@ const VersionTopicTable = ({ versionId, searchTerm }) => {
   );
 };
 
+/* ─── Task Excel Upload Drawer ─────────────────────────── */
+const parseTaskExcel = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const wb = XLSX.read(e.target.result, { type: "array" });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        resolve(XLSX.utils.sheet_to_json(ws, { defval: "" }));
+      } catch (err) { reject(err); }
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
+
+export const TaskUploadDrawer = ({ syllabusVersionId, subjectName, version, onSaved }) => {
+  const fileRef = useRef(null);
+  const [rows,     setRows]     = useState([]);
+  const [fileName, setFileName] = useState("");
+  const [saving,   setSaving]   = useState(false);
+  const [parsing,  setParsing]  = useState(false);
+
+  const [bulkUploadTasks] = useBulkUploadTasksMutation();
+
+  const reset = () => { setRows([]); setFileName(""); };
+
+  const handleFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!/\.(xlsx|xls)$/i.test(file.name)) { toast.error("Please upload .xlsx or .xls file"); return; }
+    setParsing(true); setRows([]); setFileName(file.name);
+    try {
+      const parsed = await parseTaskExcel(file);
+      if (!parsed.length) { toast.error("Excel file is empty"); return; }
+      // Map column headers (case-insensitive)
+      const mapped = parsed.map((r) => ({
+        subject:     String(r["Subject"]     || r["subject"]     || "").trim(),
+        topic:       String(r["Topic"]       || r["topic"]       || "").trim(),
+        subTopic:    String(r["SubTopic"]    || r["subtopic"]    || r["sub_topic"] || "").trim(),
+        taskTitle:   String(r["TaskTitle"]   || r["Task Title"]  || r["taskTitle"] || "").trim(),
+        taskType:    String(r["TaskType"]    || r["Task Type"]   || r["taskType"]  || "assessment").trim(),
+        maxMarks:    r["MaxMarks"]   || r["Max Marks"]  || r["maxMarks"]  || 100,
+        cutoff:      r["Cutoff"]     || r["cutoff"]     || 40,
+        priority:    String(r["Priority"]    || r["priority"]    || "medium").trim(),
+        mandatory:   String(r["Mandatory"]   || r["mandatory"]   || "true").trim(),
+        description: String(r["Description"] || r["description"] || "").trim(),
+      })).filter((r) => r.topic && r.subTopic && r.taskTitle);
+
+      if (!mapped.length) { toast.error("No valid rows found. Check column names."); return; }
+      setRows(mapped);
+      toast.success(`${mapped.length} task rows parsed`);
+    } catch { toast.error("Failed to parse Excel"); }
+    finally { setParsing(false); e.target.value = ""; }
+  };
+
+  const handleUpload = async () => {
+    if (!rows.length) { toast.error("No data to upload"); return; }
+    setSaving(true);
+    try {
+      const res = await bulkUploadTasks({ syllabusVersionId, tasks: rows }).unwrap();
+      toast.success(`${res.inserted} task(s) uploaded!`);
+      if (res.errors?.length) {
+        res.errors.forEach((e) => toast.warn(e, { autoClose: 8000 }));
+      }
+      reset();
+      onSaved?.();
+    } catch (err) {
+      const errData = err?.data;
+      toast.error(errData?.message || "Upload failed");
+      if (errData?.errors?.length) {
+        errData.errors.forEach((e) => toast.warn(e, { autoClose: 8000 }));
+      }
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <div className="border border-gray-200 rounded-xl p-4 space-y-3 bg-gray-50">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-semibold text-gray-700">Upload Tasks for <span className="text-orange-600">{subjectName} {version}</span></p>
+          <p className="text-xs text-gray-400 mt-0.5">Required columns: Topic, SubTopic, TaskTitle</p>
+        </div>
+        <a
+          href="/task_template.csv"
+          download="task_template.csv"
+          className="flex items-center gap-1.5 text-xs text-orange-600 hover:text-orange-700 font-semibold bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition"
+        >
+          ⬇ Download Template
+        </a>
+      </div>
+
+      <div
+        onClick={() => fileRef.current?.click()}
+        className="border-2 border-dashed border-orange-200 rounded-xl p-5 flex flex-col items-center cursor-pointer hover:border-orange-400 hover:bg-orange-50 transition group"
+      >
+        {parsing ? (
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 border-4 border-orange-400 border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm text-gray-500">Parsing...</span>
+          </div>
+        ) : (
+          <>
+            <MdAssignment size={28} className="text-orange-300 group-hover:text-orange-400 mb-1" />
+            <p className="text-sm font-semibold text-gray-700">Click to upload Task Excel</p>
+            {fileName && <p className="text-xs text-orange-500 mt-1">📄 {fileName}</p>}
+          </>
+        )}
+      </div>
+      <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleFile} />
+
+      {rows.length > 0 && (
+        <>
+          <div className="bg-white border border-gray-100 rounded-lg px-3 py-2 text-xs text-gray-600">
+            <span className="font-semibold text-green-600">{rows.length} rows</span> ready to upload
+            <span className="ml-3 text-gray-400">Preview: {rows.slice(0, 2).map((r) => r.taskTitle).join(", ")}{rows.length > 2 ? "..." : ""}</span>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={handleUpload} disabled={saving}
+              className="flex-1 flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-semibold py-2 rounded-lg transition"
+            >
+              <MdSave size={15} />{saving ? "Uploading..." : "Upload Tasks"}
+            </button>
+            <button onClick={reset} className="px-4 py-2 text-sm text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Clear</button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+/* ─── Tasks table for one version ──────────────────────── */
+const PRIORITY_STYLE = {
+  low:    "bg-green-100 text-green-700",
+  medium: "bg-yellow-100 text-yellow-700",
+  high:   "bg-red-100 text-red-700",
+};
+const TYPE_STYLE = {
+  writtenExam:  "bg-purple-100 text-purple-700",
+  interview:    "bg-blue-100 text-blue-700",
+  project:      "bg-orange-100 text-orange-700",
+  presentation: "bg-pink-100 text-pink-700",
+  learning:     "bg-teal-100 text-teal-700",
+  assessment:   "bg-gray-100 text-gray-700",
+};
+
+export const VersionTasksTable = ({ versionId }) => {
+  const { data, isLoading } = useGetTasksBySyllabusVersionQuery(versionId, { skip: !versionId });
+  const tasks = data?.tasks || [];
+
+  if (isLoading) return (
+    <div className="flex justify-center py-10">
+      <div className="w-7 h-7 border-4 border-orange-400 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+
+  if (!tasks.length) return (
+    <div className="py-12 text-center">
+      <MdAssignment size={36} className="text-gray-200 mx-auto mb-2" />
+      <p className="text-sm text-gray-400">No tasks generated for this version yet</p>
+      <p className="text-xs text-gray-300 mt-1">Tasks are auto-generated when syllabus is activated</p>
+    </div>
+  );
+
+  return (
+    <table className="w-full text-sm">
+      <thead>
+        <tr className="bg-gray-50 border-b border-gray-100">
+          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-8">#</th>
+          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Task</th>
+          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Type</th>
+          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Priority</th>
+          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Marks</th>
+          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Cutoff</th>
+          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Topic</th>
+          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Actions</th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-gray-50">
+        {tasks.map((task, idx) => (
+          <tr key={task._id} className="hover:bg-gray-50 transition">
+            <td className="px-4 py-2.5 text-xs text-gray-400">{idx + 1}</td>
+            <td className="px-4 py-2.5">
+              <p className="font-medium text-gray-800 text-xs">{task.title}</p>
+              {task.description && <p className="text-xs text-gray-400 mt-0.5 truncate max-w-[200px]">{task.description}</p>}
+            </td>
+            <td className="px-4 py-2.5">
+              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${TYPE_STYLE[task.type] || "bg-gray-100 text-gray-600"}`}>
+                {task.type}
+              </span>
+            </td>
+            <td className="px-4 py-2.5">
+              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PRIORITY_STYLE[task.priority] || "bg-gray-100 text-gray-600"}`}>
+                {task.priority}
+              </span>
+            </td>
+            <td className="px-4 py-2.5 text-xs text-gray-700 font-medium">{task.maxMarks}</td>
+            <td className="px-4 py-2.5 text-xs text-gray-500">{task.cutoff}</td>
+            <td className="px-4 py-2.5 text-xs text-gray-500">{task.topicId?.name || "—"}</td>
+            <td className="px-4 py-2.5">
+              <div className="flex items-center gap-1">
+                <button title="View" className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition"><MdVisibility size={14} /></button>
+                <button title="Edit" className="p-1.5 rounded-lg text-gray-400 hover:bg-blue-50 hover:text-blue-500 transition"><MdEdit size={14} /></button>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+      <tfoot>
+        <tr className="border-t border-gray-100 bg-gray-50">
+          <td colSpan={8} className="px-4 py-2 text-xs text-gray-400">{tasks.length} tasks</td>
+        </tr>
+      </tfoot>
+    </table>
+  );
+};
+
 /* ══════════════════════════════════════════════════════════
    EMPTY STATE WITH INLINE UPLOAD
 ══════════════════════════════════════════════════════════ */
@@ -518,7 +765,7 @@ const SyllabusTab = ({ level, subLevel }) => {
             >
               {subjectVersions.map((v) => (
                 <option key={v._id} value={v._id}>
-                  {v.version} — {v.status}{v.status === "active" ? " ✓" : ""}
+                  {currentSubject} {v.version} — {v.status}{v.status === "active" ? " ✓" : ""}
                 </option>
               ))}
             </select>
@@ -544,7 +791,9 @@ const SyllabusTab = ({ level, subLevel }) => {
             )}
           </div>
 
-          {/* ── Topic / SubTopic table ── */}
+          {/* ── Inner Tabs: Syllabus only ── */}
+
+          {/* ── Tab Content ── */}
           <VersionTopicTable versionId={activeVersionId} searchTerm={searchTerm} />
         </div>
       )}

@@ -1,6 +1,5 @@
-Title,Description,Priority,DueDate
-Complete Level 2A Assignment,Submit the programming assignment for Level 2A,High,2024-01-15
-Prepare for Technical Interview,Review data structures and algorithms,Medium,2024-01-20
-Update Resume,Add recent projects and skills,Low,2024-01-10
-Practice Coding Problems,Solve at least 5 problems daily,Medium,2024-01-25
-Attend Mock Interview,Participate in mock interview session,High,2024-01-18
+Topic,SubTopic,TaskTitle,TaskType,MaxMarks,Cutoff,Priority,Mandatory,Description
+Introduction to Programming,Variables and Data Types,Variables Quiz,assessment,100,40,medium,true,Test understanding of variables
+Introduction to Programming,Control Flow,If-Else Assignment,project,50,20,high,true,Write programs using conditionals
+Object Oriented Programming,Classes and Objects,OOP Project,project,100,40,high,true,Create a class hierarchy
+Object Oriented Programming,Inheritance,Inheritance Task,assessment,50,20,medium,true,Demonstrate inheritance concepts

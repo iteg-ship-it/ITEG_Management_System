@@ -7,9 +7,11 @@ const {
   getTaskById,
   getAllTasks,
 } = require("../controllers/taskMasterController");
+const { bulkUploadTasks } = require("../controllers/taskMasterBulkController");
 
 router.use(verifyToken);
 
+router.post("/bulk-upload", bulkUploadTasks);
 router.post("/", createTask);
 router.get("/", getAllTasks);
 router.get("/:id", getTaskById);

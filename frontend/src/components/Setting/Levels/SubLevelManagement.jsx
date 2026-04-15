@@ -5,6 +5,10 @@ import Header from "../../common-components/sidebar/Header";
 import CommonTable from "../../common-components/table/CommonTable";
 import SearchBox from "../../common-components/seach-export/SearchBox";
 import ExportDropdown from "../../common-components/seach-export/ExportDropdown";
+import SyllabusTab, { TaskUploadDrawer, VersionTasksTable } from "./SyllabusTab";
+import {
+  useGetSyllabusVersionsBySubLevelQuery,
+} from "../../../redux/api/authApi";
 
 const LEVEL_TABS = ["Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C"];
 const SECTION_TABS = ["Students", "Tasks", "Syllabus", "Progress"];
@@ -221,32 +225,10 @@ const SubLevelManagement = () => {
             </div>
           )}
           {activeSection === "Tasks" && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-3">
-                <div className="w-1/2">
-                  <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-                </div>
-                <button className="flex items-center gap-1.5 h-10 px-4 text-sm border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 transition flex-shrink-0">
-                  <MdFilterList size={16} /> Filter
-                </button>
-                <div className="flex-shrink-0">
-                  <ExportDropdown data={DUMMY_TASKS} sectionName="tasks" />
-                </div>
-              </div>
-              <CommonTable
-                key={`tasks-${activeLevel}`}
-                columns={TASK_COLUMNS}
-                data={DUMMY_TASKS}
-                editable={true}
-                pagination={true}
-                rowsPerPage={10}
-                searchTerm={searchTerm}
-                actionButton={(row) => <TaskActions row={row} />}
-              />
-            </div>
+            <TasksTab level={level} subLevel={level} />
           )}
           {activeSection === "Syllabus" && (
-            <div className="py-16 text-center text-gray-400 text-sm">Syllabus content coming soon</div>
+            <SyllabusTab level={level} subLevel={level} />
           )}
           {activeSection === "Progress" && (
             <div className="py-16 text-center text-gray-400 text-sm">Progress content coming soon</div>
@@ -254,6 +236,63 @@ const SubLevelManagement = () => {
         </div>
       </div>
     </>
+  );
+};
+
+const TasksTab = ({ level, subLevel }) => {
+  const subLevelId = subLevel?._id;
+  const [selectedVersionId, setSelectedVersionId] = useState("");
+
+  const { data: versionsData, refetch } = useGetSyllabusVersionsBySubLevelQuery(
+    { subLevelId, sessionId: "" },
+    { skip: !subLevelId }
+  );
+  const versions = versionsData?.data || [];
+
+  const activeVersion = versions.find((v) => v._id === selectedVersionId) || versions[0];
+  const versionId = activeVersion?._id || "";
+
+  if (!versions.length) {
+    return (
+      <div className="py-16 text-center text-gray-400 text-sm">
+        No syllabus found. Please upload a syllabus first from the Syllabus tab.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Subject selector */}
+      <div className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3">
+        <span className="text-sm font-medium text-gray-600">Subject:</span>
+        <select
+          value={versionId}
+          onChange={(e) => setSelectedVersionId(e.target.value)}
+          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white"
+        >
+          {versions.map((v) => (
+            <option key={v._id} value={v._id}>
+              {v.subjectName} — {v.version} ({v.status})
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Upload + Table */}
+      {versionId && (
+        <div className="space-y-4">
+          <TaskUploadDrawer
+            syllabusVersionId={versionId}
+            subjectName={activeVersion?.subjectName || ""}
+            version={activeVersion?.version || ""}
+            onSaved={refetch}
+          />
+          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <VersionTasksTable versionId={versionId} />
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
