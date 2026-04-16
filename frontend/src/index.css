@@ -144,6 +144,19 @@ body, html {
 .from-\[\#FDA92D\] { --tw-gradient-from: var(--primary) !important; }
 .to-\[\#FDB84D\]   { --tw-gradient-to: var(--primary-light) !important; }
 
+/* ─── GLOBAL MODAL/DRAWER BACKDROP BLUR ──────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
 /* ─── SCROLLBAR UTILITIES ─────────────────────────────── */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
@@ -246,6 +259,19 @@ textarea {
 /* Full width on mobile, max-w-md on desktop */
 .drawer-panel {
   @apply w-full max-w-full sm:max-w-md;
+}
+
+/* Blur entire page when OrangeButton drawer is open */
+body.drawer-open #root {
+  filter: blur(3px);
+  transition: filter 0.3s ease;
+  pointer-events: none;
+}
+
+/* Drawer itself should NOT be blurred — it's rendered inside fixed z-[60] */
+body.drawer-open .drawer-no-blur {
+  filter: none !important;
+  pointer-events: all;
 }
 
 /* ─── AUTOFILL FIX ────────────────────────────────────── */

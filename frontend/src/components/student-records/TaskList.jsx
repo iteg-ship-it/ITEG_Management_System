@@ -561,7 +561,7 @@ const TaskModal = ({ isOpen, onClose, task, setTask, onSave, isEditing }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="modal-overlay p-4">
       <div className="bg-white rounded-xl w-full max-w-2xl p-6">
         <h2 className="text-xl font-bold mb-4">{isEditing ? 'Edit Task' : 'Add New Task'}</h2>
         
@@ -670,7 +670,7 @@ const BulkUploadModal = ({ isOpen, onClose, onUpload, onDownloadTemplate, fileIn
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="modal-overlay p-4">
       <div className="bg-white rounded-xl w-full max-w-md p-6">
         <h2 className="text-xl font-bold mb-4">Bulk Upload Tasks</h2>
         

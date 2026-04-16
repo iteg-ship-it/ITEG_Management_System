@@ -417,7 +417,7 @@ const UsersManagement = () => {
             </div>
 
             {editModal.show && (
-                <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+                <div className="modal-overlay">
                     <div className="bg-white rounded-xl py-4 px-6 w-full max-w-2xl relative">
                         <button
                             onClick={() => setEditModal({ show: false, user: null })}

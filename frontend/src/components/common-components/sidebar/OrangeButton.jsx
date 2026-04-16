@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 const OrangeButton = ({
@@ -18,11 +19,15 @@ const OrangeButton = ({
 
   const openDrawer = () => {
     setIsMounted(true);
-    setTimeout(() => setIsOpen(true), 10);
+    setTimeout(() => {
+      setIsOpen(true);
+      document.body.classList.add("drawer-open");
+    }, 10);
   };
 
   const closeDrawer = () => {
     setIsOpen(false);
+    document.body.classList.remove("drawer-open");
     setTimeout(() => setIsMounted(false), 300);
   };
 
@@ -35,13 +40,13 @@ const OrangeButton = ({
         {buttonTitle}
       </button>
 
-      {isMounted && (
-        <div className="fixed inset-0 z-[60] flex justify-end">
+      {isMounted && createPortal(
+        <div className="drawer-no-blur fixed inset-0 z-[60] flex justify-end">
 
-          {/* BACKDROP with blur */}
+          {/* BACKDROP */}
           <div
             onClick={closeDrawer}
-            className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${
+            className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
               isOpen ? "opacity-100" : "opacity-0"
             }`}
           />
@@ -88,7 +93,8 @@ const OrangeButton = ({
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
