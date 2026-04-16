@@ -1,6 +1,6 @@
 
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { toast } from 'react-toastify';
 import { Trash2, Edit, X, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -12,11 +12,13 @@ import InputField from './../common-components/common-feild/InputField';
 import CustomDropdown from './../common-components/common-feild/CustomDropdown';
 import { Formik, Form } from 'formik';
 import { buttonStyles } from './../../styles/buttonStyles';
-// import PageNavbar from '../../common-components/navbar/PageNavbar';
 import profile from './../../assets/images/profile-img.png';
 import RolesPermissions from './RolesPermissions';
 import OrangeButton from './../common-components/sidebar/OrangeButton';
 import { usePermissions } from './../../hooks/usePermissions';
+import SearchBox from './../common-components/seach-export/SearchBox';
+import ExportDropdown from './../common-components/seach-export/ExportDropdown';
+import Header from './../common-components/sidebar/Header';
 
 const UsersManagement = () => {
     const navigate = useNavigate();
@@ -37,6 +39,16 @@ const UsersManagement = () => {
     const users = usersData?.users || [];
     const departments = [...new Set(users.map(user => user.department).filter(Boolean))];
     const roles = [...new Set(users.map(user => user.role).filter(Boolean))];
+
+    const exportData = useMemo(() => users.map(u => ({
+        Name: u.name || '',
+        Email: u.email || '',
+        'Contact No': u.mobileNo || '',
+        Role: u.role || '',
+        Department: u.department || '',
+        Position: u.position || '',
+        Status: u.isActive ? 'Active' : 'Inactive'
+    })), [users]);
 
     const handleDeleteUser = async (userId, userName) => {
         if (window.confirm(`Are you sure you want to delete ${userName}?`)) {
@@ -356,25 +368,9 @@ const UsersManagement = () => {
 
     return (
         <>
-            <div className="min-h-screen">
-
-        {/* Header Section + Tabs Section */}
-        <div className="bg-white shadow-sm border-b">
-            {/* Header */}
-            <div className="flex justify-between items-start flex-wrap gap-4 p-5 pb-0">
-                <div>
-                    <h1 className="text-2xl font-semibold text-gray-800">
-                        User Management
-                    </h1>
-                    <p className="text-sm text-gray-500 mt-1">
-                        Configure user access, define roles and set system-wide permissions.
-                    </p>
-                </div>
-
-                <div className="flex gap-3">
-                    <button className="px-4 py-2 border rounded-lg text-sm bg-white hover:bg-gray-50 shadow-sm">
-                        Export
-                    </button>
+            <Header title="User Management">
+                <div className="flex items-center gap-3">
+                    <ExportDropdown data={exportData} sectionName="users" />
                     {hasPermission('Button_CreateUser', 'read') && (
                         <OrangeButton
                             buttonTitle="+ Create New"
@@ -389,42 +385,19 @@ const UsersManagement = () => {
                         />
                     )}
                 </div>
+            </Header>
+
+            <div className="flex items-center border-b border-gray-200 bg-white">
+                <div className="flex-1 min-w-0">
+                    <TabsCommon tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+                </div>
+                <div className="flex-shrink-0 px-4">
+                    <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+                </div>
             </div>
 
-            {/* Tabs */}
-            <div className="px-6 pt-4">
-                <TabsCommon
-                    tabs={tabs}
-                    activeTab={activeTab}
-                    onTabChange={setActiveTab}
-                />
-            </div>
-        </div>
-
-        {/* Main Card */}
-        <div className="p-5">
-
-            {activeTab === 'Users' ? (
-                <>
-                    {/* Section Header */}
-                    <div className="flex justify-between items-center flex-wrap gap-4 mb-4">
-                        <h2 className="text-lg font-semibold text-gray-800">
-                            Active Staff Directory
-                        </h2>
-
-                        {/* Search */}
-                        <div className="w-full md:w-72">
-                            <input
-                                type="text"
-                                placeholder="Search by name, email..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full px-4 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-400"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Table */}
+            <div className="p-5">
+                {activeTab === 'Users' ? (
                     <CommonTable
                         columns={columns}
                         data={users.filter(user =>
@@ -438,12 +411,10 @@ const UsersManagement = () => {
                         onRowClick={(user) => handleViewUser(user._id || user.id)}
                         rowsPerPage={10}
                     />
-                </>
-            ) : (
-                <RolesPermissions />
-            )}
-        </div>
-    </div>
+                ) : (
+                    <RolesPermissions />
+                )}
+            </div>
 
             {editModal.show && (
                 <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
