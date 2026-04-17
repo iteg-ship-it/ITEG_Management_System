@@ -34,6 +34,8 @@ const studentTaskSchema = new mongoose.Schema({
     cutoff: { type: Number, required: true },
     mandatory: { type: Boolean, required: true },
     priority: String,
+    timeDays: Number,
+    measurablePoints: String,
     dueDate: Date,
     assignedAt: { type: Date, default: Date.now }
   },

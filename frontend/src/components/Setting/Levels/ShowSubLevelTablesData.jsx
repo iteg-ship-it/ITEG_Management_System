@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
@@ -13,6 +13,7 @@ import CommonTable from "../../common-components/table/CommonTable";
 import InputField from "../../common-components/common-feild/InputField";
 import RadioGroup from "../../common-components/common-feild/RadioGroup";
 import SyllabusTab, { SyllabusUploadDrawer, TaskUploadDrawer, VersionTasksTable } from "./SyllabusTab";
+import { useEffect } from "react";
 
 /* ── Validation ── */
 const validationSchema = Yup.object({
@@ -62,10 +63,10 @@ const ShowSubLevelTablesData = () => {
     const departmentName = location.state?.departmentName;
     const session       = location.state?.session || location.state?.sessionName;
 
-    const [activeTab,     setActiveTab]     = useState(null);
-    const [activeSection, setActiveSection] = useState("Students");
-    const [searchTerm,    setSearchTerm]    = useState("");
-    const [activeTaskVersionId, setActiveTaskVersionId] = useState("");
+    const [activeTab,             setActiveTab]             = useState(null);
+    const [activeSection,         setActiveSection]         = useState("Students");
+    const [searchTerm,            setSearchTerm]            = useState("");
+    const [activeTaskVersionId,   setActiveTaskVersionId]   = useState("");
     const syllabusDrawerRef = useRef(null);
 
     const { data: subLevelsData } = useGetSubLevelsByLevelQuery(level?._id, { skip: !level?._id });
@@ -81,7 +82,6 @@ const ShowSubLevelTablesData = () => {
     );
     const hasSyllabus = (syllabusData?.data?.length || 0) > 0;
 
-    // Check if tasks exist for active version (for header button)
     const { data: tasksData } = useGetTasksBySyllabusVersionQuery(
         activeTaskVersionId,
         { skip: !activeTaskVersionId || activeSection !== "Tasks" }
@@ -162,29 +162,6 @@ const ShowSubLevelTablesData = () => {
                     )}
                 </Formik>
 
-                {/* Upload Syllabus — only when Syllabus tab active AND syllabus already exists */}
-                {activeSection === "Syllabus" && hasSyllabus && (
-                    <OrangeButton
-                        buttonTitle={
-                            <span className="flex items-center gap-1.5">
-                                <MdCloudUpload size={15} /> Upload Syllabus
-                            </span>
-                        }
-                        panelTitle="Upload Syllabus"
-                        panelSubtitle="Upload an Excel file with Session, Subject, Topic, SubTopic columns."
-                        drawerContent={
-                            <SyllabusUploadDrawer
-                                ref={syllabusDrawerRef}
-                                level={level}
-                                subLevel={activeSubLevel}
-                                onSaved={refetchSyllabus}
-                            />
-                        }
-                        leftBtnText="Close"
-                        rightBtnText=""
-                        onLeftClick={() => syllabusDrawerRef.current?.reset()}
-                    />
-                )}
                 {/* Upload Tasks — only when Tasks tab active AND tasks already exist */}
                 {activeSection === "Tasks" && hasTasks && activeTaskVersionId && (
                     <OrangeButton
@@ -206,6 +183,30 @@ const ShowSubLevelTablesData = () => {
                         leftBtnText="Close"
                         rightBtnText=""
                         onLeftClick={() => {}}
+                    />
+                )}
+
+                {/* Upload Syllabus — only when Syllabus tab active AND syllabus already exists */}
+                {activeSection === "Syllabus" && hasSyllabus && (
+                    <OrangeButton
+                        buttonTitle={
+                            <span className="flex items-center gap-1.5">
+                                <MdCloudUpload size={15} /> Upload Syllabus
+                            </span>
+                        }
+                        panelTitle="Upload Syllabus"
+                        panelSubtitle="Upload an Excel file with Session, Subject, Topic, SubTopic columns."
+                        drawerContent={
+                            <SyllabusUploadDrawer
+                                ref={syllabusDrawerRef}
+                                level={level}
+                                subLevel={activeSubLevel}
+                                onSaved={refetchSyllabus}
+                            />
+                        }
+                        leftBtnText="Close"
+                        rightBtnText=""
+                        onLeftClick={() => syllabusDrawerRef.current?.reset()}
                     />
                 )}
             </Header>
@@ -294,14 +295,7 @@ const TasksTab = ({ level, subLevel, onVersionChange }) => {
     const activeVersion = versions.find((v) => v._id === selectedVersionId) || versions[0];
     const versionId = activeVersion?._id || "";
 
-    // Notify parent of active version
     useEffect(() => { onVersionChange?.(versionId); }, [versionId]);
-
-    const { data: tasksData, refetch: refetchTasks } = useGetTasksBySyllabusVersionQuery(
-        versionId,
-        { skip: !versionId }
-    );
-    const hasTasks = (tasksData?.tasks?.length || 0) > 0;
 
     if (!versions.length) {
         return (
@@ -330,14 +324,12 @@ const TasksTab = ({ level, subLevel, onVersionChange }) => {
 
             {versionId && (
                 <div className="space-y-4">
-                    {!hasTasks && (
-                        <TaskUploadDrawer
-                            syllabusVersionId={versionId}
-                            subjectName={activeVersion?.subjectName || ""}
-                            version={activeVersion?.version || ""}
-                            onSaved={refetchTasks}
-                        />
-                    )}
+                    <TaskUploadDrawer
+                        syllabusVersionId={versionId}
+                        subjectName={activeVersion?.subjectName || ""}
+                        version={activeVersion?.version || ""}
+                        onSaved={refetch}
+                    />
                     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
                         <VersionTasksTable versionId={versionId} />
                     </div>

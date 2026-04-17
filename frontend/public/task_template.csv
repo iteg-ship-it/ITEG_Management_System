@@ -1,5 +1,7 @@
-Topic,SubTopic,TaskTitle,TaskType,MaxMarks,Cutoff,Priority,Mandatory,Description
-Introduction to Programming,Variables and Data Types,Variables Quiz,assessment,100,40,medium,true,Test understanding of variables
-Introduction to Programming,Control Flow,If-Else Assignment,project,50,20,high,true,Write programs using conditionals
-Object Oriented Programming,Classes and Objects,OOP Project,project,100,40,high,true,Create a class hierarchy
-Object Oriented Programming,Inheritance,Inheritance Task,assessment,50,20,medium,true,Demonstrate inheritance concepts
+Subject,Topic Name,SubTopic,Tasks,Time,Measurable Point
+JavaScript,Basics,Variables,Variables Quiz,7,Student should explain difference between var/let/const
+JavaScript,Basics,Data Types,Data Types Test,5,Student should identify all primitive data types correctly
+JavaScript,Functions,Arrow Functions,,, 
+JavaScript,Functions,Callbacks,Callbacks Project,14,Student should build a working callback-based async function
+React,Components,Functional Components,Components Assessment,7,Student should create a reusable functional component
+React,Hooks,useState,,,

@@ -34,21 +34,24 @@ const taskMasterSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: String,
 
+  timeDays: { type: Number, default: null },
+  measurablePoints: { type: String, default: null },
+
   type: {
     type: String,
     enum: ["writtenExam", "interview", "project", "presentation", "learning", "assessment"],
-    required: true
+    default: "assessment"
   },
 
-  maxMarks: { type: Number, required: true },
-  cutoff: { type: Number, required: true },
+  maxMarks: { type: Number, default: 100 },
+  cutoff: { type: Number, default: 40 },
 
   mandatory: { type: Boolean, default: true },
   priority: { type: String, enum: ["low", "medium", "high"], default: "medium" },
 
   dueDate: Date,
 
-  originalTaskId: { type: mongoose.Schema.Types.ObjectId, required: true },
+  originalTaskId: { type: mongoose.Schema.Types.ObjectId, default: null },
 
   isActive: { type: Boolean, default: true }
 }, { timestamps: true });

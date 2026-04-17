@@ -32,15 +32,17 @@ exports.bulkUploadTasks = async (req, res) => {
       const row = tasks[i];
       const rowNum = i + 2; // Excel row number (1=header)
 
-      const topicName    = (row.topic     || "").trim();
-      const subTopicName = (row.subTopic  || "").trim();
-      const taskTitle    = (row.taskTitle || "").trim();
-      const taskType     = (row.taskType  || "assessment").trim();
-      const priority     = (row.priority  || "medium").trim();
-      const maxMarks     = Number(row.maxMarks) || 100;
-      const cutoff       = Number(row.cutoff)   || 40;
-      const mandatory    = row.mandatory !== "false" && row.mandatory !== false && row.mandatory !== "0";
-      const description  = (row.description || "").trim();
+      const topicName        = (row.topic            || "").trim();
+      const subTopicName      = (row.subTopic         || "").trim();
+      const taskTitle         = (row.taskTitle        || "").trim();
+      const taskType          = (row.taskType         || "assessment").trim();
+      const priority          = (row.priority         || "medium").trim();
+      const maxMarks          = Number(row.maxMarks)  || 100;
+      const cutoff            = Number(row.cutoff)    || 40;
+      const mandatory         = row.mandatory !== "false" && row.mandatory !== false && row.mandatory !== "0";
+      const description       = (row.description      || "").trim();
+      const timeDays          = row.timeDays          ? Number(row.timeDays) : null;
+      const measurablePoints  = (row.measurablePoints || "").trim() || null;
 
       // Validate required fields
       if (!topicName || !subTopicName || !taskTitle) {
@@ -72,18 +74,20 @@ exports.bulkUploadTasks = async (req, res) => {
         syllabusVersionId,
         levelId,
         subLevelId,
-        subjectId:  subjectDoc._id,
-        topicId:    topicDoc._id,
-        subTopicId: subTopicDoc._id,
+        subjectId:        subjectDoc._id,
+        topicId:          topicDoc._id,
+        subTopicId:       subTopicDoc._id,
         taskCode,
-        title:       taskTitle,
+        title:            taskTitle,
         description,
-        type:        taskType,
+        type:             taskType,
         maxMarks,
         cutoff,
         mandatory,
         priority,
-        originalTaskId: subTopicDoc._id,
+        timeDays,
+        measurablePoints,
+        originalTaskId:   subTopicDoc._id,
       });
     }
 

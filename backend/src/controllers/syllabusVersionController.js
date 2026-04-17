@@ -20,7 +20,7 @@ exports.createSyllabusVersion = async (req, res) => {
       return res.status(400).json({ success: false, message: "levelId, subLevelId and version are required" });
     }
     if (!sessionName && !sessionIdDirect) {
-      return res.status(400).json({ success: false, message: "Session not found in Excel. Add a 'Session' column." });
+      return res.status(400).json({ success: false, message: "sessionId or sessionName is required" });
     }
     if (!Array.isArray(hierarchy) || hierarchy.length === 0) {
       return res.status(400).json({ success: false, message: "hierarchy data is required" });
@@ -56,7 +56,7 @@ exports.createSyllabusVersion = async (req, res) => {
       const subTopicIds = [];
 
       // Create the Subject doc
-      const code = `S${String(sIdx + 1).padStart(3, "0")}-${svId.toString().slice(-4)}`;
+      const code = `S${String(sIdx + 1).padStart(3, "0")}-${svId.toString().slice(-4)}-${Date.now().toString().slice(-4)}`;
       const [subjectDoc] = await Subject.create(
         [{ name: subjectName, code, syllabusVersionId: svId }],
         { session: dbSession }
@@ -91,39 +91,50 @@ exports.createSyllabusVersion = async (req, res) => {
 
       // ── Auto-generate TaskMaster entries from task fields in hierarchy ──
       const taskDocs = [];
+      // Build a map of topicName -> { topicDoc, subTopics: Map<stName, stDoc> }
+      const topicDocMap = new Map();
+      for (const [tIdx, tItem] of (sItem.topics || []).entries()) {
+        if (!tItem.topic) continue;
+        const topicDoc = await Topic.findOne({ name: tItem.topic, syllabusVersionId: svId }).session(dbSession);
+        if (!topicDoc) continue;
+        const stDocMap = new Map();
+        for (const stRaw of (tItem.subTopics || [])) {
+          if (!stRaw || typeof stRaw !== "object") continue;
+          const stDoc = await SubTopic.findOne({ name: stRaw.name, topicId: topicDoc._id }).session(dbSession);
+          if (stDoc) stDocMap.set(stRaw.name, stDoc);
+        }
+        topicDocMap.set(tItem.topic, { topicDoc, stDocMap });
+      }
+
       for (const tItem of (sItem.topics || [])) {
         if (!tItem.topic) continue;
-        const topicDoc = topicIds.length
-          ? await Topic.findOne({ name: tItem.topic, syllabusVersionId: svId }).session(dbSession)
-          : null;
-        if (!topicDoc) continue;
+        const entry = topicDocMap.get(tItem.topic);
+        if (!entry) continue;
+        const { topicDoc, stDocMap } = entry;
 
-        const subTopicsWithTasks = (tItem.subTopics || []).filter(
-          (st) => typeof st === "object" && st.taskTitle
-        );
-
-        for (const st of subTopicsWithTasks) {
-          const stDoc = await SubTopic.findOne({ name: st.name, topicId: topicDoc._id }).session(dbSession);
+        for (const st of (tItem.subTopics || [])) {
+          if (typeof st !== "object" || !st.taskTitle) continue;
+          const stDoc = stDocMap.get(st.name);
           if (!stDoc) continue;
 
-          const taskCode = `TM-${svId.toString().slice(-4)}-${topicDoc._id.toString().slice(-4)}-${stDoc._id.toString().slice(-4)}`;
-
+          const taskCode = `TM-${svId.toString().slice(-6)}-${topicDoc._id.toString().slice(-4)}-${stDoc._id.toString().slice(-4)}`;
           taskDocs.push({
             syllabusVersionId: svId,
             levelId,
             subLevelId,
-            subjectId: subjectDoc._id,
-            topicId:   topicDoc._id,
-            subTopicId: stDoc._id,
+            subjectId:        subjectDoc._id,
+            topicId:          topicDoc._id,
+            subTopicId:       stDoc._id,
             taskCode,
-            title:       st.taskTitle,
-            description: st.taskDescription || "",
-            type:        st.taskType        || "assessment",
-            maxMarks:    Number(st.maxMarks) || 100,
-            cutoff:      Number(st.cutoff)   || 40,
-            mandatory:   st.mandatory !== undefined ? st.mandatory : true,
-            priority:    st.priority         || "medium",
-            originalTaskId: stDoc._id,
+            title:            st.taskTitle,
+            description:      st.taskDescription   || "",
+            type:             st.taskType          || "assessment",
+            maxMarks:         Number(st.maxMarks)  || 100,
+            cutoff:           Number(st.cutoff)    || 40,
+            mandatory:        st.mandatory !== undefined ? st.mandatory : true,
+            priority:         st.priority          || "medium",
+            timeDays:         (st.timeDays && !isNaN(parseInt(st.timeDays))) ? parseInt(st.timeDays) : null,
+            measurablePoints: st.measurablePoints  || null,
           });
         }
       }
