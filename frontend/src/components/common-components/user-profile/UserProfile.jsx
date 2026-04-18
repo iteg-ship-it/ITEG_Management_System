@@ -40,6 +40,10 @@ const UserProfile = () => {
         console.warn("Logout API failed but local logout done", apiError);
       }
 
+      const theme = localStorage.getItem('theme');
+      localStorage.clear();
+      if (theme) localStorage.setItem('theme', theme);
+
       toast.success("Logged out successfully");
       navigate("/login", { replace: true });
 

@@ -75,7 +75,9 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
     if (!refreshToken) {
       console.error("No valid refresh token. Logging out...");
       api.dispatch(logout());
+      const theme = localStorage.getItem('theme');
       localStorage.clear();
+      if (theme) localStorage.setItem('theme', theme);
       window.location.href = "/login";
       return result;
     }
@@ -108,7 +110,9 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
     } else {
       console.error("Refresh failed. Logging out...");
       api.dispatch(logout());
+      const theme = localStorage.getItem('theme');
       localStorage.clear();
+      if (theme) localStorage.setItem('theme', theme);
       window.location.href = "/login";
     }
   }
@@ -120,7 +124,7 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithAutoRefresh,
-  tagTypes: ['Student', 'PlacementStudent', 'User', 'Department', 'Role', 'Permission'],
+  tagTypes: ['Student', 'PlacementStudent', 'User', 'Department', 'Role', 'Permission', 'Settings'],
   // Global configuration for better caching
   keepUnusedDataFor: 300, // 5 minutes default cache
   refetchOnMountOrArgChange: 30, // Only refetch if data is older than 30 seconds
@@ -147,7 +151,9 @@ export const authApi = createApi({
           window.location.replace("/");
         } catch (error) {
           console.error("Login failed:", error);
+          const theme = localStorage.getItem('theme');
           localStorage.clear();
+          if (theme) localStorage.setItem('theme', theme);
           dispatch(logout());
         }
       },
@@ -995,6 +1001,21 @@ export const authApi = createApi({
       invalidatesTags: (result, error, { id }) => [{ type: 'Permission', id }],
     }),
 
+    // System Settings
+    getSystemSetting: builder.query({
+      query: (key) => `/settings/${key}`,
+      providesTags: ['Settings'],
+    }),
+
+    updateSystemSetting: builder.mutation({
+      query: ({ key, value }) => ({
+        url: `/settings/${key}`,
+        method: 'PUT',
+        body: { value },
+      }),
+      invalidatesTags: ['Settings'],
+    }),
+
   }),
 });
 
@@ -1078,5 +1099,7 @@ export const {
   useDeleteRoleMutation,
   useGetAllPossiblePermissionsQuery,
   useGetUserPermissionsQuery,
-  useUpdateUserPermissionsMutation
+  useUpdateUserPermissionsMutation,
+  useGetSystemSettingQuery,
+  useUpdateSystemSettingMutation,
 } = authApi;

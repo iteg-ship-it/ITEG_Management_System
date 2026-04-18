@@ -343,7 +343,13 @@ exports.forgotPassword = async (req, res) => {
     await user.save();
 
     const resetLink = `${token}`;
-    await sendResetLinkEmail(email, resetLink);
+    
+    try {
+      await sendResetLinkEmail(email, resetLink);
+    } catch (emailErr) {
+      console.error("Email send failed:", emailErr.message);
+      return res.status(500).json({ message: "Failed to send reset email. Please check email configuration." });
+    }
 
     res.status(200).json({ message: "Reset link sent to your email." });
   } catch (err) {
