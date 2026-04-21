@@ -1,5 +1,5 @@
-const SyllabusVersion = require("../models/SyllabusVersion");
-const TaskMaster = require("../models/TaskMaster");
+const SyllabusVersion = require("../models/syllabus/SyllabusVersion");
+const TaskMaster = require("../models/syllabus/TaskMaster");
 
 /**
  * ==================== STEP 1: CREATE SYLLABUS WITH EMBEDDED TASKS ====================

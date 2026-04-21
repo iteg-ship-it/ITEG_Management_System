@@ -1,8 +1,8 @@
-const TaskMaster    = require("../models/TaskMaster");
-const SyllabusVersion = require("../models/SyllabusVersion");
-const Subject       = require("../models/syllabus/Subject");
-const Topic         = require("../models/syllabus/Topic");
-const SubTopic      = require("../models/syllabus/SubTopic");
+const TaskMaster    = require("../../models/syllabus/TaskMaster");
+const SyllabusVersion = require("../../models/syllabus/SyllabusVersion");
+const Subject       = require("../../models/syllabus/Subject");
+const Topic         = require("../../models/syllabus/Topic");
+const SubTopic      = require("../../models/syllabus/SubTopic");
 
 const VALID_TYPES     = ["writtenExam", "interview", "project", "presentation", "learning", "assessment"];
 const VALID_PRIORITY  = ["low", "medium", "high"];

@@ -1,5 +1,5 @@
-const Level = require("../models/Level");
-const SubDepartment = require("../models/SubDepartment");
+const Level = require("../../models/department/Level");
+const SubDepartment = require("../../models/department/SubDepartment");
 const mongoose = require("mongoose");
 
 // Helper function to validate ObjectId

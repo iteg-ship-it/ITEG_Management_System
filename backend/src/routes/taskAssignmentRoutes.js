@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const taskAssignmentController = require("../controllers/taskAssignmentController");
+const taskAssignmentController = require("../controllers/syllabus/taskAssignmentController");
 
 // Task assignment
 router.post("/assign-to-student", taskAssignmentController.assignTasksToStudent);

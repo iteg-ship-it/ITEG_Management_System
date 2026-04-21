@@ -1,4 +1,4 @@
-const TaskMaster = require("../models/TaskMaster");
+const TaskMaster = require("../../models/syllabus/TaskMaster");
 
 exports.createTask = async (req, res) => {
   try {

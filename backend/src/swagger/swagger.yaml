@@ -381,6 +381,21 @@ components:
                     example: 10
                   subcategories:
                     type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: "Punctuality"
+                        value:
+                          type: boolean
+                          example: true
+                  score:
+                    type: number
+                    example: 8
+            totalDisciplineMarks:
+              type: number
+              example: 25
     Admission:
       type: object
       required:
@@ -565,7 +580,7 @@ components:
             isScheduled:
               type: boolean
               example: true
-    Level:
+    AdmissionLevel:
       type: object
       properties:
         levelNo:
@@ -659,7 +674,7 @@ components:
         level:
           type: array
           items:
-            $ref: '#/components/schemas/Level'
+            $ref: '#/components/schemas/AdmissionLevel'
         techno:
           type: string
         attendancePercentage:
@@ -1967,6 +1982,11 @@ paths:
           description: Session deleted successfully
         '404':
           description: Session not found
+        '500':
+          description: Server error
+
+  # ===== USER/AUTH APIs =====
+  /api/user/signup:
     post:
       summary: Register a new user (admin/superadmin/faculty)
       tags:
@@ -2245,11 +2265,11 @@ paths:
                     example: "User updated successfully"
                   user:
                     $ref: '#/components/schemas/User'
-        400:
+        '400':
           description: Invalid request data
-        404:
+        '404':
           description: User not found
-        500:
+        '500':
           description: Server error
 
   /api/admission/students/webhook/register:
@@ -2428,37 +2448,37 @@ paths:
                   description: Assignment details for the interview
                   example: "Assignment details here"
                 communication:
-                  type: Number
-                  description: Communication mode (e.g., Zoom, Google Meet)
+                  type: number
+                  description: Communication score
                   example: 7
                 confidence:
-                  type: Number
+                  type: number
                   description: Confidence level of the candidate
                   example: 5
                 goal:
-                  type: Number
-                  description: Interview goal (e.g., Technical, HR)
+                  type: number
+                  description: Goal clarity score
                   example: 3
                 subjectKnowlage:
-                 type: Number
-                 description: Subject of the interview
-                 example: 5
+                  type: number
+                  description: Subject knowledge score
+                  example: 5
                 assignmentMarks:
-                  type: Number
-                  description: Technical skills assessed in the interview
+                  type: number
+                  description: Assignment marks
                   example: 5
                 sincerity:
-                 type: Number
-                 description: Sincerity level of the candidate
-                 example: 5
+                  type: number
+                  description: Sincerity level of the candidate
+                  example: 5
                 maths:
-                  type: Number
-                  description: Mathematics skills assessed in the interview
+                  type: number
+                  description: Mathematics skills score
                   example: 5
                 reasoning:
-                 type: Number
-                 description: Reasoning skills assessed in the interview
-                 example: 5
+                  type: number
+                  description: Reasoning skills score
+                  example: 5
                 marks:
                   type: integer
                   description: Marks obtained in the interview
@@ -3052,13 +3072,9 @@ paths:
                   message:
                     type: string
                   error:
-                    type: object
-
- 
                     type: string
 
-
-  /api/admission/students/webhook/update-admitted-student:
+  /api/admission/students/webhook/update_admitted_student:
     patch:
       summary: Update admitted student by primary key (prkey)
       tags:
@@ -4318,7 +4334,7 @@ paths:
 
 
   /api/admitted/students/update_technology/{id}:
-    put:
+    patch:
       summary: Update student's technology after Level 2A
       description: Updates the 'techno' field of a student only if they have passed Level 2A.
       tags:
@@ -5261,66 +5277,4 @@ paths:
                     example: "Error message details"
 
 
-
-  /report-card:
-    post:
-      tags:
-        - Student Report Card
-      summary: Save or update student report card
-      description: Creates a new report card or updates it if already exists using studentRef.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ReportCardInput"
-      responses:
-        "201":
-          description: Report card saved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ReportCardResponse"
-        "500":
-          description: Internal server error
-
-  /api/report-card/{id}:
-    put:
-      tags:
-        - Student Report Card
-      summary: Update student report card
-      description: Updates an existing report card by ID.
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          description: Report card ID
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ReportCardInput"
-      responses:
-        "200":
-          description: Report card updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ReportCardResponse"
-        "404":
-          description: Report card not found
-        "500":
-          description: Internal server error
-
-
-
-
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+

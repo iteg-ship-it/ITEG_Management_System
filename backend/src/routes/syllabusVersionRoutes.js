@@ -12,7 +12,7 @@ const {
   activateSyllabusVersion,
   archiveSyllabusVersion,
   deleteSyllabusVersion
-} = require("../controllers/syllabusVersionController");
+} = require("../controllers/syllabus/syllabusVersionController");
 
 // CRUD
 router.post("/", createSyllabusVersion);

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
-const sessionController = require("../controllers/sessionController");
+const sessionController = require("../controllers/department/sessionController");
 
 const allowedRoles = ["superadmin", "admin"];
 

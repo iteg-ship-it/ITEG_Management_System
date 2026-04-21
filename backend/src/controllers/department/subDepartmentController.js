@@ -1,5 +1,5 @@
-const SubDepartment = require("../models/SubDepartment");
-const Department = require("../models/Department");
+const SubDepartment = require("../../models/department/SubDepartment");
+const Department = require("../../models/department/Department");
 const mongoose = require("mongoose");
 
 // Helper function to validate ObjectId

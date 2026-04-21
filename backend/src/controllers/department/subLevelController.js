@@ -1,5 +1,5 @@
-const SubLevel = require("../models/SubLevel");
-const Level = require("../models/Level");
+const SubLevel = require("../../models/department/SubLevel");
+const Level = require("../../models/department/Level");
 const mongoose = require("mongoose");
 
 // Helper function to validate ObjectId
@@ -10,11 +10,11 @@ const isValidObjectId = (id) => {
 // Create SubLevel
 exports.createSubLevel = async (req, res) => {
   try {
-    const { subDepartmentId } = req.body;
+    const { levelId } = req.body;
 
     // Check if level exists and is active
     const level = await Level.findOne({ 
-      _id: req.body.levelId, 
+      _id: levelId, 
       isActive: true 
     });
     

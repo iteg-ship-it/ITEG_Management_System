@@ -1,6 +1,6 @@
-const TaskMaster = require("../models/TaskMaster");
-const StudentTask = require("../models/StudentTask");
-const Student = require("../models/Student");
+const TaskMaster = require("../models/syllabus/TaskMaster");
+const StudentTask = require("../models/syllabus/StudentTask");
+const Student = require("../models/student/Student");
 
 /**
  * ==================== ASSIGN TASKS FROM TASKMASTER TO STUDENT ====================

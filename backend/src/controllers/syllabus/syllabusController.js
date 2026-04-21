@@ -3,8 +3,8 @@ const {
   approveSyllabus,
   activateSyllabus,
   getSyllabusWithTaskCount
-} = require("../services/syllabusService");
-const SyllabusVersion = require("../models/SyllabusVersion");
+} = require("../../services/syllabusService");
+const SyllabusVersion = require("../../models/syllabus/SyllabusVersion");
 
 // ==================== CREATE SYLLABUS WITH TASKS ====================
 exports.createSyllabus = async (req, res) => {

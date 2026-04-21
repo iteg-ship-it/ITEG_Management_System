@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const syllabusController = require("../controllers/syllabusController");
+const syllabusController = require("../controllers/syllabus/syllabusController");
 
 // Syllabus CRUD
 router.post("/", syllabusController.createSyllabus);

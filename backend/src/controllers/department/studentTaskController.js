@@ -6,7 +6,7 @@ const {
   updateProgress,
   submitTask,
   evaluateTask
-} = require("../services/studentTaskService");
+} = require("../../services/studentTaskService");
 
 // ==================== ASSIGN TASKS TO STUDENT ====================
 exports.assignTasksToStudent = async (req, res) => {

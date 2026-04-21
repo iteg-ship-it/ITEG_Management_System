@@ -6,8 +6,8 @@ const {
   updateTask,
   getTaskById,
   getAllTasks,
-} = require("../controllers/taskMasterController");
-const { bulkUploadTasks } = require("../controllers/taskMasterBulkController");
+} = require("../controllers/syllabus/taskMasterController");
+const { bulkUploadTasks } = require("../controllers/syllabus/taskMasterBulkController");
 
 router.use(verifyToken);
 

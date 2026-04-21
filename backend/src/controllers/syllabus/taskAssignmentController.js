@@ -4,7 +4,7 @@ const {
   assignTasksToSessionLevel,
   getStudentTasks,
   getStudentTaskSummary
-} = require("../services/taskAssignmentService");
+} = require("../../services/taskAssignmentService");
 
 // ==================== ASSIGN TASKS TO SINGLE STUDENT ====================
 exports.assignTasksToStudent = async (req, res) => {
