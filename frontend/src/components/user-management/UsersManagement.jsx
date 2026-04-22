@@ -1,4 +1,5 @@
-/* eslint-disable react/prop-types */
+
+
 import { useState, useRef, useMemo } from 'react';
 import { toast } from 'react-toastify';
 import { Trash2, Edit, X, Eye, EyeOff } from 'lucide-react';
@@ -15,10 +16,9 @@ import profile from './../../assets/images/profile-img.png';
 import RolesPermissions from './RolesPermissions';
 import OrangeButton from './../common-components/sidebar/OrangeButton';
 import { usePermissions } from './../../hooks/usePermissions';
-import Header from './../common-components/sidebar/Header';
 import SearchBox from './../common-components/seach-export/SearchBox';
 import ExportDropdown from './../common-components/seach-export/ExportDropdown';
-import FilterButton from './../common-components/seach-export/FilterButton';
+import Header from './../common-components/sidebar/Header';
 
 const UsersManagement = () => {
     const navigate = useNavigate();
@@ -52,6 +52,16 @@ const UsersManagement = () => {
             )
         );
     }, [filteredUsers, users, searchTerm]);
+
+    const exportData = useMemo(() => users.map(u => ({
+        Name: u.name || '',
+        Email: u.email || '',
+        'Contact No': u.mobileNo || '',
+        Role: u.role || '',
+        Department: u.department || '',
+        Position: u.position || '',
+        Status: u.isActive ? 'Active' : 'Inactive'
+    })), [users]);
 
     const handleDeleteUser = async (userId, userName) => {
         if (window.confirm(`Are you sure you want to delete ${userName}?`)) {
@@ -212,8 +222,8 @@ const UsersManagement = () => {
     return (
         <>
             <Header title="User Management">
-                <div className="flex items-center gap-2">
-                    <ExportDropdown data={displayData} sectionName="users" fileName="users-export" />
+                <div className="flex items-center gap-3">
+                    <ExportDropdown data={exportData} sectionName="users" />
                     {hasPermission('Button_CreateUser', 'read') && (
                         <OrangeButton
                             buttonTitle="+ Create New"
@@ -226,17 +236,12 @@ const UsersManagement = () => {
                 </div>
             </Header>
 
-            <div className="px-6 pt-2 bg-white border-b flex items-end justify-between">
-                <TabsCommon tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
-                <div className="flex items-center gap-2 pb-2">
-                    <FilterButton
-                        data={users}
-                        filterableColumns={filterableColumns}
-                        onFilteredData={setFilteredUsers}
-                    />
-                    <div className="w-72">
-                        <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-                    </div>
+            <div className="flex items-center border-b border-gray-200 bg-white">
+                <div className="flex-1 min-w-0">
+                    <TabsCommon tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+                </div>
+                <div className="flex-shrink-0 px-4">
+                    <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
                 </div>
             </div>
 
@@ -258,7 +263,7 @@ const UsersManagement = () => {
             </div>
 
             {editModal.show && (
-                <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+                <div className="modal-overlay">
                     <div className="bg-white rounded-xl py-4 px-6 w-full max-w-2xl relative">
                         <button onClick={() => setEditModal({ show: false, user: null })} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
                             <X size={20} />
