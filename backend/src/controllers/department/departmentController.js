@@ -133,7 +133,7 @@ exports.createDepartment = async (req, res) => {
 exports.getAllDepartments = async (req, res) => {
   try {
     const SubDepartment = require("../../models/department/SubDepartment");
-    const Student = require("../../models/Student");
+    const Student = require("../../models/student/Student");
 
     const departments = await Department.find();
 
