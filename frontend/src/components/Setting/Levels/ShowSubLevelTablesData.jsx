@@ -1,9 +1,9 @@
 import { useState, useRef } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
-import { MdFilterList, MdCloudUpload } from "react-icons/md";
+import { MdFilterList, MdCloudUpload, MdPictureAsPdf, MdDescription, MdTableChart, MdVisibility, MdEdit, MdCheckCircle, MdBlock, MdDownload } from "react-icons/md";
 import Header from "../../common-components/sidebar/Header";
 import OrangeButton from "../../common-components/sidebar/OrangeButton";
 import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation, useGetSyllabusVersionsBySubLevelQuery, useGetTasksBySyllabusVersionQuery } from "../../../redux/api/authApi";
@@ -303,7 +303,7 @@ const ShowSubLevelTablesData = () => {
                                 key={sl._id}
                                 onClick={() => setActiveTab(sl)}
                                 className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-all duration-200 border-b-2 ${
-                                    activeSubLevel?._id === sl._id
+                                    activeTab?._id === sl._id
                                         ? "border-orange-500 text-orange-500 font-semibold"
                                         : "border-transparent text-gray-500 hover:text-gray-700"
                                 }`}
@@ -521,7 +521,7 @@ const ShowSubLevelTablesData = () => {
                                 </div>
                             </div>
                             <CommonTable
-                                key={`students-${activeSubLevel?._id}`}
+                                key={`students-${activeTab?._id}`}
                                 columns={STUDENT_COLUMNS}
                                 data={DUMMY_STUDENTS}
                                 editable={false}
@@ -535,7 +535,7 @@ const ShowSubLevelTablesData = () => {
 
                     {/* ── Tasks ── */}
                     {activeSection === "Tasks" && (
-                        <TasksTab level={level} subLevel={activeSubLevel} onVersionChange={setActiveTaskVersionId} />
+                        <TasksTab level={level} subLevel={activeTab} onVersionChange={setActiveTaskVersionId} />
                     )}
 
                     {/* ── Syllabus ── */}
