@@ -349,6 +349,9 @@ const updateStudentTaskStatus = async (studentId, taskId, payload) => {
     }
   });
 
+  const { syncStudentReadiness } = require("./studentService");
+  await syncStudentReadiness(studentId);
+
   return studentTask;
 };
 

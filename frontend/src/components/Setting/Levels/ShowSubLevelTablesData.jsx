@@ -1,12 +1,12 @@
 import { useState, useRef } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
-import { MdFilterList, MdCloudUpload } from "react-icons/md";
+import { MdFilterList, MdCloudUpload , MdPictureAsPdf, MdDescription, MdTableChart} from "react-icons/md";
 import Header from "../../common-components/sidebar/Header";
 import OrangeButton from "../../common-components/sidebar/OrangeButton";
-import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation, useGetSyllabusVersionsBySubLevelQuery, useGetTasksBySyllabusVersionQuery } from "../../../redux/api/authApi";
+import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation, useGetSyllabusVersionsBySubLevelQuery, useGetTaskBasedStudentsQuery } from "../../../redux/api/authApi";
 import SearchBox from "../../common-components/seach-export/SearchBox";
 import ExportDropdown from "../../common-components/seach-export/ExportDropdown";
 import CommonTable from "../../common-components/table/CommonTable";
@@ -276,8 +276,34 @@ const ShowSubLevelTablesData = () => {
     const levelTabs = subLevels.length > 0
         ? subLevels.map((sl) => sl.name)
         : ["Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C"];
+    const activeSubLevel = activeTab || subLevels[0] || null;
+
+    useEffect(() => {
+        if (!activeTab && subLevels.length > 0) {
+            setActiveTab(subLevels[0]);
+        }
+    }, [activeTab, subLevels]);
 
     const [addSubLevel] = useAddSubLevelMutation();
+    const { data: studentsResponse } = useGetTaskBasedStudentsQuery(
+        {
+            subDepartmentId: subdepartment?._id,
+            levelId: level?._id,
+            subLevelId: activeSubLevel?._id,
+        },
+        { skip: !subdepartment?._id || !level?._id || !activeSubLevel?._id }
+    );
+
+    const studentRows = (studentsResponse?.data || []).map((student, index) => ({
+        ...student,
+        sno: index + 1,
+        fullName: [student.firstName, student.lastName].filter(Boolean).join(" ").trim() || student.prkey,
+        fatherName: student.fatherName || "-",
+        mobile: student.studentMobile || student.parentMobile || "-",
+        course: student.selectedCourse || "-",
+        busRoute: student.currentSubLevelId?.name || activeSubLevel?.name || "-",
+        attempts: student.taskSnapshots?.length || 0,
+    }));
 
     const handleSectionChange = (tab) => { setActiveSection(tab); setSearchTerm(""); };
 
@@ -410,7 +436,7 @@ const ShowSubLevelTablesData = () => {
                                                             className="w-full h-10 px-3 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-700 focus:outline-none focus:border-orange-400 focus:bg-white transition"
                                                         />
                                                         <div className="space-y-2 max-h-40 overflow-y-auto">
-                                                            {DUMMY_STUDENTS
+                                                            {studentRows
                                                                 .filter((s) => s.fullName.toLowerCase().includes(values.studentSearch.toLowerCase()))
                                                                 .map((s) => (
                                                                     <label key={s.sno} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
@@ -517,18 +543,18 @@ const ShowSubLevelTablesData = () => {
                                     <button className="flex items-center gap-1.5 h-10 px-4 text-sm border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 transition flex-shrink-0">
                                         <MdFilterList size={16} /> Filter
                                     </button>
-                                    <ExportDropdown data={DUMMY_STUDENTS} sectionName="students" />
+                                    <ExportDropdown data={studentRows} sectionName="students" />
                                 </div>
                             </div>
                             <CommonTable
                                 key={`students-${activeSubLevel?._id}`}
                                 columns={STUDENT_COLUMNS}
-                                data={DUMMY_STUDENTS}
+                                data={studentRows}
                                 editable={false}
                                 pagination={true}
                                 rowsPerPage={10}
                                 searchTerm={searchTerm}
-                                onRowClick={(row) => navigate("/setting/student-profile", { state: { student: row } })}
+                                onRowClick={(row) => navigate(`/setting/student-profile/${row._id}`, { state: { student: row } })}
                             />
                         </div>
                     )}

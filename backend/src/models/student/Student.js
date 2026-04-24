@@ -250,6 +250,17 @@ const studentSchema = new mongoose.Schema({
     default: "Active"
   },
 
+  readinessStatus: {
+    type: String,
+    enum: ["NotReady", "ReadyForPlacement"],
+    default: "NotReady"
+  },
+
+  readyForPlacementAt: {
+    type: Date,
+    default: null
+  },
+
   academicHistory: [
     {
       yearName: String,

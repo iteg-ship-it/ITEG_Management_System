@@ -4,6 +4,7 @@ const SubLevel = require("../models/department/SubLevel");
 const SyllabusVersion = require("../models/syllabus/SyllabusVersion");
 const { assignTasksToStudent } = require("./taskAssignmentService");
 const { sendEmail } = require("../controllers/helper/emailController");
+const { syncStudentReadiness } = require("./studentService");
 
 const getStudentWithProgression = async (studentId) => {
   const student = await Student.findById(studentId)
@@ -190,6 +191,8 @@ const promoteStudent = async (studentId, promotedBy, remark = "") => {
         }
       });
     }
+
+    await syncStudentReadiness(student._id);
 
     return {
       studentId: student._id,
