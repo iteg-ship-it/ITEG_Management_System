@@ -3,7 +3,18 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
-import { MdFilterList, MdCloudUpload , MdPictureAsPdf, MdDescription, MdTableChart} from "react-icons/md";
+import {
+    MdFilterList,
+    MdCloudUpload,
+    MdPictureAsPdf,
+    MdDescription,
+    MdTableChart,
+    MdVisibility,
+    MdEdit,
+    MdBlock,
+    MdCheckCircle,
+    MdDownload,
+} from "react-icons/md";
 import Header from "../../common-components/sidebar/Header";
 import OrangeButton from "../../common-components/sidebar/OrangeButton";
 import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation, useGetSyllabusVersionsBySubLevelQuery, useGetTaskBasedStudentsQuery } from "../../../redux/api/authApi";
@@ -12,7 +23,7 @@ import ExportDropdown from "../../common-components/seach-export/ExportDropdown"
 import CommonTable from "../../common-components/table/CommonTable";
 import InputField from "../../common-components/common-feild/InputField";
 import RadioGroup from "../../common-components/common-feild/RadioGroup";
-import SyllabusTab, { SyllabusUploadDrawer, TaskUploadDrawer, VersionTasksTable } from "./SyllabusTab";
+import SyllabusTab, { TasksTab, TaskUploadDrawer, VersionTasksTable } from "./SyllabusTab";
 import { useEffect } from "react";
 
 /* ── Validation ── */
@@ -268,7 +279,6 @@ const ShowSubLevelTablesData = () => {
     const [activeTab,             setActiveTab]             = useState(null);
     const [activeSection,         setActiveSection]         = useState("Students");
     const [searchTerm,            setSearchTerm]            = useState("");
-    const [activeTaskVersionId,   setActiveTaskVersionId]   = useState("");
     const syllabusDrawerRef = useRef(null);
 
     const { data: subLevelsData } = useGetSubLevelsByLevelQuery(level?._id, { skip: !level?._id });
@@ -561,7 +571,7 @@ const ShowSubLevelTablesData = () => {
 
                     {/* ── Tasks ── */}
                     {activeSection === "Tasks" && (
-                        <TasksTab level={level} subLevel={activeSubLevel} onVersionChange={setActiveTaskVersionId} />
+                        <TasksTab level={level} subLevel={activeSubLevel} />
                     )}
 
                     {/* ── Syllabus ── */}
@@ -618,7 +628,7 @@ const ShowSubLevelTablesData = () => {
     );
 };
 
-const TasksTab = ({ level, subLevel, onVersionChange }) => {
+const LegacyTasksTab = ({ level, subLevel, onVersionChange }) => {
     const subLevelId = subLevel?._id;
     const [selectedVersionId, setSelectedVersionId] = useState("");
 

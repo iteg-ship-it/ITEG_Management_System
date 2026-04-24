@@ -120,7 +120,7 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithAutoRefresh,
-  tagTypes: ['Student', 'PlacementStudent', 'User', 'Department', 'Role', 'Permission', 'Task', 'Session', 'Syllabus', 'Company'],
+  tagTypes: ['Student', 'PlacementStudent', 'User', 'Department', 'Role', 'Permission', 'Task', 'Session', 'Syllabus', 'Company', 'TaskMaster', 'SyllabusVersion'],
   // Global configuration for better caching
   keepUnusedDataFor: 300, // 5 minutes default cache
   refetchOnMountOrArgChange: 30, // Only refetch if data is older than 30 seconds
@@ -1197,7 +1197,7 @@ export const authApi = createApi({
       invalidatesTags: ['TaskMaster'],
     }),
 
-    bulkUploadTasks: builder.mutation({
+    bulkUploadTaskMaster: builder.mutation({
       query: (data) => ({ url: '/task-master/bulk-upload', method: 'POST', body: data }),
       invalidatesTags: (result, error, data) => [
         { type: 'TaskMaster', id: data.syllabusVersionId },
@@ -1244,6 +1244,96 @@ export const authApi = createApi({
     updateInterviewFlag: builder.mutation({
       query: (studentId) => ({ url: `/admission/students/update_interview_flag/${studentId}`, method: 'PUT' }),
       invalidatesTags: ['Student'],
+    }),
+
+    // --- Task-based Student Profile ---
+    getTaskBasedStudents: builder.query({
+      query: ({ subDepartmentId, levelId, subLevelId } = {}) => {
+        const params = new URLSearchParams();
+        if (subDepartmentId) params.append("subDepartmentId", subDepartmentId);
+        if (levelId) params.append("levelId", levelId);
+        if (subLevelId) params.append("subLevelId", subLevelId);
+
+        const queryString = params.toString();
+        return {
+          url: `/students${queryString ? `?${queryString}` : ""}`,
+          method: "GET",
+        };
+      },
+      providesTags: ['Student'],
+    }),
+
+    getTaskBasedStudentProfile: builder.query({
+      query: ({ studentId, syllabusVersionId } = {}) => {
+        const params = new URLSearchParams();
+        if (syllabusVersionId) params.append("syllabusVersionId", syllabusVersionId);
+
+        const queryString = params.toString();
+        return {
+          url: `/students/${studentId}/profile${queryString ? `?${queryString}` : ""}`,
+          method: "GET",
+        };
+      },
+      providesTags: (result, error, { studentId }) => [{ type: 'Student', id: studentId }],
+    }),
+
+    getTaskBasedStudentPromotionPreview: builder.query({
+      query: (studentId) => ({
+        url: `/students/${studentId}/promotion/preview`,
+        method: "GET",
+      }),
+      providesTags: (result, error, studentId) => [{ type: 'Student', id: studentId }],
+    }),
+
+    getTaskBasedStudentPromotionHistory: builder.query({
+      query: (studentId) => ({
+        url: `/students/${studentId}/promotion/history`,
+        method: "GET",
+      }),
+      providesTags: (result, error, studentId) => [{ type: 'Student', id: studentId }],
+    }),
+
+    updateTaskBasedStudentTaskStatus: builder.mutation({
+      query: ({ studentId, taskId, ...data }) => ({
+        url: `/students/${studentId}/profile/tasks/${taskId}`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: (result, error, { studentId }) => [{ type: 'Student', id: studentId }, { type: 'Task', id: studentId }],
+    }),
+
+    uploadTaskBasedStudentDocument: builder.mutation({
+      query: ({ studentId, ...data }) => ({
+        url: `/students/${studentId}/profile/documents`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: (result, error, { studentId }) => [{ type: 'Student', id: studentId }],
+    }),
+
+    deactivateTaskBasedStudentDocument: builder.mutation({
+      query: ({ studentId, documentId }) => ({
+        url: `/students/${studentId}/profile/documents/${documentId}/deactivate`,
+        method: "PATCH",
+      }),
+      invalidatesTags: (result, error, { studentId }) => [{ type: 'Student', id: studentId }],
+    }),
+
+    promoteTaskBasedStudent: builder.mutation({
+      query: ({ studentId, ...data }) => ({
+        url: `/students/${studentId}/promotion`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: (result, error, { studentId }) => [{ type: 'Student', id: studentId }],
+    }),
+
+    recalculateTaskBasedStudentReadiness: builder.mutation({
+      query: (studentId) => ({
+        url: `/students/${studentId}/readiness/recalculate`,
+        method: "POST",
+      }),
+      invalidatesTags: (result, error, studentId) => [{ type: 'Student', id: studentId }],
     }),
 
   }),
@@ -1373,7 +1463,7 @@ export const {
   useGetTasksBySyllabusVersionQuery,
   useCreateTaskMasterMutation,
   useUpdateTaskMasterMutation,
-  useBulkUploadTasksMutation,
+  useBulkUploadTaskMasterMutation,
   // Syllabus
   useCreateSyllabusMutation,
   useGetAllSyllabusQuery,
@@ -1386,4 +1476,14 @@ export const {
   useGetDepartmentByIdQuery,
   // Admission
   useUpdateInterviewFlagMutation,
+  // Task-based student profile
+  useGetTaskBasedStudentsQuery,
+  useGetTaskBasedStudentProfileQuery,
+  useGetTaskBasedStudentPromotionPreviewQuery,
+  useGetTaskBasedStudentPromotionHistoryQuery,
+  useUpdateTaskBasedStudentTaskStatusMutation,
+  useUploadTaskBasedStudentDocumentMutation,
+  useDeactivateTaskBasedStudentDocumentMutation,
+  usePromoteTaskBasedStudentMutation,
+  useRecalculateTaskBasedStudentReadinessMutation,
 } = authApi;

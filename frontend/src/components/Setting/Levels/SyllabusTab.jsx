@@ -15,7 +15,7 @@ import {
   useActivateSyllabusVersionMutation,
   useGetAllSessionsQuery,
   useGetTasksBySyllabusVersionQuery,
-  useBulkUploadTasksMutation,
+  useBulkUploadTaskMasterMutation,
 } from "../../../redux/api/authApi";
 
 /* ─── helpers ─────────────────────────────────────────── */
@@ -433,7 +433,7 @@ export const TaskUploadDrawer = ({ syllabusVersionId, subjectName, version, onSa
   const [saving,   setSaving]   = useState(false);
   const [parsing,  setParsing]  = useState(false);
 
-  const [bulkUploadTasks] = useBulkUploadTasksMutation();
+  const [bulkUploadTasks] = useBulkUploadTaskMasterMutation();
 
   const reset = () => { setRows([]); setFileName(""); };
 
