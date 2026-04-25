@@ -1,17 +1,30 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
-import { MdFilterList, MdEdit, MdVisibility, MdBlock, MdCheckCircle, MdDownload, MdPictureAsPdf, MdDescription, MdTableChart, MdCloudUpload } from "react-icons/md";
+import {
+    MdFilterList,
+    MdCloudUpload,
+    MdPictureAsPdf,
+    MdDescription,
+    MdTableChart,
+    MdVisibility,
+    MdEdit,
+    MdBlock,
+    MdCheckCircle,
+    MdDownload,
+} from "react-icons/md";
 import Header from "../../common-components/sidebar/Header";
 import OrangeButton from "../../common-components/sidebar/OrangeButton";
-import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation } from "../../../redux/api/authApi";
+import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation, useGetSyllabusVersionsBySubLevelQuery, useGetTaskBasedStudentsQuery } from "../../../redux/api/authApi";
 import SearchBox from "../../common-components/seach-export/SearchBox";
 import ExportDropdown from "../../common-components/seach-export/ExportDropdown";
 import CommonTable from "../../common-components/table/CommonTable";
 import InputField from "../../common-components/common-feild/InputField";
 import RadioGroup from "../../common-components/common-feild/RadioGroup";
+import SyllabusTab, { TasksTab, TaskUploadDrawer, VersionTasksTable } from "./SyllabusTab";
+import { useEffect } from "react";
 
 /* ── Validation ── */
 const validationSchema = Yup.object({
@@ -263,17 +276,44 @@ const ShowSubLevelTablesData = () => {
     const departmentName = location.state?.departmentName;
     const session        = location.state?.session || location.state?.sessionName;
 
-    const [activeTab,     setActiveTab]     = useState("");
-    const [activeSection, setActiveSection] = useState("Students");
-    const [searchTerm,    setSearchTerm]    = useState("");
+    const [activeTab,             setActiveTab]             = useState(null);
+    const [activeSection,         setActiveSection]         = useState("Students");
+    const [searchTerm,            setSearchTerm]            = useState("");
+    const syllabusDrawerRef = useRef(null);
 
     const { data: subLevelsData } = useGetSubLevelsByLevelQuery(level?._id, { skip: !level?._id });
     const subLevels = subLevelsData?.data || [];
     const levelTabs = subLevels.length > 0
         ? subLevels.map((sl) => sl.name)
         : ["Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C"];
+    const activeSubLevel = activeTab || subLevels[0] || null;
+
+    useEffect(() => {
+        if (!activeTab && subLevels.length > 0) {
+            setActiveTab(subLevels[0]);
+        }
+    }, [activeTab, subLevels]);
 
     const [addSubLevel] = useAddSubLevelMutation();
+    const { data: studentsResponse } = useGetTaskBasedStudentsQuery(
+        {
+            subDepartmentId: subdepartment?._id,
+            levelId: level?._id,
+            subLevelId: activeSubLevel?._id,
+        },
+        { skip: !subdepartment?._id || !level?._id || !activeSubLevel?._id }
+    );
+
+    const studentRows = (studentsResponse?.data || []).map((student, index) => ({
+        ...student,
+        sno: index + 1,
+        fullName: [student.firstName, student.lastName].filter(Boolean).join(" ").trim() || student.prkey,
+        fatherName: student.fatherName || "-",
+        mobile: student.studentMobile || student.parentMobile || "-",
+        course: student.selectedCourse || "-",
+        busRoute: student.currentSubLevelId?.name || activeSubLevel?.name || "-",
+        attempts: student.taskSnapshots?.length || 0,
+    }));
 
     const handleSectionChange = (tab) => { setActiveSection(tab); setSearchTerm(""); };
 
@@ -294,17 +334,17 @@ const ShowSubLevelTablesData = () => {
                 breadcrumbs={breadcrumbs}
                 bottomRow={
                     <div className="flex gap-1 overflow-x-auto">
-                        {levelTabs.map((tab) => (
+                        {subLevels.map((sl) => (
                             <button
-                                key={tab}
-                                onClick={() => setActiveTab(tab)}
+                                key={sl._id}
+                                onClick={() => setActiveTab(sl)}
                                 className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-all duration-200 border-b-2 ${
-                                    activeTab === tab
+                                    activeSubLevel?._id === sl._id
                                         ? "border-orange-500 text-orange-500 font-semibold"
                                         : "border-transparent text-gray-500 hover:text-gray-700"
                                 }`}
                             >
-                                {tab}
+                                {sl.name}
                             </button>
                         ))}
                     </div>
@@ -406,7 +446,7 @@ const ShowSubLevelTablesData = () => {
                                                             className="w-full h-10 px-3 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-700 focus:outline-none focus:border-orange-400 focus:bg-white transition"
                                                         />
                                                         <div className="space-y-2 max-h-40 overflow-y-auto">
-                                                            {DUMMY_STUDENTS
+                                                            {studentRows
                                                                 .filter((s) => s.fullName.toLowerCase().includes(values.studentSearch.toLowerCase()))
                                                                 .map((s) => (
                                                                     <label key={s.sno} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
@@ -513,45 +553,25 @@ const ShowSubLevelTablesData = () => {
                                     <button className="flex items-center gap-1.5 h-10 px-4 text-sm border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 transition flex-shrink-0">
                                         <MdFilterList size={16} /> Filter
                                     </button>
-                                    <ExportDropdown data={DUMMY_STUDENTS} sectionName="students" />
+                                    <ExportDropdown data={studentRows} sectionName="students" />
                                 </div>
                             </div>
                             <CommonTable
-                                key={`students-${activeTab}`}
+                                key={`students-${activeSubLevel?._id}`}
                                 columns={STUDENT_COLUMNS}
-                                data={DUMMY_STUDENTS}
+                                data={studentRows}
                                 editable={false}
                                 pagination={true}
                                 rowsPerPage={10}
                                 searchTerm={searchTerm}
-                                onRowClick={(row) => navigate("/setting/student-profile", { state: { student: row } })}
+                                onRowClick={(row) => navigate(`/setting/student-profile/${row._id}`, { state: { student: row } })}
                             />
                         </div>
                     )}
 
                     {/* ── Tasks ── */}
                     {activeSection === "Tasks" && (
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-3">
-                                <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-                                <div className="ml-auto flex items-center gap-3">
-                                    <button className="flex items-center gap-1.5 h-10 px-4 text-sm border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 transition flex-shrink-0">
-                                        <MdFilterList size={16} /> Filter
-                                    </button>
-                                    <ExportDropdown data={DUMMY_TASKS} sectionName="tasks" />
-                                </div>
-                            </div>
-                            <CommonTable
-                                key={`tasks-${activeTab}`}
-                                columns={TASK_COLUMNS}
-                                data={DUMMY_TASKS}
-                                editable={true}
-                                pagination={true}
-                                rowsPerPage={10}
-                                searchTerm={searchTerm}
-                                actionButton={(row) => <TaskActions row={row} />}
-                            />
-                        </div>
+                        <TasksTab level={level} subLevel={activeSubLevel} />
                     )}
 
                     {/* ── Syllabus ── */}
@@ -605,6 +625,63 @@ const ShowSubLevelTablesData = () => {
                 </div>
             </div>
         </>
+    );
+};
+
+const LegacyTasksTab = ({ level, subLevel, onVersionChange }) => {
+    const subLevelId = subLevel?._id;
+    const [selectedVersionId, setSelectedVersionId] = useState("");
+
+    const { data: versionsData, refetch } = useGetSyllabusVersionsBySubLevelQuery(
+        { subLevelId, sessionId: "" },
+        { skip: !subLevelId }
+    );
+    const versions = versionsData?.data || [];
+
+    const activeVersion = versions.find((v) => v._id === selectedVersionId) || versions[0];
+    const versionId = activeVersion?._id || "";
+
+    useEffect(() => { onVersionChange?.(versionId); }, [versionId]);
+
+    if (!versions.length) {
+        return (
+            <div className="py-16 text-center text-gray-400 text-sm">
+                No syllabus found. Please upload a syllabus first from the Syllabus tab.
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-4">
+            <div className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3">
+                <span className="text-sm font-medium text-gray-600">Subject:</span>
+                <select
+                    value={versionId}
+                    onChange={(e) => { setSelectedVersionId(e.target.value); onVersionChange?.(e.target.value); }}
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white"
+                >
+                    {versions.map((v) => (
+                        <option key={v._id} value={v._id}>
+                            {v.subjectName} — {v.version} ({v.status})
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            {versionId && (
+                <div className="space-y-4">
+                    <TaskUploadDrawer
+                        syllabusVersionId={versionId}
+                        subjectName={activeVersion?.subjectName || ""}
+                        version={activeVersion?.version || ""}
+                        onSaved={refetch}
+                    />
+                    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                        <VersionTasksTable versionId={versionId} />
+                    </div>
+                </div>
+            )}
+        </div>
     );
 };
 

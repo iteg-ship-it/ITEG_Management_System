@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useNavigate } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
+import { ArrowLeft, ChevronRight } from "lucide-react";
 import { HiChevronRight } from "react-icons/hi";
 import { useSidebar } from "../../../contexts/SidebarContext";
 

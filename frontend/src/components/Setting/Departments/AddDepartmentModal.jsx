@@ -1,29 +1,19 @@
-import { useState } from "react";
 import { IoClose } from "react-icons/io5";
+import { MdBusiness } from "react-icons/md";
 import { toast } from "react-toastify";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import PropTypes from "prop-types";
 import InputField from "../../common-components/common-feild/InputField";
 import { useAddDepartmentMutation, useUpdateDepartmentMutation } from "../../../redux/api/authApi";
-import ImageUploadField from "../../common-components/common-feild/ImageUploadField";
 
 const PRIMARY_COLOR = "#FDA92D";
 
 const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const [addDepartment] = useAddDepartmentMutation();
   const [updateDepartment] = useUpdateDepartmentMutation();
-  const [logoFile, setLogoFile] = useState(null);
-  const [logoPreview, setLogoPreview] = useState(editData?.logo || null);
 
   const isEditMode = !!editData;
-
-  const handleLogoChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setLogoFile(file);
-    setLogoPreview(URL.createObjectURL(file));
-  };
 
   const validationSchema = Yup.object({
     name: Yup.string().required("Department name is required"),
@@ -46,38 +36,36 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
-      const formData = new FormData();
-      formData.append("name", values.name);
-      formData.append("universityName", values.universityName);
-      formData.append("headOfDepartment", values.headOfDepartment || "");
-      formData.append("description", values.description || "");
-      formData.append("allowedCourses", JSON.stringify(values.allowedCourses));
-      formData.append("reportConfig", JSON.stringify({
-        templateType: values.templateType,
-        sections: {
-          showTechnicalSkills: true,
-          showSoftSkills: true,
-          showDiscipline: true,
-          showProjects: true,
-          showCareerReadiness: true,
-          showUniversityAcademicHistory: true,
-          showTaskCompletionPercentage: true,
-          showEvaluationBreakdown: true
-        }
-      }));
-      formData.append("isActive", values.isActive);
-      if (logoFile) formData.append("logo", logoFile);
+      const payload = {
+        name: values.name,
+        universityName: values.universityName,
+        headOfDepartment: values.headOfDepartment,
+        description: values.description,
+        allowedCourses: values.allowedCourses,
+        reportConfig: {
+          templateType: values.templateType,
+          sections: {
+            showTechnicalSkills: true,
+            showSoftSkills: true,
+            showDiscipline: true,
+            showProjects: true,
+            showCareerReadiness: true,
+            showUniversityAcademicHistory: true,
+            showTaskCompletionPercentage: true,
+            showEvaluationBreakdown: true
+          }
+        },
+        isActive: values.isActive
+      };
 
       if (isEditMode) {
-        const result = await updateDepartment({ id: editData._id, formData }).unwrap();
+        const result = await updateDepartment({ id: editData._id, ...payload }).unwrap();
         toast.success(result.message || "Department updated successfully!");
       } else {
-        const result = await addDepartment(formData).unwrap();
+        const result = await addDepartment(payload).unwrap();
         toast.success(result.message || "Department added successfully!");
       }
       resetForm();
-      setLogoFile(null);
-      setLogoPreview(null);
       onClose();
       onSuccess?.();
     } catch (error) {
@@ -89,8 +77,6 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
   };
 
   const handleClose = () => {
-    setLogoFile(null);
-    setLogoPreview(editData?.logo || null);
     onClose();
   };
 
@@ -107,6 +93,10 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
         </button>
 
         <div className="text-center mb-6">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" 
+               style={{ backgroundColor: `${PRIMARY_COLOR}20` }}>
+            <MdBusiness size={32} style={{ color: PRIMARY_COLOR }} />
+          </div>
           <h2 className="text-2xl font-semibold" style={{ color: PRIMARY_COLOR }}>
             {isEditMode ? "Edit Department" : "Add New Department"}
           </h2>
@@ -127,12 +117,6 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
                 label="Department Name" 
                 name="name" 
                 placeholder="Enter department name"
-              />
-
-              <ImageUploadField
-                label="Department Logo"
-                preview={logoPreview}
-                onChange={handleLogoChange}
               />
 
               <InputField 

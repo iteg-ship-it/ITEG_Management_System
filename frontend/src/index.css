@@ -2,12 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #F8F7F5;
+:root, [data-theme="orange"] {
   --primary: #FDA92D;
-  --primary-light: #f7d897;
-  --primary-dark: #FDA92D;
-  --primary-darker: #FFAB00;
+  --primary-light: #FED7AA;
+  --primary-dark: #F97316;
+  --primary-darker: #EA580C;
+  --primary-50: #FFF7ED;
+  --primary-100: #FFEDD5;
+  --ring: #FDA92D;
+  --background: #F8F7F5;
+  --backgroundColor: #FCFDFD;
+  --text-color: #1C252E;
   --secondary: #8E33FF;
   --secondary-light: #C684FF;
   --secondary-dark: #5119B7;
@@ -23,13 +28,71 @@
   --info: #00B8D9;
   --info-light: #61F3F3;
   --info-dark: #006C9C;
-  --neutral:#F4F6F8;
+  --neutral: #F4F6F8;
   --neutral-light: #DFE3E8;
   --neutral-dark: #C4CDD5;
-  --neutral-darker:#919EAB;
+  --neutral-darker: #919EAB;
   --diagonal-gradient: linear-gradient(45deg, #b1ddefe4 0%, #FFFFFF 33%, #FFFFFF 66%, #e3c2c178 100%);
- --backgroundColor: #FCFDFD;
- --text-color: #1C252E;
+}
+
+[data-theme="blue"] {
+  --primary: #3B82F6;
+  --primary-light: #BFDBFE;
+  --primary-dark: #2563EB;
+  --primary-darker: #1D4ED8;
+  --primary-50: #EFF6FF;
+  --primary-100: #DBEAFE;
+  --ring: #3B82F6;
+}
+
+[data-theme="green"] {
+  --primary: #22C55E;
+  --primary-light: #BBF7D0;
+  --primary-dark: #16A34A;
+  --primary-darker: #15803D;
+  --primary-50: #F0FDF4;
+  --primary-100: #DCFCE7;
+  --ring: #22C55E;
+}
+
+[data-theme="purple"] {
+  --primary: #8B5CF6;
+  --primary-light: #DDD6FE;
+  --primary-dark: #7C3AED;
+  --primary-darker: #6D28D9;
+  --primary-50: #F5F3FF;
+  --primary-100: #EDE9FE;
+  --ring: #8B5CF6;
+}
+
+[data-theme="rose"] {
+  --primary: #F43F5E;
+  --primary-light: #FECDD3;
+  --primary-dark: #E11D48;
+  --primary-darker: #BE123C;
+  --primary-50: #FFF1F2;
+  --primary-100: #FFE4E6;
+  --ring: #F43F5E;
+}
+
+[data-theme="teal"] {
+  --primary: #14B8A6;
+  --primary-light: #99F6E4;
+  --primary-dark: #0D9488;
+  --primary-darker: #0F766E;
+  --primary-50: #F0FDFA;
+  --primary-100: #CCFBF1;
+  --ring: #14B8A6;
+}
+
+[data-theme="indigo"] {
+  --primary: #6366F1;
+  --primary-light: #C7D2FE;
+  --primary-dark: #4F46E5;
+  --primary-darker: #4338CA;
+  --primary-50: #EEF2FF;
+  --primary-100: #E0E7FF;
+  --ring: #6366F1;
 }
 *{
   font-family: 'Inter', sans-serif;
@@ -39,6 +102,59 @@ body, html {
   overflow-x: hidden;
   max-width: 100vw;
   background: var(--background);
+}
+
+/* ─── THEME COLOR OVERRIDES — all orange-* Tailwind classes use CSS variables ─── */
+.bg-orange-50  { background-color: var(--primary-50) !important; }
+.bg-orange-100 { background-color: var(--primary-100) !important; }
+.bg-orange-200 { background-color: var(--primary-light) !important; }
+.bg-orange-300 { background-color: var(--primary-light) !important; }
+.bg-orange-400 { background-color: var(--primary) !important; }
+.bg-orange-500 { background-color: var(--primary) !important; }
+.bg-orange-600 { background-color: var(--primary-dark) !important; }
+.bg-orange-700 { background-color: var(--primary-darker) !important; }
+.bg-orange-800 { background-color: var(--primary-darker) !important; }
+
+.text-orange-400 { color: var(--primary) !important; }
+.text-orange-500 { color: var(--primary) !important; }
+.text-orange-600 { color: var(--primary-dark) !important; }
+.text-orange-700 { color: var(--primary-darker) !important; }
+
+.border-orange-100 { border-color: var(--primary-100) !important; }
+.border-orange-200 { border-color: var(--primary-light) !important; }
+.border-orange-400 { border-color: var(--primary) !important; }
+.border-orange-500 { border-color: var(--primary) !important; }
+.border-orange-600 { border-color: var(--primary-dark) !important; }
+
+.ring-orange-400 { --tw-ring-color: var(--primary) !important; }
+.ring-orange-500 { --tw-ring-color: var(--primary) !important; }
+
+.focus\:border-orange-400:focus { border-color: var(--primary) !important; }
+.focus\:ring-orange-400:focus { --tw-ring-color: var(--primary) !important; }
+.focus\:ring-orange-500:focus { --tw-ring-color: var(--primary) !important; }
+
+.hover\:bg-orange-50:hover  { background-color: var(--primary-50) !important; }
+.hover\:bg-orange-100:hover { background-color: var(--primary-100) !important; }
+.hover\:bg-orange-500:hover { background-color: var(--primary) !important; }
+.hover\:bg-orange-600:hover { background-color: var(--primary-dark) !important; }
+
+.hover\:text-orange-500:hover { color: var(--primary) !important; }
+.hover\:text-orange-600:hover { color: var(--primary-dark) !important; }
+
+.from-\[\#FDA92D\] { --tw-gradient-from: var(--primary) !important; }
+.to-\[\#FDB84D\]   { --tw-gradient-to: var(--primary-light) !important; }
+
+/* ─── GLOBAL MODAL/DRAWER BACKDROP BLUR ──────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
 }
 
 /* ─── SCROLLBAR UTILITIES ─────────────────────────────── */
@@ -143,6 +259,19 @@ textarea {
 /* Full width on mobile, max-w-md on desktop */
 .drawer-panel {
   @apply w-full max-w-full sm:max-w-md;
+}
+
+/* Blur entire page when OrangeButton drawer is open */
+body.drawer-open #root {
+  filter: blur(3px);
+  transition: filter 0.3s ease;
+  pointer-events: none;
+}
+
+/* Drawer itself should NOT be blurred — it's rendered inside fixed z-[60] */
+body.drawer-open .drawer-no-blur {
+  filter: none !important;
+  pointer-events: all;
 }
 
 /* ─── AUTOFILL FIX ────────────────────────────────────── */

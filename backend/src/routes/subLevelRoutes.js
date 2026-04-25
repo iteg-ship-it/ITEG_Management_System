@@ -7,7 +7,7 @@ const {
   validateObjectIdParam,
   validateLevelIdParam
 } = require("../middlewares/subLevelValidation");
-const subLevelController = require("../controllers/subLevelController");
+const subLevelController = require("../controllers/department/subLevelController");
 
 const allowedRoles = ["superadmin", "admin"];
 

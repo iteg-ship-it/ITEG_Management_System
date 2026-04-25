@@ -50,7 +50,7 @@ const TabsCommon = ({ tabs, activeTab, onTabChange }) => {
             onClick={() => onTabChange(tab)}
             className={`px-3 py-4 cursor-pointer text-md text-[var(--text-color)] whitespace-nowrap ${
               activeTab === tab
-                ? "border-[#F57A00] text-orange-600 border-b-4 font-semibold"
+                ? "border-orange-500 text-orange-600 border-b-4 font-semibold"
                 : "border-transparent"
             }`}
           >

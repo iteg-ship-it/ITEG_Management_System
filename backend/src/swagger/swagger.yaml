@@ -158,6 +158,477 @@ components:
           type: string
           format: date-time
 
+    SyllabusTask:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "6808be4d12ab34cd56ef7801"
+        title:
+          type: string
+          example: "HTML Forms Practice"
+        description:
+          type: string
+          example: "Create a working form with validations"
+        type:
+          type: string
+          enum: ["assignment", "project", "practice", "reading", "assessment", "other"]
+          example: "practice"
+        mandatory:
+          type: boolean
+          example: true
+        maxMarks:
+          type: number
+          nullable: true
+          example: 5
+        order:
+          type: number
+          example: 1
+        isActive:
+          type: boolean
+          example: true
+
+    SyllabusSubTopic:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "6808be4d12ab34cd56ef7701"
+        name:
+          type: string
+          example: "HTML Forms"
+        description:
+          type: string
+          example: "Form tags and input controls"
+        order:
+          type: number
+          example: 1
+        isActive:
+          type: boolean
+          example: true
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyllabusTask'
+
+    SyllabusTopic:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "6808be4d12ab34cd56ef7601"
+        name:
+          type: string
+          example: "HTML"
+        description:
+          type: string
+          example: "HTML core concepts"
+        order:
+          type: number
+          example: 1
+        isActive:
+          type: boolean
+          example: true
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyllabusTask'
+        subTopics:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyllabusSubTopic'
+
+    SyllabusSubject:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "6808be4d12ab34cd56ef7501"
+        name:
+          type: string
+          example: "Frontend Development"
+        code:
+          type: string
+          example: "FE-101"
+        description:
+          type: string
+          example: "Frontend foundation syllabus"
+        order:
+          type: number
+          example: 1
+        isActive:
+          type: boolean
+          example: true
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyllabusTopic'
+
+    SyllabusVersion:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "6808be4d12ab34cd56ef7401"
+        sessionId:
+          oneOf:
+            - type: string
+              example: "64fdb61e7b9a1a1234567894"
+            - $ref: '#/components/schemas/Session'
+        levelId:
+          oneOf:
+            - type: string
+              example: "64fdb61e7b9a1a1234567892"
+            - $ref: '#/components/schemas/Level'
+        subLevelId:
+          oneOf:
+            - type: string
+              example: "64fdb61e7b9a1a1234567893"
+            - $ref: '#/components/schemas/SubLevel'
+        version:
+          type: string
+          example: "v1.0"
+        title:
+          type: string
+          example: "Frontend Beginner Syllabus"
+        status:
+          type: string
+          enum: ["draft", "active", "archived"]
+          example: "draft"
+        subjects:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyllabusSubject'
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    StudentTask:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "6808be4d12ab34cd56ef7901"
+        studentId:
+          type: string
+          example: "6808be4d12ab34cd56ef7101"
+        sessionId:
+          type: string
+          example: "64fdb61e7b9a1a1234567894"
+        levelId:
+          type: string
+          example: "64fdb61e7b9a1a1234567892"
+        subLevelId:
+          type: string
+          example: "64fdb61e7b9a1a1234567893"
+        syllabusVersionId:
+          type: string
+          example: "6808be4d12ab34cd56ef7401"
+        taskId:
+          type: string
+          example: "6808be4d12ab34cd56ef7801"
+        subjectId:
+          type: string
+          example: "6808be4d12ab34cd56ef7501"
+        topicId:
+          type: string
+          example: "6808be4d12ab34cd56ef7601"
+        subTopicId:
+          type: string
+          nullable: true
+          example: "6808be4d12ab34cd56ef7701"
+        subjectName:
+          type: string
+          example: "Frontend Development"
+        topicName:
+          type: string
+          example: "HTML"
+        subTopicName:
+          type: string
+          nullable: true
+          example: "HTML Forms"
+        taskNodeType:
+          type: string
+          enum: ["topic", "subTopic"]
+          example: "subTopic"
+        title:
+          type: string
+          example: "HTML Forms Practice"
+        description:
+          type: string
+          example: "Create a working form with validations"
+        type:
+          type: string
+          example: "practice"
+        mandatory:
+          type: boolean
+          example: true
+        maxMarks:
+          type: number
+          nullable: true
+          example: 5
+        status:
+          type: string
+          enum: ["pending", "inProgress", "completed"]
+          example: "pending"
+        marks:
+          type: number
+          nullable: true
+          example: 5
+        notes:
+          type: string
+          example: "Completed with responsive layout"
+        assignedType:
+          type: string
+          enum: ["auto", "manual"]
+          example: "manual"
+        assignedBy:
+          type: string
+          nullable: true
+          example: "662b18b6c3eabc00123f5678"
+        assignedByName:
+          type: string
+          example: "Faculty User"
+        assignedByRole:
+          type: string
+          example: "faculty"
+        assignedAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+          nullable: true
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    StudentTaskSummary:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 12
+        pending:
+          type: integer
+          example: 5
+        inProgress:
+          type: integer
+          example: 3
+        completed:
+          type: integer
+          example: 4
+        progressPercent:
+          type: integer
+          example: 33
+        averageMarks:
+          type: number
+          example: 4.25
+
+    ProgressSnapshot:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          example: "64fdb61e7b9a1a1234567894"
+        levelId:
+          type: string
+          example: "64fdb61e7b9a1a1234567892"
+        subLevelId:
+          type: string
+          example: "64fdb61e7b9a1a1234567893"
+        syllabusVersionId:
+          type: string
+          example: "6808be4d12ab34cd56ef7401"
+        totalTasks:
+          type: integer
+          example: 12
+        completedTasks:
+          type: integer
+          example: 6
+        pendingTasks:
+          type: integer
+          example: 4
+        inProgressTasks:
+          type: integer
+          example: 2
+        averageMarks:
+          type: number
+          example: 4.33
+        changedBy:
+          type: string
+          nullable: true
+          example: "662b18b6c3eabc00123f5678"
+        changedByName:
+          type: string
+          example: "Faculty User"
+        changedByRole:
+          type: string
+          example: "faculty"
+        changedAt:
+          type: string
+          format: date-time
+
+    StudentProfile:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "6808be4d12ab34cd56ef7101"
+        prkey:
+          type: string
+          example: "PR-1001"
+        firstName:
+          type: string
+          example: "Aman"
+        lastName:
+          type: string
+          example: "Sharma"
+        fatherName:
+          type: string
+          example: "Rajesh Sharma"
+        email:
+          type: string
+          example: "aman@example.com"
+        studentMobile:
+          type: string
+          example: "9876543210"
+        parentMobile:
+          type: string
+          example: "9876500000"
+        subDepartmentId:
+          oneOf:
+            - type: string
+              example: "64fdb61e7b9a1a1234567891"
+            - $ref: '#/components/schemas/SubDepartment'
+        sessionId:
+          oneOf:
+            - type: string
+              example: "64fdb61e7b9a1a1234567894"
+            - $ref: '#/components/schemas/Session'
+        currentLevelId:
+          oneOf:
+            - type: string
+              example: "64fdb61e7b9a1a1234567892"
+            - $ref: '#/components/schemas/Level'
+        currentSubLevelId:
+          oneOf:
+            - type: string
+              example: "64fdb61e7b9a1a1234567893"
+            - $ref: '#/components/schemas/SubLevel'
+        syllabusVersionId:
+          oneOf:
+            - type: string
+              example: "6808be4d12ab34cd56ef7401"
+            - type: object
+              properties:
+                _id:
+                  type: string
+                  example: "6808be4d12ab34cd56ef7401"
+                title:
+                  type: string
+                  example: "Frontend Beginner Syllabus"
+                version:
+                  type: string
+                  example: "v1.0"
+                status:
+                  type: string
+                  example: "active"
+        selectedCourse:
+          type: string
+          example: "BCA"
+        isFTP:
+          type: boolean
+          example: false
+        status:
+          type: string
+          enum: ["Active", "Completed", "Dropped", "Placed"]
+          example: "Active"
+        academicHistory:
+          type: array
+          items:
+            type: object
+            properties:
+              yearName:
+                type: string
+                example: "1st Year"
+              percentage:
+                type: number
+                example: 78
+              result:
+                type: string
+                enum: ["Pass", "Fail"]
+                example: "Pass"
+              updatedAt:
+                type: string
+                format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PromotionHistory:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "6810be4d12ab34cd56ef9901"
+        fromLevelId:
+          oneOf:
+            - type: string
+              example: "64fdb61e7b9a1a1234567892"
+            - $ref: '#/components/schemas/Level'
+        fromSubLevelId:
+          oneOf:
+            - type: string
+              example: "64fdb61e7b9a1a1234567893"
+            - $ref: '#/components/schemas/SubLevel'
+        toLevelId:
+          oneOf:
+            - type: string
+              example: "64fdb61e7b9a1a1234567895"
+            - $ref: '#/components/schemas/Level'
+        toSubLevelId:
+          oneOf:
+            - type: string
+              example: "64fdb61e7b9a1a1234567896"
+            - $ref: '#/components/schemas/SubLevel'
+        promotedBy:
+          oneOf:
+            - type: string
+              example: "662b18b6c3eabc00123f5678"
+            - $ref: '#/components/schemas/User'
+        promotedByName:
+          type: string
+          example: "Faculty User"
+        promotedByRole:
+          type: string
+          example: "faculty"
+        remark:
+          type: string
+          example: "Completed all pending tasks"
+        promotedAt:
+          type: string
+          format: date-time
+
     Company:
       type: object
       properties:
@@ -381,6 +852,21 @@ components:
                     example: 10
                   subcategories:
                     type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: "Punctuality"
+                        value:
+                          type: boolean
+                          example: true
+                  score:
+                    type: number
+                    example: 8
+            totalDisciplineMarks:
+              type: number
+              example: 25
     Admission:
       type: object
       required:
@@ -565,7 +1051,7 @@ components:
             isScheduled:
               type: boolean
               example: true
-    Level:
+    AdmissionLevel:
       type: object
       properties:
         levelNo:
@@ -659,7 +1145,7 @@ components:
         level:
           type: array
           items:
-            $ref: '#/components/schemas/Level'
+            $ref: '#/components/schemas/AdmissionLevel'
         techno:
           type: string
         attendancePercentage:
@@ -1819,154 +2305,10 @@ paths:
         '500':
           description: Server error
 
-  # ===== SESSION APIs =====
-  /api/sessions:
-    post:
-      summary: Create a new session
-      tags:
-        - Session
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - name
-              properties:
-                name:
-                  type: string
-                  example: "2023-24"
-      responses:
-        '201':
-          description: Session created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  message:
-                    type: string
-                    example: "Session created successfully"
-                  data:
-                    $ref: '#/components/schemas/Session'
-        '400':
-          description: Validation error or duplicate name
-        '401':
-          description: Unauthorized
-        '500':
-          description: Server error
 
-    get:
-      summary: Get all sessions
-      tags:
-        - Session
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: List of sessions
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Session'
-        '500':
-          description: Server error
 
-  /api/sessions/{id}:
-    get:
-      summary: Get session by ID
-      tags:
-        - Session
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-          example: "64fdb61e7b9a1a1234567894"
-      responses:
-        '200':
-          description: Session found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  data:
-                    $ref: '#/components/schemas/Session'
-        '404':
-          description: Session not found
-        '500':
-          description: Server error
-
-    put:
-      summary: Update session
-      tags:
-        - Session
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: "2024-25"
-      responses:
-        '200':
-          description: Session updated successfully
-        '400':
-          description: Validation error or duplicate name
-        '404':
-          description: Session not found
-        '500':
-          description: Server error
-
-    delete:
-      summary: Delete session (soft delete)
-      tags:
-        - Session
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Session deleted successfully
-        '404':
-          description: Session not found
+  # ===== USER/AUTH APIs =====
+  /api/user/signup:
     post:
       summary: Register a new user (admin/superadmin/faculty)
       tags:
@@ -2245,11 +2587,11 @@ paths:
                     example: "User updated successfully"
                   user:
                     $ref: '#/components/schemas/User'
-        400:
+        '400':
           description: Invalid request data
-        404:
+        '404':
           description: User not found
-        500:
+        '500':
           description: Server error
 
   /api/admission/students/webhook/register:
@@ -2428,37 +2770,37 @@ paths:
                   description: Assignment details for the interview
                   example: "Assignment details here"
                 communication:
-                  type: Number
-                  description: Communication mode (e.g., Zoom, Google Meet)
+                  type: number
+                  description: Communication score
                   example: 7
                 confidence:
-                  type: Number
+                  type: number
                   description: Confidence level of the candidate
                   example: 5
                 goal:
-                  type: Number
-                  description: Interview goal (e.g., Technical, HR)
+                  type: number
+                  description: Goal clarity score
                   example: 3
                 subjectKnowlage:
-                 type: Number
-                 description: Subject of the interview
-                 example: 5
+                  type: number
+                  description: Subject knowledge score
+                  example: 5
                 assignmentMarks:
-                  type: Number
-                  description: Technical skills assessed in the interview
+                  type: number
+                  description: Assignment marks
                   example: 5
                 sincerity:
-                 type: Number
-                 description: Sincerity level of the candidate
-                 example: 5
+                  type: number
+                  description: Sincerity level of the candidate
+                  example: 5
                 maths:
-                  type: Number
-                  description: Mathematics skills assessed in the interview
+                  type: number
+                  description: Mathematics skills score
                   example: 5
                 reasoning:
-                 type: Number
-                 description: Reasoning skills assessed in the interview
-                 example: 5
+                  type: number
+                  description: Reasoning skills score
+                  example: 5
                 marks:
                   type: integer
                   description: Marks obtained in the interview
@@ -2705,67 +3047,6 @@ paths:
                     example: "Server error"
                   error:
                     type: string
-
-  # /api/admission/students/update_interview_flag/{studentId}:
-  #   put:
-  #     summary: Update ITEG interview flag and notify central system
-  #     tags:
-  #        - Admission Process
-  #     parameters:
-  #       - in: path
-  #         name: studentId
-  #         required: true
-  #         schema:
-  #           type: string
-  #           example: "6811f74b6a40d2524ec7d870"
-  #         description: MongoDB ObjectId of the student to update
-  #     responses:
-  #       '200':
-  #         description: Interview flag updated and sent to central system
-  #         content:
-  #           application/json:
-  #             schema:
-  #               type: object
-  #               properties:
-  #                 message:
-  #                   type: string
-  #                   example: Interview flag updated and sent to central
-  #                 centralResponse:
-  #                   type: object
-  #                   description: Response from the central system
-  #       '400':
-  #         description: Missing or invalid student ID
-  #         content:
-  #           application/json:
-  #             schema:
-  #               type: object
-  #               properties:
-  #                 message:
-  #                   type: string
-  #                   example: Student ID is required
-  #       '404':
-  #         description: Student not found
-  #         content:
-  #           application/json:
-  #             schema:
-  #               type: object
-  #               properties:
-  #                 message:
-  #                   type: string
-  #                   example: Student not found
-  #       '500':
-  #         description: Server or central system error
-  #         content:
-  #           application/json:
-  #             schema:
-  #               type: object
-  #               properties:
-  #                 message:
-  #                   type: string
-  #                   example: Server error
-  #                 error:
-  #                   type: string
-  #                   example: Failed to connect to central system
 
 
   /api/admitted/students/getall:
@@ -3052,13 +3333,9 @@ paths:
                   message:
                     type: string
                   error:
-                    type: object
-
- 
                     type: string
 
-
-  /api/admission/students/webhook/update-admitted-student:
+  /api/admission/students/webhook/update_admitted_student:
     patch:
       summary: Update admitted student by primary key (prkey)
       tags:
@@ -4033,101 +4310,6 @@ paths:
         '500':
           description: Server error
 
-  # /api/admitted/students/placement_post:
-    # post:
-    #   summary: 8. Create Placement Post
-    #   description: Generate placement post from placed students
-    #   tags:
-    #     - Placement Workflow
-    #   requestBody:
-    #     required: true
-    #     content:
-    #       application/json:
-    #         schema:
-    #           type: object
-    #           required:
-    #             - studentId
-    #             - position
-    #             - companyName
-    #             - headOffice
-    #           properties:
-    #             studentId:
-    #               type: string
-    #               description: ID of placed student
-    #               example: "64a1b2c3d4e5f6789012345"
-    #             position:
-    #               type: string
-    #               example: "Software Developer"
-    #             companyName:
-    #               type: string
-    #               example: "TechCorp Solutions"
-    #             companyLogo:
-    #               type: string
-    #               description: "Base64 encoded company logo image - will be uploaded to Cloudinary automatically"
-    #               example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
-    #             headOffice:
-    #               type: string
-    #               example: "Bangalore, India"
-    #             studentImage:
-    #               type: string
-    #               description: Optional - uses profile image if not provided
-    #               example: "data:image/jpeg;base64,..."
-    #   responses:
-    #     '200':
-    #       description: Placement post created successfully (company logo uploaded to Cloudinary if Base64 provided)
-    #       content:
-    #         application/json:
-    #           schema:
-    #             type: object
-    #             properties:
-    #               success:
-    #                 type: boolean
-    #                 example: true
-    #               message:
-    #                 type: string
-    #                 example: "Placement post data prepared successfully"
-    #               data:
-    #                 type: object
-    #                 properties:
-    #                   student:
-    #                     type: object
-    #                     properties:
-    #                       id:
-    #                         type: string
-    #                       name:
-    #                         type: string
-    #                       year:
-    #                         type: string
-    #                       course:
-    #                         type: string
-    #                       image:
-    #                         type: string
-    #                   company:
-    #                     type: object
-    #                     properties:
-    #                       id:
-    #                         type: string
-    #                       name:
-    #                         type: string
-    #                       logo:
-    #                         type: string
-    #                         description: "Cloudinary URL or Base64 data"
-    #                       headOffice:
-    #                         type: string
-    #                   position:
-    #                     type: string
-    #                   createdAt:
-    #                     type: string
-    #                     format: date-time
-    #     '400':
-    #       description: Missing required fields or student not placed
-    #     '404':
-    #       description: Student not found
-    #     '500':
-    #       description: Server error
-
-
-
   /api/admitted/students/placement_post:
     post:
       summary: Create Placement Post (Preview Only)
@@ -4318,7 +4500,7 @@ paths:
 
 
   /api/admitted/students/update_technology/{id}:
-    put:
+    patch:
       summary: Update student's technology after Level 2A
       description: Updates the 'techno' field of a student only if they have passed Level 2A.
       tags:
@@ -4627,32 +4809,7 @@ paths:
                     type: string
                     example: Error message details
 
-  /api/admitted/students/count/{studentId}:
-    get:
-      summary: Count total placement interviews of a student
-      tags:
-        - Placement
-      parameters:
-        - in: path
-          name: studentId
-          required: true
-          schema:
-            type: string
-          description: ID of the student
-      responses:
-        "200":
-          description: Interview count fetched successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  studentId:
-                    type: string
-                  totalInterviews:
-                    type: integer
-        "500":
-          description: Internal server error
+
 
   /api/admitted/students/interview_history/{studentId}:
     get:
@@ -5012,83 +5169,59 @@ paths:
           description: Server error
 
 
-  /api/admitted/students/placement_post:
+ 
+  /api/syllabus:
     post:
-      summary: Create a new placement record
-      description: Create a placement record for a student. Files like offer letter and application file are optional.
+      summary: Create embedded syllabus version
+      description: Creates a task-based syllabus version using embedded Subject -> Topic -> SubTopic -> Tasks structure.
       tags:
-        - Post create
+        - Syllabus
       security:
         - bearerAuth: []
       requestBody:
         required: true
         content:
-          multipart/form-data:
+          application/json:
             schema:
               type: object
+              required: [sessionId, levelId, subLevelId, version, subjects]
               properties:
-                studentId:
+                sessionId:
                   type: string
-                  description: ID of the student
-                  example: 64f23f78a23b9c001f9f1234
-                companyName:
+                levelId:
                   type: string
-                  description: Name of the company
-                  example: Google
-                salary:
-                  type: number
-                  description: Salary offered
-                  example: 1200000
-                location:
+                subLevelId:
                   type: string
-                  description: Job location
-                  example: Bangalore
-                jobProfile:
+                version:
                   type: string
-                  description: Job role/profile
-                  example: Software Engineer
-                jobType:
+                title:
                   type: string
-                  description: Type of job (e.g., Full-time, Internship)
-                  example: Full-time
-                joiningDate:
-                  type: string
-                  format: date
-                  description: Date of joining
-                  example: 2025-07-01
-                interviewRecordId:
-                  type: string
-                  description: Related interview record ID (optional)
-                  example: 64f23f78a23b9c001f9f5678
-                headOffice:
-                  type: string
-                  description: Company head office location
-                  example: Mountain View, CA
-                companyLogo:
-                  type: string
-                  description: Company logo (base64 string)
-                  example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
-                studentImage:
-                  type: string
-                  description: Student profile image (base64 string)
-                  example: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD..."
-                offerLetter:
-                  type: string
-                  format: binary
-                  description: Offer letter file (optional)
-                applicationFile:
-                  type: string
-                  format: binary
-                  description: Application file (optional)
-              required:
-                - studentId
-                - companyName
-                - salary
-                - location
-                - jobProfile
+                subjects:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/SyllabusSubject'
+            example:
+              sessionId: "64fdb61e7b9a1a1234567894"
+              levelId: "64fdb61e7b9a1a1234567892"
+              subLevelId: "64fdb61e7b9a1a1234567893"
+              version: "v1.0"
+              title: "Frontend Beginner Syllabus"
+              subjects:
+                - name: "Frontend Development"
+                  code: "FE-101"
+                  topics:
+                    - name: "HTML"
+                      subTopics:
+                        - name: "HTML Forms"
+                          tasks:
+                            - title: "HTML Forms Practice"
+                              description: "Create a working form with validations"
+                              type: "practice"
+                              mandatory: true
+                              maxMarks: 5
       responses:
-        "201":
-          description: Placement record created successfully
+        '201':
+          description: Syllabus version created successfully
           content:
             application/json:
               schema:
@@ -5099,39 +5232,983 @@ paths:
                     example: true
                   message:
                     type: string
-                    example: Placement record created successfully
+                    example: "Syllabus version created successfully"
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/SyllabusVersion'
+                      - type: object
+                        properties:
+                          taskCount:
+                            type: integer
+                            example: 1
+        '400':
+          description: Validation error
+    get:
+      summary: Get all syllabus versions
+      tags:
+        - Syllabus
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: sessionId
+          schema:
+            type: string
+        - in: query
+          name: levelId
+          schema:
+            type: string
+        - in: query
+          name: subLevelId
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: ["draft", "active", "archived"]
+      responses:
+        '200':
+          description: Syllabus versions fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                    example: 2
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/SyllabusVersion'
+                        - type: object
+                          properties:
+                            taskCount:
+                              type: integer
+                              example: 10
+
+  /api/syllabus/{id}:
+    get:
+      summary: Get syllabus version by ID
+      tags:
+        - Syllabus
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Syllabus version fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/SyllabusVersion'
+                      - type: object
+                        properties:
+                          taskCount:
+                            type: integer
+        '404':
+          description: Syllabus version not found
+    patch:
+      summary: Update draft syllabus version
+      description: Updates title or subjects only when the syllabus status is draft.
+      tags:
+        - Syllabus
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                subjects:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/SyllabusSubject'
+      responses:
+        '200':
+          description: Draft syllabus updated successfully
+        '400':
+          description: Invalid update
+        '404':
+          description: Syllabus version not found
+
+  /api/syllabus/{id}/activate:
+    patch:
+      summary: Activate syllabus version
+      description: Activates a syllabus version and archives other active versions for the same session, level, and sublevel.
+      tags:
+        - Syllabus
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Syllabus version activated successfully
+        '404':
+          description: Syllabus version not found
+
+  /api/syllabus/{id}/archive:
+    patch:
+      summary: Archive syllabus version
+      tags:
+        - Syllabus
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Syllabus version archived successfully
+        '404':
+          description: Syllabus version not found
+
+  /api/syllabus/{id}/tasks:
+    post:
+      summary: Add task to syllabus version
+      description: Adds a new task inside a selected subject/topic/subtopic. If syllabus is active, existing student tasks are synced.
+      tags:
+        - Syllabus
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subjectId, topicId, title]
+              properties:
+                subjectId:
+                  type: string
+                topicId:
+                  type: string
+                subTopicId:
+                  type: string
+                  description: Optional. If provided, task is added under the subtopic; otherwise it is added directly under the topic.
+                title:
+                  type: string
+                description:
+                  type: string
+                type:
+                  type: string
+                mandatory:
+                  type: boolean
+                maxMarks:
+                  type: number
+            example:
+              subjectId: "6808be4d12ab34cd56ef7501"
+              topicId: "6808be4d12ab34cd56ef7601"
+              subTopicId: "6808be4d12ab34cd56ef7701"
+              title: "Build Login Form"
+              description: "Create a login form using semantic HTML"
+              type: "assignment"
+              mandatory: true
+              maxMarks: 5
+      responses:
+        '201':
+          description: Task added successfully
+        '400':
+          description: Validation error
+        '404':
+          description: Syllabus version or node not found
+
+  /api/syllabus/{id}/tasks/{taskId}/active:
+    patch:
+      summary: Toggle syllabus task visibility
+      description: Uses isActive for minor live updates without creating a new version.
+      tags:
+        - Syllabus
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: taskId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [isActive]
+              properties:
+                isActive:
+                  type: boolean
+            example:
+              isActive: false
+      responses:
+        '200':
+          description: Task visibility updated successfully
+        '404':
+          description: Task not found
+
+  /api/syllabus/{id}/subjects/upload:
+    post:
+      summary: Upload subject-wise syllabus using JSON
+      description: Creates or updates one or more subjects with nested topics, subtopics, and multiple tasks inside a syllabus version.
+      tags:
+        - Syllabus
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: Syllabus version ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subject:
+                  $ref: '#/components/schemas/SyllabusSubject'
+                subjects:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/SyllabusSubject'
+            example:
+              subjects:
+                - name: "Computer Fundamentals"
+                  code: "CF101"
+                  description: "Basic computer concepts"
+                  order: 1
+                  isActive: true
+                  topics:
+                    - name: "Introduction to Computers"
+                      description: "Basics of computer systems"
+                      order: 1
+                      isActive: true
+                      tasks:
+                        - title: "Define computer and its types"
+                          description: "Written assignment"
+                          type: "assignment"
+                          mandatory: true
+                          maxMarks: 5
+                          order: 1
+                          isActive: true
+                        - title: "Differentiate analog and digital computers"
+                          description: "Short notes"
+                          type: "practice"
+                          mandatory: true
+                          maxMarks: 5
+                          order: 2
+                          isActive: true
+                      subTopics:
+                        - name: "History of Computers"
+                          description: "Evolution of computers"
+                          order: 1
+                          isActive: true
+                          tasks:
+                            - title: "Timeline of computer generations"
+                              description: "Prepare notes"
+                              type: "practice"
+                              mandatory: true
+                              maxMarks: 5
+                              order: 1
+                              isActive: true
+      responses:
+        '200':
+          description: Subject-wise syllabus uploaded successfully
+        '400':
+          description: Invalid subject payload
+        '404':
+          description: Syllabus version not found
+
+  /api/syllabus/{id}/subjects/upload-excel:
+    post:
+      summary: Upload subject-wise syllabus using Excel
+      description: Upload an Excel file where each row represents one task. Same topic or subtopic can appear in multiple rows to create multiple tasks.
+      tags:
+        - Syllabus
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: Syllabus version ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+            encoding:
+              file:
+                contentType: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+      responses:
+        '200':
+          description: Excel syllabus uploaded successfully
+        '400':
+          description: Invalid or empty excel file
+        '404':
+          description: Syllabus version not found
+
+  /api/syllabus/assignments/student:
+    post:
+      summary: Assign syllabus tasks to a student
+      tags:
+        - Student Tasks
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [studentId]
+              properties:
+                studentId:
+                  type: string
+                syllabusVersionId:
+                  type: string
+                  description: Optional. If omitted, active syllabus for student's current session/level/sublevel is used.
+            example:
+              studentId: "6808be4d12ab34cd56ef7101"
+              syllabusVersionId: "6808be4d12ab34cd56ef7401"
+      responses:
+        '200':
+          description: Tasks assigned successfully
+        '400':
+          description: Assignment failed
+
+  /api/syllabus/assignments/bulk:
+    post:
+      summary: Assign syllabus tasks to multiple students
+      tags:
+        - Student Tasks
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [studentIds]
+              properties:
+                studentIds:
+                  type: array
+                  items:
+                    type: string
+                syllabusVersionId:
+                  type: string
+            example:
+              studentIds:
+                - "6808be4d12ab34cd56ef7101"
+                - "6808be4d12ab34cd56ef7102"
+              syllabusVersionId: "6808be4d12ab34cd56ef7401"
+      responses:
+        '200':
+          description: Bulk assignment processed
+
+  /api/syllabus/assignments/manual:
+    post:
+      summary: Manually assign selected tasks to one or more students
+      description: Assigns only the selected taskIds to the given students and stores assignment metadata as manual assignment.
+      tags:
+        - Student Tasks
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [studentIds, taskIds]
+              properties:
+                studentIds:
+                  type: array
+                  items:
+                    type: string
+                taskIds:
+                  type: array
+                  items:
+                    type: string
+                syllabusVersionId:
+                  type: string
+                  description: Optional. If omitted, the student's current syllabusVersionId is used.
+            example:
+              studentIds:
+                - "6808be4d12ab34cd56ef7101"
+                - "6808be4d12ab34cd56ef7102"
+              taskIds:
+                - "6808be4d12ab34cd56ef7801"
+                - "6808be4d12ab34cd56ef7802"
+              syllabusVersionId: "6808be4d12ab34cd56ef7401"
+      responses:
+        '200':
+          description: Manual task assignment completed
+        '400':
+          description: Invalid assignment payload
+
+  /api/syllabus/assignments/session-level:
+    post:
+      summary: Assign syllabus tasks to students by session and level
+      tags:
+        - Student Tasks
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sessionId:
+                  type: string
+                levelId:
+                  type: string
+                subLevelId:
+                  type: string
+                syllabusVersionId:
+                  type: string
+            example:
+              sessionId: "64fdb61e7b9a1a1234567894"
+              levelId: "64fdb61e7b9a1a1234567892"
+              subLevelId: "64fdb61e7b9a1a1234567893"
+              syllabusVersionId: "6808be4d12ab34cd56ef7401"
+      responses:
+        '200':
+          description: Session-level assignment processed
+
+  /api/syllabus/students/{studentId}/tasks:
+    get:
+      summary: Get assigned student tasks
+      tags:
+        - Student Tasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: syllabusVersionId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: ["pending", "inProgress", "completed"]
+        - in: query
+          name: subjectId
+          schema:
+            type: string
+        - in: query
+          name: topicId
+          schema:
+            type: string
+        - in: query
+          name: subTopicId
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Student tasks fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StudentTask'
+        '400':
+          description: syllabusVersionId missing
+
+  /api/syllabus/students/{studentId}/tasks/summary:
+    get:
+      summary: Get student task summary
+      tags:
+        - Student Tasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: syllabusVersionId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Student task summary fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/StudentTaskSummary'
+        '400':
+          description: syllabusVersionId missing
+
+  /api/syllabus/students/{studentId}/tasks/{taskId}:
+    patch:
+      summary: Update student task status
+      description: Updates status, optional marks, and notes for an assigned student task.
+      tags:
+        - Student Tasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: taskId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: ["pending", "inProgress", "completed"]
+                marks:
+                  type: number
+                notes:
+                  type: string
+            example:
+              status: "completed"
+              marks: 5
+              notes: "Completed with all required sections"
+      responses:
+        '200':
+          description: Student task updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/StudentTask'
+        '400':
+          description: Invalid update or task not found
+
+  /api/students/{studentId}/profile:
+    get:
+      summary: Get student profile with task summary
+      tags:
+        - Student Profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Student profile fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
                   data:
                     type: object
                     properties:
-                      placedInfo:
-                        type: object
-                        description: Placement details saved
+                      student:
+                        $ref: '#/components/schemas/StudentProfile'
+                      taskSummary:
+                        oneOf:
+                          - $ref: '#/components/schemas/StudentTaskSummary'
+                          - type: 'null'
+                      progressSnapshots:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProgressSnapshot'
+        '404':
+          description: Student not found
+
+  /api/students/{studentId}/profile/tasks:
+    get:
+      summary: Get student profile tasks
+      tags:
+        - Student Profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: syllabusVersionId
+          schema:
+            type: string
+          description: Optional if the student already has a syllabusVersionId assigned.
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: ["pending", "inProgress", "completed"]
+        - in: query
+          name: subjectId
+          schema:
+            type: string
+        - in: query
+          name: topicId
+          schema:
+            type: string
+        - in: query
+          name: subTopicId
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Student profile tasks fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StudentTask'
+        '400':
+          description: syllabusVersionId missing and no syllabus assigned to student
+        '404':
+          description: Student not found
+
+  /api/students/{studentId}/profile/tasks/summary:
+    get:
+      summary: Get student profile task summary
+      tags:
+        - Student Profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: syllabusVersionId
+          schema:
+            type: string
+          description: Optional if the student already has a syllabusVersionId assigned.
+      responses:
+        '200':
+          description: Student profile task summary fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/StudentTaskSummary'
+        '400':
+          description: syllabusVersionId missing and no syllabus assigned to student
+        '404':
+          description: Student not found
+
+  /api/students/{studentId}/profile/tasks/{taskId}:
+    patch:
+      summary: Update student task from profile
+      description: Updates status, optional marks, and notes for a task from the individual student profile flow.
+      tags:
+        - Student Profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: taskId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: ["pending", "inProgress", "completed"]
+                marks:
+                  type: number
+                notes:
+                  type: string
+            example:
+              status: "inProgress"
+              marks: 5
+              notes: "Started working on this task"
+      responses:
+        '200':
+          description: Student task status updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/StudentTask'
+        '400':
+          description: Invalid update or task not found
+        '404':
+          description: Student not found
+
+  /api/students/{studentId}/promotion/preview:
+    get:
+      summary: Get next promotion preview for a student
+      tags:
+        - Student Promotion
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Promotion preview fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
                       student:
                         type: object
-                        properties:
-                          id:
-                            type: string
-                          name:
-                            type: string
-                          image:
-                            type: string
-                      company:
+                      next:
                         type: object
                         properties:
-                          id:
+                          level:
+                            $ref: '#/components/schemas/Level'
+                          subLevel:
+                            $ref: '#/components/schemas/SubLevel'
+                          syllabusVersion:
+                            oneOf:
+                              - $ref: '#/components/schemas/SyllabusVersion'
+                              - type: 'null'
+                          transitionType:
                             type: string
-                          name:
-                            type: string
-                          logo:
-                            type: string
-                          headOffice:
-                            type: string
-        "400":
-          description: Bad request (missing required fields)
-        "404":
+                            enum: ["subLevel", "level"]
+        '400':
+          description: Student is already at final stage or progression cannot be resolved
+        '404':
           description: Student not found
-        "500":
-          description: Internal server error
+
+  /api/students/{studentId}/promotion/history:
+    get:
+      summary: Get student promotion history
+      tags:
+        - Student Promotion
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Promotion history fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PromotionHistory'
+        '404':
+          description: Student not found
+
+  /api/students/{studentId}/promotion:
+    patch:
+      summary: Promote student to next level or sublevel
+      description: Faculty, admin, or superadmin can promote a student. The API automatically resolves the next sublevel first, otherwise the first sublevel of the next level, and assigns the active syllabus tasks for that stage.
+      tags:
+        - Student Promotion
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                remark:
+                  type: string
+            example:
+              remark: "Promoted after faculty review"
+      responses:
+        '200':
+          description: Student promoted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      studentId:
+                        type: string
+                      promotedTo:
+                        type: object
+                        properties:
+                          level:
+                            $ref: '#/components/schemas/Level'
+                          subLevel:
+                            $ref: '#/components/schemas/SubLevel'
+                          syllabusVersion:
+                            $ref: '#/components/schemas/SyllabusVersion'
+                      assignment:
+                        type: object
+                        properties:
+                          createdCount:
+                            type: integer
+                          updatedCount:
+                            type: integer
+                          totalTasks:
+                            type: integer
+                      lastPromotion:
+                        $ref: '#/components/schemas/PromotionHistory'
+        '400':
+          description: Promotion blocked because next stage or syllabus is unavailable
+        '401':
+          description: Authenticated faculty user not found
+        '404':
+          description: Student not found
 
   /api/reportcards:
     post:
@@ -5262,65 +6339,3 @@ paths:
 
 
 
-  /report-card:
-    post:
-      tags:
-        - Student Report Card
-      summary: Save or update student report card
-      description: Creates a new report card or updates it if already exists using studentRef.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ReportCardInput"
-      responses:
-        "201":
-          description: Report card saved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ReportCardResponse"
-        "500":
-          description: Internal server error
-
-  /api/report-card/{id}:
-    put:
-      tags:
-        - Student Report Card
-      summary: Update student report card
-      description: Updates an existing report card by ID.
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          description: Report card ID
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ReportCardInput"
-      responses:
-        "200":
-          description: Report card updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ReportCardResponse"
-        "404":
-          description: Report card not found
-        "500":
-          description: Internal server error
-
-
-
-
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
