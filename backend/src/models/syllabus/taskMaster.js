@@ -7,7 +7,7 @@ const taskMasterSchema = new mongoose.Schema({
   subjectId: { type: mongoose.Schema.Types.ObjectId, ref: "Subject",  required: true, index: true },
   topicId:   { type: mongoose.Schema.Types.ObjectId, ref: "Topic",    required: true, index: true },
   subTopicId:{ type: mongoose.Schema.Types.ObjectId, ref: "SubTopic", default: null,  index: true },
-  taskCode:  { type: String, trim: true },
+  taskCode:  { type: String, trim: true, sparse: true },
   title:     { type: String, required: true },
   description: String,
   type: {

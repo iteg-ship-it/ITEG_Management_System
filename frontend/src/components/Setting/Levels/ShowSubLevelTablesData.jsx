@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+﻿import { useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
@@ -6,23 +6,23 @@ import { toast } from "react-toastify";
 import { MdFilterList, MdCloudUpload, MdPictureAsPdf, MdDescription, MdTableChart, MdVisibility, MdEdit, MdCheckCircle, MdBlock, MdDownload } from "react-icons/md";
 import Header from "../../common-components/sidebar/Header";
 import OrangeButton from "../../common-components/sidebar/OrangeButton";
-import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation, useGetSyllabusVersionsBySubLevelQuery, useGetTasksBySyllabusVersionQuery } from "../../../redux/api/authApi";
+import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation } from "../../../redux/api/authApi";
 import SearchBox from "../../common-components/seach-export/SearchBox";
 import ExportDropdown from "../../common-components/seach-export/ExportDropdown";
 import CommonTable from "../../common-components/table/CommonTable";
 import InputField from "../../common-components/common-feild/InputField";
 import RadioGroup from "../../common-components/common-feild/RadioGroup";
-import SyllabusTab, { SyllabusUploadDrawer, TaskUploadDrawer, VersionTasksTable } from "./SyllabusTab";
+import SyllabusTab, { TasksTab, ManualTaskForm } from "./SyllabusTab";
 import { useEffect } from "react";
 
-/* ── Validation ── */
+/* â”€â”€ Validation â”€â”€ */
 const validationSchema = Yup.object({
     name: Yup.string().required("SubLevel name is required"),
     order: Yup.number().required("Order is required").positive("Must be positive"),
     isActive: Yup.boolean(),
 });
 
-/* ── Students ── */
+/* â”€â”€ Students â”€â”€ */
 const DUMMY_STUDENTS = [
     { sno: 1, fullName: "Rahul Sharma",  fatherName: "Ramesh Sharma",  mobile: "9876543210", course: "B.Tech", busRoute: "Route 1", attempts: 2 },
     { sno: 2, fullName: "Priya Verma",   fatherName: "Suresh Verma",   mobile: "9812345678", course: "MCA",    busRoute: "Route 3", attempts: 1 },
@@ -49,7 +49,7 @@ const STUDENT_COLUMNS = [
     },
 ];
 
-/* ── Tasks ── */
+/* â”€â”€ Tasks â”€â”€ */
 const DUMMY_TASKS = [
     { _id: "T001", title: "Complete Python Assignment",  description: "Build a REST API using Flask",              priority: "HIGH",   assignedTo: "Rahul Sharma", type: "MANUAL", status: "ACTIVE"    },
     { _id: "T002", title: "Database Design Project",     description: "Design ER diagram for e-commerce system",  priority: "MEDIUM", assignedTo: "Priya Verma",  type: "BULK",   status: "ACTIVE"    },
@@ -105,7 +105,7 @@ const TaskActions = ({ row }) => (
     </div>
 );
 
-/* ── Syllabus ── */
+/* â”€â”€ Syllabus â”€â”€ */
 const DUMMY_SYLLABUS = [];
 
 const FILE_ICON = {
@@ -122,7 +122,7 @@ const SYLLABUS_COLUMNS = [
                 <div className="flex-shrink-0">{FILE_ICON[row.ext] || <MdDescription size={28} className="text-gray-400" />}</div>
                 <div>
                     <p className="font-semibold text-sm text-gray-800">{row.fileName}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{row.size} • {row.description}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{row.size} â€¢ {row.description}</p>
                 </div>
             </div>
         ),
@@ -141,7 +141,7 @@ const SyllabusActions = () => (
     </div>
 );
 
-/* ── Progress ── */
+/* â”€â”€ Progress â”€â”€ */
 const DUMMY_PROGRESS = [
     { _id: "P001", name: "Alex Harrison",   level: "2A", taskDone: 4, taskTotal: 8, subjectDone: 3, subjectInProgress: 2, subjectTotal: 8, pending: 2, inProgress: 2, done: 4, status: "ACTIVE"  },
     { _id: "P002", name: "Sarah Miller",    level: "2B", taskDone: 6, taskTotal: 8, subjectDone: 5, subjectInProgress: 1, subjectTotal: 8, pending: 1, inProgress: 1, done: 6, status: "ACTIVE"  },
@@ -253,9 +253,9 @@ const ProgressTab = () => {
 
 const SECTION_TABS = ["Students", "Tasks", "Syllabus", "Progress"];
 
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    MAIN COMPONENT
-══════════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 const ShowSubLevelTablesData = () => {
     const location       = useLocation();
     const navigate       = useNavigate();
@@ -296,7 +296,7 @@ const ShowSubLevelTablesData = () => {
 
     const breadcrumbs = [
         { label: "Departments", path: "/department-management" },
-        { label: session ? `${departmentName || "Department"} • ${session}` : departmentName || "Department", path: `/department-details/${departmentId}`, state: { department: subdepartment?.departmentId } },
+        { label: session ? `${departmentName || "Department"} â€¢ ${session}` : departmentName || "Department", path: `/department-details/${departmentId}`, state: { department: subdepartment?.departmentId } },
         { label: subdepartment?.name || "Subdepartment", path: "/subdepartment-details", state: { subdepartment, departmentId, departmentName } },
         { label: level?.name || "Level" },
     ];
@@ -336,132 +336,22 @@ const ShowSubLevelTablesData = () => {
                     </button>
                 )}
                 {activeSection === "Tasks" ? (
-                    <Formik
-                        initialValues={{ title: "", description: "", subject: "", priority: "", dueDate: "", assignTo: "selected", studentSearch: "", selectedStudents: [] }}
-                        onSubmit={(values, { setSubmitting, resetForm }) => {
-                            toast.success("Task added successfully!");
-                            resetForm();
-                            setSubmitting(false);
-                        }}
-                    >
-                        {({ values, setFieldValue, submitForm, resetForm }) => (
-                            <OrangeButton
-                                buttonTitle="+ Add Task"
-                                panelTitle="Add New Task"
-                                panelSubtitle={`Assign tasks to students in ${level?.name || "this level"}`}
-                                drawerContent={
-                                    <Form className="space-y-5">
-
-                                        {/* ── Action Cards ── */}
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="border border-gray-200 rounded-xl p-4 flex flex-col gap-2">
-                                                <div className="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center">
-                                                    <MdTableChart size={20} className="text-orange-500" />
-                                                </div>
-                                                <p className="text-sm font-semibold text-gray-800">Upload Excel</p>
-                                                <p className="text-xs text-gray-400">Upload up to 50 tasks via Excel sheet</p>
-                                                <button type="button" className="mt-1 text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 px-3 py-1.5 rounded-lg transition">CHOOSE FILE</button>
-                                            </div>
-                                            <div className="border border-gray-200 rounded-xl p-4 flex flex-col gap-2">
-                                                <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center">
-                                                    <MdCheckCircle size={20} className="text-green-500" />
-                                                </div>
-                                                <p className="text-sm font-semibold text-gray-800">Add Manually</p>
-                                                <p className="text-xs text-gray-400">Create a single task manually here</p>
-                                                <button type="button" className="mt-1 text-xs font-semibold text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition">ADD TASK</button>
-                                            </div>
-                                        </div>
-
-                                        {/* ── Task Details ── */}
-                                        <div>
-                                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Task Details</p>
-                                            <div className="space-y-3">
-                                                <InputField label="Task Title" name="title" placeholder="Enter task title" />
-                                                <InputField label="Description" name="description" type="textarea" placeholder="Enter task description" />
-                                                <InputField label="Subject" name="subject" type="select" placeholder="Select subject" options={[
-                                                    { value: "math", label: "Mathematics" },
-                                                    { value: "science", label: "Science" },
-                                                    { value: "english", label: "English" },
-                                                    { value: "cs", label: "Computer Science" },
-                                                ]} />
-                                                <InputField label="Priority" name="priority" type="select" placeholder="Select priority" options={[
-                                                    { value: "HIGH", label: "High" },
-                                                    { value: "MEDIUM", label: "Medium" },
-                                                    { value: "LOW", label: "Low" },
-                                                ]} />
-                                                <InputField label="Due Date" name="dueDate" type="date" />
-                                            </div>
-                                        </div>
-
-                                        {/* ── Task Assignment ── */}
-                                        <div>
-                                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Task Assignment</p>
-                                            <div className="space-y-3">
-                                                <div className="flex gap-2 bg-gray-100 p-1 rounded-lg w-fit">
-                                                    {["selected", "all"].map((opt) => (
-                                                        <button
-                                                            key={opt}
-                                                            type="button"
-                                                            onClick={() => setFieldValue("assignTo", opt)}
-                                                            className={`px-4 py-1.5 rounded-md text-xs font-semibold transition ${
-                                                                values.assignTo === opt
-                                                                    ? "bg-white text-orange-500 shadow"
-                                                                    : "text-gray-500 hover:text-gray-700"
-                                                            }`}
-                                                        >
-                                                            {opt === "selected" ? "Selected Students" : "All Students"}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                                {values.assignTo === "selected" && (
-                                                    <>
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Search students..."
-                                                            value={values.studentSearch}
-                                                            onChange={(e) => setFieldValue("studentSearch", e.target.value)}
-                                                            className="w-full h-10 px-3 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-700 focus:outline-none focus:border-orange-400 focus:bg-white transition"
-                                                        />
-                                                        <div className="space-y-2 max-h-40 overflow-y-auto">
-                                                            {DUMMY_STUDENTS
-                                                                .filter((s) => s.fullName.toLowerCase().includes(values.studentSearch.toLowerCase()))
-                                                                .map((s) => (
-                                                                    <label key={s.sno} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            className="w-4 h-4 accent-orange-500"
-                                                                            checked={values.selectedStudents.includes(s.sno)}
-                                                                            onChange={(e) => {
-                                                                                const updated = e.target.checked
-                                                                                    ? [...values.selectedStudents, s.sno]
-                                                                                    : values.selectedStudents.filter((id) => id !== s.sno);
-                                                                                setFieldValue("selectedStudents", updated);
-                                                                            }}
-                                                                        />
-                                                                        <div className="w-7 h-7 rounded-full bg-orange-100 text-orange-600 text-xs font-bold flex items-center justify-center flex-shrink-0">
-                                                                            {s.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2)}
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-sm font-medium text-gray-800">{s.fullName}</p>
-                                                                            <p className="text-xs text-gray-400">{s.mobile}</p>
-                                                                        </div>
-                                                                    </label>
-                                                                ))}
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                    </Form>
-                                }
-                                leftBtnText="Cancel"
-                                rightBtnText="Save Task"
-                                onLeftClick={resetForm}
-                                onRightClick={submitForm}
+                    <OrangeButton
+                        buttonTitle="+ Add Task"
+                        panelTitle="Add New Task"
+                        panelSubtitle="Select subject, topic and subtopic to add a task"
+                        drawerContent={
+                            <ManualTaskForm
+                                subLevel={activeTab}
+                                onSaved={() => {}}
+                                showSubmitButton={false}
+                                formId="manual-task-form"
                             />
-                        )}
-                    </Formik>
+                        }
+                        leftBtnText="Cancel"
+                        rightBtnText="Save Task"
+                        onRightClick={() => document.getElementById('manual-task-form')?.requestSubmit()}
+                    />
                 ) : (
                 <Formik
                     initialValues={{ name: "", order: "", isActive: true }}
@@ -521,7 +411,7 @@ const ShowSubLevelTablesData = () => {
                 {/* Tab Content */}
                 <div className="py-6">
 
-                    {/* ── Students ── */}
+                    {/* â”€â”€ Students â”€â”€ */}
                     {activeSection === "Students" && (
                         <div className="space-y-3">
                             <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-3">
@@ -546,17 +436,17 @@ const ShowSubLevelTablesData = () => {
                         </div>
                     )}
 
-                    {/* ── Tasks ── */}
+                    {/* â”€â”€ Tasks â”€â”€ */}
                     {activeSection === "Tasks" && (
                         <TasksTab level={level} subLevel={activeTab} onVersionChange={setActiveTaskVersionId} />
                     )}
 
-                    {/* ── Syllabus ── */}
+                    {/* â”€â”€ Syllabus â”€â”€ */}
                     {activeSection === "Syllabus" && (
                         <SyllabusTab level={level} subLevel={activeTab} />
                     )}
 
-                    {/* ── Progress ── */}
+                    {/* â”€â”€ Progress â”€â”€ */}
                     {activeSection === "Progress" && <ProgressTab />}
 
                 </div>
@@ -565,61 +455,5 @@ const ShowSubLevelTablesData = () => {
     );
 };
 
-const TasksTab = ({ level, subLevel, onVersionChange }) => {
-    const subLevelId = subLevel?._id;
-    const [selectedVersionId, setSelectedVersionId] = useState("");
-
-    const { data: versionsData, refetch } = useGetSyllabusVersionsBySubLevelQuery(
-        { subLevelId, sessionId: "" },
-        { skip: !subLevelId }
-    );
-    const versions = versionsData?.data || [];
-
-    const activeVersion = versions.find((v) => v._id === selectedVersionId) || versions[0];
-    const versionId = activeVersion?._id || "";
-
-    useEffect(() => { onVersionChange?.(versionId); }, [versionId]);
-
-    if (!versions.length) {
-        return (
-            <div className="py-16 text-center text-gray-400 text-sm">
-                No syllabus found. Please upload a syllabus first from the Syllabus tab.
-            </div>
-        );
-    }
-
-    return (
-        <div className="space-y-4">
-            <div className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3">
-                <span className="text-sm font-medium text-gray-600">Subject:</span>
-                <select
-                    value={versionId}
-                    onChange={(e) => { setSelectedVersionId(e.target.value); onVersionChange?.(e.target.value); }}
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white"
-                >
-                    {versions.map((v) => (
-                        <option key={v._id} value={v._id}>
-                            {v.subjectName} — {v.version} ({v.status})
-                        </option>
-                    ))}
-                </select>
-            </div>
-
-            {versionId && (
-                <div className="space-y-4">
-                    <TaskUploadDrawer
-                        syllabusVersionId={versionId}
-                        subjectName={activeVersion?.subjectName || ""}
-                        version={activeVersion?.version || ""}
-                        onSaved={refetch}
-                    />
-                    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-                        <VersionTasksTable versionId={versionId} />
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
 
 export default ShowSubLevelTablesData;

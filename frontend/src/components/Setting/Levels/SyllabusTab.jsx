@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, forwardRef, useImperativeHandle } from "react";
+﻿import { useState, useRef, useMemo, forwardRef, useImperativeHandle, useEffect } from "react";
 import * as XLSX from "xlsx";
 import {
   MdCloudUpload, MdCheckCircle, MdExpandMore, MdExpandLess,
@@ -694,20 +694,36 @@ export const VersionTasksTable = ({ versionId }) => {
 /* ─── Manual Task Creation Form ────────────────────────── */
 const TASK_TYPES    = ["writtenExam", "interview", "project", "presentation", "learning", "assessment"];
 const TASK_PRIORITY = ["low", "medium", "high"];
-const EMPTY_FORM    = { title: "", description: "", type: "assessment", priority: "medium", maxMarks: 100, cutoff: 40, mandatory: true, dueDate: "" };
+const EMPTY_FORM    = { title: "", measurablePoints: "", timeDays: "", type: "assessment", priority: "medium", maxMarks: 100, cutoff: 40, dueDate: "" };
 
-// taskTarget: "topic" | "subtopic"
-const ManualTaskForm = ({ versionId, onSaved }) => {
+export const ManualTaskForm = ({ subLevel, versionId, onSaved, formId = "manual-task-form", showSubmitButton = true }) => {
+  const subLevelId = subLevel?._id;
+  const [syllabusVersionId, setSyllabusVersionId] = useState(versionId || "");
   const [subjectId,  setSubjectId]  = useState("");
   const [topicId,    setTopicId]    = useState("");
-  const [taskTarget, setTaskTarget] = useState("");   // "topic" or "subtopic"
+  const [taskTarget, setTaskTarget] = useState("");
   const [subTopicId, setSubTopicId] = useState("");
   const [form,       setForm]       = useState(EMPTY_FORM);
   const [saving,     setSaving]     = useState(false);
 
-  const { data: subjectsData }  = useGetSubjectsByVersionQuery(versionId, { skip: !versionId });
-  const { data: topicsData }    = useGetTopicsBySubjectQuery(subjectId,   { skip: !subjectId });
-  const { data: subTopicsData } = useGetSubTopicsByTopicQuery(topicId,    { skip: !topicId || taskTarget !== "subtopic" });
+  // Load versions for this subLevel to get syllabusVersionId
+  const { data: versionsData } = useGetSyllabusVersionsBySubLevelQuery(
+    { subLevelId, sessionId: "" },
+    { skip: !subLevelId && !versionId }
+  );
+  const versions = versionsData?.data || [];
+
+  // Auto-pick active version or first
+  useEffect(() => {
+    if (!versionId && versions.length > 0) {
+      const active = versions.find((v) => v.status === "active") || versions[0];
+      setSyllabusVersionId(active._id);
+    }
+  }, [versions, versionId]);
+
+  const { data: subjectsData, isLoading: loadSub } = useGetSubjectsByVersionQuery(syllabusVersionId, { skip: !syllabusVersionId });
+  const { data: topicsData,   isLoading: loadTop } = useGetTopicsBySubjectQuery(subjectId,          { skip: !subjectId });
+  const { data: subTopicsData }                     = useGetSubTopicsByTopicQuery(topicId,           { skip: !topicId || taskTarget !== "subtopic" });
 
   const subjects  = subjectsData?.data  || [];
   const topics    = topicsData?.data    || [];
@@ -721,104 +737,84 @@ const ManualTaskForm = ({ versionId, onSaved }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!canSubmit)          { toast.error("Pehle target select karo"); return; }
-    if (!form.title.trim())  { toast.error("Task title required hai"); return; }
+    if (!form.title.trim()) { toast.error("Task title required hai"); return; }
     setSaving(true);
     try {
       const payload = {
-        syllabusVersionId: versionId,
+        syllabusVersionId,
         subjectId,
         topicId,
         ...(taskTarget === "subtopic" && subTopicId ? { subTopicId } : {}),
         ...form,
+        title:    form.title.trim(),
         maxMarks: Number(form.maxMarks),
         cutoff:   Number(form.cutoff),
+        timeDays: form.timeDays ? Number(form.timeDays) : null,
       };
       await createTask(payload).unwrap();
       toast.success("Task created successfully!");
-      resetForm();
+      setForm(EMPTY_FORM); setSubTopicId(""); setTaskTarget("");
       onSaved?.();
     } catch (err) {
       toast.error(err?.data?.message || "Task create failed");
     } finally { setSaving(false); }
   };
 
-  const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white";
-  const labelCls = "block text-xs font-semibold text-gray-500 mb-1";
+  const ic = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white disabled:bg-gray-50 disabled:text-gray-400";
+  const lc = "block text-xs font-semibold text-gray-500 mb-1";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4">
+    <form id={formId} onSubmit={handleSubmit} className="space-y-4 p-4 bg-orange-50/30">
 
-      {/* ── Step 1: Subject ── */}
-      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Step 1 — Subject & Topic</p>
+      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Step 1 â€” Subject & Topic</p>
+
       <div>
-        <label className={labelCls}>Subject</label>
-        <select className={inputCls} value={subjectId} onChange={(e) => { setSubjectId(e.target.value); setTopicId(""); setTaskTarget(""); setSubTopicId(""); }}>
+        <label className={lc}>Subject {loadSub && <span className="text-orange-400 font-normal">Loading...</span>}</label>
+        <select className={ic} value={subjectId} onChange={(e) => { setSubjectId(e.target.value); setTopicId(""); setTaskTarget(""); setSubTopicId(""); }}>
           <option value="">-- Select Subject --</option>
           {subjects.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
         </select>
       </div>
 
-      {/* ── Step 1b: Topic ── */}
       {subjectId && (
         <div>
-          <label className={labelCls}>Topic</label>
-          <select className={inputCls} value={topicId} onChange={(e) => { setTopicId(e.target.value); setTaskTarget(""); setSubTopicId(""); }}>
+          <label className={lc}>Topic {loadTop && <span className="text-orange-400 font-normal">Loading...</span>}</label>
+          <select className={ic} value={topicId} onChange={(e) => { setTopicId(e.target.value); setTaskTarget(""); setSubTopicId(""); }}>
             <option value="">-- Select Topic --</option>
             {topics.map((t) => <option key={t._id} value={t._id}>{t.name}</option>)}
           </select>
         </div>
       )}
 
-      {/* ── Step 2: Task target choice ── */}
       {topicId && (
         <>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider pt-1">Step 2 — Task Kahan Add Karna Hai?</p>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider pt-1">Step 2 â€” Task Kahan Add Karna Hai?</p>
           <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => { setTaskTarget("topic"); setSubTopicId(""); }}
-              className={`flex flex-col items-center gap-1.5 border-2 rounded-xl py-4 px-3 transition ${
-                taskTarget === "topic"
-                  ? "border-orange-500 bg-orange-50 text-orange-600"
-                  : "border-gray-200 bg-white text-gray-500 hover:border-orange-300"
-              }`}
-            >
+            <button type="button" onClick={() => { setTaskTarget("topic"); setSubTopicId(""); }}
+              className={`flex flex-col items-center gap-1.5 border-2 rounded-xl py-4 px-3 transition ${taskTarget === "topic" ? "border-orange-500 bg-orange-50 text-orange-600" : "border-gray-200 bg-white text-gray-500 hover:border-orange-300"}`}>
               <MdTopic size={22} />
               <span className="text-xs font-semibold">Topic pe directly</span>
-              <span className="text-[10px] text-center leading-tight opacity-70">
-                Task topic level ka hai, koi subtopic nahi
-              </span>
+              <span className="text-[10px] text-center leading-tight opacity-70">Koi subtopic nahi, topic level ka task</span>
             </button>
-            <button
-              type="button"
-              onClick={() => setTaskTarget("subtopic")}
-              className={`flex flex-col items-center gap-1.5 border-2 rounded-xl py-4 px-3 transition ${
-                taskTarget === "subtopic"
-                  ? "border-blue-500 bg-blue-50 text-blue-600"
-                  : "border-gray-200 bg-white text-gray-500 hover:border-blue-300"
-              }`}
-            >
+            <button type="button" onClick={() => setTaskTarget("subtopic")}
+              className={`flex flex-col items-center gap-1.5 border-2 rounded-xl py-4 px-3 transition ${taskTarget === "subtopic" ? "border-blue-500 bg-blue-50 text-blue-600" : "border-gray-200 bg-white text-gray-500 hover:border-blue-300"}`}>
               <MdSubject size={22} />
               <span className="text-xs font-semibold">SubTopic select karke</span>
-              <span className="text-[10px] text-center leading-tight opacity-70">
-                Task kisi specific subtopic se related hai
-              </span>
+              <span className="text-[10px] text-center leading-tight opacity-70">Task kisi subtopic se related hai</span>
             </button>
           </div>
         </>
       )}
 
-      {/* ── SubTopic dropdown (only when subtopic path chosen) ── */}
       {taskTarget === "subtopic" && (
         <div>
-          <label className={labelCls}>SubTopic</label>
+          <label className={lc}>SubTopic</label>
           {subTopics.length === 0 ? (
             <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              Is topic mein koi subtopic nahi hai. Topic pe directly add karo.
+              Is topic mein koi subtopic nahi â€” Topic pe directly add karo.
             </p>
           ) : (
-            <select className={inputCls} value={subTopicId} onChange={(e) => setSubTopicId(e.target.value)}>
+            <select className={ic} value={subTopicId} onChange={(e) => setSubTopicId(e.target.value)}>
               <option value="">-- Select SubTopic --</option>
               {subTopics.map((st) => <option key={st._id} value={st._id}>{st.name}</option>)}
             </select>
@@ -826,65 +822,63 @@ const ManualTaskForm = ({ versionId, onSaved }) => {
         </div>
       )}
 
-      {/* ── Target confirmation badge ── */}
       {canSubmit && (
-        <div className={`text-xs font-semibold px-3 py-2 rounded-lg ${
-          taskTarget === "subtopic" ? "bg-blue-50 text-blue-600" : "bg-orange-50 text-orange-600"
-        }`}>
-          {taskTarget === "subtopic"
-            ? `✓ Task → SubTopic: "${subTopics.find((s) => s._id === subTopicId)?.name}"`
-            : `✓ Task → Topic: "${topics.find((t) => t._id === topicId)?.name}"`
-          }
+        <div className={`flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-lg ${taskTarget === "subtopic" ? "bg-blue-50 text-blue-600" : "bg-orange-50 text-orange-600"}`}>
+          <MdBook size={13}/><span>{subjects.find(s=>s._id===subjectId)?.name}</span>
+          <span className="opacity-40">â€º</span>
+          <MdTopic size={13}/><span>{topics.find(t=>t._id===topicId)?.name}</span>
+          {subTopicId && <><span className="opacity-40">â€º</span><MdSubject size={13}/><span>{subTopics.find(s=>s._id===subTopicId)?.name}</span></>}
+          <span className="ml-auto bg-white px-2 py-0.5 rounded-full border">Task â†’ {taskTarget === "subtopic" ? "SubTopic" : "Topic"}</span>
         </div>
       )}
 
-      {/* ── Step 3: Task Details ── */}
       {canSubmit && (
         <>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider pt-1">Step 3 — Task Details</p>
-
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider pt-1">Step 3 â€” Task Details</p>
           <div>
-            <label className={labelCls}>Task Title *</label>
-            <input className={inputCls} value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder="Enter task title" />
+            <label className={lc}>Task Title *</label>
+            <input className={ic} value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder="Enter task title" />
           </div>
-
           <div>
-            <label className={labelCls}>Description</label>
-            <textarea className={inputCls} rows={2} value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="Optional description" />
+            <label className={lc}>Measurable Points</label>
+            <textarea className={ic} rows={2} value={form.measurablePoints} onChange={(e) => setForm((p) => ({ ...p, measurablePoints: e.target.value }))} placeholder="e.g. Student should explain var/let/const" />
           </div>
-
+          <div>
+            <label className={lc}>Time (Days)</label>
+            <input type="number" className={ic} value={form.timeDays} onChange={(e) => setForm((p) => ({ ...p, timeDays: e.target.value }))} placeholder="e.g. 7" />
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelCls}>Type</label>
-              <select className={inputCls} value={form.type} onChange={(e) => setForm((p) => ({ ...p, type: e.target.value }))}>
+              <label className={lc}>Type</label>
+              <select className={ic} value={form.type} onChange={(e) => setForm((p) => ({ ...p, type: e.target.value }))}>
                 {TASK_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>
-              <label className={labelCls}>Priority</label>
-              <select className={inputCls} value={form.priority} onChange={(e) => setForm((p) => ({ ...p, priority: e.target.value }))}>
+              <label className={lc}>Priority</label>
+              <select className={ic} value={form.priority} onChange={(e) => setForm((p) => ({ ...p, priority: e.target.value }))}>
                 {TASK_PRIORITY.map((p) => <option key={p} value={p}>{p}</option>)}
               </select>
             </div>
             <div>
-              <label className={labelCls}>Max Marks</label>
-              <input type="number" className={inputCls} value={form.maxMarks} onChange={(e) => setForm((p) => ({ ...p, maxMarks: e.target.value }))} />
+              <label className={lc}>Max Marks</label>
+              <input type="number" className={ic} value={form.maxMarks} onChange={(e) => setForm((p) => ({ ...p, maxMarks: e.target.value }))} />
             </div>
             <div>
-              <label className={labelCls}>Cutoff</label>
-              <input type="number" className={inputCls} value={form.cutoff} onChange={(e) => setForm((p) => ({ ...p, cutoff: e.target.value }))} />
+              <label className={lc}>Cutoff</label>
+              <input type="number" className={ic} value={form.cutoff} onChange={(e) => setForm((p) => ({ ...p, cutoff: e.target.value }))} />
             </div>
           </div>
-
           <div>
-            <label className={labelCls}>Due Date (optional)</label>
-            <input type="date" className={inputCls} value={form.dueDate} onChange={(e) => setForm((p) => ({ ...p, dueDate: e.target.value }))} />
+            <label className={lc}>Due Date (optional)</label>
+            <input type="date" className={ic} value={form.dueDate} onChange={(e) => setForm((p) => ({ ...p, dueDate: e.target.value }))} />
           </div>
-
           <div className="flex gap-2 pt-1">
-            <button type="submit" disabled={saving} className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-semibold py-2.5 rounded-lg transition">
-              {saving ? "Saving..." : "Add Task"}
-            </button>
+            {showSubmitButton && (
+              <button type="submit" disabled={saving} className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-semibold py-2.5 rounded-lg transition">
+                {saving ? "Saving..." : "Add Task"}
+              </button>
+            )}
             <button type="button" onClick={resetForm} className="px-4 py-2 text-sm text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Reset</button>
           </div>
         </>
@@ -894,12 +888,11 @@ const ManualTaskForm = ({ versionId, onSaved }) => {
 };
 
 /* ─── Tasks Tab with session+subject selector ──────────── */
-export const TasksTab = ({ level, subLevel }) => {
+export const TasksTab = ({ level, subLevel, onVersionChange }) => {
   const subLevelId = subLevel?._id;
   const [selectedSessionId, setSelectedSessionId] = useState("");
   const [activeSubject,     setActiveSubject]     = useState("");
   const [selectedVersionId, setSelectedVersionId] = useState({});
-  const [showAddForm,       setShowAddForm]       = useState(false);
 
   const { data: sessionsData } = useGetAllSessionsQuery();
   const sessions = sessionsData?.data || [];
@@ -927,6 +920,8 @@ export const TasksTab = ({ level, subLevel }) => {
     || subjectVersions[0]?._id
     || "";
 
+  useEffect(() => { onVersionChange?.(activeVersionId); }, [activeVersionId]);
+
   if (!subLevelId) return <div className="py-16 text-center text-gray-400 text-sm">SubLevel not found</div>;
 
   return (
@@ -940,14 +935,6 @@ export const TasksTab = ({ level, subLevel }) => {
           <option value="">All Sessions</option>
           {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
         </select>
-        {activeVersionId && (
-          <button
-            onClick={() => setShowAddForm((p) => !p)}
-            className="ml-auto flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
-          >
-            <MdAssignment size={15} />{showAddForm ? "Close Form" : "+ Add Task"}
-          </button>
-        )}
       </div>
 
       {allVersions.length === 0 ? (
@@ -960,7 +947,7 @@ export const TasksTab = ({ level, subLevel }) => {
             {subjectNames.map((name) => (
               <button
                 key={name}
-                onClick={() => { setActiveSubject(name); setShowAddForm(false); }}
+                onClick={() => { setActiveSubject(name); }}
                 className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
                   currentSubject === name
                     ? "border-orange-500 text-orange-600 bg-orange-50"
@@ -987,16 +974,6 @@ export const TasksTab = ({ level, subLevel }) => {
                   </option>
                 ))}
               </select>
-            </div>
-          )}
-
-          {/* Manual Add Task Form */}
-          {showAddForm && activeVersionId && (
-            <div className="border-b border-gray-100">
-              <ManualTaskForm
-                versionId={activeVersionId}
-                onSaved={() => { setShowAddForm(false); refetch(); }}
-              />
             </div>
           )}
 
