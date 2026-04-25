@@ -50,6 +50,7 @@ const getStudentProfilePayload = async (studentId, requestedSyllabusVersionId) =
     documents: groupDocuments(student.documents || []),
     promotionHistory: student.promotionHistory || [],
     taskSnapshots: (student.taskSnapshots || []).slice().sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt)),
+    progressSnapshots: (student.progressSnapshots || []).slice().sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt)),
     eventHistory: (student.eventHistory || []).slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   };
 };

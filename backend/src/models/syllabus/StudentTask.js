@@ -6,6 +6,21 @@ const studentTaskSchema = new mongoose.Schema({
     ref: "Student",
     required: true
   },
+  sessionId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Session",
+    required: true
+  },
+  levelId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Level",
+    required: true
+  },
+  subLevelId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "SubLevel",
+    required: true
+  },
   syllabusVersionId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "SyllabusVersion",
@@ -39,7 +54,7 @@ const studentTaskSchema = new mongoose.Schema({
   description: { type: String, default: "" },
   type: { type: String, default: "assignment" },
   mandatory: { type: Boolean, default: true },
-  maxMarks: { type: Number, max: 5, default: 0 },
+  maxMarks: { type: Number, min: 0, max: 5, default: 5 },
   status: {
     type: String,
     enum: ["pending", "inProgress", "completed"],
@@ -48,9 +63,28 @@ const studentTaskSchema = new mongoose.Schema({
   marks: {
     type: Number,
     min: 0,
+    max: 5,
     default: null
   },
   notes: {
+    type: String,
+    default: ""
+  },
+  assignedType: {
+    type: String,
+    enum: ["auto", "manual"],
+    default: "auto"
+  },
+  assignedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null
+  },
+  assignedByName: {
+    type: String,
+    default: ""
+  },
+  assignedByRole: {
     type: String,
     default: ""
   },
@@ -72,7 +106,24 @@ const studentTaskSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+studentTaskSchema.pre("validate", function validateMarks(next) {
+  if (this.status === "completed" && (this.marks === null || this.marks === undefined)) {
+    return next(new Error("Marks are required when task status is completed"));
+  }
+
+  if (this.status !== "completed") {
+    this.marks = null;
+  }
+
+  if (this.marks !== null && this.marks !== undefined && this.marks > this.maxMarks) {
+    return next(new Error("Marks cannot exceed maxMarks"));
+  }
+
+  next();
+});
+
 studentTaskSchema.index({ studentId: 1, taskId: 1 }, { unique: true });
 studentTaskSchema.index({ studentId: 1, syllabusVersionId: 1, status: 1 });
+studentTaskSchema.index({ studentId: 1, sessionId: 1, levelId: 1, subLevelId: 1, syllabusVersionId: 1 });
 
 module.exports = mongoose.model("StudentTask", studentTaskSchema);

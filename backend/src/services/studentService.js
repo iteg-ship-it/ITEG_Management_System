@@ -37,6 +37,17 @@ const resolveInitialSyllabus = async (studentLike, explicitSyllabusVersionId) =>
       throw new Error("Provided syllabus version not found");
     }
 
+    if (version.sessionId.toString() !== studentLike.sessionId.toString()) {
+      throw new Error("Provided syllabus version does not belong to the student's session");
+    }
+
+    if (
+      version.levelId.toString() !== studentLike.currentLevelId.toString() ||
+      version.subLevelId.toString() !== studentLike.currentSubLevelId.toString()
+    ) {
+      throw new Error("Provided syllabus version does not belong to the student's current level/sublevel");
+    }
+
     return version;
   }
 

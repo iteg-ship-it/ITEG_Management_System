@@ -2,6 +2,8 @@ const Student = require("../models/student/Student");
 const SyllabusVersion = require("../models/syllabus/SyllabusVersion");
 const StudentTask = require("../models/syllabus/StudentTask");
 
+const ACTIVE_STUDENT_STATUSES = ["Active"];
+
 const buildTaskEntries = (syllabusVersion) => {
   const tasks = [];
 
@@ -60,11 +62,21 @@ const buildTaskEntries = (syllabusVersion) => {
   return tasks;
 };
 
+const getActorDetails = (actor = null) => ({
+  id: actor?.id || actor?._id || null,
+  name: actor?.name || "",
+  role: actor?.role || ""
+});
+
+const toTaskEntryMap = (syllabusVersion) =>
+  new Map(buildTaskEntries(syllabusVersion).map((entry) => [entry.taskId.toString(), entry]));
+
 const getSyllabusVersionForStudent = async (student, syllabusVersionId) => {
   if (syllabusVersionId) {
     const version = await SyllabusVersion.findOne({
       _id: syllabusVersionId,
-      isActive: true
+      isActive: true,
+      sessionId: student.sessionId
     });
 
     if (!version) {
@@ -100,7 +112,57 @@ const getSyllabusVersionForStudent = async (student, syllabusVersionId) => {
   return activeVersion;
 };
 
-const assignTasksToStudent = async (studentId, syllabusVersionId) => {
+const validateStudentVersionMatch = (student, syllabusVersion) => {
+  if (student.sessionId.toString() !== syllabusVersion.sessionId.toString()) {
+    throw new Error("Student session does not match the syllabus version session");
+  }
+
+  if (
+    student.currentLevelId.toString() !== syllabusVersion.levelId.toString() ||
+    student.currentSubLevelId.toString() !== syllabusVersion.subLevelId.toString()
+  ) {
+    throw new Error("Student is not currently in the level/sublevel of this syllabus version");
+  }
+};
+
+const buildStudentTaskPayload = (student, syllabusVersion, entry, assignmentMeta = {}) => ({
+  sessionId: student.sessionId,
+  levelId: syllabusVersion.levelId,
+  subLevelId: syllabusVersion.subLevelId,
+  syllabusVersionId: syllabusVersion._id,
+  subjectId: entry.subjectId,
+  topicId: entry.topicId,
+  subTopicId: entry.subTopicId,
+  subjectName: entry.subjectName,
+  topicName: entry.topicName,
+  subTopicName: entry.subTopicName,
+  taskNodeType: entry.taskNodeType,
+  title: entry.title,
+  description: entry.description,
+  type: entry.type,
+  mandatory: entry.mandatory,
+  maxMarks: entry.maxMarks,
+  isActive: true,
+  assignedType: assignmentMeta.assignedType || "auto",
+  assignedBy: assignmentMeta.assignedBy || null,
+  assignedByName: assignmentMeta.assignedByName || "",
+  assignedByRole: assignmentMeta.assignedByRole || "",
+  assignedAt: assignmentMeta.assignedAt || new Date()
+});
+
+const ensureManualAssignmentState = (studentTask, assignmentMeta) => {
+  if (!studentTask) {
+    return;
+  }
+
+  studentTask.assignedType = "manual";
+  studentTask.assignedBy = assignmentMeta.assignedBy || null;
+  studentTask.assignedByName = assignmentMeta.assignedByName || "";
+  studentTask.assignedByRole = assignmentMeta.assignedByRole || "";
+  studentTask.assignedAt = assignmentMeta.assignedAt || new Date();
+};
+
+const assignTasksToStudent = async (studentId, syllabusVersionId, options = {}) => {
   const student = await Student.findById(studentId);
 
   if (!student) {
@@ -108,6 +170,7 @@ const assignTasksToStudent = async (studentId, syllabusVersionId) => {
   }
 
   const syllabusVersion = await getSyllabusVersionForStudent(student, syllabusVersionId);
+  validateStudentVersionMatch(student, syllabusVersion);
   const taskEntries = buildTaskEntries(syllabusVersion);
 
   if (taskEntries.length === 0) {
@@ -127,26 +190,26 @@ const assignTasksToStudent = async (studentId, syllabusVersionId) => {
   let updatedCount = 0;
 
   for (const entry of taskEntries) {
-    const payload = {
-      syllabusVersionId: syllabusVersion._id,
-      subjectId: entry.subjectId,
-      topicId: entry.topicId,
-      subTopicId: entry.subTopicId,
-      subjectName: entry.subjectName,
-      topicName: entry.topicName,
-      subTopicName: entry.subTopicName,
-      taskNodeType: entry.taskNodeType,
-      title: entry.title,
-      description: entry.description,
-      type: entry.type,
-      mandatory: entry.mandatory,
-      maxMarks: entry.maxMarks,
-      isActive: true
-    };
+    const payload = buildStudentTaskPayload(student, syllabusVersion, entry, {
+      assignedType: "auto"
+    });
 
     const existing = existingMap.get(entry.taskId.toString());
 
     if (existing) {
+      const existingTask = await StudentTask.findById(existing._id);
+      if (!existingTask) {
+        continue;
+      }
+
+      if (existingTask.assignedType === "manual") {
+        delete payload.assignedType;
+        delete payload.assignedBy;
+        delete payload.assignedByName;
+        delete payload.assignedByRole;
+        delete payload.assignedAt;
+      }
+
       await StudentTask.updateOne(
         { _id: existing._id },
         { $set: payload }
@@ -206,12 +269,95 @@ const assignTasksToMultipleStudents = async (studentIds, syllabusVersionId) => {
   return results;
 };
 
+const assignSelectedTasksToStudents = async ({ studentIds, taskIds, syllabusVersionId, actor }) => {
+  if (!Array.isArray(studentIds) || studentIds.length === 0) {
+    throw new Error("studentIds must be a non-empty array");
+  }
+
+  if (!Array.isArray(taskIds) || taskIds.length === 0) {
+    throw new Error("taskIds must be a non-empty array");
+  }
+
+  const assignmentMeta = {
+    assignedType: "manual",
+    assignedAt: new Date(),
+    assignedBy: actor?.id || actor?._id || null,
+    assignedByName: actor?.name || "",
+    assignedByRole: actor?.role || ""
+  };
+
+  const results = [];
+
+  for (const studentId of studentIds) {
+    try {
+      const student = await Student.findById(studentId);
+      if (!student) {
+        throw new Error("Student not found");
+      }
+
+      const syllabusVersion = await getSyllabusVersionForStudent(student, syllabusVersionId);
+      validateStudentVersionMatch(student, syllabusVersion);
+      const taskEntryMap = toTaskEntryMap(syllabusVersion);
+
+      let createdCount = 0;
+      let updatedCount = 0;
+
+      for (const taskId of taskIds) {
+        const entry = taskEntryMap.get(taskId.toString());
+        if (!entry) {
+          throw new Error(`Task ${taskId} not found in syllabus version`);
+        }
+
+        const payload = buildStudentTaskPayload(student, syllabusVersion, entry, assignmentMeta);
+        const existingTask = await StudentTask.findOne({
+          studentId: student._id,
+          taskId: entry.taskId
+        });
+
+        if (existingTask) {
+          Object.assign(existingTask, payload);
+          ensureManualAssignmentState(existingTask, assignmentMeta);
+          existingTask.isActive = true;
+          await existingTask.save();
+          updatedCount += 1;
+          continue;
+        }
+
+        await StudentTask.create({
+          studentId: student._id,
+          taskId: entry.taskId,
+          ...payload
+        });
+        createdCount += 1;
+      }
+
+      results.push({
+        success: true,
+        studentId,
+        syllabusVersionId: syllabusVersion._id,
+        createdCount,
+        updatedCount,
+        totalTasks: taskIds.length
+      });
+    } catch (error) {
+      results.push({
+        success: false,
+        studentId,
+        message: error.message
+      });
+    }
+  }
+
+  return results;
+};
+
 const assignTasksToSessionLevel = async (sessionId, levelId, subLevelId, syllabusVersionId) => {
   const filter = {};
 
   if (sessionId) filter.sessionId = sessionId;
   if (levelId) filter.currentLevelId = levelId;
   if (subLevelId) filter.currentSubLevelId = subLevelId;
+  filter.status = { $in: ACTIVE_STUDENT_STATUSES };
 
   const students = await Student.find(filter).select("_id");
 
@@ -226,9 +372,22 @@ const assignTasksToSessionLevel = async (sessionId, levelId, subLevelId, syllabu
 };
 
 const getStudentTasks = async (studentId, syllabusVersionId, filters = {}) => {
+  const student = await Student.findById(studentId).select("sessionId currentLevelId currentSubLevelId");
+  if (!student) {
+    throw new Error("Student not found");
+  }
+
+  const syllabusVersion = await SyllabusVersion.findById(syllabusVersionId).select("sessionId levelId subLevelId");
+  if (!syllabusVersion) {
+    throw new Error("Syllabus version not found");
+  }
+
   const query = {
     studentId,
     syllabusVersionId,
+    sessionId: filters.sessionId || syllabusVersion.sessionId || student.sessionId,
+    levelId: filters.levelId || syllabusVersion.levelId || student.currentLevelId,
+    subLevelId: filters.subLevelId || syllabusVersion.subLevelId || student.currentSubLevelId,
     isActive: true
   };
 
@@ -248,35 +407,102 @@ const getStudentTasks = async (studentId, syllabusVersionId, filters = {}) => {
 };
 
 const getStudentTaskSummary = async (studentId, syllabusVersionId) => {
-  const tasks = await StudentTask.find({
-    studentId,
-    syllabusVersionId,
-    isActive: true
-  }).select("status");
+  const tasks = await getStudentTasks(studentId, syllabusVersionId);
 
   const summary = {
     total: tasks.length,
     pending: 0,
     inProgress: 0,
     completed: 0,
-    progressPercent: 0
+    progressPercent: 0,
+    averageMarks: 0
   };
+
+  let marksTotal = 0;
+  let completedWithMarks = 0;
 
   for (const task of tasks) {
     summary[task.status] += 1;
+    if (task.status === "completed" && typeof task.marks === "number") {
+      marksTotal += task.marks;
+      completedWithMarks += 1;
+    }
   }
 
   if (summary.total > 0) {
     summary.progressPercent = Math.round((summary.completed / summary.total) * 100);
   }
 
+  if (completedWithMarks > 0) {
+    summary.averageMarks = Number((marksTotal / completedWithMarks).toFixed(2));
+  }
+
   return summary;
 };
 
+const createProgressSnapshot = async (studentId, syllabusVersionId, actor = null) => {
+  const student = await Student.findById(studentId).select("sessionId currentLevelId currentSubLevelId");
+  if (!student) {
+    throw new Error("Student not found");
+  }
+
+  const tasks = await StudentTask.find({
+    studentId,
+    sessionId: student.sessionId,
+    levelId: student.currentLevelId,
+    subLevelId: student.currentSubLevelId,
+    syllabusVersionId,
+    isActive: true
+  }).select("status marks");
+
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter((task) => task.status === "completed").length;
+  const inProgressTasks = tasks.filter((task) => task.status === "inProgress").length;
+  const pendingTasks = tasks.filter((task) => task.status === "pending").length;
+  const completedWithMarks = tasks.filter((task) => task.status === "completed" && typeof task.marks === "number");
+  const averageMarks = completedWithMarks.length > 0
+    ? Number((completedWithMarks.reduce((sum, task) => sum + task.marks, 0) / completedWithMarks.length).toFixed(2))
+    : 0;
+
+  const actorDetails = getActorDetails(actor);
+  const snapshot = {
+    sessionId: student.sessionId,
+    levelId: student.currentLevelId,
+    subLevelId: student.currentSubLevelId,
+    syllabusVersionId,
+    totalTasks,
+    completedTasks,
+    pendingTasks,
+    inProgressTasks,
+    averageMarks,
+    changedBy: actorDetails.id,
+    changedByName: actorDetails.name,
+    changedByRole: actorDetails.role,
+    changedAt: new Date()
+  };
+
+  await Student.findByIdAndUpdate(studentId, {
+    $push: {
+      progressSnapshots: snapshot
+    }
+  });
+
+  return snapshot;
+};
+
 const updateStudentTaskStatus = async (studentId, taskId, payload) => {
+  const student = await Student.findById(studentId).select("sessionId currentLevelId currentSubLevelId syllabusVersionId");
+  if (!student) {
+    throw new Error("Student not found");
+  }
+
   const studentTask = await StudentTask.findOne({
     studentId,
     taskId,
+    sessionId: student.sessionId,
+    levelId: student.currentLevelId,
+    subLevelId: student.currentSubLevelId,
+    syllabusVersionId: student.syllabusVersionId,
     isActive: true
   });
 
@@ -284,8 +510,20 @@ const updateStudentTaskStatus = async (studentId, taskId, payload) => {
     throw new Error("Student task not found");
   }
 
+  const nextStatus = payload.status || studentTask.status;
+  const hasExplicitMarks = payload.marks !== undefined;
+  const nextMarks = hasExplicitMarks ? payload.marks : studentTask.marks;
+
+  if (nextStatus === "completed" && (nextMarks === null || nextMarks === undefined)) {
+    throw new Error("Marks are required when task status is completed");
+  }
+
+  if (nextMarks !== null && nextMarks !== undefined && nextMarks > studentTask.maxMarks) {
+    throw new Error("Marks cannot exceed maxMarks");
+  }
+
   if (payload.status) {
-    studentTask.status = payload.status;
+    studentTask.status = nextStatus;
 
     if (payload.status === "inProgress" && !studentTask.startedAt) {
       studentTask.startedAt = new Date();
@@ -303,7 +541,9 @@ const updateStudentTaskStatus = async (studentId, taskId, payload) => {
     }
   }
 
-  if (payload.marks !== undefined) {
+  if (nextStatus !== "completed") {
+    studentTask.marks = null;
+  } else if (payload.marks !== undefined) {
     studentTask.marks = payload.marks;
   }
 
@@ -315,6 +555,8 @@ const updateStudentTaskStatus = async (studentId, taskId, payload) => {
   const actorId = payload.actor?.id || payload.actor?._id || null;
   const actorName = payload.actor?.name || "";
   const actorRole = payload.actor?.role || "";
+
+  const progressSnapshot = await createProgressSnapshot(studentId, studentTask.syllabusVersionId, payload.actor);
 
   await Student.findByIdAndUpdate(studentId, {
     $push: {
@@ -339,7 +581,8 @@ const updateStudentTaskStatus = async (studentId, taskId, payload) => {
           status: studentTask.status,
           marks: studentTask.marks,
           maxMarks: studentTask.maxMarks,
-          taskNodeType: studentTask.taskNodeType
+          taskNodeType: studentTask.taskNodeType,
+          progressSnapshot
         },
         createdBy: actorId,
         createdByName: actorName,
@@ -356,7 +599,18 @@ const updateStudentTaskStatus = async (studentId, taskId, payload) => {
 };
 
 const syncSyllabusTasksToStudents = async (syllabusVersionId) => {
-  const students = await Student.find({ syllabusVersionId }).select("_id");
+  const syllabusVersion = await SyllabusVersion.findById(syllabusVersionId).select("sessionId levelId subLevelId");
+  if (!syllabusVersion) {
+    throw new Error("Syllabus version not found");
+  }
+
+  const students = await Student.find({
+    syllabusVersionId,
+    sessionId: syllabusVersion.sessionId,
+    currentLevelId: syllabusVersion.levelId,
+    currentSubLevelId: syllabusVersion.subLevelId,
+    status: { $in: ACTIVE_STUDENT_STATUSES }
+  }).select("_id");
 
   const results = [];
   for (const student of students) {
@@ -375,9 +629,11 @@ module.exports = {
   buildTaskEntries,
   assignTasksToStudent,
   assignTasksToMultipleStudents,
+  assignSelectedTasksToStudents,
   assignTasksToSessionLevel,
   getStudentTasks,
   getStudentTaskSummary,
+  createProgressSnapshot,
   updateStudentTaskStatus,
   syncSyllabusTasksToStudents
 };

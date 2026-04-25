@@ -318,6 +318,15 @@ components:
         studentId:
           type: string
           example: "6808be4d12ab34cd56ef7101"
+        sessionId:
+          type: string
+          example: "64fdb61e7b9a1a1234567894"
+        levelId:
+          type: string
+          example: "64fdb61e7b9a1a1234567892"
+        subLevelId:
+          type: string
+          example: "64fdb61e7b9a1a1234567893"
         syllabusVersionId:
           type: string
           example: "6808be4d12ab34cd56ef7401"
@@ -371,10 +380,24 @@ components:
         marks:
           type: number
           nullable: true
-          example: 18
+          example: 5
         notes:
           type: string
           example: "Completed with responsive layout"
+        assignedType:
+          type: string
+          enum: ["auto", "manual"]
+          example: "manual"
+        assignedBy:
+          type: string
+          nullable: true
+          example: "662b18b6c3eabc00123f5678"
+        assignedByName:
+          type: string
+          example: "Faculty User"
+        assignedByRole:
+          type: string
+          example: "faculty"
         assignedAt:
           type: string
           format: date-time
@@ -414,6 +437,53 @@ components:
         progressPercent:
           type: integer
           example: 33
+        averageMarks:
+          type: number
+          example: 4.25
+
+    ProgressSnapshot:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          example: "64fdb61e7b9a1a1234567894"
+        levelId:
+          type: string
+          example: "64fdb61e7b9a1a1234567892"
+        subLevelId:
+          type: string
+          example: "64fdb61e7b9a1a1234567893"
+        syllabusVersionId:
+          type: string
+          example: "6808be4d12ab34cd56ef7401"
+        totalTasks:
+          type: integer
+          example: 12
+        completedTasks:
+          type: integer
+          example: 6
+        pendingTasks:
+          type: integer
+          example: 4
+        inProgressTasks:
+          type: integer
+          example: 2
+        averageMarks:
+          type: number
+          example: 4.33
+        changedBy:
+          type: string
+          nullable: true
+          example: "662b18b6c3eabc00123f5678"
+        changedByName:
+          type: string
+          example: "Faculty User"
+        changedByRole:
+          type: string
+          example: "faculty"
+        changedAt:
+          type: string
+          format: date-time
 
     StudentProfile:
       type: object
@@ -5420,6 +5490,119 @@ paths:
         '404':
           description: Task not found
 
+  /api/syllabus/{id}/subjects/upload:
+    post:
+      summary: Upload subject-wise syllabus using JSON
+      description: Creates or updates one or more subjects with nested topics, subtopics, and multiple tasks inside a syllabus version.
+      tags:
+        - Syllabus
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: Syllabus version ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subject:
+                  $ref: '#/components/schemas/SyllabusSubject'
+                subjects:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/SyllabusSubject'
+            example:
+              subjects:
+                - name: "Computer Fundamentals"
+                  code: "CF101"
+                  description: "Basic computer concepts"
+                  order: 1
+                  isActive: true
+                  topics:
+                    - name: "Introduction to Computers"
+                      description: "Basics of computer systems"
+                      order: 1
+                      isActive: true
+                      tasks:
+                        - title: "Define computer and its types"
+                          description: "Written assignment"
+                          type: "assignment"
+                          mandatory: true
+                          maxMarks: 5
+                          order: 1
+                          isActive: true
+                        - title: "Differentiate analog and digital computers"
+                          description: "Short notes"
+                          type: "practice"
+                          mandatory: true
+                          maxMarks: 5
+                          order: 2
+                          isActive: true
+                      subTopics:
+                        - name: "History of Computers"
+                          description: "Evolution of computers"
+                          order: 1
+                          isActive: true
+                          tasks:
+                            - title: "Timeline of computer generations"
+                              description: "Prepare notes"
+                              type: "practice"
+                              mandatory: true
+                              maxMarks: 5
+                              order: 1
+                              isActive: true
+      responses:
+        '200':
+          description: Subject-wise syllabus uploaded successfully
+        '400':
+          description: Invalid subject payload
+        '404':
+          description: Syllabus version not found
+
+  /api/syllabus/{id}/subjects/upload-excel:
+    post:
+      summary: Upload subject-wise syllabus using Excel
+      description: Upload an Excel file where each row represents one task. Same topic or subtopic can appear in multiple rows to create multiple tasks.
+      tags:
+        - Syllabus
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: Syllabus version ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+            encoding:
+              file:
+                contentType: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+      responses:
+        '200':
+          description: Excel syllabus uploaded successfully
+        '400':
+          description: Invalid or empty excel file
+        '404':
+          description: Syllabus version not found
+
   /api/syllabus/assignments/student:
     post:
       summary: Assign syllabus tasks to a student
@@ -5478,6 +5661,47 @@ paths:
       responses:
         '200':
           description: Bulk assignment processed
+
+  /api/syllabus/assignments/manual:
+    post:
+      summary: Manually assign selected tasks to one or more students
+      description: Assigns only the selected taskIds to the given students and stores assignment metadata as manual assignment.
+      tags:
+        - Student Tasks
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [studentIds, taskIds]
+              properties:
+                studentIds:
+                  type: array
+                  items:
+                    type: string
+                taskIds:
+                  type: array
+                  items:
+                    type: string
+                syllabusVersionId:
+                  type: string
+                  description: Optional. If omitted, the student's current syllabusVersionId is used.
+            example:
+              studentIds:
+                - "6808be4d12ab34cd56ef7101"
+                - "6808be4d12ab34cd56ef7102"
+              taskIds:
+                - "6808be4d12ab34cd56ef7801"
+                - "6808be4d12ab34cd56ef7802"
+              syllabusVersionId: "6808be4d12ab34cd56ef7401"
+      responses:
+        '200':
+          description: Manual task assignment completed
+        '400':
+          description: Invalid assignment payload
 
   /api/syllabus/assignments/session-level:
     post:
@@ -5632,7 +5856,7 @@ paths:
                   type: string
             example:
               status: "completed"
-              marks: 18
+              marks: 5
               notes: "Completed with all required sections"
       responses:
         '200':
@@ -5684,6 +5908,10 @@ paths:
                         oneOf:
                           - $ref: '#/components/schemas/StudentTaskSummary'
                           - type: 'null'
+                      progressSnapshots:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProgressSnapshot'
         '404':
           description: Student not found
 
@@ -5813,7 +6041,7 @@ paths:
                   type: string
             example:
               status: "inProgress"
-              marks: 10
+              marks: 5
               notes: "Started working on this task"
       responses:
         '200':

@@ -1,6 +1,7 @@
 const {
   assignTasksToStudent,
   assignTasksToMultipleStudents,
+  assignSelectedTasksToStudents,
   assignTasksToSessionLevel,
   getStudentTasks,
   getStudentTaskSummary
@@ -39,6 +40,33 @@ exports.assignTasksToMultipleStudents = async (req, res) => {
     res.status(200).json({
       success: true,
       message: `Tasks assigned: ${successCount} succeeded, ${failCount} failed`,
+      data: results
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+exports.assignSelectedTasksToStudents = async (req, res) => {
+  try {
+    const { studentIds, taskIds, syllabusVersionId } = req.body;
+
+    const results = await assignSelectedTasksToStudents({
+      studentIds,
+      taskIds,
+      syllabusVersionId,
+      actor: req.user
+    });
+
+    const successCount = results.filter((item) => item.success).length;
+    const failCount = results.filter((item) => !item.success).length;
+
+    res.status(200).json({
+      success: true,
+      message: `Manual task assignment completed: ${successCount} succeeded, ${failCount} failed`,
       data: results
     });
   } catch (error) {

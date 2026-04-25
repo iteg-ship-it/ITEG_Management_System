@@ -101,6 +101,72 @@ const taskSnapshotSchema = new mongoose.Schema({
   }
 }, { _id: true });
 
+const progressSnapshotSchema = new mongoose.Schema({
+  sessionId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Session",
+    required: true
+  },
+  levelId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Level",
+    required: true
+  },
+  subLevelId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "SubLevel",
+    required: true
+  },
+  syllabusVersionId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "SyllabusVersion",
+    required: true
+  },
+  totalTasks: {
+    type: Number,
+    min: 0,
+    required: true
+  },
+  completedTasks: {
+    type: Number,
+    min: 0,
+    required: true
+  },
+  pendingTasks: {
+    type: Number,
+    min: 0,
+    required: true
+  },
+  inProgressTasks: {
+    type: Number,
+    min: 0,
+    default: 0
+  },
+  averageMarks: {
+    type: Number,
+    min: 0,
+    max: 5,
+    default: 0
+  },
+  changedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null
+  },
+  changedByName: {
+    type: String,
+    default: ""
+  },
+  changedByRole: {
+    type: String,
+    default: ""
+  },
+  changedAt: {
+    type: Date,
+    default: Date.now
+  }
+}, { _id: true });
+
 const milestoneEventSchema = new mongoose.Schema({
   type: {
     type: String,
@@ -287,6 +353,11 @@ const studentSchema = new mongoose.Schema({
 
   taskSnapshots: {
     type: [taskSnapshotSchema],
+    default: []
+  },
+
+  progressSnapshots: {
+    type: [progressSnapshotSchema],
     default: []
   },
 
