@@ -1,6 +1,12 @@
 const Student = require("../models/student/Student");
+const Session = require("../models/Session");
+const Level = require("../models/department/Level");
+const SubLevel = require("../models/department/SubLevel");
 const SyllabusVersion = require("../models/syllabus/SyllabusVersion");
 const StudentTask = require("../models/syllabus/StudentTask");
+const StudentTaskHistory = require("../models/student/StudentTaskHistory");
+const StudentProgressSnapshot = require("../models/student/StudentProgressSnapshot");
+const StudentEventLog = require("../models/student/StudentEventLog");
 
 const ACTIVE_STUDENT_STATUSES = ["Active"];
 
@@ -67,6 +73,27 @@ const getActorDetails = (actor = null) => ({
   name: actor?.name || "",
   role: actor?.role || ""
 });
+
+const getSnapshotContext = async ({ student, syllabusVersionId }) => {
+  const [session, level, subLevel, syllabusVersion] = await Promise.all([
+    Session.findById(student.sessionId).select("name"),
+    Level.findById(student.currentLevelId).select("name"),
+    SubLevel.findById(student.currentSubLevelId).select("name"),
+    SyllabusVersion.findById(syllabusVersionId).select("title version")
+  ]);
+
+  return {
+    sessionId: student.sessionId,
+    sessionName: session?.name || "",
+    levelId: student.currentLevelId,
+    levelName: level?.name || "",
+    subLevelId: student.currentSubLevelId,
+    subLevelName: subLevel?.name || "",
+    syllabusVersionId,
+    syllabusVersionTitle: syllabusVersion?.title || "",
+    syllabusVersionCode: syllabusVersion?.version || ""
+  };
+};
 
 const toTaskEntryMap = (syllabusVersion) =>
   new Map(buildTaskEntries(syllabusVersion).map((entry) => [entry.taskId.toString(), entry]));
@@ -440,7 +467,34 @@ const getStudentTaskSummary = async (studentId, syllabusVersionId) => {
   return summary;
 };
 
-const createProgressSnapshot = async (studentId, syllabusVersionId, actor = null) => {
+const buildProgressSnapshot = ({ tasks, actorDetails, context, snapshotScope = "overall", subject = null }) => {
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter((task) => task.status === "completed").length;
+  const inProgressTasks = tasks.filter((task) => task.status === "inProgress").length;
+  const pendingTasks = tasks.filter((task) => task.status === "pending").length;
+  const completedWithMarks = tasks.filter((task) => task.status === "completed" && typeof task.marks === "number");
+  const averageMarks = completedWithMarks.length > 0
+    ? Number((completedWithMarks.reduce((sum, task) => sum + task.marks, 0) / completedWithMarks.length).toFixed(2))
+    : 0;
+
+  return {
+    snapshotScope,
+    ...context,
+    subjectId: subject?.subjectId || null,
+    subjectName: subject?.subjectName || "",
+    totalTasks,
+    completedTasks,
+    pendingTasks,
+    inProgressTasks,
+    averageMarks,
+    changedBy: actorDetails.id,
+    changedByName: actorDetails.name,
+    changedByRole: actorDetails.role,
+    changedAt: new Date()
+  };
+};
+
+const createProgressSnapshot = async (studentId, syllabusVersionId, actor = null, updatedTask = null) => {
   const student = await Student.findById(studentId).select("sessionId currentLevelId currentSubLevelId");
   if (!student) {
     throw new Error("Student not found");
@@ -453,41 +507,50 @@ const createProgressSnapshot = async (studentId, syllabusVersionId, actor = null
     subLevelId: student.currentSubLevelId,
     syllabusVersionId,
     isActive: true
-  }).select("status marks");
-
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter((task) => task.status === "completed").length;
-  const inProgressTasks = tasks.filter((task) => task.status === "inProgress").length;
-  const pendingTasks = tasks.filter((task) => task.status === "pending").length;
-  const completedWithMarks = tasks.filter((task) => task.status === "completed" && typeof task.marks === "number");
-  const averageMarks = completedWithMarks.length > 0
-    ? Number((completedWithMarks.reduce((sum, task) => sum + task.marks, 0) / completedWithMarks.length).toFixed(2))
-    : 0;
+  }).select("status marks subjectId subjectName");
 
   const actorDetails = getActorDetails(actor);
-  const snapshot = {
-    sessionId: student.sessionId,
-    levelId: student.currentLevelId,
-    subLevelId: student.currentSubLevelId,
-    syllabusVersionId,
-    totalTasks,
-    completedTasks,
-    pendingTasks,
-    inProgressTasks,
-    averageMarks,
-    changedBy: actorDetails.id,
-    changedByName: actorDetails.name,
-    changedByRole: actorDetails.role,
-    changedAt: new Date()
-  };
+  const context = await getSnapshotContext({ student, syllabusVersionId });
+  const snapshots = [
+    buildProgressSnapshot({
+      tasks,
+      actorDetails,
+      context,
+      snapshotScope: "overall"
+    })
+  ];
+
+  if (updatedTask?.subjectId) {
+    const subjectTasks = tasks.filter(
+      (task) => task.subjectId?.toString() === updatedTask.subjectId.toString()
+    );
+
+    snapshots.push(
+      buildProgressSnapshot({
+        tasks: subjectTasks,
+        actorDetails,
+        context,
+        snapshotScope: "subject",
+        subject: {
+          subjectId: updatedTask.subjectId,
+          subjectName: updatedTask.subjectName
+        }
+      })
+    );
+  }
 
   await Student.findByIdAndUpdate(studentId, {
-    $push: {
-      progressSnapshots: snapshot
-    }
+    $set: { updatedAt: new Date() }
   });
 
-  return snapshot;
+  await StudentProgressSnapshot.insertMany(
+    snapshots.map((snapshot) => ({
+      studentId,
+      ...snapshot
+    }))
+  );
+
+  return snapshots;
 };
 
 const updateStudentTaskStatus = async (studentId, taskId, payload) => {
@@ -556,41 +619,60 @@ const updateStudentTaskStatus = async (studentId, taskId, payload) => {
   const actorName = payload.actor?.name || "";
   const actorRole = payload.actor?.role || "";
 
-  const progressSnapshot = await createProgressSnapshot(studentId, studentTask.syllabusVersionId, payload.actor);
+  const progressSnapshots = await createProgressSnapshot(
+    studentId,
+    studentTask.syllabusVersionId,
+    payload.actor,
+    studentTask
+  );
+  const snapshotContext = await getSnapshotContext({
+    student,
+    syllabusVersionId: studentTask.syllabusVersionId
+  });
 
-  await Student.findByIdAndUpdate(studentId, {
-    $push: {
-      taskSnapshots: {
+  await Promise.all([
+    Student.findByIdAndUpdate(studentId, { $set: { updatedAt: new Date() } }),
+    StudentTaskHistory.create({
+      studentId,
+      ...snapshotContext,
+      subjectId: studentTask.subjectId,
+      subjectName: studentTask.subjectName,
+      topicId: studentTask.topicId,
+      topicName: studentTask.topicName,
+      subTopicId: studentTask.subTopicId,
+      subTopicName: studentTask.subTopicName || "",
+      taskId: studentTask.taskId,
+      taskTitle: studentTask.title,
+      taskNodeType: studentTask.taskNodeType,
+      status: studentTask.status,
+      marks: studentTask.marks,
+      maxMarks: studentTask.maxMarks,
+      notes: studentTask.notes,
+      changedBy: actorId,
+      changedByName: actorName,
+      changedByRole: actorRole,
+      changedAt: new Date()
+    }),
+    StudentEventLog.create({
+      studentId,
+      type: "task",
+      action: "task_status_updated",
+      title: `Task ${studentTask.status}`,
+      description: `${studentTask.title} updated to ${studentTask.status}`,
+      meta: {
         taskId: studentTask.taskId,
         status: studentTask.status,
         marks: studentTask.marks,
         maxMarks: studentTask.maxMarks,
-        notes: studentTask.notes,
-        changedBy: actorId,
-        changedByName: actorName,
-        changedByRole: actorRole,
-        changedAt: new Date()
+        taskNodeType: studentTask.taskNodeType,
+        progressSnapshots
       },
-      eventHistory: {
-        type: "task",
-        action: "task_status_updated",
-        title: `Task ${studentTask.status}`,
-        description: `${studentTask.title} updated to ${studentTask.status}`,
-        meta: {
-          taskId: studentTask.taskId,
-          status: studentTask.status,
-          marks: studentTask.marks,
-          maxMarks: studentTask.maxMarks,
-          taskNodeType: studentTask.taskNodeType,
-          progressSnapshot
-        },
-        createdBy: actorId,
-        createdByName: actorName,
-        createdByRole: actorRole,
-        createdAt: new Date()
-      }
-    }
-  });
+      createdBy: actorId,
+      createdByName: actorName,
+      createdByRole: actorRole,
+      createdAt: new Date()
+    })
+  ]);
 
   const { syncStudentReadiness } = require("./studentService");
   await syncStudentReadiness(studentId);

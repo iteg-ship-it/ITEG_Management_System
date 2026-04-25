@@ -2,6 +2,7 @@ const Student = require("../models/student/Student");
 const Level = require("../models/department/Level");
 const SubLevel = require("../models/department/SubLevel");
 const SyllabusVersion = require("../models/syllabus/SyllabusVersion");
+const StudentEventLog = require("../models/student/StudentEventLog");
 const { assignTasksToStudent } = require("./taskAssignmentService");
 const { sendEmail } = require("../controllers/helper/emailController");
 const { syncStudentReadiness } = require("./studentService");
@@ -143,25 +144,22 @@ const promoteStudent = async (studentId, promotedBy, remark = "") => {
 
     const lastPromotion = student.promotionHistory[student.promotionHistory.length - 1];
 
-    await Student.findByIdAndUpdate(student._id, {
-      $push: {
-        eventHistory: {
-          type: "promotion",
-          action: "student_promoted",
-          title: "Student promoted",
-          description: `Promoted to ${level?.name || "next level"} / ${subLevel?.name || "next sublevel"}`,
-          meta: {
-            toLevelId: nextTarget.levelId,
-            toSubLevelId: nextTarget.subLevelId,
-            syllabusVersionId: nextSyllabus._id,
-            transitionType: nextTarget.transitionType
-          },
-          createdBy: promotedBy._id,
-          createdByName: promotedBy.name || "",
-          createdByRole: promotedBy.role || "",
-          createdAt: new Date()
-        }
-      }
+    await StudentEventLog.create({
+      studentId: student._id,
+      type: "promotion",
+      action: "student_promoted",
+      title: "Student promoted",
+      description: `Promoted to ${level?.name || "next level"} / ${subLevel?.name || "next sublevel"}`,
+      meta: {
+        toLevelId: nextTarget.levelId,
+        toSubLevelId: nextTarget.subLevelId,
+        syllabusVersionId: nextSyllabus._id,
+        transitionType: nextTarget.transitionType
+      },
+      createdBy: promotedBy._id,
+      createdByName: promotedBy.name || "",
+      createdByRole: promotedBy.role || "",
+      createdAt: new Date()
     });
 
     if (student.email) {
@@ -171,24 +169,21 @@ const promoteStudent = async (studentId, promotedBy, remark = "") => {
         text: `Hi ${student.firstName || "Student"},\n\nCongratulations! You have been promoted to ${level?.name || "the next level"} - ${subLevel?.name || "the next sublevel"}.\n\nKeep up the good work.\n\nRegards,\nITEG Management System`
       });
 
-      await Student.findByIdAndUpdate(student._id, {
-        $push: {
-          eventHistory: {
-            type: "email",
-            action: "promotion_congratulation_email_sent",
-            title: "Promotion email sent",
-            description: `Congratulation email sent for ${level?.name || "promotion"} / ${subLevel?.name || "promotion"}`,
-            meta: {
-              email: student.email,
-              toLevelId: nextTarget.levelId,
-              toSubLevelId: nextTarget.subLevelId
-            },
-            createdBy: promotedBy._id,
-            createdByName: promotedBy.name || "",
-            createdByRole: promotedBy.role || "",
-            createdAt: new Date()
-          }
-        }
+      await StudentEventLog.create({
+        studentId: student._id,
+        type: "email",
+        action: "promotion_congratulation_email_sent",
+        title: "Promotion email sent",
+        description: `Congratulation email sent for ${level?.name || "promotion"} / ${subLevel?.name || "promotion"}`,
+        meta: {
+          email: student.email,
+          toLevelId: nextTarget.levelId,
+          toSubLevelId: nextTarget.subLevelId
+        },
+        createdBy: promotedBy._id,
+        createdByName: promotedBy.name || "",
+        createdByRole: promotedBy.role || "",
+        createdAt: new Date()
       });
     }
 

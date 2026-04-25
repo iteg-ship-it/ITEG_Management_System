@@ -1,4 +1,7 @@
 const Student = require("../models/student/Student");
+const StudentTaskHistory = require("../models/student/StudentTaskHistory");
+const StudentProgressSnapshot = require("../models/student/StudentProgressSnapshot");
+const StudentEventLog = require("../models/student/StudentEventLog");
 const { getStudentTasks, getStudentTaskSummary } = require("./taskAssignmentService");
 
 const getResolvedSyllabusVersionId = (student, requestedSyllabusVersionId) =>
@@ -35,12 +38,21 @@ const getStudentProfilePayload = async (studentId, requestedSyllabusVersionId) =
   }
 
   const syllabusVersionId = getResolvedSyllabusVersionId(student, requestedSyllabusVersionId);
-  const [tasks, taskSummary] = syllabusVersionId
+  const [tasks, taskSummary, taskSnapshots, progressSnapshots, eventHistory] = syllabusVersionId
     ? await Promise.all([
         getStudentTasks(student._id, syllabusVersionId),
-        getStudentTaskSummary(student._id, syllabusVersionId)
+        getStudentTaskSummary(student._id, syllabusVersionId),
+        StudentTaskHistory.find({ studentId: student._id }).sort({ changedAt: -1 }).lean(),
+        StudentProgressSnapshot.find({ studentId: student._id }).sort({ changedAt: -1 }).lean(),
+        StudentEventLog.find({ studentId: student._id }).sort({ createdAt: -1 }).lean()
       ])
-    : [[], null];
+    : await Promise.all([
+        Promise.resolve([]),
+        Promise.resolve(null),
+        StudentTaskHistory.find({ studentId: student._id }).sort({ changedAt: -1 }).lean(),
+        StudentProgressSnapshot.find({ studentId: student._id }).sort({ changedAt: -1 }).lean(),
+        StudentEventLog.find({ studentId: student._id }).sort({ createdAt: -1 }).lean()
+      ]);
 
   return {
     student,
@@ -49,9 +61,9 @@ const getStudentProfilePayload = async (studentId, requestedSyllabusVersionId) =
     tasks,
     documents: groupDocuments(student.documents || []),
     promotionHistory: student.promotionHistory || [],
-    taskSnapshots: (student.taskSnapshots || []).slice().sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt)),
-    progressSnapshots: (student.progressSnapshots || []).slice().sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt)),
-    eventHistory: (student.eventHistory || []).slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    taskSnapshots,
+    progressSnapshots,
+    eventHistory
   };
 };
 

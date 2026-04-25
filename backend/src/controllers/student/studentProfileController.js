@@ -1,4 +1,5 @@
 const Student = require("../../models/student/Student");
+const StudentEventLog = require("../../models/student/StudentEventLog");
 const cloudinary = require("../../config/cloudinaryConfig");
 const {
   getStudentTasks,
@@ -215,7 +216,10 @@ exports.uploadStudentDocument = async (req, res) => {
       student.resumeDocumentId = createdDocument._id;
     }
 
-    student.eventHistory.push({
+    await student.save();
+
+    await StudentEventLog.create({
+      studentId: student._id,
       type: "document",
       action: "document_uploaded",
       title: `${category} uploaded`,
@@ -230,8 +234,6 @@ exports.uploadStudentDocument = async (req, res) => {
       createdByRole: uploadedByRole,
       createdAt: new Date()
     });
-
-    await student.save();
 
     res.status(201).json({
       success: true,
@@ -275,7 +277,10 @@ exports.deactivateStudentDocument = async (req, res) => {
       student.resumeDocumentId = null;
     }
 
-    student.eventHistory.push({
+    await student.save();
+
+    await StudentEventLog.create({
+      studentId: student._id,
       type: "document",
       action: "document_deactivated",
       title: "Document removed",
@@ -289,8 +294,6 @@ exports.deactivateStudentDocument = async (req, res) => {
       createdByRole: req.user?.role || "",
       createdAt: new Date()
     });
-
-    await student.save();
 
     res.status(200).json({
       success: true,
