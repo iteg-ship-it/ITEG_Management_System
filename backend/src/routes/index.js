@@ -11,6 +11,8 @@ const reportCardRoutes = require('./reportCardRoutes');
 const protectedRoutes = require('./protectedRoutes');
 const webhookRoutes = require('./webhookRoutes');
 const roleRoutes = require('./roleRoutes');
+const syllabusRoutes = require('./syllabusRoutes');
+const sessionRoutes  = require('./sessionRoutes');
 
 // Mount routes
 router.use('/user', userRoutes);
@@ -21,6 +23,8 @@ router.use('/face-auth', faceAuthRoutes);
 router.use('/reportcards', reportCardRoutes);
 router.use('/protected', protectedRoutes);
 router.use('/roles', roleRoutes);
+router.use('/syllabus', syllabusRoutes);
+router.use('/sessions', sessionRoutes);
 
 // Webhook routes
 router.use('/admission/students/webhook', webhookRoutes);

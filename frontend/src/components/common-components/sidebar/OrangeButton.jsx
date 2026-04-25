@@ -47,8 +47,9 @@ const OrangeButton = ({
           <div
             onClick={closeDrawer}
             className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
-              isOpen ? "opacity-100" : "opacity-0"
+              isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}
+            style={{ zIndex: 0 }}
           />
 
           {/* PANEL */}

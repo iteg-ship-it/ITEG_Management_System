@@ -87,6 +87,13 @@ if (require.main === module) {
     .connect(process.env.MONGO_URI, mongoOptions)
     .then(async () => {
       console.log("✅ Connected to MongoDB");
+      // Drop old wrong unique index if exists (sessionId+levelId+subLevelId+version without subjectName)
+      try {
+        await mongoose.connection.collection("syllabusversions").dropIndex("sessionId_1_levelId_1_subLevelId_1_version_1");
+        console.log("✅ Old syllabus index dropped");
+      } catch (e) {
+        // Index already dropped or doesn't exist — ignore
+      }
       await updateGoogleUsersRole();
     })
     .catch((err) => console.error("❌ DB Connection Error:", err));

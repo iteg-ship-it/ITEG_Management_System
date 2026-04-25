@@ -273,9 +273,22 @@ const ShowSubLevelTablesData = () => {
 
     const { data: subLevelsData } = useGetSubLevelsByLevelQuery(level?._id, { skip: !level?._id });
     const subLevels = subLevelsData?.data || [];
-    const levelTabs = subLevels.length > 0
-        ? subLevels.map((sl) => sl.name)
-        : ["Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C"];
+
+    // Auto-select first sublevel
+    useEffect(() => {
+        if (subLevels.length > 0 && !activeTab) {
+            setActiveTab(subLevels[0]);
+        }
+    }, [subLevels]);
+
+    // When new sublevel added, select it (last one)
+    const prevSubLevelsLen = useRef(0);
+    useEffect(() => {
+        if (subLevels.length > prevSubLevelsLen.current && prevSubLevelsLen.current > 0) {
+            setActiveTab(subLevels[subLevels.length - 1]);
+        }
+        prevSubLevelsLen.current = subLevels.length;
+    }, [subLevels.length]);
 
     const [addSubLevel] = useAddSubLevelMutation();
 
@@ -540,47 +553,7 @@ const ShowSubLevelTablesData = () => {
 
                     {/* ── Syllabus ── */}
                     {activeSection === "Syllabus" && (
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-3">
-                                <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-                                <div className="ml-auto flex items-center gap-3">
-                                    <button className="flex items-center gap-1.5 h-10 px-4 text-sm border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 transition flex-shrink-0">
-                                        <MdFilterList size={16} /> Filter
-                                    </button>
-                                    <ExportDropdown data={DUMMY_SYLLABUS} sectionName="syllabus" />
-                                </div>
-                            </div>
-                            {DUMMY_SYLLABUS.length === 0 ? (
-                                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm flex flex-col items-center justify-center py-16 px-8 text-center">
-                                    <div className="w-24 h-24 rounded-full bg-orange-50 flex items-center justify-center mb-6">
-                                        <MdCloudUpload size={44} className="text-orange-400" />
-                                    </div>
-                                    <h3 className="text-base font-bold text-gray-800 mb-2">No syllabus uploaded for this level.</h3>
-                                    <p className="text-sm text-gray-400 max-w-sm mb-6 leading-relaxed">
-                                        Upload the academic syllabus to get started. Once uploaded, you can assign lessons to specific weeks and track coverage.
-                                    </p>
-                                    <div className="flex items-center gap-3">
-                                        <button className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
-                                            <MdCloudUpload size={16} /> Upload Syllabus
-                                        </button>
-                                        <button className="px-5 py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
-                                            Browse Template
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <CommonTable
-                                    key={`syllabus-${activeTab}`}
-                                    columns={SYLLABUS_COLUMNS}
-                                    data={DUMMY_SYLLABUS}
-                                    editable={true}
-                                    pagination={true}
-                                    rowsPerPage={10}
-                                    searchTerm={searchTerm}
-                                    actionButton={() => <SyllabusActions />}
-                                />
-                            )}
-                        </div>
+                        <SyllabusTab level={level} subLevel={activeTab} />
                     )}
 
                     {/* ── Progress ── */}

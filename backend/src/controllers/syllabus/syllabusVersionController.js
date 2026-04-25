@@ -3,155 +3,86 @@ const Subject    = require("../../models/syllabus/Subject");
 const Topic      = require("../../models/syllabus/Topic");
 const SubTopic   = require("../../models/syllabus/SubTopic");
 const Session    = require("../../models/Session");
-const TaskMaster = require("../../models/syllabus/TaskMaster");
-const mongoose   = require("mongoose");
+const TaskMaster = require("../../models/syllabus/taskMaster");
 
 // ==================== CREATE ====================
 // Body: { sessionName, levelId, subLevelId, version, hierarchy }
 // hierarchy: [{ subject, topics: [{ topic, subTopics: [] }] }]
 // Each subject in hierarchy creates ONE SyllabusVersion document
 exports.createSyllabusVersion = async (req, res) => {
-  const dbSession = await mongoose.startSession();
-  dbSession.startTransaction();
   try {
     const { sessionName, sessionId: sessionIdDirect, levelId, subLevelId, version, hierarchy } = req.body;
 
-    if (!levelId || !subLevelId || !version) {
+    if (!levelId || !subLevelId || !version)
       return res.status(400).json({ success: false, message: "levelId, subLevelId and version are required" });
-    }
-    if (!sessionName && !sessionIdDirect) {
+    if (!sessionName && !sessionIdDirect)
       return res.status(400).json({ success: false, message: "sessionId or sessionName is required" });
-    }
-    if (!Array.isArray(hierarchy) || hierarchy.length === 0) {
+    if (!Array.isArray(hierarchy) || hierarchy.length === 0)
       return res.status(400).json({ success: false, message: "hierarchy data is required" });
-    }
 
     // Find or create session
     let sessionId = sessionIdDirect;
     if (!sessionId && sessionName) {
       let sessionDoc = await Session.findOne({ name: sessionName.trim() });
-      if (!sessionDoc) {
-        [sessionDoc] = await Session.create([{ name: sessionName.trim() }], { session: dbSession });
-      }
+      if (!sessionDoc) sessionDoc = await Session.create({ name: sessionName.trim() });
       sessionId = sessionDoc._id;
     }
 
     const createdVersions = [];
+    const skipped = [];
 
-    // One SyllabusVersion per subject
     for (const [sIdx, sItem] of hierarchy.entries()) {
       if (!sItem.subject) continue;
-
       const subjectName = sItem.subject.trim();
 
-      // Create SyllabusVersion for this subject
-      const [sv] = await SyllabusVersion.create(
-        [{ sessionId, levelId, subLevelId, subjectName, version }],
-        { session: dbSession }
-      );
+      // Check duplicate — skip instead of returning error
+      const existing = await SyllabusVersion.findOne({ sessionId, subLevelId, subjectName, version });
+      if (existing) {
+        skipped.push(subjectName);
+        continue;
+      }
+
+      const sv = await SyllabusVersion.create({ sessionId, levelId, subLevelId, subjectName, version });
       const svId = sv._id;
 
-      const subjectIds  = [];
-      const topicIds    = [];
-      const subTopicIds = [];
+      const subjectIds = [];
+      const topicIds   = [];
+      const subTopicIds= [];
 
-      // Create the Subject doc
       const code = `S${String(sIdx + 1).padStart(3, "0")}-${svId.toString().slice(-4)}-${Date.now().toString().slice(-4)}`;
-      const [subjectDoc] = await Subject.create(
-        [{ name: subjectName, code, syllabusVersionId: svId }],
-        { session: dbSession }
-      );
+      const subjectDoc = await Subject.create({ name: subjectName, code, syllabusVersionId: svId });
       subjectIds.push(subjectDoc._id);
 
       for (const [tIdx, tItem] of (sItem.topics || []).entries()) {
         if (!tItem.topic) continue;
-        const [topicDoc] = await Topic.create(
-          [{ name: tItem.topic, syllabusVersionId: svId, subjectId: subjectDoc._id, order: tIdx + 1 }],
-          { session: dbSession }
-        );
+        const topicDoc = await Topic.create({
+          name: tItem.topic, syllabusVersionId: svId, subjectId: subjectDoc._id, order: tIdx + 1
+        });
         topicIds.push(topicDoc._id);
 
         for (const [stIdx, stRaw] of (tItem.subTopics || []).entries()) {
           if (!stRaw) continue;
           const stName = typeof stRaw === "object" ? stRaw.name : stRaw;
           if (!stName) continue;
-          const [stDoc] = await SubTopic.create(
-            [{ name: stName, syllabusVersionId: svId, topicId: topicDoc._id, subjectId: subjectDoc._id, order: stIdx + 1 }],
-            { session: dbSession }
-          );
+          const stDoc = await SubTopic.create({
+            name: stName, syllabusVersionId: svId, topicId: topicDoc._id, subjectId: subjectDoc._id, order: stIdx + 1
+          });
           subTopicIds.push(stDoc._id);
         }
       }
 
-      await SyllabusVersion.findByIdAndUpdate(
-        svId,
-        { subjectIds, topicIds, subTopicIds },
-        { session: dbSession }
-      );
-
-      // ── Auto-generate TaskMaster entries from task fields in hierarchy ──
-      const taskDocs = [];
-      // Build a map of topicName -> { topicDoc, subTopics: Map<stName, stDoc> }
-      const topicDocMap = new Map();
-      for (const [tIdx, tItem] of (sItem.topics || []).entries()) {
-        if (!tItem.topic) continue;
-        const topicDoc = await Topic.findOne({ name: tItem.topic, syllabusVersionId: svId }).session(dbSession);
-        if (!topicDoc) continue;
-        const stDocMap = new Map();
-        for (const stRaw of (tItem.subTopics || [])) {
-          if (!stRaw || typeof stRaw !== "object") continue;
-          const stDoc = await SubTopic.findOne({ name: stRaw.name, topicId: topicDoc._id }).session(dbSession);
-          if (stDoc) stDocMap.set(stRaw.name, stDoc);
-        }
-        topicDocMap.set(tItem.topic, { topicDoc, stDocMap });
-      }
-
-      for (const tItem of (sItem.topics || [])) {
-        if (!tItem.topic) continue;
-        const entry = topicDocMap.get(tItem.topic);
-        if (!entry) continue;
-        const { topicDoc, stDocMap } = entry;
-
-        for (const st of (tItem.subTopics || [])) {
-          if (typeof st !== "object" || !st.taskTitle) continue;
-          const stDoc = stDocMap.get(st.name);
-          if (!stDoc) continue;
-
-          const taskCode = `TM-${svId.toString().slice(-6)}-${topicDoc._id.toString().slice(-4)}-${stDoc._id.toString().slice(-4)}`;
-          taskDocs.push({
-            syllabusVersionId: svId,
-            levelId,
-            subLevelId,
-            subjectId:        subjectDoc._id,
-            topicId:          topicDoc._id,
-            subTopicId:       stDoc._id,
-            taskCode,
-            title:            st.taskTitle,
-            description:      st.taskDescription   || "",
-            type:             st.taskType          || "assessment",
-            maxMarks:         Number(st.maxMarks)  || 100,
-            cutoff:           Number(st.cutoff)    || 40,
-            mandatory:        st.mandatory !== undefined ? st.mandatory : true,
-            priority:         st.priority          || "medium",
-            timeDays:         (st.timeDays && !isNaN(parseInt(st.timeDays))) ? parseInt(st.timeDays) : null,
-            measurablePoints: st.measurablePoints  || null,
-          });
-        }
-      }
-
-      if (taskDocs.length > 0) {
-        await TaskMaster.insertMany(taskDocs, { session: dbSession });
-        await SyllabusVersion.findByIdAndUpdate(
-          svId,
-          { taskMasterGenerated: true, taskMasterGeneratedAt: new Date() },
-          { session: dbSession }
-        );
-      }
-
+      await SyllabusVersion.findByIdAndUpdate(svId, { subjectIds, topicIds, subTopicIds });
       createdVersions.push(svId);
     }
 
-    await dbSession.commitTransaction();
+    if (createdVersions.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: skipped.length > 0
+          ? `Sab subjects already exist karte hain: ${skipped.join(", ")}. Version name change karo.`
+          : "Koi valid subject nahi mila"
+      });
+    }
 
     const populated = await SyllabusVersion.find({ _id: { $in: createdVersions } })
       .populate("sessionId", "name")
@@ -160,20 +91,16 @@ exports.createSyllabusVersion = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: `${createdVersions.length} syllabus version(s) created successfully`,
+      message: `${createdVersions.length} syllabus version(s) created successfully${
+        skipped.length > 0 ? ` (${skipped.join(", ")} already existed, skip kiye)` : ""
+      }`,
       data: populated
     });
   } catch (error) {
-    await dbSession.abortTransaction();
-    if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: "A syllabus version for this subject + session + subLevel + version already exists"
-      });
-    }
+    console.error("[createSyllabusVersion] ERROR:", error.message);
+    if (error.code === 11000)
+      return res.status(400).json({ success: false, message: "Syllabus version already exists" });
     res.status(400).json({ success: false, message: error.message });
-  } finally {
-    dbSession.endSession();
   }
 };
 

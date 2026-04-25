@@ -59,30 +59,20 @@ const DepartmentManagement = () => {
 
   const handleDepartmentSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
-      const payload = {
-        name: values.name,
-        description: values.description,
-        universityName: values.universityName,
-        headOfDepartment: values.headOfDepartment,
-        allowedCourses: values.allowedCourses
-          .filter(c => c.courseName && c.durationInYears)
-          .map(c => ({ ...c, durationInYears: Number(c.durationInYears) })),
-        reportConfig: values.reportConfig,
-        isActive: values.isActive
-      };
+      const fd = buildFormData(values);
 
       if (editingDepartment) {
-        const result = await updateDepartment({ id: editingDepartment._id, ...payload }).unwrap();
+        const result = await updateDepartment({ id: editingDepartment._id, _formData: fd }).unwrap();
         toast.success(result.message || "Department updated successfully!");
       } else {
-        const result = await addDepartment(payload).unwrap();
+        const result = await addDepartment(fd).unwrap();
         toast.success(result.message || "Department added successfully!");
       }
       resetForm();
       setEditingDepartment(null);
       refetch();
     } catch (error) {
-      toast.error(error?.data?.message || "Error saving department");
+      toast.error(error?.data?.message || error?.message || "Error saving department");
     } finally {
       setSubmitting(false);
     }

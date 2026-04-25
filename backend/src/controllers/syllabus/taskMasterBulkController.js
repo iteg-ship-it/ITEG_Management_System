@@ -1,4 +1,4 @@
-const TaskMaster    = require("../../models/syllabus/TaskMaster");
+const TaskMaster    = require("../../models/syllabus/taskMaster");
 const SyllabusVersion = require("../../models/syllabus/SyllabusVersion");
 const Subject       = require("../../models/syllabus/Subject");
 const Topic         = require("../../models/syllabus/Topic");

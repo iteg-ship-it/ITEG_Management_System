@@ -1,5 +1,5 @@
 const Topic = require('../../models/syllabus/Topic');
-const SyllabusVersion = require('../../models/SyllabusVersion');
+const SyllabusVersion = require('../../models/syllabus/SyllabusVersion');
 
 // Create Topic
 exports.createTopic = async (req, res) => {

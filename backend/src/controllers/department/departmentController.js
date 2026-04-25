@@ -117,18 +117,14 @@ exports.createDepartment = async (req, res) => {
 
   } catch (error) {
     if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: "Department code already exists"
-      });
+      const field = Object.keys(error.keyPattern || {})[0];
+      const msg = field === 'name' ? 'Department with this name already exists' : 'Department code already exists';
+      return res.status(400).json({ success: false, message: msg });
     }
-
-    res.status(400).json({
-      success: false,
-      message: error.message
-    });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
+
 // Get All Departments
 exports.getAllDepartments = async (req, res) => {
   try {

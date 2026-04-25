@@ -16,10 +16,83 @@ import {
   useGetAllSessionsQuery,
   useGetTasksBySyllabusVersionQuery,
   useBulkUploadTasksMutation,
+  useGetSubjectsByVersionQuery,
+  useGetTopicsBySubjectQuery,
+  useGetSubTopicsByTopicQuery,
+  useCreateTaskManualMutation,
 } from "../../../redux/api/authApi";
 
 /* ─── helpers ─────────────────────────────────────────── */
 const normalize = (v) => (v === undefined || v === null ? "" : String(v).trim());
+
+/* Download syllabus template as XLSX */
+const downloadSyllabusTemplate = () => {
+  const instructions = [
+    ["SYLLABUS TEMPLATE - INSTRUCTIONS"],
+    [""],
+    ["REQUIRED COLUMNS:"],
+    ["Subject     → Subject ka naam (e.g. JavaScript, React, Node.js)"],
+    ["Topic Name  → Topic ka naam (e.g. Basics, Functions, Hooks)"],
+    ["SubTopic    → SubTopic ka naam (e.g. Variables, Arrow Functions, useState)"],
+    [""],
+    ["RULES:"],
+    ["1. Ek Subject ke andar multiple Topics ho sakte hain"],
+    ["2. Ek Topic ke andar multiple SubTopics ho sakte hain"],
+    ["3. Agar Topic ke andar koi SubTopic nahi hai to SubTopic column khali chhod do"],
+    ["4. Subject aur Topic Name columns REQUIRED hain"],
+    ["5. Tasks baad mein manually ya alag se add kar sakte ho"],
+    [""],
+    ["NOTE: Pehle sirf syllabus structure upload karo (Subject, Topic, SubTopic)"],
+    ["      Tasks baad mein 'Tasks Tab' se add karo"],
+  ];
+
+  const data = [
+    ["Subject", "Topic Name", "SubTopic"],
+    // JavaScript
+    ["JavaScript", "Basics", "Variables & Data Types"],
+    ["JavaScript", "Basics", "Operators"],
+    ["JavaScript", "Basics", "Conditionals"],
+    ["JavaScript", "Functions", "Function Declaration"],
+    ["JavaScript", "Functions", "Arrow Functions"],
+    ["JavaScript", "Functions", "Callbacks"],
+    ["JavaScript", "Arrays", "Array Methods"],
+    ["JavaScript", "Arrays", "Destructuring"],
+    ["JavaScript", "DOM", ""],  // Topic without subtopic
+    // React
+    ["React", "Components", "Functional Components"],
+    ["React", "Components", "Props"],
+    ["React", "Hooks", "useState"],
+    ["React", "Hooks", "useEffect"],
+    ["React", "Hooks", "useContext"],
+    ["React", "Routing", "React Router"],
+    ["React", "Routing", "Protected Routes"],
+    // Node.js
+    ["Node.js", "Basics", "Modules"],
+    ["Node.js", "Basics", "File System"],
+    ["Node.js", "Express", "Routing"],
+    ["Node.js", "Express", "Middleware"],
+    ["Node.js", "Database", "MongoDB Connection"],
+    ["Node.js", "Database", "CRUD Operations"],
+  ];
+
+  const wb = XLSX.utils.book_new();
+
+  // Sheet 1: Actual data
+  const ws1 = XLSX.utils.aoa_to_sheet(data);
+  ws1["!cols"] = [{ wch: 20 }, { wch: 25 }, { wch: 30 }];
+  // Header row bold styling
+  ["A1", "B1", "C1"].forEach((cell) => {
+    if (ws1[cell]) ws1[cell].s = { font: { bold: true }, fill: { fgColor: { rgb: "FF6B00" } } };
+  });
+  XLSX.utils.book_append_sheet(wb, ws1, "Syllabus");
+
+  // Sheet 2: Instructions
+  const ws2 = XLSX.utils.aoa_to_sheet(instructions);
+  ws2["!cols"] = [{ wch: 70 }];
+  XLSX.utils.book_append_sheet(wb, ws2, "Instructions");
+
+  XLSX.writeFile(wb, "syllabus_template.xlsx");
+};
 
 const parseExcel = (file) =>
   new Promise((resolve, reject) => {
@@ -41,38 +114,14 @@ const buildHierarchy = (rows) => {
     const subject      = normalize(row["Subject"]    || row["subject"]);
     const topic        = normalize(row["Topic Name"] || row["Topic"] || row["topic"]);
     const subTopicName = normalize(row["SubTopic"]   || row["subtopic"] || row["sub_topic"]);
-    if (!subject) return;
+    if (!subject || !topic) return;
     if (!subjectMap.has(subject)) subjectMap.set(subject, new Map());
     const topicMap = subjectMap.get(subject);
-    if (!topic) return;
     if (!topicMap.has(topic)) topicMap.set(topic, []);
+    // agar subtopic khali hai to topic register ho gaya, bas skip karo subtopic push
     if (!subTopicName) return;
     const stList = topicMap.get(topic);
-
-    const taskTitle       = normalize(row["Tasks"]             || row["TaskTitle"]       || row["taskTitle"]);
-    const timeDays        = normalize(row["Time"]              || row["timeDays"]        || row["time"]);
-    const measurablePoints= normalize(row["Measurable Point"]  || row["measurablePoints"]|| row["Measurable Points"]);
-    const taskDescription = normalize(row["TaskDescription"]   || row["Task Description"]|| row["taskDescription"]);
-    const taskType        = normalize(row["TaskType"]          || row["Task Type"]       || row["taskType"]);
-    const maxMarks        = normalize(row["MaxMarks"]          || row["Max Marks"]       || row["maxMarks"]);
-    const cutoff          = normalize(row["Cutoff"]            || row["cutoff"]);
-    const priority        = normalize(row["Priority"]          || row["priority"]);
-    const mandatory       = normalize(row["Mandatory"]         || row["mandatory"]);
-
-    stList.push({
-      name: subTopicName,
-      ...(taskTitle ? {
-        taskTitle,
-        timeDays:         timeDays || null,
-        measurablePoints: measurablePoints || null,
-        taskDescription,
-        taskType:  taskType  || "assessment",
-        maxMarks:  maxMarks  || "100",
-        cutoff:    cutoff    || "40",
-        priority:  priority  || "medium",
-        mandatory: mandatory !== "false" && mandatory !== "0",
-      } : {}),
-    });
+    stList.push({ name: subTopicName });
   });
   return Array.from(subjectMap.entries()).map(([subjectName, topicMap]) => ({
     subject: subjectName,
@@ -195,11 +244,11 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!/\.(xlsx|xls)$/i.test(file.name)) { toast.error("Please upload .xlsx or .xls file"); return; }
+    if (!/\.(xlsx|xls|csv)$/i.test(file.name)) { toast.error("Please upload .xlsx, .xls or .csv file"); return; }
     setParsing(true); setHierarchy([]); setFileName(file.name);
     try {
       const rows = await parseExcel(file);
-      if (!rows.length) { toast.error("Excel file is empty"); return; }
+      if (!rows.length) { toast.error("File is empty"); return; }
       const parsed = buildHierarchy(rows);
       if (!parsed.length) { toast.error("No valid data. Columns needed: Subject, Topic Name, SubTopic"); return; }
       setHierarchy(parsed);
@@ -228,7 +277,8 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
       reset();
       onSaved?.();
     } catch (err) {
-      toast.error(err?.data?.message || "Failed to save syllabus");
+      const msg = err?.data?.message || err?.message || "Failed to save syllabus";
+      toast.error(msg);
     } finally { setSaving(false); }
   };
 
@@ -244,16 +294,25 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
           <>
             <MdCloudUpload size={36} className="text-orange-300 group-hover:text-orange-400 transition mb-1" />
             <p className="text-sm font-semibold text-gray-700">Click to upload Excel file</p>
-            <p className="text-xs text-gray-400 mt-0.5">Supports .xlsx and .xls</p>
+            <p className="text-xs text-gray-400 mt-0.5">Supports .xlsx, .xls and .csv</p>
             {fileName && <p className="mt-1.5 text-xs text-orange-500 font-medium">📄 {fileName}</p>}
           </>
         )}
       </div>
-      <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleFile} />
+      <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleFile} />
 
       <div className="p-3 bg-blue-50 rounded-lg space-y-2">
         <div>
-          <p className="text-xs text-blue-600 font-semibold mb-1">Required columns:</p>
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs text-blue-600 font-semibold">Required columns:</p>
+            <button
+              type="button"
+              onClick={() => downloadSyllabusTemplate()}
+              className="text-xs text-orange-600 hover:text-orange-700 font-semibold bg-orange-50 hover:bg-orange-100 px-2.5 py-1 rounded-lg transition"
+            >
+              ⬇ Download Template
+            </button>
+          </div>
           <div className="flex gap-2 flex-wrap text-xs">
             {["Subject", "Topic Name", "SubTopic"].map((c) => (
               <span key={c} className="bg-blue-100 text-blue-600 px-2 py-0.5 rounded">{c}</span>
@@ -261,13 +320,9 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
           </div>
         </div>
         <div>
-          <p className="text-xs text-green-600 font-semibold mb-1">Task columns (optional):</p>
-          <div className="flex gap-2 flex-wrap text-xs">
-            {["Tasks", "Time", "Measurable Point"].map((c) => (
-              <span key={c} className="bg-green-100 text-green-600 px-2 py-0.5 rounded">{c}</span>
-            ))}
-          </div>
-          <p className="text-xs text-green-500 mt-1">Tasks column hoga to syllabus ke saath tasks bhi automatically save honge. Time = days mein.</p>
+          <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+            Pehle sirf syllabus structure upload karo. Tasks baad mein <span className="font-semibold text-orange-500">Tasks Tab</span> se add kar sakte ho — topic pe directly ya subtopic select karke.
+          </p>
         </div>
       </div>
 
@@ -636,17 +691,220 @@ export const VersionTasksTable = ({ versionId }) => {
   );
 };
 
+/* ─── Manual Task Creation Form ────────────────────────── */
+const TASK_TYPES    = ["writtenExam", "interview", "project", "presentation", "learning", "assessment"];
+const TASK_PRIORITY = ["low", "medium", "high"];
+const EMPTY_FORM    = { title: "", description: "", type: "assessment", priority: "medium", maxMarks: 100, cutoff: 40, mandatory: true, dueDate: "" };
+
+// taskTarget: "topic" | "subtopic"
+const ManualTaskForm = ({ versionId, onSaved }) => {
+  const [subjectId,  setSubjectId]  = useState("");
+  const [topicId,    setTopicId]    = useState("");
+  const [taskTarget, setTaskTarget] = useState("");   // "topic" or "subtopic"
+  const [subTopicId, setSubTopicId] = useState("");
+  const [form,       setForm]       = useState(EMPTY_FORM);
+  const [saving,     setSaving]     = useState(false);
+
+  const { data: subjectsData }  = useGetSubjectsByVersionQuery(versionId, { skip: !versionId });
+  const { data: topicsData }    = useGetTopicsBySubjectQuery(subjectId,   { skip: !subjectId });
+  const { data: subTopicsData } = useGetSubTopicsByTopicQuery(topicId,    { skip: !topicId || taskTarget !== "subtopic" });
+
+  const subjects  = subjectsData?.data  || [];
+  const topics    = topicsData?.data    || [];
+  const subTopics = subTopicsData?.data || [];
+
+  const [createTask] = useCreateTaskManualMutation();
+
+  const resetForm = () => { setSubjectId(""); setTopicId(""); setTaskTarget(""); setSubTopicId(""); setForm(EMPTY_FORM); };
+
+  const canSubmit = taskTarget === "topic" || (taskTarget === "subtopic" && subTopicId);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!canSubmit)          { toast.error("Pehle target select karo"); return; }
+    if (!form.title.trim())  { toast.error("Task title required hai"); return; }
+    setSaving(true);
+    try {
+      const payload = {
+        syllabusVersionId: versionId,
+        subjectId,
+        topicId,
+        ...(taskTarget === "subtopic" && subTopicId ? { subTopicId } : {}),
+        ...form,
+        maxMarks: Number(form.maxMarks),
+        cutoff:   Number(form.cutoff),
+      };
+      await createTask(payload).unwrap();
+      toast.success("Task created successfully!");
+      resetForm();
+      onSaved?.();
+    } catch (err) {
+      toast.error(err?.data?.message || "Task create failed");
+    } finally { setSaving(false); }
+  };
+
+  const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white";
+  const labelCls = "block text-xs font-semibold text-gray-500 mb-1";
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 p-4">
+
+      {/* ── Step 1: Subject ── */}
+      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Step 1 — Subject & Topic</p>
+      <div>
+        <label className={labelCls}>Subject</label>
+        <select className={inputCls} value={subjectId} onChange={(e) => { setSubjectId(e.target.value); setTopicId(""); setTaskTarget(""); setSubTopicId(""); }}>
+          <option value="">-- Select Subject --</option>
+          {subjects.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
+        </select>
+      </div>
+
+      {/* ── Step 1b: Topic ── */}
+      {subjectId && (
+        <div>
+          <label className={labelCls}>Topic</label>
+          <select className={inputCls} value={topicId} onChange={(e) => { setTopicId(e.target.value); setTaskTarget(""); setSubTopicId(""); }}>
+            <option value="">-- Select Topic --</option>
+            {topics.map((t) => <option key={t._id} value={t._id}>{t.name}</option>)}
+          </select>
+        </div>
+      )}
+
+      {/* ── Step 2: Task target choice ── */}
+      {topicId && (
+        <>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider pt-1">Step 2 — Task Kahan Add Karna Hai?</p>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => { setTaskTarget("topic"); setSubTopicId(""); }}
+              className={`flex flex-col items-center gap-1.5 border-2 rounded-xl py-4 px-3 transition ${
+                taskTarget === "topic"
+                  ? "border-orange-500 bg-orange-50 text-orange-600"
+                  : "border-gray-200 bg-white text-gray-500 hover:border-orange-300"
+              }`}
+            >
+              <MdTopic size={22} />
+              <span className="text-xs font-semibold">Topic pe directly</span>
+              <span className="text-[10px] text-center leading-tight opacity-70">
+                Task topic level ka hai, koi subtopic nahi
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTaskTarget("subtopic")}
+              className={`flex flex-col items-center gap-1.5 border-2 rounded-xl py-4 px-3 transition ${
+                taskTarget === "subtopic"
+                  ? "border-blue-500 bg-blue-50 text-blue-600"
+                  : "border-gray-200 bg-white text-gray-500 hover:border-blue-300"
+              }`}
+            >
+              <MdSubject size={22} />
+              <span className="text-xs font-semibold">SubTopic select karke</span>
+              <span className="text-[10px] text-center leading-tight opacity-70">
+                Task kisi specific subtopic se related hai
+              </span>
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* ── SubTopic dropdown (only when subtopic path chosen) ── */}
+      {taskTarget === "subtopic" && (
+        <div>
+          <label className={labelCls}>SubTopic</label>
+          {subTopics.length === 0 ? (
+            <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              Is topic mein koi subtopic nahi hai. Topic pe directly add karo.
+            </p>
+          ) : (
+            <select className={inputCls} value={subTopicId} onChange={(e) => setSubTopicId(e.target.value)}>
+              <option value="">-- Select SubTopic --</option>
+              {subTopics.map((st) => <option key={st._id} value={st._id}>{st.name}</option>)}
+            </select>
+          )}
+        </div>
+      )}
+
+      {/* ── Target confirmation badge ── */}
+      {canSubmit && (
+        <div className={`text-xs font-semibold px-3 py-2 rounded-lg ${
+          taskTarget === "subtopic" ? "bg-blue-50 text-blue-600" : "bg-orange-50 text-orange-600"
+        }`}>
+          {taskTarget === "subtopic"
+            ? `✓ Task → SubTopic: "${subTopics.find((s) => s._id === subTopicId)?.name}"`
+            : `✓ Task → Topic: "${topics.find((t) => t._id === topicId)?.name}"`
+          }
+        </div>
+      )}
+
+      {/* ── Step 3: Task Details ── */}
+      {canSubmit && (
+        <>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider pt-1">Step 3 — Task Details</p>
+
+          <div>
+            <label className={labelCls}>Task Title *</label>
+            <input className={inputCls} value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder="Enter task title" />
+          </div>
+
+          <div>
+            <label className={labelCls}>Description</label>
+            <textarea className={inputCls} rows={2} value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="Optional description" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Type</label>
+              <select className={inputCls} value={form.type} onChange={(e) => setForm((p) => ({ ...p, type: e.target.value }))}>
+                {TASK_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>Priority</label>
+              <select className={inputCls} value={form.priority} onChange={(e) => setForm((p) => ({ ...p, priority: e.target.value }))}>
+                {TASK_PRIORITY.map((p) => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>Max Marks</label>
+              <input type="number" className={inputCls} value={form.maxMarks} onChange={(e) => setForm((p) => ({ ...p, maxMarks: e.target.value }))} />
+            </div>
+            <div>
+              <label className={labelCls}>Cutoff</label>
+              <input type="number" className={inputCls} value={form.cutoff} onChange={(e) => setForm((p) => ({ ...p, cutoff: e.target.value }))} />
+            </div>
+          </div>
+
+          <div>
+            <label className={labelCls}>Due Date (optional)</label>
+            <input type="date" className={inputCls} value={form.dueDate} onChange={(e) => setForm((p) => ({ ...p, dueDate: e.target.value }))} />
+          </div>
+
+          <div className="flex gap-2 pt-1">
+            <button type="submit" disabled={saving} className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-semibold py-2.5 rounded-lg transition">
+              {saving ? "Saving..." : "Add Task"}
+            </button>
+            <button type="button" onClick={resetForm} className="px-4 py-2 text-sm text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Reset</button>
+          </div>
+        </>
+      )}
+    </form>
+  );
+};
+
 /* ─── Tasks Tab with session+subject selector ──────────── */
 export const TasksTab = ({ level, subLevel }) => {
   const subLevelId = subLevel?._id;
   const [selectedSessionId, setSelectedSessionId] = useState("");
   const [activeSubject,     setActiveSubject]     = useState("");
   const [selectedVersionId, setSelectedVersionId] = useState({});
+  const [showAddForm,       setShowAddForm]       = useState(false);
 
   const { data: sessionsData } = useGetAllSessionsQuery();
   const sessions = sessionsData?.data || [];
 
-  const { data: versionsData } = useGetSyllabusVersionsBySubLevelQuery(
+  const { data: versionsData, refetch } = useGetSyllabusVersionsBySubLevelQuery(
     { subLevelId, sessionId: selectedSessionId },
     { skip: !subLevelId, refetchOnMountOrArgChange: true }
   );
@@ -682,6 +940,14 @@ export const TasksTab = ({ level, subLevel }) => {
           <option value="">All Sessions</option>
           {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
         </select>
+        {activeVersionId && (
+          <button
+            onClick={() => setShowAddForm((p) => !p)}
+            className="ml-auto flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
+          >
+            <MdAssignment size={15} />{showAddForm ? "Close Form" : "+ Add Task"}
+          </button>
+        )}
       </div>
 
       {allVersions.length === 0 ? (
@@ -694,7 +960,7 @@ export const TasksTab = ({ level, subLevel }) => {
             {subjectNames.map((name) => (
               <button
                 key={name}
-                onClick={() => setActiveSubject(name)}
+                onClick={() => { setActiveSubject(name); setShowAddForm(false); }}
                 className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
                   currentSubject === name
                     ? "border-orange-500 text-orange-600 bg-orange-50"
@@ -721,6 +987,16 @@ export const TasksTab = ({ level, subLevel }) => {
                   </option>
                 ))}
               </select>
+            </div>
+          )}
+
+          {/* Manual Add Task Form */}
+          {showAddForm && activeVersionId && (
+            <div className="border-b border-gray-100">
+              <ManualTaskForm
+                versionId={activeVersionId}
+                onSaved={() => { setShowAddForm(false); refetch(); }}
+              />
             </div>
           )}
 
@@ -754,12 +1030,21 @@ const EmptyUploadState = ({ level, subLevel, onSaved }) => {
       </p>
 
       {!showUpload ? (
-        <button
-          onClick={() => setShowUpload(true)}
-          className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition hover:shadow-md"
-        >
-          <MdCloudUpload size={16} /> Upload Syllabus
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowUpload(true)}
+            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition hover:shadow-md"
+          >
+            <MdCloudUpload size={16} /> Upload Syllabus
+          </button>
+          <button
+            type="button"
+            onClick={() => downloadSyllabusTemplate()}
+            className="flex items-center gap-2 text-sm font-semibold text-orange-500 bg-white border border-orange-300 hover:bg-orange-50 px-6 py-2.5 rounded-xl transition"
+          >
+            ⬇ Browse Template
+          </button>
+        </div>
       ) : (
         <div className="w-full max-w-md text-left mt-2">
           <div className="flex items-center justify-between mb-3">
