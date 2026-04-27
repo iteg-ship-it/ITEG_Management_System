@@ -10,6 +10,8 @@ const allPermissions = {
         { feature: 'Action_EditUser', description: 'Ability to edit a user', access: ['read', 'update'] },
         { feature: 'Action_DeleteUser', description: 'Ability to delete a user', access: ['execute'] },
         
+
+        
         // Role & Permission Management
         { feature: 'Page_RoleManagement', description: 'Access to view role cards', access: ['read'] },
         { feature: 'Button_CreateRole', description: 'Visibility of the Create New Role card', access: ['read'] },
