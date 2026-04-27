@@ -926,7 +926,7 @@ export const TasksTab = ({ level, subLevel, onVersionChange }) => {
 
   return (
     <div className="space-y-4">
-      <div className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex flex-wrap items-center gap-3">
+      <div className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3">
         <select
           value={selectedSessionId}
           onChange={(e) => { setSelectedSessionId(e.target.value); setActiveSubject(""); }}
@@ -943,37 +943,53 @@ export const TasksTab = ({ level, subLevel, onVersionChange }) => {
         </div>
       ) : (
         <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+
+          {/* Subject tabs with inline version badge */}
           <div className="flex gap-0 overflow-x-auto border-b border-gray-100">
-            {subjectNames.map((name) => (
-              <button
-                key={name}
-                onClick={() => { setActiveSubject(name); }}
-                className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
-                  currentSubject === name
-                    ? "border-orange-500 text-orange-600 bg-orange-50"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                <MdBook size={15} className={currentSubject === name ? "text-orange-500" : "text-gray-400"} />
-                {name}
-              </button>
-            ))}
+            {subjectNames.map((name) => {
+              const vers   = grouped[name];
+              const selVer = vers.find((v) => v._id === (selectedVersionId[name] || "")) || vers.find((v) => v.status === "active") || vers[0];
+              return (
+                <button
+                  key={name}
+                  onClick={() => setActiveSubject(name)}
+                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
+                    currentSubject === name
+                      ? "border-orange-500 text-orange-600 bg-orange-50"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <MdBook size={14} className={currentSubject === name ? "text-orange-500" : "text-gray-400"} />
+                  <span>{name}</span>
+                  {selVer && (
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                      selVer.status === "active"   ? "bg-green-100 text-green-600" :
+                      selVer.status === "approved" ? "bg-blue-100 text-blue-600"  :
+                      "bg-gray-100 text-gray-500"
+                    }`}>
+                      {selVer.version}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
+          {/* Version pills â€” only if multiple versions */}
           {subjectVersions.length > 1 && (
-            <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border-b border-gray-100">
-              <span className="text-xs text-gray-500 font-medium">Version:</span>
-              <select
-                value={activeVersionId}
-                onChange={(e) => setSelectedVersionId((p) => ({ ...p, [currentSubject]: e.target.value }))}
-                className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-orange-400 bg-white"
-              >
-                {subjectVersions.map((v) => (
-                  <option key={v._id} value={v._id}>
-                    {currentSubject} {v.version} — {v.status}{v.status === "active" ? " ✓" : ""}
-                  </option>
-                ))}
-              </select>
+            <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border-b border-gray-100">
+              <span className="text-xs text-gray-400">Version:</span>
+              {subjectVersions.map((v) => (
+                <button
+                  key={v._id}
+                  onClick={() => setSelectedVersionId((p) => ({ ...p, [currentSubject]: v._id }))}
+                  className={`text-xs px-2.5 py-1 rounded-full font-semibold transition ${
+                    activeVersionId === v._id ? "bg-orange-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  }`}
+                >
+                  {v.version}
+                </button>
+              ))}
             </div>
           )}
 
@@ -984,14 +1000,6 @@ export const TasksTab = ({ level, subLevel, onVersionChange }) => {
   );
 };
 
-/* ─── Inner content: Syllabus only ─────────────────────── */
-const InnerTabs = ({ versionId, searchTerm }) => (
-  <VersionTopicTable versionId={versionId} searchTerm={searchTerm} />
-);
-
-/* ══════════════════════════════════════════════════════════
-   EMPTY STATE WITH INLINE UPLOAD
-══════════════════════════════════════════════════════════ */
 const EmptyUploadState = ({ level, subLevel, onSaved }) => {
   const [showUpload, setShowUpload] = useState(false);
   const drawerRef = useRef(null);
@@ -1148,43 +1156,55 @@ const SyllabusTab = ({ level, subLevel }) => {
       {subjectNames.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
 
-          {/* ── Subject tabs ── */}
+          {/* ── Subject tabs with inline version badge ── */}
           <div className="flex gap-0 overflow-x-auto border-b border-gray-100">
             {subjectNames.map((name) => {
-              const versions = grouped[name];
-              const hasActive = versions.some((v) => v.status === "active");
+              const vers   = grouped[name];
+              const selVer = vers.find((v) => v._id === (selectedVersionId[name] || "")) || vers.find((v) => v.status === "active") || vers[0];
               return (
                 <button
                   key={name}
                   onClick={() => { setActiveSubject(name); setSearchTerm(""); }}
-                  className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
+                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
                     currentSubject === name
                       ? "border-orange-500 text-orange-600 bg-orange-50"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                   }`}
                 >
-                  <MdBook size={15} className={currentSubject === name ? "text-orange-500" : "text-gray-400"} />
-                  {name}
-                  {hasActive && <span className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />}
+                  <MdBook size={14} className={currentSubject === name ? "text-orange-500" : "text-gray-400"} />
+                  <span>{name}</span>
+                  {selVer && (
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                      selVer.status === "active"   ? "bg-green-100 text-green-600" :
+                      selVer.status === "approved" ? "bg-blue-100 text-blue-600"  :
+                      "bg-gray-100 text-gray-500"
+                    }`}>
+                      {selVer.version}
+                    </span>
+                  )}
                 </button>
               );
             })}
           </div>
 
-          {/* ── Version selector + status bar ── */}
+          {/* ── Version pills + actions ── */}
           <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border-b border-gray-100 flex-wrap">
-            <span className="text-xs text-gray-500 font-medium">Version:</span>
-            <select
-              value={activeVersionId}
-              onChange={(e) => setSelectedVersionId((p) => ({ ...p, [currentSubject]: e.target.value }))}
-              className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-orange-400 bg-white"
-            >
-              {subjectVersions.map((v) => (
-                <option key={v._id} value={v._id}>
-                  {currentSubject} {v.version} — {v.status}{v.status === "active" ? " ✓" : ""}
-                </option>
-              ))}
-            </select>
+            {subjectVersions.length > 1 && (
+              <>
+                <span className="text-xs text-gray-400">Version:</span>
+                {subjectVersions.map((v) => (
+                  <button
+                    key={v._id}
+                    onClick={() => setSelectedVersionId((p) => ({ ...p, [currentSubject]: v._id }))}
+                    className={`text-xs px-2.5 py-1 rounded-full font-semibold transition ${
+                      activeVersionId === v._id ? "bg-orange-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                    }`}
+                  >
+                    {v.version}
+                  </button>
+                ))}
+              </>
+            )}
 
             {activeVersionDoc && (
               <>
@@ -1208,7 +1228,7 @@ const SyllabusTab = ({ level, subLevel }) => {
           </div>
 
           {/* ── Inner Tabs: Syllabus / Tasks ── */}
-          <InnerTabs versionId={activeVersionId} searchTerm={searchTerm} />
+          <VersionTopicTable versionId={activeVersionId} searchTerm={searchTerm} />
         </div>
       )}
     </div>
