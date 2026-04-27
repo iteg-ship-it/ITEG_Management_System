@@ -5875,6 +5875,255 @@ paths:
         '400':
           description: Invalid update or task not found
 
+  /api/students:
+    post:
+      summary: Create a single student
+      tags:
+        - Student Profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - prkey
+                - firstName
+                - subDepartmentId
+                - sessionId
+                - currentLevelId
+                - currentSubLevelId
+                - selectedCourse
+              properties:
+                prkey:
+                  type: string
+                  example: "PR-1001"
+                firstName:
+                  type: string
+                  example: "Aman"
+                lastName:
+                  type: string
+                  example: "Sharma"
+                fatherName:
+                  type: string
+                  example: "Rajesh Sharma"
+                email:
+                  type: string
+                  example: "aman@example.com"
+                studentMobile:
+                  type: string
+                  example: "9876543210"
+                parentMobile:
+                  type: string
+                  example: "9876500000"
+                subDepartmentId:
+                  type: string
+                  example: "64fdb61e7b9a1a1234567891"
+                sessionId:
+                  type: string
+                  example: "64fdb61e7b9a1a1234567894"
+                currentLevelId:
+                  type: string
+                  example: "64fdb61e7b9a1a1234567892"
+                currentSubLevelId:
+                  type: string
+                  example: "64fdb61e7b9a1a1234567893"
+                selectedCourse:
+                  type: string
+                  example: "BCA"
+                techno:
+                  type: string
+                  example: "MERN"
+                profileRemark:
+                  type: string
+                  example: "Fresh admission"
+            example:
+              prkey: "PR-1001"
+              firstName: "Aman"
+              lastName: "Sharma"
+              fatherName: "Rajesh Sharma"
+              email: "aman@example.com"
+              studentMobile: "9876543210"
+              parentMobile: "9876500000"
+              subDepartmentId: "64fdb61e7b9a1a1234567891"
+              sessionId: "64fdb61e7b9a1a1234567894"
+              currentLevelId: "64fdb61e7b9a1a1234567892"
+              currentSubLevelId: "64fdb61e7b9a1a1234567893"
+              selectedCourse: "BCA"
+              techno: "MERN"
+      responses:
+        '201':
+          description: Student created successfully
+        '400':
+          description: Validation error
+        '409':
+          description: Duplicate student key
+    get:
+      summary: Get all students
+      tags:
+        - Student Profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: sessionId
+          schema:
+            type: string
+        - in: query
+          name: subDepartmentId
+          schema:
+            type: string
+        - in: query
+          name: levelId
+          schema:
+            type: string
+        - in: query
+          name: subLevelId
+          schema:
+            type: string
+        - in: query
+          name: syllabusVersionId
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: readinessStatus
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Students fetched successfully
+
+  /api/students/single:
+    post:
+      summary: Create a single student using explicit single endpoint
+      tags:
+        - Student Profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - prkey
+                - firstName
+                - subDepartmentId
+                - sessionId
+                - currentLevelId
+                - currentSubLevelId
+                - selectedCourse
+              properties:
+                prkey:
+                  type: string
+                firstName:
+                  type: string
+                subDepartmentId:
+                  type: string
+                sessionId:
+                  type: string
+                currentLevelId:
+                  type: string
+                currentSubLevelId:
+                  type: string
+                selectedCourse:
+                  type: string
+            example:
+              prkey: "PR-1002"
+              firstName: "Riya"
+              subDepartmentId: "64fdb61e7b9a1a1234567891"
+              sessionId: "64fdb61e7b9a1a1234567894"
+              currentLevelId: "64fdb61e7b9a1a1234567892"
+              currentSubLevelId: "64fdb61e7b9a1a1234567893"
+              selectedCourse: "BCA"
+      responses:
+        '201':
+          description: Student created successfully
+        '400':
+          description: Validation error
+
+  /api/students/bulk-upload:
+    post:
+      summary: Bulk upload students
+      tags:
+        - Student Profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - students
+              properties:
+                students:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - prkey
+                      - firstName
+                      - subDepartmentId
+                      - sessionId
+                      - currentLevelId
+                      - currentSubLevelId
+                      - selectedCourse
+                    properties:
+                      prkey:
+                        type: string
+                      firstName:
+                        type: string
+                      lastName:
+                        type: string
+                      fatherName:
+                        type: string
+                      email:
+                        type: string
+                      studentMobile:
+                        type: string
+                      parentMobile:
+                        type: string
+                      subDepartmentId:
+                        type: string
+                      sessionId:
+                        type: string
+                      currentLevelId:
+                        type: string
+                      currentSubLevelId:
+                        type: string
+                      selectedCourse:
+                        type: string
+            example:
+              students:
+                - prkey: "PR-1001"
+                  firstName: "Aman"
+                  subDepartmentId: "64fdb61e7b9a1a1234567891"
+                  sessionId: "64fdb61e7b9a1a1234567894"
+                  currentLevelId: "64fdb61e7b9a1a1234567892"
+                  currentSubLevelId: "64fdb61e7b9a1a1234567893"
+                  selectedCourse: "BCA"
+                - prkey: "PR-1002"
+                  firstName: "Riya"
+                  subDepartmentId: "64fdb61e7b9a1a1234567891"
+                  sessionId: "64fdb61e7b9a1a1234567894"
+                  currentLevelId: "64fdb61e7b9a1a1234567892"
+                  currentSubLevelId: "64fdb61e7b9a1a1234567893"
+                  selectedCourse: "BCA"
+      responses:
+        '201':
+          description: Bulk student upload completed
+        '400':
+          description: Invalid payload
+
   /api/students/{studentId}/profile:
     get:
       summary: Get student profile with task summary

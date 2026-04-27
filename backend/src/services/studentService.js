@@ -158,6 +158,34 @@ const createStudent = async (payload) => {
   };
 };
 
+const createStudentsBulk = async (students = []) => {
+  if (!Array.isArray(students) || students.length === 0) {
+    throw new Error("students must be a non-empty array");
+  }
+
+  const results = [];
+
+  for (const [index, payload] of students.entries()) {
+    try {
+      const result = await createStudent(payload);
+      results.push({
+        success: true,
+        index,
+        student: result.student,
+        assignment: result.assignment
+      });
+    } catch (error) {
+      results.push({
+        success: false,
+        index,
+        message: error.message
+      });
+    }
+  }
+
+  return results;
+};
+
 const listStudents = async (query) => {
   const filter = buildStudentFilters(query);
   const students = await populateStudentQuery(
@@ -179,6 +207,7 @@ const getStudentById = async (studentId) => {
 module.exports = {
   buildStudentFilters,
   createStudent,
+  createStudentsBulk,
   listStudents,
   getStudentById,
   getNextProgressionTarget,

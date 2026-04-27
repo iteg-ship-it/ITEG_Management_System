@@ -8,6 +8,8 @@ const studentController = require("../controllers/student/studentController");
 const facultyRoles = ["superadmin", "admin", "faculty"];
 
 router.post("/", verifyToken, checkRole(facultyRoles), studentController.createStudent);
+router.post("/single", verifyToken, checkRole(facultyRoles), studentController.createStudentSingle);
+router.post("/bulk-upload", verifyToken, checkRole(facultyRoles), studentController.createStudentsBulk);
 router.get("/", verifyToken, checkRole(facultyRoles), studentController.getAllStudents);
 router.get("/:studentId/profile", verifyToken, checkRole(facultyRoles), studentProfileController.getStudentProfile);
 router.get("/:studentId", verifyToken, checkRole(facultyRoles), studentController.getStudentById);
