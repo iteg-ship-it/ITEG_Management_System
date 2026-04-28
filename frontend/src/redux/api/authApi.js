@@ -1047,9 +1047,10 @@ export const authApi = createApi({
       providesTags: (result, error, id) => [{ type: 'SyllabusVersion', id }],
     }),
 
+    // Returns full version with subjects/topics/subtopics embedded
     getSyllabusVersionWithHierarchy: builder.query({
       query: (id) => ({
-        url: `/syllabus/versions/${id}/hierarchy`,
+        url: `/syllabus/versions/${id}`,
         method: 'GET',
       }),
       providesTags: (result, error, id) => [{ type: 'SyllabusVersion', id }],
@@ -1057,7 +1058,7 @@ export const authApi = createApi({
 
     getSyllabusVersionsBySession: builder.query({
       query: (sessionId) => ({
-        url: `/syllabus/versions/session/${sessionId}`,
+        url: `/syllabus/versions?sessionId=${sessionId}`,
         method: 'GET',
       }),
       providesTags: ['SyllabusVersion'],
@@ -1066,7 +1067,7 @@ export const authApi = createApi({
     getSyllabusVersionsBySubLevel: builder.query({
       query: ({ subLevelId, sessionId } = {}) => {
         if (!subLevelId) return { url: '/syllabus/versions', method: 'GET' };
-        const params = sessionId ? `?sessionId=${sessionId}` : "";
+        const params = sessionId ? `?sessionId=${sessionId}` : '';
         return { url: `/syllabus/versions/sublevel/${subLevelId}${params}`, method: 'GET' };
       },
       providesTags: ['SyllabusVersion'],
@@ -1075,7 +1076,7 @@ export const authApi = createApi({
     updateSyllabusVersion: builder.mutation({
       query: ({ id, ...data }) => ({
         url: `/syllabus/versions/${id}`,
-        method: 'PUT',
+        method: 'PATCH',
         body: data,
       }),
       invalidatesTags: ['SyllabusVersion'],
@@ -1089,9 +1090,10 @@ export const authApi = createApi({
       invalidatesTags: ['SyllabusVersion'],
     }),
 
+    // approve = activate (backend mein approve nahi hai, activate hai)
     approveSyllabusVersion: builder.mutation({
       query: (id) => ({
-        url: `/syllabus/versions/${id}/approve`,
+        url: `/syllabus/versions/${id}/activate`,
         method: 'PATCH',
       }),
       invalidatesTags: ['SyllabusVersion'],
@@ -1113,54 +1115,95 @@ export const authApi = createApi({
       invalidatesTags: ['SyllabusVersion'],
     }),
 
-    // --- TaskMaster APIs ---
+    // --- Task APIs (embedded in SyllabusVersion) ---
+    // Tasks are embedded in SyllabusVersion subjects->topics->tasks
+    // getTasksBySyllabusVersion fetches the version and extracts tasks
     getTasksBySyllabusVersion: builder.query({
       query: (syllabusVersionId) => ({
-        url: `/syllabus/tasks?syllabusVersionId=${syllabusVersionId}`,
+        url: `/syllabus/versions/${syllabusVersionId}`,
         method: 'GET',
       }),
+      transformResponse: (response) => {
+        const subjects = response?.data?.subjects || [];
+        const tasks = [];
+        subjects.forEach((subject) => {
+          (subject.topics || []).forEach((topic) => {
+            (topic.tasks || []).forEach((task) => {
+              tasks.push({ ...task, topicId: { _id: topic._id, name: topic.name }, subjectName: subject.name });
+            });
+            (topic.subTopics || []).forEach((st) => {
+              (st.tasks || []).forEach((task) => {
+                tasks.push({ ...task, topicId: { _id: topic._id, name: topic.name }, subTopicId: { _id: st._id, name: st.name }, subjectName: subject.name });
+              });
+            });
+          });
+        });
+        return { tasks };
+      },
       providesTags: (result, error, syllabusVersionId) => [
-        { type: 'TaskMaster', id: syllabusVersionId },
+        { type: 'SyllabusVersion', id: syllabusVersionId },
       ],
     }),
 
     createTaskMaster: builder.mutation({
-      query: (data) => ({ url: '/syllabus/tasks', method: 'POST', body: data }),
+      query: ({ syllabusVersionId, subjectId, topicId, subTopicId, ...taskData }) => ({
+        url: `/syllabus/versions/${syllabusVersionId}/tasks`,
+        method: 'POST',
+        body: { subjectId, topicId, subTopicId, ...taskData },
+      }),
       invalidatesTags: (result, error, data) => [
-        { type: 'TaskMaster', id: data.syllabusVersionId },
+        { type: 'SyllabusVersion', id: data.syllabusVersionId },
       ],
     }),
 
     updateTaskMaster: builder.mutation({
-      query: ({ id, ...data }) => ({ url: `/syllabus/tasks/${id}`, method: 'PUT', body: data }),
-      invalidatesTags: ['TaskMaster'],
+      query: ({ syllabusVersionId, taskId, isActive }) => ({
+        url: `/syllabus/versions/${syllabusVersionId}/tasks/${taskId}/active`,
+        method: 'PATCH',
+        body: { isActive },
+      }),
+      invalidatesTags: ['SyllabusVersion'],
     }),
 
+    // Bulk upload via JSON subjects payload
     bulkUploadTasks: builder.mutation({
-      query: (data) => ({ url: '/syllabus/tasks/bulk-upload', method: 'POST', body: data }),
+      query: ({ syllabusVersionId, subjects }) => ({
+        url: `/syllabus/versions/${syllabusVersionId}/subjects/upload`,
+        method: 'POST',
+        body: { subjects },
+      }),
       invalidatesTags: (result, error, data) => [
-        { type: 'TaskMaster', id: data.syllabusVersionId },
+        { type: 'SyllabusVersion', id: data.syllabusVersionId },
       ],
     }),
 
+    // Subjects from embedded SyllabusVersion
     getSubjectsByVersion: builder.query({
-      query: (syllabusVersionId) => ({ url: `/syllabus/subjects/version/${syllabusVersionId}`, method: 'GET' }),
-      providesTags: ['SyllabusVersion'],
+      query: (syllabusVersionId) => ({ url: `/syllabus/versions/${syllabusVersionId}`, method: 'GET' }),
+      transformResponse: (response) => ({ data: response?.data?.subjects || [] }),
+      providesTags: (result, error, id) => [{ type: 'SyllabusVersion', id }],
     }),
 
+    // Topics from a subject (need syllabusVersionId:subjectId format)
     getTopicsBySubject: builder.query({
-      query: (subjectId) => ({ url: `/syllabus/topics/subject/${subjectId}`, method: 'GET' }),
+      query: (subjectId) => ({ url: `/syllabus/versions?subjectId=${subjectId}`, method: 'GET' }),
+      transformResponse: (response) => ({ data: [] }),
       providesTags: ['SyllabusVersion'],
     }),
 
     getSubTopicsByTopic: builder.query({
-      query: (topicId) => ({ url: `/syllabus/subtopics/topic/${topicId}`, method: 'GET' }),
+      query: (topicId) => ({ url: `/syllabus/versions?topicId=${topicId}`, method: 'GET' }),
+      transformResponse: (response) => ({ data: [] }),
       providesTags: ['SyllabusVersion'],
     }),
 
     createTaskManual: builder.mutation({
-      query: (data) => ({ url: '/syllabus/tasks', method: 'POST', body: data }),
-      invalidatesTags: ['TaskMaster'],
+      query: ({ syllabusVersionId, subjectId, topicId, subTopicId, ...taskData }) => ({
+        url: `/syllabus/versions/${syllabusVersionId}/tasks`,
+        method: 'POST',
+        body: { subjectId, topicId, subTopicId, ...taskData },
+      }),
+      invalidatesTags: ['SyllabusVersion'],
     }),
 
   }),

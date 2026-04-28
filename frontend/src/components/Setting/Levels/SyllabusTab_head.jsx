@@ -270,15 +270,7 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
         levelId: level._id,
         subLevelId: subLevel._id,
         version: version.trim(),
-        subjects: hierarchy.map((s, si) => ({
-          name: s.subject,
-          order: si + 1,
-          topics: s.topics.map((t, ti) => ({
-            name: t.topic,
-            order: ti + 1,
-            subTopics: t.subTopics.map((st, sti) => ({ name: st.name, order: sti + 1 })),
-          })),
-        })),
+        hierarchy,
       }).unwrap();
       const taskCount = hierarchy.reduce((a, s) => a + s.topics.reduce((b, t) => b + t.subTopics.filter((st) => typeof st === "object" && st.taskTitle).length, 0), 0);
       toast.success(`${hierarchy.length} subject(s) syllabus saved!${taskCount > 0 ? ` + ${taskCount} task(s) bhi save ho gaye!` : ""}`);
@@ -729,12 +721,13 @@ export const ManualTaskForm = ({ subLevel, versionId, onSaved, formId = "manual-
     }
   }, [versions, versionId]);
 
-  const { data: versionDetail } = useGetSyllabusVersionWithHierarchyQuery(syllabusVersionId, { skip: !syllabusVersionId });
-  const loadSub = false;
-  const loadTop = false;
-  const subjects  = versionDetail?.data?.subjects || [];
-  const topics    = subjects.find((s) => s._id === subjectId)?.topics || [];
-  const subTopics = topics.find((t) => t._id === topicId)?.subTopics || [];
+  const { data: subjectsData, isLoading: loadSub } = useGetSubjectsByVersionQuery(syllabusVersionId, { skip: !syllabusVersionId });
+  const { data: topicsData,   isLoading: loadTop } = useGetTopicsBySubjectQuery(subjectId,          { skip: !subjectId });
+  const { data: subTopicsData }                     = useGetSubTopicsByTopicQuery(topicId,           { skip: !topicId || taskTarget !== "subtopic" });
+
+  const subjects  = subjectsData?.data  || [];
+  const topics    = topicsData?.data    || [];
+  const subTopics = subTopicsData?.data || [];
 
   const [createTask] = useCreateTaskManualMutation();
 
@@ -894,27 +887,40 @@ export const ManualTaskForm = ({ subLevel, versionId, onSaved, formId = "manual-
   );
 };
 
-/* --- Tasks Tab ----------------------------------------- */
+/* ─── Tasks Tab with session+subject selector ──────────── */
 export const TasksTab = ({ level, subLevel, onVersionChange }) => {
   const subLevelId = subLevel?._id;
   const [selectedSessionId, setSelectedSessionId] = useState("");
-  const [activeVersionId,   setActiveVersionId]   = useState("");
+  const [activeSubject,     setActiveSubject]     = useState("");
+  const [selectedVersionId, setSelectedVersionId] = useState({});
 
   const { data: sessionsData } = useGetAllSessionsQuery();
   const sessions = sessionsData?.data || [];
 
-  const { data: versionsData } = useGetSyllabusVersionsBySubLevelQuery(
+  const { data: versionsData, refetch } = useGetSyllabusVersionsBySubLevelQuery(
     { subLevelId, sessionId: selectedSessionId },
     { skip: !subLevelId, refetchOnMountOrArgChange: true }
   );
   const allVersions = versionsData?.data || [];
 
-  const currentVersionId = activeVersionId
-    || allVersions.find((v) => v.status === "active")?._id
-    || allVersions[0]?._id
+  const grouped = useMemo(() => {
+    const g = {};
+    allVersions.forEach((v) => {
+      if (!g[v.subjectName]) g[v.subjectName] = [];
+      g[v.subjectName].push(v);
+    });
+    return g;
+  }, [allVersions]);
+
+  const subjectNames = Object.keys(grouped).sort();
+  const currentSubject = activeSubject && grouped[activeSubject] ? activeSubject : subjectNames[0] || "";
+  const subjectVersions = grouped[currentSubject] || [];
+  const activeVersionId = selectedVersionId[currentSubject]
+    || subjectVersions.find((v) => v.status === "active")?._id
+    || subjectVersions[0]?._id
     || "";
 
-  useEffect(() => { onVersionChange?.(currentVersionId); }, [currentVersionId]);
+  useEffect(() => { onVersionChange?.(activeVersionId); }, [activeVersionId]);
 
   if (!subLevelId) return <div className="py-16 text-center text-gray-400 text-sm">SubLevel not found</div>;
 
@@ -923,21 +929,12 @@ export const TasksTab = ({ level, subLevel, onVersionChange }) => {
       <div className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3">
         <select
           value={selectedSessionId}
-          onChange={(e) => { setSelectedSessionId(e.target.value); setActiveVersionId(""); }}
+          onChange={(e) => { setSelectedSessionId(e.target.value); setActiveSubject(""); }}
           className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white min-w-[160px]"
         >
           <option value="">All Sessions</option>
           {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
         </select>
-        {allVersions.length > 1 && (
-          <select
-            value={currentVersionId}
-            onChange={(e) => setActiveVersionId(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white min-w-[140px]"
-          >
-            {allVersions.map((v) => <option key={v._id} value={v._id}>{v.title || v.version}</option>)}
-          </select>
-        )}
       </div>
 
       {allVersions.length === 0 ? (
@@ -946,12 +943,63 @@ export const TasksTab = ({ level, subLevel, onVersionChange }) => {
         </div>
       ) : (
         <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-          <VersionTasksTable versionId={currentVersionId} />
+
+          {/* Subject tabs with inline version badge */}
+          <div className="flex gap-0 overflow-x-auto border-b border-gray-100">
+            {subjectNames.map((name) => {
+              const vers   = grouped[name];
+              const selVer = vers.find((v) => v._id === (selectedVersionId[name] || "")) || vers.find((v) => v.status === "active") || vers[0];
+              return (
+                <button
+                  key={name}
+                  onClick={() => setActiveSubject(name)}
+                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
+                    currentSubject === name
+                      ? "border-orange-500 text-orange-600 bg-orange-50"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <MdBook size={14} className={currentSubject === name ? "text-orange-500" : "text-gray-400"} />
+                  <span>{name}</span>
+                  {selVer && (
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                      selVer.status === "active"   ? "bg-green-100 text-green-600" :
+                      selVer.status === "approved" ? "bg-blue-100 text-blue-600"  :
+                      "bg-gray-100 text-gray-500"
+                    }`}>
+                      {selVer.version}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Version pills â€” only if multiple versions */}
+          {subjectVersions.length > 1 && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border-b border-gray-100">
+              <span className="text-xs text-gray-400">Version:</span>
+              {subjectVersions.map((v) => (
+                <button
+                  key={v._id}
+                  onClick={() => setSelectedVersionId((p) => ({ ...p, [currentSubject]: v._id }))}
+                  className={`text-xs px-2.5 py-1 rounded-full font-semibold transition ${
+                    activeVersionId === v._id ? "bg-orange-500 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  }`}
+                >
+                  {v.version}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <VersionTasksTable versionId={activeVersionId} />
         </div>
       )}
     </div>
   );
 };
+
 const EmptyUploadState = ({ level, subLevel, onSaved }) => {
   const [showUpload, setShowUpload] = useState(false);
   const drawerRef = useRef(null);
@@ -1006,120 +1054,3 @@ const EmptyUploadState = ({ level, subLevel, onSaved }) => {
 };
 
 /* ══════════════════════════════════════════════════════════
-   MAIN SYLLABUS TAB
-══════════════════════════════════════════════════════════ */
-const SyllabusTab = ({ level, subLevel }) => {
-  const subLevelId = subLevel?._id;
-
-  const [selectedSessionId, setSelectedSessionId] = useState("");
-  const [activeVersionId,   setActiveVersionId]   = useState("");
-  const [searchTerm,        setSearchTerm]        = useState("");
-
-  const { data: sessionsData } = useGetAllSessionsQuery();
-  const sessions = sessionsData?.data || [];
-
-  const { data: versionsData, refetch } = useGetSyllabusVersionsBySubLevelQuery(
-    { subLevelId, sessionId: selectedSessionId },
-    { skip: !subLevelId, refetchOnMountOrArgChange: true }
-  );
-  const allVersions = versionsData?.data || [];
-
-  const currentVersionId = activeVersionId
-    || allVersions.find((v) => v.status === "active")?._id
-    || allVersions[0]?._id
-    || "";
-
-  const currentVersionDoc = allVersions.find((v) => v._id === currentVersionId);
-
-  const [deleteSyllabusVersion]   = useDeleteSyllabusVersionMutation();
-  const [activateSyllabusVersion] = useActivateSyllabusVersionMutation();
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this version?")) return;
-    try { await deleteSyllabusVersion(id).unwrap(); refetch(); }
-    catch (err) { toast.error(err?.data?.message || "Delete failed"); }
-  };
-
-  const handleActivate = async (id) => {
-    try { await activateSyllabusVersion(id).unwrap(); toast.success("Activated!"); refetch(); }
-    catch (err) { toast.error(err?.data?.message || "Activate failed"); }
-  };
-
-  if (allVersions.length === 0 && !selectedSessionId) {
-    return <EmptyUploadState level={level} subLevel={subLevel} onSaved={refetch} />;
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex flex-wrap items-center gap-3">
-        <input
-          type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search topic or subtopic..."
-          className="flex-1 min-w-[180px] border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
-        />
-        <select
-          value={selectedSessionId}
-          onChange={(e) => { setSelectedSessionId(e.target.value); setActiveVersionId(""); }}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white min-w-[160px]"
-        >
-          <option value="">All Sessions</option>
-          {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
-        </select>
-      </div>
-
-      {allVersions.length === 0 && selectedSessionId && (
-        <div className="bg-white border border-gray-200 rounded-2xl py-12 text-center text-gray-400 text-sm">
-          No syllabus found for this session
-        </div>
-      )}
-
-      {allVersions.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-          <div className="flex gap-0 overflow-x-auto border-b border-gray-100">
-            {allVersions.map((v) => (
-              <button
-                key={v._id}
-                onClick={() => { setActiveVersionId(v._id); setSearchTerm(""); }}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
-                  currentVersionId === v._id
-                    ? "border-orange-500 text-orange-600 bg-orange-50"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                <MdBook size={14} className={currentVersionId === v._id ? "text-orange-500" : "text-gray-400"} />
-                <span>{v.title || v.version}</span>
-                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
-                  v.status === "active"   ? "bg-green-100 text-green-600" :
-                  v.status === "archived" ? "bg-gray-100 text-gray-500"  :
-                  "bg-yellow-100 text-yellow-600"
-                }`}>
-                  {v.version}
-                </span>
-              </button>
-            ))}
-          </div>
-
-          {currentVersionDoc && (
-            <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border-b border-gray-100 flex-wrap">
-              <StatusBadge status={currentVersionDoc.status} />
-              <span className="text-xs text-gray-400">Session: {currentVersionDoc.sessionId?.name || "—"}</span>
-              <div className="flex items-center gap-2 ml-auto">
-                {currentVersionDoc.status === "draft" && (
-                  <button onClick={() => handleActivate(currentVersionDoc._id)} className="text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 font-semibold transition">Activate</button>
-                )}
-                {currentVersionDoc.status !== "active" && (
-                  <button onClick={() => handleDelete(currentVersionDoc._id)} className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition">
-                    <MdDelete size={15} />
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          <VersionTopicTable versionId={currentVersionId} searchTerm={searchTerm} />
-        </div>
-      )}
-    </div>
-  );
-};
-export default SyllabusTab;

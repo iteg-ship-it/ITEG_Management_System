@@ -23,7 +23,7 @@ router.use('/face-auth', faceAuthRoutes);
 router.use('/reportcards', reportCardRoutes);
 router.use('/protected', protectedRoutes);
 router.use('/roles', roleRoutes);
-router.use('/syllabus', syllabusRoutes);
+router.use('/syllabus/versions', syllabusRoutes);
 router.use('/sessions', sessionRoutes);
 
 // Webhook routes
