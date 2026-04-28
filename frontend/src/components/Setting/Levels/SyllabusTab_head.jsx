@@ -766,7 +766,7 @@ export const ManualTaskForm = ({ subLevel, versionId, onSaved, formId = "manual-
   return (
     <form id={formId} onSubmit={handleSubmit} className="space-y-4 p-4 bg-orange-50/30">
 
-      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Step 1 â€” Subject & Topic</p>
+      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Step 1 Subject & Topic</p>
 
       <div>
         <label className={lc}>Subject {loadSub && <span className="text-orange-400 font-normal">Loading...</span>}</label>
@@ -788,7 +788,7 @@ export const ManualTaskForm = ({ subLevel, versionId, onSaved, formId = "manual-
 
       {topicId && (
         <>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider pt-1">Step 2 â€” Task Kahan Add Karna Hai?</p>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider pt-1">Step 2 Task Kahan Add Karna Hai?</p>
           <div className="grid grid-cols-2 gap-3">
             <button type="button" onClick={() => { setTaskTarget("topic"); setSubTopicId(""); }}
               className={`flex flex-col items-center gap-1.5 border-2 rounded-xl py-4 px-3 transition ${taskTarget === "topic" ? "border-orange-500 bg-orange-50 text-orange-600" : "border-gray-200 bg-white text-gray-500 hover:border-orange-300"}`}>
@@ -811,7 +811,7 @@ export const ManualTaskForm = ({ subLevel, versionId, onSaved, formId = "manual-
           <label className={lc}>SubTopic</label>
           {subTopics.length === 0 ? (
             <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              Is topic mein koi subtopic nahi â€” Topic pe directly add karo.
+              Is topic mein koi subtopic nahi Topic pe directly add karo.
             </p>
           ) : (
             <select className={ic} value={subTopicId} onChange={(e) => setSubTopicId(e.target.value)}>
@@ -1053,4 +1053,3 @@ const EmptyUploadState = ({ level, subLevel, onSaved }) => {
   );
 };
 
-/* ══════════════════════════════════════════════════════════

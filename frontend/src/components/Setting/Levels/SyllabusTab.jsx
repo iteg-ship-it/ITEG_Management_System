@@ -773,7 +773,7 @@ export const ManualTaskForm = ({ subLevel, versionId, onSaved, formId = "manual-
   return (
     <form id={formId} onSubmit={handleSubmit} className="space-y-4 p-4 bg-orange-50/30">
 
-      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Step 1 â€” Subject & Topic</p>
+      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Step 1 Subject & Topic</p>
 
       <div>
         <label className={lc}>Subject {loadSub && <span className="text-orange-400 font-normal">Loading...</span>}</label>
@@ -795,7 +795,7 @@ export const ManualTaskForm = ({ subLevel, versionId, onSaved, formId = "manual-
 
       {topicId && (
         <>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider pt-1">Step 2 â€” Task Kahan Add Karna Hai?</p>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider pt-1">Step 2 Task Kahan Add Karna Hai?</p>
           <div className="grid grid-cols-2 gap-3">
             <button type="button" onClick={() => { setTaskTarget("topic"); setSubTopicId(""); }}
               className={`flex flex-col items-center gap-1.5 border-2 rounded-xl py-4 px-3 transition ${taskTarget === "topic" ? "border-orange-500 bg-orange-50 text-orange-600" : "border-gray-200 bg-white text-gray-500 hover:border-orange-300"}`}>
@@ -832,7 +832,7 @@ export const ManualTaskForm = ({ subLevel, versionId, onSaved, formId = "manual-
       {canSubmit && (
         <div className={`flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-lg ${taskTarget === "subtopic" ? "bg-blue-50 text-blue-600" : "bg-orange-50 text-orange-600"}`}>
           <MdBook size={13}/><span>{subjects.find(s=>s._id===subjectId)?.name}</span>
-          <span className="opacity-40">â€º</span>
+          <span className="opacity-40"></span>
           <MdTopic size={13}/><span>{topics.find(t=>t._id===topicId)?.name}</span>
           {subTopicId && <><span className="opacity-40">â€º</span><MdSubject size={13}/><span>{subTopics.find(s=>s._id===subTopicId)?.name}</span></>}
           <span className="ml-auto bg-white px-2 py-0.5 rounded-full border">Task â†’ {taskTarget === "subtopic" ? "SubTopic" : "Topic"}</span>
@@ -841,7 +841,7 @@ export const ManualTaskForm = ({ subLevel, versionId, onSaved, formId = "manual-
 
       {canSubmit && (
         <>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider pt-1">Step 3 â€” Task Details</p>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider pt-1">Step 3 Task Details</p>
           <div>
             <label className={lc}>Task Title *</label>
             <input className={ic} value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder="Enter task title" />
