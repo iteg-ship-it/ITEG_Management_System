@@ -1115,31 +1115,12 @@ export const authApi = createApi({
       invalidatesTags: ['SyllabusVersion'],
     }),
 
-    // --- Task APIs (embedded in SyllabusVersion) ---
-    // Tasks are embedded in SyllabusVersion subjects->topics->tasks
-    // getTasksBySyllabusVersion fetches the version and extracts tasks
+    // --- Task APIs (separate Task collection) ---
     getTasksBySyllabusVersion: builder.query({
       query: (syllabusVersionId) => ({
-        url: `/syllabus/versions/${syllabusVersionId}`,
+        url: `/syllabus/versions/${syllabusVersionId}/tasks`,
         method: 'GET',
       }),
-      transformResponse: (response) => {
-        const subjects = response?.data?.subjects || [];
-        const tasks = [];
-        subjects.forEach((subject) => {
-          (subject.topics || []).forEach((topic) => {
-            (topic.tasks || []).forEach((task) => {
-              tasks.push({ ...task, topicId: { _id: topic._id, name: topic.name }, subjectName: subject.name });
-            });
-            (topic.subTopics || []).forEach((st) => {
-              (st.tasks || []).forEach((task) => {
-                tasks.push({ ...task, topicId: { _id: topic._id, name: topic.name }, subTopicId: { _id: st._id, name: st.name }, subjectName: subject.name });
-              });
-            });
-          });
-        });
-        return { tasks };
-      },
       providesTags: (result, error, syllabusVersionId) => [
         { type: 'SyllabusVersion', id: syllabusVersionId },
       ],

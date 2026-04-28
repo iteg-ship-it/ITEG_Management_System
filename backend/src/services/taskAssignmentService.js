@@ -3,6 +3,7 @@ const Session = require("../models/Session");
 const Level = require("../models/department/Level");
 const SubLevel = require("../models/department/SubLevel");
 const SyllabusVersion = require("../models/syllabus/SyllabusVersion");
+const Task = require("../models/syllabus/Task");
 const StudentTask = require("../models/syllabus/StudentTask");
 const StudentTaskHistory = require("../models/student/StudentTaskHistory");
 const StudentProgressSnapshot = require("../models/student/StudentProgressSnapshot");
@@ -10,62 +11,23 @@ const StudentEventLog = require("../models/student/StudentEventLog");
 
 const ACTIVE_STUDENT_STATUSES = ["Active"];
 
-const buildTaskEntries = (syllabusVersion) => {
-  const tasks = [];
-
-  for (const subject of syllabusVersion.subjects || []) {
-    if (!subject.isActive) continue;
-
-    for (const topic of subject.topics || []) {
-      if (!topic.isActive) continue;
-
-      for (const task of topic.tasks || []) {
-        if (!task.isActive) continue;
-
-        tasks.push({
-          taskId: task._id,
-          subjectId: subject._id,
-          topicId: topic._id,
-          subTopicId: null,
-          subjectName: subject.name,
-          topicName: topic.name,
-          subTopicName: null,
-          taskNodeType: "topic",
-          title: task.title,
-          description: task.description || "",
-          type: task.type || "assignment",
-          mandatory: task.mandatory !== false,
-          maxMarks: typeof task.maxMarks === "number" ? task.maxMarks : 5
-        });
-      }
-
-      for (const subTopic of topic.subTopics || []) {
-        if (!subTopic.isActive) continue;
-
-        for (const task of subTopic.tasks || []) {
-          if (!task.isActive) continue;
-
-          tasks.push({
-            taskId: task._id,
-            subjectId: subject._id,
-            topicId: topic._id,
-            subTopicId: subTopic._id,
-            subjectName: subject.name,
-            topicName: topic.name,
-            subTopicName: subTopic.name,
-            taskNodeType: "subTopic",
-            title: task.title,
-            description: task.description || "",
-            type: task.type || "assignment",
-            mandatory: task.mandatory !== false,
-            maxMarks: typeof task.maxMarks === "number" ? task.maxMarks : 5
-          });
-        }
-      }
-    }
-  }
-
-  return tasks;
+const buildTaskEntries = async (syllabusVersionId) => {
+  const tasks = await Task.find({ syllabusVersionId, isActive: true }).lean();
+  return tasks.map((task) => ({
+    taskId: task._id,
+    subjectId: task.subjectId,
+    topicId: task.topicId,
+    subTopicId: task.subTopicId || null,
+    subjectName: task.subjectName || "",
+    topicName: task.topicName || "",
+    subTopicName: task.subTopicName || "",
+    taskNodeType: task.taskNodeType,
+    title: task.title,
+    description: task.description || "",
+    type: task.type || "assignment",
+    mandatory: task.mandatory !== false,
+    maxMarks: typeof task.maxMarks === "number" ? task.maxMarks : 5
+  }));
 };
 
 const getActorDetails = (actor = null) => ({
@@ -95,8 +57,10 @@ const getSnapshotContext = async ({ student, syllabusVersionId }) => {
   };
 };
 
-const toTaskEntryMap = (syllabusVersion) =>
-  new Map(buildTaskEntries(syllabusVersion).map((entry) => [entry.taskId.toString(), entry]));
+const toTaskEntryMap = async (syllabusVersionId) => {
+  const entries = await buildTaskEntries(syllabusVersionId);
+  return new Map(entries.map((entry) => [entry.taskId.toString(), entry]));
+};
 
 const getSyllabusVersionForStudent = async (student, syllabusVersionId) => {
   if (syllabusVersionId) {
@@ -198,7 +162,7 @@ const assignTasksToStudent = async (studentId, syllabusVersionId, options = {}) 
 
   const syllabusVersion = await getSyllabusVersionForStudent(student, syllabusVersionId);
   validateStudentVersionMatch(student, syllabusVersion);
-  const taskEntries = buildTaskEntries(syllabusVersion);
+  const taskEntries = await buildTaskEntries(syllabusVersion._id);
 
   if (taskEntries.length === 0) {
     throw new Error("No active tasks found in syllabus");
@@ -254,6 +218,7 @@ const assignTasksToStudent = async (studentId, syllabusVersionId, options = {}) 
   }
 
   const activeTaskIds = taskEntries.map((task) => task.taskId);
+
   await StudentTask.updateMany(
     {
       studentId: student._id,
@@ -324,7 +289,7 @@ const assignSelectedTasksToStudents = async ({ studentIds, taskIds, syllabusVers
 
       const syllabusVersion = await getSyllabusVersionForStudent(student, syllabusVersionId);
       validateStudentVersionMatch(student, syllabusVersion);
-      const taskEntryMap = toTaskEntryMap(syllabusVersion);
+      const taskEntryMap = await toTaskEntryMap(syllabusVersion._id);
 
       let createdCount = 0;
       let updatedCount = 0;

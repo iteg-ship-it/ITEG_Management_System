@@ -115,6 +115,7 @@ router.patch("/:id/subjects/:subjectId/topics/:topicId/subtopics/:subTopicId", v
 router.patch("/:id/subjects/:subjectId/topics/:topicId/subtopics/:subTopicId/active", verifyToken, checkRole(writeRoles), embeddedSyllabusController.toggleSubTopicActive);
 
 // ── Task CRUD ──
+router.get("/:id/tasks", verifyToken, embeddedSyllabusController.getTasksBySyllabusVersion);
 router.post("/:id/tasks", verifyToken, checkRole(writeRoles), embeddedSyllabusController.addTaskToSyllabusVersion);
 router.patch("/:id/tasks/:taskId/active", verifyToken, checkRole(writeRoles), embeddedSyllabusController.toggleTaskActive);
 

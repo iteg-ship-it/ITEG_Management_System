@@ -673,8 +673,8 @@ export const VersionTasksTable = ({ versionId }) => {
               </ol>
             </td>
             <td className="px-4 py-2.5">
-              <p className="text-xs text-gray-600">{task.topicId?.name || "—"}</p>
-              <p className="text-xs text-gray-400">{task.subTopicId?.name || ""}</p>
+              <p className="text-xs text-gray-600">{task.topicName || "—"}</p>
+              <p className="text-xs text-gray-400">{task.subTopicName || ""}</p>
             </td>
             <td className="px-4 py-2.5 text-xs text-gray-600 whitespace-nowrap">
               {task.timeDays ? `${task.timeDays} Day${task.timeDays > 1 ? "s" : ""}` : "—"}
