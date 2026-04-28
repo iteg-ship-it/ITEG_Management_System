@@ -1,55 +1,40 @@
 const express = require("express");
-const router  = express.Router();
+const router = express.Router();
+const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
+const embeddedSyllabusController = require("../controllers/syllabus/embeddedSyllabusController");
+const taskAssignmentController = require("../controllers/syllabus/taskAssignmentController");
+const studentTaskController = require("../controllers/syllabus/studentTaskController");
+const excelUpload = require("../config/excelUploadConfig");
 
-const syllabusVersionCtrl = require("../controllers/syllabus/syllabusVersionController");
-const subjectCtrl         = require("../controllers/syllabus/subjectController");
-const topicCtrl           = require("../controllers/syllabus/topicController");
-const subTopicCtrl        = require("../controllers/syllabus/subTopicController");
-const taskMasterCtrl      = require("../controllers/syllabus/taskMasterController");
-const taskMasterBulkCtrl  = require("../controllers/syllabus/taskMasterBulkController");
+const writeRoles = ["superadmin", "admin", "faculty"];
 
-// ── SyllabusVersion ──────────────────────────────────────────
-router.post  ("/versions",                          syllabusVersionCtrl.createSyllabusVersion);
-router.get   ("/versions",                          syllabusVersionCtrl.getAllSyllabusVersions);
-router.get   ("/versions/sublevel/:subLevelId",     syllabusVersionCtrl.getSyllabusVersionsBySubLevel);
-router.get   ("/versions/session/:sessionId",       syllabusVersionCtrl.getSyllabusVersionsBySession);
-router.get   ("/versions/:id",                      syllabusVersionCtrl.getSyllabusVersionById);
-router.get   ("/versions/:id/hierarchy",            syllabusVersionCtrl.getSyllabusVersionWithHierarchy);
-router.put   ("/versions/:id",                      syllabusVersionCtrl.updateSyllabusVersion);
-router.patch ("/versions/:id/approve",              syllabusVersionCtrl.approveSyllabusVersion);
-router.patch ("/versions/:id/activate",             syllabusVersionCtrl.activateSyllabusVersion);
-router.patch ("/versions/:id/archive",              syllabusVersionCtrl.archiveSyllabusVersion);
-router.delete("/versions/:id",                      syllabusVersionCtrl.deleteSyllabusVersion);
+router.post("/", verifyToken, checkRole(writeRoles), embeddedSyllabusController.createSyllabusVersion);
+router.get("/", verifyToken, embeddedSyllabusController.getAllSyllabusVersions);
+router.get("/:id", verifyToken, embeddedSyllabusController.getSyllabusVersionById);
+router.patch("/:id", verifyToken, checkRole(writeRoles), embeddedSyllabusController.updateDraftSyllabusVersion);
+router.patch("/:id/activate", verifyToken, checkRole(writeRoles), embeddedSyllabusController.activateSyllabusVersion);
+router.patch("/:id/archive", verifyToken, checkRole(writeRoles), embeddedSyllabusController.archiveSyllabusVersion);
+router.post("/:id/subjects/upload", verifyToken, checkRole(writeRoles), embeddedSyllabusController.uploadSubjectWiseSyllabus);
+router.post("/:id/subjects/upload-excel", verifyToken, checkRole(writeRoles), excelUpload.single("file"), embeddedSyllabusController.uploadSubjectWiseSyllabusExcel);
+router.post("/:id/subjects", verifyToken, checkRole(writeRoles), embeddedSyllabusController.addSubjectToSyllabusVersion);
+router.patch("/:id/subjects/:subjectId", verifyToken, checkRole(writeRoles), embeddedSyllabusController.updateSubjectInSyllabusVersion);
+router.patch("/:id/subjects/:subjectId/active", verifyToken, checkRole(writeRoles), embeddedSyllabusController.toggleSubjectActive);
+router.post("/:id/subjects/:subjectId/topics", verifyToken, checkRole(writeRoles), embeddedSyllabusController.addTopicToSyllabusVersion);
+router.patch("/:id/subjects/:subjectId/topics/:topicId", verifyToken, checkRole(writeRoles), embeddedSyllabusController.updateTopicInSyllabusVersion);
+router.patch("/:id/subjects/:subjectId/topics/:topicId/active", verifyToken, checkRole(writeRoles), embeddedSyllabusController.toggleTopicActive);
+router.post("/:id/subjects/:subjectId/topics/:topicId/subtopics", verifyToken, checkRole(writeRoles), embeddedSyllabusController.addSubTopicToSyllabusVersion);
+router.patch("/:id/subjects/:subjectId/topics/:topicId/subtopics/:subTopicId", verifyToken, checkRole(writeRoles), embeddedSyllabusController.updateSubTopicInSyllabusVersion);
+router.patch("/:id/subjects/:subjectId/topics/:topicId/subtopics/:subTopicId/active", verifyToken, checkRole(writeRoles), embeddedSyllabusController.toggleSubTopicActive);
+router.post("/:id/tasks", verifyToken, checkRole(writeRoles), embeddedSyllabusController.addTaskToSyllabusVersion);
+router.patch("/:id/tasks/:taskId/active", verifyToken, checkRole(writeRoles), embeddedSyllabusController.toggleTaskActive);
 
-// ── Subject ──────────────────────────────────────────────────
-router.post  ("/subjects",                          subjectCtrl.createSubject);
-router.get   ("/subjects/version/:syllabusVersionId", subjectCtrl.getSubjectsBySyllabusVersion);
-router.get   ("/subjects/:id",                      subjectCtrl.getSubjectById);
-router.put   ("/subjects/:id",                      subjectCtrl.updateSubject);
-router.delete("/subjects/:id",                      subjectCtrl.deleteSubject);
+router.post("/assignments/student", verifyToken, checkRole(writeRoles), taskAssignmentController.assignTasksToStudent);
+router.post("/assignments/bulk", verifyToken, checkRole(writeRoles), taskAssignmentController.assignTasksToMultipleStudents);
+router.post("/assignments/manual", verifyToken, checkRole(writeRoles), taskAssignmentController.assignSelectedTasksToStudents);
+router.post("/assignments/session-level", verifyToken, checkRole(writeRoles), taskAssignmentController.assignTasksToSessionLevel);
 
-// ── Topic ────────────────────────────────────────────────────
-router.post  ("/topics",                            topicCtrl.createTopic);
-router.get   ("/topics/subject/:subjectId",         topicCtrl.getTopicsBySubject);
-router.get   ("/topics/:id",                        topicCtrl.getTopicById);
-router.put   ("/topics/:id",                        topicCtrl.updateTopic);
-router.delete("/topics/:id",                        topicCtrl.deleteTopic);
-
-// ── SubTopic ─────────────────────────────────────────────────
-router.post  ("/subtopics",                         subTopicCtrl.createSubTopic);
-router.get   ("/subtopics/topic/:topicId",          subTopicCtrl.getSubTopicsByTopic);
-router.get   ("/subtopics/:id",                     subTopicCtrl.getSubTopicById);
-router.put   ("/subtopics/:id",                     subTopicCtrl.updateSubTopic);
-router.delete("/subtopics/:id",                     subTopicCtrl.deleteSubTopic);
-
-// ── TaskMaster ───────────────────────────────────────────────
-router.post  ("/tasks",                             taskMasterCtrl.createTask);
-router.post  ("/tasks/bulk-upload",                 taskMasterBulkCtrl.bulkUploadTasks);
-router.get   ("/tasks",                             taskMasterCtrl.getAllTasks);
-router.get   ("/tasks/topic/:topicId",              taskMasterCtrl.getTasksByTopic);
-router.get   ("/tasks/subtopic/:subTopicId",        taskMasterCtrl.getTasksBySubTopic);
-router.get   ("/tasks/:id",                         taskMasterCtrl.getTaskById);
-router.put   ("/tasks/:id",                         taskMasterCtrl.updateTask);
-router.delete("/tasks/:id",                         taskMasterCtrl.deleteTask);
+router.get("/students/:studentId/tasks", verifyToken, checkRole(writeRoles), studentTaskController.getStudentTasks);
+router.get("/students/:studentId/tasks/summary", verifyToken, checkRole(writeRoles), studentTaskController.getStudentTaskSummary);
+router.patch("/students/:studentId/tasks/:taskId", verifyToken, checkRole(writeRoles), studentTaskController.updateStudentTaskStatus);
 
 module.exports = router;
