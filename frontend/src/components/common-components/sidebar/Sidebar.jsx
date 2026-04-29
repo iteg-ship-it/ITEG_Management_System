@@ -26,7 +26,7 @@ const Sidebar = ({ children }) => {
   const getActiveMenus = (path) => {
     if (path === "/" || path === "/attendance-details") return [0];
     if (path === "/admission-process" || path.startsWith("/admission/")) return [1];
-    if (path === "/student-detail-table" || path === "/student-permission" || path.startsWith("/student-profile/") || path.startsWith("/student-level-interviews/") || path.startsWith("/student/") || path === "/department-management" || path.startsWith("/department-details/") || path === "/subdepartment-details" || path === "/task-management") return [2];
+    if (path === "/student-detail-table" || path === "/student-permission" || path.startsWith("/student-profile/") || path.startsWith("/student-level-interviews/") || path.startsWith("/student/") || path === "/department-management" || path.startsWith("/department-details/") || path === "/subdepartment-details" || path === "/task-management" || path === "/curriculum-management") return [2];
     if (path === "/settings" || path === "/support") return [];
     if (path === "/readiness-status" || path === "/company-details" || path === "/placement-post" || path.startsWith("/interview-history/") || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/")) return [3];
     if (path === "/user-management" || path.startsWith("/user-profile/") || path === "/user-permission") return [4];
@@ -80,6 +80,8 @@ const Sidebar = ({ children }) => {
 
     if (subPath === "/task-management") return path === "/task-management";
 
+    if (subPath === "/curriculum-management") return path === "/curriculum-management";
+
     if (subPath === "/student-permission") return path === "/student-permission";
 
     if (subPath === "/readiness-status") {
@@ -123,9 +125,9 @@ const Sidebar = ({ children }) => {
       permission: "Page_AdmittedStudents",
       subMenu: [
         { name: "Student Progress", path: "/student-detail-table", permission: "Page_AdmittedStudents" },
-
         { name: "Dummy Students", path: "/student-permission", permission: "Page_DummyStudents" },
         { name: "Department", path: "/department-management", permission: "Page_Department" },
+        { name: "Curriculum Management", path: "/curriculum-management", permission: "Page_AdmittedStudents" },
       ],
     },
     {
