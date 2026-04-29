@@ -1,6 +1,7 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { MdEmail, MdPhone, MdBook, MdTrendingUp, MdCheckCircleOutline, MdWorkOutline, MdSchool } from "react-icons/md";
 import Header from "../../common-components/sidebar/Header";
+import { useGetAdmittedStudentsByIdQuery } from "../../../redux/api/authApi";
 
 /* ── Sub-components ── */
 const StatCard = ({ label, value, sub, accent }) => (
@@ -42,7 +43,39 @@ const TimelineItem = ({ icon, title, sub, last }) => (
 const StudentProfilePage = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const student  = location.state?.student;
+    const { id } = useParams();
+    
+    // Always fetch fresh data from API using student ID
+    const { data: apiResponse, isLoading, error } = useGetAdmittedStudentsByIdQuery(id);
+    
+    // Extract student data from API response (might be nested)
+    const studentFromAPI = apiResponse?.data || apiResponse;
+    
+    // Use API data as primary source, fallback to state data only if API fails
+    const student = studentFromAPI || location.state?.student;
+    
+    // Debug log to check API response structure
+    console.log('API Response:', apiResponse);
+    console.log('Student Data:', student);
+
+    if (isLoading) {
+        return (
+            <div className="p-10 text-center text-gray-400">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                <p className="text-lg font-semibold">Loading student data...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="p-10 text-center text-red-400">
+                <p className="text-lg font-semibold">Error loading student data</p>
+                <p className="text-sm mt-2">{error?.data?.message || 'Failed to fetch student information'}</p>
+                <button onClick={() => navigate(-1)} className="mt-4 px-4 py-2 bg-orange-500 text-white rounded-lg text-sm">Go Back</button>
+            </div>
+        );
+    }
 
     if (!student) {
         return (
@@ -53,18 +86,32 @@ const StudentProfilePage = () => {
         );
     }
 
-    const name     = student.fullName || student.name || "";
+    const name = `${student.firstName || ''} ${student.lastName || ''}`.trim() || student.fullName || student.name || "";
     const initials = name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+    
+    // Determine breadcrumbs based on where user came from
+    const lastSection = localStorage.getItem("lastSection");
+    let breadcrumbs = [];
+    
+    if (lastSection === "admitted") {
+        breadcrumbs = [
+            { label: "Academics", path: "/student-detail-table" },
+            { label: "Student Progress", path: "/student-detail-table" },
+            { label: name },
+        ];
+    } else {
+        breadcrumbs = [
+            { label: "Departments", path: "/department-management" },
+            { label: "Sub-Level", path: -1 },
+            { label: name },
+        ];
+    }
 
     return (
         <>
             <Header
                 showBack={true}
-                breadcrumbs={[
-                    { label: "Departments",  path: "/department-management" },
-                    { label: "Sub-Level",    path: -1 },
-                    { label: name },
-                ]}
+                breadcrumbs={breadcrumbs}
             />
 
             <div className="px-6 py-6 space-y-6">
@@ -86,17 +133,17 @@ const StudentProfilePage = () => {
                             <div className="flex flex-wrap items-center gap-3 mb-1">
                                 <h1 className="text-xl font-bold text-gray-900">{name}</h1>
                                 <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-600">
-                                    ID: 2024-CSC-0{student.sno || "42"}
+                                    ID: {student.studentId || student.admissionNumber || `2024-CSC-0${student.sno || '42'}`}
                                 </span>
                             </div>
-                            <p className="text-sm text-gray-500 mb-2">{student.course} • Level 3 (Final Year)</p>
+                            <p className="text-sm text-gray-500 mb-2">{student.course || 'N/A'} • Level {student.currentLevel || '1A'}</p>
                             <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 mb-4">
                                 PLACEMENT PLACED
                             </span>
                             <div className="flex flex-wrap gap-5">
-                                <span className="flex items-center gap-1.5 text-xs text-gray-500"><MdEmail size={14} className="text-orange-400" /> student@example.com</span>
-                                <span className="flex items-center gap-1.5 text-xs text-gray-500"><MdPhone size={14} className="text-orange-400" /> {student.mobile}</span>
-                                <span className="flex items-center gap-1.5 text-xs text-gray-500"><MdBook size={14} className="text-orange-400" /> {student.course}</span>
+                                <span className="flex items-center gap-1.5 text-xs text-gray-500"><MdEmail size={14} className="text-orange-400" /> {student.email || 'student@example.com'}</span>
+                                <span className="flex items-center gap-1.5 text-xs text-gray-500"><MdPhone size={14} className="text-orange-400" /> {student.studentMobile || student.mobile || 'N/A'}</span>
+                                <span className="flex items-center gap-1.5 text-xs text-gray-500"><MdBook size={14} className="text-orange-400" /> {student.course || 'N/A'}</span>
                             </div>
                         </div>
 
