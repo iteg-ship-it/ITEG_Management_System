@@ -2,11 +2,11 @@
 import { useState, useMemo } from "react";
 import { Formik, Form, useFormikContext } from "formik";
 import * as Yup from "yup";
-import { MdMoreVert, MdDeleteOutline, MdVisibility, MdRestartAlt, MdOutlineUploadFile, MdInsertDriveFile } from "react-icons/md";
+import { MdMoreVert, MdDeleteOutline, MdVisibility, MdOutlineUploadFile, MdInsertDriveFile } from "react-icons/md";
 import { HiOutlineBookOpen } from "react-icons/hi";
+import { Search } from "lucide-react";
 import Header from "../common-components/sidebar/Header";
 import CommonTable from "../common-components/table/CommonTable";
-import SearchBox from "../common-components/seach-export/SearchBox";
 import OrangeButton from "../common-components/sidebar/OrangeButton";
 import InputField from "../common-components/common-feild/InputField";
 import CustomDropdown from "../common-components/common-feild/CustomDropdown";
@@ -278,33 +278,43 @@ const CurriculumManagement = () => {
       <div className="px-6 py-6 space-y-5" style={{ backgroundColor: "#F8F7F5", minHeight: "calc(100vh - 80px)" }}>
 
         {/* ── Filters Card ── */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-            <div className="flex-1 min-w-0">
-              <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-            </div>
-            <div className="flex flex-wrap gap-3">
-              {[
-                { label: "Academic Year", value: filterYear,    setter: setFilterYear,    options: years    },
-                { label: "Session",       value: filterSession, setter: setFilterSession, options: sessions },
-                { label: "Department",    value: filterDept,    setter: setFilterDept,    options: depts    },
-                { label: "Sub-Dept",      value: filterSub,     setter: setFilterSub,     options: subs     },
-                { label: "Level",         value: filterLevel,   setter: setFilterLevel,   options: levels   },
-                { label: "Status",        value: filterStatus,  setter: setFilterStatus,  options: ["Uploaded", "Not Uploaded"] },
-              ].map(({ label, value, setter, options }) => (
-                <select key={label} value={value} onChange={(e) => setter(e.target.value)}
-                  className="h-10 px-3 pr-8 border border-gray-200 rounded-xl text-sm text-gray-600 bg-white focus:outline-none focus:border-orange-400 transition appearance-none cursor-pointer">
-                  <option value="">{label}</option>
-                  {options.map((o) => <option key={o} value={o}>{o}</option>)}
-                </select>
-              ))}
-            </div>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col gap-3">
+
+          {/* Row 1 — Dropdowns */}
+          <div className="flex gap-2 items-center w-full">
+            {[
+              { label: "Academic Year", value: filterYear,    setter: setFilterYear,    options: years    },
+              { label: "Session",       value: filterSession, setter: setFilterSession, options: sessions },
+              { label: "Department",    value: filterDept,    setter: setFilterDept,    options: depts    },
+              { label: "Sub-Dept",      value: filterSub,     setter: setFilterSub,     options: subs     },
+              { label: "Level",         value: filterLevel,   setter: setFilterLevel,   options: levels   },
+              { label: "Status",        value: filterStatus,  setter: setFilterStatus,  options: ["Uploaded", "Not Uploaded"] },
+            ].map(({ label, value, setter, options }) => (
+              <select key={label} value={value} onChange={(e) => setter(e.target.value)}
+                className="flex-1 min-w-[100px] h-9 px-3 border border-gray-200 rounded-lg text-xs text-gray-600 bg-white focus:outline-none focus:border-orange-400 transition appearance-none cursor-pointer">
+                <option value="">{label}</option>
+                {options.map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
+            ))}
+            {(filterYear || filterSession || filterDept || filterSub || filterLevel || filterStatus) && (
+              <button onClick={resetFilters} className="text-xs font-medium text-orange-500 hover:text-orange-600 transition whitespace-nowrap">
+                Reset
+              </button>
+            )}
           </div>
-          <div className="mt-3 flex justify-end">
-            <button onClick={resetFilters} className="flex items-center gap-1.5 text-sm font-medium text-orange-500 hover:text-orange-600 transition">
-              <MdRestartAlt size={16} /> Reset Filters
-            </button>
+
+          {/* Row 2 — Search */}
+          <div className="flex items-center gap-2 w-full h-10 px-3 border border-gray-200 rounded-lg bg-white">
+            <Search size={15} className="text-gray-400 flex-shrink-0" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by department, sub-dept, or file name..."
+              className="flex-1 h-full text-sm text-gray-600 bg-transparent placeholder-gray-400 outline-none border-none"
+            />
           </div>
+
         </div>
 
         {/* ── Table ── */}
