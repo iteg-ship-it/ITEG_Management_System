@@ -14,6 +14,9 @@ const mongoose = require("mongoose");
 
 // ✅ Create Student
 exports.createStudent = async (req, res) => {
+
+
+  
   try {
     const { subDepartmentId } = req.body;
 
