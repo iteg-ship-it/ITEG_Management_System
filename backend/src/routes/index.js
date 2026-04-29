@@ -13,6 +13,7 @@ const webhookRoutes = require('./webhookRoutes');
 const roleRoutes = require('./roleRoutes');
 const syllabusRoutes = require('./syllabusRoutes');
 const sessionRoutes  = require('./sessionRoutes');
+const newStudentRoutes = require('./newStudentRoutes');
 
 // Mount routes
 router.use('/user', userRoutes);
@@ -25,6 +26,7 @@ router.use('/protected', protectedRoutes);
 router.use('/roles', roleRoutes);
 router.use('/syllabus/versions', syllabusRoutes);
 router.use('/sessions', sessionRoutes);
+router.use('/students', newStudentRoutes);
 
 // Webhook routes
 router.use('/admission/students/webhook', webhookRoutes);

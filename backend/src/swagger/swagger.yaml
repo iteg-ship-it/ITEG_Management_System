@@ -701,6 +701,115 @@ components:
           type: string
           format: date-time
 
+    NewStudent:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64fdb61e7b9a1a1234567890"
+        prkey:
+          type: string
+          example: "SS2025001"
+        image:
+          type: string
+          example: "https://res.cloudinary.com/example/image/upload/student.jpg"
+        firstName:
+          type: string
+          example: "Rahul"
+        lastName:
+          type: string
+          example: "Sharma"
+        fatherName:
+          type: string
+          example: "Mahesh Sharma"
+        email:
+          type: string
+          example: "rahul@example.com"
+        studentMobile:
+          type: string
+          example: "9876543210"
+        parentMobile:
+          type: string
+          example: "9876543211"
+        gender:
+          type: string
+          example: "Male"
+        dob:
+          type: string
+          format: date
+          example: "2005-08-15"
+        address:
+          type: string
+          example: "123 ABC Nagar, Indore"
+        village:
+          type: string
+          example: "Harda"
+        course:
+          type: string
+          example: "BCA"
+        subDepartmentId:
+          type: string
+          example: "64fdb61e7b9a1a1234567891"
+        sessionId:
+          type: string
+          example: "64fdb61e7b9a1a1234567894"
+        syllabusVersionId:
+          type: string
+          example: "64fdb61e7b9a1a1234567895"
+        currentLevelId:
+          type: string
+          example: "64fdb61e7b9a1a1234567892"
+        currentSubLevelId:
+          type: string
+          example: "64fdb61e7b9a1a1234567893"
+        status:
+          type: string
+          enum: [Active, Completed, Dropped, Placed]
+          example: "Active"
+        isFTP:
+          type: boolean
+          example: false
+        documents:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+              title:
+                type: string
+                example: "Aadhar Card"
+              fileURL:
+                type: string
+                example: "https://res.cloudinary.com/example/raw/upload/doc.pdf"
+              fileType:
+                type: string
+                enum: [image, pdf]
+              uploadedByName:
+                type: string
+              uploadedAt:
+                type: string
+                format: date-time
+        permissionDetails:
+          type: object
+          nullable: true
+          properties:
+            imageURL:
+              type: string
+            remark:
+              type: string
+            approved_by:
+              type: string
+            uploadDate:
+              type: string
+              format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
 paths:
   # ===== DEPARTMENT APIs =====
   /api/departments:
@@ -4825,6 +4934,1348 @@ paths:
                   error:
                     type: string
                     example: "Error message details"
+
+
+  # ===== NEW STUDENT APIs (Task-Based System) =====
+
+  /api/students:
+    post:
+      summary: Create a new student
+      description: |
+        Creates a new student. The following are auto-resolved — **do NOT send in body**:
+        - `sessionId` — latest active session
+        - `currentLevelId` — first level (lowest order) of the subDepartment
+        - `currentSubLevelId` — first sub-level (lowest order) of that level
+        - `syllabusVersionId` — latest active syllabus version for that session/level/sublevel
+      tags:
+        - Student
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - prkey
+                - firstName
+                - lastName
+                - fatherName
+                - studentMobile
+                - parentMobile
+                - address
+                - village
+                - course
+                - subDepartmentId
+              properties:
+                prkey:
+                  type: string
+                  example: "SS2025001"
+                firstName:
+                  type: string
+                  example: "Rahul"
+                lastName:
+                  type: string
+                  example: "Sharma"
+                fatherName:
+                  type: string
+                  example: "Mahesh Sharma"
+                email:
+                  type: string
+                  example: "rahul@example.com"
+                studentMobile:
+                  type: string
+                  example: "9876543210"
+                parentMobile:
+                  type: string
+                  example: "9876543211"
+                gender:
+                  type: string
+                  example: "Male"
+                dob:
+                  type: string
+                  format: date
+                  example: "2005-08-15"
+                aadharCard:
+                  type: string
+                  example: "123412341234"
+                address:
+                  type: string
+                  example: "123 ABC Nagar, Indore"
+                village:
+                  type: string
+                  example: "Harda"
+                track:
+                  type: string
+                  example: "Science"
+                stream:
+                  type: string
+                  example: "Science"
+                course:
+                  type: string
+                  example: "BCA"
+                category:
+                  type: string
+                  example: "General"
+                subject12:
+                  type: string
+                  example: "PCM"
+                year12:
+                  type: string
+                  example: "2023"
+                percent12:
+                  type: string
+                  example: "85%"
+                percent10:
+                  type: string
+                  example: "90%"
+                subDepartmentId:
+                  type: string
+                  example: "64fdb61e7b9a1a1234567891"
+                isFTP:
+                  type: boolean
+                  example: false
+      responses:
+        '201':
+          description: Student created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Student created successfully"
+                  data:
+                    $ref: '#/components/schemas/NewStudent'
+                  meta:
+                    type: object
+                    description: Auto-resolved values used during creation
+                    properties:
+                      sessionName:
+                        type: string
+                        example: "2025-26"
+                      levelName:
+                        type: string
+                        example: "Level 1"
+                      subLevelName:
+                        type: string
+                        example: "SubLevel 1A"
+                      syllabusVersion:
+                        type: string
+                        example: "v1"
+                      tasksAssigned:
+                        type: integer
+                        description: Number of tasks auto-assigned to the student from the syllabus
+                        example: 12
+        '404':
+          description: SubDepartment / Level / SubLevel / Session / SyllabusVersion not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "No active syllabus version found for this session/level/sublevel"
+        '409':
+          description: Student with this prkey already exists
+        '500':
+          description: Server error
+
+    get:
+      summary: Get all students with optional filters
+      description: |
+        All query parameters are **optional**. Use any combination:
+        - No params → returns all students (for super admin / admin)
+        - `departmentId` only → all students across all subDepartments of that department
+        - `subDepartmentId` only → all students in that subDepartment
+        - `currentLevelId` only → all students at that level
+        - `currentSubLevelId` only → all students at that sublevel
+        - `sessionId` only → all students of that session
+        - `status` only → filter by student status
+        - Any combination of the above works together
+
+        Note: If both `departmentId` and `subDepartmentId` are provided, `subDepartmentId` takes priority.
+      tags:
+        - Student
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: departmentId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by department (returns students from all subDepartments under it)
+          example: "64fdb61e7b9a1a1234567890"
+        - name: subDepartmentId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by specific subDepartment
+          example: "64fdb61e7b9a1a1234567891"
+        - name: sessionId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by session
+          example: "64fdb61e7b9a1a1234567894"
+        - name: currentLevelId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by current level
+          example: "64fdb61e7b9a1a1234567892"
+        - name: currentSubLevelId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by current sub-level
+          example: "64fdb61e7b9a1a1234567893"
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [Active, Completed, Dropped, Placed]
+          description: Filter by student status
+      responses:
+        '200':
+          description: List of students matching the filters (or all students if no filter given)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    example: 25
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NewStudent'
+        '500':
+          description: Server error
+
+  /api/students/stats:
+    get:
+      summary: Get student dashboard statistics
+      tags:
+        - Student
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Student statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    example: 150
+                  active:
+                    type: integer
+                    example: 120
+                  placed:
+                    type: integer
+                    example: 20
+                  dropped:
+                    type: integer
+                    example: 10
+        '500':
+          description: Server error
+
+  /api/students/permission/list:
+    get:
+      summary: Get all students with permission details
+      tags:
+        - Student
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of students with permission
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    example: 5
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NewStudent'
+        '500':
+          description: Server error
+
+  /api/students/{id}:
+    get:
+      summary: Get student by ID
+      tags:
+        - Student
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Student found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/NewStudent'
+        '404':
+          description: Student not found
+        '500':
+          description: Server error
+
+    patch:
+      summary: Update student basic info
+      tags:
+        - Student
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  example: "Rahul"
+                email:
+                  type: string
+                  example: "rahul@example.com"
+                studentMobile:
+                  type: string
+                  example: "9876543210"
+                address:
+                  type: string
+                  example: "New Address"
+                status:
+                  type: string
+                  enum: [Active, Completed, Dropped, Placed]
+      responses:
+        '200':
+          description: Student updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Student updated successfully"
+                  data:
+                    $ref: '#/components/schemas/NewStudent'
+        '404':
+          description: Student not found
+        '500':
+          description: Server error
+
+  /api/students/{id}/profile-image:
+    patch:
+      summary: Update student profile image
+      tags:
+        - Student
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - image
+              properties:
+                image:
+                  type: string
+                  description: Base64 encoded image (data:image/png;base64,...)
+                  example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+      responses:
+        '200':
+          description: Profile image updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Profile image updated successfully"
+                  imageURL:
+                    type: string
+        '400':
+          description: Invalid image format
+        '404':
+          description: Student not found
+        '500':
+          description: Server error
+
+  /api/students/{id}/documents:
+    post:
+      summary: Upload a document for student (image or PDF)
+      tags:
+        - Student
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - fileData
+                - fileType
+              properties:
+                title:
+                  type: string
+                  example: "Aadhar Card"
+                fileData:
+                  type: string
+                  description: Base64 encoded file
+                  example: "data:application/pdf;base64,JVBERi0xLjQ..."
+                fileType:
+                  type: string
+                  enum: [image, pdf]
+                  example: "pdf"
+      responses:
+        '201':
+          description: Document uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Document uploaded successfully"
+                  data:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      title:
+                        type: string
+                      fileURL:
+                        type: string
+                      fileType:
+                        type: string
+                      uploadedAt:
+                        type: string
+                        format: date-time
+        '400':
+          description: Missing required fields or invalid fileType
+        '404':
+          description: Student not found
+        '500':
+          description: Server error
+
+  /api/students/{id}/documents/{docId}:
+    delete:
+      summary: Delete a student document
+      tags:
+        - Student
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: docId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Document deleted successfully
+        '404':
+          description: Student or document not found
+        '500':
+          description: Server error
+
+  /api/students/{id}/permission:
+    patch:
+      summary: Update student permission details
+      tags:
+        - Student
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - imageURL
+                - approved_by
+              properties:
+                imageURL:
+                  type: string
+                  example: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQE..."
+                remark:
+                  type: string
+                  example: "Approved for special request"
+                approved_by:
+                  type: string
+                  enum: [super admin, admin, faculty]
+                  example: "admin"
+      responses:
+        '200':
+          description: Permission updated successfully
+        '400':
+          description: Invalid input
+        '404':
+          description: Student not found
+        '500':
+          description: Server error
+
+  /api/students/{id}/promote:
+    post:
+      summary: Promote student to next sub-level or level
+      description: |
+        Promotes a student to the next sub-level (or next level if current level is complete).
+
+        **Auto Promotion:** Triggered automatically when student completes 100% mandatory tasks.
+
+        **Manual Promotion:** Faculty/Admin can call this API anytime regardless of task completion.
+
+        On promotion:
+        - Student's `currentLevelId`, `currentSubLevelId`, `syllabusVersionId` are updated
+        - Latest active syllabus of the new sub-level is auto-assigned
+        - All tasks of the new sub-level are auto-assigned to the student
+        - A promotion event is logged in StudentEventLog
+        - Previous sub-level task data remains unchanged (data isolation preserved)
+      tags:
+        - Student
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Student ID
+          example: "64fdb61e7b9a1a1234567890"
+      responses:
+        '200':
+          description: Student promoted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Student promoted to next sub-level"
+                  data:
+                    type: object
+                    properties:
+                      promotedToNewLevel:
+                        type: boolean
+                        description: true if student moved to a new Level, false if just next SubLevel
+                        example: false
+                      newLevelId:
+                        type: string
+                        example: "64fdb61e7b9a1a1234567892"
+                      newSubLevelId:
+                        type: string
+                        example: "64fdb61e7b9a1a1234567893"
+                      newSyllabusVersionId:
+                        type: string
+                        example: "64fdb61e7b9a1a1234567895"
+                      tasksAssigned:
+                        type: integer
+                        description: Number of tasks auto-assigned for the new sub-level
+                        example: 10
+                      isAuto:
+                        type: boolean
+                        description: true if triggered automatically, false if manual
+                        example: false
+        '400':
+          description: Student already completed all levels or student is not active
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Student has already completed all levels"
+        '404':
+          description: Student / SubLevel / Level / Syllabus not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "No active syllabus found for the next sub-level"
+        '500':
+          description: Server error
+
+  /api/students/{id}/readiness-status:
+    patch:
+      summary: Update student readiness status
+      description: Manually update the readiness status of a student for placement tracking.
+      tags:
+        - Student
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Student ID
+          example: "64fdb61e7b9a1a1234567890"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - readinessStatus
+              properties:
+                readinessStatus:
+                  type: string
+                  enum: [Ready, Not Ready, In Progress, Ready for Interview]
+                  example: "Ready for Interview"
+      responses:
+        '200':
+          description: Readiness status updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Readiness status updated"
+                  data:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      prkey:
+                        type: string
+                      firstName:
+                        type: string
+                      lastName:
+                        type: string
+                      readinessStatus:
+                        type: string
+                        example: "Ready for Interview"
+        '400':
+          description: Invalid readinessStatus value
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "readinessStatus must be one of: Ready, Not Ready, In Progress, Ready for Interview"
+        '404':
+          description: Student not found
+        '500':
+          description: Server error
+
+  # ===== TASK ASSIGNMENT APIs =====
+
+  /api/syllabus/versions/assignments/student:
+    post:
+      summary: Auto-assign all tasks of a syllabus version to a single student
+      description: Assigns all active tasks from the given syllabus version to the student. If tasks already exist, they are updated. Manual assignments are preserved.
+      tags:
+        - Task Assignment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - studentId
+              properties:
+                studentId:
+                  type: string
+                  description: Student ID to assign tasks to
+                  example: "64fdb61e7b9a1a1234567890"
+                syllabusVersionId:
+                  type: string
+                  description: Optional - if not provided, student's current syllabusVersionId is used
+                  example: "64fdb61e7b9a1a1234567895"
+      responses:
+        '200':
+          description: Tasks assigned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Tasks assigned to student successfully"
+                  data:
+                    type: object
+                    properties:
+                      studentId:
+                        type: string
+                      syllabusVersionId:
+                        type: string
+                      createdCount:
+                        type: integer
+                        example: 10
+                      updatedCount:
+                        type: integer
+                        example: 2
+                      totalTasks:
+                        type: integer
+                        example: 12
+        '400':
+          description: Validation error (student not found, version mismatch, no tasks)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "No active tasks found in syllabus"
+
+  /api/syllabus/versions/assignments/bulk:
+    post:
+      summary: Auto-assign tasks to multiple students
+      description: Assigns all active tasks from the syllabus version to each student in the list. Processes each student independently.
+      tags:
+        - Task Assignment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - studentIds
+              properties:
+                studentIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of student IDs
+                  example: ["64fdb61e7b9a1a1234567890", "64fdb61e7b9a1a1234567891"]
+                syllabusVersionId:
+                  type: string
+                  description: Optional - if not provided, each student's own syllabusVersionId is used
+                  example: "64fdb61e7b9a1a1234567895"
+      responses:
+        '200':
+          description: Bulk assignment result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Tasks assigned: 2 succeeded, 0 failed"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        success:
+                          type: boolean
+                        studentId:
+                          type: string
+                        createdCount:
+                          type: integer
+                        updatedCount:
+                          type: integer
+                        totalTasks:
+                          type: integer
+                        message:
+                          type: string
+                          description: Present only if success is false
+        '400':
+          description: studentIds must be a non-empty array
+
+  /api/syllabus/versions/assignments/manual:
+    post:
+      summary: Manually assign selected tasks to selected students
+      description: Assigns specific tasks (by taskIds) to specific students (by studentIds). Marks assignment as 'manual'. Existing tasks are updated, new ones are created.
+      tags:
+        - Task Assignment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - studentIds
+                - taskIds
+              properties:
+                studentIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of student IDs to assign tasks to
+                  example: ["64fdb61e7b9a1a1234567890", "64fdb61e7b9a1a1234567891"]
+                taskIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of task IDs to assign
+                  example: ["64fdb61e7b9a1a1234567896", "64fdb61e7b9a1a1234567897"]
+                syllabusVersionId:
+                  type: string
+                  description: Optional - if not provided, each student's own syllabusVersionId is used
+                  example: "64fdb61e7b9a1a1234567895"
+      responses:
+        '200':
+          description: Manual assignment result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Manual task assignment completed: 2 succeeded, 0 failed"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        success:
+                          type: boolean
+                        studentId:
+                          type: string
+                        syllabusVersionId:
+                          type: string
+                        createdCount:
+                          type: integer
+                        updatedCount:
+                          type: integer
+                        totalTasks:
+                          type: integer
+                        message:
+                          type: string
+                          description: Present only if success is false
+        '400':
+          description: Validation error
+
+  /api/syllabus/versions/assignments/session-level:
+    post:
+      summary: Auto-assign tasks to all students in a session/level/sublevel
+      description: Finds all active students matching the given session, level, and sublevel filters, then assigns tasks to all of them.
+      tags:
+        - Task Assignment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - syllabusVersionId
+              properties:
+                sessionId:
+                  type: string
+                  description: Optional filter by session
+                  example: "64fdb61e7b9a1a1234567894"
+                levelId:
+                  type: string
+                  description: Optional filter by level
+                  example: "64fdb61e7b9a1a1234567892"
+                subLevelId:
+                  type: string
+                  description: Optional filter by sub-level
+                  example: "64fdb61e7b9a1a1234567893"
+                syllabusVersionId:
+                  type: string
+                  description: Syllabus version to assign tasks from
+                  example: "64fdb61e7b9a1a1234567895"
+      responses:
+        '200':
+          description: Assignment result for all matched students
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Tasks assigned to 15 students"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        success:
+                          type: boolean
+                        studentId:
+                          type: string
+                        createdCount:
+                          type: integer
+                        totalTasks:
+                          type: integer
+        '400':
+          description: Validation error
+
+  # ===== TASK STATUS UPDATE API =====
+
+  /api/syllabus/versions/students/{studentId}/tasks/{taskId}:
+    patch:
+      summary: Update student task status and marks
+      description: |
+        Updates the status and/or marks of a specific task for a student.
+        - When status is set to `inProgress`, `startedAt` is recorded automatically.
+        - When status is set to `completed`, marks are required and `completedAt` is recorded.
+        - Changing status away from `completed` clears marks automatically.
+        - After every update, a progress snapshot and task history entry are created.
+        - Student readiness status is auto-synced after update.
+      tags:
+        - Task Assignment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Student ID
+          example: "64fdb61e7b9a1a1234567890"
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Task ID (the master task ID, not StudentTask _id)
+          example: "64fdb61e7b9a1a1234567896"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [pending, inProgress, completed]
+                  description: New status for the task
+                  example: "completed"
+                marks:
+                  type: number
+                  minimum: 0
+                  maximum: 5
+                  description: Required when status is completed (0-5)
+                  example: 4
+                notes:
+                  type: string
+                  description: Optional notes about the task
+                  example: "Student completed with good understanding"
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      studentId:
+                        type: string
+                      taskId:
+                        type: string
+                      title:
+                        type: string
+                        example: "Build a REST API"
+                      status:
+                        type: string
+                        example: "completed"
+                      marks:
+                        type: number
+                        example: 4
+                      maxMarks:
+                        type: number
+                        example: 5
+                      notes:
+                        type: string
+                      startedAt:
+                        type: string
+                        format: date-time
+                      completedAt:
+                        type: string
+                        format: date-time
+        '400':
+          description: Validation error (marks required for completed, marks exceed maxMarks, task not found)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Marks are required when task status is completed"
+        '500':
+          description: Server error
+
+  /api/students/{id}/tasks:
+    get:
+      summary: Get all tasks of a student grouped by subject
+      tags:
+        - Student Tasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subLevelId
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, inProgress, completed]
+      responses:
+        '200':
+          description: Student tasks grouped by subject
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalTasks:
+                    type: integer
+                    example: 30
+                  completedTasks:
+                    type: integer
+                    example: 15
+                  pendingTasks:
+                    type: integer
+                    example: 10
+                  inProgressTasks:
+                    type: integer
+                    example: 5
+                  groupedBySubject:
+                    type: object
+        '404':
+          description: Student not found
+        '500':
+          description: Server error
+
+  /api/students/{id}/tasks/sublevel/{subLevelId}:
+    get:
+      summary: Get student tasks for a specific sub-level with stats
+      tags:
+        - Student Tasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subLevelId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tasks for the sub-level with stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stats:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 10
+                      completed:
+                        type: integer
+                        example: 6
+                      pending:
+                        type: integer
+                        example: 3
+                      inProgress:
+                        type: integer
+                        example: 1
+                      averageMarks:
+                        type: number
+                        example: 3.8
+                  tasks:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        title:
+                          type: string
+                        subjectName:
+                          type: string
+                        topicName:
+                          type: string
+                        status:
+                          type: string
+                          enum: [pending, inProgress, completed]
+                        marks:
+                          type: number
+                          nullable: true
+                        maxMarks:
+                          type: number
+                          example: 5
+        '404':
+          description: Student not found
+        '500':
+          description: Server error
+
+  /api/students/{id}/task-history:
+    get:
+      summary: Get student task change history with pagination
+      tags:
+        - Student History
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: taskId
+          in: query
+          schema:
+            type: string
+        - name: subLevelId
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Task history with pagination
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    example: 45
+                  page:
+                    type: integer
+                    example: 1
+                  totalPages:
+                    type: integer
+                    example: 3
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        taskTitle:
+                          type: string
+                        status:
+                          type: string
+                          enum: [pending, inProgress, completed]
+                        marks:
+                          type: number
+                          nullable: true
+                        subLevelName:
+                          type: string
+                        changedByName:
+                          type: string
+                        changedAt:
+                          type: string
+                          format: date-time
+        '500':
+          description: Server error
+
+  /api/students/{id}/progress-snapshots:
+    get:
+      summary: Get student progress snapshots history with pagination
+      tags:
+        - Student History
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subLevelId
+          in: query
+          schema:
+            type: string
+        - name: scope
+          in: query
+          schema:
+            type: string
+            enum: [overall, subject]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Progress snapshots with pagination
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    example: 30
+                  page:
+                    type: integer
+                    example: 1
+                  totalPages:
+                    type: integer
+                    example: 2
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        snapshotScope:
+                          type: string
+                          enum: [overall, subject]
+                        levelName:
+                          type: string
+                        subLevelName:
+                          type: string
+                        totalTasks:
+                          type: integer
+                        completedTasks:
+                          type: integer
+                        pendingTasks:
+                          type: integer
+                        averageMarks:
+                          type: number
+                        changedAt:
+                          type: string
+                          format: date-time
+        '500':
+          description: Server error
 
 
 

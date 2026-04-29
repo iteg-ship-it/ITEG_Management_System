@@ -8,7 +8,7 @@ const studentProgressSnapshotSchema = new mongoose.Schema({
   },
   snapshotScope: {
     type: String,
-    enum: ["overall", "subject"],
+    enum: ["overall", "subject", "promotion"],
     default: "overall"
   },
   sessionId: {
