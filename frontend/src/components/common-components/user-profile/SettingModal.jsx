@@ -86,7 +86,7 @@ const SettingsModal = ({ user, isOpen, onClose }) => {
             {/* BACKDROP */}
             <div
                 onClick={onClose}
-                className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${
+                className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
                     isDrawerOpen ? "opacity-100" : "opacity-0"
                 }`}
             />

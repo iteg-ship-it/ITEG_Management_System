@@ -49,11 +49,6 @@ const rawBaseQuery = fetchBaseQuery({
   },
 });
 
-const baseQueryWithSilentErrors = async (args, api, extraOptions) => {
-  const result = await rawBaseQuery(args, api, extraOptions);
-  return result;
-};
-
 //  Auto-refresh logic
 const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
   let result = await rawBaseQuery(args, api, extraOptions);
@@ -125,7 +120,7 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithAutoRefresh,
-  tagTypes: ['Student', 'PlacementStudent', 'User', 'Department', 'Role', 'Permission', 'SyllabusVersion', 'Session', 'TaskMaster'],
+  tagTypes: ['Student', 'PlacementStudent', 'User', 'Department', 'Role', 'Permission', 'Task', 'Session', 'Syllabus', 'Company'],
   // Global configuration for better caching
   keepUnusedDataFor: 300, // 5 minutes default cache
   refetchOnMountOrArgChange: 30, // Only refetch if data is older than 30 seconds
@@ -255,9 +250,10 @@ export const authApi = createApi({
 
     getAllStudentsByLevel: builder.query({
       query: (levelNo) => ({
-        url: `${import.meta.env.VITE_GET_ALL_STUDENTS_BY_LEVEL}${levelNo}`,
+        url: `/admitted/students/get_student_by_level/${levelNo}`,
         method: "GET",
       }),
+      providesTags: ['Student'],
     }),
 
     // get admission process student by id
@@ -786,10 +782,10 @@ export const authApi = createApi({
 
     // Update Department
     updateDepartment: builder.mutation({
-      query: ({ id, _formData }) => ({
+      query: ({ id, formData }) => ({
         url: `/departments/${id}`,
         method: "PUT",
-        body: _formData,
+        body: formData,
       }),
       invalidatesTags: ['Department'],
     }),
@@ -945,246 +941,187 @@ export const authApi = createApi({
       providesTags: ['Department'],
       keepUnusedDataFor: 300,
     }),
-    // Role Management APIs
+    // ─── Role Management ───────────────────────────────────────────
     createRole: builder.mutation({
-      query: (roleData) => ({
-        url: '/roles/create',
-        method: "POST",
-        body: roleData,
-      }),
+      query: (roleData) => ({ url: '/roles/create', method: 'POST', body: roleData }),
       invalidatesTags: ['Role'],
     }),
-
     getAllRoles: builder.query({
-      query: () => ({
-        url: '/roles/all',
-        method: "GET",
-      }),
+      query: () => '/roles/all',
       providesTags: ['Role'],
     }),
-
+    getRoleById: builder.query({
+      query: (id) => `/roles/get/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Role', id }],
+    }),
     updateRole: builder.mutation({
-      query: ({ id, ...data }) => ({
-        url: `/roles/update/${id}`,
-        method: "PATCH",
-        body: data,
-      }),
+      query: ({ id, ...data }) => ({ url: `/roles/update/${id}`, method: 'PATCH', body: data }),
       invalidatesTags: ['Role'],
     }),
-
     deleteRole: builder.mutation({
-      query: (id) => ({
-        url: `/roles/delete/${id}`,
-        method: "DELETE",
-      }),
+      query: (id) => ({ url: `/roles/delete/${id}`, method: 'DELETE' }),
       invalidatesTags: ['Role'],
     }),
 
-    // Permissions Management APIs
+    // ─── Permissions ───────────────────────────────────────────────
     getAllPossiblePermissions: builder.query({
       query: () => '/user/permissions/all',
       providesTags: ['Permission'],
     }),
-
     getUserPermissions: builder.query({
       query: (id) => `/user/permissions/${id}`,
       providesTags: (result, error, id) => [{ type: 'Permission', id }],
     }),
-
     updateUserPermissions: builder.mutation({
-      query: ({ id, permissions }) => ({
-        url: `/user/permissions/${id}`,
-        method: 'PUT',
-        body: { permissions },
-      }),
+      query: ({ id, permissions }) => ({ url: `/user/permissions/${id}`, method: 'PUT', body: { permissions } }),
       invalidatesTags: (result, error, { id }) => [{ type: 'Permission', id }],
     }),
 
-    // --- Session APIs ---
-    getAllSessions: builder.query({
-      query: () => ({ url: '/sessions', method: 'GET' }),
-      providesTags: ['Session'],
+    // ─── Student (Admitted) ────────────────────────────────────────
+    getDashboardStats: builder.query({
+      query: () => '/admitted/students/dashboard/stats',
+      providesTags: ['Student'],
+    }),
+    getAttendanceStats: builder.query({
+      query: () => '/admitted/students/attendance/stats',
+      providesTags: ['Student'],
+    }),
+    getSelectedStudents: builder.query({
+      query: () => '/admitted/students/selected_students',
+      providesTags: ['PlacementStudent'],
+    }),
+    getPlacedStudents: builder.query({
+      query: () => '/admitted/students/placed_students',
+      providesTags: ['PlacementStudent'],
+    }),
+    updateJobType: builder.mutation({
+      query: (data) => ({ url: '/admitted/students/update_job_type', method: 'PATCH', body: data }),
+      invalidatesTags: ['PlacementStudent'],
+    }),
+    getPlacementDocuments: builder.query({
+      query: (studentId) => `/admitted/students/placement_documents/${studentId}`,
+      providesTags: (result, error, studentId) => [{ type: 'Student', id: studentId }],
+    }),
+    uploadPlacementDocuments: builder.mutation({
+      query: (data) => ({ url: '/admitted/students/placement_documents', method: 'POST', body: data }),
+      invalidatesTags: ['PlacementStudent'],
+    }),
+    getCompanyByName: builder.query({
+      query: (companyName) => `/admitted/students/companies/${companyName}`,
+      providesTags: ['Company'],
+    }),
+    generatePlacementPost: builder.mutation({
+      query: (data) => ({ url: '/admitted/students/generate', method: 'POST', body: data }),
+    }),
+    getLevelWiseStudents: builder.query({
+      query: (levelNo) => `/admitted/students/level/${levelNo}`,
+      providesTags: ['Student'],
+    }),
+    getStudentsByLevelWithTasks: builder.query({
+      query: (level) => `/tasks/level/${level}/students`,
+      providesTags: ['Student'],
     }),
 
+    // ─── Tasks ─────────────────────────────────────────────────────
+    getTasksByLevel: builder.query({
+      query: (level) => `/tasks/level/${level}`,
+      providesTags: ['Task'],
+    }),
+    getStudentTasks: builder.query({
+      query: (studentId) => `/tasks/student/${studentId}`,
+      providesTags: (result, error, studentId) => [{ type: 'Task', id: studentId }],
+    }),
+    updateStudentTaskStatus: builder.mutation({
+      query: ({ studentId, taskId, ...data }) => ({
+        url: `/tasks/student/${studentId}/task/${taskId}`,
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: (result, error, { studentId }) => [{ type: 'Task', id: studentId }],
+    }),
+    getStudentTaskPerformance: builder.query({
+      query: (studentId) => `/tasks/student/${studentId}/performance`,
+      providesTags: (result, error, studentId) => [{ type: 'Task', id: studentId }],
+    }),
+    bulkUploadTasks: builder.mutation({
+      query: (data) => ({ url: '/tasks/bulk-upload', method: 'POST', body: data }),
+      invalidatesTags: ['Task'],
+    }),
+    bulkUploadTasksToSelectedStudents: builder.mutation({
+      query: (data) => ({ url: '/tasks/bulk-upload-selected', method: 'POST', body: data }),
+      invalidatesTags: ['Task'],
+    }),
+    createIndividualTask: builder.mutation({
+      query: ({ studentId, ...data }) => ({
+        url: `/tasks/student/${studentId}/create`,
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: (result, error, { studentId }) => [{ type: 'Task', id: studentId }],
+    }),
+
+    // ─── Sessions ──────────────────────────────────────────────────
     createSession: builder.mutation({
       query: (data) => ({ url: '/sessions', method: 'POST', body: data }),
       invalidatesTags: ['Session'],
     }),
-
+    getAllSessions: builder.query({
+      query: () => '/sessions',
+      providesTags: ['Session'],
+    }),
+    getSessionById: builder.query({
+      query: (id) => `/sessions/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Session', id }],
+    }),
     updateSession: builder.mutation({
       query: ({ id, ...data }) => ({ url: `/sessions/${id}`, method: 'PUT', body: data }),
       invalidatesTags: ['Session'],
     }),
-
     deleteSession: builder.mutation({
       query: (id) => ({ url: `/sessions/${id}`, method: 'DELETE' }),
       invalidatesTags: ['Session'],
     }),
 
-    // --- Syllabus Version APIs ---
-    createSyllabusVersion: builder.mutation({
-      query: (data) => ({
-        url: '/syllabus/versions',
-        method: 'POST',
-        body: data,
-      }),
-      invalidatesTags: ['SyllabusVersion'],
+    // ─── Syllabus ──────────────────────────────────────────────────
+    createSyllabus: builder.mutation({
+      query: (data) => ({ url: '/syllabus', method: 'POST', body: data }),
+      invalidatesTags: ['Syllabus'],
+    }),
+    getAllSyllabus: builder.query({
+      query: () => '/syllabus',
+      providesTags: ['Syllabus'],
+    }),
+    getSyllabusById: builder.query({
+      query: (id) => `/syllabus/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Syllabus', id }],
+    }),
+    updateSyllabus: builder.mutation({
+      query: ({ id, ...data }) => ({ url: `/syllabus/${id}`, method: 'PUT', body: data }),
+      invalidatesTags: ['Syllabus'],
+    }),
+    deleteSyllabus: builder.mutation({
+      query: (id) => ({ url: `/syllabus/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['Syllabus'],
+    }),
+    approveSyllabus: builder.mutation({
+      query: (id) => ({ url: `/syllabus/${id}/approve`, method: 'POST' }),
+      invalidatesTags: ['Syllabus'],
+    }),
+    activateSyllabus: builder.mutation({
+      query: (id) => ({ url: `/syllabus/${id}/activate`, method: 'POST' }),
+      invalidatesTags: ['Syllabus'],
     }),
 
-    getAllSyllabusVersions: builder.query({
-      query: (params = '') => ({
-        url: `/syllabus/versions${params ? `?${params}` : ''}`,
-        method: 'GET',
-      }),
-      providesTags: ['SyllabusVersion'],
+    // ─── Department (by ID) ────────────────────────────────────────
+    getDepartmentById: builder.query({
+      query: (id) => `/departments/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Department', id }],
     }),
 
-    getSyllabusVersionById: builder.query({
-      query: (id) => ({
-        url: `/syllabus/versions/${id}`,
-        method: 'GET',
-      }),
-      providesTags: (result, error, id) => [{ type: 'SyllabusVersion', id }],
-    }),
-
-    // Returns full version with subjects/topics/subtopics embedded
-    getSyllabusVersionWithHierarchy: builder.query({
-      query: (id) => ({
-        url: `/syllabus/versions/${id}`,
-        method: 'GET',
-      }),
-      providesTags: (result, error, id) => [{ type: 'SyllabusVersion', id }],
-    }),
-
-    getSyllabusVersionsBySession: builder.query({
-      query: (sessionId) => ({
-        url: `/syllabus/versions?sessionId=${sessionId}`,
-        method: 'GET',
-      }),
-      providesTags: ['SyllabusVersion'],
-    }),
-
-    getSyllabusVersionsBySubLevel: builder.query({
-      query: ({ subLevelId, sessionId } = {}) => {
-        if (!subLevelId) return { url: '/syllabus/versions', method: 'GET' };
-        const params = sessionId ? `?sessionId=${sessionId}` : '';
-        return { url: `/syllabus/versions/sublevel/${subLevelId}${params}`, method: 'GET' };
-      },
-      providesTags: ['SyllabusVersion'],
-    }),
-
-    updateSyllabusVersion: builder.mutation({
-      query: ({ id, ...data }) => ({
-        url: `/syllabus/versions/${id}`,
-        method: 'PATCH',
-        body: data,
-      }),
-      invalidatesTags: ['SyllabusVersion'],
-    }),
-
-    deleteSyllabusVersion: builder.mutation({
-      query: (id) => ({
-        url: `/syllabus/versions/${id}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: ['SyllabusVersion'],
-    }),
-
-    // approve = activate (backend mein approve nahi hai, activate hai)
-    approveSyllabusVersion: builder.mutation({
-      query: (id) => ({
-        url: `/syllabus/versions/${id}/activate`,
-        method: 'PATCH',
-      }),
-      invalidatesTags: ['SyllabusVersion'],
-    }),
-
-    activateSyllabusVersion: builder.mutation({
-      query: (id) => ({
-        url: `/syllabus/versions/${id}/activate`,
-        method: 'PATCH',
-      }),
-      invalidatesTags: ['SyllabusVersion'],
-    }),
-
-    archiveSyllabusVersion: builder.mutation({
-      query: (id) => ({
-        url: `/syllabus/versions/${id}/archive`,
-        method: 'PATCH',
-      }),
-      invalidatesTags: ['SyllabusVersion'],
-    }),
-
-    // --- Task APIs (separate Task collection) ---
-    getTasksBySyllabusVersion: builder.query({
-      query: (syllabusVersionId) => ({
-        url: `/syllabus/versions/${syllabusVersionId}/tasks`,
-        method: 'GET',
-      }),
-      providesTags: (result, error, syllabusVersionId) => [
-        { type: 'SyllabusVersion', id: syllabusVersionId },
-      ],
-    }),
-
-    createTaskMaster: builder.mutation({
-      query: ({ syllabusVersionId, subjectId, topicId, subTopicId, ...taskData }) => ({
-        url: `/syllabus/versions/${syllabusVersionId}/tasks`,
-        method: 'POST',
-        body: { subjectId, topicId, subTopicId, ...taskData },
-      }),
-      invalidatesTags: (result, error, data) => [
-        { type: 'SyllabusVersion', id: data.syllabusVersionId },
-      ],
-    }),
-
-    updateTaskMaster: builder.mutation({
-      query: ({ syllabusVersionId, taskId, isActive }) => ({
-        url: `/syllabus/versions/${syllabusVersionId}/tasks/${taskId}/active`,
-        method: 'PATCH',
-        body: { isActive },
-      }),
-      invalidatesTags: ['SyllabusVersion'],
-    }),
-
-    // Bulk upload via JSON subjects payload
-    bulkUploadTasks: builder.mutation({
-      query: ({ syllabusVersionId, subjects }) => ({
-        url: `/syllabus/versions/${syllabusVersionId}/subjects/upload`,
-        method: 'POST',
-        body: { subjects },
-      }),
-      invalidatesTags: (result, error, data) => [
-        { type: 'SyllabusVersion', id: data.syllabusVersionId },
-      ],
-    }),
-
-    // Subjects from embedded SyllabusVersion
-    getSubjectsByVersion: builder.query({
-      query: (syllabusVersionId) => ({ url: `/syllabus/versions/${syllabusVersionId}`, method: 'GET' }),
-      transformResponse: (response) => ({ data: response?.data?.subjects || [] }),
-      providesTags: (result, error, id) => [{ type: 'SyllabusVersion', id }],
-    }),
-
-    // Topics from a subject (need syllabusVersionId:subjectId format)
-    getTopicsBySubject: builder.query({
-      query: (subjectId) => ({ url: `/syllabus/versions?subjectId=${subjectId}`, method: 'GET' }),
-      transformResponse: (response) => ({ data: [] }),
-      providesTags: ['SyllabusVersion'],
-    }),
-
-    getSubTopicsByTopic: builder.query({
-      query: (topicId) => ({ url: `/syllabus/versions?topicId=${topicId}`, method: 'GET' }),
-      transformResponse: (response) => ({ data: [] }),
-      providesTags: ['SyllabusVersion'],
-    }),
-
-    createTaskManual: builder.mutation({
-      query: ({ syllabusVersionId, subjectId, topicId, subTopicId, ...taskData }) => ({
-        url: `/syllabus/versions/${syllabusVersionId}/tasks`,
-        method: 'POST',
-        body: { subjectId, topicId, subTopicId, ...taskData },
-      }),
-      invalidatesTags: ['SyllabusVersion'],
+    // ─── Admission Process ─────────────────────────────────────────
+    updateInterviewFlag: builder.mutation({
+      query: (studentId) => ({ url: `/admission/students/update_interview_flag/${studentId}`, method: 'PUT' }),
+      invalidatesTags: ['Student'],
     }),
 
   }),
@@ -1271,27 +1208,44 @@ export const {
   useGetAllPossiblePermissionsQuery,
   useGetUserPermissionsQuery,
   useUpdateUserPermissionsMutation,
-  useGetAllSessionsQuery,
+  // Role
+  useGetRoleByIdQuery,
+  // Student extras
+  useGetDashboardStatsQuery,
+  useGetAttendanceStatsQuery,
+  useGetSelectedStudentsQuery,
+  useGetPlacedStudentsQuery,
+  useUpdateJobTypeMutation,
+  useGetPlacementDocumentsQuery,
+  useUploadPlacementDocumentsMutation,
+  useGetCompanyByNameQuery,
+  useGeneratePlacementPostMutation,
+  useGetLevelWiseStudentsQuery,
+  useGetStudentsByLevelWithTasksQuery,
+  // Tasks
+  useGetTasksByLevelQuery,
+  useGetStudentTasksQuery,
+  useUpdateStudentTaskStatusMutation,
+  useGetStudentTaskPerformanceQuery,
+  useBulkUploadTasksMutation,
+  useBulkUploadTasksToSelectedStudentsMutation,
+  useCreateIndividualTaskMutation,
+  // Sessions
   useCreateSessionMutation,
+  useGetAllSessionsQuery,
+  useGetSessionByIdQuery,
   useUpdateSessionMutation,
   useDeleteSessionMutation,
-  useCreateSyllabusVersionMutation,
-  useGetAllSyllabusVersionsQuery,
-  useGetSyllabusVersionByIdQuery,
-  useGetSyllabusVersionWithHierarchyQuery,
-  useGetSyllabusVersionsBySessionQuery,
-  useGetSyllabusVersionsBySubLevelQuery,
-  useUpdateSyllabusVersionMutation,
-  useDeleteSyllabusVersionMutation,
-  useApproveSyllabusVersionMutation,
-  useActivateSyllabusVersionMutation,
-  useArchiveSyllabusVersionMutation,
-  useGetTasksBySyllabusVersionQuery,
-  useCreateTaskMasterMutation,
-  useUpdateTaskMasterMutation,
-  useBulkUploadTasksMutation,
-  useGetSubjectsByVersionQuery,
-  useGetTopicsBySubjectQuery,
-  useGetSubTopicsByTopicQuery,
-  useCreateTaskManualMutation,
+  // Syllabus
+  useCreateSyllabusMutation,
+  useGetAllSyllabusQuery,
+  useGetSyllabusByIdQuery,
+  useUpdateSyllabusMutation,
+  useDeleteSyllabusMutation,
+  useApproveSyllabusMutation,
+  useActivateSyllabusMutation,
+  // Department by ID
+  useGetDepartmentByIdQuery,
+  // Admission
+  useUpdateInterviewFlagMutation,
 } = authApi;

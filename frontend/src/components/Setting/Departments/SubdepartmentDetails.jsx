@@ -54,59 +54,50 @@ const SubdepartmentDetails = () => {
   return (
     <>
       <Formik
-        initialValues={{ name: "", order: "", isActive: true }}
-        validationSchema={validationSchema}
-        onSubmit={async (values, { setSubmitting, resetForm }) => {
-          try {
-            await addLevel({ name: values.name, order: Number(values.order), subDepartmentId: subdepartmentId, isActive: values.isActive }).unwrap();
-            toast.success("Level added successfully!");
-            resetForm();
-            refetch();
-          } catch (error) {
-            toast.error(error?.data?.message || "Error adding level");
-          } finally {
-            setSubmitting(false);
-          }
-        }}
-      >
-        {({ isSubmitting, submitForm, resetForm }) => (
-          <Header
-            title={subdepartment.name}
-            showBack={true}
-            breadcrumbs={[
-              { label: "Departments", path: "/department-management" },
-              { label: departmentName || "Department", path: `/department-details/${departmentId}`, state: { department: subdepartment?.departmentId } },
-              { label: subdepartment.name },
-            ]}
-          >
-            <OrangeButton
-              buttonTitle="+ New Level"
-              panelTitle="Add New Level"
-              drawerContent={
-                <Form className="space-y-4">
-                  <InputField label="Level Name" name="name" placeholder="Enter level name" />
-                  <InputField label="Order" name="order" type="number" placeholder="Enter order number" />
-                  <RadioGroup label="Status" name="isActive" required={false} />
-                </Form>
+            initialValues={{ name: "", order: "", isActive: true }}
+            validationSchema={validationSchema}
+            onSubmit={async (values, { setSubmitting, resetForm }) => {
+              try {
+                await addLevel({ name: values.name, order: Number(values.order), subDepartmentId: subdepartmentId, isActive: values.isActive }).unwrap();
+                toast.success("Level added successfully!");
+                resetForm();
+                refetch();
+              } catch (error) {
+                toast.error(error?.data?.message || "Error adding level");
+              } finally {
+                setSubmitting(false);
               }
-              leftBtnText="Cancel"
-              rightBtnText={isSubmitting ? "Adding..." : "Add Level"}
-              onLeftClick={resetForm}
-              onRightClick={submitForm}
-            />
-          </Header>
-        )}
-      </Formik>
+            }}
+          >
+            {({ isSubmitting, submitForm, resetForm }) => (
+              <Header
+                title={subdepartment.name}
+                breadcrumbs={[
+                  { label: "Departments", path: "/department-management" },
+                  { label: departmentName || "Department", path: `/department-details/${departmentId}`, state: { department: subdepartment?.departmentId } },
+                  { label: subdepartment.name },
+                ]}
+              >
+                <OrangeButton
+                  buttonTitle="+ New Level"
+                  panelTitle="Add New Level"
+                drawerContent={
+                  <Form className="space-y-4">
+                    <InputField label="Level Name" name="name" placeholder="Enter level name" />
+                    <InputField label="Order" name="order" type="number" placeholder="Enter order number" />
+                    <RadioGroup label="Status" name="isActive" required={false} />
+                  </Form>
+                }
+                leftBtnText="Cancel"
+                rightBtnText={isSubmitting ? "Adding..." : "Add Level"}
+                onLeftClick={resetForm}
+                onRightClick={submitForm}
+              />
+              </Header>
+            )}
+          </Formik>
 
-      <div className="px-6">
-        <div className="flex items-end justify-between py-5">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{subdepartment.name}</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Manage levels</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 mt-6">
+        <div className="px-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 mt-6">
           {levels.length === 0 ? (
             <div className="col-span-full text-center py-16">
               <MdLayers size={48} className="mx-auto text-gray-300 mb-3" />
@@ -172,7 +163,6 @@ const SubdepartmentDetails = () => {
             ))
           )}
         </div>
-      </div>
     </>
   );
 };
