@@ -26,6 +26,7 @@ const departmentRoutes = require("./src/routes/departmentRoutes");
 const subDepartmentRoutes = require("./src/routes/subDepartmentRoutes");
 const levelRoutes = require("./src/routes/levelRoutes");
 const subLevelRoutes = require("./src/routes/subLevelRoutes");
+const sessionRoutes = require("./src/routes/sessionRoutes");
 const passport = require("./src/config/passport.js");
 
 // Swagger setup
@@ -43,7 +44,7 @@ app.use('/api/departments', departmentRoutes);
 app.use('/api/subdepartments', subDepartmentRoutes);
 app.use('/api/levels', levelRoutes);
 app.use('/api/sublevels', subLevelRoutes);
-
+app.use('/api/sessions', sessionRoutes);
 
 // Passport initialization
 app.use(passport.initialize());
@@ -87,13 +88,6 @@ if (require.main === module) {
     .connect(process.env.MONGO_URI, mongoOptions)
     .then(async () => {
       console.log("✅ Connected to MongoDB");
-      // Drop old wrong unique index if exists (sessionId+levelId+subLevelId+version without subjectName)
-      try {
-        await mongoose.connection.collection("syllabusversions").dropIndex("sessionId_1_levelId_1_subLevelId_1_version_1");
-        console.log("✅ Old syllabus index dropped");
-      } catch (e) {
-        // Index already dropped or doesn't exist — ignore
-      }
       await updateGoogleUsersRole();
     })
     .catch((err) => console.error("❌ DB Connection Error:", err));

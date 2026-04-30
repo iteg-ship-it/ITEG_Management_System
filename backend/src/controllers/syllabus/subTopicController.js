@@ -1,5 +1,5 @@
 const SubTopic = require('../../models/syllabus/SubTopic');
-const SyllabusVersion = require('../../models/syllabus/SyllabusVersion');
+const SyllabusVersion = require('../../models/SyllabusVersion');
 
 // Create SubTopic
 exports.createSubTopic = async (req, res) => {

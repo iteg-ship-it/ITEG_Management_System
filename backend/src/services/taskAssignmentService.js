@@ -1,686 +1,184 @@
-const Student = require("../models/student/Student");
-const Session = require("../models/Session");
-const Level = require("../models/department/Level");
-const SubLevel = require("../models/department/SubLevel");
-const SyllabusVersion = require("../models/syllabus/SyllabusVersion");
-const Task = require("../models/syllabus/Task");
-const StudentTask = require("../models/syllabus/StudentTask");
-const StudentTaskHistory = require("../models/student/StudentTaskHistory");
-const StudentProgressSnapshot = require("../models/student/StudentProgressSnapshot");
-const StudentEventLog = require("../models/student/StudentEventLog");
+const TaskMaster = require("../models/TaskMaster");
+const StudentTask = require("../models/StudentTask");
+const Student = require("../models/Student");
 
-const ACTIVE_STUDENT_STATUSES = ["Active"];
-
-const buildTaskEntries = async (syllabusVersionId) => {
-  const tasks = await Task.find({ syllabusVersionId, isActive: true }).lean();
-  return tasks.map((task) => ({
-    taskId: task._id,
-    subjectId: task.subjectId,
-    topicId: task.topicId,
-    subTopicId: task.subTopicId || null,
-    subjectName: task.subjectName || "",
-    topicName: task.topicName || "",
-    subTopicName: task.subTopicName || "",
-    taskNodeType: task.taskNodeType,
-    title: task.title,
-    description: task.description || "",
-    type: task.type || "assignment",
-    mandatory: task.mandatory !== false,
-    maxMarks: typeof task.maxMarks === "number" ? task.maxMarks : 5
-  }));
-};
-
-const getActorDetails = (actor = null) => ({
-  id: actor?.id || actor?._id || null,
-  name: actor?.name || "",
-  role: actor?.role || ""
-});
-
-const getSnapshotContext = async ({ student, syllabusVersionId }) => {
-  const [session, level, subLevel, syllabusVersion] = await Promise.all([
-    Session.findById(student.sessionId).select("name"),
-    Level.findById(student.currentLevelId).select("name"),
-    SubLevel.findById(student.currentSubLevelId).select("name"),
-    SyllabusVersion.findById(syllabusVersionId).select("title version")
-  ]);
-
-  return {
-    sessionId: student.sessionId,
-    sessionName: session?.name || "",
-    levelId: student.currentLevelId,
-    levelName: level?.name || "",
-    subLevelId: student.currentSubLevelId,
-    subLevelName: subLevel?.name || "",
-    syllabusVersionId,
-    syllabusVersionTitle: syllabusVersion?.title || "",
-    syllabusVersionCode: syllabusVersion?.version || ""
-  };
-};
-
-const toTaskEntryMap = async (syllabusVersionId) => {
-  const entries = await buildTaskEntries(syllabusVersionId);
-  return new Map(entries.map((entry) => [entry.taskId.toString(), entry]));
-};
-
-const getSyllabusVersionForStudent = async (student, syllabusVersionId) => {
-  if (syllabusVersionId) {
-    const version = await SyllabusVersion.findOne({
-      _id: syllabusVersionId,
-      isActive: true,
-      sessionId: student.sessionId
-    });
-
-    if (!version) {
-      throw new Error("Syllabus version not found");
-    }
-
-    return version;
-  }
-
-  if (student.syllabusVersionId) {
-    const version = await SyllabusVersion.findOne({
-      _id: student.syllabusVersionId,
-      isActive: true
-    });
-
-    if (version) {
-      return version;
-    }
-  }
-
-  const activeVersion = await SyllabusVersion.findOne({
-    sessionId: student.sessionId,
-    levelId: student.currentLevelId,
-    subLevelId: student.currentSubLevelId,
-    status: "active",
-    isActive: true
-  }).sort({ createdAt: -1 });
-
-  if (!activeVersion) {
-    throw new Error("No active syllabus found for this student");
-  }
-
-  return activeVersion;
-};
-
-const validateStudentVersionMatch = (student, syllabusVersion) => {
-  if (student.sessionId.toString() !== syllabusVersion.sessionId.toString()) {
-    throw new Error("Student session does not match the syllabus version session");
-  }
-
-  if (
-    student.currentLevelId.toString() !== syllabusVersion.levelId.toString() ||
-    student.currentSubLevelId.toString() !== syllabusVersion.subLevelId.toString()
-  ) {
-    throw new Error("Student is not currently in the level/sublevel of this syllabus version");
-  }
-};
-
-const buildStudentTaskPayload = (student, syllabusVersion, entry, assignmentMeta = {}) => ({
-  sessionId: student.sessionId,
-  levelId: syllabusVersion.levelId,
-  subLevelId: syllabusVersion.subLevelId,
-  syllabusVersionId: syllabusVersion._id,
-  subjectId: entry.subjectId,
-  topicId: entry.topicId,
-  subTopicId: entry.subTopicId,
-  subjectName: entry.subjectName,
-  topicName: entry.topicName,
-  subTopicName: entry.subTopicName,
-  taskNodeType: entry.taskNodeType,
-  title: entry.title,
-  description: entry.description,
-  type: entry.type,
-  mandatory: entry.mandatory,
-  maxMarks: entry.maxMarks,
-  isActive: true,
-  assignedType: assignmentMeta.assignedType || "auto",
-  assignedBy: assignmentMeta.assignedBy || null,
-  assignedByName: assignmentMeta.assignedByName || "",
-  assignedByRole: assignmentMeta.assignedByRole || "",
-  assignedAt: assignmentMeta.assignedAt || new Date()
-});
-
-const ensureManualAssignmentState = (studentTask, assignmentMeta) => {
-  if (!studentTask) {
-    return;
-  }
-
-  studentTask.assignedType = "manual";
-  studentTask.assignedBy = assignmentMeta.assignedBy || null;
-  studentTask.assignedByName = assignmentMeta.assignedByName || "";
-  studentTask.assignedByRole = assignmentMeta.assignedByRole || "";
-  studentTask.assignedAt = assignmentMeta.assignedAt || new Date();
-};
-
-const assignTasksToStudent = async (studentId, syllabusVersionId, options = {}) => {
+/**
+ * ==================== STEP 3: AUTO-ASSIGN TASKS TO STUDENTS ====================
+ * When students are enrolled, automatically create StudentTask
+ * with snapshot from TaskMaster
+ */
+async function assignTasksToStudent(studentId, syllabusVersionId) {
   const student = await Student.findById(studentId);
+  if (!student) throw new Error("Student not found");
 
-  if (!student) {
-    throw new Error("Student not found");
+  // Get all active tasks for this syllabus
+  const taskMasters = await TaskMaster.find({
+    syllabusVersionId,
+    isActive: true
+  }).lean();
+
+  if (taskMasters.length === 0) {
+    throw new Error("No tasks found for this syllabus");
   }
 
-  const syllabusVersion = await getSyllabusVersionForStudent(student, syllabusVersionId);
-  validateStudentVersionMatch(student, syllabusVersion);
-  const taskEntries = await buildTaskEntries(syllabusVersion._id);
-
-  if (taskEntries.length === 0) {
-    throw new Error("No active tasks found in syllabus");
-  }
-
-  const existingTasks = await StudentTask.find({
-    studentId: student._id,
-    syllabusVersionId: syllabusVersion._id
-  }).select("_id taskId");
-
-  const existingMap = new Map(
-    existingTasks.map((item) => [item.taskId.toString(), item])
-  );
-
-  let createdCount = 0;
-  let updatedCount = 0;
-
-  for (const entry of taskEntries) {
-    const payload = buildStudentTaskPayload(student, syllabusVersion, entry, {
-      assignedType: "auto"
-    });
-
-    const existing = existingMap.get(entry.taskId.toString());
-
-    if (existing) {
-      const existingTask = await StudentTask.findById(existing._id);
-      if (!existingTask) {
-        continue;
-      }
-
-      if (existingTask.assignedType === "manual") {
-        delete payload.assignedType;
-        delete payload.assignedBy;
-        delete payload.assignedByName;
-        delete payload.assignedByRole;
-        delete payload.assignedAt;
-      }
-
-      await StudentTask.updateOne(
-        { _id: existing._id },
-        { $set: payload }
-      );
-      updatedCount += 1;
-      continue;
-    }
-
-    await StudentTask.create({
-      studentId: student._id,
-      taskId: entry.taskId,
-      ...payload
-    });
-    createdCount += 1;
-  }
-
-  const activeTaskIds = taskEntries.map((task) => task.taskId);
-
-  await StudentTask.updateMany(
-    {
-      studentId: student._id,
-      syllabusVersionId: syllabusVersion._id,
-      taskId: { $nin: activeTaskIds }
+  // Create StudentTaskProgress with snapshot
+  const progressRecords = taskMasters.map(task => ({
+    studentId,
+    taskMasterId: task._id,
+    syllabusVersionId: task.syllabusVersionId,
+    
+    // Snapshot at assignment time
+    snapshot: {
+      subjectName: task.subjectName,
+      topicName: task.topicName,
+      subTopicName: task.subTopicName,
+      taskTitle: task.title,
+      taskType: task.type,
+      maxMarks: task.maxMarks,
+      cutoff: task.cutoff,
+      mandatory: task.mandatory,
+      priority: task.priority,
+      dueDate: task.dueDate,
+      assignedAt: new Date()
     },
-    { $set: { isActive: false } }
-  );
+    
+    status: "notStarted",
+    progressPercentage: 0
+  }));
 
-  if (!student.syllabusVersionId || student.syllabusVersionId.toString() !== syllabusVersion._id.toString()) {
-    student.syllabusVersionId = syllabusVersion._id;
-    await student.save();
-  }
+  // Bulk insert with duplicate handling
+  const result = await StudentTask.insertMany(progressRecords, { 
+    ordered: false 
+  }).catch(err => {
+    if (err.code !== 11000) throw err;
+    return { insertedCount: progressRecords.length - (err.writeErrors?.length || 0) };
+  });
 
   return {
-    studentId: student._id,
-    syllabusVersionId: syllabusVersion._id,
-    createdCount,
-    updatedCount,
-    totalTasks: taskEntries.length
+    studentId,
+    syllabusVersionId,
+    tasksAssigned: progressRecords.length,
+    result
   };
-};
+}
 
-const assignTasksToMultipleStudents = async (studentIds, syllabusVersionId) => {
-  if (!Array.isArray(studentIds) || studentIds.length === 0) {
-    throw new Error("studentIds must be a non-empty array");
-  }
-
+/**
+ * ==================== BULK ASSIGN TO MULTIPLE STUDENTS ====================
+ */
+async function assignTasksToMultipleStudents(studentIds, syllabusVersionId) {
   const results = [];
 
   for (const studentId of studentIds) {
     try {
       const result = await assignTasksToStudent(studentId, syllabusVersionId);
-      results.push({ success: true, studentId, ...result });
+      results.push({ ...result, success: true });
     } catch (error) {
-      results.push({ success: false, studentId, message: error.message });
-    }
-  }
-
-  return results;
-};
-
-const assignSelectedTasksToStudents = async ({ studentIds, taskIds, syllabusVersionId, actor }) => {
-  if (!Array.isArray(studentIds) || studentIds.length === 0) {
-    throw new Error("studentIds must be a non-empty array");
-  }
-
-  if (!Array.isArray(taskIds) || taskIds.length === 0) {
-    throw new Error("taskIds must be a non-empty array");
-  }
-
-  const assignmentMeta = {
-    assignedType: "manual",
-    assignedAt: new Date(),
-    assignedBy: actor?.id || actor?._id || null,
-    assignedByName: actor?.name || "",
-    assignedByRole: actor?.role || ""
-  };
-
-  const results = [];
-
-  for (const studentId of studentIds) {
-    try {
-      const student = await Student.findById(studentId);
-      if (!student) {
-        throw new Error("Student not found");
-      }
-
-      const syllabusVersion = await getSyllabusVersionForStudent(student, syllabusVersionId);
-      validateStudentVersionMatch(student, syllabusVersion);
-      const taskEntryMap = await toTaskEntryMap(syllabusVersion._id);
-
-      let createdCount = 0;
-      let updatedCount = 0;
-
-      for (const taskId of taskIds) {
-        const entry = taskEntryMap.get(taskId.toString());
-        if (!entry) {
-          throw new Error(`Task ${taskId} not found in syllabus version`);
-        }
-
-        const payload = buildStudentTaskPayload(student, syllabusVersion, entry, assignmentMeta);
-        const existingTask = await StudentTask.findOne({
-          studentId: student._id,
-          taskId: entry.taskId
-        });
-
-        if (existingTask) {
-          Object.assign(existingTask, payload);
-          ensureManualAssignmentState(existingTask, assignmentMeta);
-          existingTask.isActive = true;
-          await existingTask.save();
-          updatedCount += 1;
-          continue;
-        }
-
-        await StudentTask.create({
-          studentId: student._id,
-          taskId: entry.taskId,
-          ...payload
-        });
-        createdCount += 1;
-      }
-
-      results.push({
-        success: true,
-        studentId,
-        syllabusVersionId: syllabusVersion._id,
-        createdCount,
-        updatedCount,
-        totalTasks: taskIds.length
-      });
-    } catch (error) {
-      results.push({
-        success: false,
-        studentId,
-        message: error.message
+      results.push({ 
+        studentId, 
+        syllabusVersionId,
+        error: error.message, 
+        success: false 
       });
     }
   }
 
   return results;
-};
+}
 
-const assignTasksToSessionLevel = async (sessionId, levelId, subLevelId, syllabusVersionId) => {
-  const filter = {};
+/**
+ * ==================== ASSIGN TO ALL STUDENTS IN SESSION/LEVEL ====================
+ */
+async function assignTasksToSessionLevel(sessionId, levelId, subLevelId, syllabusVersionId) {
+  const students = await Student.find({
+    sessionId,
+    currentLevelId: levelId,
+    currentSubLevelId: subLevelId,
+    status: "Active"
+  }).select("_id").lean();
 
-  if (sessionId) filter.sessionId = sessionId;
-  if (levelId) filter.currentLevelId = levelId;
-  if (subLevelId) filter.currentSubLevelId = subLevelId;
-  filter.status = { $in: ACTIVE_STUDENT_STATUSES };
+  const studentIds = students.map(s => s._id);
 
-  const students = await Student.find(filter).select("_id");
+  return await assignTasksToMultipleStudents(studentIds, syllabusVersionId);
+}
 
-  if (students.length === 0) {
-    return [];
+/**
+ * ==================== GET STUDENT TASKS (VIEW ONLY) ====================
+ * For student profile - read-only access
+ */
+async function getStudentTasks(studentId, syllabusVersionId, filters = {}) {
+  const query = { studentId, syllabusVersionId };
+
+  if (filters.subjectName) {
+    query["snapshot.subjectName"] = filters.subjectName;
+  }
+  if (filters.status) {
+    query.status = filters.status;
   }
 
-  return assignTasksToMultipleStudents(
-    students.map((student) => student._id),
-    syllabusVersionId
-  );
-};
+  const tasks = await StudentTask.find(query, {
+    snapshot: 1,
+    status: 1,
+    progressPercentage: 1,
+    marksObtained: 1,
+    isPassed: 1,
+    submittedAt: 1,
+    completedAt: 1,
+    teacherFeedback: 1
+  })
+  .sort({ "snapshot.subjectName": 1, "snapshot.topicName": 1 })
+  .lean();
 
-const getStudentTasks = async (studentId, syllabusVersionId, filters = {}) => {
-  const student = await Student.findById(studentId).select("sessionId currentLevelId currentSubLevelId");
-  if (!student) {
-    throw new Error("Student not found");
-  }
-
-  const syllabusVersion = await SyllabusVersion.findById(syllabusVersionId).select("sessionId levelId subLevelId");
-  if (!syllabusVersion) {
-    throw new Error("Syllabus version not found");
-  }
-
-  const query = {
-    studentId,
-    syllabusVersionId,
-    sessionId: filters.sessionId || syllabusVersion.sessionId || student.sessionId,
-    levelId: filters.levelId || syllabusVersion.levelId || student.currentLevelId,
-    subLevelId: filters.subLevelId || syllabusVersion.subLevelId || student.currentSubLevelId,
-    isActive: true
-  };
-
-  if (filters.status) query.status = filters.status;
-  if (filters.subjectId) query.subjectId = filters.subjectId;
-  if (filters.topicId) query.topicId = filters.topicId;
-  if (filters.subTopicId) query.subTopicId = filters.subTopicId;
-
-  const tasks = await StudentTask.find(query).sort({
-    subjectName: 1,
-    topicName: 1,
-    subTopicName: 1,
-    createdAt: 1
+  // Group by subject
+  const groupedTasks = {};
+  tasks.forEach(task => {
+    const subject = task.snapshot.subjectName;
+    if (!groupedTasks[subject]) {
+      groupedTasks[subject] = [];
+    }
+    groupedTasks[subject].push(task);
   });
 
-  return tasks;
-};
+  return {
+    studentId,
+    syllabusVersionId,
+    totalTasks: tasks.length,
+    tasks: groupedTasks
+  };
+}
 
-const getStudentTaskSummary = async (studentId, syllabusVersionId) => {
-  const tasks = await getStudentTasks(studentId, syllabusVersionId);
+/**
+ * ==================== GET TASK SUMMARY FOR DASHBOARD ====================
+ */
+async function getStudentTaskSummary(studentId, syllabusVersionId) {
+  const tasks = await StudentTask.find(
+    { studentId, syllabusVersionId },
+    { status: 1, progressPercentage: 1 }
+  ).lean();
 
   const summary = {
     total: tasks.length,
-    pending: 0,
+    notStarted: 0,
     inProgress: 0,
+    submitted: 0,
     completed: 0,
-    progressPercent: 0,
-    averageMarks: 0
+    failed: 0,
+    overallProgress: 0
   };
 
-  let marksTotal = 0;
-  let completedWithMarks = 0;
+  tasks.forEach(task => {
+    summary[task.status]++;
+  });
 
-  for (const task of tasks) {
-    summary[task.status] += 1;
-    if (task.status === "completed" && typeof task.marks === "number") {
-      marksTotal += task.marks;
-      completedWithMarks += 1;
-    }
-  }
-
-  if (summary.total > 0) {
-    summary.progressPercent = Math.round((summary.completed / summary.total) * 100);
-  }
-
-  if (completedWithMarks > 0) {
-    summary.averageMarks = Number((marksTotal / completedWithMarks).toFixed(2));
-  }
+  const totalProgress = tasks.reduce((sum, task) => sum + task.progressPercentage, 0);
+  summary.overallProgress = tasks.length > 0 ? Math.round(totalProgress / tasks.length) : 0;
 
   return summary;
-};
-
-const buildProgressSnapshot = ({ tasks, actorDetails, context, snapshotScope = "overall", subject = null }) => {
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter((task) => task.status === "completed").length;
-  const inProgressTasks = tasks.filter((task) => task.status === "inProgress").length;
-  const pendingTasks = tasks.filter((task) => task.status === "pending").length;
-  const completedWithMarks = tasks.filter((task) => task.status === "completed" && typeof task.marks === "number");
-  const averageMarks = completedWithMarks.length > 0
-    ? Number((completedWithMarks.reduce((sum, task) => sum + task.marks, 0) / completedWithMarks.length).toFixed(2))
-    : 0;
-
-  return {
-    snapshotScope,
-    ...context,
-    subjectId: subject?.subjectId || null,
-    subjectName: subject?.subjectName || "",
-    totalTasks,
-    completedTasks,
-    pendingTasks,
-    inProgressTasks,
-    averageMarks,
-    changedBy: actorDetails.id,
-    changedByName: actorDetails.name,
-    changedByRole: actorDetails.role,
-    changedAt: new Date()
-  };
-};
-
-const createProgressSnapshot = async (studentId, syllabusVersionId, actor = null, updatedTask = null) => {
-  const student = await Student.findById(studentId).select("sessionId currentLevelId currentSubLevelId");
-  if (!student) {
-    throw new Error("Student not found");
-  }
-
-  const tasks = await StudentTask.find({
-    studentId,
-    sessionId: student.sessionId,
-    levelId: student.currentLevelId,
-    subLevelId: student.currentSubLevelId,
-    syllabusVersionId,
-    isActive: true
-  }).select("status marks subjectId subjectName");
-
-  const actorDetails = getActorDetails(actor);
-  const context = await getSnapshotContext({ student, syllabusVersionId });
-  const snapshots = [
-    buildProgressSnapshot({
-      tasks,
-      actorDetails,
-      context,
-      snapshotScope: "overall"
-    })
-  ];
-
-  if (updatedTask?.subjectId) {
-    const subjectTasks = tasks.filter(
-      (task) => task.subjectId?.toString() === updatedTask.subjectId.toString()
-    );
-
-    snapshots.push(
-      buildProgressSnapshot({
-        tasks: subjectTasks,
-        actorDetails,
-        context,
-        snapshotScope: "subject",
-        subject: {
-          subjectId: updatedTask.subjectId,
-          subjectName: updatedTask.subjectName
-        }
-      })
-    );
-  }
-
-  await Student.findByIdAndUpdate(studentId, {
-    $set: { updatedAt: new Date() }
-  });
-
-  await StudentProgressSnapshot.insertMany(
-    snapshots.map((snapshot) => ({
-      studentId,
-      ...snapshot
-    }))
-  );
-
-  return snapshots;
-};
-
-const updateStudentTaskStatus = async (studentId, taskId, payload) => {
-  const student = await Student.findById(studentId).select("sessionId currentLevelId currentSubLevelId syllabusVersionId");
-  if (!student) {
-    throw new Error("Student not found");
-  }
-
-  const studentTask = await StudentTask.findOne({
-    studentId,
-    taskId,
-    sessionId: student.sessionId,
-    levelId: student.currentLevelId,
-    subLevelId: student.currentSubLevelId,
-    syllabusVersionId: student.syllabusVersionId,
-    isActive: true
-  });
-
-  if (!studentTask) {
-    throw new Error("Student task not found");
-  }
-
-  const nextStatus = payload.status || studentTask.status;
-  const hasExplicitMarks = payload.marks !== undefined;
-  const nextMarks = hasExplicitMarks ? payload.marks : studentTask.marks;
-
-  if (nextStatus === "completed" && (nextMarks === null || nextMarks === undefined)) {
-    throw new Error("Marks are required when task status is completed");
-  }
-
-  if (nextMarks !== null && nextMarks !== undefined && nextMarks > studentTask.maxMarks) {
-    throw new Error("Marks cannot exceed maxMarks");
-  }
-
-  if (payload.status) {
-    studentTask.status = nextStatus;
-
-    if (payload.status === "inProgress" && !studentTask.startedAt) {
-      studentTask.startedAt = new Date();
-    }
-
-    if (payload.status === "completed") {
-      studentTask.completedAt = new Date();
-      if (!studentTask.startedAt) {
-        studentTask.startedAt = new Date();
-      }
-    }
-
-    if (payload.status !== "completed") {
-      studentTask.completedAt = null;
-    }
-  }
-
-  if (nextStatus !== "completed") {
-    studentTask.marks = null;
-  } else if (payload.marks !== undefined) {
-    studentTask.marks = payload.marks;
-  }
-
-  if (payload.notes !== undefined) {
-    studentTask.notes = payload.notes;
-  }
-
-  await studentTask.save();
-  const actorId = payload.actor?.id || payload.actor?._id || null;
-  const actorName = payload.actor?.name || "";
-  const actorRole = payload.actor?.role || "";
-
-  const progressSnapshots = await createProgressSnapshot(
-    studentId,
-    studentTask.syllabusVersionId,
-    payload.actor,
-    studentTask
-  );
-  const snapshotContext = await getSnapshotContext({
-    student,
-    syllabusVersionId: studentTask.syllabusVersionId
-  });
-
-  await Promise.all([
-    Student.findByIdAndUpdate(studentId, { $set: { updatedAt: new Date() } }),
-    StudentTaskHistory.create({
-      studentId,
-      ...snapshotContext,
-      subjectId: studentTask.subjectId,
-      subjectName: studentTask.subjectName,
-      topicId: studentTask.topicId,
-      topicName: studentTask.topicName,
-      subTopicId: studentTask.subTopicId,
-      subTopicName: studentTask.subTopicName || "",
-      taskId: studentTask.taskId,
-      taskTitle: studentTask.title,
-      taskNodeType: studentTask.taskNodeType,
-      status: studentTask.status,
-      marks: studentTask.marks,
-      maxMarks: studentTask.maxMarks,
-      notes: studentTask.notes,
-      changedBy: actorId,
-      changedByName: actorName,
-      changedByRole: actorRole,
-      changedAt: new Date()
-    }),
-    StudentEventLog.create({
-      studentId,
-      type: "task",
-      action: "task_status_updated",
-      title: `Task ${studentTask.status}`,
-      description: `${studentTask.title} updated to ${studentTask.status}`,
-      meta: {
-        taskId: studentTask.taskId,
-        status: studentTask.status,
-        marks: studentTask.marks,
-        maxMarks: studentTask.maxMarks,
-        taskNodeType: studentTask.taskNodeType,
-        progressSnapshots
-      },
-      createdBy: actorId,
-      createdByName: actorName,
-      createdByRole: actorRole,
-      createdAt: new Date()
-    })
-  ]);
-
-  const { syncStudentReadiness } = require("./studentService");
-  await syncStudentReadiness(studentId);
-
-  return studentTask;
-};
-
-const syncSyllabusTasksToStudents = async (syllabusVersionId) => {
-  const syllabusVersion = await SyllabusVersion.findById(syllabusVersionId).select("sessionId levelId subLevelId");
-  if (!syllabusVersion) {
-    throw new Error("Syllabus version not found");
-  }
-
-  const students = await Student.find({
-    syllabusVersionId,
-    sessionId: syllabusVersion.sessionId,
-    currentLevelId: syllabusVersion.levelId,
-    currentSubLevelId: syllabusVersion.subLevelId,
-    status: { $in: ACTIVE_STUDENT_STATUSES }
-  }).select("_id");
-
-  const results = [];
-  for (const student of students) {
-    try {
-      const result = await assignTasksToStudent(student._id, syllabusVersionId);
-      results.push({ success: true, studentId: student._id, ...result });
-    } catch (error) {
-      results.push({ success: false, studentId: student._id, message: error.message });
-    }
-  }
-
-  return results;
-};
+}
 
 module.exports = {
-  buildTaskEntries,
   assignTasksToStudent,
   assignTasksToMultipleStudents,
-  assignSelectedTasksToStudents,
   assignTasksToSessionLevel,
   getStudentTasks,
-  getStudentTaskSummary,
-  createProgressSnapshot,
-  updateStudentTaskStatus,
-  syncSyllabusTasksToStudents
+  getStudentTaskSummary
 };

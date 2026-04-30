@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
 const { validateSubDepartmentInput, validateObjectId } = require("../middlewares/subDepartmentValidation");
-const subDepartmentController = require("../controllers/department/subDepartmentController");
+const subDepartmentController = require("../controllers/subDepartmentController");
 
 const allowedRoles = ["superadmin", "admin"];
 

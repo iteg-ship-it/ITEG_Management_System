@@ -1,5 +1,5 @@
 const Subject = require('../../models/syllabus/Subject');
-const SyllabusVersion = require('../../models/syllabus/SyllabusVersion');
+const SyllabusVersion = require('../../models/SyllabusVersion');
 
 // Create Subject
 exports.createSubject = async (req, res) => {

@@ -25,7 +25,6 @@ const ActionButtons = ({ onView, onEdit, inactive }) => (
 
 const CommonCard = ({
   icon: Icon = MdBusiness,
-  logo,
   title,
   description,
   status,
@@ -94,15 +93,12 @@ const CommonCard = ({
     }`}>
       <div className="p-4 flex-1">
 
-        {/* Top row: icon/logo + status badge */}
+        {/* Top row: icon + status badge */}
         <div className="flex items-start justify-between mb-3">
-          <div className={`w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden ${
+          <div className={`w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 ${
             inactive ? 'bg-gray-200' : 'bg-orange-50 border border-orange-100'
           }`}>
-            {logo
-              ? <img src={logo} alt={title} className="w-full h-full object-cover" />
-              : <Icon size={20} className={inactive ? 'text-gray-400' : 'text-orange-500'} />
-            }
+            <Icon size={20} className={inactive ? 'text-gray-400' : 'text-orange-500'} />
           </div>
           {status !== undefined && (
             <span className={`text-xs font-bold px-2.5 py-1 rounded-full tracking-wide ${

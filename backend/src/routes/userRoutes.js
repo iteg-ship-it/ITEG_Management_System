@@ -7,7 +7,7 @@ const { verifyToken } = require("../middlewares/authMiddleware");
 const router = express.Router();
 
 // POST /api/users/create
-router.post("/signup", usercontroller.createUser);
+router.post("/signup", verifyToken, usercontroller.createUser);
 router.post("/login", usercontroller.login);
 router.post("/logout", usercontroller.logout);
 router.patch('/update/:id', verifyToken, usercontroller.updateUserFields);

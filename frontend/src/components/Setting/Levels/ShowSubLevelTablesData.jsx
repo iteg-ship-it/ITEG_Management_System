@@ -1,9 +1,9 @@
-﻿import { useState, useRef } from "react";
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
-import { MdFilterList, MdCloudUpload, MdPictureAsPdf, MdDescription, MdTableChart, MdVisibility, MdEdit, MdCheckCircle, MdBlock, MdDownload } from "react-icons/md";
+import { MdFilterList, MdEdit, MdVisibility, MdBlock, MdCheckCircle, MdDownload, MdPictureAsPdf, MdDescription, MdTableChart, MdCloudUpload } from "react-icons/md";
 import Header from "../../common-components/sidebar/Header";
 import OrangeButton from "../../common-components/sidebar/OrangeButton";
 import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation } from "../../../redux/api/authApi";
@@ -12,17 +12,15 @@ import ExportDropdown from "../../common-components/seach-export/ExportDropdown"
 import CommonTable from "../../common-components/table/CommonTable";
 import InputField from "../../common-components/common-feild/InputField";
 import RadioGroup from "../../common-components/common-feild/RadioGroup";
-import SyllabusTab, { TasksTab, ManualTaskForm } from "./SyllabusTab";
-import { useEffect } from "react";
 
-/* â”€â”€ Validation â”€â”€ */
+/* ── Validation ── */
 const validationSchema = Yup.object({
     name: Yup.string().required("SubLevel name is required"),
     order: Yup.number().required("Order is required").positive("Must be positive"),
     isActive: Yup.boolean(),
 });
 
-/* â”€â”€ Students â”€â”€ */
+/* ── Students ── */
 const DUMMY_STUDENTS = [
     { sno: 1, fullName: "Rahul Sharma",  fatherName: "Ramesh Sharma",  mobile: "9876543210", course: "B.Tech", busRoute: "Route 1", attempts: 2 },
     { sno: 2, fullName: "Priya Verma",   fatherName: "Suresh Verma",   mobile: "9812345678", course: "MCA",    busRoute: "Route 3", attempts: 1 },
@@ -49,7 +47,7 @@ const STUDENT_COLUMNS = [
     },
 ];
 
-/* â”€â”€ Tasks â”€â”€ */
+/* ── Tasks ── */
 const DUMMY_TASKS = [
     { _id: "T001", title: "Complete Python Assignment",  description: "Build a REST API using Flask",              priority: "HIGH",   assignedTo: "Rahul Sharma", type: "MANUAL", status: "ACTIVE"    },
     { _id: "T002", title: "Database Design Project",     description: "Design ER diagram for e-commerce system",  priority: "MEDIUM", assignedTo: "Priya Verma",  type: "BULK",   status: "ACTIVE"    },
@@ -105,7 +103,7 @@ const TaskActions = ({ row }) => (
     </div>
 );
 
-/* â”€â”€ Syllabus â”€â”€ */
+/* ── Syllabus ── */
 const DUMMY_SYLLABUS = [];
 
 const FILE_ICON = {
@@ -122,7 +120,7 @@ const SYLLABUS_COLUMNS = [
                 <div className="flex-shrink-0">{FILE_ICON[row.ext] || <MdDescription size={28} className="text-gray-400" />}</div>
                 <div>
                     <p className="font-semibold text-sm text-gray-800">{row.fileName}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{row.size} â€¢ {row.description}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{row.size} • {row.description}</p>
                 </div>
             </div>
         ),
@@ -141,7 +139,7 @@ const SyllabusActions = () => (
     </div>
 );
 
-/* â”€â”€ Progress â”€â”€ */
+/* ── Progress ── */
 const DUMMY_PROGRESS = [
     { _id: "P001", name: "Alex Harrison",   level: "2A", taskDone: 4, taskTotal: 8, subjectDone: 3, subjectInProgress: 2, subjectTotal: 8, pending: 2, inProgress: 2, done: 4, status: "ACTIVE"  },
     { _id: "P002", name: "Sarah Miller",    level: "2B", taskDone: 6, taskTotal: 8, subjectDone: 5, subjectInProgress: 1, subjectTotal: 8, pending: 1, inProgress: 1, done: 6, status: "ACTIVE"  },
@@ -253,9 +251,9 @@ const ProgressTab = () => {
 
 const SECTION_TABS = ["Students", "Tasks", "Syllabus", "Progress"];
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ══════════════════════════════════════════════════════════════
    MAIN COMPONENT
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+══════════════════════════════════════════════════════════════ */
 const ShowSubLevelTablesData = () => {
     const location       = useLocation();
     const navigate       = useNavigate();
@@ -265,30 +263,15 @@ const ShowSubLevelTablesData = () => {
     const departmentName = location.state?.departmentName;
     const session        = location.state?.session || location.state?.sessionName;
 
-    const [activeTab,             setActiveTab]             = useState(null);
-    const [activeSection,         setActiveSection]         = useState("Students");
-    const [searchTerm,            setSearchTerm]            = useState("");
-    const [activeTaskVersionId,   setActiveTaskVersionId]   = useState("");
-    const syllabusDrawerRef = useRef(null);
+    const [activeTab,     setActiveTab]     = useState("");
+    const [activeSection, setActiveSection] = useState("Students");
+    const [searchTerm,    setSearchTerm]    = useState("");
 
     const { data: subLevelsData } = useGetSubLevelsByLevelQuery(level?._id, { skip: !level?._id });
     const subLevels = subLevelsData?.data || [];
-
-    // Auto-select first sublevel
-    useEffect(() => {
-        if (subLevels.length > 0 && !activeTab) {
-            setActiveTab(subLevels[0]);
-        }
-    }, [subLevels]);
-
-    // When new sublevel added, select it (last one)
-    const prevSubLevelsLen = useRef(0);
-    useEffect(() => {
-        if (subLevels.length > prevSubLevelsLen.current && prevSubLevelsLen.current > 0) {
-            setActiveTab(subLevels[subLevels.length - 1]);
-        }
-        prevSubLevelsLen.current = subLevels.length;
-    }, [subLevels.length]);
+    const levelTabs = subLevels.length > 0
+        ? subLevels.map((sl) => sl.name)
+        : ["Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C"];
 
     const [addSubLevel] = useAddSubLevelMutation();
 
@@ -296,7 +279,7 @@ const ShowSubLevelTablesData = () => {
 
     const breadcrumbs = [
         { label: "Departments", path: "/department-management" },
-        { label: session ? `${departmentName || "Department"} â€¢ ${session}` : departmentName || "Department", path: `/department-details/${departmentId}`, state: { department: subdepartment?.departmentId } },
+        { label: session ? `${departmentName || "Department"} • ${session}` : departmentName || "Department", path: `/department-details/${departmentId}`, state: { department: subdepartment?.departmentId } },
         { label: subdepartment?.name || "Subdepartment", path: "/subdepartment-details", state: { subdepartment, departmentId, departmentName } },
         { label: level?.name || "Level" },
     ];
@@ -311,17 +294,17 @@ const ShowSubLevelTablesData = () => {
                 breadcrumbs={breadcrumbs}
                 bottomRow={
                     <div className="flex gap-1 overflow-x-auto">
-                        {subLevels.map((sl) => (
+                        {levelTabs.map((tab) => (
                             <button
-                                key={sl._id}
-                                onClick={() => setActiveTab(sl)}
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
                                 className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-all duration-200 border-b-2 ${
-                                    activeTab?._id === sl._id
+                                    activeTab === tab
                                         ? "border-orange-500 text-orange-500 font-semibold"
                                         : "border-transparent text-gray-500 hover:text-gray-700"
                                 }`}
                             >
-                                {sl.name}
+                                {tab}
                             </button>
                         ))}
                     </div>
@@ -336,22 +319,132 @@ const ShowSubLevelTablesData = () => {
                     </button>
                 )}
                 {activeSection === "Tasks" ? (
-                    <OrangeButton
-                        buttonTitle="+ Add Task"
-                        panelTitle="Add New Task"
-                        panelSubtitle="Select subject, topic and subtopic to add a task"
-                        drawerContent={
-                            <ManualTaskForm
-                                subLevel={activeTab}
-                                onSaved={() => {}}
-                                showSubmitButton={false}
-                                formId="manual-task-form"
+                    <Formik
+                        initialValues={{ title: "", description: "", subject: "", priority: "", dueDate: "", assignTo: "selected", studentSearch: "", selectedStudents: [] }}
+                        onSubmit={(values, { setSubmitting, resetForm }) => {
+                            toast.success("Task added successfully!");
+                            resetForm();
+                            setSubmitting(false);
+                        }}
+                    >
+                        {({ values, setFieldValue, submitForm, resetForm }) => (
+                            <OrangeButton
+                                buttonTitle="+ Add Task"
+                                panelTitle="Add New Task"
+                                panelSubtitle={`Assign tasks to students in ${level?.name || "this level"}`}
+                                drawerContent={
+                                    <Form className="space-y-5">
+
+                                        {/* ── Action Cards ── */}
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="border border-gray-200 rounded-xl p-4 flex flex-col gap-2">
+                                                <div className="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center">
+                                                    <MdTableChart size={20} className="text-orange-500" />
+                                                </div>
+                                                <p className="text-sm font-semibold text-gray-800">Upload Excel</p>
+                                                <p className="text-xs text-gray-400">Upload up to 50 tasks via Excel sheet</p>
+                                                <button type="button" className="mt-1 text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 px-3 py-1.5 rounded-lg transition">CHOOSE FILE</button>
+                                            </div>
+                                            <div className="border border-gray-200 rounded-xl p-4 flex flex-col gap-2">
+                                                <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center">
+                                                    <MdCheckCircle size={20} className="text-green-500" />
+                                                </div>
+                                                <p className="text-sm font-semibold text-gray-800">Add Manually</p>
+                                                <p className="text-xs text-gray-400">Create a single task manually here</p>
+                                                <button type="button" className="mt-1 text-xs font-semibold text-white bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg transition">ADD TASK</button>
+                                            </div>
+                                        </div>
+
+                                        {/* ── Task Details ── */}
+                                        <div>
+                                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Task Details</p>
+                                            <div className="space-y-3">
+                                                <InputField label="Task Title" name="title" placeholder="Enter task title" />
+                                                <InputField label="Description" name="description" type="textarea" placeholder="Enter task description" />
+                                                <InputField label="Subject" name="subject" type="select" placeholder="Select subject" options={[
+                                                    { value: "math", label: "Mathematics" },
+                                                    { value: "science", label: "Science" },
+                                                    { value: "english", label: "English" },
+                                                    { value: "cs", label: "Computer Science" },
+                                                ]} />
+                                                <InputField label="Priority" name="priority" type="select" placeholder="Select priority" options={[
+                                                    { value: "HIGH", label: "High" },
+                                                    { value: "MEDIUM", label: "Medium" },
+                                                    { value: "LOW", label: "Low" },
+                                                ]} />
+                                                <InputField label="Due Date" name="dueDate" type="date" />
+                                            </div>
+                                        </div>
+
+                                        {/* ── Task Assignment ── */}
+                                        <div>
+                                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Task Assignment</p>
+                                            <div className="space-y-3">
+                                                <div className="flex gap-2 bg-gray-100 p-1 rounded-lg w-fit">
+                                                    {["selected", "all"].map((opt) => (
+                                                        <button
+                                                            key={opt}
+                                                            type="button"
+                                                            onClick={() => setFieldValue("assignTo", opt)}
+                                                            className={`px-4 py-1.5 rounded-md text-xs font-semibold transition ${
+                                                                values.assignTo === opt
+                                                                    ? "bg-white text-orange-500 shadow"
+                                                                    : "text-gray-500 hover:text-gray-700"
+                                                            }`}
+                                                        >
+                                                            {opt === "selected" ? "Selected Students" : "All Students"}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                {values.assignTo === "selected" && (
+                                                    <>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Search students..."
+                                                            value={values.studentSearch}
+                                                            onChange={(e) => setFieldValue("studentSearch", e.target.value)}
+                                                            className="w-full h-10 px-3 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-700 focus:outline-none focus:border-orange-400 focus:bg-white transition"
+                                                        />
+                                                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                                                            {DUMMY_STUDENTS
+                                                                .filter((s) => s.fullName.toLowerCase().includes(values.studentSearch.toLowerCase()))
+                                                                .map((s) => (
+                                                                    <label key={s.sno} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            className="w-4 h-4 accent-orange-500"
+                                                                            checked={values.selectedStudents.includes(s.sno)}
+                                                                            onChange={(e) => {
+                                                                                const updated = e.target.checked
+                                                                                    ? [...values.selectedStudents, s.sno]
+                                                                                    : values.selectedStudents.filter((id) => id !== s.sno);
+                                                                                setFieldValue("selectedStudents", updated);
+                                                                            }}
+                                                                        />
+                                                                        <div className="w-7 h-7 rounded-full bg-orange-100 text-orange-600 text-xs font-bold flex items-center justify-center flex-shrink-0">
+                                                                            {s.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-sm font-medium text-gray-800">{s.fullName}</p>
+                                                                            <p className="text-xs text-gray-400">{s.mobile}</p>
+                                                                        </div>
+                                                                    </label>
+                                                                ))}
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                    </Form>
+                                }
+                                leftBtnText="Cancel"
+                                rightBtnText="Save Task"
+                                onLeftClick={resetForm}
+                                onRightClick={submitForm}
                             />
-                        }
-                        leftBtnText="Cancel"
-                        rightBtnText="Save Task"
-                        onRightClick={() => document.getElementById('manual-task-form')?.requestSubmit()}
-                    />
+                        )}
+                    </Formik>
                 ) : (
                 <Formik
                     initialValues={{ name: "", order: "", isActive: true }}
@@ -411,7 +504,7 @@ const ShowSubLevelTablesData = () => {
                 {/* Tab Content */}
                 <div className="py-6">
 
-                    {/* â”€â”€ Students â”€â”€ */}
+                    {/* ── Students ── */}
                     {activeSection === "Students" && (
                         <div className="space-y-3">
                             <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-3">
@@ -424,7 +517,7 @@ const ShowSubLevelTablesData = () => {
                                 </div>
                             </div>
                             <CommonTable
-                                key={`students-${activeTab?._id}`}
+                                key={`students-${activeTab}`}
                                 columns={STUDENT_COLUMNS}
                                 data={DUMMY_STUDENTS}
                                 editable={false}
@@ -436,17 +529,77 @@ const ShowSubLevelTablesData = () => {
                         </div>
                     )}
 
-                    {/* â”€â”€ Tasks â”€â”€ */}
+                    {/* ── Tasks ── */}
                     {activeSection === "Tasks" && (
-                        <TasksTab level={level} subLevel={activeTab} onVersionChange={setActiveTaskVersionId} />
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-3">
+                                <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+                                <div className="ml-auto flex items-center gap-3">
+                                    <button className="flex items-center gap-1.5 h-10 px-4 text-sm border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 transition flex-shrink-0">
+                                        <MdFilterList size={16} /> Filter
+                                    </button>
+                                    <ExportDropdown data={DUMMY_TASKS} sectionName="tasks" />
+                                </div>
+                            </div>
+                            <CommonTable
+                                key={`tasks-${activeTab}`}
+                                columns={TASK_COLUMNS}
+                                data={DUMMY_TASKS}
+                                editable={true}
+                                pagination={true}
+                                rowsPerPage={10}
+                                searchTerm={searchTerm}
+                                actionButton={(row) => <TaskActions row={row} />}
+                            />
+                        </div>
                     )}
 
-                    {/* â”€â”€ Syllabus â”€â”€ */}
+                    {/* ── Syllabus ── */}
                     {activeSection === "Syllabus" && (
-                        <SyllabusTab level={level} subLevel={activeTab} />
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-3">
+                                <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+                                <div className="ml-auto flex items-center gap-3">
+                                    <button className="flex items-center gap-1.5 h-10 px-4 text-sm border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 transition flex-shrink-0">
+                                        <MdFilterList size={16} /> Filter
+                                    </button>
+                                    <ExportDropdown data={DUMMY_SYLLABUS} sectionName="syllabus" />
+                                </div>
+                            </div>
+                            {DUMMY_SYLLABUS.length === 0 ? (
+                                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm flex flex-col items-center justify-center py-16 px-8 text-center">
+                                    <div className="w-24 h-24 rounded-full bg-orange-50 flex items-center justify-center mb-6">
+                                        <MdCloudUpload size={44} className="text-orange-400" />
+                                    </div>
+                                    <h3 className="text-base font-bold text-gray-800 mb-2">No syllabus uploaded for this level.</h3>
+                                    <p className="text-sm text-gray-400 max-w-sm mb-6 leading-relaxed">
+                                        Upload the academic syllabus to get started. Once uploaded, you can assign lessons to specific weeks and track coverage.
+                                    </p>
+                                    <div className="flex items-center gap-3">
+                                        <button className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
+                                            <MdCloudUpload size={16} /> Upload Syllabus
+                                        </button>
+                                        <button className="px-5 py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
+                                            Browse Template
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <CommonTable
+                                    key={`syllabus-${activeTab}`}
+                                    columns={SYLLABUS_COLUMNS}
+                                    data={DUMMY_SYLLABUS}
+                                    editable={true}
+                                    pagination={true}
+                                    rowsPerPage={10}
+                                    searchTerm={searchTerm}
+                                    actionButton={() => <SyllabusActions />}
+                                />
+                            )}
+                        </div>
                     )}
 
-                    {/* â”€â”€ Progress â”€â”€ */}
+                    {/* ── Progress ── */}
                     {activeSection === "Progress" && <ProgressTab />}
 
                 </div>
@@ -454,6 +607,5 @@ const ShowSubLevelTablesData = () => {
         </>
     );
 };
-
 
 export default ShowSubLevelTablesData;
