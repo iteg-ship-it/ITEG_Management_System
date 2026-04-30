@@ -2687,7 +2687,7 @@ paths:
                     type: string
 
 
-  /api/admitted/students/getall:
+  /api/students/getall:
     get:
       summary: Get all admitted students
       description: Fetches a list of all admitted students.
@@ -2713,7 +2713,7 @@ paths:
                     type: string
                     example: Server error
 
-  /api/admitted/students/{id}:
+  /api/students/{id}:
     get:
       summary: Get student by ID
       description: Fetches a single admitted student's details using their unique MongoDB ObjectId.
@@ -2756,7 +2756,7 @@ paths:
                     type: string
   
 
-  /api/admitted/students/create_level/{id}:
+  /api/students/create_level/{id}:
     post:
       summary: Add new level attempt for a student
       description: Automatically determines and adds the next level based on student's previous progress.
@@ -2854,7 +2854,7 @@ paths:
 
 
 
-  /api/admitted/students/get_levels/{id}:
+  /api/students/get_levels/{id}:
     get:
       summary: Get all interview levels of a student
       description: Retrieve all interview levels for a student by their ID.
@@ -2930,7 +2930,7 @@ paths:
 
 
 
-  /api/admitted/students/level/{levelNo}:
+  /api/students/level/{levelNo}:
     get:
       summary: Get students by their latest level number
       tags:
@@ -3265,7 +3265,7 @@ paths:
         '500':
           description: Internal server error
 
-  /api/admitted/students/permission_students:
+  /api/students/permission_students:
     get:
       summary: Get all permission-granted students
       description: Returns a list of students who have permission details assigned (non-null).
@@ -3306,7 +3306,7 @@ paths:
                     type: string
                     example: Server Error
 
-  /api/admitted/students/update_permission_student/{studentId}:
+  /api/students/update_permission_student/{studentId}:
     patch:
       summary: Update permission details of a student
       description: Updates the permission details of an admitted student using their student ID. Only accessible by Super Admin, Admin, or Faculty.
@@ -3387,7 +3387,7 @@ paths:
                     type: string
                     example: Server Error
 
-  /api/admitted/students/update-placement/{id}:
+  /api/students/update-placement/{id}:
     patch:
       summary: Update placement information for a student
       description: |
@@ -3567,8 +3567,37 @@ paths:
 
 
   # ===== PLACEMENT WORKFLOW APIs =====
-  
-  /api/admitted/students/interviews/{id}:
+
+  /api/students/Ready_Students:
+    get:
+      summary: Get Ready Students (department/subDepartment wise)
+      description: Returns students whose readinessStatus is 'Ready'. Filter by departmentId or subDepartmentId.
+      tags:
+        - Placement Workflow
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: departmentId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by department (all subDepartments under it)
+        - name: subDepartmentId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by specific subDepartment
+      responses:
+        '200':
+          description: Ready students fetched
+        '404':
+          description: No ready students found
+        '500':
+          description: Server error
+
+  /api/students/interviews/{id}:
     post:
       summary: 1. Create/Schedule Interview
       description: Schedule interview for ready student with company details
@@ -3624,7 +3653,7 @@ paths:
         '500':
           description: Server error
 
-  /api/admitted/students/update/interviews/{studentId}/{interviewId}:
+  /api/students/update/interviews/{studentId}/{interviewId}:
     patch:
       summary: 2. Update Interview Status
       description: Update interview status (Ongoing/Pending/Reschedule/Selected/Rejected)
@@ -3669,7 +3698,7 @@ paths:
         '500':
           description: Server error
 
-  /api/admitted/students/interviews/{studentId}/{interviewId}/add_round:
+  /api/students/interviews/{studentId}/{interviewId}/add_round:
     post:
       summary: 3. Add Interview Round
       description: Add multiple rounds to existing interview
@@ -3725,7 +3754,7 @@ paths:
         '500':
           description: Server error
 
-  /api/admitted/students/Ready_Students:
+  /api/students/Ready_Students:
     get:
       summary: 4. Get Ready Students
       description: Get all students ready for placement interviews
@@ -3763,12 +3792,27 @@ paths:
         '500':
           description: Server error
 
-  /api/admitted/students/selected_students:
+  /api/students/selected_students:
     get:
-      summary: 5. Get Selected Students
-      description: Get students selected but not yet placed
+      summary: Get Selected Students (department/subDepartment wise)
+      description: Get students selected but not yet placed. Filter by departmentId or subDepartmentId.
       tags:
         - Placement Workflow
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: departmentId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by department
+        - name: subDepartmentId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by subDepartment
       responses:
         '200':
           description: List of selected students
@@ -3793,11 +3837,10 @@ paths:
                           type: string
                         selectedInterviews:
                           type: array
-                          description: Interviews with Selected status
         '500':
           description: Server error
 
-  /api/admitted/students/confirm_placement:
+  /api/students/confirm_placement:
     post:
       summary: 6. Confirm Placement (Auto-detect Interview or Direct)
       description: |
@@ -3912,12 +3955,27 @@ paths:
                     type: string
                     example: "Server error message"
 
-  /api/admitted/students/placed_students:
+  /api/students/placed_students:
     get:
-      summary: 7. Get Placed Students
-      description: Get all students with confirmed placements
+      summary: Get Placed Students (department/subDepartment wise)
+      description: Get all students with confirmed placements. Filter by departmentId or subDepartmentId.
       tags:
         - Placement Workflow
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: departmentId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by department
+        - name: subDepartmentId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by subDepartment
       responses:
         '200':
           description: List of placed students
@@ -3936,19 +3994,14 @@ paths:
                       properties:
                         _id:
                           type: string
-                        firstName:
-                          type: string
-                        lastName:
-                          type: string
-                        course:
-                          type: string
+                        studentId:
+                          type: object
                         placedInfo:
                           type: object
-                          description: Final placement details
         '500':
           description: Server error
 
-  /api/admitted/students/placement_post:
+  /api/students/placement_post:
     post:
       summary: Create Placement Post (Preview Only)
       description: >
@@ -4094,7 +4147,7 @@ paths:
                     type: string
                     example: Cloudinary upload failed
 
-  /api/admitted/students/update_job_type:
+  /api/students/update_job_type:
     patch:
       summary: 9. Update Job Type
       description: Update job type from Internship to Full-Time/PPO
@@ -4137,7 +4190,7 @@ paths:
           description: Server error
 
 
-  /api/admitted/students/update_technology/{id}:
+  /api/students/update_technology/{id}:
     patch:
       summary: Update student's technology after Level 2A
       description: Updates the 'techno' field of a student only if they have passed Level 2A.
@@ -4220,7 +4273,7 @@ paths:
 
 
 
-  /api/admitted/students/update/profile/{id}:
+  /api/students/update/profile/{id}:
     patch:
       tags:
         - Admitted Student
@@ -4264,7 +4317,7 @@ paths:
         '500':
           description: Internal Server Error
 
-  /api/admitted/students/update/email/{id}:
+  /api/students/update/email/{id}:
     patch:
       tags:
         - Admitted Student
@@ -4367,7 +4420,7 @@ paths:
                   error:
                     type: string
  
-  /api/admitted/students/reschedule/interview/{studentId}/{interviewId}:
+  /api/students/reschedule/interview/{studentId}/{interviewId}:
     patch:
       tags:
         - Placement
@@ -4449,7 +4502,7 @@ paths:
 
 
 
-  /api/admitted/students/interview_history/{studentId}:
+  /api/students/interview_history/{studentId}:
     get:
       summary: Get student's placement interview history with company details
       description: Retrieve all placement interview records for a specific student with populated company information
@@ -4583,7 +4636,7 @@ paths:
                     type: string
                     example: "Error message details"
 
-  /api/admitted/students/upload_Resume_Base64:
+  /api/students/upload_Resume_Base64:
     post:
       summary: Upload Student Resume (Base64)
       description: Upload student resume as Base64 encoded data to Cloudinary and update student record. Supports PDF, DOC, and DOCX files.
@@ -4667,7 +4720,7 @@ paths:
   
 
 
-  /api/admitted/students/companies:
+  /api/students/companies:
     get:
       summary: Get all companies
       description: Retrieve all companies with full details
@@ -4706,7 +4759,7 @@ paths:
                     example: Internal server error
 
 
-  /api/admitted/students/companies/placed_students/{companyId}:
+  /api/students/companies/placed_students/{companyId}:
     get:
       summary: Get all placed students by company
       description: Retrieve all students who are placed in the selected company.
@@ -4770,7 +4823,7 @@ paths:
                   error:
                     type: string
                     example: Internal server error
-  /api/admitted/students/dashboard/stats:
+  /api/students/dashboard/stats:
     get:
       summary: Get student statistics
       description: Get total students count, level-wise counting, and placed students count
@@ -6276,6 +6329,7 @@ paths:
                           format: date-time
         '500':
           description: Server error
+
 
 
 
