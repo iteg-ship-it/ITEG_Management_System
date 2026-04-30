@@ -44,6 +44,12 @@ const validateDepartmentInput = (req, res, next) => {
   }
 
   if (allowedCourses && Array.isArray(allowedCourses) && allowedCourses.length > 0) {
+    // FormData strings ko number mein convert karo
+    allowedCourses.forEach(c => {
+      if (typeof c.durationInYears === 'string') c.durationInYears = Number(c.durationInYears);
+    });
+    req.body.allowedCourses = allowedCourses;
+
     const isValidCourses = allowedCourses.every(course =>
       course.courseName &&
       typeof course.courseName === 'string' &&

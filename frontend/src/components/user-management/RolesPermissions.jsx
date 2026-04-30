@@ -374,7 +374,7 @@ const RolesPermissions = () => {
             
             {/* Create Role Side Panel */}
             {showCreateRole && (
-                <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-end z-50">
+                <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-end z-50">
                     <div className="bg-white h-full w-96 shadow-xl flex flex-col">
                         <div className="flex items-center justify-between p-6 border-b">
                             <h2 className="text-xl font-semibold text-gray-800">Create New Role</h2>
