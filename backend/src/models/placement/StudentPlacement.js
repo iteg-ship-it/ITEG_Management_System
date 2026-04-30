@@ -40,7 +40,6 @@ const studentPlacementSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-studentPlacementSchema.index({ studentId: 1 });
 studentPlacementSchema.index({ subDepartmentId: 1, readinessStatus: 1 });
 studentPlacementSchema.index({ subDepartmentId: 1, "placedInfo": 1 });
 
