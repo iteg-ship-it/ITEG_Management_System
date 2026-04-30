@@ -111,7 +111,7 @@ const LoginPage = () => {
                     label="Password" 
                   />
                   <div
-                    className="absolute top-[38px] right-3 transform -translate-y-1/2 text-gray-500 cursor-pointer z-10"
+                    className="absolute bottom-0 right-3 h-11 flex items-center text-gray-500 cursor-pointer z-10"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}

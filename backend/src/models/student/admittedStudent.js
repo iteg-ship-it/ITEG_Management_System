@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { placedInfoSchema, interviewRecordSchema } = require("../placement/PlacementSchema");
 
 const levelSchema = new mongoose.Schema({
   levelNo: { type: String, default: "1A" }, // e.g., "Level 1"

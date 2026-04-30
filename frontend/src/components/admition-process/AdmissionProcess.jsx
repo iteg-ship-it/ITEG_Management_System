@@ -414,7 +414,7 @@ const StudentList = () => {
       <Header 
         title="Admission Process"
       >
-        <div className="w-80 ml-auto">
+        <div className="w-72">
           <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </div>
       </Header>

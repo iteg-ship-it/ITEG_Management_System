@@ -79,6 +79,7 @@ const Layout = () => {
                     <Route path="/levels" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><ShowLevels /></ProtectedRoute>} />
                     <Route path="/user-permission" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><UserPermission /></ProtectedRoute>} />
                     <Route path="/settings" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><SettingFIle /></ProtectedRoute>} />
+                    <Route path="/session-management" element={<ProtectedRoute allowedRoles={["superadmin", "admin"]}><SessionManagement /></ProtectedRoute>} />
                     <Route path="/support" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><Supportfile /></ProtectedRoute>} />
                     <Route path="/curriculum-management" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><CurriculumManagement /></ProtectedRoute>} />
                     <Route path="/unauthorized" element={<PageNotFound />} />
