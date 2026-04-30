@@ -10,6 +10,7 @@ const protectedRoutes = require('./protectedRoutes');
 const roleRoutes = require('./roleRoutes');
 const syllabusRoutes = require('./syllabusRoutes');
 const sessionRoutes = require('./sessionRoutes');
+const superAdminDashboardRoutes = require('./superAdminDashboardRoutes');
 
 router.use('/user', userRoutes);
 router.use('/user/otp', otpRoutes);
@@ -20,5 +21,6 @@ router.use('/protected', protectedRoutes);
 router.use('/roles', roleRoutes);
 router.use('/syllabus/versions', syllabusRoutes);
 router.use('/sessions', sessionRoutes);
+router.use('/superadmin/dashboard', superAdminDashboardRoutes);
 
 module.exports = router;
