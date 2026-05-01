@@ -12,33 +12,42 @@ const { promoteToNextSubLevel } = require("../../services/studentService");
 const cloudinary = require("../../config/cloudinaryConfig");
 const mongoose = require("mongoose");
 
+
 // ✅ Create Student
 exports.createStudent = async (req, res) => {
 
 
-  
+
+
+ 
   try {
     const { subDepartmentId } = req.body;
+
 
     // Duplicate check
     const existing = await Student.findOne({ prkey: req.body.prkey });
     if (existing) return res.status(409).json({ message: "Student with this prkey already exists" });
 
+
     // Validate subDepartment
     const subDept = await SubDepartment.findById(subDepartmentId);
     if (!subDept) return res.status(404).json({ message: "SubDepartment not found" });
+
 
     // 1️⃣ First Level (lowest order) under this subDepartment
     const firstLevel = await Level.findOne({ subDepartmentId, isActive: true }).sort({ order: 1 });
     if (!firstLevel) return res.status(404).json({ message: "No active level found for this subDepartment" });
 
+
     // 2️⃣ First SubLevel (lowest order) under that Level
     const firstSubLevel = await SubLevel.findOne({ levelId: firstLevel._id, isActive: true }).sort({ order: 1 });
     if (!firstSubLevel) return res.status(404).json({ message: "No active sub-level found for this level" });
 
+
     // 3️⃣ Latest active Session
     const latestSession = await Session.findOne({ isActive: true }).sort({ createdAt: -1 });
     if (!latestSession) return res.status(404).json({ message: "No active session found" });
+
 
     // 4️⃣ Latest active SyllabusVersion for this session + level + sublevel
     const latestSyllabus = await SyllabusVersion.findOne({
@@ -50,6 +59,7 @@ exports.createStudent = async (req, res) => {
     }).sort({ createdAt: -1 });
     if (!latestSyllabus) return res.status(404).json({ message: "No active syllabus version found for this session/level/sublevel" });
 
+
     const student = new Student({
       ...req.body,
       sessionId: latestSession._id,
@@ -58,7 +68,9 @@ exports.createStudent = async (req, res) => {
       syllabusVersionId: latestSyllabus._id
     });
 
+
     await student.save();
+
 
     // 5️⃣ Auto-assign tasks of this syllabus version to the student
     let taskAssignmentResult = null;
@@ -68,6 +80,7 @@ exports.createStudent = async (req, res) => {
       // Task assignment failure should not block student creation
       console.error("Task auto-assignment failed:", taskErr.message);
     }
+
 
     return res.status(201).json({
       message: "Student created successfully",
@@ -85,11 +98,13 @@ exports.createStudent = async (req, res) => {
   }
 };
 
+
 // ✅ Get All Students (with filters including departmentId)
 exports.getAllStudents = async (req, res) => {
   try {
     const { sessionId, departmentId, subDepartmentId, currentLevelId, currentSubLevelId, status } = req.query;
     const filter = {};
+
 
     // If departmentId given, find all subDepartments under it first
     if (departmentId) {
@@ -99,11 +114,13 @@ exports.getAllStudents = async (req, res) => {
       filter.subDepartmentId = { $in: subDeptIds };
     }
 
+
     if (subDepartmentId) filter.subDepartmentId = subDepartmentId;
     if (sessionId) filter.sessionId = sessionId;
     if (currentLevelId) filter.currentLevelId = currentLevelId;
     if (currentSubLevelId) filter.currentSubLevelId = currentSubLevelId;
     if (status) filter.status = status;
+
 
     const students = await Student.find(filter)
       .populate("subDepartmentId", "name departmentId")
@@ -112,11 +129,13 @@ exports.getAllStudents = async (req, res) => {
       .populate("currentSubLevelId", "name order")
       .sort({ createdAt: -1 });
 
+
     return res.status(200).json({ count: students.length, data: students });
   } catch (error) {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 // ✅ Get Student by ID
 exports.getStudentById = async (req, res) => {
@@ -128,12 +147,14 @@ exports.getStudentById = async (req, res) => {
       .populate("currentLevelId", "name order")
       .populate("currentSubLevelId", "name order");
 
+
     if (!student) return res.status(404).json({ message: "Student not found" });
     return res.status(200).json({ data: student });
   } catch (error) {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 // ✅ Update Student Basic Info
 exports.updateStudent = async (req, res) => {
@@ -147,6 +168,7 @@ exports.updateStudent = async (req, res) => {
     const updateData = {};
     allowedFields.forEach(f => { if (req.body[f] !== undefined) updateData[f] = req.body[f]; });
 
+
     const student = await Student.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
     if (!student) return res.status(404).json({ message: "Student not found" });
     return res.status(200).json({ message: "Student updated successfully", data: student });
@@ -154,6 +176,7 @@ exports.updateStudent = async (req, res) => {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 // ✅ Update Profile Image
 exports.updateProfileImage = async (req, res) => {
@@ -163,8 +186,10 @@ exports.updateProfileImage = async (req, res) => {
     if (!/^data:image\/(png|jpeg|jpg|gif);base64,/.test(image))
       return res.status(400).json({ message: "Invalid image format. Must be base64 encoded." });
 
+
     const student = await Student.findById(req.params.id);
     if (!student) return res.status(404).json({ message: "Student not found" });
+
 
     cloudinary.config({
       cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -172,11 +197,13 @@ exports.updateProfileImage = async (req, res) => {
       api_secret: process.env.CLOUDINARY_API_SECRET,
     });
 
+
     const uploadResponse = await cloudinary.uploader.upload(image, {
       folder: "student_profiles",
       public_id: `student_${req.params.id}`,
       overwrite: true,
     });
+
 
     student.image = uploadResponse.secure_url;
     await student.save();
@@ -185,6 +212,7 @@ exports.updateProfileImage = async (req, res) => {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 // ✅ Upload Document (image or pdf)
 exports.uploadDocument = async (req, res) => {
@@ -195,8 +223,10 @@ exports.uploadDocument = async (req, res) => {
     if (!["image", "pdf"].includes(fileType))
       return res.status(400).json({ message: "fileType must be 'image' or 'pdf'" });
 
+
     const student = await Student.findById(req.params.id);
     if (!student) return res.status(404).json({ message: "Student not found" });
+
 
     cloudinary.config({
       cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -204,13 +234,16 @@ exports.uploadDocument = async (req, res) => {
       api_secret: process.env.CLOUDINARY_API_SECRET,
     });
 
+
     const uploadOptions = {
       folder: "student_documents",
       resource_type: fileType === "pdf" ? "raw" : "image",
       public_id: `doc_${req.params.id}_${Date.now()}`,
     };
 
+
     const uploadResponse = await cloudinary.uploader.upload(fileData, uploadOptions);
+
 
     const doc = {
       title,
@@ -221,8 +254,10 @@ exports.uploadDocument = async (req, res) => {
       uploadedAt: new Date(),
     };
 
+
     student.documents.push(doc);
     await student.save();
+
 
     return res.status(201).json({ message: "Document uploaded successfully", data: doc });
   } catch (error) {
@@ -230,14 +265,17 @@ exports.uploadDocument = async (req, res) => {
   }
 };
 
+
 // ✅ Delete Document
 exports.deleteDocument = async (req, res) => {
   try {
     const student = await Student.findById(req.params.id);
     if (!student) return res.status(404).json({ message: "Student not found" });
 
+
     const docIndex = student.documents.findIndex(d => d._id.toString() === req.params.docId);
     if (docIndex === -1) return res.status(404).json({ message: "Document not found" });
+
 
     student.documents.splice(docIndex, 1);
     await student.save();
@@ -247,6 +285,7 @@ exports.deleteDocument = async (req, res) => {
   }
 };
 
+
 // ✅ Update Permission Details
 exports.updatePermission = async (req, res) => {
   try {
@@ -255,8 +294,10 @@ exports.updatePermission = async (req, res) => {
     if (!["super admin", "admin", "faculty"].includes(approved_by))
       return res.status(400).json({ message: "Invalid approved_by role" });
 
+
     const student = await Student.findById(req.params.id);
     if (!student) return res.status(404).json({ message: "Student not found" });
+
 
     cloudinary.config({
       cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -264,7 +305,9 @@ exports.updatePermission = async (req, res) => {
       api_secret: process.env.CLOUDINARY_API_SECRET,
     });
 
+
     const uploadResponse = await cloudinary.uploader.upload(imageURL, { folder: "permission_applications" });
+
 
     student.permissionDetails = {
       imageURL: uploadResponse.secure_url,
@@ -279,6 +322,7 @@ exports.updatePermission = async (req, res) => {
   }
 };
 
+
 // ✅ Get Students with Permission
 exports.getPermissionStudents = async (req, res) => {
   try {
@@ -291,14 +335,17 @@ exports.getPermissionStudents = async (req, res) => {
   }
 };
 
+
 // ✅ Get Student Tasks (level-wise / sublevel-wise)
 exports.getStudentTasks = async (req, res) => {
   try {
     const { id } = req.params;
     const { subLevelId, status } = req.query;
 
+
     const student = await Student.findById(id);
     if (!student) return res.status(404).json({ message: "Student not found" });
+
 
     const filter = {
       studentId: id,
@@ -307,7 +354,9 @@ exports.getStudentTasks = async (req, res) => {
     if (subLevelId) filter.subLevelId = subLevelId;
     if (status) filter.status = status;
 
+
     const tasks = await StudentTask.find(filter).sort({ subjectName: 1, topicName: 1 });
+
 
     // Group by subject
     const grouped = {};
@@ -316,6 +365,7 @@ exports.getStudentTasks = async (req, res) => {
       if (!grouped[key]) grouped[key] = { subjectId: t.subjectId, tasks: [] };
       grouped[key].tasks.push(t);
     });
+
 
     return res.status(200).json({
       totalTasks: tasks.length,
@@ -329,19 +379,23 @@ exports.getStudentTasks = async (req, res) => {
   }
 };
 
+
 // ✅ Get Student Tasks by SubLevel
 exports.getStudentTasksBySubLevel = async (req, res) => {
   try {
     const { id, subLevelId } = req.params;
 
+
     const student = await Student.findById(id);
     if (!student) return res.status(404).json({ message: "Student not found" });
+
 
     const tasks = await StudentTask.find({
       studentId: id,
       subLevelId,
       syllabusVersionId: student.syllabusVersionId,
     }).sort({ subjectName: 1, topicName: 1 });
+
 
     const stats = {
       total: tasks.length,
@@ -351,6 +405,7 @@ exports.getStudentTasksBySubLevel = async (req, res) => {
       averageMarks: 0,
     };
 
+
     const completedWithMarks = tasks.filter(t => t.status === "completed" && t.marks !== null);
     if (completedWithMarks.length > 0) {
       stats.averageMarks = parseFloat(
@@ -358,11 +413,13 @@ exports.getStudentTasksBySubLevel = async (req, res) => {
       );
     }
 
+
     return res.status(200).json({ stats, tasks });
   } catch (error) {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 // ✅ Get Student Task History
 exports.getStudentTaskHistory = async (req, res) => {
@@ -370,15 +427,18 @@ exports.getStudentTaskHistory = async (req, res) => {
     const { id } = req.params;
     const { taskId, subLevelId, page = 1, limit = 20 } = req.query;
 
+
     const filter = { studentId: id };
     if (taskId) filter.taskId = taskId;
     if (subLevelId) filter.subLevelId = subLevelId;
+
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const [history, total] = await Promise.all([
       StudentTaskHistory.find(filter).sort({ changedAt: -1 }).skip(skip).limit(parseInt(limit)),
       StudentTaskHistory.countDocuments(filter),
     ]);
+
 
     return res.status(200).json({
       total,
@@ -391,21 +451,25 @@ exports.getStudentTaskHistory = async (req, res) => {
   }
 };
 
+
 // ✅ Get Student Progress Snapshots
 exports.getStudentProgressSnapshots = async (req, res) => {
   try {
     const { id } = req.params;
     const { subLevelId, scope, page = 1, limit = 20 } = req.query;
 
+
     const filter = { studentId: id };
     if (subLevelId) filter.subLevelId = subLevelId;
     if (scope) filter.snapshotScope = scope;
+
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const [snapshots, total] = await Promise.all([
       StudentProgressSnapshot.find(filter).sort({ changedAt: -1 }).skip(skip).limit(parseInt(limit)),
       StudentProgressSnapshot.countDocuments(filter),
     ]);
+
 
     return res.status(200).json({
       total,
@@ -417,6 +481,7 @@ exports.getStudentProgressSnapshots = async (req, res) => {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 // ✅ Promote Student to Next SubLevel (Manual or Auto-triggered)
 exports.promoteStudent = async (req, res) => {
@@ -437,6 +502,7 @@ exports.promoteStudent = async (req, res) => {
   }
 };
 
+
 // ✅ Update Readiness Status
 exports.updateReadinessStatus = async (req, res) => {
   try {
@@ -445,11 +511,13 @@ exports.updateReadinessStatus = async (req, res) => {
     if (!readinessStatus || !validStatuses.includes(readinessStatus))
       return res.status(400).json({ message: `readinessStatus must be one of: ${validStatuses.join(", ")}` });
 
+
     const student = await Student.findByIdAndUpdate(
       req.params.id,
       { readinessStatus },
       { new: true, runValidators: true }
     ).select("_id prkey firstName lastName readinessStatus");
+
 
     if (!student) return res.status(404).json({ message: "Student not found" });
     return res.status(200).json({ message: "Readiness status updated", data: student });
@@ -457,6 +525,7 @@ exports.updateReadinessStatus = async (req, res) => {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 // ✅ Get Student Dashboard Stats
 exports.getStudentStats = async (req, res) => {
