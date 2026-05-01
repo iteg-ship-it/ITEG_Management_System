@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { IoSettingsSharp } from "react-icons/io5";
@@ -13,32 +12,39 @@ import { useSidebar } from "../../../contexts/SidebarContext";
 import logo from "../../../assets/images/logo.png";
 import logoo from "../../../assets/images/logo-ssism.png";
 
+
 const Sidebar = ({ children }) => {
   const location = useLocation();
   const { hasPermission } = usePermissions();
+
 
   const isMobile = () => window.innerWidth < 1024;
   const [isOpen, setIsOpen] = useState(() => !isMobile());
   const { isMobileOpen, closeMobileSidebar } = useSidebar();
 
+
   const role = (localStorage.getItem("role") || "").toLowerCase();
+
 
   const getActiveMenus = (path) => {
     if (path === "/" || path === "/attendance-details") return [0];
     if (path === "/admission-process" || path.startsWith("/admission/")) return [1];
-    if (path === "/student-detail-table" || path === "/student-permission" || path.startsWith("/student-profile/") || path === "/department-management" || path.startsWith("/department-details/") || path === "/subdepartment-details" || path === "/task-management") return [2];
+    if (path === "/student-detail-table" || path === "/student-permission" || path.startsWith("/student-profile/") || path.startsWith("/student-level-interviews/") || path.startsWith("/student/") || path === "/department-management" || path.startsWith("/department-details/") || path === "/subdepartment-details" || path === "/task-management" || path === "/curriculum-management") return [2];
     if (path === "/settings" || path === "/support") return [];
-    if (path === "/readiness-status" || path === "/company-details" || path === "/placement-post" || path.startsWith("/interview-history/") || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/")) return [3];
+    if (path === "/readiness-status" || path === "/company-details" || path === "/placement-post" || path.startsWith("/interview-history/") || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/") || path.startsWith("/placements/")) return [3];
     if (path === "/user-management" || path.startsWith("/user-profile/") || path === "/user-permission") return [4];
     return [0];
   };
 
+
   const [openMenus, setOpenMenus] = useState(() => getActiveMenus(location.pathname));
+
 
   useEffect(() => {
     const newMenus = getActiveMenus(location.pathname);
     setOpenMenus(newMenus);
   }, [location.pathname]);
+
 
   const toggleMenu = (index) => {
     setOpenMenus((prev) =>
@@ -46,11 +52,14 @@ const Sidebar = ({ children }) => {
     );
   };
 
+
   const isSubMenuActive = (subPath) => {
     const path = location.pathname;
 
+
     if (subPath === "/") return path === "/";
     if (subPath === "/attendance-details") return path === "/attendance-details";
+
 
     if (subPath === "/admission-process") {
       return (
@@ -61,12 +70,16 @@ const Sidebar = ({ children }) => {
       );
     }
 
+
     if (subPath === "/student-detail-table") {
       return (
         path === "/student-detail-table" ||
-        path.startsWith("/student-profile/")
+        path.startsWith("/student-profile/") ||
+        path.startsWith("/student-level-interviews/") ||
+        path.startsWith("/student/")
       );
     }
+
 
     if (subPath === "/department-management") {
       return (
@@ -76,9 +89,15 @@ const Sidebar = ({ children }) => {
       );
     }
 
+
     if (subPath === "/task-management") return path === "/task-management";
 
+
+    if (subPath === "/curriculum-management") return path === "/curriculum-management";
+
+
     if (subPath === "/student-permission") return path === "/student-permission";
+
 
     if (subPath === "/readiness-status") {
       return (
@@ -88,14 +107,18 @@ const Sidebar = ({ children }) => {
       );
     }
 
+
     if (subPath === "/company-details") {
       return path === "/company-details" || path.startsWith("/placement/");
     }
 
+
     if (subPath === "/placement-post") return path === "/placement-post";
+
 
     return path === subPath || path.startsWith(subPath + "/");
   };
+
 
   const menuItems = [
     {
@@ -121,9 +144,10 @@ const Sidebar = ({ children }) => {
       permission: "Page_AdmittedStudents",
       subMenu: [
         { name: "Student Progress", path: "/student-detail-table", permission: "Page_AdmittedStudents" },
-
         { name: "Dummy Students", path: "/student-permission", permission: "Page_DummyStudents" },
         { name: "Department", path: "/department-management", permission: "Page_Department" },
+        { name: "Task Management", path: "/task-management", permission: "Page_AdmittedStudents" },
+        { name: "Curriculum Management", path: "/curriculum-management", permission: "Page_AdmittedStudents" },
       ],
     },
     {
@@ -131,10 +155,12 @@ const Sidebar = ({ children }) => {
       icon: <MdWork />,
       permission: "Page_Placement",
       subMenu: [
+        ...(role === "superadmin" || role === "admin"
+          ? [{ name: "Dashboard", path: "/placements/dashboard", permission: "Page_Placement" }]
+          : []),
         { name: "Placement Candidates", path: "/readiness-status", permission: "Page_Placement" },
         { name: "Company Details", path: "/company-details", permission: "Page_CompanyDetails" },
         { name: "Placed Students", path: "/placement-post", permission: "Page_PlacedStudents" },
-        { name: "Dept. Overview", path: "/placement/department-overview", permission: "Page_PlacedStudents" },
       ],
     },
     {
@@ -147,14 +173,18 @@ const Sidebar = ({ children }) => {
     },
   ];
 
+
   const systemDirectLinks = [
     { name: "Settings", path: "/settings", icon: <IoSettingsSharp />, permission: "Page_Settings" },
     { name: "Support", path: "/support", icon: <MdSupportAgent />, permission: "Page_Support" },
   ];
 
+
   const filteredMenuItems = menuItems.filter(item => hasPermission(item.permission, 'read'));
 
+
   const anyPermissionsLoaded = filteredMenuItems.length > 0;
+
 
   const NavContent = ({ onClose }) => (
     <>
@@ -164,9 +194,12 @@ const Sidebar = ({ children }) => {
             ? item.subMenu.filter(subItem => hasPermission(subItem.permission, 'read'))
             : item.subMenu;
 
+
           if (filteredSubMenu.length === 0) return null;
 
+
           const isActive = openMenus.includes(idx);
+
 
           return (
             <div key={idx} className="mb-1">
@@ -182,6 +215,7 @@ const Sidebar = ({ children }) => {
                 </div>
                 {isActive ? <HiChevronUp size={16} /> : <HiChevronDown size={16} />}
               </div>
+
 
               {isActive && (
                 <div className="mt-1">
@@ -208,6 +242,7 @@ const Sidebar = ({ children }) => {
           );
         })}
 
+
         <p className="text-xs text-gray-400 px-3 mt-4 mb-2">SYSTEM</p>
         {systemDirectLinks.map((item, idx) => {
           const active = location.pathname === item.path;
@@ -227,11 +262,13 @@ const Sidebar = ({ children }) => {
         })}
       </nav>
 
+
       <div className="absolute bottom-0 left-0 right-0 border-t bg-gray-50">
         <UserProfile />
       </div>
     </>
   );
+
 
   return (
     <>
@@ -251,6 +288,7 @@ const Sidebar = ({ children }) => {
         </div>
       )}
 
+
       {/* ── DESKTOP SIDEBAR ── */}
       <div className="hidden lg:flex">
         <aside
@@ -265,6 +303,7 @@ const Sidebar = ({ children }) => {
             {isOpen ? <HiChevronLeft size={20} /> : <HiChevronRight size={20} />}
           </button>
 
+
           <div className="flex items-center gap-3 px-4 py-5">
             {isOpen ? (
               <img src={logo} alt="Logo" className="h-20 w-auto" />
@@ -273,9 +312,11 @@ const Sidebar = ({ children }) => {
             )}
           </div>
 
+
           {isOpen && <NavContent onClose={null} />}
         </aside>
       </div>
+
 
       {/* ── MAIN CONTENT ── */}
       <main
@@ -288,6 +329,8 @@ const Sidebar = ({ children }) => {
     </>
   );
 };
+
+
 
 
 export default Sidebar;
