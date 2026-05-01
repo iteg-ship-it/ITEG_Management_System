@@ -96,6 +96,7 @@ const AdmittedStudentSchema = new mongoose.Schema({
   village: { type: String, required: true },
   stream: { type: String },
   course: { type: String, required: true },
+  department: { type: mongoose.Schema.Types.ObjectId, ref: "Department", default: null },
   category: { type: String },
   subject12: { type: String },
   year12: { type: String },

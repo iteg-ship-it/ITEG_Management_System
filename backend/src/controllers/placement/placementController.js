@@ -274,14 +274,70 @@ exports.confirmPlacement = async (req, res) => {
 
 
 
-// 6. GET PLACED STUDENTS
+// 6. GET PLACED STUDENTS (with optional department filter)
 exports.getPlacedStudents = async (req, res) => {
   try {
-    const placedStudents = await AdmittedStudent.find({
-      placedInfo: { $ne: null }
-    }).populate('placedInfo.companyRef');
+    const { departmentId } = req.query;
+    const filter = { placedInfo: { $ne: null } };
+    if (departmentId) filter.department = departmentId;
+
+    const placedStudents = await AdmittedStudent.find(filter)
+      .populate('placedInfo.companyRef')
+      .populate('department', 'name code');
 
     res.json({ success: true, data: placedStudents });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// 6b. GET DEPARTMENT-WISE PLACEMENT STATS (Super Admin / Admin)
+exports.getDepartmentWisePlacementStats = async (req, res) => {
+  try {
+    const Department = require('../../models/department/Department');
+
+    const departments = await Department.find({ isActive: true }).select('name code');
+
+    const stats = await Promise.all(
+      departments.map(async (dept) => {
+        const [totalStudents, placedStudents, readyStudents, interviewStudents] = await Promise.all([
+          AdmittedStudent.countDocuments({ department: dept._id }),
+          AdmittedStudent.countDocuments({ department: dept._id, placedInfo: { $ne: null } }),
+          AdmittedStudent.countDocuments({ department: dept._id, readinessStatus: 'Ready' }),
+          AdmittedStudent.countDocuments({
+            department: dept._id,
+            'PlacementinterviewRecord.0': { $exists: true }
+          })
+        ]);
+
+        // Average salary of placed students in this dept
+        const salaryAgg = await AdmittedStudent.aggregate([
+          { $match: { department: dept._id, placedInfo: { $ne: null } } },
+          { $group: { _id: null, avgSalary: { $avg: '$placedInfo.salary' } } }
+        ]);
+
+        return {
+          departmentId: dept._id,
+          departmentName: dept.name,
+          departmentCode: dept.code,
+          totalStudents,
+          placedStudents,
+          readyStudents,
+          interviewStudents,
+          avgSalary: salaryAgg[0]?.avgSalary || 0,
+          placementRate: totalStudents > 0 ? ((placedStudents / totalStudents) * 100).toFixed(1) : 0
+        };
+      })
+    );
+
+    // Overall totals
+    const overall = stats.reduce((acc, d) => ({
+      totalStudents: acc.totalStudents + d.totalStudents,
+      placedStudents: acc.placedStudents + d.placedStudents,
+      readyStudents: acc.readyStudents + d.readyStudents,
+    }), { totalStudents: 0, placedStudents: 0, readyStudents: 0 });
+
+    res.json({ success: true, data: stats, overall });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }

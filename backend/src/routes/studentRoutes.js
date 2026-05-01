@@ -87,6 +87,12 @@ router.patch("/reschedule/interview/:studentId/:interviewId/", studentController
 
 router.get("/companies/placed_students/:companyId", placementController.getPlacedStudentsByCompany);
 
+// Department-wise placement stats (Super Admin / Admin)
+router.get('/placement/department_stats', verifyToken, checkRole(["superadmin", "admin"]), placementController.getDepartmentWisePlacementStats);
+
+// Get placed students filtered by department
+router.get('/placed_students/by_department', verifyToken, checkRole(["superadmin", "admin", "faculty"]), placementController.getPlacedStudents);
+
 // Attendance Statistics Route
 router.get("/attendance/stats", verifyToken, checkRole(allowedRoles), attendanceController.getOverallAttendanceStats);
 

@@ -609,6 +609,24 @@ export const authApi = createApi({
       ],
     }),
 
+    // Department-wise placement stats
+    getDepartmentWisePlacementStats: builder.query({
+      query: () => ({
+        url: '/admitted/students/placement/department_stats',
+        method: 'GET',
+      }),
+      providesTags: ['PlacementStudent', 'Department'],
+    }),
+
+    // Get placed students by department
+    getPlacedStudentsByDepartment: builder.query({
+      query: (departmentId) => ({
+        url: `/admitted/students/placed_students/by_department${departmentId ? `?departmentId=${departmentId}` : ''}`,
+        method: 'GET',
+      }),
+      providesTags: ['PlacementStudent'],
+    }),
+
     // Get ITEG attendance data
     getItegAttendance: builder.query({
       query: ({ dateFrom, dateTo }) => {
@@ -1231,6 +1249,8 @@ export const {
   useUpdatePlacementPostMutation,
   useGetAllCompaniesQuery,
   useGetPlacedStudentsByCompanyQuery,
+  useGetDepartmentWisePlacementStatsQuery,
+  useGetPlacedStudentsByDepartmentQuery,
   useGetItegAttendanceQuery,
   useGetItegStudentAttendanceQuery,
   useUpdateStudentEmailMutation,
