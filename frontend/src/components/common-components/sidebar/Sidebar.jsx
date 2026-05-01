@@ -28,7 +28,7 @@ const Sidebar = ({ children }) => {
     if (path === "/admission-process" || path.startsWith("/admission/")) return [1];
     if (path === "/student-detail-table" || path === "/student-permission" || path.startsWith("/student-profile/") || path === "/department-management" || path.startsWith("/department-details/") || path === "/subdepartment-details" || path === "/task-management") return [2];
     if (path === "/settings" || path === "/support") return [];
-    if (path === "/readiness-status" || path === "/company-details" || path === "/placement-post" || path.startsWith("/interview-history/") || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/")) return [3];
+    if (path === "/readiness-status" || path === "/company-details" || path === "/placement-post" || path.startsWith("/interview-history/") || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/") || path.startsWith("/placements/")) return [3];
     if (path === "/user-management" || path.startsWith("/user-profile/") || path === "/user-permission") return [4];
     return [0];
   };
@@ -131,10 +131,12 @@ const Sidebar = ({ children }) => {
       icon: <MdWork />,
       permission: "Page_Placement",
       subMenu: [
+        ...(role === 'superadmin' || role === 'admin'
+          ? [{ name: "Dashboard", path: "/placements/dashboard", permission: "Page_Placement" }]
+          : []),
         { name: "Placement Candidates", path: "/readiness-status", permission: "Page_Placement" },
         { name: "Company Details", path: "/company-details", permission: "Page_CompanyDetails" },
         { name: "Placed Students", path: "/placement-post", permission: "Page_PlacedStudents" },
-        { name: "Dept. Overview", path: "/placement/department-overview", permission: "Page_PlacedStudents" },
       ],
     },
     {

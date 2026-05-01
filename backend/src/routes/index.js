@@ -14,6 +14,8 @@ const roleRoutes = require('./roleRoutes');
 const syllabusRoutes = require('./syllabusRoutes');
 const sessionRoutes  = require('./sessionRoutes');
 const newStudentRoutes = require('./newStudentRoutes');
+const superAdminDashboardRoutes = require('./superAdminDashboardRoutes');
+const deptPlacementRoutes = require('./deptPlacementRoutes');
 
 // Mount routes
 router.use('/user', userRoutes);
@@ -27,6 +29,8 @@ router.use('/roles', roleRoutes);
 router.use('/syllabus/versions', syllabusRoutes);
 router.use('/sessions', sessionRoutes);
 router.use('/students', newStudentRoutes);
+router.use('/superadmin/dashboard', superAdminDashboardRoutes);
+router.use('/placements/department', deptPlacementRoutes);
 
 // Webhook routes
 router.use('/admission/students/webhook', webhookRoutes);
