@@ -396,7 +396,7 @@ components:
             totalDisciplineMarks:
               type: number
               example: 25
-    NewStudent:
+    Student:
       type: object
       properties:
         _id:
@@ -534,6 +534,17 @@ paths:
                   example: "ITEG001"
                 universityName:
                   type: string
+                  example: "ITEG University"
+                description:
+                  type: string
+                  example: "ITEG Group has a level-wise syllabus."
+                headOfDepartment:
+                  type: string
+                  example: "Dr. Yogendra Rajput"
+                logo:
+                  type: string
+                  format: binary
+                  description: Optional logo image file (multipart/form-data)
                   example: "SSISM"
                 allowedCourses:
                   type: array
@@ -1962,43 +1973,7 @@ paths:
           description: User not found
         '500':
           description: Server error
-  /api/user/logout:
-    post:
-      summary: Logout user and remove refresh token
-      tags:
-        - Auth
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - _id
-              properties:
-                _id:
-                  type: string
-                  example: 644a99999f73e02bcd123456
-             
-      responses:
-        '200':
-          description: Logged out successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Logged out successfully
-        '400':
-          description: User ID is required
-        '404':
-          description: User not found
-        '500':
-          description: Server error
 
-  
   /api/user/refresh_token:
     post:
       summary: Refresh Access Token using valid Refresh Token
@@ -2861,7 +2836,7 @@ paths:
                     example: false
                   message:
                     type: string
-                    example: Missing required fields: studentId, position
+                    example: "Missing required fields: studentId, position"
         "404":
           description: Student not found
           content:
@@ -4841,6 +4816,10 @@ paths:
                           format: date-time
         '500':
           description: Server error
+
+
+
+
 
 
 
