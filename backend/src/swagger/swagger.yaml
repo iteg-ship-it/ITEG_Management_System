@@ -1691,7 +1691,7 @@ paths:
                 role:
                   type: string
                   enum: [admin, superadmin, faculty]
-                  example: faculty
+                  example: faculty`n                subDepartmentId:`n                  type: string`n                  nullable: true`n                  description: Required for faculty. Optional for admin. Not needed for superadmin.`n                  example: "64fdb61e7b9a1a1234567891"
       responses:
         '201':
           description: User created successfully
@@ -4841,6 +4841,7 @@ paths:
                           format: date-time
         '500':
           description: Server error
+
 
 
 

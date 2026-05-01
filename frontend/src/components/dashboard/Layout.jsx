@@ -13,6 +13,7 @@ import StudentLevelData from "../student-records/StudentLevelData";
 import StudentLevelInterviewHistory from "../student-records/StudentLevelInterviewHistory";
 import PlacementReadyStudents from "../placement/PlacementReadyStudents";
 import PlacementDashboard from "../placement/dashboard/PlacementDashboard";
+import DepartmentPlacementDetail from "../placement/dashboard/DepartmentPlacementDetail";
 import StudentPermission from "../student-records/StudentPermission";
 import PlacementRecords from "../placement/PlacementRecords";
 import PlacementPost from "../placement/PlacementPost";
@@ -63,6 +64,7 @@ const Layout = () => {
                     <Route path="/student-permission" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentPermission /></ProtectedRoute>} />
                     <Route path="/readiness-status" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><PlacementReadyStudents /></ProtectedRoute>} />
                     <Route path="/placements/dashboard" element={<ProtectedRoute allowedRoles={["superadmin", "admin"]}><PlacementDashboard /></ProtectedRoute>} />
+                    <Route path="/placements/department/:subDepartmentId" element={<ProtectedRoute allowedRoles={["superadmin", "admin"]}><DepartmentPlacementDetail /></ProtectedRoute>} />
                     <Route path="/placement-interview-record" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><PlacementRecords /></ProtectedRoute>} />
                     <Route path="/company-details" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><CompanyDetail /></ProtectedRoute>} />
                     <Route path="/placement/company/:companyId" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><PlacedStudents /></ProtectedRoute>} />
