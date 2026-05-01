@@ -87,6 +87,14 @@ const studentSchema = new mongoose.Schema({
   },
   isFTP: { type: Boolean, default: false },
 
+  // 🧑💼 Placement Readiness
+  readinessStatus: {
+    type: String,
+    enum: ["Not Ready", "In Progress", "Ready", "Ready for Interview"],
+    default: "Not Ready"
+  },
+  resumeURL: { type: String, default: "" },
+
   // 🔐 Permission
   permissionDetails: { type: permissionSchema, default: null },
 
@@ -104,7 +112,6 @@ const studentSchema = new mongoose.Schema({
   ]
 }, { timestamps: true });
 
-studentSchema.index({ prkey: 1 });
 studentSchema.index({ sessionId: 1, subDepartmentId: 1 });
 studentSchema.index({ currentSubLevelId: 1, syllabusVersionId: 1 });
 studentSchema.index({ status: 1 });

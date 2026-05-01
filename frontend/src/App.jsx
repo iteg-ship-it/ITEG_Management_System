@@ -73,7 +73,6 @@ function App() {
         draggable
         pauseOnHover
         theme="light"
-        style={{ zIndex: 99999 }}
       />
     </React.Suspense>
   );

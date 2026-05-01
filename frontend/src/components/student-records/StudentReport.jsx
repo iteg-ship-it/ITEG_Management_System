@@ -95,7 +95,7 @@ export default function StudentReport() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [taskPerformance, setTaskPerformance] = useState(null);
-  const [taskLoading, setTaskLoading] = useState(true);
+  const [taskLoading, setTaskLoading] = useState(false);
 
   const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
   const { data: reportCardResponse, isLoading: reportLoading, isError: reportError } = useGetReportCardQuery(id);

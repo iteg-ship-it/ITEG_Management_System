@@ -6,6 +6,7 @@ const SyllabusVersion = require("../models/syllabus/SyllabusVersion");
 const Session = require("../models/Session");
 const StudentEventLog = require("../models/student/StudentEventLog");
 const StudentProgressSnapshot = require("../models/student/StudentProgressSnapshot");
+const StudentPlacement = require("../models/placement/StudentPlacement");
 const { assignTasksToStudent } = require("./taskAssignmentService");
 
 // Called after every task status update — auto-promotes if 100% tasks done
@@ -43,7 +44,35 @@ const syncStudentReadiness = async (studentId) => {
     await promoteToNextSubLevel(studentId, null, { isAuto: true });
   } catch (err) {
     // Silently ignore — e.g. "already completed all levels"
-    console.log(`Auto-promotion skipped for ${studentId}: ${err.message}`);
+    if (err.message.includes("already completed all levels")) {
+      // Mark student Ready
+      await Student.findByIdAndUpdate(studentId, { readinessStatus: "Ready" });
+
+      // Auto-create StudentPlacement record so placement flow can begin
+      const freshStudent = await Student.findById(studentId).select("subDepartmentId");
+      const existing = await StudentPlacement.findOne({ studentId });
+      if (!existing && freshStudent) {
+        await StudentPlacement.create({
+          studentId,
+          subDepartmentId: freshStudent.subDepartmentId,
+          readinessStatus: "Ready",
+        });
+      } else if (existing) {
+        existing.readinessStatus = "Ready";
+        await existing.save();
+      }
+
+      await StudentEventLog.create({
+        studentId,
+        type: "promotion",
+        action: "all_levels_completed",
+        title: "All levels completed",
+        description: "Student has completed all levels and is ready for placement",
+        meta: {},
+      });
+    } else {
+      console.log(`Auto-promotion skipped for ${studentId}: ${err.message}`);
+    }
   }
 };
 

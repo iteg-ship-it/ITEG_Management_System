@@ -1,23 +1,18 @@
+// src/app/store.js
+
 import { configureStore } from "@reduxjs/toolkit";
 import { authApi } from "../redux/api/authApi";
-import authReducer from "../redux/auth/authSlice";
-
-const rtkQueryErrorLogger = () => (next) => (action) => {
-  if (action?.payload?.status >= 400 && action?.payload?.status < 500) {
-    return next(action);
-  }
-  return next(action);
-};
+import authReducer from "../redux/auth/authSlice"; // ✅ Import kara
 
 export const store = configureStore({
   reducer: {
     [authApi.reducerPath]: authApi.reducer,
-    auth: authReducer,
+    auth: authReducer, // ✅ Add kara
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: { warnAfter: 128 },
-    })
-    .concat(authApi.middleware)
-    .concat(rtkQueryErrorLogger),
+      serializableCheck: {
+        warnAfter: 128,
+      },
+    }).concat(authApi.middleware),
 });
