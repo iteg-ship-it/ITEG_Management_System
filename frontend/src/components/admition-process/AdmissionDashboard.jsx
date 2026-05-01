@@ -25,15 +25,13 @@ const AdmissionDashboard = () => {
   const placementPct = admittedStudents.length > 0 ? Math.round((placedStudents.length / admittedStudents.length) * 100) : 0;
 
   // Stats cards
-  const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#FDA92D';
-
   const stats = [
-    { label: 'TOTAL ENROLLED', value: allStudents.length, trend: '+5%', color: primaryColor },
-    { label: 'ADMISSIONS', value: admittedStudents.length, trend: '+12%', color: primaryColor },
-    { label: 'DEPARTMENTS', value: departments.length, trend: 'Stable', color: primaryColor },
-    { label: 'PLACED STUDENT', value: placedStudents.length, trend: '+8%', color: primaryColor },
-    { label: 'PLACEMENT %', value: `${placementPct}%`, trend: '+2%', color: primaryColor },
-    { label: 'TOTAL FACULTY', value: users.length, trend: '+4%', color: primaryColor },
+    { label: 'TOTAL ENROLLED', value: allStudents.length, trend: '+5%', color: '#FDA92D' },
+    { label: 'ADMISSIONS', value: admittedStudents.length, trend: '+12%', color: '#FDA92D' },
+    { label: 'DEPARTMENTS', value: departments.length, trend: 'Stable', color: '#FDA92D' },
+    { label: 'PLACED STUDENT', value: placedStudents.length, trend: '+8%', color: '#FDA92D' },
+    { label: 'PLACEMENT %', value: `${placementPct}%`, trend: '+2%', color: '#FDA92D' },
+    { label: 'TOTAL FACULTY', value: users.length, trend: '+4%', color: '#FDA92D' },
   ];
 
   // Admission Trend — level-wise student count (Google AreaChart)
@@ -115,7 +113,7 @@ const AdmissionDashboard = () => {
     return `${Math.floor(diff / 86400)} days ago`;
   };
 
-  const donutColors = [primaryColor, '#00B8D9', '#8E33FF', '#22C55E', '#FF5630'];
+  const donutColors = ['#FDA92D', '#00B8D9', '#8E33FF', '#22C55E', '#FF5630'];
 
   return (
     <>
@@ -173,7 +171,7 @@ const AdmissionDashboard = () => {
               options={{
                 backgroundColor: 'transparent',
                 chartArea: { width: '85%', height: '75%' },
-                colors: [primaryColor],
+                colors: ['#FDA92D'],
                 areaOpacity: 0.15,
                 lineWidth: 3,
                 pointSize: 0,

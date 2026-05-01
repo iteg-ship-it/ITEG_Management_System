@@ -12,6 +12,8 @@ import StudentReportForm from "../student-records/StudentReportForm";
 import StudentLevelData from "../student-records/StudentLevelData";
 import StudentLevelInterviewHistory from "../student-records/StudentLevelInterviewHistory";
 import PlacementReadyStudents from "../placement/PlacementReadyStudents";
+import PlacementDashboard from "../placement/dashboard/PlacementDashboard";
+import DepartmentPlacementDetail from "../placement/dashboard/DepartmentPlacementDetail";
 import StudentPermission from "../student-records/StudentPermission";
 import PlacementRecords from "../placement/PlacementRecords";
 import PlacementPost from "../placement/PlacementPost";
@@ -19,7 +21,8 @@ import CompanyDetail from "../placement/CompanyDetail";
 import PlacedStudents from "../placement/PlacedStudents";
 import InterviewHistory from "../placement/InterviewHistory";
 import InterviewRoundsHistory from "../placement/InterviewRoundsHistory";
-import DepartmentPlacementOverview from "../placement/DepartmentPlacementOverview";
+import PlacementDashboard from "../placement/dashboard/PlacementDashboard";
+import DepartmentPlacementDetail from "../placement/dashboard/DepartmentPlacementDetail";
 import PageNotFound from "../common-components/error-pages/PageNotFound";
 import ProtectedRoute from '../common-components/protected-route/ProtectedRoute';
 import AttendanceDetails from "./AttendanceDetails";
@@ -34,9 +37,11 @@ import SubdepartmentDetails from "./../Setting/Departments/SubdepartmentDetails"
 import ShowSubLevelTablesData from "./../Setting/Levels/ShowSubLevelTablesData";
 import SubLevelManagement from "./../Setting/Levels/SubLevelManagement";
 import StudentProfilePage from "./../Setting/Levels/StudentProfilePage";
+import TaskManagement from "./../Setting/TaskManagement";
+import TaskList from "./../student-records/TaskList";
 import SettingFIle from "./../Setting/SettingFIle";
 import Supportfile from "./../Setting/Supportfile";
-import SessionManagement from "./../Setting/Sessions/SessionManagement";
+import CurriculumManagement from "./../Setting/CurriculumManagement";
 
 const Layout = () => {
     return (
@@ -56,14 +61,16 @@ const Layout = () => {
                     <Route path="/student-profile/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentProfile /></ProtectedRoute>} />
                     <Route path="/student/:id/report/edit" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentReportForm /></ProtectedRoute>} />
                     <Route path="/student/:id/report" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentReport /></ProtectedRoute>} />
-                    <Route path="/student/:studentId/level-interviews" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentLevelInterviewHistory /></ProtectedRoute>} />
+                    <Route path="/student-level-interviews/:studentId" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentLevelInterviewHistory /></ProtectedRoute>} />
+                    <Route path="/student/:id/task-list" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><TaskList /></ProtectedRoute>} />
                     <Route path="/student-permission" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentPermission /></ProtectedRoute>} />
                     <Route path="/readiness-status" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><PlacementReadyStudents /></ProtectedRoute>} />
+                    <Route path="/placements/dashboard" element={<ProtectedRoute allowedRoles={["superadmin", "admin"]}><PlacementDashboard /></ProtectedRoute>} />
+                    <Route path="/placements/department/:subDepartmentId" element={<ProtectedRoute allowedRoles={["superadmin", "admin"]}><DepartmentPlacementDetail /></ProtectedRoute>} />
                     <Route path="/placement-interview-record" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><PlacementRecords /></ProtectedRoute>} />
                     <Route path="/company-details" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><CompanyDetail /></ProtectedRoute>} />
                     <Route path="/placement/company/:companyId" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><PlacedStudents /></ProtectedRoute>} />
                     <Route path="/placement-post" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><PlacementPost /></ProtectedRoute>} />
-                    <Route path="/placement/department-overview" element={<ProtectedRoute allowedRoles={["superadmin", "admin"]}><DepartmentPlacementOverview /></ProtectedRoute>} />
                     <Route path="/interview-history/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><InterviewHistory /></ProtectedRoute>} />
                     <Route path="/interview-rounds-history/:studentId/:interviewId" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><InterviewRoundsHistory /></ProtectedRoute>} />
                     <Route path="/department-management" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><DepartmentManagement /></ProtectedRoute>} />
@@ -73,12 +80,13 @@ const Layout = () => {
                     <Route path="/subdepartment-details" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><SubdepartmentDetails /></ProtectedRoute>} />
                     <Route path="/show-sublevel-tables" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><ShowSubLevelTablesData /></ProtectedRoute>} />
                     <Route path="/setting/student-profile" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentProfilePage /></ProtectedRoute>} />
+                    <Route path="/task-management" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><TaskManagement /></ProtectedRoute>} />
                     <Route path="/subdepartments" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><SubDepartment /></ProtectedRoute>} />
                     <Route path="/levels" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><ShowLevels /></ProtectedRoute>} />
                     <Route path="/user-permission" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><UserPermission /></ProtectedRoute>} />
                     <Route path="/settings" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><SettingFIle /></ProtectedRoute>} />
-                    <Route path="/session-management" element={<ProtectedRoute allowedRoles={["superadmin", "admin"]}><SessionManagement /></ProtectedRoute>} />
                     <Route path="/support" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><Supportfile /></ProtectedRoute>} />
+                    <Route path="/curriculum-management" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><CurriculumManagement /></ProtectedRoute>} />
                     <Route path="/unauthorized" element={<PageNotFound />} />
                     <Route path="*" element={<PageNotFound />} />
                 </Routes>

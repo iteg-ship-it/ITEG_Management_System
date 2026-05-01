@@ -1,268 +1,171 @@
 import * as XLSX from "xlsx";
-import { jsPDF } from "jspdf";
+import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-/* =========================
-   KEYS TO SKIP
-========================= */
-const SKIP_KEYS = [
-  "_id",
-  "__v",
-  "password",
-  "profileImage",
-  "faceDescriptor",
-  "refreshToken",
-];
-
-/* =========================
-   CLEAN DATA FUNCTION
-========================= */
-const cleanData = (data) =>
-  data.map((row) => {
-    const cleaned = {};
-
-    Object.entries(row).forEach(([k, v]) => {
-      if (SKIP_KEYS.includes(k)) return;
-
-      if (v === null || v === undefined) {
-        cleaned[k] = "";
-        return;
-      }
-
-      if (typeof v === "boolean") {
-        cleaned[k] = v ? "Active" : "Inactive";
-        return;
-      }
-
-      if (Array.isArray(v)) {
-        cleaned[k] = v.join(", ");
-        return;
-      }
-
-      if (typeof v === "object") {
-        cleaned[k] = v?.name || "";
-        return;
-      }
-
-      cleaned[k] = v;
-    });
-
-    return cleaned;
-  });
-
-/* =========================
-   HEADER FORMAT
-========================= */
-const toHeader = (key) =>
-  key
-    .replace(/([A-Z])/g, " $1")
-    .replace(/_/g, " ")
-    .trim()
-    .toUpperCase();
-
-/* =========================
-   CSV DOWNLOAD
-========================= */
 export const downloadCSV = (data, filename = "data.csv") => {
   if (!data?.length) return;
-
-  const cleaned = cleanData(data);
-  const keys = Object.keys(cleaned[0]);
-
+  
+  // Get keys from first object
+  const keys = Object.keys(data[0]);
+  
   const rows = [
-    ["S.NO", ...keys.map(toHeader)].join(","),
-
-    ...cleaned.map((row, i) =>
-      [
-        i + 1,
-        ...keys.map((k) =>
-          `"${String(row[k] ?? "").replace(/"/g, '""')}"`
-        ),
-      ].join(",")
-    ),
+    ["S.NO", ...keys].join(","),
+    ...data.map((row, i) => {
+      const rowData = [i + 1, ...keys.map(k => `"${(row[k] || "").toString().replace(/"/g, '""')}"`)];
+      return rowData.join(",");
+    })
   ];
-
   const blob = new Blob([rows.join("\n")], { type: "text/csv" });
-
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = filename;
-
   document.body.appendChild(link);
   link.click();
   link.remove();
 };
 
-/* =========================
-   EXCEL DOWNLOAD
-========================= */
 export const downloadExcel = (data, filename = "data.xlsx") => {
   if (!data?.length) return;
-
-  const cleaned = cleanData(data);
-  const keys = Object.keys(cleaned[0]);
-
-  const formatted = cleaned.map((row, i) => {
-    const out = { "S.NO": i + 1 };
-
-    keys.forEach((k) => {
-      out[toHeader(k)] = row[k];
-    });
-
-    return out;
-  });
-
-  const ws = XLSX.utils.json_to_sheet(formatted);
-  const wb = XLSX.utils.book_new();
-
-  XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-  XLSX.writeFile(wb, filename);
+  
+  // Add S.NO to each row
+  const formattedData = data.map((row, i) => ({
+    "S.NO": i + 1,
+    ...row
+  }));
+  
+  const worksheet = XLSX.utils.json_to_sheet(formattedData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+  XLSX.writeFile(workbook, filename);
 };
 
-/* =========================
-   PDF DOWNLOAD (FIXED ✅)
-========================= */
 export const downloadPDF = (data, filename = "data.pdf") => {
   if (!data?.length) return;
-
-  const cleaned = cleanData(data);
-  const keys = Object.keys(cleaned[0]);
-
-  const doc = new jsPDF({
-    orientation: "landscape",
-    unit: "mm",
-    format: "a4",
-  });
-
+  
+  // Get keys from first object
+  const keys = Object.keys(data[0]);
+  
+  const doc = new jsPDF();
   autoTable(doc, {
-    head: [["#", ...keys.map(toHeader)]],
-
-    body: cleaned.map((row, i) => [
+    head: [["#", ...keys]],
+    body: data.map((row, i) => [
       i + 1,
-      ...keys.map((k) => String(row[k] ?? "")),
+      ...keys.map((k) => row[k] ?? ""),
     ]),
-
-    startY: 10,
-
-    margin: { left: 10, right: 10 },
-
     styles: {
-      fontSize: 7,
-      cellPadding: 3,
-      overflow: "linebreak",
+      fontSize: 8,
+      cellPadding: 2
     },
-
     headStyles: {
-      fillColor: [60, 60, 60],
-      textColor: 255,
-      fontStyle: "bold",
-    },
-
-    alternateRowStyles: {
-      fillColor: [245, 245, 245],
-    },
-
-    columnStyles: {
-      0: { cellWidth: 10, halign: "center" },
-    },
+      fillColor: [253, 169, 45],
+      textColor: 255
+    }
   });
-
   doc.save(filename);
 };
 
-/* =========================
-   TOGGLE SELECTION
-========================= */
-export const toggleSelection = (value, setter, selected) => {
-  setter(
-    selected.includes(value)
-      ? selected.filter((v) => v !== value)
-      : [...selected, value]
-  );
-};
 
-
+// // File: utils/downloadHelpers.js
 // import * as XLSX from "xlsx";
-// import { jsPDF } from "jspdf";
-// import { applyPlugin } from "jspdf-autotable";
+// import jsPDF from "jspdf";
+// import autoTable from "jspdf-autotable";
 
-// applyPlugin(jsPDF);
+// export const downloadCSV = (data, filename = "filtered_data.csv") => {
+//   if (!data || data.length === 0) return;
 
-// const SKIP_KEYS = ["_id", "__v", "password", "profileImage", "faceDescriptor", "refreshToken"];
-
-// const cleanData = (data) =>
-//   data.map((row) => {
-//     const cleaned = {};
-//     Object.entries(row).forEach(([k, v]) => {
-//       if (SKIP_KEYS.includes(k)) return;
-//       if (v === null || v === undefined) { cleaned[k] = ""; return; }
-//       if (typeof v === "boolean") { cleaned[k] = v ? "Active" : "Inactive"; return; }
-//       if (Array.isArray(v)) { cleaned[k] = v.join(", "); return; }
-//       if (typeof v === "object") { cleaned[k] = v?.name || ""; return; }
-//       cleaned[k] = v;
-//     });
-//     return cleaned;
-//   });
-
-// const toHeader = (key) =>
-//   key.replace(/([A-Z])/g, " $1").replace(/_/g, " ").trim().toUpperCase();
-
-// export const downloadCSV = (data, filename = "data.csv") => {
-//   if (!data?.length) return;
-//   const cleaned = cleanData(data);
-//   const keys = Object.keys(cleaned[0]);
-//   const rows = [
-//     ["S.NO", ...keys.map(toHeader)].join(","),
-//     ...cleaned.map((row, i) =>
-//       [i + 1, ...keys.map((k) => `"${String(row[k] ?? "").replace(/"/g, '""')}"`)]
-//         .join(",")
-//     ),
+//   const headers = Object.keys(data[0]);
+//   const csvRows = [
+//     headers.join(","),
+//     ...data.map(row =>
+//       headers.map(header => `"${(row[header] ?? "").toString().replace(/"/g, '""')}"`).join(",")
+//     )
 //   ];
-//   const blob = new Blob([rows.join("\n")], { type: "text/csv" });
+
+//   const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
+//   const url = URL.createObjectURL(blob);
 //   const link = document.createElement("a");
-//   link.href = URL.createObjectURL(blob);
+//   link.href = url;
 //   link.download = filename;
 //   document.body.appendChild(link);
 //   link.click();
-//   link.remove();
+//   document.body.removeChild(link);
+//   URL.revokeObjectURL(url);
 // };
 
-// export const downloadExcel = (data, filename = "data.xlsx") => {
-//   if (!data?.length) return;
-//   const cleaned = cleanData(data);
-//   const keys = Object.keys(cleaned[0]);
-//   const formatted = cleaned.map((row, i) => {
-//     const out = { "S.NO": i + 1 };
-//     keys.forEach((k) => { out[toHeader(k)] = row[k]; });
-//     return out;
-//   });
-//   const ws = XLSX.utils.json_to_sheet(formatted);
-//   const wb = XLSX.utils.book_new();
-//   XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-//   XLSX.writeFile(wb, filename);
+// export const downloadExcel = (data, filename = "filtered_data.xlsx") => {
+//   if (!data || data.length === 0) return;
+//   const worksheet = XLSX.utils.json_to_sheet(data);
+//   const workbook = XLSX.utils.book_new();
+//   XLSX.utils.book_append_sheet(workbook, worksheet, "Filtered Data");
+//   XLSX.writeFile(workbook, filename);
 // };
 
-// export const downloadPDF = (data, filename = "data.pdf") => {
-//   if (!data?.length) return;
-//   const cleaned = cleanData(data);
-//   const keys = Object.keys(cleaned[0]);
-//   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-//   doc.autoTable({
-//     head: [["#", ...keys.map(toHeader)]],
-//     body: cleaned.map((row, i) => [i + 1, ...keys.map((k) => String(row[k] ?? ""))]),
+// export const downloadPDF = (data, filename = "filtered_data.pdf") => {
+//   if (!data || data.length === 0) return;
+
+//   // fields to include
+//   const keys = ["firstName", "fatherName", "studentMobile", "track", "village", "stream"];
+
+//   // helper: capitalize only first character
+//   const capitalize = (str) =>
+//     str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
+
+//   // helper: capitalize all words
+//   const titleCase = (str) =>
+//     str
+//       ? str
+//           .split(" ")
+//           .map(
+//             word =>
+//               word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+//           )
+//           .join(" ")
+//       : "";
+
+//   const doc = new jsPDF();
+
+//   autoTable(doc, {
+//     head: [["S NO", ...keys.map(k => k.replace(/_/g, " ").toUpperCase())]],
+//     body: data.map((row, index) => [
+//       index + 1,
+//       ...keys.map(key => {
+//         const value = (row[key] ?? "").toString().replace(/\n/g, " ").replace(/\s+/g, " ").trim();
+//         if (key === "fatherName") {
+//           return titleCase(value); // all words capitalized
+//         }
+//         if (["firstName", "track", "village", "stream"].includes(key)) {
+//           return capitalize(value); // only first char
+//         }
+//         return value; // studentMobile as is
+//       }),
+//     ]),
 //     startY: 10,
-//     margin: { left: 10, right: 10 },
-//     styles: { fontSize: 7, cellPadding: 3, overflow: "linebreak" },
-//     headStyles: { fillColor: [60, 60, 60], textColor: 255, fontStyle: "bold" },
-//     alternateRowStyles: { fillColor: [245, 245, 245] },
-//     columnStyles: { 0: { cellWidth: 10, halign: "center" } },
+//     styles: {
+//       fontSize: 8,
+//       cellPadding: 3,
+//       overflow: "ellipsize",
+//       cellWidth: "wrap",
+//     },
+//     headStyles: {
+//       fillColor: [63, 81, 181],
+//       textColor: 255,
+//       halign: "center",
+//       fontStyle: "bold",
+//     },
+//     alternateRowStyles: {
+//       fillColor: [245, 245, 245],
+//     },
+//     margin: { top: 10, left: 10, right: 10 },
 //   });
+
 //   doc.save(filename);
 // };
 
-// export const toggleSelection = (value, setter, selected) => {
-//   setter(selected.includes(value)
-//     ? selected.filter((v) => v !== value)
-//     : [...selected, value]
-//   );
-// };
+
+
+export const toggleSelection = (value, setter, selected) => {
+  setter(selected.includes(value)
+    ? selected.filter(v => v !== value)
+    : [...selected, value]
+  );
+};

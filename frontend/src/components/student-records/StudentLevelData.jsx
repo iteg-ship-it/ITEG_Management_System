@@ -1,234 +1,168 @@
-// components/student/StudentLevelData.jsx
-import { useParams } from "react-router-dom";
-import { useGetLevelInterviewQuery } from "../../redux/api/authApi";
-import Loader from "../common-components/loader/Loader";
 import { useState, useMemo } from "react";
-import { IoSearchOutline } from "react-icons/io5";
-import { FaUpload } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import { useGetAllStudentsByLevelQuery } from "../../redux/api/authApi";
+import Loader from "../common-components/loader/Loader";
 import CommonTable from "../common-components/table/CommonTable";
-import Pagination from "../common-components/pagination/Pagination";
 import Header from "../common-components/sidebar/Header";
+import SearchBox from "../common-components/seach-export/SearchBox";
+import Avatar from "../common-components/Avatar";
+
+const LEVEL_TABS = ["1A", "1B", "1C", "2A", "2B", "2C"];
 
 const toTitleCase = (str) =>
-  str
-    ?.toLowerCase()
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+  str?.toLowerCase().split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 
 const StudentLevelData = () => {
-  const { id } = useParams();
-  const { data, isLoading, error } = useGetLevelInterviewQuery(id);
-  const [activeTab, setActiveTab] = useState("Level 1A");
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("1A");
   const [searchTerm, setSearchTerm] = useState("");
-  const [rowsPerPage] = useState(10);
-  const [trackFilter, setTrackFilter] = useState([]);
-  const [resultFilter, setResultFilter] = useState([]);
-  const [isTaskUploadModalOpen, setIsTaskUploadModalOpen] = useState(false);
 
-  // Define all level tabs
-  const levelTabs = ["Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C"];
+  const { data, isLoading, error } = useGetAllStudentsByLevelQuery(activeTab);
 
-  // Get current level code for task upload
-  const getCurrentLevelCode = (tabName) => {
-    const levelMapping = {
-      "Level 1A": "1A",
-      "Level 1B": "1B",
-      "Level 1C": "1C",
-      "Level 2A": "2A",
-      "Level 2B": "2B",
-      "Level 2C": "2C"
-    };
-    return levelMapping[tabName];
-  };
-
-  const handleTasksUploaded = () => {
-    // Refresh data or show success message
-    console.log(`Tasks uploaded successfully for ${activeTab}`);
-  };
-
-  // Filter data based on active tab
-  const filteredData = useMemo(() => {
+  // Backend returns array directly
+  const students = useMemo(() => {
     if (!data) return [];
-    
-    // Filter by level
-    const levelFiltered = data.filter(item => {
-      // Map tab names to levelNo values in your data
-      const levelMapping = {
-        "Level 1A": "1A",
-        "Level 1B": "1B",
-        "Level 1C": "1C",
-        "Level 2A": "2A",
-        "Level 2B": "2B",
-        "Level 2C": "2C"
-      };
-      
-      return item.levelNo === levelMapping[activeTab];
-    });
-    
-    // Apply search term filter
-    if (!searchTerm) return levelFiltered;
-    
-    return levelFiltered.filter(item => {
-      const searchableValues = Object.values(item)
-        .map(val => String(val ?? "").toLowerCase())
-        .join(" ");
-      return searchableValues.includes(searchTerm.toLowerCase());
-    });
-  }, [data, activeTab, searchTerm]);
-
-  // Dynamic options for filters
-  const dynamicResultOptions = useMemo(() => {
-    if (!data) return [];
-    return [...new Set(data.map(item => toTitleCase(item.result || "")))].filter(Boolean);
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.data)) return data.data;
+    return [];
   }, [data]);
 
-  // Filter configuration
-  const filtersConfig = [
-    {
-      title: "Result",
-      options: dynamicResultOptions,
-      selected: resultFilter,
-      setter: setResultFilter,
-    },
-  ];
+  const filtered = useMemo(() => {
+    if (!searchTerm) return students;
+    const q = searchTerm.toLowerCase();
+    return students.filter((s) =>
+      `${s.firstName} ${s.lastName} ${s.course} ${s.studentMobile} ${s.currentLevel}`
+        .toLowerCase().includes(q)
+    );
+  }, [students, searchTerm]);
 
-  // Table columns
   const columns = [
     {
-      key: "studentName",
+      key: "name",
       label: "Student Name",
-      render: (row) => toTitleCase(row.studentName || "N/A"),
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          <Avatar firstName={row.firstName} lastName={row.lastName} imageUrl={row.image} />
+          <span className="font-semibold text-gray-800 text-sm">
+            {toTitleCase(`${row.firstName} ${row.lastName}`)}
+          </span>
+        </div>
+      ),
     },
     {
-      key: "levelNo",
-      label: "Level",
-      render: (row) => row.levelNo,
+      key: "fatherName",
+      label: "Father's Name",
+      render: (row) => toTitleCase(row.fatherName || "N/A"),
+    },
+    { key: "studentMobile", label: "Mobile No." },
+    {
+      key: "course",
+      label: "Course",
+      render: (row) => (
+        <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+          {(row.course || "").toUpperCase()}
+        </span>
+      ),
     },
     {
-      key: "result",
-      label: "Status",
+      key: "currentLevel",
+      label: "Current Level",
+      render: (row) => (
+        <span className="bg-orange-100 text-orange-600 text-xs font-semibold px-2.5 py-1 rounded-full">
+          Level {row.currentLevel || activeTab}
+        </span>
+      ),
+    },
+    {
+      key: "attempts",
+      label: "Attempts",
       render: (row) => {
-        const result = row.result;
-        if (result === "Pass") {
-          return (
-            <span className="inline-block px-2 py-1 rounded-md text-[#118D57] bg-[#22C55E]/20 text-sm font-medium">
-              Pass
-            </span>
-          );
-        } else if (result === "Fail") {
-          return (
-            <span className="inline-block px-2 py-1 rounded-md bg-[#FFCEC3] text-[#D32F2F] text-sm font-medium">
-              Fail
-            </span>
-          );
-        } else {
-          return (
-            <span className="inline-block px-2 py-1 rounded-md bg-gray-100 text-gray-700 text-sm font-medium">
-              {toTitleCase(result) || "Pending"}
-            </span>
-          );
-        }
+        const count = (row.level || []).filter((l) => l.levelNo === activeTab).length;
+        return (
+          <span className="w-7 h-7 rounded-full bg-green-100 text-green-700 text-xs font-bold flex items-center justify-center">
+            {count}
+          </span>
+        );
       },
     },
     {
-      key: "remark",
-      label: "Remark",
-      render: (row) => row.remark || "N/A",
-    },
-    {
-      key: "date",
-      label: "Date",
-      render: (row) => new Date(row.date).toLocaleDateString(),
+      key: "status",
+      label: "Last Result",
+      render: (row) => {
+        const attempts = (row.level || []).filter((l) => l.levelNo === activeTab);
+        const last = attempts[attempts.length - 1];
+        if (!last) return <span className="text-gray-400 text-xs">No attempt</span>;
+        const styles = {
+          Pass: "bg-green-100 text-green-700",
+          Fail: "bg-red-100 text-red-700",
+          Pending: "bg-yellow-100 text-yellow-700",
+        };
+        return (
+          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${styles[last.result] || styles.Pending}`}>
+            {last.result || "Pending"}
+          </span>
+        );
+      },
     },
   ];
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <p className="p-4 text-red-500">Error fetching data: {error.message}</p>
-    );
-  }
 
   return (
     <>
       <Header
         title="Student Level Progress"
-        showBack={true}
         breadcrumbs={[
-          { label: 'Academics', path: '/student-detail-table' },
-          { label: 'Student Progress', path: '/student-detail-table' },
-          { label: 'Level Progress' }
+          { label: "Academics", path: "/student-detail-table" },
+          { label: "Student Progress", path: "/student-detail-table" },
+          { label: `Level ${activeTab}` },
         ]}
       />
-      <div className="mt-1 border bg-[var(--backgroundColor)] shadow-sm rounded-lg">
-        <div className="px-6">
-          {/* Level Tabs and Upload Button */}
-          <div className="flex justify-between items-center mt-4">
-            <div className="flex gap-6 overflow-x-auto">
-              {levelTabs.map((tab) => (
-                <p
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`cursor-pointer text-md text-[var(--text-color)] pb-2 border-b-2 whitespace-nowrap ${
-                    activeTab === tab
-                      ? "border-[var(--text-color)] font-semibold"
-                      : "border-gray-200"
-                  }`}
-                >
-                  {tab}
-                </p>
-              ))}
-            </div>
-            
-            {/* Task Upload Button */}
+
+      <div className="px-6 py-4">
+        {/* Level Tabs */}
+        <div className="flex gap-1 border-b border-gray-200 mb-5">
+          {LEVEL_TABS.map((tab) => (
             <button
-              onClick={() => setIsTaskUploadModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-[#FDA92D] hover:bg-[#E6941A] text-white rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
+              key={tab}
+              onClick={() => { setActiveTab(tab); setSearchTerm(""); }}
+              className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-all -mb-px ${
+                activeTab === tab
+                  ? "border-orange-500 text-orange-500 font-semibold"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
             >
-              <FaUpload className="text-sm" />
-              Upload Tasks for {activeTab}
+              Level {tab}
             </button>
-          </div>
-          
-          {/* Search and Filters */}
-          <div className="flex justify-between items-center flex-wrap gap-4">
-            <Pagination
-              rowsPerPage={rowsPerPage}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              filtersConfig={filtersConfig}
-              filteredData={filteredData}
-              sectionName={activeTab.replace(/\s+/g, '').toLowerCase()}
-            />
-          </div>
+          ))}
         </div>
-        
-        {/* Data Table */}
-        {filteredData.length > 0 ? (
+
+        {/* Search */}
+        <div className="mb-4 max-w-sm">
+          <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        </div>
+
+        {/* Content */}
+        {isLoading ? (
+          <div className="flex justify-center py-20"><Loader /></div>
+        ) : error ? (
+          <div className="py-16 text-center text-gray-400">
+            <p className="text-sm">No students found for Level {activeTab}</p>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-16 text-center text-gray-400">
+            <p className="font-semibold text-gray-600 mb-1">No students at Level {activeTab}</p>
+            <p className="text-sm">Students will appear here once they reach this level.</p>
+          </div>
+        ) : (
           <CommonTable
-            data={filteredData}
+            data={filtered}
             columns={columns}
             pagination={true}
-            rowsPerPage={rowsPerPage}
+            rowsPerPage={10}
             searchTerm={searchTerm}
+            onRowClick={(row) => navigate(`/student-profile/${row._id}`)}
           />
-        ) : (
-          <div className="p-8 text-center text-gray-500">
-            No data found for {activeTab}
-          </div>
         )}
       </div>
-      
-      {/* Task Upload Modal */}
-      {/* Task Upload Button removed */}
     </>
   );
 };

@@ -1,4 +1,4 @@
-const AdmittedStudent = require("../../models/student/admittedStudent");
+const Student = require("../../models/student/Student");
 
 exports.getOverallAttendanceStats = async (req, res) => {
   try {
@@ -37,14 +37,13 @@ exports.getOverallAttendanceStats = async (req, res) => {
     sortObj[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
     // Get total count for pagination
-    const totalStudents = await AdmittedStudent.countDocuments(matchConditions);
+    const totalStudents = await Student.countDocuments(matchConditions);
 
     // Get paginated students with attendance calculation
-    const students = await AdmittedStudent.aggregate([
+    const students = await Student.aggregate([
       { $match: matchConditions },
       {
         $addFields: {
-          // Calculate attendance percentage based on level completion
           attendancePercentage: {
             $cond: {
               if: { $gt: [{ $size: "$level" }, 0] },
@@ -90,11 +89,11 @@ exports.getOverallAttendanceStats = async (req, res) => {
           currentLevel: 1,
           readinessStatus: 1,
           attendancePercentage: { $round: ["$attendancePercentage", 2] },
-          levelCount: { $size: "$level" },
+          levelCount: { $size: { $ifNull: ["$level", []] } },
           passedLevels: {
             $size: {
               $filter: {
-                input: "$level",
+                input: { $ifNull: ["$level", []] },
                 cond: { $eq: ["$$this.result", "Pass"] }
               }
             }
@@ -104,7 +103,7 @@ exports.getOverallAttendanceStats = async (req, res) => {
     ]);
 
     // Calculate overall statistics
-    const overallStats = await AdmittedStudent.aggregate([
+    const overallStats = await Student.aggregate([
       { $match: matchConditions },
       {
         $group: {
@@ -136,7 +135,6 @@ exports.getOverallAttendanceStats = async (req, res) => {
       readyStudents: 0
     };
 
-    // Calculate average attendance
     const avgAttendance = students.length > 0 
       ? students.reduce((sum, student) => sum + student.attendancePercentage, 0) / students.length
       : 0;
