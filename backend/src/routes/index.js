@@ -19,7 +19,7 @@ const superAdminDashboardRoutes = require('./superAdminDashboardRoutes');
 // Mount routes
 router.use('/user', userRoutes);
 router.use('/user/otp', otpRoutes);
-router.use('/admitted/students', studentRoutes);
+router.use('/students', studentRoutes);
 router.use('/admission/students', studentAdmissionRoutes);
 router.use('/face-auth', faceAuthRoutes);
 router.use('/reportcards', reportCardRoutes);
@@ -28,7 +28,6 @@ router.use('/roles', roleRoutes);
 router.use('/syllabus/versions', syllabusRoutes);
 router.use('/sessions', sessionRoutes);
 router.use('/students', newStudentRoutes);
-router.use('/students', studentRoutes);
 router.use('/superadmin/dashboard', superAdminDashboardRoutes);
 
 // Webhook routes
