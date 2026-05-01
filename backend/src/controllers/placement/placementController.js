@@ -2,6 +2,17 @@ const AdmittedStudent = require("../../models/student/admittedStudent");
 const Company = require("../../models/company/company");
 const cloudinary = require('../../config/cloudinaryConfig');
 
+// 0. GET READY STUDENTS
+exports.getReadyStudents = async (req, res) => {
+  try {
+    const students = await AdmittedStudent.find({ readinessStatus: 'Ready' })
+      .select('_id firstName lastName course year readinessStatus PlacementinterviewRecord');
+    res.json({ success: true, data: students });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 // 1. CREATE/SCHEDULE INTERVIEW (from Ready Students) - Using original URL pattern
 exports.createInterview = async (req, res) => {
   try {
@@ -741,6 +752,75 @@ exports.getPlacedStudentsByCompany = async (req, res) => {
       message: "Server error",
       error: error.message
     });
+  }
+};
+
+// RESCHEDULE INTERVIEW
+exports.rescheduleInterview = async (req, res) => {
+  try {
+    const { studentId, interviewId } = req.params;
+    const { rescheduleDate } = req.body;
+
+    if (!rescheduleDate) return res.status(400).json({ message: "rescheduleDate is required" });
+
+    const student = await AdmittedStudent.findById(studentId);
+    if (!student) return res.status(404).json({ message: "Student not found" });
+
+    const interview = student.PlacementinterviewRecord.id(interviewId);
+    if (!interview) return res.status(404).json({ message: "Interview not found" });
+
+    interview.status = 'Rescheduled';
+    interview.rescheduleDate = new Date(rescheduleDate);
+    await student.save();
+
+    res.json({ success: true, message: "Interview rescheduled", data: interview });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// UPDATE PLACEMENT INFO
+exports.updatePlacementInfo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const allowedFields = ['salary', 'location', 'jobProfile', 'jobType', 'joiningDate'];
+    const updateData = {};
+    allowedFields.forEach(f => { if (req.body[f] !== undefined) updateData[`placedInfo.${f}`] = req.body[f]; });
+
+    const student = await AdmittedStudent.findByIdAndUpdate(
+      id,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
+    if (!student) return res.status(404).json({ message: "Student not found" });
+
+    res.json({ success: true, message: "Placement info updated", data: student.placedInfo });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// UPLOAD RESUME BASE64
+exports.uploadResumeBase64 = async (req, res) => {
+  try {
+    const { studentId, resumeBase64 } = req.body;
+    if (!studentId || !resumeBase64) return res.status(400).json({ message: "studentId and resumeBase64 are required" });
+
+    const student = await AdmittedStudent.findById(studentId);
+    if (!student) return res.status(404).json({ message: "Student not found" });
+
+    const result = await cloudinary.uploader.upload(resumeBase64, {
+      folder: 'student-resumes',
+      resource_type: 'auto',
+      public_id: `${studentId}_resume_${Date.now()}`
+    });
+
+    student.resumeURL = result.secure_url;
+    await student.save();
+
+    res.json({ success: true, message: "Resume uploaded successfully", resumeURL: result.secure_url });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
