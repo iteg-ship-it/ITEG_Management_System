@@ -423,7 +423,7 @@ export default function StudentProfile() {
             value={latestLevel}
             bgColor="#8E33FF"
             description="Academic progress"
-            onClick={() => navigate(`/student/${id}/level-interviews`)}
+            onClick={() => navigate(`/student-level-interviews/${id}`)}
           />
           <ProfessionalMetricCard
             icon={permission}
@@ -892,13 +892,14 @@ const ContactCard = ({ icon, label, value }) => (
 // Professional Metric Card with Advanced Styling
 const ProfessionalMetricCard = ({ icon, title, value, bgColor, description, onClick }) => (
   <div
-    className="group relative bg-white rounded-xl overflow-hidden cursor-pointer"
+    role="button"
+    tabIndex={0}
+    className="group relative bg-white rounded-xl overflow-hidden cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all duration-200 active:scale-[0.98]"
     style={{ boxShadow: '0 0 20px 5px rgba(0, 0, 0, 0.08)' }}
     onClick={onClick}
-  // style={{ backgroundColor: bg }}
+    onKeyDown={(e) => e.key === 'Enter' && onClick?.()}
   >
-
-    <div className="relative p-2 sm:p-6">
+    <div className="relative p-2 sm:p-6 pointer-events-none">
       <div className="flex items-center justify-between mb-2 sm:mb-4">
         <div className="flex-1">
           <p className="text-xs sm:text-sm font-medium text-black mb-0.5 sm:mb-1">{title}</p>

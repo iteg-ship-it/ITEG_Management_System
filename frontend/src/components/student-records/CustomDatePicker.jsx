@@ -27,10 +27,10 @@ const CustomDatePicker = ({ label, name, allowFuture = false }) => {
         }
       />
       <style>{`
-        .react-datepicker__day:hover { background-color: var(--primary) !important; color: white !important; border-radius: 0.3rem; }
-        .react-datepicker__day--selected { background-color: var(--primary) !important; color: white !important; }
-        .react-datepicker__day--keyboard-selected { background-color: var(--primary-100) !important; color: var(--primary-darker) !important; }
-        .react-datepicker__day--today { border: 1px solid var(--primary) !important; border-radius: 0.3rem; }
+        .react-datepicker__day:hover { background-color: #f97316 !important; color: white !important; border-radius: 0.3rem; }
+        .react-datepicker__day--selected { background-color: #f97316 !important; color: white !important; }
+        .react-datepicker__day--keyboard-selected { background-color: #fed7aa !important; color: #9a3412 !important; }
+        .react-datepicker__day--today { border: 1px solid #f97316 !important; border-radius: 0.3rem; }
       `}</style>
       {meta.touched && meta.error && (
         <p className="text-red-500 text-xs mt-1">{meta.error}</p>

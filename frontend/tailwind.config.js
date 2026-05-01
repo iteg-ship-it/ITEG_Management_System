@@ -4,10 +4,13 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['Inter', 'sans-serif'], // Add this line
       },
       colors: {
+        // Main brand color (fully opaque)
         brandYellow: '#FDA92D',
+
+        // Optional: with 7.84% opacity using rgba
         brandYellowOpacity: 'rgba(253, 169, 45, 0.0784)',
         customGreenText: '#118D57',
         customGreenBg: 'rgba(34, 197, 94, 0.2)',
