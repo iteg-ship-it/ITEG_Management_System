@@ -6202,6 +6202,1152 @@ paths:
         '500':
           description: Server error
 
+  # ===== SYLLABUS VERSION APIs =====
+
+  /api/syllabus/versions:
+    post:
+      summary: Create a new syllabus version
+      description: Creates a new syllabus version with subjects, topics, subtopics. Status defaults to 'draft'.
+      tags:
+        - Syllabus
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sessionId
+                - levelId
+                - subLevelId
+                - version
+                - subjects
+              properties:
+                sessionId:
+                  type: string
+                  example: "64fdb61e7b9a1a1234567894"
+                levelId:
+                  type: string
+                  example: "64fdb61e7b9a1a1234567892"
+                subLevelId:
+                  type: string
+                  example: "64fdb61e7b9a1a1234567893"
+                version:
+                  type: string
+                  example: "v1"
+                title:
+                  type: string
+                  example: "BCA Level 1A Syllabus"
+                subjects:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - name
+                    properties:
+                      name:
+                        type: string
+                        example: "JavaScript"
+                      code:
+                        type: string
+                        example: "JS101"
+                      topics:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              example: "Functions"
+                            subTopics:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+                                    example: "Arrow Functions"
+      responses:
+        '201':
+          description: Syllabus version created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Syllabus version created successfully"
+                  data:
+                    type: object
+        '400':
+          description: Validation error or duplicate version
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+    get:
+      summary: Get all syllabus versions
+      description: Returns all active syllabus versions. Supports optional filters.
+      tags:
+        - Syllabus
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: query
+          schema:
+            type: string
+          example: "64fdb61e7b9a1a1234567894"
+        - name: levelId
+          in: query
+          schema:
+            type: string
+          example: "64fdb61e7b9a1a1234567892"
+        - name: subLevelId
+          in: query
+          schema:
+            type: string
+          example: "64fdb61e7b9a1a1234567893"
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, active, archived]
+      responses:
+        '200':
+          description: List of syllabus versions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                    example: 5
+                  data:
+                    type: array
+                    items:
+                      type: object
+        '500':
+          description: Server error
+
+  /api/syllabus/versions/sublevel/{subLevelId}:
+    get:
+      summary: Get syllabus versions by subLevel
+      tags:
+        - Syllabus
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: subLevelId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "64fdb61e7b9a1a1234567893"
+        - name: sessionId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Syllabus versions for the subLevel
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      type: object
+        '500':
+          description: Server error
+
+  /api/syllabus/versions/{id}:
+    get:
+      summary: Get syllabus version by ID
+      tags:
+        - Syllabus
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Syllabus version found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '404':
+          description: Syllabus version not found
+        '500':
+          description: Server error
+
+    patch:
+      summary: Update a draft syllabus version
+      description: Only syllabus versions with status 'draft' can be updated directly.
+      tags:
+        - Syllabus
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "Updated Syllabus Title"
+                subjects:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        '200':
+          description: Draft syllabus updated successfully
+        '400':
+          description: Only draft syllabus versions can be updated
+        '404':
+          description: Syllabus version not found
+        '500':
+          description: Server error
+
+    delete:
+      summary: Delete (soft delete) a syllabus version
+      description: Only non-active syllabus versions can be deleted.
+      tags:
+        - Syllabus
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Deleted successfully
+        '400':
+          description: Cannot delete active syllabus
+        '404':
+          description: Not found
+        '500':
+          description: Server error
+
+  /api/syllabus/versions/{id}/activate:
+    patch:
+      summary: Activate a syllabus version
+      description: Activates the syllabus version and archives any previously active version for the same session/level/sublevel.
+      tags:
+        - Syllabus
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Syllabus version activated successfully
+        '404':
+          description: Syllabus version not found
+        '500':
+          description: Server error
+
+  /api/syllabus/versions/{id}/archive:
+    patch:
+      summary: Archive a syllabus version
+      tags:
+        - Syllabus
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Syllabus version archived successfully
+        '404':
+          description: Syllabus version not found
+        '500':
+          description: Server error
+
+  # ===== SUBJECT APIs =====
+
+  /api/syllabus/versions/{id}/subjects:
+    post:
+      summary: Add a subject to a syllabus version
+      tags:
+        - Syllabus Subjects
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: "React"
+                code:
+                  type: string
+                  example: "REACT101"
+                description:
+                  type: string
+                  example: "Frontend framework"
+                order:
+                  type: integer
+                  example: 1
+                isActive:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Subject added successfully
+        '400':
+          description: name is required
+        '404':
+          description: Syllabus version not found
+        '500':
+          description: Server error
+
+  /api/syllabus/versions/{id}/subjects/upload:
+    post:
+      summary: Upload subject-wise syllabus (JSON)
+      description: Upserts subjects with topics and subtopics. Matches by subjectId, code, or name.
+      tags:
+        - Syllabus Subjects
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subjects:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        example: "JavaScript"
+                      topics:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            subTopics:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  name:
+                                    type: string
+      responses:
+        '200':
+          description: Subject-wise syllabus uploaded successfully
+        '400':
+          description: subjects payload is required
+        '404':
+          description: Syllabus version not found
+        '500':
+          description: Server error
+
+  /api/syllabus/versions/{id}/subjects/upload-excel:
+    post:
+      summary: Upload subject-wise syllabus via Excel file
+      description: |
+        Upload an Excel file with columns: `subjectName`, `topicName`, `subTopicName`.
+        Each row represents one topic/subtopic entry.
+      tags:
+        - Syllabus Subjects
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Excel file (.xlsx) with columns subjectName, topicName, subTopicName
+      responses:
+        '200':
+          description: Excel syllabus uploaded successfully
+        '400':
+          description: Excel file is required or no valid rows found
+        '404':
+          description: Syllabus version not found
+        '500':
+          description: Server error
+
+  /api/syllabus/versions/{id}/subjects/{subjectId}:
+    patch:
+      summary: Update a subject in a syllabus version
+      tags:
+        - Syllabus Subjects
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subjectId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Updated Subject Name"
+                code:
+                  type: string
+                order:
+                  type: integer
+                isActive:
+                  type: boolean
+      responses:
+        '200':
+          description: Subject updated
+        '404':
+          description: Syllabus version or subject not found
+        '500':
+          description: Server error
+
+  /api/syllabus/versions/{id}/subjects/{subjectId}/active:
+    patch:
+      summary: Toggle subject active/inactive
+      tags:
+        - Syllabus Subjects
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subjectId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - isActive
+              properties:
+                isActive:
+                  type: boolean
+                  example: false
+      responses:
+        '200':
+          description: Subject active status updated
+        '404':
+          description: Subject not found
+        '500':
+          description: Server error
+
+  # ===== TOPIC APIs =====
+
+  /api/syllabus/versions/{id}/subjects/{subjectId}/topics:
+    post:
+      summary: Add a topic to a subject
+      tags:
+        - Syllabus Topics
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subjectId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: "Hooks"
+                description:
+                  type: string
+                order:
+                  type: integer
+                  example: 1
+                isActive:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Topic added successfully
+        '400':
+          description: name is required
+        '404':
+          description: Syllabus version or subject not found
+        '500':
+          description: Server error
+
+  /api/syllabus/versions/{id}/subjects/{subjectId}/topics/{topicId}:
+    patch:
+      summary: Update a topic in a subject
+      tags:
+        - Syllabus Topics
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subjectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Updated Topic"
+                order:
+                  type: integer
+                isActive:
+                  type: boolean
+      responses:
+        '200':
+          description: Topic updated
+        '404':
+          description: Topic not found
+        '500':
+          description: Server error
+
+  /api/syllabus/versions/{id}/subjects/{subjectId}/topics/{topicId}/active:
+    patch:
+      summary: Toggle topic active/inactive
+      tags:
+        - Syllabus Topics
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subjectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - isActive
+              properties:
+                isActive:
+                  type: boolean
+                  example: false
+      responses:
+        '200':
+          description: Topic active status updated
+        '404':
+          description: Topic not found
+        '500':
+          description: Server error
+
+  # ===== SUBTOPIC APIs =====
+
+  /api/syllabus/versions/{id}/subjects/{subjectId}/topics/{topicId}/subtopics:
+    post:
+      summary: Add a subtopic to a topic
+      tags:
+        - Syllabus SubTopics
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subjectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: "useState Hook"
+                description:
+                  type: string
+                order:
+                  type: integer
+                  example: 1
+                isActive:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: SubTopic added successfully
+        '400':
+          description: name is required
+        '404':
+          description: Topic not found
+        '500':
+          description: Server error
+
+  /api/syllabus/versions/{id}/subjects/{subjectId}/topics/{topicId}/subtopics/{subTopicId}:
+    patch:
+      summary: Update a subtopic
+      tags:
+        - Syllabus SubTopics
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subjectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subTopicId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Updated SubTopic"
+                order:
+                  type: integer
+                isActive:
+                  type: boolean
+      responses:
+        '200':
+          description: SubTopic updated
+        '404':
+          description: SubTopic not found
+        '500':
+          description: Server error
+
+  /api/syllabus/versions/{id}/subjects/{subjectId}/topics/{topicId}/subtopics/{subTopicId}/active:
+    patch:
+      summary: Toggle subtopic active/inactive
+      tags:
+        - Syllabus SubTopics
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subjectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: topicId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subTopicId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - isActive
+              properties:
+                isActive:
+                  type: boolean
+                  example: false
+      responses:
+        '200':
+          description: SubTopic active status updated
+        '404':
+          description: SubTopic not found
+        '500':
+          description: Server error
+
+  # ===== TASK APIs (Syllabus Tasks) =====
+
+  /api/syllabus/versions/{id}/tasks:
+    get:
+      summary: Get all tasks of a syllabus version
+      description: Returns all active tasks. Supports optional filters by subjectId, topicId, subTopicId.
+      tags:
+        - Syllabus Tasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Syllabus version ID
+        - name: subjectId
+          in: query
+          schema:
+            type: string
+        - name: topicId
+          in: query
+          schema:
+            type: string
+        - name: subTopicId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  tasks:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        title:
+                          type: string
+                          example: "Build a REST API"
+                        subjectName:
+                          type: string
+                          example: "Node.js"
+                        topicName:
+                          type: string
+                          example: "Express"
+                        type:
+                          type: string
+                          enum: [assignment, project, quiz, reading, practice]
+                        mandatory:
+                          type: boolean
+                        maxMarks:
+                          type: number
+                          example: 5
+                        timeDays:
+                          type: number
+                          nullable: true
+                        order:
+                          type: integer
+        '500':
+          description: Server error
+
+    post:
+      summary: Add a task to a syllabus version
+      description: |
+        Adds a new task linked to a subject and topic (and optionally a subtopic).
+        If the syllabus version is active, the task is auto-synced to all enrolled students.
+      tags:
+        - Syllabus Tasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Syllabus version ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - subjectId
+                - topicId
+                - title
+              properties:
+                subjectId:
+                  type: string
+                  example: "64fdb61e7b9a1a1234567896"
+                topicId:
+                  type: string
+                  example: "64fdb61e7b9a1a1234567897"
+                subTopicId:
+                  type: string
+                  description: Optional
+                  example: "64fdb61e7b9a1a1234567898"
+                title:
+                  type: string
+                  example: "Build a REST API"
+                description:
+                  type: string
+                  example: "Create a CRUD API using Express and MongoDB"
+                type:
+                  type: string
+                  enum: [assignment, project, quiz, reading, practice]
+                  default: assignment
+                  example: "assignment"
+                mandatory:
+                  type: boolean
+                  default: true
+                  example: true
+                maxMarks:
+                  type: number
+                  default: 5
+                  example: 5
+                timeDays:
+                  type: number
+                  nullable: true
+                  example: 3
+                measurablePoints:
+                  type: string
+                  example: "API should handle all CRUD operations"
+      responses:
+        '201':
+          description: Task added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Task added successfully"
+                  data:
+                    type: object
+                    properties:
+                      task:
+                        type: object
+                      syncedStudents:
+                        type: integer
+                        description: Number of students synced (if syllabus is active)
+                        example: 5
+        '400':
+          description: subjectId, topicId and title are required
+        '404':
+          description: Syllabus version or subject/topic not found
+        '500':
+          description: Server error
+
+  /api/syllabus/versions/{id}/tasks/{taskId}/active:
+    patch:
+      summary: Toggle task active/inactive
+      description: Activates or deactivates a task. If syllabus is active, student tasks are auto-synced.
+      tags:
+        - Syllabus Tasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Syllabus version ID
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Task ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - isActive
+              properties:
+                isActive:
+                  type: boolean
+                  example: false
+      responses:
+        '200':
+          description: Task updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Task updated"
+                  data:
+                    type: object
+                    properties:
+                      task:
+                        type: object
+                      syncedStudents:
+                        type: integer
+                        example: 5
+        '404':
+          description: Task not found
+        '500':
+          description: Server error
+
+  # ===== STUDENT TASK ROUTES (via syllabus) =====
+
+  /api/syllabus/versions/students/{studentId}/tasks:
+    get:
+      summary: Get all tasks of a student for a syllabus version
+      tags:
+        - Student Tasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: syllabusVersionId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Required - syllabus version ID
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, inProgress, completed]
+      responses:
+        '200':
+          description: List of student tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+        '400':
+          description: syllabusVersionId is required
+        '500':
+          description: Server error
+
+  /api/syllabus/versions/students/{studentId}/tasks/summary:
+    get:
+      summary: Get task completion summary for a student
+      tags:
+        - Student Tasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: syllabusVersionId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Task summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 20
+                      pending:
+                        type: integer
+                        example: 5
+                      inProgress:
+                        type: integer
+                        example: 3
+                      completed:
+                        type: integer
+                        example: 12
+                      progressPercent:
+                        type: integer
+                        example: 60
+        '400':
+          description: syllabusVersionId is required
+        '500':
+          description: Server error
+
   /api/students/{id}/progress-snapshots:
     get:
       summary: Get student progress snapshots history with pagination
