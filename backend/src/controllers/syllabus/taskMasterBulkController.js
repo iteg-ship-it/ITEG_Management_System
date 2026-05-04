@@ -1,132 +1,135 @@
-const TaskMaster    = require("../../models/syllabus/TaskMaster");
+const Task            = require("../../models/syllabus/Task");
 const SyllabusVersion = require("../../models/syllabus/SyllabusVersion");
-const Subject       = require("../../models/syllabus/Subject");
-const Topic         = require("../../models/syllabus/Topic");
-const SubTopic      = require("../../models/syllabus/SubTopic");
+const { syncSyllabusTasksToStudents } = require("../../services/taskAssignmentService");
 
+const VALID_TYPES    = ["assignment", "project", "practice", "reading", "assessment", "other"];
+const VALID_PRIORITY = ["low", "medium", "high"];
 
-const VALID_TYPES     = ["writtenExam", "interview", "project", "presentation", "learning", "assessment"];
-const VALID_PRIORITY  = ["low", "medium", "high"];
-
-
-// POST /task-master/bulk-upload
-// Body: { syllabusVersionId, tasks: [{ subject, topic, subTopic, taskTitle, taskType, maxMarks, cutoff, priority, mandatory, description }] }
+// POST /syllabus/versions/bulk-upload-tasks
+// Body: { syllabusVersionId, tasks: [{ topic, subTopic, taskTitle, taskType, priority, maxMarks, timeDays, measurablePoints }] }
 exports.bulkUploadTasks = async (req, res) => {
   try {
     const { syllabusVersionId, tasks } = req.body;
 
+    if (!syllabusVersionId)
+      return res.status(400).json({ success: false, message: "syllabusVersionId is required" });
+    if (!Array.isArray(tasks) || tasks.length === 0)
+      return res.status(400).json({ success: false, message: "tasks array is required" });
 
-    if (!syllabusVersionId) return res.status(400).json({ success: false, message: "syllabusVersionId is required" });
-    if (!Array.isArray(tasks) || tasks.length === 0) return res.status(400).json({ success: false, message: "tasks array is required" });
-
-
-    const syllabusVersion = await SyllabusVersion.findById(syllabusVersionId);
-    if (!syllabusVersion) return res.status(404).json({ success: false, message: "SyllabusVersion not found" });
-
-
-    const { levelId, subLevelId } = syllabusVersion;
-
-
-    // Since one SyllabusVersion = one Subject, fetch it once
-    const subjectDoc = await Subject.findOne({ syllabusVersionId });
-    if (!subjectDoc) return res.status(404).json({ success: false, message: "No subject found for this SyllabusVersion" });
-
+    const sv = await SyllabusVersion.findById(syllabusVersionId);
+    if (!sv || !sv.isActive)
+      return res.status(404).json({ success: false, message: "SyllabusVersion not found" });
 
     const errors   = [];
     const taskDocs = [];
 
-
     for (let i = 0; i < tasks.length; i++) {
-      const row = tasks[i];
-      const rowNum = i + 2; // Excel row number (1=header)
+      const row    = tasks[i];
+      const rowNum = i + 2;
 
+      const topicName       = (row.topic            || "").trim();
+      const subTopicName    = (row.subTopic          || "").trim();
+      const taskTitle       = (row.taskTitle         || "").trim();
+      const taskType        = (row.taskType          || "assessment").trim().toLowerCase();
+      const priority        = (row.priority          || "medium").trim().toLowerCase();
+      const maxMarks        = Number(row.maxMarks)   || 5;
+      const timeDays        = row.timeDays           ? Number(row.timeDays) : null;
+      const measurablePoints = (row.measurablePoints || "").trim();
 
-      const topicName        = (row.topic            || "").trim();
-      const subTopicName      = (row.subTopic         || "").trim();
-      const taskTitle         = (row.taskTitle        || "").trim();
-      const taskType          = (row.taskType         || "assessment").trim();
-      const priority          = (row.priority         || "medium").trim();
-      const maxMarks          = Number(row.maxMarks)  || 100;
-      const cutoff            = Number(row.cutoff)    || 40;
-      const mandatory         = row.mandatory !== "false" && row.mandatory !== false && row.mandatory !== "0";
-      const description       = (row.description      || "").trim();
-      const timeDays          = row.timeDays          ? Number(row.timeDays) : null;
-      const measurablePoints  = (row.measurablePoints || "").trim() || null;
-
-
-      // Validate required fields
-      if (!topicName || !subTopicName || !taskTitle) {
-        errors.push(`Row ${rowNum}: Topic, SubTopic, TaskTitle are required`);
+      if (!topicName || !taskTitle) {
+        errors.push(`Row ${rowNum}: topic and taskTitle are required`);
         continue;
       }
-      if (!VALID_TYPES.includes(taskType)) {
-        errors.push(`Row ${rowNum}: Invalid TaskType "${taskType}". Allowed: ${VALID_TYPES.join(", ")}`);
-        continue;
-      }
+
+      const resolvedType = VALID_TYPES.includes(taskType) ? taskType : "assessment";
       if (!VALID_PRIORITY.includes(priority)) {
-        errors.push(`Row ${rowNum}: Invalid Priority "${priority}". Allowed: ${VALID_PRIORITY.join(", ")}`);
+        errors.push(`Row ${rowNum}: Invalid priority "${priority}". Allowed: ${VALID_PRIORITY.join(", ")}`);
         continue;
       }
 
+      // Find subject, topic, subtopic from embedded SyllabusVersion
+      let foundSubject  = null;
+      let foundTopic    = null;
+      let foundSubTopic = null;
 
-      const topicDoc = await Topic.findOne({ syllabusVersionId, subjectId: subjectDoc._id, name: new RegExp(`^${topicName}$`, "i") });
-      if (!topicDoc) { errors.push(`Row ${rowNum}: Topic "${topicName}" not found`); continue; }
+      for (const subj of sv.subjects || []) {
+        const topic = (subj.topics || []).find(
+          (t) => t.name.trim().toLowerCase() === topicName.toLowerCase()
+        );
+        if (topic) {
+          foundSubject = subj;
+          foundTopic   = topic;
+          if (subTopicName) {
+            foundSubTopic = (topic.subTopics || []).find(
+              (st) => st.name.trim().toLowerCase() === subTopicName.toLowerCase()
+            ) || null;
+          }
+          break;
+        }
+      }
 
+      if (!foundTopic) {
+        errors.push(`Row ${rowNum}: Topic "${topicName}" not found in syllabus`);
+        continue;
+      }
+      if (subTopicName && !foundSubTopic) {
+        errors.push(`Row ${rowNum}: SubTopic "${subTopicName}" not found under topic "${topicName}"`);
+        continue;
+      }
 
-      const subTopicDoc = await SubTopic.findOne({ syllabusVersionId, topicId: topicDoc._id, name: new RegExp(`^${subTopicName}$`, "i") });
-      if (!subTopicDoc) { errors.push(`Row ${rowNum}: SubTopic "${subTopicName}" not found under topic "${topicName}"`); continue; }
+      // Check duplicate
+      const exists = await Task.findOne({
+        syllabusVersionId,
+        topicId:    foundTopic._id,
+        subTopicId: foundSubTopic?._id || null,
+        title:      taskTitle,
+        isActive:   true,
+      });
+      if (exists) {
+        errors.push(`Row ${rowNum}: Task "${taskTitle}" already exists for this topic/subtopic`);
+        continue;
+      }
 
-
-      const taskCode = `TM-${syllabusVersionId.toString().slice(-4)}-${topicDoc._id.toString().slice(-4)}-${subTopicDoc._id.toString().slice(-4)}-${Date.now().toString().slice(-4)}`;
-
-
-      // Check duplicate taskCode
-      const exists = await TaskMaster.findOne({ syllabusVersionId, subTopicId: subTopicDoc._id, title: taskTitle });
-      if (exists) { errors.push(`Row ${rowNum}: Task "${taskTitle}" already exists for this subTopic`); continue; }
-
+      const taskCount = await Task.countDocuments({
+        syllabusVersionId,
+        topicId:    foundTopic._id,
+        subTopicId: foundSubTopic?._id || null,
+      });
 
       taskDocs.push({
         syllabusVersionId,
-        levelId,
-        subLevelId,
-        subjectId:        subjectDoc._id,
-        topicId:          topicDoc._id,
-        subTopicId:       subTopicDoc._id,
-        taskCode,
+        subjectId:        foundSubject._id,
+        subjectName:      foundSubject.name,
+        topicId:          foundTopic._id,
+        topicName:        foundTopic.name,
+        subTopicId:       foundSubTopic?._id || null,
+        subTopicName:     foundSubTopic?.name || "",
+        taskNodeType:     foundSubTopic ? "subTopic" : "topic",
         title:            taskTitle,
-        description,
-        type:             taskType,
+        type:             resolvedType,
         maxMarks,
-        cutoff,
-        mandatory,
-        priority,
         timeDays,
         measurablePoints,
-        originalTaskId:   subTopicDoc._id,
+        order:            taskCount + 1,
+        isActive:         true,
       });
     }
 
-
-    if (taskDocs.length === 0) {
+    if (taskDocs.length === 0)
       return res.status(400).json({ success: false, message: "No valid tasks to insert", errors });
+
+    const inserted = await Task.insertMany(taskDocs);
+
+    // Sync to students if syllabus is active
+    if (sv.status === "active") {
+      await syncSyllabusTasksToStudents(syllabusVersionId).catch(() => {});
     }
 
-
-    const inserted = await TaskMaster.insertMany(taskDocs);
-
-
-    // Mark syllabusVersion as taskMasterGenerated
-    await SyllabusVersion.findByIdAndUpdate(syllabusVersionId, {
-      taskMasterGenerated: true,
-      taskMasterGeneratedAt: new Date(),
-    });
-
-
     res.status(201).json({
-      success: true,
-      message: `${inserted.length} task(s) created successfully`,
+      success:  true,
+      message:  `${inserted.length} task(s) uploaded successfully`,
       inserted: inserted.length,
-      skipped: errors.length,
+      skipped:  errors.length,
       errors,
     });
   } catch (error) {

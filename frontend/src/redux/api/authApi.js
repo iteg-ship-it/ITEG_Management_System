@@ -1164,12 +1164,12 @@ export const authApi = createApi({
       invalidatesTags: ['SyllabusVersion'],
     }),
 
-    // Bulk upload via JSON subjects payload
+    // Bulk upload tasks via Excel rows
     bulkUploadTasks: builder.mutation({
-      query: ({ syllabusVersionId, subjects }) => ({
-        url: `/syllabus/versions/${syllabusVersionId}/subjects/upload`,
+      query: ({ syllabusVersionId, tasks }) => ({
+        url: `/syllabus/versions/bulk-upload-tasks`,
         method: 'POST',
-        body: { subjects },
+        body: { syllabusVersionId, tasks },
       }),
       invalidatesTags: (result, error, data) => [
         { type: 'SyllabusVersion', id: data.syllabusVersionId },

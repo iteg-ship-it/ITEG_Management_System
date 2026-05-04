@@ -3,12 +3,16 @@ const router = express.Router();
 const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
 const embeddedSyllabusController = require("../controllers/syllabus/embeddedSyllabusController");
 const taskAssignmentController = require("../controllers/syllabus/taskAssignmentController");
+const taskMasterBulkController = require("../controllers/syllabus/taskMasterBulkController");
 const excelUpload = require("../config/excelUploadConfig");
 const SyllabusVersion = require("../models/syllabus/SyllabusVersion");
 const StudentTask = require("../models/syllabus/StudentTask");
 const { updateStudentTaskStatus } = require("../services/taskAssignmentService");
 
 const writeRoles = ["superadmin", "admin", "faculty"];
+
+// ── Bulk Task Upload ──
+router.post("/bulk-upload-tasks", verifyToken, checkRole(writeRoles), taskMasterBulkController.bulkUploadTasks);
 
 // ── Syllabus Version CRUD ──
 router.post("/", verifyToken, checkRole(writeRoles), embeddedSyllabusController.createSyllabusVersion);

@@ -1,9 +1,9 @@
-﻿import { useState, useRef, useMemo, forwardRef, useImperativeHandle, useEffect } from "react";
+﻿﻿import { useState, useRef, useMemo, forwardRef, useImperativeHandle, useEffect } from "react";
 import * as XLSX from "xlsx";
 import {
   MdCloudUpload, MdCheckCircle, MdExpandMore, MdExpandLess,
   MdBook, MdTopic, MdSubject, MdDelete, MdSave, MdEdit, MdVisibility,
-  MdAssignment, MdPriorityHigh,
+  MdAssignment,
 } from "react-icons/md";
 import { toast } from "react-toastify";
 import {
@@ -383,13 +383,14 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
 SyllabusUploadDrawer.displayName = "SyllabusUploadDrawer";
 
 /* ─── Topic/SubTopic table for one version ──────────────── */
-const VersionTopicTable = ({ versionId, searchTerm }) => {
+const VersionTopicTable = ({ versionId, searchTerm, activeSubject }) => {
   const { data, isLoading } = useGetSyllabusVersionWithHierarchyQuery(versionId, { skip: !versionId });
 
   const rows = useMemo(() => {
     if (!data?.data?.subjects) return [];
     const result = [];
     data.data.subjects.forEach((subject) => {
+      if (activeSubject && subject.name !== activeSubject) return;
       (subject.topics || []).forEach((topic) => {
         const topicIdStr = String(topic._id);
         if (topic.subTopics && topic.subTopics.length > 0) {
@@ -402,6 +403,11 @@ const VersionTopicTable = ({ versionId, searchTerm }) => {
       });
     });
     return result;
+  }, [data, activeSubject]);
+
+  const subjects = useMemo(() => {
+    if (!data?.data?.subjects) return [];
+    return data.data.subjects.map((s) => s.name);
   }, [data]);
 
   const filtered = useMemo(() => {
@@ -416,62 +422,69 @@ const VersionTopicTable = ({ versionId, searchTerm }) => {
 
   if (isLoading) return (
     <div className="flex justify-center py-10">
-      <div className="w-7 h-7 border-4 border-orange-400 border-t-transparent rounded-full animate-spin" />
+      <div className="w-7 h-7 border-[3px] border-orange-500 border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
-  if (!filtered.length) return <div className="py-10 text-center text-gray-400 text-sm">No subtopics found</div>;
+  if (!filtered.length) return <div className="py-10 text-center text-gray-400 text-sm">No topics found</div>;
 
   return (
-    <table className="w-full text-sm">
-      <thead>
-        <tr className="bg-gray-50 border-b border-gray-100">
-          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-8">#</th>
-          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Subject</th>
-          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Topic</th>
-          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">SubTopic</th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-gray-50">
-        {filtered.map((row, idx) => {
-          const showSubject = idx === 0 || filtered[idx - 1].subject !== row.subject;
-          const showTopic   = idx === 0 || filtered[idx - 1].topicIdStr !== row.topicIdStr;
-          return (
-            <tr key={`${row._id}-${idx}`} className="hover:bg-gray-50 transition">
-              <td className="px-4 py-2.5 text-xs text-gray-400">{idx + 1}</td>
-              <td className="px-4 py-2.5">
-                {showSubject ? (
-                  <span className="flex items-center gap-1.5">
-                    <MdBook size={13} className="text-orange-400 flex-shrink-0" />
-                    <span className="font-semibold text-gray-800 text-xs">{row.subject}</span>
+    <>
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="bg-[#F8F7F5] border-b border-gray-100">
+            <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider w-10">#</th>
+            <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Topic</th>
+            <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">SubTopic</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-50">
+          {filtered.map((row, idx) => {
+            const showTopic = idx === 0 || filtered[idx - 1].topicIdStr !== row.topicIdStr;
+            return (
+              <tr key={`${row._id}-${idx}`} className="hover:bg-orange-50/40 transition-colors duration-150">
+                <td className="px-5 py-3">
+                  <span className="w-6 h-6 rounded-full bg-gray-100 text-gray-400 text-xs font-semibold flex items-center justify-center">
+                    {idx + 1}
                   </span>
-                ) : <span className="text-gray-200 text-xs pl-5">│</span>}
-              </td>
-              <td className="px-4 py-2.5">
-                {showTopic ? (
+                </td>
+                <td className="px-5 py-3">
+                  {showTopic ? (
+                    <span className="flex items-center gap-1.5">
+                      <MdTopic size={13} className="text-orange-400 flex-shrink-0" />
+                      <span className="font-semibold text-gray-800 text-xs">{row.topic}</span>
+                    </span>
+                  ) : <span className="text-gray-200 text-xs pl-5">└</span>}
+                </td>
+                <td className="px-5 py-3">
                   <span className="flex items-center gap-1.5">
-                    <MdTopic size={13} className="text-blue-400 flex-shrink-0" />
-                    <span className="font-medium text-gray-700 text-xs">{row.topic}</span>
+                    {row.subTopic !== "—" && <MdSubject size={12} className="text-gray-300 flex-shrink-0" />}
+                    <span className="text-gray-600 text-xs">{row.subTopic}</span>
                   </span>
-                ) : <span className="text-gray-300 text-xs pl-5">↳</span>}
-              </td>
-              <td className="px-4 py-2.5">
-                <span className="flex items-center gap-1.5">
-                  {row.subTopic !== "—" && <MdSubject size={12} className="text-gray-300 flex-shrink-0" />}
-                  <span className="text-gray-600 text-xs">{row.subTopic}</span>
-                </span>
-              </td>
-            </tr>
-          );
-        })}
-      </tbody>
-      <tfoot>
-        <tr className="border-t border-gray-100 bg-gray-50">
-          <td colSpan={4} className="px-4 py-2 text-xs text-gray-400">{filtered.length} entries</td>
-        </tr>
-      </tfoot>
-    </table>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+        <tfoot>
+          <tr className="border-t border-gray-100 bg-[#F8F7F5]">
+            <td colSpan={3} className="px-5 py-3 text-xs text-gray-400">
+              Total <span className="font-semibold text-gray-600">{filtered.length}</span> entries
+              {searchTerm && rows.length !== filtered.length && (
+                <span className="ml-1">(filtered from {rows.length})</span>
+              )}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </>
   );
+};
+
+/* helper: subjects list from version */
+export const useSubjectsList = (versionId) => {
+  const { data } = useGetSyllabusVersionWithHierarchyQuery(versionId, { skip: !versionId });
+  return useMemo(() => (data?.data?.subjects || []).map((s) => ({ name: s.name, topicCount: s.topics?.length || 0 })), [data]);
 };
 
 /* ─── Task Excel Upload Drawer ─────────────────────────── */
@@ -503,24 +516,22 @@ export const TaskUploadDrawer = ({ syllabusVersionId, subjectName, version, onSa
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!/\.(xlsx|xls)$/i.test(file.name)) { toast.error("Please upload .xlsx or .xls file"); return; }
+    if (!/\.(xlsx|xls|csv)$/i.test(file.name)) { toast.error("Please upload .xlsx, .xls or .csv file"); return; }
     setParsing(true); setRows([]); setFileName(file.name);
     try {
       const parsed = await parseTaskExcel(file);
       if (!parsed.length) { toast.error("Excel file is empty"); return; }
       // Map column headers (case-insensitive)
       const mapped = parsed.map((r) => ({
-        subject:     String(r["Subject"]     || r["subject"]     || "").trim(),
-        topic:       String(r["Topic"]       || r["topic"]       || "").trim(),
-        subTopic:    String(r["SubTopic"]    || r["subtopic"]    || r["sub_topic"] || "").trim(),
-        taskTitle:   String(r["TaskTitle"]   || r["Task Title"]  || r["taskTitle"] || "").trim(),
-        taskType:    String(r["TaskType"]    || r["Task Type"]   || r["taskType"]  || "assessment").trim(),
-        maxMarks:    r["MaxMarks"]   || r["Max Marks"]  || r["maxMarks"]  || 100,
-        cutoff:      r["Cutoff"]     || r["cutoff"]     || 40,
-        priority:    String(r["Priority"]    || r["priority"]    || "medium").trim(),
-        mandatory:   String(r["Mandatory"]   || r["mandatory"]   || "true").trim(),
-        description: String(r["Description"] || r["description"] || "").trim(),
-      })).filter((r) => r.topic && r.subTopic && r.taskTitle);
+        topic:             String(r["topic"]            || r["Topic"]            || r["Topic Name"] || "").trim(),
+        subTopic:          String(r["subTopic"]         || r["SubTopic"]         || r["sub_topic"]  || "").trim(),
+        taskTitle:         String(r["taskTitle"]        || r["TaskTitle"]        || r["Task Title"] || r["Tasks"] || "").trim(),
+        taskType:          String(r["taskType"]         || r["TaskType"]         || r["Task Type"]  || "assessment").trim(),
+        priority:          String(r["priority"]         || r["Priority"]         || "medium").trim(),
+        maxMarks:          Number(r["maxMarks"]         || r["MaxMarks"]         || r["Max Marks"]  || 100),
+        timeDays:          r["timeDays"]  || r["TimeDays"]  || r["Time"] || null,
+        measurablePoints:  String(r["measurablePoints"] || r["MeasurablePoints"] || r["Measurable Point"] || "").trim(),
+      })).filter((r) => r.topic && r.taskTitle);
 
       if (!mapped.length) { toast.error("No valid rows found. Check column names."); return; }
       setRows(mapped);
@@ -533,6 +544,8 @@ export const TaskUploadDrawer = ({ syllabusVersionId, subjectName, version, onSa
     if (!rows.length) { toast.error("No data to upload"); return; }
     setSaving(true);
     try {
+      console.log("📦 Bulk Task Upload DB me ja raha hai:", { syllabusVersionId, tasks: rows });
+      console.table(rows.map(r => ({ topic: r.topic, subTopic: r.subTopic, taskTitle: r.taskTitle, type: r.taskType, maxMarks: r.maxMarks })));
       const res = await bulkUploadTasks({ syllabusVersionId, tasks: rows }).unwrap();
       toast.success(`${res.inserted} task(s) uploaded!`);
       if (res.errors?.length) {
@@ -582,7 +595,7 @@ export const TaskUploadDrawer = ({ syllabusVersionId, subjectName, version, onSa
           </>
         )}
       </div>
-      <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleFile} />
+      <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleFile} />
 
       {rows.length > 0 && (
         <>
@@ -616,86 +629,158 @@ const splitNumberedPoints = (text) => {
 };
 
 /* ─── Tasks table for one version ──────────────────────── */
-const PRIORITY_STYLE = {
-  low:    "bg-green-100 text-green-700",
-  medium: "bg-yellow-100 text-yellow-700",
-  high:   "bg-red-100 text-red-700",
+const PRIORITY_BADGE = {
+  high:   { cls: "bg-red-100 text-red-600 border border-red-200",       dot: "bg-red-400" },
+  medium: { cls: "bg-yellow-100 text-yellow-700 border border-yellow-200", dot: "bg-yellow-400" },
+  low:    { cls: "bg-green-100 text-green-700 border border-green-200",   dot: "bg-green-400" },
 };
-const TYPE_STYLE = {
-  writtenExam:  "bg-purple-100 text-purple-700",
-  interview:    "bg-blue-100 text-blue-700",
-  project:      "bg-orange-100 text-orange-700",
-  presentation: "bg-pink-100 text-pink-700",
-  learning:     "bg-teal-100 text-teal-700",
-  assessment:   "bg-gray-100 text-gray-700",
+const TYPE_BADGE = {
+  writtenExam:  "bg-purple-50 text-purple-700 border border-purple-200",
+  interview:    "bg-blue-50 text-blue-700 border border-blue-200",
+  project:      "bg-orange-50 text-orange-600 border border-orange-200",
+  presentation: "bg-pink-50 text-pink-700 border border-pink-200",
+  learning:     "bg-teal-50 text-teal-700 border border-teal-200",
+  assessment:   "bg-gray-100 text-gray-600 border border-gray-200",
 };
 
-export const VersionTasksTable = ({ versionId }) => {
+export const VersionTasksTable = ({ versionId, searchTerm = "" }) => {
   const { data, isLoading } = useGetTasksBySyllabusVersionQuery(versionId, { skip: !versionId });
-  const tasks = data?.tasks || data?.data || [];
+  const allTasks = data?.tasks || data?.data || [];
+
+  const tasks = useMemo(() => {
+    if (!searchTerm.trim()) return allTasks;
+    const q = searchTerm.toLowerCase();
+    return allTasks.filter((t) =>
+      t.title?.toLowerCase().includes(q) ||
+      t.topicName?.toLowerCase().includes(q) ||
+      t.subTopicName?.toLowerCase().includes(q)
+    );
+  }, [allTasks, searchTerm]);
 
   if (isLoading) return (
-    <div className="flex justify-center py-10">
-      <div className="w-7 h-7 border-4 border-orange-400 border-t-transparent rounded-full animate-spin" />
+    <div className="flex justify-center py-14">
+      <div className="w-7 h-7 border-[3px] border-orange-500 border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
   if (!tasks.length) return (
-    <div className="py-12 text-center">
-      <MdAssignment size={36} className="text-gray-200 mx-auto mb-2" />
-      <p className="text-sm text-gray-400">No tasks found for this version</p>
+    <div className="py-16 text-center">
+      <div className="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center mx-auto mb-3">
+        <MdAssignment size={30} className="text-orange-300" />
+      </div>
+      <p className="text-sm font-semibold text-gray-500">No tasks added yet</p>
+      <p className="text-xs text-gray-400 mt-1">Add tasks from the button above</p>
     </div>
   );
 
   return (
-    <table className="w-full text-sm">
-      <thead>
-        <tr className="bg-gray-50 border-b border-gray-100">
-          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-8">#</th>
-          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Task</th>
-          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Topic / SubTopic</th>
-          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Time</th>
-          <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Measurable Point</th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-gray-50">
-        {tasks.map((task, idx) => {
-          const titlePoints = splitNumberedPoints(task.title);
-          const measurePoints = splitNumberedPoints(task.measurablePoints);
-          return (
-          <tr key={task._id} className="hover:bg-gray-50 transition align-top">
-            <td className="px-4 py-2.5 text-xs text-gray-400">{idx + 1}</td>
-            <td className="px-4 py-2.5">
-              <ol className="space-y-0.5 list-none">
-                {titlePoints.map((point, i) => (
-                  <li key={i} className="text-xs text-gray-800">{point}</li>
-                ))}
-              </ol>
-            </td>
-            <td className="px-4 py-2.5">
-              <p className="text-xs text-gray-600">{task.topicName || "—"}</p>
-              <p className="text-xs text-gray-400">{task.subTopicName || ""}</p>
-            </td>
-            <td className="px-4 py-2.5 text-xs text-gray-600 whitespace-nowrap">
-              {task.timeDays ? `${task.timeDays} Day${task.timeDays > 1 ? "s" : ""}` : "—"}
-            </td>
-            <td className="px-4 py-2.5 max-w-[240px]">
-              <ol className="space-y-0.5 list-none">
-                {measurePoints.map((point, i) => (
-                  <li key={i} className="text-xs text-gray-500">{point}</li>
-                ))}
-              </ol>
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm min-w-[820px]">
+        <thead>
+          <tr className="bg-[#F8F7F5] border-b border-gray-100">
+            <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider w-10">#</th>
+            <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Task Title</th>
+            <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Topic / SubTopic</th>
+            <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Type</th>
+            <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Priority</th>
+            <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Time</th>
+            <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Measurable Points</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-50">
+          {tasks.map((task, idx) => {
+            const measurePoints = splitNumberedPoints(task.measurablePoints);
+            const priorityKey   = (task.priority || "medium").toLowerCase();
+            const typeKey       = task.type || "assessment";
+            const pBadge        = PRIORITY_BADGE[priorityKey] || PRIORITY_BADGE.medium;
+            return (
+              <tr key={task._id} className="hover:bg-orange-50/40 transition-colors duration-150 align-top">
+
+                {/* # */}
+                <td className="px-5 py-4">
+                  <span className="w-6 h-6 rounded-full bg-gray-100 text-gray-400 text-xs font-semibold flex items-center justify-center">
+                    {idx + 1}
+                  </span>
+                </td>
+
+                {/* Task Title */}
+                <td className="px-5 py-4 max-w-[210px]">
+                  <p className="text-sm font-semibold text-gray-800 leading-snug">{task.title}</p>
+                  {task.dueDate && (
+                    <span className="inline-flex items-center gap-1 mt-1.5 text-[11px] text-gray-400 bg-gray-50 border border-gray-100 px-2 py-0.5 rounded-full">
+                      📅 {new Date(task.dueDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                    </span>
+                  )}
+                </td>
+
+                {/* Topic / SubTopic */}
+                <td className="px-5 py-4">
+                  <div className="flex items-center gap-1.5">
+                    <MdTopic size={13} className="text-orange-400 flex-shrink-0" />
+                    <span className="text-xs font-semibold text-gray-700">{task.topicName || "—"}</span>
+                  </div>
+                  {task.subTopicName && (
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <MdSubject size={12} className="text-gray-300 flex-shrink-0" />
+                      <span className="text-xs text-gray-500">{task.subTopicName}</span>
+                    </div>
+                  )}
+                </td>
+
+                {/* Type */}
+                <td className="px-5 py-4">
+                  <span className={`inline-block text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${TYPE_BADGE[typeKey] || "bg-gray-100 text-gray-600 border border-gray-200"}`}>
+                    {typeKey}
+                  </span>
+                </td>
+
+                {/* Priority */}
+                <td className="px-5 py-4">
+                  <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${pBadge.cls}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${pBadge.dot}`} />
+                    {priorityKey}
+                  </span>
+                </td>
+
+                {/* Time */}
+                <td className="px-5 py-4 whitespace-nowrap">
+                  {task.timeDays ? (
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full">
+                      ⏱ {task.timeDays} <span className="font-normal text-gray-400">day{task.timeDays > 1 ? "s" : ""}</span>
+                    </span>
+                  ) : <span className="text-gray-300 text-xs">—</span>}
+                </td>
+
+                {/* Measurable Points */}
+                <td className="px-5 py-4 max-w-[230px]">
+                  {measurePoints.length > 0 && measurePoints[0] ? (
+                    <ul className="space-y-1">
+                      {measurePoints.map((pt, i) => (
+                        <li key={i} className="flex items-start gap-2 text-xs text-gray-500">
+                          <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0" />
+                          <span className="leading-relaxed">{pt}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : <span className="text-gray-300 text-xs">—</span>}
+                </td>
+
+              </tr>
+            );
+          })}
+        </tbody>
+        <tfoot>
+          <tr className="border-t border-gray-100 bg-[#F8F7F5]">
+            <td colSpan={7} className="px-5 py-3 text-xs text-gray-400">
+              Total <span className="font-semibold text-gray-600">{tasks.length}</span> tasks
+              {searchTerm && allTasks.length !== tasks.length && (
+                <span className="ml-1 text-gray-400">(filtered from {allTasks.length})</span>
+              )}
             </td>
           </tr>
-          );
-        })}
-      </tbody>
-      <tfoot>
-        <tr className="border-t border-gray-100 bg-gray-50">
-          <td colSpan={5} className="px-4 py-2 text-xs text-gray-400">{tasks.length} tasks</td>
-        </tr>
-      </tfoot>
-    </table>
+        </tfoot>
+      </table>
+    </div>
   );
 };
 
@@ -714,14 +799,12 @@ export const ManualTaskForm = ({ subLevel, versionId, onSaved, formId = "manual-
   const [form,       setForm]       = useState(EMPTY_FORM);
   const [saving,     setSaving]     = useState(false);
 
-  // Load versions for this subLevel to get syllabusVersionId
   const { data: versionsData } = useGetSyllabusVersionsBySubLevelQuery(
     { subLevelId, sessionId: "" },
     { skip: !subLevelId && !versionId }
   );
   const versions = versionsData?.data || [];
 
-  // Auto-pick active version or first
   useEffect(() => {
     if (!versionId && versions.length > 0) {
       const active = versions.find((v) => v.status === "active") || versions[0];
@@ -730,130 +813,147 @@ export const ManualTaskForm = ({ subLevel, versionId, onSaved, formId = "manual-
   }, [versions, versionId]);
 
   const { data: versionDetail } = useGetSyllabusVersionWithHierarchyQuery(syllabusVersionId, { skip: !syllabusVersionId });
-  const loadSub = false;
-  const loadTop = false;
   const subjects  = versionDetail?.data?.subjects || [];
   const topics    = subjects.find((s) => s._id === subjectId)?.topics || [];
   const subTopics = topics.find((t) => t._id === topicId)?.subTopics || [];
 
   const [createTask] = useCreateTaskManualMutation();
-
   const resetForm = () => { setSubjectId(""); setTopicId(""); setTaskTarget(""); setSubTopicId(""); setForm(EMPTY_FORM); };
-
   const canSubmit = taskTarget === "topic" || (taskTarget === "subtopic" && subTopicId);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.title.trim()) { toast.error("Task title required hai"); return; }
+    if (!form.title.trim()) { toast.error("Task title is required"); return; }
     setSaving(true);
     try {
       const payload = {
-        syllabusVersionId,
-        subjectId,
-        topicId,
+        syllabusVersionId, subjectId, topicId,
         ...(taskTarget === "subtopic" && subTopicId ? { subTopicId } : {}),
         ...form,
         title:    form.title.trim(),
+        timeDays: form.timeDays ? Number(form.timeDays) : null,
         maxMarks: Number(form.maxMarks),
         cutoff:   Number(form.cutoff),
-        timeDays: form.timeDays ? Number(form.timeDays) : null,
       };
       await createTask(payload).unwrap();
       toast.success("Task created successfully!");
       setForm(EMPTY_FORM); setSubTopicId(""); setTaskTarget("");
       onSaved?.();
     } catch (err) {
-      toast.error(err?.data?.message || "Task create failed");
+      toast.error(err?.data?.message || "Failed to create task");
     } finally { setSaving(false); }
   };
 
-  const ic = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white disabled:bg-gray-50 disabled:text-gray-400";
-  const lc = "block text-xs font-semibold text-gray-500 mb-1";
+  const ic = "w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-orange-400 bg-white transition";
+  const lc = "block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5";
 
   return (
-    <form id={formId} onSubmit={handleSubmit} className="space-y-4 p-4 bg-orange-50/30">
+    <form id={formId} onSubmit={handleSubmit} className="divide-y divide-gray-100">
 
-      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Step 1 Subject & Topic</p>
+      {/* Section 1 */}
+      <div className="px-5 py-5 space-y-4">
+        <div className="flex items-center gap-2">
+          <span className="w-5 h-5 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">1</span>
+          <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Select Location</span>
+        </div>
 
-      <div>
-        <label className={lc}>Subject {loadSub && <span className="text-orange-400 font-normal">Loading...</span>}</label>
-        <select className={ic} value={subjectId} onChange={(e) => { setSubjectId(e.target.value); setTopicId(""); setTaskTarget(""); setSubTopicId(""); }}>
-          <option value="">-- Select Subject --</option>
-          {subjects.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
-        </select>
-      </div>
-
-      {subjectId && (
         <div>
-          <label className={lc}>Topic {loadTop && <span className="text-orange-400 font-normal">Loading...</span>}</label>
-          <select className={ic} value={topicId} onChange={(e) => { setTopicId(e.target.value); setTaskTarget(""); setSubTopicId(""); }}>
-            <option value="">-- Select Topic --</option>
-            {topics.map((t) => <option key={t._id} value={t._id}>{t.name}</option>)}
+          <label className={lc}>Subject</label>
+          <select className={ic} value={subjectId} onChange={(e) => { setSubjectId(e.target.value); setTopicId(""); setTaskTarget(""); setSubTopicId(""); }}>
+            <option value="">-- Select Subject --</option>
+            {subjects.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
           </select>
         </div>
-      )}
 
-      {topicId && (
-        <>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider pt-1">Step 2 Task Kahan Add Karna Hai?</p>
-          <div className="grid grid-cols-2 gap-3">
-            <button type="button" onClick={() => { setTaskTarget("topic"); setSubTopicId(""); }}
-              className={`flex flex-col items-center gap-1.5 border-2 rounded-xl py-4 px-3 transition ${taskTarget === "topic" ? "border-orange-500 bg-orange-50 text-orange-600" : "border-gray-200 bg-white text-gray-500 hover:border-orange-300"}`}>
-              <MdTopic size={22} />
-              <span className="text-xs font-semibold">Topic pe directly</span>
-              <span className="text-[10px] text-center leading-tight opacity-70">Koi subtopic nahi, topic level ka task</span>
-            </button>
-            <button type="button" onClick={() => setTaskTarget("subtopic")}
-              className={`flex flex-col items-center gap-1.5 border-2 rounded-xl py-4 px-3 transition ${taskTarget === "subtopic" ? "border-blue-500 bg-blue-50 text-blue-600" : "border-gray-200 bg-white text-gray-500 hover:border-blue-300"}`}>
-              <MdSubject size={22} />
-              <span className="text-xs font-semibold">SubTopic select karke</span>
-              <span className="text-[10px] text-center leading-tight opacity-70">Task kisi subtopic se related hai</span>
-            </button>
-          </div>
-        </>
-      )}
-
-      {taskTarget === "subtopic" && (
-        <div>
-          <label className={lc}>SubTopic</label>
-          {subTopics.length === 0 ? (
-            <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              Is topic mein koi subtopic nahi â€” Topic pe directly add karo.
-            </p>
-          ) : (
-            <select className={ic} value={subTopicId} onChange={(e) => setSubTopicId(e.target.value)}>
-              <option value="">-- Select SubTopic --</option>
-              {subTopics.map((st) => <option key={st._id} value={st._id}>{st.name}</option>)}
-            </select>
-          )}
-        </div>
-      )}
-
-      {canSubmit && (
-        <div className={`flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-lg ${taskTarget === "subtopic" ? "bg-blue-50 text-blue-600" : "bg-orange-50 text-orange-600"}`}>
-          <MdBook size={13}/><span>{subjects.find(s=>s._id===subjectId)?.name}</span>
-          <span className="opacity-40"></span>
-          <MdTopic size={13}/><span>{topics.find(t=>t._id===topicId)?.name}</span>
-          {subTopicId && <><span className="opacity-40">â€º</span><MdSubject size={13}/><span>{subTopics.find(s=>s._id===subTopicId)?.name}</span></>}
-          <span className="ml-auto bg-white px-2 py-0.5 rounded-full border">Task â†’ {taskTarget === "subtopic" ? "SubTopic" : "Topic"}</span>
-        </div>
-      )}
-
-      {canSubmit && (
-        <>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider pt-1">Step 3 Task Details</p>
+        {subjectId && (
           <div>
-            <label className={lc}>Task Title *</label>
-            <input className={ic} value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder="Enter task title" />
+            <label className={lc}>Topic</label>
+            <select className={ic} value={topicId} onChange={(e) => { setTopicId(e.target.value); setTaskTarget(""); setSubTopicId(""); }}>
+              <option value="">-- Select Topic --</option>
+              {topics.map((t) => <option key={t._id} value={t._id}>{t.name}</option>)}
+            </select>
           </div>
+        )}
+
+        {topicId && (
+          <div>
+            <label className={lc}>Assign Task To</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button"
+                onClick={() => { setTaskTarget("topic"); setSubTopicId(""); }}
+                className={`flex items-center gap-2.5 border rounded-xl px-3 py-2.5 transition text-left ${taskTarget === "topic" ? "border-orange-500 bg-orange-50 text-orange-600" : "border-gray-200 bg-white text-gray-500 hover:border-orange-300"}`}>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${taskTarget === "topic" ? "bg-orange-100" : "bg-gray-100"}`}>
+                  <MdTopic size={16} className={taskTarget === "topic" ? "text-orange-500" : "text-gray-400"} />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold">Topic Level</p>
+                  <p className="text-[10px] opacity-60">No subtopic</p>
+                </div>
+              </button>
+              <button type="button"
+                onClick={() => setTaskTarget("subtopic")}
+                className={`flex items-center gap-2.5 border rounded-xl px-3 py-2.5 transition text-left ${taskTarget === "subtopic" ? "border-blue-500 bg-blue-50 text-blue-600" : "border-gray-200 bg-white text-gray-500 hover:border-blue-300"}`}>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${taskTarget === "subtopic" ? "bg-blue-100" : "bg-gray-100"}`}>
+                  <MdSubject size={16} className={taskTarget === "subtopic" ? "text-blue-500" : "text-gray-400"} />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold">SubTopic Level</p>
+                  <p className="text-[10px] opacity-60">Select subtopic</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {taskTarget === "subtopic" && (
+          <div>
+            <label className={lc}>SubTopic</label>
+            {subTopics.length === 0 ? (
+              <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5">
+                No subtopics found in this topic. Select Topic Level instead.
+              </div>
+            ) : (
+              <select className={ic} value={subTopicId} onChange={(e) => setSubTopicId(e.target.value)}>
+                <option value="">-- Select SubTopic --</option>
+                {subTopics.map((st) => <option key={st._id} value={st._id}>{st.name}</option>)}
+              </select>
+            )}
+          </div>
+        )}
+
+        {canSubmit && (
+          <div className="flex items-center gap-1.5 flex-wrap bg-[#F8F7F5] border border-gray-100 rounded-xl px-3 py-2.5">
+            <MdBook size={12} className="text-orange-400" />
+            <span className="text-xs font-medium text-gray-600">{subjects.find(s => s._id === subjectId)?.name}</span>
+            <span className="text-gray-300 text-xs">â€º</span>
+            <MdTopic size={12} className="text-orange-400" />
+            <span className="text-xs font-medium text-gray-600">{topics.find(t => t._id === topicId)?.name}</span>
+            {subTopicId && (<><span className="text-gray-300 text-xs">â€º</span><MdSubject size={12} className="text-gray-400" /><span className="text-xs text-gray-500">{subTopics.find(s => s._id === subTopicId)?.name}</span></>)}
+            <span className={`ml-auto text-[10px] font-semibold px-2 py-0.5 rounded-full ${taskTarget === "subtopic" ? "bg-blue-100 text-blue-600" : "bg-orange-100 text-orange-600"}`}>
+              {taskTarget === "subtopic" ? "SubTopic" : "Topic"}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Section 2 */}
+      {canSubmit && (
+        <div className="px-5 py-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-5 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">2</span>
+            <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Task Details</span>
+          </div>
+
+          <div>
+            <label className={lc}>Task Title <span className="text-red-400 normal-case font-normal">*</span></label>
+            <input className={ic} value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder="e.g. Build a REST API" />
+          </div>
+
           <div>
             <label className={lc}>Measurable Points</label>
-            <textarea className={ic} rows={2} value={form.measurablePoints} onChange={(e) => setForm((p) => ({ ...p, measurablePoints: e.target.value }))} placeholder="e.g. Student should explain var/let/const" />
+            <textarea className={ic} rows={3} value={form.measurablePoints} onChange={(e) => setForm((p) => ({ ...p, measurablePoints: e.target.value }))} placeholder="e.g. Student should be able to explain and implement..." />
           </div>
-          <div>
-            <label className={lc}>Time (Days)</label>
-            <input type="number" className={ic} value={form.timeDays} onChange={(e) => setForm((p) => ({ ...p, timeDays: e.target.value }))} placeholder="e.g. 7" />
-          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={lc}>Type</label>
@@ -868,6 +968,14 @@ export const ManualTaskForm = ({ subLevel, versionId, onSaved, formId = "manual-
               </select>
             </div>
             <div>
+              <label className={lc}>Time (Days)</label>
+              <input type="number" className={ic} value={form.timeDays} onChange={(e) => setForm((p) => ({ ...p, timeDays: e.target.value }))} placeholder="e.g. 7" />
+            </div>
+            <div>
+              <label className={lc}>Due Date <span className="text-gray-300 normal-case font-normal">(optional)</span></label>
+              <input type="date" className={ic} value={form.dueDate} onChange={(e) => setForm((p) => ({ ...p, dueDate: e.target.value }))} />
+            </div>
+            <div>
               <label className={lc}>Max Marks</label>
               <input type="number" className={ic} value={form.maxMarks} onChange={(e) => setForm((p) => ({ ...p, maxMarks: e.target.value }))} />
             </div>
@@ -876,19 +984,24 @@ export const ManualTaskForm = ({ subLevel, versionId, onSaved, formId = "manual-
               <input type="number" className={ic} value={form.cutoff} onChange={(e) => setForm((p) => ({ ...p, cutoff: e.target.value }))} />
             </div>
           </div>
-          <div>
-            <label className={lc}>Due Date (optional)</label>
-            <input type="date" className={ic} value={form.dueDate} onChange={(e) => setForm((p) => ({ ...p, dueDate: e.target.value }))} />
-          </div>
-          <div className="flex gap-2 pt-1">
-            {showSubmitButton && (
-              <button type="submit" disabled={saving} className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-semibold py-2.5 rounded-lg transition">
-                {saving ? "Saving..." : "Add Task"}
-              </button>
-            )}
-            <button type="button" onClick={resetForm} className="px-4 py-2 text-sm text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Reset</button>
-          </div>
-        </>
+        </div>
+      )}
+
+      {/* Footer */}
+      {canSubmit && (
+        <div className="px-5 py-4 flex gap-2 bg-[#F8F7F5]">
+          {showSubmitButton && (
+            <button type="submit" disabled={saving}
+              className="flex-1 flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-semibold py-2.5 rounded-xl transition shadow-sm shadow-orange-100">
+              <MdAssignment size={15} />
+              {saving ? "Saving..." : "Add Task"}
+            </button>
+          )}
+          <button type="button" onClick={resetForm}
+            className="px-4 py-2.5 text-sm text-gray-500 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition">
+            Reset
+          </button>
+        </div>
       )}
     </form>
   );
@@ -899,6 +1012,7 @@ export const TasksTab = ({ level, subLevel, onVersionChange }) => {
   const subLevelId = subLevel?._id;
   const [selectedSessionId, setSelectedSessionId] = useState("");
   const [activeVersionId,   setActiveVersionId]   = useState("");
+  const [searchTerm,        setSearchTerm]        = useState("");
 
   const { data: sessionsData } = useGetAllSessionsQuery();
   const sessions = sessionsData?.data || [];
@@ -919,8 +1033,16 @@ export const TasksTab = ({ level, subLevel, onVersionChange }) => {
   if (!subLevelId) return <div className="py-16 text-center text-gray-400 text-sm">SubLevel not found</div>;
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3">
+    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+      {/* Top bar: search + session filter */}
+      <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-gray-100">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search tasks by title, topic..."
+          className="flex-1 min-w-[180px] border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white"
+        />
         <select
           value={selectedSessionId}
           onChange={(e) => { setSelectedSessionId(e.target.value); setActiveVersionId(""); }}
@@ -929,25 +1051,39 @@ export const TasksTab = ({ level, subLevel, onVersionChange }) => {
           <option value="">All Sessions</option>
           {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
         </select>
-        {allVersions.length > 1 && (
-          <select
-            value={currentVersionId}
-            onChange={(e) => setActiveVersionId(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white min-w-[140px]"
-          >
-            {allVersions.map((v) => <option key={v._id} value={v._id}>{v.title || v.version}</option>)}
-          </select>
-        )}
       </div>
 
+      {/* Version tabs */}
+      {allVersions.length > 1 && (
+        <div className="flex gap-0 overflow-x-auto border-b border-gray-100">
+          {allVersions.map((v) => (
+            <button
+              key={v._id}
+              onClick={() => setActiveVersionId(v._id)}
+              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-all flex-shrink-0 ${
+                currentVersionId === v._id
+                  ? "border-orange-500 text-orange-600 bg-orange-50"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <MdBook size={13} className={currentVersionId === v._id ? "text-orange-500" : "text-gray-400"} />
+              <span>{v.title || v.version}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Table or empty state */}
       {allVersions.length === 0 ? (
-        <div className="bg-white border border-gray-200 rounded-2xl py-12 text-center text-gray-400 text-sm">
-          No syllabus found{selectedSessionId ? " for this session" : ". Upload syllabus first."}
+        <div className="py-14 text-center">
+          <div className="w-14 h-14 rounded-full bg-orange-50 flex items-center justify-center mx-auto mb-3">
+            <MdAssignment size={26} className="text-orange-300" />
+          </div>
+          <p className="text-sm font-semibold text-gray-500">No syllabus found</p>
+          <p className="text-xs text-gray-400 mt-1">{selectedSessionId ? "Try a different session" : "Upload syllabus first from Syllabus tab"}</p>
         </div>
       ) : (
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-          <VersionTasksTable versionId={currentVersionId} />
-        </div>
+        <VersionTasksTable versionId={currentVersionId} searchTerm={searchTerm} />
       )}
     </div>
   );
@@ -1014,6 +1150,7 @@ const SyllabusTab = ({ level, subLevel }) => {
   const [selectedSessionId, setSelectedSessionId] = useState("");
   const [activeVersionId,   setActiveVersionId]   = useState("");
   const [searchTerm,        setSearchTerm]        = useState("");
+  const [activeSubject,     setActiveSubject]     = useState("");
 
   const { data: sessionsData } = useGetAllSessionsQuery();
   const sessions = sessionsData?.data || [];
@@ -1030,6 +1167,15 @@ const SyllabusTab = ({ level, subLevel }) => {
     || "";
 
   const currentVersionDoc = allVersions.find((v) => v._id === currentVersionId);
+
+  // subjects list for current version
+  const subjectsList = useSubjectsList(currentVersionId);
+
+  // auto-select first subject when version changes
+  useEffect(() => {
+    if (subjectsList.length > 0) setActiveSubject(subjectsList[0].name);
+    else setActiveSubject("");
+  }, [currentVersionId, subjectsList.length]);
 
   const [deleteSyllabusVersion]   = useDeleteSyllabusVersionMutation();
   const [activateSyllabusVersion] = useActivateSyllabusVersionMutation();
@@ -1050,16 +1196,18 @@ const SyllabusTab = ({ level, subLevel }) => {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex flex-wrap items-center gap-3">
+    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+
+      {/* Top bar: search + session */}
+      <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-gray-100">
         <input
           type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Search topic or subtopic..."
-          className="flex-1 min-w-[180px] border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+          className="flex-1 min-w-[180px] border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white"
         />
         <select
           value={selectedSessionId}
-          onChange={(e) => { setSelectedSessionId(e.target.value); setActiveVersionId(""); }}
+          onChange={(e) => { setSelectedSessionId(e.target.value); setActiveVersionId(""); setSearchTerm(""); }}
           className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white min-w-[160px]"
         >
           <option value="">All Sessions</option>
@@ -1067,58 +1215,80 @@ const SyllabusTab = ({ level, subLevel }) => {
         </select>
       </div>
 
-      {allVersions.length === 0 && selectedSessionId && (
-        <div className="bg-white border border-gray-200 rounded-2xl py-12 text-center text-gray-400 text-sm">
-          No syllabus found for this session
+      {/* Version tabs — sirf multiple versions hone par */}
+      {allVersions.length > 1 && (
+        <div className="flex gap-0 overflow-x-auto border-b border-gray-100">
+          {allVersions.map((v) => (
+            <button
+              key={v._id}
+              onClick={() => { setActiveVersionId(v._id); setSearchTerm(""); }}
+              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-all flex-shrink-0 ${
+                currentVersionId === v._id
+                  ? "border-orange-500 text-orange-600 bg-orange-50"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <MdBook size={13} className={currentVersionId === v._id ? "text-orange-500" : "text-gray-400"} />
+              <span>{v.title || v.version}</span>
+            </button>
+          ))}
         </div>
       )}
 
-      {allVersions.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-          <div className="flex gap-0 overflow-x-auto border-b border-gray-100">
-            {allVersions.map((v) => (
-              <button
-                key={v._id}
-                onClick={() => { setActiveVersionId(v._id); setSearchTerm(""); }}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
-                  currentVersionId === v._id
-                    ? "border-orange-500 text-orange-600 bg-orange-50"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                <MdBook size={14} className={currentVersionId === v._id ? "text-orange-500" : "text-gray-400"} />
-                <span>{v.title || v.version}</span>
-                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
-                  v.status === "active"   ? "bg-green-100 text-green-600" :
-                  v.status === "archived" ? "bg-gray-100 text-gray-500"  :
-                  "bg-yellow-100 text-yellow-600"
-                }`}>
-                  {v.version}
-                </span>
+      {/* Version status bar */}
+      {currentVersionDoc && (
+        <div className="flex items-center gap-3 px-4 py-2.5 bg-[#F8F7F5] border-b border-gray-100 flex-wrap">
+          <StatusBadge status={currentVersionDoc.status} />
+          <span className="text-xs text-gray-400">Session: {currentVersionDoc.sessionId?.name || "—"}</span>
+          <div className="flex items-center gap-2 ml-auto">
+            {currentVersionDoc.status === "draft" && (
+              <button onClick={() => handleActivate(currentVersionDoc._id)} className="text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 font-semibold transition border border-green-200">Activate</button>
+            )}
+            {currentVersionDoc.status !== "active" && (
+              <button onClick={() => handleDelete(currentVersionDoc._id)} className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition">
+                <MdDelete size={15} />
               </button>
-            ))}
+            )}
           </div>
-
-          {currentVersionDoc && (
-            <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border-b border-gray-100 flex-wrap">
-              <StatusBadge status={currentVersionDoc.status} />
-              <span className="text-xs text-gray-400">Session: {currentVersionDoc.sessionId?.name || "—"}</span>
-              <div className="flex items-center gap-2 ml-auto">
-                {currentVersionDoc.status === "draft" && (
-                  <button onClick={() => handleActivate(currentVersionDoc._id)} className="text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 font-semibold transition">Activate</button>
-                )}
-                {currentVersionDoc.status !== "active" && (
-                  <button onClick={() => handleDelete(currentVersionDoc._id)} className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition">
-                    <MdDelete size={15} />
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          <VersionTopicTable versionId={currentVersionId} searchTerm={searchTerm} />
         </div>
       )}
+
+      {/* Subject tabs */}
+      {subjectsList.length > 0 && (
+        <div className="flex gap-0 overflow-x-auto border-b border-gray-100 bg-white">
+          {subjectsList.map((s) => (
+            <button
+              key={s.name}
+              onClick={() => { setActiveSubject(s.name); setSearchTerm(""); }}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-all flex-shrink-0 ${
+                activeSubject === s.name
+                  ? "border-orange-500 text-orange-600 bg-orange-50"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <MdBook size={13} className={activeSubject === s.name ? "text-orange-500" : "text-gray-400"} />
+              <span>{s.name}</span>
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                {s.topicCount}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Content */}
+      {allVersions.length === 0 ? (
+        <div className="py-14 text-center">
+          <div className="w-14 h-14 rounded-full bg-orange-50 flex items-center justify-center mx-auto mb-3">
+            <MdBook size={26} className="text-orange-300" />
+          </div>
+          <p className="text-sm font-semibold text-gray-500">No syllabus found</p>
+          <p className="text-xs text-gray-400 mt-1">{selectedSessionId ? "Try a different session" : "Upload syllabus first"}</p>
+        </div>
+      ) : (
+        <VersionTopicTable versionId={currentVersionId} searchTerm={searchTerm} activeSubject={activeSubject} />
+      )}
+
     </div>
   );
 };

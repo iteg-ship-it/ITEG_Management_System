@@ -6,13 +6,13 @@ import { toast } from "react-toastify";
 import { MdFilterList, MdCloudUpload, MdPictureAsPdf, MdDescription, MdTableChart, MdVisibility, MdEdit, MdCheckCircle, MdBlock, MdDownload } from "react-icons/md";
 import Header from "../../common-components/sidebar/Header";
 import OrangeButton from "../../common-components/sidebar/OrangeButton";
-import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation } from "../../../redux/api/authApi";
+import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation, useGetSyllabusVersionsBySubLevelQuery } from "../../../redux/api/authApi";
 import SearchBox from "../../common-components/seach-export/SearchBox";
 import ExportDropdown from "../../common-components/seach-export/ExportDropdown";
 import CommonTable from "../../common-components/table/CommonTable";
 import InputField from "../../common-components/common-feild/InputField";
 import RadioGroup from "../../common-components/common-feild/RadioGroup";
-import SyllabusTab, { TasksTab, ManualTaskForm } from "./SyllabusTab";
+import SyllabusTab, { TasksTab, ManualTaskForm, TaskUploadDrawer } from "./SyllabusTab";
 import { useEffect } from "react";
 
 /* â”€â”€ Validation â”€â”€ */
@@ -253,6 +253,76 @@ const ProgressTab = () => {
 
 const SECTION_TABS = ["Students", "Tasks", "Syllabus", "Progress"];
 
+/* ── Task Drawer: Manual + Bulk toggle ── */
+const TaskDrawerContent = ({ activeTab }) => {
+    const [mode, setMode] = useState("manual");
+
+    const { data: versionsData } = useGetSyllabusVersionsBySubLevelQuery(
+        { subLevelId: activeTab?._id, sessionId: "" },
+        { skip: !activeTab?._id }
+    );
+    const versions = versionsData?.data || [];
+    const activeVersion = versions.find((v) => v.status === "active") || versions[0];
+    const syllabusVersionId = activeVersion?._id || "";
+
+    return (
+        <div className="divide-y divide-gray-100">
+            {/* Mode toggle */}
+            <div className="px-5 py-4">
+                <div className="flex gap-1 bg-[#F8F7F5] border border-gray-200 p-1 rounded-xl">
+                    <button
+                        onClick={() => setMode("manual")}
+                        className={`flex-1 py-2 text-xs font-semibold rounded-lg transition ${
+                            mode === "manual" ? "bg-white text-orange-500 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                        }`}
+                    >
+                        Single Task
+                    </button>
+                    <button
+                        onClick={() => setMode("bulk")}
+                        className={`flex-1 py-2 text-xs font-semibold rounded-lg transition ${
+                            mode === "bulk" ? "bg-white text-orange-500 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                        }`}
+                    >
+                        Bulk Upload
+                    </button>
+                </div>
+                {mode === "bulk" && syllabusVersionId && (
+                    <p className="mt-2 text-xs text-gray-400">
+                        Version: <span className="font-semibold text-gray-600">{activeVersion?.version}</span>
+                        <span className={`ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                            activeVersion?.status === "active" ? "bg-green-100 text-green-600" : "bg-yellow-100 text-yellow-600"
+                        }`}>{activeVersion?.status}</span>
+                    </p>
+                )}
+                {mode === "bulk" && !syllabusVersionId && (
+                    <p className="mt-2 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                        No syllabus version found. Please upload syllabus first from Syllabus tab.
+                    </p>
+                )}
+            </div>
+
+            {mode === "manual" ? (
+                <ManualTaskForm
+                    subLevel={activeTab}
+                    onSaved={() => {}}
+                    showSubmitButton={false}
+                    formId="manual-task-form"
+                />
+            ) : syllabusVersionId ? (
+                <div className="px-5 py-4">
+                    <TaskUploadDrawer
+                        syllabusVersionId={syllabusVersionId}
+                        subjectName={activeTab?.name || ""}
+                        version={activeVersion?.version || ""}
+                        onSaved={() => {}}
+                    />
+                </div>
+            ) : null}
+        </div>
+    );
+};
+
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    MAIN COMPONENT
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
@@ -338,16 +408,9 @@ const ShowSubLevelTablesData = () => {
                 {activeSection === "Tasks" ? (
                     <OrangeButton
                         buttonTitle="+ Add Task"
-                        panelTitle="Add New Task"
-                        panelSubtitle="Select subject, topic and subtopic to add a task"
-                        drawerContent={
-                            <ManualTaskForm
-                                subLevel={activeTab}
-                                onSaved={() => {}}
-                                showSubmitButton={false}
-                                formId="manual-task-form"
-                            />
-                        }
+                        panelTitle="Add Task"
+                        panelSubtitle="Add a single task manually or bulk upload via Excel"
+                        drawerContent={<TaskDrawerContent activeTab={activeTab} />}
                         leftBtnText="Cancel"
                         rightBtnText="Save Task"
                         onRightClick={() => document.getElementById('manual-task-form')?.requestSubmit()}

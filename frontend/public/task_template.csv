@@ -1,7 +1,5 @@
-Subject,Topic Name,SubTopic,Tasks,Time,Measurable Point
-JavaScript,Basics,Variables,Variables Quiz,7,Student should explain difference between var/let/const
-JavaScript,Basics,Data Types,Data Types Test,5,Student should identify all primitive data types correctly
-JavaScript,Functions,Arrow Functions,,, 
-JavaScript,Functions,Callbacks,Callbacks Project,14,Student should build a working callback-based async function
-React,Components,Functional Components,Components Assessment,7,Student should create a reusable functional component
-React,Hooks,useState,,,
+topic,subTopic,taskTitle,taskType,priority,maxMarks,timeDays,measurablePoints
+Basics,Variables & Data Types,Variables Quiz,assessment,medium,100,7,Student should explain difference between var/let/const
+Basics,Operators,Operators Test,assessment,low,100,5,Student should solve operator precedence problems
+Functions,Arrow Functions,Arrow Functions Project,project,high,100,14,Student should build a working arrow function based module
+Functions,Callbacks,Callbacks Assessment,assessment,medium,100,7,Student should implement callback-based async function
