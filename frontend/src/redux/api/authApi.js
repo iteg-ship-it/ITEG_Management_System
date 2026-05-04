@@ -1196,6 +1196,16 @@ export const authApi = createApi({
       providesTags: ['SyllabusVersion'],
     }),
 
+    // Add to existing version
+    addSubjectToVersion: builder.mutation({
+      query: ({ versionId, subjects }) => ({
+        url: `/syllabus/versions/${versionId}/subjects/upload`,
+        method: 'POST',
+        body: { subjects },
+      }),
+      invalidatesTags: ['SyllabusVersion'],
+    }),
+
     createTaskManual: builder.mutation({
       query: ({ syllabusVersionId, subjectId, topicId, subTopicId, ...taskData }) => ({
         url: `/syllabus/versions/${syllabusVersionId}/tasks`,
@@ -1314,4 +1324,5 @@ export const {
   useGetTopicsBySubjectQuery,
   useGetSubTopicsByTopicQuery,
   useCreateTaskManualMutation,
+  useAddSubjectToVersionMutation,
 } = authApi;

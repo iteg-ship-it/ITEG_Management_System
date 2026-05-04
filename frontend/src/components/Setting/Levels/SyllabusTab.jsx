@@ -20,6 +20,7 @@ import {
   useGetTopicsBySubjectQuery,
   useGetSubTopicsByTopicQuery,
   useCreateTaskManualMutation,
+  useAddSubjectToVersionMutation,
 } from "../../../redux/api/authApi";
 
 /* ─── helpers ─────────────────────────────────────────── */
@@ -219,8 +220,177 @@ const SubjectAccordion = ({ item, index }) => {
 };
 
 /* ══════════════════════════════════════════════════════════
-   UPLOAD DRAWER
+   MANUAL SYLLABUS FORM (single subject → topics → subtopics)
 ══════════════════════════════════════════════════════════ */
+export const ManualSyllabusForm = forwardRef(({ level, subLevel, onSaved }, ref) => {
+  const subLevelId = subLevel?._id;
+  const [mode,              setMode]              = useState("existing"); // "existing" | "new"
+  const [selectedVersionId, setSelectedVersionId] = useState("");
+  const [selectedSessionId, setSelectedSessionId] = useState("");
+  const [version,           setVersion]           = useState("");
+  const [subject,           setSubject]           = useState("");
+  const [topics,            setTopics]            = useState([{ name: "", subTopics: [""] }]);
+  const [saving,            setSaving]            = useState(false);
+
+  const [createSyllabusVersion] = useCreateSyllabusVersionMutation();
+  const [addSubjectToVersion]   = useAddSubjectToVersionMutation();
+  const { data: sessionsData }  = useGetAllSessionsQuery();
+  const sessions = sessionsData?.data || [];
+
+  const { data: versionsData } = useGetSyllabusVersionsBySubLevelQuery(
+    { subLevelId, sessionId: "" },
+    { skip: !subLevelId }
+  );
+  const existingVersions = versionsData?.data || [];
+
+  const ic = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white";
+  const lc = "block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5";
+
+  const reset = () => {
+    setSubject(""); setVersion(""); setSelectedSessionId("");
+    setSelectedVersionId(""); setTopics([{ name: "", subTopics: [""] }]);
+  };
+
+  const addTopic        = () => setTopics((p) => [...p, { name: "", subTopics: [""] }]);
+  const removeTopic     = (ti) => setTopics((p) => p.filter((_, i) => i !== ti));
+  const updateTopicName = (ti, val) => setTopics((p) => p.map((t, i) => i === ti ? { ...t, name: val } : t));
+  const addSubTopic     = (ti) => setTopics((p) => p.map((t, i) => i === ti ? { ...t, subTopics: [...t.subTopics, ""] } : t));
+  const removeSubTopic  = (ti, si) => setTopics((p) => p.map((t, i) => i === ti ? { ...t, subTopics: t.subTopics.filter((_, j) => j !== si) } : t));
+  const updateSubTopic  = (ti, si, val) => setTopics((p) => p.map((t, i) => i === ti ? { ...t, subTopics: t.subTopics.map((s, j) => j === si ? val : s) } : t));
+
+  const buildSubjectPayload = () => ({
+    name: subject.trim(),
+    topics: topics.filter((t) => t.name.trim()).map((t, ti) => ({
+      name: t.name.trim(),
+      order: ti + 1,
+      subTopics: t.subTopics.filter((s) => s.trim()).map((s, si) => ({ name: s.trim(), order: si + 1 })),
+    })),
+  });
+
+  const handleSave = async () => {
+    if (!subject.trim())     { toast.error("Subject name required"); return; }
+    const validTopics = topics.filter((t) => t.name.trim());
+    if (!validTopics.length) { toast.error("At least one topic required"); return; }
+
+    if (mode === "existing") {
+      if (!selectedVersionId) { toast.error("Please select a version"); return; }
+      setSaving(true);
+      try {
+        await addSubjectToVersion({ versionId: selectedVersionId, subjects: [buildSubjectPayload()] }).unwrap();
+        toast.success("Subject added to existing version!");
+        reset(); onSaved?.();
+      } catch (err) {
+        toast.error(err?.data?.message || "Failed to add subject");
+      } finally { setSaving(false); }
+    } else {
+      if (!version.trim())     { toast.error("Version name required (e.g. v2.0)"); return; }
+      if (!selectedSessionId)  { toast.error("Please select a session"); return; }
+      if (!subLevel?._id)      { toast.error("SubLevel not found"); return; }
+      if (!level?._id)         { toast.error("Level not found"); return; }
+      setSaving(true);
+      try {
+        await createSyllabusVersion({
+          sessionId: selectedSessionId, levelId: level._id,
+          subLevelId: subLevel._id, version: version.trim(),
+          subjects: [buildSubjectPayload()],
+        }).unwrap();
+        toast.success("New version created with subject!");
+        reset(); onSaved?.();
+      } catch (err) {
+        toast.error(err?.data?.message || "Failed to create version");
+      } finally { setSaving(false); }
+    }
+  };
+
+  useImperativeHandle(ref, () => ({ reset, save: handleSave }));
+
+  return (
+    <div className="space-y-4 px-1 py-2">
+      {/* Mode toggle */}
+      {existingVersions.length > 0 && (
+        <div className="flex gap-1 bg-[#F8F7F5] border border-gray-200 p-1 rounded-xl">
+          <button type="button" onClick={() => setMode("existing")}
+            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition ${
+              mode === "existing" ? "bg-white text-orange-500 shadow-sm" : "text-gray-500 hover:text-gray-700"
+            }`}>Add to Existing Version</button>
+          <button type="button" onClick={() => setMode("new")}
+            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition ${
+              mode === "new" ? "bg-white text-orange-500 shadow-sm" : "text-gray-500 hover:text-gray-700"
+            }`}>Create New Version</button>
+        </div>
+      )}
+
+      {/* Version selector or new version fields */}
+      {mode === "existing" ? (
+        <div>
+          <label className={lc}>Select Version <span className="text-red-400">*</span></label>
+          <select className={ic} value={selectedVersionId} onChange={(e) => setSelectedVersionId(e.target.value)}>
+            <option value="">-- Select Version --</option>
+            {existingVersions.map((v) => (
+              <option key={v._id} value={v._id}>
+                {v.version} — {v.sessionId?.name || ""} ({v.status})
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={lc}>Session <span className="text-red-400">*</span></label>
+            <select className={ic} value={selectedSessionId} onChange={(e) => setSelectedSessionId(e.target.value)}>
+              <option value="">-- Select Session --</option>
+              {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={lc}>Version <span className="text-red-400">*</span></label>
+            <input className={ic} value={version} onChange={(e) => setVersion(e.target.value)} placeholder="e.g. v2.0" />
+          </div>
+        </div>
+      )}
+
+      {/* Subject */}
+      <div>
+        <label className={lc}><MdBook size={12} className="inline mr-1 text-orange-400" />Subject <span className="text-red-400">*</span></label>
+        <input className={ic} value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="e.g. JavaScript" />
+      </div>
+
+      {/* Topics */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <label className={lc}><MdTopic size={12} className="inline mr-1 text-blue-400" />Topics</label>
+          <button type="button" onClick={addTopic} className="text-xs text-orange-500 font-semibold bg-orange-50 px-2.5 py-1 rounded-lg">+ Add Topic</button>
+        </div>
+        {topics.map((topic, ti) => (
+          <div key={ti} className="border border-gray-200 rounded-xl p-3 space-y-2 bg-gray-50">
+            <div className="flex items-center gap-2">
+              <MdTopic size={14} className="text-blue-400 flex-shrink-0" />
+              <input className={`${ic} flex-1`} value={topic.name} onChange={(e) => updateTopicName(ti, e.target.value)} placeholder={`Topic ${ti + 1}`} />
+              {topics.length > 1 && (
+                <button type="button" onClick={() => removeTopic(ti)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0"><MdDelete size={15} /></button>
+              )}
+            </div>
+            <div className="pl-5 space-y-1.5">
+              {topic.subTopics.map((st, si) => (
+                <div key={si} className="flex items-center gap-2">
+                  <MdSubject size={12} className="text-gray-400 flex-shrink-0" />
+                  <input className={`${ic} flex-1`} value={st} onChange={(e) => updateSubTopic(ti, si, e.target.value)} placeholder={`SubTopic ${si + 1}`} />
+                  {topic.subTopics.length > 1 && (
+                    <button type="button" onClick={() => removeSubTopic(ti, si)} className="p-1 text-gray-300 hover:text-red-400 flex-shrink-0"><MdDelete size={13} /></button>
+                  )}
+                </div>
+              ))}
+              <button type="button" onClick={() => addSubTopic(ti)} className="text-xs text-blue-500 font-medium mt-1">+ Add SubTopic</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+});
+ManualSyllabusForm.displayName = "ManualSyllabusForm";
+
+
 export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, ref) => {
   const fileRef = useRef(null);
   const [parsing,          setParsing]          = useState(false);
@@ -238,8 +408,7 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
   const totalTopics    = hierarchy.reduce((acc, s) => acc + s.topics.length, 0);
   const totalSubTopics = hierarchy.reduce((acc, s) => acc + s.topics.reduce((a, t) => a + t.subTopics.length, 0), 0);
 
-  const reset = () => { setHierarchy([]); setFileName(""); setVersion(""); };
-  useImperativeHandle(ref, () => ({ reset }));
+  const reset = () => { setHierarchy([]); setFileName(""); setVersion(""); setSelectedSessionId(""); };
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
@@ -264,22 +433,23 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
     if (!level?._id)         { toast.error("Level not found"); return; }
     if (!selectedSessionId)  { toast.error("Please select a session"); return; }
     setSaving(true);
-    try {
-      await createSyllabusVersion({
-        sessionId: selectedSessionId,
-        levelId: level._id,
-        subLevelId: subLevel._id,
-        version: version.trim(),
-        subjects: hierarchy.map((s, si) => ({
-          name: s.subject,
-          order: si + 1,
-          topics: s.topics.map((t, ti) => ({
-            name: t.topic,
-            order: ti + 1,
-            subTopics: t.subTopics.map((st, sti) => ({ name: st.name, order: sti + 1 })),
-          })),
+    const payload = {
+      sessionId:  selectedSessionId,
+      levelId:    level._id,
+      subLevelId: subLevel._id,
+      version:    version.trim(),
+      subjects: hierarchy.map((s, si) => ({
+        name:  s.subject,
+        order: si + 1,
+        topics: s.topics.map((t, ti) => ({
+          name:  t.topic,
+          order: ti + 1,
+          subTopics: t.subTopics.map((st, sti) => ({ name: st.name, order: sti + 1 })),
         })),
-      }).unwrap();
+      })),
+    };
+    try {
+      await createSyllabusVersion(payload).unwrap();
       const taskCount = hierarchy.reduce((a, s) => a + s.topics.reduce((b, t) => b + t.subTopics.filter((st) => typeof st === "object" && st.taskTitle).length, 0), 0);
       toast.success(`${hierarchy.length} subject(s) syllabus saved!${taskCount > 0 ? ` + ${taskCount} task(s) bhi save ho gaye!` : ""}`);
       reset();
@@ -289,6 +459,8 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
       toast.error(msg);
     } finally { setSaving(false); }
   };
+
+  useImperativeHandle(ref, () => ({ reset, save: handleSave }));
 
   return (
     <div className="space-y-4">

@@ -12,7 +12,7 @@ import ExportDropdown from "../../common-components/seach-export/ExportDropdown"
 import CommonTable from "../../common-components/table/CommonTable";
 import InputField from "../../common-components/common-feild/InputField";
 import RadioGroup from "../../common-components/common-feild/RadioGroup";
-import SyllabusTab, { TasksTab, ManualTaskForm, TaskUploadDrawer } from "./SyllabusTab";
+import SyllabusTab, { TasksTab, ManualTaskForm, TaskUploadDrawer, SyllabusUploadDrawer, ManualSyllabusForm } from "./SyllabusTab";
 import { useEffect } from "react";
 
 /* â”€â”€ Validation â”€â”€ */
@@ -339,7 +339,10 @@ const ShowSubLevelTablesData = () => {
     const [activeSection,         setActiveSection]         = useState("Students");
     const [searchTerm,            setSearchTerm]            = useState("");
     const [activeTaskVersionId,   setActiveTaskVersionId]   = useState("");
+    const [showSyllabusUpload,    setShowSyllabusUpload]    = useState(false);
+    const [syllabusMode,          setSyllabusMode]          = useState("excel"); // "excel" | "manual"
     const syllabusDrawerRef = useRef(null);
+    const manualSyllabusRef = useRef(null);
 
     const { data: subLevelsData } = useGetSubLevelsByLevelQuery(level?._id, { skip: !level?._id });
     const subLevels = subLevelsData?.data || [];
@@ -404,6 +407,58 @@ const ShowSubLevelTablesData = () => {
                     >
                         <MdTableChart size={16} /> Upload Excel
                     </button>
+                )}
+                {activeSection === "Syllabus" && (
+                    <OrangeButton
+                        buttonTitle="+ Upload Syllabus"
+                        panelTitle="Upload Syllabus"
+                        panelSubtitle="Excel se bulk upload ya manually ek ek add karo"
+                        drawerContent={
+                            <div>
+                                {/* Mode Toggle */}
+                                <div className="flex gap-1 bg-[#F8F7F5] border border-gray-200 p-1 rounded-xl mb-4">
+                                    <button
+                                        onClick={() => setSyllabusMode("excel")}
+                                        className={`flex-1 py-2 text-xs font-semibold rounded-lg transition ${
+                                            syllabusMode === "excel" ? "bg-white text-orange-500 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                                        }`}
+                                    >
+                                        📄 Excel Upload
+                                    </button>
+                                    <button
+                                        onClick={() => setSyllabusMode("manual")}
+                                        className={`flex-1 py-2 text-xs font-semibold rounded-lg transition ${
+                                            syllabusMode === "manual" ? "bg-white text-orange-500 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                                        }`}
+                                    >
+                                        ✏️ Manual Entry
+                                    </button>
+                                </div>
+                                {syllabusMode === "excel" ? (
+                                    <SyllabusUploadDrawer
+                                        ref={syllabusDrawerRef}
+                                        level={level}
+                                        subLevel={activeTab}
+                                        onSaved={() => {}}
+                                    />
+                                ) : (
+                                    <ManualSyllabusForm
+                                        ref={manualSyllabusRef}
+                                        level={level}
+                                        subLevel={activeTab}
+                                        onSaved={() => {}}
+                                    />
+                                )}
+                            </div>
+                        }
+                        leftBtnText="Cancel"
+                        rightBtnText="Save Syllabus"
+                        onRightClick={() =>
+                            syllabusMode === "excel"
+                                ? syllabusDrawerRef.current?.save()
+                                : manualSyllabusRef.current?.save()
+                        }
+                    />
                 )}
                 {activeSection === "Tasks" ? (
                     <OrangeButton
