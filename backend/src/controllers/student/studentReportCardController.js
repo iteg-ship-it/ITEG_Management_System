@@ -1,4 +1,5 @@
 const StudentReportCard = require('../../models/student/studentReportCard');
+const mongoose = require('mongoose');
 
 /**
  * 🧾 Create a new Student Report Card
@@ -109,6 +110,10 @@ exports.getStudentReportCard = async (req, res) => {
   try {
     const { studentId } = req.params;
 
+    if (!mongoose.Types.ObjectId.isValid(studentId)) {
+      return res.status(400).json({ success: false, message: 'Invalid student ID' });
+    }
+
     const reportCard = await StudentReportCard.findOne({ studentRef: studentId });
 
     if (!reportCard) {
@@ -139,6 +144,10 @@ exports.getStudentReportCardForEdit = async (req, res) => {
   try {
     const { studentId } = req.params;
     console.log('🔍 Fetching report card for edit - Student ID:', studentId);
+
+    if (!mongoose.Types.ObjectId.isValid(studentId)) {
+      return res.status(400).json({ success: false, message: 'Invalid student ID' });
+    }
 
     const reportCard = await StudentReportCard.findOne({ studentRef: studentId });
     console.log('📄 Found report card:', reportCard ? 'Yes' : 'No');
