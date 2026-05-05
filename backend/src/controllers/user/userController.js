@@ -1,6 +1,7 @@
 // ✨ JWT, bcrypt, and other setups
 require("dotenv").config();
 const User = require("../../models/user/user");
+const Department = require("../../models/department/Department");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
@@ -34,8 +35,21 @@ exports.createUser = async (req, res) => {
       createdAt,
     } = req.body;
 
-    if (!name || !email || !mobileNo || !password || !adharCard || !department || !position || !role) {
+    if (!name || !email || !mobileNo || !password || !adharCard || !position || !role) {
       return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // faculty ke liye department required
+    if (role === 'faculty' && !department) {
+      return res.status(400).json({ message: "Department is required for faculty" });
+    }
+
+    // Validate department exists in DB (only for faculty)
+    if (role === 'faculty') {
+      const deptExists = await Department.findOne({ name: department, isActive: true });
+      if (!deptExists) {
+        return res.status(400).json({ message: "Selected department does not exist" });
+      }
     }
 
     const collegeEmailRegex = /^[a-zA-Z0-9._%+-]+@ssism\.org$/;
@@ -73,7 +87,7 @@ exports.createUser = async (req, res) => {
       mobileNo,
       password: hashedPassword,
       adharCard,
-      department,
+      department: department || 'General',
       position,
       role,
       permissions,
@@ -530,4 +544,3 @@ exports.updateUserPermissions = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error", error });
   }
 };
-
