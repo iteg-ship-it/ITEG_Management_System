@@ -1,6 +1,7 @@
 const Student = require("../../models/student/Student");
 const StudentPlacement = require("../../models/placement/StudentPlacement");
 const mongoose = require("mongoose");
+const { GLOBAL_ROLES } = require("../../middlewares/departmentFilter");
 
 const toId = (id) => new mongoose.Types.ObjectId(id);
 
@@ -11,10 +12,18 @@ const VALID_FILTER = (subDepartmentId) => ({
   permissionDetails: null,
 });
 
+// Guard: faculty can only access their own allowed subDept IDs
+const canAccessSubDept = (req, id) => {
+  if (GLOBAL_ROLES.includes(req.user.role)) return true;
+  if (!req.allowedSubDeptIds) return false;
+  return req.allowedSubDeptIds.some((sid) => sid.toString() === id);
+};
+
 // ── 1. Overview ──────────────────────────────────────────────
 exports.getDeptOverview = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!canAccessSubDept(req, id)) return res.status(403).json({ message: "Access denied to this department" });
 
     const [totalStudents, readyStudents, interviewRunning, placedStudents] = await Promise.all([
       Student.countDocuments(VALID_FILTER(id)),
@@ -37,6 +46,7 @@ exports.getDeptOverview = async (req, res) => {
 exports.getDeptFunnel = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!canAccessSubDept(req, id)) return res.status(403).json({ message: "Access denied to this department" });
     const filter = { subDepartmentId: toId(id) };
 
     const [ready, interview, selected, placed] = await Promise.all([
@@ -56,6 +66,7 @@ exports.getDeptFunnel = async (req, res) => {
 exports.getDeptStatusBreakdown = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!canAccessSubDept(req, id)) return res.status(403).json({ message: "Access denied to this department" });
 
     const breakdown = await StudentPlacement.aggregate([
       { $match: { subDepartmentId: toId(id) } },
@@ -100,6 +111,7 @@ exports.getDeptStatusBreakdown = async (req, res) => {
 exports.getDeptAlerts = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!canAccessSubDept(req, id)) return res.status(403).json({ message: "Access denied to this department" });
 
     const readyButNoInterview = await StudentPlacement.countDocuments({
       subDepartmentId: toId(id),
@@ -132,6 +144,7 @@ exports.getDeptAlerts = async (req, res) => {
 exports.getDeptReadyStudents = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!canAccessSubDept(req, id)) return res.status(403).json({ message: "Access denied to this department" });
 
     const placements = await StudentPlacement.find({
       subDepartmentId: toId(id),
@@ -166,6 +179,7 @@ exports.getDeptReadyStudents = async (req, res) => {
 exports.getDeptRecentPlacements = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!canAccessSubDept(req, id)) return res.status(403).json({ message: "Access denied to this department" });
 
     const placements = await StudentPlacement.find({
       subDepartmentId: toId(id),
@@ -195,6 +209,7 @@ exports.getDeptRecentPlacements = async (req, res) => {
 exports.getDeptTopCompanies = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!canAccessSubDept(req, id)) return res.status(403).json({ message: "Access denied to this department" });
 
     const companies = await StudentPlacement.aggregate([
       { $match: { subDepartmentId: toId(id), placedInfo: { $ne: null } } },

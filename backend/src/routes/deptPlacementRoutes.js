@@ -1,16 +1,19 @@
 const express = require("express");
 const router = express.Router();
 const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
+const { departmentFilter } = require("../middlewares/departmentFilter");
 const ctrl = require("../controllers/placement/deptPlacementController");
 
-const allowedRoles = ["superadmin", "admin"];
+// superadmin + admin see all; faculty restricted to own dept (guard inside controller)
+const allowedRoles = ["superadmin", "admin", "faculty"];
+const auth = [verifyToken, checkRole(allowedRoles), departmentFilter];
 
-router.get("/:id/overview",          verifyToken, checkRole(allowedRoles), ctrl.getDeptOverview);
-router.get("/:id/funnel",            verifyToken, checkRole(allowedRoles), ctrl.getDeptFunnel);
-router.get("/:id/status-breakdown",  verifyToken, checkRole(allowedRoles), ctrl.getDeptStatusBreakdown);
-router.get("/:id/alerts",            verifyToken, checkRole(allowedRoles), ctrl.getDeptAlerts);
-router.get("/:id/ready-students",    verifyToken, checkRole(allowedRoles), ctrl.getDeptReadyStudents);
-router.get("/:id/recent-placements", verifyToken, checkRole(allowedRoles), ctrl.getDeptRecentPlacements);
-router.get("/:id/top-companies",     verifyToken, checkRole(allowedRoles), ctrl.getDeptTopCompanies);
+router.get("/:id/overview",          ...auth, ctrl.getDeptOverview);
+router.get("/:id/funnel",            ...auth, ctrl.getDeptFunnel);
+router.get("/:id/status-breakdown",  ...auth, ctrl.getDeptStatusBreakdown);
+router.get("/:id/alerts",            ...auth, ctrl.getDeptAlerts);
+router.get("/:id/ready-students",    ...auth, ctrl.getDeptReadyStudents);
+router.get("/:id/recent-placements", ...auth, ctrl.getDeptRecentPlacements);
+router.get("/:id/top-companies",     ...auth, ctrl.getDeptTopCompanies);
 
 module.exports = router;

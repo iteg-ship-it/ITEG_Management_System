@@ -1,91 +1,105 @@
-const AdmittedStudent = require("../../models/student/admittedStudent");
+const Student = require("../../models/student/Student");
+const StudentPlacement = require("../../models/placement/StudentPlacement");
 const Company = require("../../models/company/company");
-const cloudinary = require('../../config/cloudinaryConfig');
+const cloudinary = require("../../config/cloudinaryConfig");
+
+// ── Helper: build placement filter respecting dept access ────
+const placementFilter = (req, extra = {}) => ({
+  ...(req.subDeptFilter || {}),
+  ...extra,
+});
 
 // 0. GET READY STUDENTS
 exports.getReadyStudents = async (req, res) => {
   try {
-    const students = await AdmittedStudent.find({ readinessStatus: 'Ready' })
-      .select('_id firstName lastName course year readinessStatus PlacementinterviewRecord');
-    res.json({ success: true, data: students });
+    const filter = placementFilter(req, {
+      readinessStatus: { $in: ["Ready", "Ready for Interview"] },
+    });
+
+    const placements = await StudentPlacement.find(filter)
+      .populate("studentId", "firstName lastName prkey course")
+      .lean();
+
+    const data = placements.map((p) => ({
+      _id: p.studentId?._id,
+      firstName: p.studentId?.firstName,
+      lastName: p.studentId?.lastName,
+      prkey: p.studentId?.prkey,
+      course: p.studentId?.course,
+      readinessStatus: p.readinessStatus,
+      PlacementinterviewRecord: p.PlacementinterviewRecord,
+    }));
+
+    res.json({ success: true, data });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
 
-// 1. CREATE/SCHEDULE INTERVIEW (from Ready Students) - Using original URL pattern
+// 1. CREATE/SCHEDULE INTERVIEW
 exports.createInterview = async (req, res) => {
   try {
-    const studentId = req.params.id; // From URL parameter
+    const studentId = req.params.id;
     const { companyName, hrEmail, hrContact, location, jobProfile, scheduleDate } = req.body;
 
     if (!companyName || !hrEmail || !location || !jobProfile || !scheduleDate) {
-      return res.status(400).json({ 
-        message: "Missing required fields: companyName, hrEmail, location, jobProfile, scheduleDate" 
+      return res.status(400).json({
+        message: "Missing required fields: companyName, hrEmail, location, jobProfile, scheduleDate",
       });
     }
 
-    const student = await AdmittedStudent.findById(studentId);
-    if (!student || student.readinessStatus !== 'Ready') {
-      return res.status(400).json({ message: "Student not ready for placement" });
+    const placement = await StudentPlacement.findOne(
+      placementFilter(req, { studentId })
+    );
+    if (!placement || !["Ready", "Ready for Interview"].includes(placement.readinessStatus)) {
+      return res.status(400).json({ message: "Student not ready for placement or access denied" });
     }
 
-    // Find or create company
     let company = await Company.findOne({ companyName });
     if (!company) {
-      // Create new company with HR details (logo will be added during post creation)
-      company = new Company({ 
-        companyName, 
-        hrEmail, 
-        hrContact: hrContact || "", // Optional field
-        location 
-      });
+      company = new Company({ companyName, hrEmail, hrContact: hrContact || "", location });
       await company.save();
     }
 
-    // Create interview record with company reference
     const newInterview = {
       companyRef: company._id,
       jobProfile,
-      status: 'Scheduled',
+      status: "Scheduled",
       scheduleDate: new Date(scheduleDate),
-      rounds: []
+      rounds: [],
     };
 
-    student.PlacementinterviewRecord.push(newInterview);
-    await student.save();
+    placement.PlacementinterviewRecord.push(newInterview);
+    await placement.save();
 
-    res.status(201).json({ 
-      success: true, 
+    res.status(201).json({
+      success: true,
       message: "Interview scheduled successfully",
-      data: {
-        interview: newInterview,
-        company: company
-      }
+      data: { interview: newInterview, company },
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
 
-// 2. UPDATE INTERVIEW STATUS (Ongoing/Pending/Reschedule/Cancel)
+// 2. UPDATE INTERVIEW STATUS
 exports.updateInterviewStatus = async (req, res) => {
   try {
     const { studentId, interviewId } = req.params;
     const { status, rescheduleDate } = req.body;
 
-    const student = await AdmittedStudent.findById(studentId);
-    if (!student) return res.status(404).json({ message: "Student not found" });
+    const placement = await StudentPlacement.findOne(placementFilter(req, { studentId }));
+    if (!placement) return res.status(404).json({ message: "Student placement not found or access denied" });
 
-    const interview = student.PlacementinterviewRecord.id(interviewId);
+    const interview = placement.PlacementinterviewRecord.id(interviewId);
     if (!interview) return res.status(404).json({ message: "Interview not found" });
 
     interview.status = status;
-    if (status === 'Rescheduled' && rescheduleDate) {
+    if (status === "Rescheduled" && rescheduleDate) {
       interview.rescheduleDate = new Date(rescheduleDate);
     }
 
-    await student.save();
+    await placement.save();
     res.json({ success: true, message: "Interview status updated", data: interview });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -94,145 +108,123 @@ exports.updateInterviewStatus = async (req, res) => {
 
 // 3. ADD INTERVIEW ROUND
 exports.addInterviewRound = async (req, res) => {
-  let hasResponded = false;
-  
   try {
     const { studentId, interviewId } = req.params;
     const { roundName, date, mode, feedback, result } = req.body;
 
-    const student = await AdmittedStudent.findById(studentId);
-    if (!student) {
-      hasResponded = true;
-      return res.status(404).json({ message: "Student not found" });
-    }
+    const placement = await StudentPlacement.findOne(placementFilter(req, { studentId }));
+    if (!placement) return res.status(404).json({ message: "Student placement not found or access denied" });
 
-    const interview = student.PlacementinterviewRecord.id(interviewId);
-    if (!interview) {
-      hasResponded = true;
-      return res.status(404).json({ message: "Interview not found" });
-    }
+    const interview = placement.PlacementinterviewRecord.id(interviewId);
+    if (!interview) return res.status(404).json({ message: "Interview not found" });
 
     const newRound = {
       roundName: roundName || `Round ${interview.rounds.length + 1}`,
       date: new Date(date),
-      mode: mode || 'Offline',
-      feedback: feedback || '',
-      result: result || 'Pending'
+      mode: mode || "Offline",
+      feedback: feedback || "",
+      result: result || "Pending",
     };
 
     interview.rounds.push(newRound);
-    await student.save();
-    
-    if (!hasResponded) {
-      hasResponded = true;
-      res.json({ 
-        success: true, 
-        message: "Interview round added", 
-        data: newRound
-      });
-    }
-  } catch (error) {
-    if (!hasResponded) {
-      res.status(500).json({ success: false, error: error.message });
-    }
-  }
-};
+    await placement.save();
 
-// 4. GET SELECTED STUDENTS (Not yet placed)
-exports.getSelectedStudents = async (req, res) => {
-  try {
-    const students = await AdmittedStudent.find({
-      "PlacementinterviewRecord.status": "Selected",
-      placedInfo: null
-    }).populate('PlacementinterviewRecord.companyRef');
-
-    const selectedStudents = students.map(student => ({
-      _id: student._id,
-      name: `${student.firstName} ${student.lastName}`,
-      course: student.course,
-      selectedInterviews: student.PlacementinterviewRecord.filter(interview => 
-        interview.status === 'Selected'
-      )
-    }));
-
-    res.json({ success: true, data: selectedStudents });
+    res.json({ success: true, message: "Interview round added", data: newRound });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
 
-// 5. CONFIRM PLACEMENT (Auto-detect interview-based or direct placement)
+// 4. RESCHEDULE INTERVIEW
+exports.rescheduleInterview = async (req, res) => {
+  try {
+    const { studentId, interviewId } = req.params;
+    const { rescheduleDate } = req.body;
 
+    if (!rescheduleDate) return res.status(400).json({ message: "rescheduleDate is required" });
+
+    const placement = await StudentPlacement.findOne(placementFilter(req, { studentId }));
+    if (!placement) return res.status(404).json({ message: "Student placement not found or access denied" });
+
+    const interview = placement.PlacementinterviewRecord.id(interviewId);
+    if (!interview) return res.status(404).json({ message: "Interview not found" });
+
+    interview.status = "Rescheduled";
+    interview.rescheduleDate = new Date(rescheduleDate);
+    await placement.save();
+
+    res.json({ success: true, message: "Interview rescheduled", data: interview });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// 5. GET SELECTED STUDENTS
+exports.getSelectedStudents = async (req, res) => {
+  try {
+    const filter = placementFilter(req, {
+      "PlacementinterviewRecord.status": "Selected",
+      placedInfo: null,
+    });
+
+    const placements = await StudentPlacement.find(filter)
+      .populate("studentId", "firstName lastName prkey course")
+      .populate("PlacementinterviewRecord.companyRef")
+      .lean();
+
+    const data = placements.map((p) => ({
+      _id: p.studentId?._id,
+      name: p.studentId ? `${p.studentId.firstName} ${p.studentId.lastName}` : "—",
+      prkey: p.studentId?.prkey,
+      course: p.studentId?.course,
+      selectedInterviews: p.PlacementinterviewRecord.filter((i) => i.status === "Selected"),
+    }));
+
+    res.json({ success: true, data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// 6. CONFIRM PLACEMENT
 exports.confirmPlacement = async (req, res) => {
   try {
-    const { 
-      studentId, 
-      companyName, 
-      salary, 
-      location, 
-      jobProfile, 
-      jobType = 'Full-Time',
-      joiningDate
-    } = req.body;
-
-    // Get uploaded files
-    const applicationFile = req.files?.applicationFile?.[0];
-    const offerLetterFile = req.files?.offerLetterFile?.[0];
+    const { studentId, companyName, salary, location, jobProfile, jobType = "Full-Time", joiningDate } = req.body;
 
     if (!studentId || !companyName || !salary || !location || !jobProfile) {
-      return res.status(400).json({ 
-        message: "Missing required fields: studentId, companyName, salary, location, jobProfile" 
+      return res.status(400).json({
+        message: "Missing required fields: studentId, companyName, salary, location, jobProfile",
       });
     }
 
-    if (!applicationFile || !offerLetterFile) {
-      return res.status(400).json({ 
-        message: "Both application file and offer letter file are required" 
-      });
-    }
+    const placement = await StudentPlacement.findOne(placementFilter(req, { studentId }));
+    if (!placement) return res.status(404).json({ message: "Student placement not found or access denied" });
+    if (placement.placedInfo) return res.status(400).json({ message: "Student is already placed" });
 
-    const student = await AdmittedStudent.findById(studentId);
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
-    }
-
-    if (student.placedInfo) {
-      return res.status(400).json({ message: "Student is already placed" });
-    }
-
-    // ✅ Always upload to Cloudinary if data provided
+    const { offerLetter, commitmentApplication } = req.body;
     let offerLetterURL = null;
     let applicationURL = null;
 
     if (offerLetter) {
-      try {
-        const offerResult = await cloudinary.uploader.upload(offerLetter, {
-          folder: 'placement-documents/offer-letters',
-          resource_type: 'auto',
-          public_id: `${studentId}_offer_${Date.now()}`
-        });
-        offerLetterURL = offerResult.secure_url;
-      } catch (error) {
-        return res.status(500).json({ success: false, message: "Error uploading offer letter", error: error.message });
-      }
+      const r = await cloudinary.uploader.upload(offerLetter, {
+        folder: "placement-documents/offer-letters",
+        resource_type: "auto",
+        public_id: `${studentId}_offer_${Date.now()}`,
+      });
+      offerLetterURL = r.secure_url;
     }
 
-    if (application) {
-      try {
-        const appResult = await cloudinary.uploader.upload(application, {
-          folder: 'placement-documents/applications',
-          resource_type: 'auto',
-          public_id: `${studentId}_application_${Date.now()}`
-        });
-        applicationURL = appResult.secure_url;
-      } catch (error) {
-        return res.status(500).json({ success: false, message: "Error uploading application", error: error.message });
-      }
+    if (commitmentApplication) {
+      const r = await cloudinary.uploader.upload(commitmentApplication, {
+        folder: "placement-documents/applications",
+        resource_type: "auto",
+        public_id: `${studentId}_application_${Date.now()}`,
+      });
+      applicationURL = r.secure_url;
     }
 
-    // Auto-detect interview or direct placement
-    const selectedInterview = student.PlacementinterviewRecord.find(interview => 
-      interview.status === 'Selected' && interview.jobProfile === jobProfile
+    const selectedInterview = placement.PlacementinterviewRecord.find(
+      (i) => i.status === "Selected" && i.jobProfile === jobProfile
     );
 
     let companyRef;
@@ -244,18 +236,13 @@ exports.confirmPlacement = async (req, res) => {
     } else {
       let company = await Company.findOne({ companyName });
       if (!company) {
-        company = new Company({
-          companyName,
-          headOffice: location,
-          hrEmail: "",
-          hrContact: ""
-        });
+        company = new Company({ companyName, headOffice: location, hrEmail: "", hrContact: "" });
         await company.save();
       }
       companyRef = company._id;
     }
 
-    student.placedInfo = {
+    placement.placedInfo = {
       companyRef,
       interviewRecordId,
       companyName,
@@ -265,683 +252,349 @@ exports.confirmPlacement = async (req, res) => {
       jobType,
       joiningDate: joiningDate ? new Date(joiningDate) : null,
       offerLetterURL,
-      applicationURL
+      applicationURL,
     };
 
-    await student.save();
+    await placement.save();
 
-    res.json({ 
-      success: true, 
-      message: selectedInterview ? 
-        "Student placement confirmed from interview process" : 
-        "Student placement confirmed directly",
-      data: student.placedInfo
+    // Also update student status to Placed
+    await Student.findByIdAndUpdate(studentId, { status: "Placed" });
+
+    res.json({
+      success: true,
+      message: selectedInterview
+        ? "Student placement confirmed from interview process"
+        : "Student placement confirmed directly",
+      data: placement.placedInfo,
     });
-
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
 
-
-
-// 6. GET PLACED STUDENTS (with optional department filter)
+// 7. GET PLACED STUDENTS
 exports.getPlacedStudents = async (req, res) => {
   try {
-    const { departmentId } = req.query;
-    const filter = { placedInfo: { $ne: null } };
-    if (departmentId) filter.department = departmentId;
+    const filter = placementFilter(req, { placedInfo: { $ne: null } });
 
-    const placedStudents = await AdmittedStudent.find(filter)
-      .populate('placedInfo.companyRef')
-      .populate('department', 'name code');
+    const placements = await StudentPlacement.find(filter)
+      .populate("studentId", "firstName lastName prkey course email studentMobile")
+      .populate("placedInfo.companyRef")
+      .lean();
 
-    res.json({ success: true, data: placedStudents });
+    res.json({ success: true, data: placements });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
 
-// 6b. GET DEPARTMENT-WISE PLACEMENT STATS (Super Admin / Admin)
-exports.getDepartmentWisePlacementStats = async (req, res) => {
-  try {
-    const Department = require('../../models/department/Department');
-
-    const departments = await Department.find({ isActive: true }).select('name code');
-
-    const stats = await Promise.all(
-      departments.map(async (dept) => {
-        const [totalStudents, placedStudents, readyStudents, interviewStudents] = await Promise.all([
-          AdmittedStudent.countDocuments({ department: dept._id }),
-          AdmittedStudent.countDocuments({ department: dept._id, placedInfo: { $ne: null } }),
-          AdmittedStudent.countDocuments({ department: dept._id, readinessStatus: 'Ready' }),
-          AdmittedStudent.countDocuments({
-            department: dept._id,
-            'PlacementinterviewRecord.0': { $exists: true }
-          })
-        ]);
-
-        // Average salary of placed students in this dept
-        const salaryAgg = await AdmittedStudent.aggregate([
-          { $match: { department: dept._id, placedInfo: { $ne: null } } },
-          { $group: { _id: null, avgSalary: { $avg: '$placedInfo.salary' } } }
-        ]);
-
-        return {
-          departmentId: dept._id,
-          departmentName: dept.name,
-          departmentCode: dept.code,
-          totalStudents,
-          placedStudents,
-          readyStudents,
-          interviewStudents,
-          avgSalary: salaryAgg[0]?.avgSalary || 0,
-          placementRate: totalStudents > 0 ? ((placedStudents / totalStudents) * 100).toFixed(1) : 0
-        };
-      })
-    );
-
-    // Overall totals
-    const overall = stats.reduce((acc, d) => ({
-      totalStudents: acc.totalStudents + d.totalStudents,
-      placedStudents: acc.placedStudents + d.placedStudents,
-      readyStudents: acc.readyStudents + d.readyStudents,
-    }), { totalStudents: 0, placedStudents: 0, readyStudents: 0 });
-
-    res.json({ success: true, data: stats, overall });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
-
-// 7. UPDATE JOB TYPE (Internship to Full-Time/PPO)
+// 8. UPDATE JOB TYPE
 exports.updateJobType = async (req, res) => {
   try {
     const { studentId, interviewId, newJobType, newJobProfile, internshipEndDate } = req.body;
 
-    const student = await AdmittedStudent.findById(studentId);
-    if (!student) return res.status(404).json({ message: "Student not found" });
+    const placement = await StudentPlacement.findOne(placementFilter(req, { studentId }));
+    if (!placement) return res.status(404).json({ message: "Student placement not found or access denied" });
 
-    const interview = student.PlacementinterviewRecord.id(interviewId);
+    const interview = placement.PlacementinterviewRecord.id(interviewId);
     if (!interview) return res.status(404).json({ message: "Interview not found" });
 
-    // Update internship to job conversion
     interview.internshipToJobUpdate = {
-      isIntern: newJobType === 'Internship',
-      internshipEndDate: internshipEndDate || '',
-      updatedJobProfile: newJobProfile || interview.jobProfile
+      isIntern: newJobType === "Internship",
+      internshipEndDate: internshipEndDate || "",
+      updatedJobProfile: newJobProfile || interview.jobProfile,
     };
 
-    // If student is placed, update placedInfo as well
-    if (student.placedInfo && student.placedInfo.interviewRecordId.toString() === interviewId) {
-      student.placedInfo.jobType = newJobType;
-      student.placedInfo.jobProfile = newJobProfile || student.placedInfo.jobProfile;
+    if (placement.placedInfo && placement.placedInfo.interviewRecordId?.toString() === interviewId) {
+      placement.placedInfo.jobType = newJobType;
+      placement.placedInfo.jobProfile = newJobProfile || placement.placedInfo.jobProfile;
     }
 
-    await student.save();
+    await placement.save();
     res.json({ success: true, message: "Job type updated successfully", data: interview });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
 
-// 8. CREATE PLACEMENT POST (from Placed Students)
+// 9. UPDATE PLACEMENT INFO
+exports.updatePlacementInfo = async (req, res) => {
+  try {
+    const { id } = req.params; // studentId
+    const allowedFields = ["salary", "location", "jobProfile", "jobType", "joiningDate"];
+    const updateData = {};
+    allowedFields.forEach((f) => {
+      if (req.body[f] !== undefined) updateData[`placedInfo.${f}`] = req.body[f];
+    });
+
+    const placement = await StudentPlacement.findOneAndUpdate(
+      placementFilter(req, { studentId: id }),
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
+    if (!placement) return res.status(404).json({ message: "Student placement not found or access denied" });
+
+    res.json({ success: true, message: "Placement info updated", data: placement.placedInfo });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// 10. CREATE PLACEMENT POST
 exports.createPlacementPost = async (req, res) => {
   try {
-    console.log("Request body:", req.body);
+    const { studentId, position, companyName, location, hrEmail, companyLogo, headOffice, studentImage } = req.body;
 
-    const {
-      studentId,
-      position,
-      companyName,
-      location,
-       hrEmail,
-      companyLogo,
-      headOffice,
-      studentImage
-    } = req.body;
-
-    // ✅ Validate required fields
     if (!studentId || !position || !companyName || !headOffice) {
-      return res.status(400).json({
-        message: "Missing required fields: studentId, position, companyName, headOffice"
-      });
+      return res.status(400).json({ message: "Missing required fields: studentId, position, companyName, headOffice" });
     }
 
-    // ✅ Find student
-    const student = await AdmittedStudent.findById(studentId);
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
-    }
+    const student = await Student.findOne(
+      req.subDeptFilter ? { _id: studentId, ...req.subDeptFilter } : { _id: studentId }
+    );
+    if (!student) return res.status(404).json({ message: "Student not found or access denied" });
 
-    // ✅ Find or create company
     let company = await Company.findOne({ companyName });
 
     if (!company) {
-      if (!companyLogo) {
-        return res.status(400).json({
-          message: "Company logo is required for new company. Please provide base64 image or upload file.",
-          example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
-        });
-      }
-
-      let logoURL;
-
+      if (!companyLogo) return res.status(400).json({ message: "Company logo is required for new company" });
+      let logoURL = companyLogo;
       if (companyLogo.startsWith("data:image/")) {
-        try {
-          const logoResult = await cloudinary.uploader.upload(companyLogo, {
-            folder: "company-logos",
-            resource_type: "image"
-          });
-          console.log("✅ Cloudinary upload success:", logoResult.secure_url);
-          logoURL = logoResult.secure_url;
-        } catch (error) {
-          console.error("❌ Cloudinary upload failed:", error);
-          return res.status(500).json({
-            success: false,
-            message: "Cloudinary upload failed",
-            error: error.message
-          });
-        }
-      } else {
-        logoURL = companyLogo; // If direct URL given
+        const r = await cloudinary.uploader.upload(companyLogo, { folder: "company-logos", resource_type: "image" });
+        logoURL = r.secure_url;
       }
-
-      company = new Company({
-        companyName,
-        companyLogo: logoURL,
-        headOffice,
-        location,
-        hrEmail
-      });
-
+      company = new Company({ companyName, companyLogo: logoURL, headOffice, location, hrEmail });
       await company.save();
-    } else if (companyLogo && companyLogo.startsWith("data:image/")) {
-      // ✅ Update existing company logo
-      try {
-        const logoResult = await cloudinary.uploader.upload(companyLogo, {
-          folder: "company-logos",
-          resource_type: "image"
-        });
-        company.companyLogo = logoResult.secure_url;
-        await company.save();
-        console.log("✅ Company logo updated:", logoResult.secure_url);
-      } catch (error) {
-        console.error("❌ Failed to update company logo:", error);
-        return res.status(500).json({
-          success: false,
-          message: "Failed to update company logo",
-          error: error.message
-        });
-      }
+    } else if (companyLogo?.startsWith("data:image/")) {
+      const r = await cloudinary.uploader.upload(companyLogo, { folder: "company-logos", resource_type: "image" });
+      company.companyLogo = r.secure_url;
+      await company.save();
     }
 
-    // ✅ Handle student image (either new or from DB)
     let finalStudentImage = studentImage || student.image;
-
-    if (!finalStudentImage) {
-      return res.status(400).json({
-        message: "Student image is required (either upload new or student must have profile image)"
-      });
-    }
-
+    if (!finalStudentImage) return res.status(400).json({ message: "Student image is required" });
     if (finalStudentImage.startsWith("data:image/")) {
-      try {
-        const studentResult = await cloudinary.uploader.upload(finalStudentImage, {
-          folder: "student-images",
-          resource_type: "image"
-        });
-        finalStudentImage = studentResult.secure_url;
-        console.log("✅ Student image uploaded:", studentResult.secure_url);
-      } catch (error) {
-        console.error("❌ Student image upload failed:", error);
-        return res.status(500).json({
-          success: false,
-          message: "Failed to upload student image",
-          error: error.message
-        });
-      }
+      const r = await cloudinary.uploader.upload(finalStudentImage, { folder: "student-images", resource_type: "image" });
+      finalStudentImage = r.secure_url;
     }
 
-    // ✅ Prepare final placement post object
-    const placementPostData = {
-      student: {
-        id: student._id,
-        name: `${student.firstName} ${student.lastName}`,
-        year: student.year,
-        course: student.course,
-        image: finalStudentImage
-      },
-      company: {
-        id: company._id,
-        name: company.companyName,
-        logo: company.companyLogo,
-        headOffice: company.headOffice
-      },
-      position,
-      createdAt: new Date()
-    };
-
-    // ✅ Send response
     res.status(200).json({
       success: true,
       message: "Placement post data prepared successfully",
-      data: placementPostData
+      data: {
+        student: { id: student._id, name: `${student.firstName} ${student.lastName}`, course: student.course, image: finalStudentImage },
+        company: { id: company._id, name: company.companyName, logo: company.companyLogo, headOffice: company.headOffice },
+        position,
+        createdAt: new Date(),
+      },
     });
-
   } catch (error) {
-    console.error("❌ Error creating placement post:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 
+// 11. UPDATE PLACEMENT POST
+exports.updatePlacementPost = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const { position, companyName, headOffice, companyLogo, studentImage } = req.body;
 
+    if (!position || !companyName || !headOffice) {
+      return res.status(400).json({ message: "Missing required fields: position, companyName, headOffice" });
+    }
+
+    const student = await Student.findOne(
+      req.subDeptFilter ? { _id: studentId, ...req.subDeptFilter } : { _id: studentId }
+    );
+    if (!student) return res.status(404).json({ message: "Student not found or access denied" });
+
+    const company = await Company.findOne({ companyName });
+    if (!company) return res.status(404).json({ message: "Company not found" });
+
+    if (companyLogo?.startsWith("data:image/")) {
+      const r = await cloudinary.uploader.upload(companyLogo, { folder: "company-logos", resource_type: "image" });
+      company.companyLogo = r.secure_url;
+    }
+    company.headOffice = headOffice;
+    await company.save();
+
+    let finalStudentImage = student.image;
+    if (studentImage?.startsWith("data:image/")) {
+      const r = await cloudinary.uploader.upload(studentImage, { folder: "student-images", resource_type: "image" });
+      finalStudentImage = r.secure_url;
+      student.image = finalStudentImage;
+      await student.save();
+    }
+
+    const placement = await StudentPlacement.findOne({ studentId });
+    if (placement?.placedInfo) {
+      placement.placedInfo.jobProfile = position;
+      await placement.save();
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Placement post updated successfully",
+      data: {
+        student: { id: student._id, name: `${student.firstName} ${student.lastName}`, image: finalStudentImage, course: student.course },
+        company: { id: company._id, name: company.companyName, logo: company.companyLogo, headOffice: company.headOffice },
+        position,
+        updatedAt: new Date(),
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
+// 12. GET ALL COMPANIES
 exports.getAllCompanies = async (req, res) => {
   try {
-    // Fetch all companies with all schema fields
-    const companies = await Company.find();  
-
-    res.status(200).json({
-      success: true,
-      data: companies
-    });
+    const companies = await Company.find();
+    res.status(200).json({ success: true, data: companies });
   } catch (error) {
-    console.error("Error fetching companies:", error);
-    res.status(500).json({ 
-      success: false, 
-      message: "Server error", 
-      error: error.message 
-    });
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 
-
-// Get company by name
+// 13. GET COMPANY BY NAME
 exports.getCompanyByName = async (req, res) => {
   try {
-    const { companyName } = req.params;
-    const company = await Company.findOne({ companyName });
-    
-    if (!company) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Company not found" 
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: company
-    });
+    const company = await Company.findOne({ companyName: req.params.companyName });
+    if (!company) return res.status(404).json({ success: false, message: "Company not found" });
+    res.status(200).json({ success: true, data: company });
   } catch (error) {
-    console.error("Error fetching company:", error);
-    res.status(500).json({ 
-      success: false, 
-      message: "Server error", 
-      error: error.message 
-    });
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 
-// Upload placement documents
+// 14. UPLOAD PLACEMENT DOCUMENTS
 exports.uploadPlacementDocuments = async (req, res) => {
   try {
-    const { 
-      studentId, 
-      offerLetter, 
-      commitmentApplication, 
-      uploadedBy 
-    } = req.body;
+    const { studentId, offerLetter, commitmentApplication, uploadedBy } = req.body;
 
     if (!studentId || !offerLetter || !commitmentApplication || !uploadedBy) {
-      return res.status(400).json({ 
-        message: "Missing required fields: studentId, offerLetter, commitmentApplication, uploadedBy" 
-      });
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const student = await AdmittedStudent.findById(studentId);
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
-    }
-
-    if (!student.placedInfo) {
-      return res.status(400).json({ message: "Student is not placed yet" });
-    }
-
-    if (student.offerLetter && student.commitmentApplication) {
+    const placement = await StudentPlacement.findOne(placementFilter(req, { studentId }));
+    if (!placement) return res.status(404).json({ message: "Student placement not found or access denied" });
+    if (!placement.placedInfo) return res.status(400).json({ message: "Student is not placed yet" });
+    if (placement.offerLetter && placement.commitmentApplication) {
       return res.status(400).json({ message: "Documents already uploaded" });
     }
 
-    student.offerLetter = offerLetter;
-    student.commitmentApplication = commitmentApplication;
-    student.documentsUploadedBy = uploadedBy;
-    student.documentsUploadedAt = new Date();
+    placement.offerLetter = offerLetter;
+    placement.commitmentApplication = commitmentApplication;
+    placement.documentsUploadedBy = uploadedBy;
+    placement.documentsUploadedAt = new Date();
+    await placement.save();
 
-    await student.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Placement documents uploaded successfully"
-    });
-
+    res.status(200).json({ success: true, message: "Placement documents uploaded successfully" });
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: "Server error", 
-      error: error.message 
-    });
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 
-// Get placement documents
+// 15. GET PLACEMENT DOCUMENTS
 exports.getPlacementDocuments = async (req, res) => {
   try {
     const { studentId } = req.params;
 
-    const student = await AdmittedStudent.findById(studentId)
-      .select('firstName lastName offerLetter commitmentApplication documentsUploadedBy documentsUploadedAt');
+    const placement = await StudentPlacement.findOne(placementFilter(req, { studentId }))
+      .populate("studentId", "firstName lastName")
+      .select("studentId offerLetter commitmentApplication documentsUploadedBy documentsUploadedAt");
 
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
-    }
+    if (!placement) return res.status(404).json({ message: "No documents found or access denied" });
 
-    if (!student.offerLetter || !student.commitmentApplication) {
-      return res.status(404).json({ message: "No documents found" });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: student
-    });
-
+    res.status(200).json({ success: true, data: placement });
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: "Server error", 
-      error: error.message 
-    });
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 
-// Get student interview history with company details
+// 16. GET STUDENT INTERVIEW HISTORY
 exports.getStudentInterviewHistory = async (req, res) => {
   try {
     const { studentId } = req.params;
 
-    const student = await AdmittedStudent.findById(studentId)
-      .populate('PlacementinterviewRecord.companyRef')
-      .select('firstName lastName PlacementinterviewRecord');
+    const placement = await StudentPlacement.findOne(placementFilter(req, { studentId }))
+      .populate("PlacementinterviewRecord.companyRef")
+      .populate("studentId", "firstName lastName");
 
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
-    }
+    if (!placement) return res.status(404).json({ message: "Student placement not found or access denied" });
 
-    const interviewHistory = student.PlacementinterviewRecord.map(interview => ({
-      _id: interview._id,
-      jobProfile: interview.jobProfile,
-      status: interview.status,
-      statusRemark: interview.statusRemark,
-      scheduleDate: interview.scheduleDate,
-      rescheduleDate: interview.rescheduleDate,
-      rounds: interview.rounds,
-      company: interview.companyRef ? {
-        _id: interview.companyRef._id,
-        companyName: interview.companyRef.companyName,
-        location: interview.companyRef.location,
-        companyLogo: interview.companyRef.companyLogo,
-        hrEmail: interview.companyRef.hrEmail,
-        hrContact: interview.companyRef.hrContact
-      } : null
+    const interviews = placement.PlacementinterviewRecord.map((i) => ({
+      _id: i._id,
+      jobProfile: i.jobProfile,
+      status: i.status,
+      scheduleDate: i.scheduleDate,
+      rescheduleDate: i.rescheduleDate,
+      rounds: i.rounds,
+      company: i.companyRef
+        ? { _id: i.companyRef._id, companyName: i.companyRef.companyName, location: i.companyRef.location, companyLogo: i.companyRef.companyLogo }
+        : null,
     }));
 
     res.status(200).json({
       success: true,
       data: {
-        studentName: `${student.firstName} ${student.lastName}`,
-        totalInterviews: interviewHistory.length,
-        interviews: interviewHistory
-      }
+        studentName: placement.studentId ? `${placement.studentId.firstName} ${placement.studentId.lastName}` : "—",
+        totalInterviews: interviews.length,
+        interviews,
+      },
     });
-
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: "Server error", 
-      error: error.message 
-    });
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 
-
-
+// 17. GET PLACED STUDENTS BY COMPANY
 exports.getPlacedStudentsByCompany = async (req, res) => {
   try {
     const { companyId } = req.params;
 
-    // check if company exists
     const company = await Company.findById(companyId);
-    if (!company) {
-      return res.status(404).json({
-        success: false,
-        message: "Company not found"
-      });
-    }
+    if (!company) return res.status(404).json({ success: false, message: "Company not found" });
 
-    // find all students who have placedInfo with this companyRef
-    const students = await AdmittedStudent.find({ 
-      "placedInfo.companyRef": companyId 
-    })
-    .select("firstName lastName email studentMobile course stream placedInfo")
-    .populate("placedInfo.companyRef", "companyName companyLogo location");
+    const filter = placementFilter(req, { "placedInfo.companyRef": companyId });
+
+    const placements = await StudentPlacement.find(filter)
+      .populate("studentId", "firstName lastName email studentMobile course stream")
+      .populate("placedInfo.companyRef", "companyName companyLogo location")
+      .lean();
 
     res.status(200).json({
       success: true,
       company: company.companyName,
-      totalPlaced: students.length,
-      students
+      totalPlaced: placements.length,
+      students: placements,
     });
-
   } catch (error) {
-    console.error("Error fetching placed students:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 
-// RESCHEDULE INTERVIEW
-exports.rescheduleInterview = async (req, res) => {
-  try {
-    const { studentId, interviewId } = req.params;
-    const { rescheduleDate } = req.body;
-
-    if (!rescheduleDate) return res.status(400).json({ message: "rescheduleDate is required" });
-
-    const student = await AdmittedStudent.findById(studentId);
-    if (!student) return res.status(404).json({ message: "Student not found" });
-
-    const interview = student.PlacementinterviewRecord.id(interviewId);
-    if (!interview) return res.status(404).json({ message: "Interview not found" });
-
-    interview.status = 'Rescheduled';
-    interview.rescheduleDate = new Date(rescheduleDate);
-    await student.save();
-
-    res.json({ success: true, message: "Interview rescheduled", data: interview });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
-
-// UPDATE PLACEMENT INFO
-exports.updatePlacementInfo = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const allowedFields = ['salary', 'location', 'jobProfile', 'jobType', 'joiningDate'];
-    const updateData = {};
-    allowedFields.forEach(f => { if (req.body[f] !== undefined) updateData[`placedInfo.${f}`] = req.body[f]; });
-
-    const student = await AdmittedStudent.findByIdAndUpdate(
-      id,
-      { $set: updateData },
-      { new: true, runValidators: true }
-    );
-    if (!student) return res.status(404).json({ message: "Student not found" });
-
-    res.json({ success: true, message: "Placement info updated", data: student.placedInfo });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
-
-// UPLOAD RESUME BASE64
+// 18. UPLOAD RESUME BASE64
 exports.uploadResumeBase64 = async (req, res) => {
   try {
     const { studentId, resumeBase64 } = req.body;
     if (!studentId || !resumeBase64) return res.status(400).json({ message: "studentId and resumeBase64 are required" });
 
-    const student = await AdmittedStudent.findById(studentId);
-    if (!student) return res.status(404).json({ message: "Student not found" });
+    const placement = await StudentPlacement.findOne(placementFilter(req, { studentId }));
+    if (!placement) return res.status(404).json({ message: "Student placement not found or access denied" });
 
     const result = await cloudinary.uploader.upload(resumeBase64, {
-      folder: 'student-resumes',
-      resource_type: 'auto',
-      public_id: `${studentId}_resume_${Date.now()}`
+      folder: "student-resumes",
+      resource_type: "auto",
+      public_id: `${studentId}_resume_${Date.now()}`,
     });
 
-    student.resumeURL = result.secure_url;
-    await student.save();
+    placement.resumeURL = result.secure_url;
+    await placement.save();
 
     res.json({ success: true, message: "Resume uploaded successfully", resumeURL: result.secure_url });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
-  }
-};
-
-// UPDATE PLACEMENT POST
-exports.updatePlacementPost = async (req, res) => {
-  try {
-    const { studentId } = req.params;
-    const {
-      position,
-      companyName,
-      headOffice,
-      companyLogo,
-      studentImage
-    } = req.body;
-
-    // Validate required fields
-    if (!position || !companyName || !headOffice) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing required fields: position, companyName, headOffice"
-      });
-    }
-
-    // Find student
-    const student = await AdmittedStudent.findById(studentId);
-    if (!student) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Student not found" 
-      });
-    }
-
-    // Find company
-    let company = await Company.findOne({ companyName });
-    if (!company) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Company not found" 
-      });
-    }
-
-    // Update company logo if provided
-    if (companyLogo && companyLogo.startsWith("data:image/")) {
-      try {
-        const logoResult = await cloudinary.uploader.upload(companyLogo, {
-          folder: "company-logos",
-          resource_type: "image",
-          public_id: `${companyName.replace(/\s+/g, '_')}_${Date.now()}`
-        });
-        company.companyLogo = logoResult.secure_url;
-      } catch (error) {
-        return res.status(500).json({
-          success: false,
-          message: "Failed to upload company logo",
-          error: error.message
-        });
-      }
-    }
-
-    // Update company details
-    company.headOffice = headOffice;
-    await company.save();
-
-    // Update student image if provided
-    let finalStudentImage = student.image;
-    if (studentImage && studentImage.startsWith("data:image/")) {
-      try {
-        const studentResult = await cloudinary.uploader.upload(studentImage, {
-          folder: "student-images",
-          resource_type: "image",
-          public_id: `${studentId}_${Date.now()}`
-        });
-        finalStudentImage = studentResult.secure_url;
-        student.image = finalStudentImage;
-        await student.save();
-      } catch (error) {
-        return res.status(500).json({
-          success: false,
-          message: "Failed to upload student image",
-          error: error.message
-        });
-      }
-    }
-
-    // Update placement info if exists
-    if (student.placedInfo) {
-      student.placedInfo.jobProfile = position;
-      await student.save();
-    }
-
-    // Prepare response data
-    const updatedData = {
-      student: {
-        id: student._id,
-        name: `${student.firstName} ${student.lastName}`,
-        image: finalStudentImage,
-        course: student.course,
-        year: student.year
-      },
-      company: {
-        id: company._id,
-        name: company.companyName,
-        logo: company.companyLogo,
-        headOffice: company.headOffice
-      },
-      position,
-      updatedAt: new Date()
-    };
-
-    res.status(200).json({
-      success: true,
-      message: "Placement post updated successfully",
-      data: updatedData
-    });
-
-  } catch (error) {
-    console.error("Error updating placement post:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-      error: error.message
-    });
   }
 };

@@ -99,28 +99,19 @@ exports.createStudent = async (req, res) => {
 };
 
 
-// ✅ Get All Students (with filters including departmentId)
+// ✅ Get All Students (with department-based access control)
 exports.getAllStudents = async (req, res) => {
   try {
-    const { sessionId, departmentId, subDepartmentId, currentLevelId, currentSubLevelId, status } = req.query;
-    const filter = {};
+    const { sessionId, currentLevelId, currentSubLevelId, status } = req.query;
 
+    // req.subDeptFilter is set by departmentFilter middleware
+    // null = no restriction (admin/superadmin), object = restricted to allowed subDepts
+    const filter = req.subDeptFilter ? { ...req.subDeptFilter } : {};
 
-    // If departmentId given, find all subDepartments under it first
-    if (departmentId) {
-      const subDepts = await SubDepartment.find({ departmentId, isActive: true }).select("_id");
-      const subDeptIds = subDepts.map(s => s._id);
-      if (subDeptIds.length === 0) return res.status(200).json({ count: 0, data: [] });
-      filter.subDepartmentId = { $in: subDeptIds };
-    }
-
-
-    if (subDepartmentId) filter.subDepartmentId = subDepartmentId;
     if (sessionId) filter.sessionId = sessionId;
     if (currentLevelId) filter.currentLevelId = currentLevelId;
     if (currentSubLevelId) filter.currentSubLevelId = currentSubLevelId;
     if (status) filter.status = status;
-
 
     const students = await Student.find(filter)
       .populate("subDepartmentId", "name departmentId")
@@ -128,7 +119,6 @@ exports.getAllStudents = async (req, res) => {
       .populate("currentLevelId", "name order")
       .populate("currentSubLevelId", "name order")
       .sort({ createdAt: -1 });
-
 
     return res.status(200).json({ count: students.length, data: students });
   } catch (error) {
@@ -527,14 +517,16 @@ exports.updateReadinessStatus = async (req, res) => {
 };
 
 
-// ✅ Get Student Dashboard Stats
+// ✅ Get Student Dashboard Stats (department-aware)
 exports.getStudentStats = async (req, res) => {
   try {
+    const base = req.subDeptFilter ? { ...req.subDeptFilter } : {};
+
     const [total, active, placed, dropped] = await Promise.all([
-      Student.countDocuments(),
-      Student.countDocuments({ status: "Active" }),
-      Student.countDocuments({ status: "Placed" }),
-      Student.countDocuments({ status: "Dropped" }),
+      Student.countDocuments(base),
+      Student.countDocuments({ ...base, status: "Active" }),
+      Student.countDocuments({ ...base, status: "Placed" }),
+      Student.countDocuments({ ...base, status: "Dropped" }),
     ]);
     return res.status(200).json({ total, active, placed, dropped });
   } catch (error) {
