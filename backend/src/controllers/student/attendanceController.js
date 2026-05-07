@@ -1,147 +1,60 @@
-const AdmittedStudent = require("../../models/student/admittedStudent");
+const Student = require("../../models/student/Student");
 
 exports.getOverallAttendanceStats = async (req, res) => {
   try {
-    const { 
-      page = 1, 
-      limit = 10, 
-      gender = '', 
-      year = '', 
-      sortBy = 'firstName', 
-      sortOrder = 'asc' 
+    const {
+      page = 1,
+      limit = 10,
+      gender = "",
+      status = "",
+      sortBy = "firstName",
+      sortOrder = "asc",
     } = req.query;
 
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     const skip = (pageNum - 1) * limitNum;
 
-    // Build match conditions
-    const matchConditions = {
-      $or: [
-        { permissionDetails: { $exists: false } },
-        { permissionDetails: null },
-        { permissionDetails: {} }
-      ]
-    };
+    // Base filter — respect department filter from middleware
+    const baseFilter = req.subDeptFilter ? { ...req.subDeptFilter } : {};
+    if (gender && gender !== "all") baseFilter.gender = { $regex: new RegExp(gender, "i") };
+    if (status && status !== "all") baseFilter.status = status;
 
-    if (gender && gender !== 'all') {
-      matchConditions.gender = { $regex: new RegExp(gender, 'i') };
-    }
+    const sortObj = { [sortBy]: sortOrder === "desc" ? -1 : 1 };
 
-    if (year && year !== 'all') {
-      matchConditions.year = year;
-    }
+    const totalStudents = await Student.countDocuments(baseFilter);
 
-    // Build sort object
-    const sortObj = {};
-    sortObj[sortBy] = sortOrder === 'desc' ? -1 : 1;
+    const students = await Student.find(baseFilter)
+      .select("prkey firstName lastName fatherName email studentMobile gender status currentLevelId currentSubLevelId subDepartmentId")
+      .populate("currentLevelId", "name order")
+      .populate("currentSubLevelId", "name order")
+      .populate("subDepartmentId", "name")
+      .sort(sortObj)
+      .skip(skip)
+      .limit(limitNum)
+      .lean();
 
-    // Get total count for pagination
-    const totalStudents = await AdmittedStudent.countDocuments(matchConditions);
-
-    // Get paginated students with attendance calculation
-    const students = await AdmittedStudent.aggregate([
-      { $match: matchConditions },
-      {
-        $addFields: {
-          // Calculate attendance percentage based on level completion
-          attendancePercentage: {
-            $cond: {
-              if: { $gt: [{ $size: "$level" }, 0] },
-              then: {
-                $multiply: [
-                  {
-                    $divide: [
-                      {
-                        $size: {
-                          $filter: {
-                            input: "$level",
-                            cond: { $eq: ["$$this.result", "Pass"] }
-                          }
-                        }
-                      },
-                      { $size: "$level" }
-                    ]
-                  },
-                  100
-                ]
-              },
-              else: 0
-            }
-          },
-          fullName: { $concat: ["$firstName", " ", "$lastName"] }
-        }
-      },
-      { $sort: sortObj },
-      { $skip: skip },
-      { $limit: limitNum },
-      {
-        $project: {
-          _id: 1,
-          prkey: 1,
-          firstName: 1,
-          lastName: 1,
-          fullName: 1,
-          fatherName: 1,
-          email: 1,
-          studentMobile: 1,
-          gender: 1,
-          year: 1,
-          currentLevel: 1,
-          readinessStatus: 1,
-          attendancePercentage: { $round: ["$attendancePercentage", 2] },
-          levelCount: { $size: "$level" },
-          passedLevels: {
-            $size: {
-              $filter: {
-                input: "$level",
-                cond: { $eq: ["$$this.result", "Pass"] }
-              }
-            }
-          }
-        }
-      }
-    ]);
-
-    // Calculate overall statistics
-    const overallStats = await AdmittedStudent.aggregate([
-      { $match: matchConditions },
+    const overallStats = await Student.aggregate([
+      { $match: baseFilter },
       {
         $group: {
           _id: null,
           totalStudents: { $sum: 1 },
-          maleCount: {
-            $sum: {
-              $cond: [{ $eq: [{ $toLower: "$gender" }, "male"] }, 1, 0]
-            }
-          },
-          femaleCount: {
-            $sum: {
-              $cond: [{ $eq: [{ $toLower: "$gender" }, "female"] }, 1, 0]
-            }
-          },
-          readyStudents: {
-            $sum: {
-              $cond: [{ $eq: ["$readinessStatus", "Ready"] }, 1, 0]
-            }
-          }
-        }
-      }
+          maleCount: { $sum: { $cond: [{ $eq: [{ $toLower: "$gender" }, "male"] }, 1, 0] } },
+          femaleCount: { $sum: { $cond: [{ $eq: [{ $toLower: "$gender" }, "female"] }, 1, 0] } },
+          activeCount: { $sum: { $cond: [{ $eq: ["$status", "Active"] }, 1, 0] } },
+          placedCount: { $sum: { $cond: [{ $eq: ["$status", "Placed"] }, 1, 0] } },
+        },
+      },
     ]);
 
     const stats = overallStats[0] || {
       totalStudents: 0,
       maleCount: 0,
       femaleCount: 0,
-      readyStudents: 0
+      activeCount: 0,
+      placedCount: 0,
     };
-
-    // Calculate average attendance
-    const avgAttendance = students.length > 0 
-      ? students.reduce((sum, student) => sum + student.attendancePercentage, 0) / students.length
-      : 0;
-
-    const totalPages = Math.ceil(totalStudents / limitNum);
 
     res.status(200).json({
       success: true,
@@ -149,25 +62,21 @@ exports.getOverallAttendanceStats = async (req, res) => {
         students,
         pagination: {
           currentPage: pageNum,
-          totalPages,
+          totalPages: Math.ceil(totalStudents / limitNum),
           totalStudents,
-          hasNextPage: pageNum < totalPages,
+          hasNextPage: pageNum < Math.ceil(totalStudents / limitNum),
           hasPrevPage: pageNum > 1,
-          limit: limitNum
+          limit: limitNum,
         },
-        statistics: {
-          ...stats,
-          averageAttendance: Math.round(avgAttendance * 100) / 100
-        }
-      }
+        statistics: stats,
+      },
     });
-
   } catch (error) {
     console.error("Error fetching attendance stats:", error);
     res.status(500).json({
       success: false,
       message: "Failed to fetch attendance statistics",
-      error: error.message
+      error: error.message,
     });
   }
 };

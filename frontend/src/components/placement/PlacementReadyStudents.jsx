@@ -1,420 +1,221 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useGetReadyStudentsForPlacementQuery, useAdmitedStudentsQuery } from "../../redux/api/authApi";
+import {
+  useGetNewReadyStudentsQuery,
+  useGetNewSelectedStudentsQuery,
+  useGetNewPlacedStudentsQuery,
+} from "../../redux/api/authApi";
 import Loader from "../common-components/loader/Loader";
 import CommonTable from "../common-components/table/CommonTable";
+import Header from "../common-components/sidebar/Header";
+import TabsCommon from "../common-components/table/TabsCommon";
+import Avatar from "../common-components/Avatar";
 import ScheduleInterviewModal from "./ScheduleInterviewModal";
 import ConfirmPlacementModal from "./ConfirmPlacementModal";
 import CreatePostModal from "./CreatePostModal";
-import Header from "../common-components/sidebar/Header";
-import TabsCommon from "../common-components/table/TabsCommon";
 import { buttonStyles } from "../../styles/buttonStyles";
-import Avatar from "../common-components/Avatar";
 
-const toTitleCase = (str) =>
-  str
-    ?.toLowerCase()
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+const toTitle = (str) =>
+  str?.toLowerCase().split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") || "";
+
+const TABS = ["Qualified Students", "Ongoing Interviews", "Selected Student", "Placed Student"];
 
 const PlacementReadyStudents = () => {
   const navigate = useNavigate();
-  const { data = {}, isLoading, refetch } = useGetReadyStudentsForPlacementQuery(undefined, {
-    refetchOnMountOrArgChange: true,
-    refetchOnFocus: false,
-  });
-  const students = data?.data || [];
-
-  const { data: admittedStudents } = useAdmitedStudentsQuery();
-
-  const [rowsPerPage] = useState(10);
+  const [activeTab, setActiveTab]   = useState("Qualified Students");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTracks, setSelectedTracks] = useState([]);
-  const [selectedResults, setSelectedResults] = useState([]);
-  const [selectedPercentages] = useState([]);
-  const [activeTab, setActiveTab] = useState(() => {
-    return localStorage.getItem('placementActiveTab') || 'Qualified Students';
-  });
+  const [selectedStudent, setSelectedStudent]                   = useState(null);
+  const [isInterviewModalOpen, setIsInterviewModalOpen]         = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen]             = useState(false);
+  const [isPostModalOpen, setIsPostModalOpen]                   = useState(false);
+  const [selectedForPlacement, setSelectedForPlacement]         = useState(null);
+  const [selectedForPost, setSelectedForPost]                   = useState(null);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [selectedRows, setSelectedRows] = useState([]);
-  const [isConfirmPlacementModalOpen, setIsConfirmPlacementModalOpen] = useState(false);
-  const [selectedStudentForPlacement, setSelectedStudentForPlacement] = useState(null);
-  const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
-  const [selectedStudentForPost, setSelectedStudentForPost] = useState(null);
+  const { data: readyRes  = {}, isLoading: loadingReady,    refetch: refetchReady    } = useGetNewReadyStudentsQuery();
+  const { data: selectedRes = {}, isLoading: loadingSelected, refetch: refetchSelected } = useGetNewSelectedStudentsQuery();
+  const { data: placedRes = {}, isLoading: loadingPlaced,   refetch: refetchPlaced   } = useGetNewPlacedStudentsQuery();
 
-  const tabs = ["Qualified Students", "Ongoing Interviews", "Selected Student", "Placed Student"];
+  const readyStudents    = readyRes.data    || [];
+  const selectedStudents = selectedRes.data || [];
+  const placedStudents   = placedRes.data   || [];
 
-  const dynamicTrackOptions = useMemo(() => {
-    return [...new Set(students.map((s) => toTitleCase(s.track || "")))].filter(Boolean);
-  }, [students]);
+  const isLoading = loadingReady || loadingSelected || loadingPlaced;
 
-  const dynamicResultOptions = useMemo(() => {
-    return [
-      ...new Set(
-        students.flatMap((s) =>
-          s.interviews?.map((i) => toTitleCase(i.result || "")) || []
-        )
-      ),
-    ].filter(Boolean);
-  }, [students]);
+  // For "Ongoing Interviews" — ready students who have at least one interview record
+  const ongoingStudents = useMemo(() =>
+    readyStudents.filter((s) =>
+      s.PlacementinterviewRecord?.length > 0 &&
+      !s.PlacementinterviewRecord.some((r) => r.status === "Selected")
+    ), [readyStudents]);
 
-  const filtersConfig = [
-    {
-      title: "Track",
-      options: dynamicTrackOptions,
-      selected: selectedTracks,
-      setter: setSelectedTracks,
-    },
-    {
-      title: "Result",
-      options: dynamicResultOptions,
-      selected: selectedResults,
-      setter: setSelectedResults,
-    },
-  ];
+  // For "Qualified Students" — ready students with no interview yet
+  const qualifiedStudents = useMemo(() =>
+    readyStudents.filter((s) => !s.PlacementinterviewRecord?.length), [readyStudents]);
 
-  const getLatestInterviewResult = (interviews = []) => {
-    if (!interviews.length) return null;
-    return [...interviews]
-      .sort((a, b) => new Date(b.date) - new Date(a.date))[0]?.result;
-  };
-
-  const getFilteredData = () => {
-    let filtered = [...students];
-
-    if (activeTab === "Ongoing Interviews") {
-      filtered = filtered.filter(
-        (s) => Array.isArray(s.PlacementinterviewRecord) &&
-          s.PlacementinterviewRecord.length > 0 &&
-          !s.PlacementinterviewRecord.some((rec) => rec.status?.toLowerCase() === "selected")
-      );
-    } else if (activeTab === "Qualified Students") {
-      filtered = filtered.filter(
-        (s) => !s.PlacementinterviewRecord || s.PlacementinterviewRecord.length === 0
-      );
-    } else if (activeTab === "Selected Student") {
-      filtered = filtered.filter(
-        (s) =>
-          Array.isArray(s.PlacementinterviewRecord) &&
-          s.PlacementinterviewRecord.some(
-            (rec) => rec.status?.toLowerCase() === "selected"
-          ) &&
-          !s.placedInfo
-      );
-    } else if (activeTab === "Placed Student") {
-      const placedStudents = admittedStudents?.filter(student => student.placedInfo !== null) || [];
-      filtered = placedStudents;
-    }
-
-    return filtered.filter((student) => {
-      const track = toTitleCase(student.track || "");
-      const latestResult = toTitleCase(
-        getLatestInterviewResult(student.interviews || []) || ""
-      );
-      const percentage = student.interviewPercentage || 0;
-
-      const trackMatch =
-        selectedTracks.length === 0 || selectedTracks.includes(track);
-      const resultMatch =
-        selectedResults.length === 0 ||
-        selectedResults.includes(latestResult);
-      const percentageMatch =
-        selectedPercentages.length === 0 ||
-        selectedPercentages.some((range) => {
-          const [min, max] = range.replace("%", "").split("-").map(Number);
-          return percentage >= min && percentage <= max;
-        });
-
-      const searchMatch =
-        searchTerm.trim() === "" ||
-        `${student.firstName} ${student.lastName}`
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.studentMobile?.includes(searchTerm);
-
-      return (
-        trackMatch && resultMatch && percentageMatch && searchMatch
-      );
+  const getActiveData = () => {
+    const map = {
+      "Qualified Students":  qualifiedStudents,
+      "Ongoing Interviews":  ongoingStudents,
+      "Selected Student":    selectedStudents,
+      "Placed Student":      placedStudents,
+    };
+    const data = map[activeTab] || [];
+    if (!searchTerm) return data;
+    return data.filter((s) => {
+      const name = `${s.firstName || ""} ${s.lastName || ""}`.toLowerCase();
+      return name.includes(searchTerm.toLowerCase()) ||
+        s.prkey?.toLowerCase().includes(searchTerm.toLowerCase());
     });
   };
 
-  const getLatestCompanyInfo = (student) => {
-    if (student.placedInfo?.companyName) {
-      return {
-        companyName: student.placedInfo.companyName,
-        jobProfile: student.placedInfo.jobProfile,
-        isPlaced: true
-      };
-    }
-
-    const selectedInterviews = student.PlacementinterviewRecord?.filter(
-      (interview) => interview.status?.toLowerCase() === "selected"
-    ) || [];
-
-    if (selectedInterviews.length === 0) return {};
-
-    const latestInterview = selectedInterviews.sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0))[0];
-
-    return {
-      companyName: latestInterview.companyName || latestInterview.company?.companyName || latestInterview.companyRef?.companyName,
-      jobProfile: latestInterview.jobProfile,
-      isPlaced: false
-    };
-  };
-
-  const columns = activeTab === "Selected Student" ? [
+  const baseColumns = [
     {
-      key: "profile",
-      label: "Full Name",
+      key: "name",
+      label: "Student",
       render: (row) => (
         <div className="flex items-center gap-3">
-          <Avatar firstName={row.firstName} lastName={row.lastName} imageUrl={row.profileImage} />
-          <div className="flex flex-col">
-            <span className="font-medium text-gray-800">{`${row.firstName} ${row.lastName}`}</span>
-            <span className="text-xs text-gray-500">{row.email}</span>
+          <Avatar firstName={row.firstName} lastName={row.lastName} imageUrl={row.image} />
+          <div>
+            <p className="font-medium text-gray-800">{toTitle(`${row.firstName} ${row.lastName}`)}</p>
+            <p className="text-xs text-gray-400">{row.prkey}</p>
           </div>
         </div>
       ),
     },
+    { key: "studentMobile", label: "Mobile", align: "center",
+      render: (row) => row.studentMobile ? `+91 ${row.studentMobile}` : "—" },
     {
-      key: "fatherName",
-      label: "Father Name",
-      render: (row) => toTitleCase(row.fatherName),
-    },
-    {
-      key: "studentMobile",
-      label: "Mobile no.",
-      align: "center",
-      render: (row) => `+91 ${row.studentMobile}`,
-    },
-    {
-      key: "companyName",
-      label: "Company",
-      render: (row) => {
-        const latestInfo = getLatestCompanyInfo(row);
-        return toTitleCase(latestInfo.companyName || "N/A");
-      },
-    },
-    {
-      key: "jobProfile",
-      label: "Role",
-      render: (row) => {
-        const latestInfo = getLatestCompanyInfo(row);
-        return toTitleCase(latestInfo.jobProfile || "N/A");
-      },
-    },
-    {
-      key: "addInterview",
-      label: "Add Interview",
+      key: "readinessStatus",
+      label: "Readiness",
       render: (row) => (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setSelectedStudent(row);
-            setIsModalOpen(true);
-          }}
-          className={buttonStyles.primary}
-        >
-          + Add Interview
-        </button>
+        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+          row.readinessStatus === "Ready for Interview"
+            ? "bg-indigo-100 text-indigo-600"
+            : "bg-green-100 text-green-600"
+        }`}>
+          {row.readinessStatus || "Ready"}
+        </span>
       ),
     },
+  ];
+
+  const placedColumns = [
+    ...baseColumns,
+    { key: "company",    label: "Company",  render: (row) => toTitle(row.placedInfo?.companyName || "—") },
+    { key: "jobProfile", label: "Role",     render: (row) => toTitle(row.placedInfo?.jobProfile   || "—") },
+    { key: "salary",     label: "Salary",   render: (row) => row.placedInfo?.salary ? `₹${(row.placedInfo.salary / 100000).toFixed(1)} LPA` : "—" },
     {
-      key: "confirmPlacement",
-      label: "Confirm Placement",
+      key: "action", label: "",
       render: (row) => (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setSelectedStudentForPlacement(row);
-            setIsConfirmPlacementModalOpen(true);
-          }}
-          className={buttonStyles.primary}
-        >
-          Confirm Placement
-        </button>
-      ),
-    },
-  ] : activeTab === "Placed Student" ? [
-    {
-      key: "profile",
-      label: "Full Name",
-      render: (row) => (
-        <div className="flex items-center gap-3">
-          <Avatar firstName={row.firstName} lastName={row.lastName} imageUrl={row.profileImage} />
-          <div className="flex flex-col">
-            <span className="font-medium text-gray-800">{`${row.firstName} ${row.lastName}`}</span>
-            <span className="text-xs text-gray-500">{row.email}</span>
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "fatherName",
-      label: "Father Name",
-      render: (row) => toTitleCase(row.fatherName),
-    },
-    {
-      key: "studentMobile",
-      label: "Mobile no.",
-      align: "center",
-      render: (row) => `+91 ${row.studentMobile}`,
-    },
-    {
-      key: "companyName",
-      label: "Company",
-      render: (row) => toTitleCase(row.placedInfo?.companyName || "N/A"),
-    },
-    {
-      key: "jobProfile",
-      label: "Role",
-      render: (row) => toTitleCase(row.placedInfo?.jobProfile || "N/A"),
-    },
-    {
-      key: "salary",
-      label: "Salary",
-      render: (row) => row.placedInfo?.salary ? `₹${(row.placedInfo.salary / 100000).toFixed(1)} LPA` : "N/A",
-    },
-    {
-      key: "location",
-      label: "Location",
-      render: (row) => toTitleCase(row.placedInfo?.location || "N/A"),
-    },
-    {
-      key: "action",
-      label: "Action",
-      render: (row) => (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setSelectedStudentForPost(row);
-            setIsCreatePostModalOpen(true);
-          }}
-          className={buttonStyles.primary}
-        >
+        <button onClick={(e) => { e.stopPropagation(); setSelectedForPost(row); setIsPostModalOpen(true); }}
+          className={buttonStyles.primary}>
           Create Post
         </button>
       ),
     },
-  ] : [
+  ];
+
+  const selectedColumns = [
+    ...baseColumns,
+    { key: "company", label: "Company",
+      render: (row) => {
+        const sel = row.selectedInterviews?.[0];
+        return toTitle(sel?.companyRef?.companyName || "—");
+      }
+    },
     {
-      key: "profile",
-      label: "Full Name",
+      key: "actions", label: "",
       render: (row) => (
-        <div className="flex items-center gap-3">
-          <Avatar firstName={row.firstName} lastName={row.lastName} imageUrl={row.profileImage} />
-          <div className="flex flex-col">
-            <span className="font-medium text-gray-800">{`${row.firstName} ${row.lastName}`}</span>
-            <span className="text-xs text-gray-500">{row.email}</span>
-          </div>
+        <div className="flex gap-2">
+          <button onClick={(e) => { e.stopPropagation(); setSelectedStudent(row); setIsInterviewModalOpen(true); }}
+            className={buttonStyles.primary}>
+            + Interview
+          </button>
+          <button onClick={(e) => { e.stopPropagation(); setSelectedForPlacement(row); setIsConfirmModalOpen(true); }}
+            className={buttonStyles.secondary || buttonStyles.primary}>
+            Confirm
+          </button>
         </div>
       ),
     },
+  ];
+
+  const ongoingColumns = [
+    ...baseColumns,
     {
-      key: "fatherName",
-      label: "Father Name",
-      render: (row) => toTitleCase(row.fatherName),
+      key: "interviews", label: "Interviews",
+      render: (row) => (
+        <span className="text-xs text-gray-600">{row.PlacementinterviewRecord?.length || 0} interview(s)</span>
+      ),
     },
     {
-      key: "studentMobile",
-      label: "Mobile no.",
-      align: "center",
-      render: (row) => `+91 ${row.studentMobile}`,
-    },
-    {
-      key: "track",
-      label: "Track",
-      render: (row) => toTitleCase(row.track || "N/A"),
-    },
-    {
-      key: "techno",
-      label: "Technology",
-      render: (row) => toTitleCase(row.techno || "Technology is not selected yet"),
+      key: "action", label: "",
+      render: (row) => (
+        <button onClick={(e) => { e.stopPropagation(); setSelectedStudent(row); setIsInterviewModalOpen(true); }}
+          className={buttonStyles.primary}>
+          + Add Round
+        </button>
+      ),
     },
   ];
 
-  const handleTabClick = (tab) => {
-    setActiveTab(tab);
-    localStorage.setItem('placementActiveTab', tab);
+  const getColumns = () => {
+    if (activeTab === "Placed Student")   return placedColumns;
+    if (activeTab === "Selected Student") return selectedColumns;
+    if (activeTab === "Ongoing Interviews") return ongoingColumns;
+    return baseColumns;
   };
 
-  const handleRowClick = (student) => {
-    if (activeTab === "Qualified Students") {
-      navigate(`/student-profile/${student._id}`);
-    } else if (activeTab === "Ongoing Interviews" || activeTab === "Selected Student") {
-      navigate(`/interview-history/${student._id}`);
-    } else if (activeTab === "Placed Student") {
-      navigate(`/student-profile/${student._id}`);
+  const handleRowClick = (row) => {
+    if (activeTab === "Placed Student" || activeTab === "Qualified Students") {
+      navigate(`/student-profile/${row.studentId?._id || row._id}`);
+    } else {
+      navigate(`/interview-history/${row.studentId?._id || row._id}`);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader />
-      </div>
-    );
-  }
+  const refetchAll = () => { refetchReady(); refetchSelected(); refetchPlaced(); };
+
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center"><Loader /></div>;
 
   return (
     <>
-      <Header title="Placement Candidates" />
-      <TabsCommon tabs={tabs} activeTab={activeTab} onTabChange={handleTabClick} />
-      <div className="min-h-screen p-5">
+      <Header
+        title="Placement Candidates"
+        breadcrumbs={[{ label: "Placements" }, { label: "Placement Candidates" }]}
+      />
+      <TabsCommon tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
 
+      <div className="p-5">
         <CommonTable
-          columns={columns}
-          data={getFilteredData()}
+          columns={getColumns()}
+          data={getActiveData()}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
-          filtersConfig={filtersConfig}
-          onSelectionChange={setSelectedRows}
+          pagination
+          rowsPerPage={10}
           onRowClick={handleRowClick}
-          rowsPerPage={rowsPerPage}
-        />
-
-        <ScheduleInterviewModal
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedStudent(null);
-          }}
-          studentId={selectedStudent?._id}
-          onSuccess={async () => {
-            await refetch();
-            setTimeout(() => refetch(), 500);
-          }}
-        />
-
-        <ConfirmPlacementModal
-          isOpen={isConfirmPlacementModalOpen}
-          onClose={() => {
-            setIsConfirmPlacementModalOpen(false);
-            setSelectedStudentForPlacement(null);
-          }}
-          student={selectedStudentForPlacement}
-          onSuccess={async () => {
-            await refetch();
-            setTimeout(() => refetch(), 500);
-          }}
-        />
-
-        <CreatePostModal
-          isOpen={isCreatePostModalOpen}
-          onClose={() => {
-            setIsCreatePostModalOpen(false);
-            setSelectedStudentForPost(null);
-          }}
-          student={selectedStudentForPost}
-          onSuccess={() => {
-            console.log('Post created successfully');
-          }}
         />
       </div>
+
+      <ScheduleInterviewModal
+        isOpen={isInterviewModalOpen}
+        onClose={() => { setIsInterviewModalOpen(false); setSelectedStudent(null); }}
+        studentId={selectedStudent?.studentId?._id || selectedStudent?._id}
+        onSuccess={refetchAll}
+      />
+      <ConfirmPlacementModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => { setIsConfirmModalOpen(false); setSelectedForPlacement(null); }}
+        student={selectedForPlacement}
+        onSuccess={refetchAll}
+      />
+      <CreatePostModal
+        isOpen={isPostModalOpen}
+        onClose={() => { setIsPostModalOpen(false); setSelectedForPost(null); }}
+        student={selectedForPost}
+        onSuccess={refetchAll}
+      />
     </>
   );
 };

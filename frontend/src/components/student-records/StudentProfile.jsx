@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
-import { useGetAdmittedStudentsByIdQuery, useUpdateStudentImageMutation, useUploadResumeMutation, useUpdateStudentEmailMutation, useGetReportCardQuery } from "../../redux/api/authApi";
+import { useGetNewStudentByIdQuery, useUpdateStudentImageMutation, useUploadResumeMutation, useUpdateStudentEmailMutation, useGetReportCardQuery } from "../../redux/api/authApi";
 import { taskAPI } from '../../services/taskService';
 import PermissionModal from "./PermissionModal";
 import PlacementModal from "./PlacementModal";
@@ -27,21 +27,26 @@ import { IoCamera } from "react-icons/io5";
 export default function StudentProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
-  const { data: reportCardResponse, isLoading: reportLoading, isError: reportError } = useGetReportCardQuery(id);
+  const { data: studentData, isLoading, isError } = useGetNewStudentByIdQuery(id);
+  const { data: reportCardResponse, isLoading: reportLoading } = useGetReportCardQuery(id);
   const reportCardData = reportCardResponse?.data;
   const [updateStudentImage] = useUpdateStudentImageMutation();
   const [uploadResume, { isLoading: isResumeUploading }] = useUploadResumeMutation();
   const [updateStudentEmail, { isLoading: isEmailUpdating }] = useUpdateStudentEmailMutation();
-  const [latestLevel, setLatestLevel] = useState("1A");
-  const [currentLevel, setCurrentLevel] = useState("1A");
+
+  // New schema adapters — map new fields to what the UI expects
+  const currentLevelName    = studentData?.currentLevelId?.name    || "—";
+  const currentSubLevelName = studentData?.currentSubLevelId?.name || "—";
+  const latestLevel         = currentSubLevelName;
+  const currentLevel        = currentSubLevelName;
+
   const [isPermissionModalOpen, setPermissionModalOpen] = useState(false);
-  const [isPlacedModalOpen, setPlacedModalOpen] = useState(false);
-  const [isYearView, setIsYearView] = useState(false);
-  const [isTechModalOpen, setTechModalOpen] = useState(false);
-  const [isImageUploading, setIsImageUploading] = useState(false);
-  const [isEmailModalOpen, setEmailModalOpen] = useState(false);
-  const [isReportCardOpen, setReportCardOpen] = useState(false);
+  const [isPlacedModalOpen, setPlacedModalOpen]         = useState(false);
+  const [isYearView, setIsYearView]                     = useState(false);
+  const [isTechModalOpen, setTechModalOpen]             = useState(false);
+  const [isImageUploading, setIsImageUploading]         = useState(false);
+  const [isEmailModalOpen, setEmailModalOpen]           = useState(false);
+  const [isReportCardOpen, setReportCardOpen]           = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -76,34 +81,8 @@ export default function StudentProfile() {
       });
   };
 
-  useEffect(() => {
-    if (studentData?.level?.length > 0) {
-      const passed = studentData.level.filter((lvl) => lvl.result === "Pass");
-      
-      // For Level History card - show last passed level
-      setLatestLevel(passed.length > 0 ? passed[passed.length - 1].levelNo : "1A");
-      
-      // For Course line - show current level (next level to pass)
-      const levelOrder = ["1A", "1B", "2A", "2B", "3A", "3B"];
-      if (passed.length > 0) {
-        const lastPassedLevel = passed[passed.length - 1].levelNo;
-        const currentIndex = levelOrder.indexOf(lastPassedLevel);
-        const nextLevel = currentIndex !== -1 && currentIndex < levelOrder.length - 1 
-          ? levelOrder[currentIndex + 1] 
-          : lastPassedLevel;
-        setCurrentLevel(nextLevel);
-      } else {
-        setCurrentLevel("1A");
-      }
-    }
-  }, [studentData]);
-
-  // Check if student can choose elective (Level 2B or 2C passed)
-  const canChooseElective = () => {
-    if (!studentData?.level?.length) return false;
-    const passedLevels = studentData.level.filter(lvl => lvl.result === "Pass");
-    return passedLevels.some(lvl => lvl.levelNo === "2B" || lvl.levelNo === "2C" || lvl.levelNo === "2A");
-  };
+  // canChooseElective: new schema doesn't have techno/level[] — disable for now
+  const canChooseElective = () => false;
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
@@ -280,15 +259,10 @@ export default function StudentProfile() {
   };
   
   const overallAttendanceRate = calculateOverallAttendance();
-  // Check permission status
-  const hasPermission = studentData.permissionDetails && studentData.permissionDetails !== null && typeof studentData.permissionDetails === 'object' && Object.keys(studentData.permissionDetails).length > 0;
+  const hasPermission = !!(studentData?.permissionDetails && Object.keys(studentData.permissionDetails).length > 0);
   const permissionStatus = hasPermission ? "Yes" : "No";
-
-  // Check placement status
-  const hasPlacement = studentData.placedInfo && studentData.placedInfo !== null && typeof studentData.placedInfo === 'object' && Object.keys(studentData.placedInfo).length > 0;
+  const hasPlacement = !!(studentData?.status === "Placed");
   const placementStatus = hasPlacement ? "Placed" : "Not Placed";
-
-  // Debug student data to check resume field (removed console logs to reduce noise)
 
   return (
     <div className="min-h-screen bg-white">
@@ -394,7 +368,7 @@ export default function StudentProfile() {
                   <h2 className="text-lg sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 text-white">
                     {studentData.firstName} {studentData.lastName}
                   </h2>
-                  <p className="text-gray-300 mb-3 sm:mb-4 text-xs sm:text-base">Course: {studentData.course || "N/A"} | Level - {currentLevel || "1A"}</p>
+                  <p className="text-gray-300 mb-3 sm:mb-4 text-xs sm:text-base">Course: {studentData.course || "N/A"} | Level - {currentLevelName} / {currentSubLevelName}</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2 lg:gap-6">
                     <ContactCard icon={<svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>} label="Email" value={studentData.email} />
                     <ContactCard icon={<svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>} label="Phone" value={studentData.studentMobile || "N/A"} />
@@ -963,103 +937,49 @@ const ProgressMetric = ({ title, value, total, color, suffix = '' }) => {
 
 // Dynamic Progress Overview Component
 const DynamicProgressOverview = ({ studentData, reportCardData, reportLoading }) => {
-  const [taskPerformance, setTaskPerformance] = useState(null);
+  const [taskStats, setTaskStats] = useState(null);
   const [taskLoading, setTaskLoading] = useState(true);
 
   useEffect(() => {
-    const fetchTaskPerformance = async () => {
-      if (studentData?._id) {
-        try {
-          const result = await taskAPI.getStudentTaskPerformance(studentData._id);
-          setTaskPerformance(result.performance);
-        } catch (error) {
-          console.error('Error fetching task performance:', error);
-        } finally {
-          setTaskLoading(false);
-        }
+    const fetchTasks = async () => {
+      if (!studentData?._id) { setTaskLoading(false); return; }
+      try {
+        const token = (() => {
+          try {
+            const enc = localStorage.getItem('token');
+            if (!enc) return null;
+            return CryptoJS.AES.decrypt(enc, 'ITEG@123').toString(CryptoJS.enc.Utf8) || null;
+          } catch { return null; }
+        })();
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/students/${studentData._id}/tasks`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const data = await res.json();
+        setTaskStats(data);
+      } catch { /* silent */ } finally {
+        setTaskLoading(false);
       }
     };
-
-    fetchTaskPerformance();
+    fetchTasks();
   }, [studentData?._id]);
 
   if (reportLoading || taskLoading) {
-    return (
-      <div className="h-48 sm:h-80 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-      </div>
-    );
+    return <div className="h-48 sm:h-80 flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" /></div>;
   }
 
-  // Calculate dynamic values from task performance and report card data
-  const calculateDynamicMetrics = () => {
-    const passedLevels = studentData?.level?.filter(lvl => lvl.result === "Pass") || [];
-    const totalLevels = 6;
-    
-    // Use task completion rate as primary success metric
-    let successRate = 0;
-    if (taskPerformance?.completionRate) {
-      successRate = taskPerformance.completionRate;
-    } else if (reportCardData?.subjects && reportCardData.subjects.length > 0) {
-      const totalMarks = reportCardData.subjects.reduce((sum, subject) => sum + (subject.totalMarks || 0), 0);
-      const obtainedMarks = reportCardData.subjects.reduce((sum, subject) => sum + (subject.obtainedMarks || 0), 0);
-      successRate = totalMarks > 0 ? Math.round((obtainedMarks / totalMarks) * 100) : 0;
-    } else {
-      const attendanceRecord = studentData.attendanceRecord || [];
-      if (attendanceRecord.length > 0) {
-        const totalAttendance = attendanceRecord.reduce((sum, record) => sum + (record.attendancePercentage || 0), 0);
-        successRate = Math.round(totalAttendance / attendanceRecord.length);
-      } else {
-        successRate = totalLevels > 0 ? Math.round((passedLevels.length / totalLevels) * 100) : 0;
-      }
-    }
-    
-    // Calculate performance score based on task completion and level progress
-    const taskWeight = 0.6; // 60% weight to tasks
-    const levelWeight = 0.4; // 40% weight to levels
-    const taskScore = taskPerformance?.completionRate || 0;
-    const levelScore = (passedLevels.length / totalLevels) * 100;
-    const performanceScore = Math.round((taskScore * taskWeight) + (levelScore * levelWeight));
-    
-    return {
-      successRate,
-      levelsCompleted: passedLevels.length,
-      totalLevels,
-      performanceScore,
-      taskCompletion: taskPerformance?.completionRate || 0,
-      totalTasks: taskPerformance?.overallStats?.totalTasks || 0,
-      completedTasks: taskPerformance?.overallStats?.completedTasks || 0
-    };
-  };
-
-  const metrics = calculateDynamicMetrics();
+  const total     = taskStats?.totalTasks     || 0;
+  const completed = taskStats?.completedTasks || 0;
+  const pending   = taskStats?.pendingTasks   || 0;
+  const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   return (
     <div className="h-48 sm:h-80 flex flex-col justify-center space-y-6">
-      <ProgressMetric 
-        title="Task Performance" 
-        value={metrics.taskCompletion} 
-        total="100" 
-        color="#FDA92D" 
-        suffix="%"
-      />
-      <ProgressMetric 
-        title="Overall Performance" 
-        value={metrics.performanceScore} 
-        total="100" 
-        color="#FFAB00" 
-        suffix="%"
-      />
-      <ProgressMetric 
-        title="Levels Completed" 
-        value={metrics.levelsCompleted} 
-        total={metrics.totalLevels} 
-        color="#8E33FF" 
-      />
-      {metrics.totalTasks > 0 && (
-        <div className="text-xs text-gray-600 text-center">
-          Tasks: {metrics.completedTasks}/{metrics.totalTasks} completed
-        </div>
+      <ProgressMetric title="Task Completion"    value={completionRate} total="100" color="#FDA92D" suffix="%" />
+      <ProgressMetric title="Tasks Completed"    value={completed}      total={total || 1} color="#22C55E" />
+      <ProgressMetric title="Tasks Pending"      value={pending}        total={total || 1} color="#EF4444" />
+      {total > 0 && (
+        <div className="text-xs text-gray-500 text-center">{completed}/{total} tasks completed</div>
       )}
     </div>
   );
@@ -1138,25 +1058,13 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
     }
   };
 
-  const passedLevels = studentData?.level?.filter(lvl => lvl.result === "Pass") || [];
-  const overallAttendance = studentData.attendanceRecord?.length > 0 
-    ? Math.round(studentData.attendanceRecord.reduce((sum, record) => sum + (record.attendancePercentage || 0), 0) / studentData.attendanceRecord.length)
-    : 0;
-  const attendanceGrade = calculateGrade(overallAttendance);
-  const academicGrade = passedLevels.length > 0 ? 'A' : 'C';
-  
-  // Calculate CGPA (assuming 4.0 scale)
-  const calculateCGPA = () => {
-    const gradePoints = { 'A+': 4.0, 'A': 3.7, 'B+': 3.3, 'B': 3.0, 'C': 2.0, 'F': 0.0 };
-    const academicPoints = gradePoints[academicGrade] || 0;
-    const attendancePoints = gradePoints[attendanceGrade] || 0;
-    const totalPoints = academicPoints + attendancePoints;
-    return (totalPoints / 2).toFixed(2);
-  };
-  
-  const cgpa = calculateCGPA();
-  const enrollmentDate = studentData.createdAt ? new Date(studentData.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
-  const currentSemester = Math.min(Math.max(Math.ceil(passedLevels.length / 2) + 1, 1), 8);
+  const passedLevels = [];
+  const overallAttendance = 0;
+  const attendanceGrade = 'N/A';
+  const academicGrade = studentData?.status === 'Placed' ? 'A' : 'B';
+  const cgpa = '3.0';
+  const enrollmentDate = studentData?.createdAt ? new Date(studentData.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
+  const currentSemester = 1;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -1213,27 +1121,21 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
             <div className="bg-gray-50 rounded-lg p-4">
               <h5 className="font-semibold text-gray-700 mb-3">📚 Course Progress</h5>
               <div className="space-y-2 max-h-48 overflow-y-auto">
-                {studentData?.level?.map((level, index) => (
-                  <div key={index} className="flex justify-between items-center p-2 bg-white rounded border">
-                    <span className="font-medium">Level {level.levelNo}</span>
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      level.result === 'Pass' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {level.result}
-                    </span>
-                  </div>
-                )) || <p className="text-gray-500">No level data available</p>}
+                {studentData?.academicHistory?.length > 0 ? (
+                  studentData.academicHistory.map((h, i) => (
+                    <div key={i} className="flex justify-between items-center p-2 bg-white rounded border">
+                      <span className="font-medium">{h.yearName}</span>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        h.result === 'Pass' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>{h.result} — {h.percentage}%</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-sm">No academic history available</p>
+                )}
               </div>
               <div className="mt-3 pt-3 border-t">
-                <div className="text-sm text-gray-600">Progress: {passedLevels.length}/6 Levels</div>
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                  <div 
-                    className="bg-green-600 h-2 rounded-full transition-all duration-300" 
-                    style={{width: `${Math.min((passedLevels.length/6)*100, 100)}%`}}
-                  ></div>
-                </div>
+                <div className="text-sm text-gray-600">Current: {studentData?.currentLevelId?.name || '—'} / {studentData?.currentSubLevelId?.name || '—'}</div>
               </div>
             </div>
 
@@ -1241,18 +1143,9 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
             <div className="bg-gray-50 rounded-lg p-4">
               <h5 className="font-semibold text-gray-700 mb-3">📅 Attendance Record</h5>
               <div className="text-center">
-                <div className="text-3xl font-bold text-green-600 mb-2">{overallAttendance}%</div>
-                <div className={`text-lg font-semibold ${getGradeColor(attendanceGrade)}`}>
-                  Grade: {attendanceGrade}
-                </div>
-                <div className="mt-4 space-y-2">
-                  {studentData.attendanceRecord?.slice(0, 3).map((record, index) => (
-                    <div key={index} className="flex justify-between text-sm bg-white p-2 rounded">
-                      <span>{record.date ? new Date(record.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'N/A'}</span>
-                      <span className="font-medium">{record.attendancePercentage || 0}%</span>
-                    </div>
-                  )) || <p className="text-gray-500 text-sm">No attendance records</p>}
-                </div>
+                <div className="text-3xl font-bold text-green-600 mb-2">N/A</div>
+                <div className="text-lg font-semibold text-gray-500">Attendance data not available</div>
+                <p className="text-xs text-gray-400 mt-2">Attendance module coming soon</p>
               </div>
             </div>
 
@@ -1270,8 +1163,8 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
                 </div>
                 <div className="bg-white p-3 rounded border">
                   <div className="text-sm font-medium text-gray-700">Resume Status</div>
-                  <div className={`text-xs mt-1 ${studentData.resumeURL || studentData.resume ? 'text-green-600' : 'text-red-600'}`}>
-                    {studentData.resumeURL || studentData.resume ? '✓ Uploaded' : '✗ Not Uploaded'}
+                  <div className={`text-xs mt-1 ${studentData?.resumeURL ? 'text-green-600' : 'text-red-600'}`}>
+                    {studentData?.resumeURL ? '✓ Uploaded' : '✗ Not Uploaded'}
                   </div>
                 </div>
               </div>
@@ -1289,13 +1182,13 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
               </div>
               <div className="text-center p-4 bg-white rounded-lg shadow-sm">
                 <div className="text-sm text-gray-600 mb-1">Academic</div>
-                <div className={`text-2xl font-bold ${getGradeColor(academicGrade)}`}>{academicGrade}</div>
-                <div className="text-xs text-gray-500">{passedLevels.length}/6 levels</div>
+                <div className="text-2xl font-bold text-blue-600">{studentData?.currentLevelId?.name || '—'}</div>
+                <div className="text-xs text-gray-500">{studentData?.currentSubLevelId?.name || '—'}</div>
               </div>
               <div className="text-center p-4 bg-white rounded-lg shadow-sm">
                 <div className="text-sm text-gray-600 mb-1">Attendance</div>
-                <div className={`text-2xl font-bold ${getGradeColor(attendanceGrade)}`}>{attendanceGrade}</div>
-                <div className="text-xs text-gray-500">{overallAttendance}% average</div>
+                <div className="text-2xl font-bold text-gray-400">N/A</div>
+                <div className="text-xs text-gray-500">Coming soon</div>
               </div>
               <div className="text-center p-4 bg-white rounded-lg shadow-sm">
                 <div className="text-sm text-gray-600 mb-1">Status</div>
@@ -1337,8 +1230,8 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
               <div className="bg-white p-4 rounded border">
                 <div className="font-medium text-gray-700 mb-2">Current Performance</div>
                 <div><span className="text-gray-600">Current Level:</span> {currentLevel || 'N/A'}</div>
-                <div><span className="text-gray-600">Completion Rate:</span> {Math.min(Math.round((passedLevels.length/6)*100), 100)}%</div>
-                <div><span className="text-gray-600">Semester:</span> {currentSemester}/8</div>
+                <div><span className="text-gray-600">Completion Rate:</span> {studentData?.status || 'Active'}</div>
+                <div><span className="text-gray-600">Semester:</span> {currentSemester}</div>
               </div>
             </div>
           </div>
@@ -1362,7 +1255,7 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
                 <div className="text-sm text-gray-500 mt-1">Student is actively seeking placement opportunities</div>
                 <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
                   <div><span className="font-medium text-gray-600">Resume Status:</span> <br/><span className={`font-semibold ${studentData.resumeURL || studentData.resume ? 'text-[#FDA92D]' : 'text-red-600'}`}>{studentData.resumeURL || studentData.resume ? '✓ Ready' : '✗ Pending'}</span></div>
-                  <div><span className="font-medium text-gray-600">Eligibility:</span> <br/><span className={`font-semibold ${passedLevels.length >= 6 ? 'text-[#FDA92D]' : 'text-yellow-600'}`}>{passedLevels.length >= 6 ? '✓ Eligible' : '⚠ In Progress'}</span></div>
+                  <div><span className="font-medium text-gray-600">Eligibility:</span> <br/><span className={`font-semibold ${studentData?.status === 'Placed' ? 'text-green-600' : 'text-yellow-600'}`}>{studentData?.status === 'Placed' ? '✓ Placed' : '⚠ In Progress'}</span></div>
                 </div>
               </div>
             )}
@@ -1401,6 +1294,7 @@ import { Chart } from 'react-google-charts';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import InputField from '../common-components/common-feild/InputField';
+import CryptoJS from 'crypto-js';
 
 const UpdateEmailModal = ({ isOpen, onClose, studentData, onUpdate, isLoading }) => {
   const validationSchema = Yup.object({

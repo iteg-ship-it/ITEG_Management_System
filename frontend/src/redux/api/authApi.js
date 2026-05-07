@@ -241,6 +241,69 @@ export const authApi = createApi({
       }),
     }),
 
+    // --- New Student APIs (/api/students) ---
+    getNewStudents: builder.query({
+      query: (params = '') => ({ url: `/students${params ? `?${params}` : ''}`, method: 'GET' }),
+      providesTags: ['Student'],
+      keepUnusedDataFor: 300,
+    }),
+
+    getNewStudentById: builder.query({
+      query: (id) => ({ url: `/students/${id}`, method: 'GET' }),
+      providesTags: (result, error, id) => [{ type: 'Student', id }],
+      transformResponse: (res) => res.data,
+    }),
+
+    getNewStudentStats: builder.query({
+      query: () => ({ url: '/students/stats', method: 'GET' }),
+      providesTags: ['Student'],
+    }),
+
+    getNewStudentTasks: builder.query({
+      query: ({ id, subLevelId, status } = {}) => {
+        const params = new URLSearchParams();
+        if (subLevelId) params.append('subLevelId', subLevelId);
+        if (status) params.append('status', status);
+        return { url: `/students/${id}/tasks?${params.toString()}`, method: 'GET' };
+      },
+      providesTags: (result, error, { id }) => [{ type: 'Student', id }],
+    }),
+
+    promoteNewStudent: builder.mutation({
+      query: (id) => ({ url: `/students/${id}/promote`, method: 'POST' }),
+      invalidatesTags: (result, error, id) => [{ type: 'Student', id }, 'Student'],
+    }),
+
+    updateNewStudentReadiness: builder.mutation({
+      query: ({ id, readinessStatus }) => ({
+        url: `/students/${id}/readiness-status`,
+        method: 'PATCH',
+        body: { readinessStatus },
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: 'Student', id }, 'Student'],
+    }),
+
+    getNewReadyStudents: builder.query({
+      query: () => ({ url: '/students/Ready_Students', method: 'GET' }),
+      providesTags: ['PlacementStudent'],
+      keepUnusedDataFor: 300,
+    }),
+
+    getNewPlacedStudents: builder.query({
+      query: () => ({ url: '/students/placed_students', method: 'GET' }),
+      providesTags: ['PlacementStudent'],
+    }),
+
+    getNewSelectedStudents: builder.query({
+      query: () => ({ url: '/students/selected_students', method: 'GET' }),
+      providesTags: ['PlacementStudent'],
+    }),
+
+    getNewPermissionStudents: builder.query({
+      query: () => ({ url: '/students/permission/list', method: 'GET' }),
+      providesTags: ['Student'],
+    }),
+
     // ---------admission process-------------
 
     // get the students for admission process
@@ -1219,6 +1282,16 @@ export const authApi = createApi({
 });
 
 export const {
+  useGetNewStudentsQuery,
+  useGetNewStudentByIdQuery,
+  useGetNewStudentStatsQuery,
+  useGetNewStudentTasksQuery,
+  usePromoteNewStudentMutation,
+  useUpdateNewStudentReadinessMutation,
+  useGetNewReadyStudentsQuery,
+  useGetNewPlacedStudentsQuery,
+  useGetNewSelectedStudentsQuery,
+  useGetNewPermissionStudentsQuery,
   useLoginMutation,
   useSignupMutation,
   useLoginWithGoogleMutation,

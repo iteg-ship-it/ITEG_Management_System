@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useGetPermissionStudentQuery } from "../../redux/api/authApi";
+import { useGetNewPermissionStudentsQuery } from "../../redux/api/authApi";
 import Loader from "../common-components/loader/Loader";
 import CommonTable from "../common-components/table/CommonTable";
 import Header from "../common-components/sidebar/Header";
@@ -8,7 +8,7 @@ import Avatar from "../common-components/Avatar";
 
 const StudentPermission = () => {
   const navigate = useNavigate();
-  const { data, isLoading, isError, error } = useGetPermissionStudentQuery();
+  const { data, isLoading, isError, error } = useGetNewPermissionStudentsQuery();
 
   const students = data?.data || [];
   const [rowsPerPage] = useState(10);

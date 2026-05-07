@@ -4,7 +4,6 @@ import { IoSettingsSharp } from "react-icons/io5";
 import { MdSupportAgent } from "react-icons/md";
 import { FaClipboardList , FaUserGroup} from "react-icons/fa6";
 import { MdWork, MdDashboard } from "react-icons/md";
-import { RiTv2Fill } from "react-icons/ri";
 import { HiChevronUp, HiChevronDown, HiChevronLeft, HiChevronRight } from "react-icons/hi";
 import UserProfile from "../user-profile/UserProfile";
 import { usePermissions } from "../../../hooks/usePermissions";
@@ -25,14 +24,18 @@ const Sidebar = ({ children }) => {
 
   const role = (localStorage.getItem("role") || "").toLowerCase();
 
+  // admin/superadmin go to dept selector, faculty goes directly to student list
+  const studentProgressPath = (role === "superadmin" || role === "admin")
+    ? "/student-detail-table"
+    : "/student-detail-table";
+
 
   const getActiveMenus = (path) => {
     if (path === "/" || path === "/attendance-details") return [0];
-    if (path === "/admission-process" || path.startsWith("/admission/")) return [1];
-    if (path === "/student-detail-table" || path === "/student-permission" || path.startsWith("/student-profile/") || path.startsWith("/student-level-interviews/") || path.startsWith("/student/") || path === "/department-management" || path.startsWith("/department-details/") || path === "/subdepartment-details" || path === "/task-management" || path === "/curriculum-management") return [2];
+    if (path === "/student-detail-table" || path === "/student-permission" || path.startsWith("/student-profile/") || path.startsWith("/student-level-interviews/") || path.startsWith("/student/") || path === "/department-management" || path.startsWith("/department-details/") || path === "/subdepartment-details" || path === "/task-management" || path === "/curriculum-management") return [1];
     if (path === "/settings" || path === "/support") return [];
-    if (path === "/readiness-status" || path === "/company-details" || path === "/placement-post" || path.startsWith("/interview-history/") || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/") || path.startsWith("/placements/")) return [3];
-    if (path === "/user-management" || path.startsWith("/user-profile/") || path === "/user-permission") return [4];
+    if (path === "/readiness-status" || path === "/company-details" || path === "/placement-post" || path.startsWith("/interview-history/") || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/") || path.startsWith("/placements/")) return [2];
+    if (path === "/user-management" || path.startsWith("/user-profile/") || path === "/user-permission") return [3];
     return [0];
   };
 
@@ -124,18 +127,10 @@ const Sidebar = ({ children }) => {
     {
       name: "Dashboard",
       icon: <MdDashboard />,
-      permission: "Page_Dashboard", // Example permission
+      permission: "Page_Dashboard",
       subMenu: [
         { name: "Dashboard", path: "/", permission: "Page_Dashboard" },
         { name: "Attendance Details", path: "/attendance-details", permission: "Page_AttendanceDetails" },
-      ],
-    },
-    {
-      name: "Admissions",
-      icon: <RiTv2Fill />,
-      permission: "Page_Admission",
-      subMenu: [
-        { name: "Admission Workflow", path: "/admission-process", permission: "Page_Admission" },
       ],
     },
     {
