@@ -293,7 +293,7 @@ const Sidebar = ({ children }) => {
         >
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="absolute top-16 -right-3 transform -translate-y-1/2 w-10 h-10 bg-white text-gray-600 rounded-full shadow-md hover:shadow-lg border border-gray-200 transition-all duration-300 flex items-center justify-center z-10"
+            className="absolute top-1/2 -right-3 transform -translate-y-1/2 w-10 h-10 bg-white text-gray-600 rounded-full shadow-md hover:shadow-lg border border-gray-200 transition-all duration-300 flex items-center justify-center z-10"
           >
             {isOpen ? <HiChevronLeft size={20} /> : <HiChevronRight size={20} />}
           </button>
@@ -309,6 +309,51 @@ const Sidebar = ({ children }) => {
 
 
           {isOpen && <NavContent onClose={null} />}
+          
+          {/* Collapsed sidebar with icons */}
+          {!isOpen && (
+            <nav className="flex flex-col gap-1 px-2 py-2 mt-4">
+              {(anyPermissionsLoaded ? filteredMenuItems : menuItems).map((item, idx) => {
+                const filteredSubMenu = anyPermissionsLoaded
+                  ? item.subMenu.filter(subItem => hasPermission(subItem.permission, 'read'))
+                  : item.subMenu;
+
+                if (filteredSubMenu.length === 0) return null;
+
+                const isActive = openMenus.includes(idx);
+
+                return (
+                  <div
+                    key={idx}
+                    className={`flex items-center justify-center p-3 rounded-lg cursor-pointer transition mb-1 ${
+                      isActive ? "bg-orange-100 text-orange-400" : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                    title={item.name}
+                    onClick={() => setIsOpen(true)}
+                  >
+                    <div className="text-lg">{item.icon}</div>
+                  </div>
+                );
+              })}
+              
+              {/* System links icons */}
+              {systemDirectLinks.map((item, idx) => {
+                const active = location.pathname === item.path;
+                return (
+                  <Link
+                    key={idx}
+                    to={item.path}
+                    className={`flex items-center justify-center p-3 rounded-lg transition mb-1 ${
+                      active ? "bg-orange-100 text-orange-400" : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                    title={item.name}
+                  >
+                    <div className="text-lg">{item.icon}</div>
+                  </Link>
+                );
+              })}
+            </nav>
+          )}
         </aside>
       </div>
 
