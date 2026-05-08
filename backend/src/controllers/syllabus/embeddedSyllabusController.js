@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const ExcelJS = require("exceljs");
 const SyllabusVersion = require("../../models/syllabus/SyllabusVersion");
 const Task = require("../../models/syllabus/Task");
-const { syncSyllabusTasksToStudents } = require("../../services/taskAssignmentService");
+const { syncSyllabusTasksToStudents, syncTasksToSubLevelStudents } = require("../../services/taskAssignmentService");
 
 const ensureObjectId = (value) => mongoose.Types.ObjectId.isValid(value);
 
@@ -36,9 +36,8 @@ const normalizeSubjects = (subjects = []) =>
     }))
   }));
 
-const syncIfActive = async (syllabusVersionId, status) => {
-  if (status !== "active") return [];
-  return syncSyllabusTasksToStudents(syllabusVersionId);
+const syncIfActive = async (syllabusVersionId) => {
+  return syncTasksToSubLevelStudents(syllabusVersionId);
 };
 
 const normalizeBoolean = (value, def = true) => {
@@ -132,15 +131,50 @@ const extractRowsFromWorksheet = (worksheet) => {
 
 exports.createSyllabusVersion = async (req, res) => {
   try {
-    const { sessionId, levelId, subLevelId, version, title, subjects } = req.body;
-    if (!sessionId || !levelId || !subLevelId || !version) {
-      return res.status(400).json({ success: false, message: "sessionId, levelId, subLevelId and version are required" });
+    const { sessionId, levelId, subLevelId, version: versionInput, title, subjects } = req.body;
+    if (!sessionId || !levelId || !subLevelId) {
+      return res.status(400).json({ success: false, message: "sessionId, levelId, subLevelId are required" });
     }
     if (!Array.isArray(subjects) || subjects.length === 0) {
       return res.status(400).json({ success: false, message: "subjects must be a non-empty array" });
     }
+
+    let resolvedVersion = versionInput?.trim();
+
+    if (!resolvedVersion) {
+      // Auto-detect: find latest existing version for this subLevel
+      const existing = await SyllabusVersion.findOne(
+        { subLevelId, isActive: true },
+        { version: 1 },
+        { sort: { createdAt: -1 } }
+      );
+      if (existing) {
+        // Same version — new subject goes into same version doc
+        resolvedVersion = existing.version;
+      } else {
+        resolvedVersion = "v1.0";
+      }
+    }
+
+    // Check if a version with this subLevelId + resolvedVersion already exists
+    const existingVersion = await SyllabusVersion.findOne({
+      sessionId, levelId, subLevelId, version: resolvedVersion, isActive: true
+    });
+
+    if (existingVersion) {
+      // Add subjects to existing version instead of creating new
+      upsertSubjectTree(existingVersion, subjects);
+      await existingVersion.save();
+      return res.status(200).json({
+        success: true,
+        message: `Subjects added to existing version ${resolvedVersion}`,
+        data: existingVersion
+      });
+    }
+
     const syllabusVersion = await SyllabusVersion.create({
-      sessionId, levelId, subLevelId, version,
+      sessionId, levelId, subLevelId,
+      version: resolvedVersion,
       title: title || "",
       subjects: normalizeSubjects(subjects)
     });
@@ -275,7 +309,7 @@ exports.addTaskToSyllabusVersion = async (req, res) => {
       isActive: true
     });
 
-    const syncResults = await syncIfActive(sv._id, sv.status);
+    const syncResults = await syncIfActive(sv._id);
 
     res.status(201).json({
       success: true,
@@ -313,7 +347,7 @@ exports.toggleTaskActive = async (req, res) => {
     );
     if (!task) return res.status(404).json({ success: false, message: "Task not found" });
     const sv = await SyllabusVersion.findById(req.params.id).select("status");
-    const syncResults = await syncIfActive(req.params.id, sv?.status);
+    const syncResults = await syncIfActive(req.params.id);
     res.status(200).json({ success: true, message: "Task updated", data: { task, syncedStudents: syncResults.filter((r) => r.success).length } });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });

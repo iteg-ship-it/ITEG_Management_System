@@ -672,6 +672,47 @@ const syncSyllabusTasksToStudents = async (syllabusVersionId) => {
   return results;
 };
 
+// Sync tasks to ALL active students in a subLevel when new tasks are uploaded.
+// Finds the active SyllabusVersion for the subLevel, then assigns tasks to every
+// active student currently in that subLevel — regardless of whether they already
+// have a syllabusVersionId set.
+const syncTasksToSubLevelStudents = async (syllabusVersionId) => {
+  const syllabusVersion = await SyllabusVersion.findById(syllabusVersionId)
+    .select("sessionId levelId subLevelId status");
+  if (!syllabusVersion) throw new Error("Syllabus version not found");
+
+  // Find all active students currently in this subLevel
+  const students = await Student.find({
+    currentSubLevelId: syllabusVersion.subLevelId,
+    currentLevelId:    syllabusVersion.levelId,
+    status:            { $in: ACTIVE_STUDENT_STATUSES }
+  }).select("_id syllabusVersionId");
+
+  if (students.length === 0) return [];
+
+  // Pin syllabusVersionId on students who don't have it set yet
+  const unpinned = students.filter(
+    (s) => !s.syllabusVersionId || s.syllabusVersionId.toString() !== syllabusVersionId.toString()
+  );
+  if (unpinned.length > 0) {
+    await Student.updateMany(
+      { _id: { $in: unpinned.map((s) => s._id) } },
+      { $set: { syllabusVersionId } }
+    );
+  }
+
+  const results = [];
+  for (const student of students) {
+    try {
+      const result = await assignTasksToStudent(student._id, syllabusVersionId);
+      results.push({ success: true, studentId: student._id, ...result });
+    } catch (error) {
+      results.push({ success: false, studentId: student._id, message: error.message });
+    }
+  }
+  return results;
+};
+
 module.exports = {
   buildTaskEntries,
   assignTasksToStudent,
@@ -682,5 +723,6 @@ module.exports = {
   getStudentTaskSummary,
   createProgressSnapshot,
   updateStudentTaskStatus,
-  syncSyllabusTasksToStudents
+  syncSyllabusTasksToStudents,
+  syncTasksToSubLevelStudents,
 };

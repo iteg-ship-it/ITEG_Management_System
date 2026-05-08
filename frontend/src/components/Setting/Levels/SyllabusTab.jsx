@@ -224,31 +224,21 @@ const SubjectAccordion = ({ item, index }) => {
 ══════════════════════════════════════════════════════════ */
 export const ManualSyllabusForm = forwardRef(({ level, subLevel, onSaved }, ref) => {
   const subLevelId = subLevel?._id;
-  const [mode,              setMode]              = useState("existing"); // "existing" | "new"
-  const [selectedVersionId, setSelectedVersionId] = useState("");
   const [selectedSessionId, setSelectedSessionId] = useState("");
-  const [version,           setVersion]           = useState("");
   const [subject,           setSubject]           = useState("");
   const [topics,            setTopics]            = useState([{ name: "", subTopics: [""] }]);
   const [saving,            setSaving]            = useState(false);
 
   const [createSyllabusVersion] = useCreateSyllabusVersionMutation();
-  const [addSubjectToVersion]   = useAddSubjectToVersionMutation();
   const { data: sessionsData }  = useGetAllSessionsQuery();
   const sessions = sessionsData?.data || [];
-
-  const { data: versionsData } = useGetSyllabusVersionsBySubLevelQuery(
-    { subLevelId, sessionId: "" },
-    { skip: !subLevelId }
-  );
-  const existingVersions = versionsData?.data || [];
 
   const ic = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white";
   const lc = "block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5";
 
   const reset = () => {
-    setSubject(""); setVersion(""); setSelectedSessionId("");
-    setSelectedVersionId(""); setTopics([{ name: "", subTopics: [""] }]);
+    setSubject(""); setSelectedSessionId("");
+    setTopics([{ name: "", subTopics: [""] }]);
   };
 
   const addTopic        = () => setTopics((p) => [...p, { name: "", subTopics: [""] }]);
@@ -271,83 +261,35 @@ export const ManualSyllabusForm = forwardRef(({ level, subLevel, onSaved }, ref)
     if (!subject.trim())     { toast.error("Subject name required"); return; }
     const validTopics = topics.filter((t) => t.name.trim());
     if (!validTopics.length) { toast.error("At least one topic required"); return; }
-
-    if (mode === "existing") {
-      if (!selectedVersionId) { toast.error("Please select a version"); return; }
-      setSaving(true);
-      try {
-        await addSubjectToVersion({ versionId: selectedVersionId, subjects: [buildSubjectPayload()] }).unwrap();
-        toast.success("Subject added to existing version!");
-        reset(); onSaved?.();
-      } catch (err) {
-        toast.error(err?.data?.message || "Failed to add subject");
-      } finally { setSaving(false); }
-    } else {
-      if (!version.trim())     { toast.error("Version name required (e.g. v2.0)"); return; }
-      if (!selectedSessionId)  { toast.error("Please select a session"); return; }
-      if (!subLevel?._id)      { toast.error("SubLevel not found"); return; }
-      if (!level?._id)         { toast.error("Level not found"); return; }
-      setSaving(true);
-      try {
-        await createSyllabusVersion({
-          sessionId: selectedSessionId, levelId: level._id,
-          subLevelId: subLevel._id, version: version.trim(),
-          subjects: [buildSubjectPayload()],
-        }).unwrap();
-        toast.success("New version created with subject!");
-        reset(); onSaved?.();
-      } catch (err) {
-        toast.error(err?.data?.message || "Failed to create version");
-      } finally { setSaving(false); }
-    }
+    if (!selectedSessionId)  { toast.error("Please select a session"); return; }
+    if (!subLevel?._id)      { toast.error("SubLevel not found"); return; }
+    if (!level?._id)         { toast.error("Level not found"); return; }
+    setSaving(true);
+    try {
+      await createSyllabusVersion({
+        sessionId: selectedSessionId, levelId: level._id,
+        subLevelId: subLevel._id,
+        subjects: [buildSubjectPayload()],
+      }).unwrap();
+      toast.success("Subject saved to syllabus!");
+      reset(); onSaved?.();
+    } catch (err) {
+      toast.error(err?.data?.message || "Failed to save");
+    } finally { setSaving(false); }
   };
 
   useImperativeHandle(ref, () => ({ reset, save: handleSave }));
 
   return (
     <div className="space-y-4 px-1 py-2">
-      {/* Mode toggle */}
-      {existingVersions.length > 0 && (
-        <div className="flex gap-1 bg-[#F8F7F5] border border-gray-200 p-1 rounded-xl">
-          <button type="button" onClick={() => setMode("existing")}
-            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition ${
-              mode === "existing" ? "bg-white text-orange-500 shadow-sm" : "text-gray-500 hover:text-gray-700"
-            }`}>Add to Existing Version</button>
-          <button type="button" onClick={() => setMode("new")}
-            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition ${
-              mode === "new" ? "bg-white text-orange-500 shadow-sm" : "text-gray-500 hover:text-gray-700"
-            }`}>Create New Version</button>
-        </div>
-      )}
-
-      {/* Version selector or new version fields */}
-      {mode === "existing" ? (
-        <div>
-          <label className={lc}>Select Version <span className="text-red-400">*</span></label>
-          <select className={ic} value={selectedVersionId} onChange={(e) => setSelectedVersionId(e.target.value)}>
-            <option value="">-- Select Version --</option>
-            {existingVersions.map((v) => (
-              <option key={v._id} value={v._id}>
-                {v.version} — {v.sessionId?.name || ""} ({v.status})
-              </option>
-            ))}
-          </select>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className={lc}>Session <span className="text-red-400">*</span></label>
-            <select className={ic} value={selectedSessionId} onChange={(e) => setSelectedSessionId(e.target.value)}>
-              <option value="">-- Select Session --</option>
-              {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className={lc}>Version <span className="text-red-400">*</span></label>
-            <input className={ic} value={version} onChange={(e) => setVersion(e.target.value)} placeholder="e.g. v2.0" />
-          </div>
-        </div>
-      )}
+      {/* Session */}
+      <div>
+        <label className={lc}>Session <span className="text-red-400">*</span></label>
+        <select className={ic} value={selectedSessionId} onChange={(e) => setSelectedSessionId(e.target.value)}>
+          <option value="">-- Select Session --</option>
+          {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
+        </select>
+      </div>
 
       {/* Subject */}
       <div>
@@ -397,7 +339,6 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
   const [saving,           setSaving]           = useState(false);
   const [hierarchy,        setHierarchy]        = useState([]);
   const [fileName,         setFileName]         = useState("");
-  const [version,          setVersion]          = useState("");
   const [selectedSessionId,setSelectedSessionId]= useState("");
 
   const [createSyllabusVersion] = useCreateSyllabusVersionMutation();
@@ -408,7 +349,7 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
   const totalTopics    = hierarchy.reduce((acc, s) => acc + s.topics.length, 0);
   const totalSubTopics = hierarchy.reduce((acc, s) => acc + s.topics.reduce((a, t) => a + t.subTopics.length, 0), 0);
 
-  const reset = () => { setHierarchy([]); setFileName(""); setVersion(""); setSelectedSessionId(""); };
+  const reset = () => { setHierarchy([]); setFileName(""); setSelectedSessionId(""); };
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
@@ -428,7 +369,6 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
 
   const handleSave = async () => {
     if (!hierarchy.length)   { toast.error("No data to save"); return; }
-    if (!version.trim())     { toast.error("Please enter a version name (e.g. v1.0)"); return; }
     if (!subLevel?._id)      { toast.error("SubLevel not found"); return; }
     if (!level?._id)         { toast.error("Level not found"); return; }
     if (!selectedSessionId)  { toast.error("Please select a session"); return; }
@@ -437,7 +377,6 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
       sessionId:  selectedSessionId,
       levelId:    level._id,
       subLevelId: subLevel._id,
-      version:    version.trim(),
       subjects: hierarchy.map((s, si) => ({
         name:  s.subject,
         order: si + 1,
@@ -533,11 +472,6 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
             <option value="">-- Select Session --</option>
             {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
           </select>
-          <input
-            type="text" value={version} onChange={(e) => setVersion(e.target.value)}
-            placeholder="Version name (e.g. v1.0)"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white"
-          />
           <div className="flex gap-2">
             <button onClick={handleSave} disabled={saving} className="flex-1 flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-semibold py-2 rounded-lg transition">
               <MdSave size={15} />{saving ? "Saving..." : "Save Syllabus + Tasks"}
@@ -695,14 +629,14 @@ export const TaskUploadDrawer = ({ syllabusVersionId, subjectName, version, onSa
       if (!parsed.length) { toast.error("Excel file is empty"); return; }
       // Map column headers (case-insensitive)
       const mapped = parsed.map((r) => ({
-        topic:             String(r["topic"]            || r["Topic"]            || r["Topic Name"] || "").trim(),
-        subTopic:          String(r["subTopic"]         || r["SubTopic"]         || r["sub_topic"]  || "").trim(),
-        taskTitle:         String(r["taskTitle"]        || r["TaskTitle"]        || r["Task Title"] || r["Tasks"] || "").trim(),
+        topic:             String(r["Topic"]            || r["topic"]            || r["Topic Name"] || "").trim(),
+        subTopic:          String(r["Sub Topic"]        || r["subTopic"]         || r["SubTopic"]   || r["sub_topic"] || "").trim(),
+        taskTitle:         String(r["Task Title"]       || r["taskTitle"]        || r["TaskTitle"]  || r["Tasks"] || "").trim(),
         taskType:          String(r["taskType"]         || r["TaskType"]         || r["Task Type"]  || "assessment").trim(),
         priority:          String(r["priority"]         || r["Priority"]         || "medium").trim(),
         maxMarks:          Number(r["maxMarks"]         || r["MaxMarks"]         || r["Max Marks"]  || 100),
-        timeDays:          r["timeDays"]  || r["TimeDays"]  || r["Time"] || null,
-        measurablePoints:  String(r["measurablePoints"] || r["MeasurablePoints"] || r["Measurable Point"] || "").trim(),
+        timeDays:          r["Time Days"] || r["timeDays"] || r["TimeDays"] || r["Time"] || null,
+        measurablePoints:  String(r["Measurable Point"] || r["measurablePoints"] || r["MeasurablePoints"] || "").trim(),
       })).filter((r) => r.topic && r.taskTitle);
 
       if (!mapped.length) { toast.error("No valid rows found. Check column names."); return; }
@@ -739,7 +673,7 @@ export const TaskUploadDrawer = ({ syllabusVersionId, subjectName, version, onSa
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-semibold text-gray-700">Upload Tasks for <span className="text-orange-600">{subjectName} {version}</span></p>
-          <p className="text-xs text-gray-400 mt-0.5">Required columns: Topic, SubTopic, TaskTitle</p>
+          <p className="text-xs text-gray-400 mt-0.5">Required columns: Subject, Topic, Sub Topic, Task Title, Time Days, Measurable Point</p>
         </div>
         <a
           href="/task_template.csv"
@@ -957,9 +891,8 @@ export const VersionTasksTable = ({ versionId, searchTerm = "" }) => {
 };
 
 /* ─── Manual Task Creation Form ────────────────────────── */
-const TASK_TYPES    = ["writtenExam", "interview", "project", "presentation", "learning", "assessment"];
-const TASK_PRIORITY = ["low", "medium", "high"];
-const EMPTY_FORM    = { title: "", measurablePoints: "", timeDays: "", type: "assessment", priority: "medium", maxMarks: 100, cutoff: 40, dueDate: "" };
+const TASK_TYPES = ["writtenExam", "interview", "project", "presentation", "learning", "assessment"];
+const EMPTY_FORM = { title: "", measurablePoints: "", timeDays: "", type: "assessment", dueDate: "" };
 
 export const ManualTaskForm = ({ subLevel, versionId, onSaved, formId = "manual-task-form", showSubmitButton = true }) => {
   const subLevelId = subLevel?._id;
@@ -1004,8 +937,6 @@ export const ManualTaskForm = ({ subLevel, versionId, onSaved, formId = "manual-
         ...form,
         title:    form.title.trim(),
         timeDays: form.timeDays ? Number(form.timeDays) : null,
-        maxMarks: Number(form.maxMarks),
-        cutoff:   Number(form.cutoff),
       };
       await createTask(payload).unwrap();
       toast.success("Task created successfully!");
@@ -1134,26 +1065,12 @@ export const ManualTaskForm = ({ subLevel, versionId, onSaved, formId = "manual-
               </select>
             </div>
             <div>
-              <label className={lc}>Priority</label>
-              <select className={ic} value={form.priority} onChange={(e) => setForm((p) => ({ ...p, priority: e.target.value }))}>
-                {TASK_PRIORITY.map((p) => <option key={p} value={p}>{p}</option>)}
-              </select>
-            </div>
-            <div>
               <label className={lc}>Time (Days)</label>
               <input type="number" className={ic} value={form.timeDays} onChange={(e) => setForm((p) => ({ ...p, timeDays: e.target.value }))} placeholder="e.g. 7" />
             </div>
-            <div>
+            <div className="col-span-2">
               <label className={lc}>Due Date <span className="text-gray-300 normal-case font-normal">(optional)</span></label>
               <input type="date" className={ic} value={form.dueDate} onChange={(e) => setForm((p) => ({ ...p, dueDate: e.target.value }))} />
-            </div>
-            <div>
-              <label className={lc}>Max Marks</label>
-              <input type="number" className={ic} value={form.maxMarks} onChange={(e) => setForm((p) => ({ ...p, maxMarks: e.target.value }))} />
-            </div>
-            <div>
-              <label className={lc}>Cutoff</label>
-              <input type="number" className={ic} value={form.cutoff} onChange={(e) => setForm((p) => ({ ...p, cutoff: e.target.value }))} />
             </div>
           </div>
         </div>

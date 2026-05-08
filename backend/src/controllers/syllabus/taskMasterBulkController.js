@@ -1,6 +1,6 @@
 const Task            = require("../../models/syllabus/Task");
 const SyllabusVersion = require("../../models/syllabus/SyllabusVersion");
-const { syncSyllabusTasksToStudents } = require("../../services/taskAssignmentService");
+const { syncSyllabusTasksToStudents, syncTasksToSubLevelStudents } = require("../../services/taskAssignmentService");
 
 const VALID_TYPES    = ["assignment", "project", "practice", "reading", "assessment", "other"];
 const VALID_PRIORITY = ["low", "medium", "high"];
@@ -120,10 +120,8 @@ exports.bulkUploadTasks = async (req, res) => {
 
     const inserted = await Task.insertMany(taskDocs);
 
-    // Sync to students if syllabus is active
-    if (sv.status === "active") {
-      await syncSyllabusTasksToStudents(syllabusVersionId).catch(() => {});
-    }
+    // Always sync to all active students in this subLevel
+    await syncTasksToSubLevelStudents(syllabusVersionId).catch(() => {});
 
     res.status(201).json({
       success:  true,
