@@ -110,12 +110,14 @@ const LoginPage = () => {
                     type={showPassword ? "text" : "password"} 
                     label="Password" 
                   />
-                  <div
-                    className="absolute bottom-0 right-3 h-11 flex items-center text-gray-500 cursor-pointer z-10"
+                  <button
+                    type="button"
+                    className="absolute right-3 top-[38px] bottom-0 flex items-center text-gray-400 hover:text-gray-600"
                     onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
                   >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </div>
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
 
                 {loginError && (
