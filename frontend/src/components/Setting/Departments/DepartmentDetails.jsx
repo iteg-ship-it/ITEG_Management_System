@@ -18,6 +18,8 @@ const DepartmentDetails = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const department = location.state?.department;
+  // Extract course names from department's allowedCourses for subdept dropdown
+  const departmentCourses = (department?.allowedCourses || []).map(c => c.courseName).filter(Boolean);
 
   const { data: subdepartmentsData, isLoading, refetch } = useGetSubdepartmentsByDepartmentQuery(department?._id, {
     skip: !department?._id
@@ -76,25 +78,31 @@ const DepartmentDetails = () => {
                 drawerContent={
                   <Form className="space-y-4">
                     <InputField label="Subdepartment Name" name="name" placeholder="Enter subdepartment name" />
-                    <InputField label="Department ID" name="departmentId" placeholder="Enter department ID" disabled={true} />
+                    {/* departmentId is hidden — auto-filled from department context */}
                     <div>
                       <label className="block text-sm font-medium mb-2">Allowed Courses</label>
-                      {values.allowedCourses.map((course, index) => (
-                        <div key={index} className="flex gap-2 mb-2">
-                          <input
-                            value={course}
-                            onChange={(e) => {
-                              const c = [...values.allowedCourses];
-                              c[index] = e.target.value;
-                              setFieldValue("allowedCourses", c);
-                            }}
-                            placeholder="Course name"
-                            className="flex-1 border rounded px-3 py-2"
-                          />
-                          <button type="button" onClick={() => setFieldValue("allowedCourses", values.allowedCourses.filter((_, i) => i !== index))} className="px-3 py-2 bg-red-500 text-white rounded">✕</button>
+                      {departmentCourses.length > 0 ? (
+                        <div className="space-y-2">
+                          {departmentCourses.map((course) => (
+                            <label key={course} className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={values.allowedCourses.includes(course)}
+                                onChange={(e) => {
+                                  const updated = e.target.checked
+                                    ? [...values.allowedCourses, course]
+                                    : values.allowedCourses.filter(c => c !== course);
+                                  setFieldValue("allowedCourses", updated);
+                                }}
+                                className="w-4 h-4 accent-orange-500"
+                              />
+                              <span className="text-sm text-gray-700">{course}</span>
+                            </label>
+                          ))}
                         </div>
-                      ))}
-                      <button type="button" onClick={() => setFieldValue("allowedCourses", [...values.allowedCourses, ""])} className="text-sm text-orange-500 hover:text-orange-600">+ Add Course</button>
+                      ) : (
+                        <p className="text-xs text-gray-400">No courses defined in this department. Add courses while creating/editing the department.</p>
+                      )}
                     </div>
                     <RadioGroup label="Status" name="isActive" required={false} />
                   </Form>
@@ -167,25 +175,31 @@ const DepartmentDetails = () => {
                         drawerContent={
                           <Form className="space-y-4">
                             <InputField label="Subdepartment Name" name="name" placeholder="Enter subdepartment name" />
-                            <InputField label="Department ID" name="departmentId" disabled={true} />
+                            {/* departmentId hidden — auto-filled */}
                             <div>
                               <label className="block text-sm font-medium mb-2">Allowed Courses</label>
-                              {values.allowedCourses.map((course, index) => (
-                                <div key={index} className="flex gap-2 mb-2">
-                                  <input
-                                    value={course}
-                                    onChange={(e) => {
-                                      const c = [...values.allowedCourses];
-                                      c[index] = e.target.value;
-                                      setFieldValue("allowedCourses", c);
-                                    }}
-                                    placeholder="Course name"
-                                    className="flex-1 border rounded px-3 py-2"
-                                  />
-                                  <button type="button" onClick={() => setFieldValue("allowedCourses", values.allowedCourses.filter((_, i) => i !== index))} className="px-3 py-2 bg-red-500 text-white rounded">✕</button>
+                              {departmentCourses.length > 0 ? (
+                                <div className="space-y-2">
+                                  {departmentCourses.map((course) => (
+                                    <label key={course} className="flex items-center gap-2 cursor-pointer">
+                                      <input
+                                        type="checkbox"
+                                        checked={values.allowedCourses.includes(course)}
+                                        onChange={(e) => {
+                                          const updated = e.target.checked
+                                            ? [...values.allowedCourses, course]
+                                            : values.allowedCourses.filter(c => c !== course);
+                                          setFieldValue("allowedCourses", updated);
+                                        }}
+                                        className="w-4 h-4 accent-orange-500"
+                                      />
+                                      <span className="text-sm text-gray-700">{course}</span>
+                                    </label>
+                                  ))}
                                 </div>
-                              ))}
-                              <button type="button" onClick={() => setFieldValue("allowedCourses", [...values.allowedCourses, ""])} className="text-sm text-orange-500 hover:text-orange-600">+ Add Course</button>
+                              ) : (
+                                <p className="text-xs text-gray-400">No courses defined in this department.</p>
+                              )}
                             </div>
                             <RadioGroup label="Status" name="isActive" required={false} />
                           </Form>
