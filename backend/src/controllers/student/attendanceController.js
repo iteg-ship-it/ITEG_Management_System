@@ -72,7 +72,6 @@ exports.getOverallAttendanceStats = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching attendance stats:", error);
     res.status(500).json({
       success: false,
       message: "Failed to fetch attendance statistics",

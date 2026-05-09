@@ -283,6 +283,29 @@ export const authApi = createApi({
       invalidatesTags: (result, error, { id }) => [{ type: 'Student', id }, 'Student'],
     }),
 
+    updatePlacementReadiness: builder.mutation({
+      query: ({ id, readinessStatus }) => ({
+        url: `/students/${id}/placement-readiness`,
+        method: 'PATCH',
+        body: { readinessStatus },
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: 'Student', id }, 'PlacementStudent'],
+    }),
+
+    assignExtraTask: builder.mutation({
+      query: ({ id, ...taskData }) => ({
+        url: `/students/${id}/extra-tasks`,
+        method: 'POST',
+        body: taskData,
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: 'Student', id }],
+    }),
+
+    getExtraTasks: builder.query({
+      query: (id) => ({ url: `/students/${id}/extra-tasks`, method: 'GET' }),
+      providesTags: (result, error, id) => [{ type: 'Student', id }],
+    }),
+
     getNewReadyStudents: builder.query({
       query: () => ({ url: '/students/Ready_Students', method: 'GET' }),
       providesTags: ['PlacementStudent'],
@@ -1307,6 +1330,9 @@ export const {
   useGetNewStudentTasksQuery,
   usePromoteNewStudentMutation,
   useUpdateNewStudentReadinessMutation,
+  useUpdatePlacementReadinessMutation,
+  useAssignExtraTaskMutation,
+  useGetExtraTasksQuery,
   useGetNewReadyStudentsQuery,
   useGetNewPlacedStudentsQuery,
   useGetNewSelectedStudentsQuery,

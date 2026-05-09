@@ -78,7 +78,6 @@ exports.createStudent = async (req, res) => {
       taskAssignmentResult = await assignTasksToStudent(student._id, latestSyllabus._id);
     } catch (taskErr) {
       // Task assignment failure should not block student creation
-      console.error("Task auto-assignment failed:", taskErr.message);
     }
 
 
@@ -554,6 +553,123 @@ exports.updateReadinessStatus = async (req, res) => {
   }
 };
 
+
+// ✅ Update Placement Readiness Status
+// Updates StudentPlacement.readinessStatus.
+// Creates a StudentPlacement record if one doesn't exist yet.
+// This is the correct endpoint for toggling placement readiness from the student profile.
+exports.updatePlacementReadiness = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { readinessStatus } = req.body;
+
+    const validStatuses = ["Not Ready", "In Progress", "Ready", "Ready for Interview"];
+    if (!readinessStatus || !validStatuses.includes(readinessStatus)) {
+      return res.status(400).json({ message: `readinessStatus must be one of: ${validStatuses.join(", ")}` });
+    }
+
+    const student = await Student.findById(id).select("subDepartmentId status");
+    if (!student) return res.status(404).json({ message: "Student not found" });
+    if (student.status === "Dropped") {
+      return res.status(400).json({ message: "Cannot update readiness for a dropped student" });
+    }
+
+    const StudentPlacement = require("../../models/placement/StudentPlacement");
+
+    const placement = await StudentPlacement.findOneAndUpdate(
+      { studentId: id },
+      {
+        $set: { readinessStatus },
+        $setOnInsert: { studentId: id, subDepartmentId: student.subDepartmentId }
+      },
+      { new: true, upsert: true, runValidators: true }
+    );
+
+    return res.status(200).json({
+      message: "Placement readiness updated successfully",
+      data: { studentId: id, readinessStatus: placement.readinessStatus },
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ✅ Assign Extra Task to Individual Student (outside syllabus)
+// Extra tasks appear only on that student's profile.
+// They do not affect syllabus progress or auto-promotion.
+exports.assignExtraTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, type, maxMarks, subjectName, topicName, notes } = req.body;
+
+    if (!title) return res.status(400).json({ message: "title is required" });
+
+    const student = await Student.findById(id);
+    if (!student) return res.status(404).json({ message: "Student not found" });
+    if (student.status !== "Active") return res.status(400).json({ message: "Only active students can receive extra tasks" });
+
+    const extraTask = await StudentTask.create({
+      studentId: student._id,
+      // syllabus fields are null for extra tasks
+      sessionId: student.sessionId || null,
+      levelId: student.currentLevelId || null,
+      subLevelId: student.currentSubLevelId || null,
+      syllabusVersionId: student.syllabusVersionId || null,
+      taskId: null,
+      subjectId: null,
+      topicId: null,
+      subTopicId: null,
+      subjectName: subjectName || "Extra",
+      topicName: topicName || "Extra Task",
+      subTopicName: null,
+      taskNodeType: "topic",
+      title,
+      description: description || "",
+      type: type || "assignment",
+      mandatory: false,
+      maxMarks: typeof maxMarks === "number" ? maxMarks : 5,
+      notes: notes || "",
+      assignedType: "manual",
+      assignedBy: req.user?.id || req.user?._id || null,
+      assignedByName: req.user?.name || "",
+      assignedByRole: req.user?.role || "",
+      assignedAt: new Date(),
+      isExtra: true,
+      isActive: true,
+    });
+
+    return res.status(201).json({
+      message: "Extra task assigned successfully",
+      data: extraTask,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ✅ Get Extra Tasks for a Student
+exports.getExtraTasks = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const student = await Student.findById(id);
+    if (!student) return res.status(404).json({ message: "Student not found" });
+
+    const tasks = await StudentTask.find({
+      studentId: id,
+      isExtra: true,
+      isActive: true,
+    }).sort({ assignedAt: -1 });
+
+    return res.status(200).json({
+      total: tasks.length,
+      completed: tasks.filter(t => t.status === "completed").length,
+      pending: tasks.filter(t => t.status === "pending").length,
+      data: tasks,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
 
 // ✅ Get Student Dashboard Stats (department-aware)
 exports.getStudentStats = async (req, res) => {
