@@ -43,9 +43,8 @@ const GlobalPermissionMatrix = ({ user, onBack }) => {
             await updateUserPermissions({ id: user.id, permissions }).unwrap();
             toast.success('Permissions updated successfully!');
             onBack();
-        } catch (error) {
+        } catch {
             toast.error('Failed to update permissions.');
-            console.error('Error updating permissions:', error);
         }
     };
 

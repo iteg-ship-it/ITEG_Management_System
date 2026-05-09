@@ -1,4 +1,3 @@
-// ✨ JWT, bcrypt, and other setups
 require("dotenv").config();
 const User = require("../../models/user/user");
 const Department = require("../../models/department/Department");
@@ -6,78 +5,63 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const { sendResetLinkEmail } = require("../../services/emailService");
-const { getPermissionsForRole } = require("../../config/permissions");
-const cloudinary = require("cloudinary").v2;
+const { getPermissionsForRole, allPermissions } = require("../../config/permissions");
+const cloudinary = require("../../config/cloudinaryConfig");
 const mongoose = require("mongoose");
 
-// 🌩️ Cloudinary Config
-cloudinary.config({
-  cloud_name: 'djarooa0l',
-  api_key: '787195123151781',
-  api_secret: 'Z_iYcURHkeacMgHZS2AjxE0tON8',
+// Builds the JWT payload — single source of truth used by login, refresh, and Google auth
+const buildTokenPayload = (user) => ({
+  id: user._id,
+  role: user.role,
+  name: user.name,
+  department: user.department,
+  departmentId: user.departmentId || null,
+  permissions: user.permissions,
 });
 
-// ✅ CREATE USER
+const generateAccessToken = (user) =>
+  jwt.sign(buildTokenPayload(user), process.env.JWT_SECRET, { expiresIn: "1h" });
+
+const generateRefreshToken = (user) =>
+  jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+// CREATE USER
 exports.createUser = async (req, res) => {
   try {
-    let {
-      profileImage,
-      name,
-      email,
-      mobileNo,
-      password,
-      adharCard,
-      department,
-      position,
-      role,
-      isActive,
-      updatedAt,
-      createdAt,
-    } = req.body;
+    let { profileImage, name, email, mobileNo, password, adharCard, department, position, role, isActive } = req.body;
 
     if (!name || !email || !mobileNo || !password || !adharCard || !position || !role) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // faculty ke liye department required
-    if (role === 'faculty' && !department) {
+    if (role === "faculty" && !department) {
       return res.status(400).json({ message: "Department is required for faculty" });
-    }
-
-    // Validate department exists in DB (only for faculty)
-    if (role === 'faculty') {
-      const deptExists = await Department.findOne({ name: department, isActive: true });
-      if (!deptExists) {
-        return res.status(400).json({ message: "Selected department does not exist" });
-      }
     }
 
     const collegeEmailRegex = /^[a-zA-Z0-9._%+-]+@ssism\.org$/;
     if (!collegeEmailRegex.test(email)) {
-      return res.status(400).json({
-        message: "Only institutional emails (@ssism.org) are allowed to register.",
-      });
+      return res.status(400).json({ message: "Only institutional emails (@ssism.org) are allowed." });
     }
 
     email = email.toLowerCase();
 
     const allowedRoles = ["admin", "superadmin", "faculty"];
     if (!allowedRoles.includes(role)) {
-      return res.status(400).json({
-        message: "Invalid role. Only admin, superadmin, and faculty are allowed.",
-      });
+      return res.status(400).json({ message: "Invalid role. Only admin, superadmin, and faculty are allowed." });
     }
 
-    const existingUser = await User.findOne({
-      $or: [{ email }, { adharCard }],
-    });
-    if (existingUser) {
-      return res.status(400).json({ message: "User with this email or Aadhar already exists." });
+    // Resolve departmentId from department name for faculty
+    let departmentId = null;
+    if (role === "faculty" && department) {
+      const deptDoc = await Department.findOne({ name: department, isActive: true }).select("_id");
+      if (!deptDoc) return res.status(400).json({ message: "Selected department does not exist" });
+      departmentId = deptDoc._id;
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const existing = await User.findOne({ $or: [{ email }, { adharCard }] });
+    if (existing) return res.status(400).json({ message: "User with this email or Aadhar already exists." });
 
+    const hashedPassword = await bcrypt.hash(password, 10);
     const permissions = getPermissionsForRole(role);
 
     const newUser = new User({
@@ -87,100 +71,55 @@ exports.createUser = async (req, res) => {
       mobileNo,
       password: hashedPassword,
       adharCard,
-      department: department || 'General',
+      department: department || "General",
+      departmentId,
       position,
       role,
       permissions,
-      isActive: isActive !== undefined ? isActive : true, // Default to true if not provided
-      updatedAt,
-      createdAt,
+      isActive: isActive !== undefined ? isActive : true,
     });
 
     await newUser.save();
 
-    console.log(`User created successfully: ${email} with isActive: ${newUser.isActive}`);
-
-
     res.status(201).json({
       message: `${role.charAt(0).toUpperCase() + role.slice(1)} created successfully!`,
-      user: {
-        id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-        mobileNo: newUser.mobileNo,
-        role: newUser.role,
-        isActive: newUser.isActive,
-      },
+      user: { id: newUser._id, name: newUser.name, email: newUser.email, role: newUser.role, isActive: newUser.isActive },
     });
   } catch (error) {
-    console.error("Error creating user:", error);
-    res.status(500).json({ message: "Server Error", error });
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 
-// Helper functions
-const generateRefreshToken = (user) => {
-  return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
-};
-
-// ✅ LOGIN
+// LOGIN
 exports.login = async (req, res) => {
   try {
     let { email, password } = req.body;
 
     const collegeEmailRegex = /^[a-zA-Z0-9._%+-]+@ssism\.org$/;
     if (!collegeEmailRegex.test(email)) {
-      return res.status(403).json({
-        message: "Only institutional emails (@ssism.org) are allowed to login.",
-      });
+      return res.status(403).json({ message: "Only institutional emails (@ssism.org) are allowed to login." });
     }
 
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
-    }
+    if (!email || !password) return res.status(400).json({ message: "Email and password are required" });
 
-    // Convert email to lowercase for consistency
     email = email.toLowerCase();
-
     const user = await User.findOne({ email });
-    if (!user) {
-      console.log(`Login attempt failed: User not found for email: ${email}`);
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
-
-    // Check if user is active
-    if (!user.isActive) {
-      console.log(`Login attempt failed: User account is inactive for email: ${email}`);
-      return res.status(401).json({ message: "Account is inactive. Please contact administrator." });
-    }
+    if (!user) return res.status(401).json({ message: "Invalid email or password" });
+    if (!user.isActive) return res.status(401).json({ message: "Account is inactive. Please contact administrator." });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      console.log(`Login attempt failed: Password mismatch for email: ${email}`);
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
+    if (!isMatch) return res.status(401).json({ message: "Invalid email or password" });
 
-    // Self-healing: If user has no permissions, assign default ones based on their role
+    // Self-healing: assign default permissions if missing
     if (!user.permissions || user.permissions.length === 0) {
-      console.log(`User ${user.email} has no permissions. Assigning defaults for role ${user.role}.`);
-      const defaultPermissions = getPermissionsForRole(user.role);
-      user.permissions = defaultPermissions;
-      // The save is implicitly handled by the refreshToken update below
+      user.permissions = getPermissionsForRole(user.role);
     }
 
-    const token = jwt.sign(
-      { id: user._id, role: user.role, permissions: user.permissions, department: user.department },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
-
+    const token = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
     user.refreshToken = refreshToken;
     await user.save();
 
-    console.log(`Login successful for user: ${email}`);
     res.status(200).json({
       message: "Login successful",
       token,
@@ -192,213 +131,172 @@ exports.login = async (req, res) => {
         role: user.role,
         position: user.position,
         department: user.department,
+        departmentId: user.departmentId,
       },
     });
   } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-// ✅ REFRESH ACCESS TOKEN
+// REFRESH ACCESS TOKEN
 exports.refreshAccessToken = async (req, res) => {
   try {
     const { refreshToken } = req.body;
-
-    if (!refreshToken) {
-      return res.status(401).json({ message: "Refresh token required" });
-    }
+    if (!refreshToken) return res.status(401).json({ message: "Refresh token required" });
 
     const user = await User.findOne({ refreshToken });
-    if (!user)
-      return res.status(403).json({ message: "Invalid refresh token" });
+    if (!user) return res.status(403).json({ message: "Invalid refresh token" });
 
-    jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
-      if (err)
-        return res.status(403).json({ message: "Invalid or expired refresh token" });
+    jwt.verify(refreshToken, process.env.JWT_SECRET, (err) => {
+      if (err) return res.status(403).json({ message: "Invalid or expired refresh token" });
 
-      const newAccessToken = jwt.sign(
-        { id: decoded.id, role: user.role },
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" }
-      );
-
-      res.status(200).json({
-        message: "Access token refreshed",
-        accessToken: newAccessToken,
-      });
+      // Include full payload so frontend has permissions after refresh
+      const newAccessToken = generateAccessToken(user);
+      res.status(200).json({ message: "Access token refreshed", accessToken: newAccessToken });
     });
   } catch (err) {
-    console.error("Refresh token error:", err.message);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
-// 🔐 LOGOUT
+// LOGOUT
 exports.logout = async (req, res) => {
   try {
     const userId = req.body.id || req.body._id;
-
-    if (!userId) {
-      return res.status(400).json({ message: "User ID is required" });
-    }
+    if (!userId) return res.status(400).json({ message: "User ID is required" });
 
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     user.refreshToken = null;
     await user.save();
-
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
-    console.error("Logout error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-// 👤 GET USER BY ID
+// GET USER BY ID
 exports.getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select("-password -refreshToken -resetPasswordToken");
     if (!user) return res.status(404).json({ message: "User not found" });
-
-    const formattedUser = {
-      ...user._doc,
-      id: user._id,
-    };
-    delete formattedUser._id;
-    delete formattedUser.__v;
-
-    res.status(200).json({ success: true, user: formattedUser });
+    res.status(200).json({ success: true, user });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
-// ✏️ UPDATE USER FIELDS
+// UPDATE USER FIELDS
+// When role changes, permissions are automatically synced to the new role's defaults
 exports.updateUserFields = async (req, res) => {
   try {
     const { id } = req.params;
-
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
     const { name, position, role, department, isActive, profileImage } = req.body;
 
-    const updatedData = {
+    const updateData = {
       ...(name && { name }),
       ...(position && { position }),
       ...(role && { role }),
-      ...(department && { department }),
+      ...(department !== undefined && { department }),
       ...(typeof isActive === "boolean" && { isActive }),
       ...(profileImage && { profileImage }),
-      updatedAt: new Date(),
     };
 
-    const updatedUser = await User.findByIdAndUpdate(id, updatedData, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!updatedUser) {
-      return res.status(404).json({ success: false, message: "User not found" });
+    // When role changes, sync permissions to new role defaults
+    if (role) {
+      updateData.permissions = getPermissionsForRole(role);
     }
 
-    res.status(200).json({
-      success: true,
-      message: "User updated successfully",
-      user: updatedUser,
-    });
+    // When department changes for faculty, resolve new departmentId
+    if (department && role === "faculty") {
+      const deptDoc = await Department.findOne({ name: department, isActive: true }).select("_id");
+      if (deptDoc) updateData.departmentId = deptDoc._id;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(id, updateData, { new: true, runValidators: true })
+      .select("-password -refreshToken -resetPasswordToken");
+
+    if (!updatedUser) return res.status(404).json({ success: false, message: "User not found" });
+
+    res.status(200).json({ success: true, message: "User updated successfully", user: updatedUser });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error", error });
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 
-// 🗑️ DELETE USER (SUPERADMIN ONLY)
+// DELETE USER
 exports.deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
-
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    const deletedUser = await User.findByIdAndDelete(id);
+    const deleted = await User.findByIdAndDelete(id);
+    if (!deleted) return res.status(404).json({ success: false, message: "User not found" });
 
-    if (!deletedUser) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "User deleted successfully",
-    });
+    res.status(200).json({ success: true, message: "User deleted successfully" });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error", error });
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 
-// 🔐 FORGOT PASSWORD
+// FORGOT PASSWORD
 exports.forgotPassword = async (req, res) => {
   const { email } = req.body;
-
   try {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "15m",
-    });
-
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "15m" });
     user.resetPasswordToken = token;
     user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
     user.resetTokenUsed = false;
     await user.save();
 
-    const resetLink = `${token}`;
-    await sendResetLinkEmail(email, resetLink);
-
+    await sendResetLinkEmail(email, token);
     res.status(200).json({ message: "Reset link sent to your email." });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
-// 🔁 RESET PASSWORD
+// RESET PASSWORD
 exports.resetPassword = async (req, res) => {
   const { token } = req.params;
   const { newPassword, confirmPassword } = req.body;
 
-  if (!newPassword || !confirmPassword)
-    return res.status(400).json({ message: "Both fields are required" });
-
-  if (newPassword !== confirmPassword)
-    return res.status(400).json({ message: "Passwords do not match" });
+  if (!newPassword || !confirmPassword) return res.status(400).json({ message: "Both fields are required" });
+  if (newPassword !== confirmPassword) return res.status(400).json({ message: "Passwords do not match" });
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id);
 
-    if (!user || user.resetPasswordToken !== token || user.resetTokenUsed)
+    if (!user || user.resetPasswordToken !== token || user.resetTokenUsed) {
       return res.status(400).json({ message: "Invalid or expired token" });
-
-    if (user.resetPasswordExpires < Date.now())
+    }
+    if (user.resetPasswordExpires < Date.now()) {
       return res.status(400).json({ message: "Token has expired" });
+    }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;
+    user.password = await bcrypt.hash(newPassword, 10);
     user.resetTokenUsed = true;
-
     await user.save();
 
     res.status(200).json({ message: "Password successfully reset" });
-  } catch (err) {
+  } catch {
     return res.status(400).json({ message: "Invalid or expired token" });
   }
 };
 
-// 🔒 GOOGLE AUTH CALLBACK
+// GOOGLE AUTH CALLBACK
 exports.googleAuthCallback = async (req, res) => {
   try {
     const { _json } = req.user;
@@ -409,7 +307,6 @@ exports.googleAuthCallback = async (req, res) => {
     }
 
     let user = await User.findOne({ email });
-    let isNewUser = false;
 
     if (!user) {
       const permissions = getPermissionsForRole("superadmin");
@@ -423,99 +320,61 @@ exports.googleAuthCallback = async (req, res) => {
         department: "IT",
         mobileNo: "0000000000",
         adharCard: `GOOGLE_${sub}`,
-        password: await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10),
-        profileImage: _json.picture || "https://via.placeholder.com/150",
+        password: await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 10),
+        profileImage: _json.picture || "",
       });
-      isNewUser = true;
     }
 
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-
+    const token = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
     user.refreshToken = refreshToken;
     await user.save();
 
-    const redirectUrl = `${process.env.GOOGLE_REDIRECT_URI}?token=${token}&refreshToken=${refreshToken}&userId=${user._id}&name=${encodeURIComponent(user.name)}&role=${user.role}&email=${user.email}&positionRole=${user.position || 'admin'}`;
-
+    const redirectUrl = `${process.env.GOOGLE_REDIRECT_URI}?token=${token}&refreshToken=${refreshToken}&userId=${user._id}&name=${encodeURIComponent(user.name)}&role=${user.role}&email=${user.email}&positionRole=${user.position || "admin"}`;
     return res.redirect(redirectUrl);
-  } catch (error) {
-    console.error("Google login failed:", error);
+  } catch {
     return res.redirect(`${process.env.GOOGLE_REDIRECT_URI}?error=server_error&message=Login failed`);
   }
 };
 
-// 🧠 GET CURRENT USER
+// GET CURRENT USER
 exports.getCurrentUser = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    const formattedUser = {
-      ...user._doc,
-      id: user._id,
-    };
-    delete formattedUser._id;
-    delete formattedUser.__v;
-
-    res.status(200).json({ success: true, user: formattedUser });
+    const user = await User.findById(req.user.id).select("-password -refreshToken -resetPasswordToken");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.status(200).json({ success: true, user });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-// 👥 GET ALL USERS (SUPERADMIN ONLY)
+// GET ALL USERS
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find({}).select("-password -refreshToken -resetPasswordToken");
-    
-    const formattedUsers = users.map(user => ({
-      ...user._doc,
-      id: user._id,
-    }));
-    
-    formattedUsers.forEach(user => {
-      delete user._id;
-      delete user.__v;
-    });
-
-    res.status(200).json({ 
-      success: true, 
-      users: formattedUsers,
-      count: formattedUsers.length 
-    });
+    res.status(200).json({ success: true, users, count: users.length });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-//  इजाज़त (Permissions) Management
+// GET ALL POSSIBLE PERMISSIONS
 exports.getAllPossiblePermissions = (req, res) => {
-  try {
-    // We are importing all defined permissions from our config file
-    const { allPermissions } = require("../../config/permissions");
-    res.status(200).json({ success: true, permissions: allPermissions });
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
+  res.status(200).json({ success: true, permissions: allPermissions });
 };
 
+// GET USER PERMISSIONS
 exports.getUserPermissions = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select("permissions");
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
     res.status(200).json({ success: true, permissions: user.permissions });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
+// UPDATE USER PERMISSIONS (per-user override)
 exports.updateUserPermissions = async (req, res) => {
   try {
     const { id } = req.params;
@@ -527,20 +386,14 @@ exports.updateUserPermissions = async (req, res) => {
 
     const updatedUser = await User.findByIdAndUpdate(
       id,
-      { permissions: permissions, updatedAt: new Date() },
+      { permissions },
       { new: true, runValidators: true }
     ).select("name role permissions");
 
-    if (!updatedUser) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
+    if (!updatedUser) return res.status(404).json({ success: false, message: "User not found" });
 
-    res.status(200).json({
-      success: true,
-      message: "User permissions updated successfully",
-      user: updatedUser,
-    });
+    res.status(200).json({ success: true, message: "User permissions updated successfully", user: updatedUser });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error", error });
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
