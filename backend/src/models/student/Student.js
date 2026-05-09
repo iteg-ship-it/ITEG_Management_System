@@ -3,6 +3,11 @@ const mongoose = require("mongoose");
 const permissionSchema = new mongoose.Schema({
   imageURL: { type: String, required: true },
   remark: { type: String, default: "" },
+  status: {
+    type: String,
+    enum: ["pending", "approved", "rejected"],
+    default: "pending"
+  },
   uploadDate: { type: Date, default: Date.now },
   approved_by: {
     type: String,
@@ -87,6 +92,9 @@ const studentSchema = new mongoose.Schema({
   },
   isFTP: { type: Boolean, default: false },
 
+  // 🔒 Promotion Lock (prevents race condition on concurrent task updates)
+  promotionPending: { type: Boolean, default: false },
+
   // 🔐 Permission
   permissionDetails: { type: permissionSchema, default: null },
 
@@ -104,9 +112,9 @@ const studentSchema = new mongoose.Schema({
   ]
 }, { timestamps: true });
 
-studentSchema.index({ prkey: 1 });
 studentSchema.index({ sessionId: 1, subDepartmentId: 1 });
 studentSchema.index({ currentSubLevelId: 1, syllabusVersionId: 1 });
 studentSchema.index({ status: 1 });
+studentSchema.index({ "permissionDetails.status": 1 });
 
 module.exports = mongoose.model("Student", studentSchema);

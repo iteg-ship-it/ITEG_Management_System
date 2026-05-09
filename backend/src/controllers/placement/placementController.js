@@ -1,7 +1,9 @@
+const mongoose = require("mongoose");
 const Student = require("../../models/student/Student");
 const StudentPlacement = require("../../models/placement/StudentPlacement");
 const Company = require("../../models/company/company");
 const cloudinary = require("../../config/cloudinaryConfig");
+const { withTransaction } = require("../../utils/withTransaction");
 
 // ── Helper: build placement filter respecting dept access ────
 const placementFilter = (req, extra = {}) => ({
@@ -197,10 +199,13 @@ exports.confirmPlacement = async (req, res) => {
       });
     }
 
+    // Pre-flight checks before opening transaction
     const placement = await StudentPlacement.findOne(placementFilter(req, { studentId }));
     if (!placement) return res.status(404).json({ message: "Student placement not found or access denied" });
     if (placement.placedInfo) return res.status(400).json({ message: "Student is already placed" });
 
+    // Upload documents to Cloudinary BEFORE transaction — Cloudinary is external,
+    // cannot be rolled back, so do it outside the DB transaction
     const { offerLetter, commitmentApplication } = req.body;
     let offerLetterURL = null;
     let applicationURL = null;
@@ -223,6 +228,7 @@ exports.confirmPlacement = async (req, res) => {
       applicationURL = r.secure_url;
     }
 
+    // Resolve company and interview record
     const selectedInterview = placement.PlacementinterviewRecord.find(
       (i) => i.status === "Selected" && i.jobProfile === jobProfile
     );
@@ -242,7 +248,7 @@ exports.confirmPlacement = async (req, res) => {
       companyRef = company._id;
     }
 
-    placement.placedInfo = {
+    const placedInfoPayload = {
       companyRef,
       interviewRecordId,
       companyName,
@@ -255,17 +261,24 @@ exports.confirmPlacement = async (req, res) => {
       applicationURL,
     };
 
-    await placement.save();
-
-    // Also update student status to Placed
-    await Student.findByIdAndUpdate(studentId, { status: "Placed" });
+    // Atomic write — placement.placedInfo + Student.status = "Placed" together
+    // If either fails, both are rolled back (on replica set) or both run (standalone)
+    await withTransaction(async (session) => {
+      placement.placedInfo = placedInfoPayload;
+      await placement.save({ session });
+      await Student.findByIdAndUpdate(
+        studentId,
+        { status: "Placed" },
+        { session }
+      );
+    });
 
     res.json({
       success: true,
       message: selectedInterview
         ? "Student placement confirmed from interview process"
         : "Student placement confirmed directly",
-      data: placement.placedInfo,
+      data: placedInfoPayload,
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });

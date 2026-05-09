@@ -91,7 +91,7 @@ const StudentReportCardSchema = new mongoose.Schema(
   {
     studentRef: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "AdmittedStudent",
+      ref: "Student",
       required: true,
       unique: true
     },

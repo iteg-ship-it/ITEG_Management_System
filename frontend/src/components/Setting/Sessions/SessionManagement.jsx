@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { MdCalendarMonth, MdAdd, MdEdit, MdDelete } from "react-icons/md";
+import { MdCalendarMonth, MdAdd, MdEdit, MdDelete, MdCheckCircle, MdRadioButtonUnchecked } from "react-icons/md";
 import { toast } from "react-toastify";
 import {
   useGetAllSessionsQuery,
   useCreateSessionMutation,
   useUpdateSessionMutation,
   useDeleteSessionMutation,
+  useActivateSessionMutation,
 } from "../../../redux/api/authApi";
 import Header from "../../common-components/sidebar/Header";
 import Loader from "../../common-components/loader/Loader";
@@ -16,15 +17,17 @@ const SessionManagement = () => {
   const [name,           setName]           = useState("");
   const [submitting,     setSubmitting]     = useState(false);
 
-  const { data, isLoading, refetch } = useGetAllSessionsQuery();
+  // Pass all=true so admin can see inactive sessions too
+  const { data, isLoading, refetch } = useGetAllSessionsQuery(true);
   const sessions = data?.data || [];
 
-  const [createSession] = useCreateSessionMutation();
-  const [updateSession] = useUpdateSessionMutation();
-  const [deleteSession] = useDeleteSessionMutation();
+  const [createSession]   = useCreateSessionMutation();
+  const [updateSession]   = useUpdateSessionMutation();
+  const [deleteSession]   = useDeleteSessionMutation();
+  const [activateSession] = useActivateSessionMutation();
 
-  const openAdd = () => { setEditingSession(null); setName(""); setShowForm(true); };
-  const openEdit = (s) => { setEditingSession(s); setName(s.name); setShowForm(true); };
+  const openAdd    = () => { setEditingSession(null); setName(""); setShowForm(true); };
+  const openEdit   = (s) => { setEditingSession(s); setName(s.name); setShowForm(true); };
   const handleCancel = () => { setShowForm(false); setEditingSession(null); setName(""); };
 
   const handleSubmit = async (e) => {
@@ -59,6 +62,16 @@ const SessionManagement = () => {
     }
   };
 
+  const handleActivate = async (id) => {
+    try {
+      await activateSession(id).unwrap();
+      toast.success("Session set as active!");
+      refetch();
+    } catch (err) {
+      toast.error(err?.data?.message || "Activation failed");
+    }
+  };
+
   if (isLoading) return <Loader />;
 
   return (
@@ -70,7 +83,6 @@ const SessionManagement = () => {
 
       <div className="px-6 py-6 max-w-3xl">
 
-        {/* Add button */}
         {!showForm && (
           <button
             onClick={openAdd}
@@ -80,7 +92,6 @@ const SessionManagement = () => {
           </button>
         )}
 
-        {/* Form */}
         {showForm && (
           <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 mb-6">
             <h3 className="text-sm font-bold text-gray-800 mb-4">
@@ -118,7 +129,6 @@ const SessionManagement = () => {
           </div>
         )}
 
-        {/* Sessions list */}
         {sessions.length === 0 ? (
           <div className="bg-white border border-gray-200 rounded-2xl shadow-sm flex flex-col items-center justify-center py-20 text-center">
             <div className="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center mb-4">
@@ -146,11 +156,31 @@ const SessionManagement = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-600">Active</span>
-                  <button onClick={() => openEdit(session)} className="p-2 rounded-lg text-gray-400 hover:bg-blue-50 hover:text-blue-500 transition" title="Edit">
+                  {session.isActive ? (
+                    <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-600">
+                      <MdCheckCircle size={13} /> Active
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => handleActivate(session._id)}
+                      className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 hover:bg-orange-50 hover:text-orange-500 transition"
+                      title="Set as active session"
+                    >
+                      <MdRadioButtonUnchecked size={13} /> Inactive
+                    </button>
+                  )}
+                  <button
+                    onClick={() => openEdit(session)}
+                    className="p-2 rounded-lg text-gray-400 hover:bg-blue-50 hover:text-blue-500 transition"
+                    title="Edit"
+                  >
                     <MdEdit size={16} />
                   </button>
-                  <button onClick={() => handleDelete(session._id)} className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition" title="Delete">
+                  <button
+                    onClick={() => handleDelete(session._id)}
+                    className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition"
+                    title="Delete"
+                  >
                     <MdDelete size={16} />
                   </button>
                 </div>

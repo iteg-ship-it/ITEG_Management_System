@@ -79,6 +79,7 @@ router.delete("/:id/documents/:docId", ...auth, studentController.deleteDocument
 
 // ── Permission ───────────────────────────────────────────────
 router.patch("/:id/permission", ...auth, studentController.updatePermission);
+router.patch("/:id/permission/status", ...auth, studentController.updatePermissionStatus);
 
 // ── Tasks ────────────────────────────────────────────────────
 router.get("/:id/tasks", ...auth, studentController.getStudentTasks);

@@ -33,8 +33,7 @@ setupSwagger(app);
 
 // Health Check Route
 app.get('/api/health-check', (req, res) => {
-  console.log("🔥 Health check hit!");
-  res.status(200).send("Backend is alive 🚀");
+  res.status(200).send("Backend is alive");
 });
 
 // API Routes
@@ -50,9 +49,8 @@ app.use(passport.initialize());
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({ 
-    message: 'Internal server error', 
+  res.status(500).json({
+    message: 'Internal server error',
     error: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
   });
 });

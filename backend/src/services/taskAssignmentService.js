@@ -639,7 +639,7 @@ const updateStudentTaskStatus = async (studentId, taskId, payload) => {
     })
   ]);
 
-  const { syncStudentReadiness } = require("./studentService");
+  const { syncStudentReadiness } = require("./promotionService");
   await syncStudentReadiness(studentId);
 
   return studentTask;

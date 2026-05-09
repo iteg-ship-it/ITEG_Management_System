@@ -300,8 +300,17 @@ export const authApi = createApi({
     }),
 
     getNewPermissionStudents: builder.query({
-      query: () => ({ url: '/students/permission/list', method: 'GET' }),
+      query: (status = 'pending') => ({ url: `/students/permission/list?status=${status}`, method: 'GET' }),
       providesTags: ['Student'],
+    }),
+
+    updatePermissionStatus: builder.mutation({
+      query: ({ id, status, remark }) => ({
+        url: `/students/${id}/permission/status`,
+        method: 'PATCH',
+        body: { status, remark },
+      }),
+      invalidatesTags: ['Student'],
     }),
 
     // ---------admission process-------------
@@ -838,7 +847,7 @@ export const authApi = createApi({
     // Update report card
     updateReportCard: builder.mutation({
       query: ({ id, ...reportData }) => ({
-        url: `/reportcards/report-card/${id}`,
+        url: `/reportcards/${id}`,
         method: "PUT",
         body: reportData,
       }),
@@ -1083,7 +1092,7 @@ export const authApi = createApi({
 
     // --- Session APIs ---
     getAllSessions: builder.query({
-      query: () => ({ url: '/sessions', method: 'GET' }),
+      query: (all = false) => ({ url: `/sessions${all ? '?all=true' : ''}`, method: 'GET' }),
       providesTags: ['Session'],
     }),
 
@@ -1094,6 +1103,16 @@ export const authApi = createApi({
 
     updateSession: builder.mutation({
       query: ({ id, ...data }) => ({ url: `/sessions/${id}`, method: 'PUT', body: data }),
+      invalidatesTags: ['Session'],
+    }),
+
+    activateSession: builder.mutation({
+      query: (id) => ({ url: `/sessions/${id}/activate`, method: 'PATCH' }),
+      invalidatesTags: ['Session'],
+    }),
+
+    deactivateSession: builder.mutation({
+      query: (id) => ({ url: `/sessions/${id}/deactivate`, method: 'PATCH' }),
       invalidatesTags: ['Session'],
     }),
 
@@ -1292,6 +1311,7 @@ export const {
   useGetNewPlacedStudentsQuery,
   useGetNewSelectedStudentsQuery,
   useGetNewPermissionStudentsQuery,
+  useUpdatePermissionStatusMutation,
   useLoginMutation,
   useSignupMutation,
   useLoginWithGoogleMutation,
@@ -1377,6 +1397,8 @@ export const {
   useGetAllSessionsQuery,
   useCreateSessionMutation,
   useUpdateSessionMutation,
+  useActivateSessionMutation,
+  useDeactivateSessionMutation,
   useDeleteSessionMutation,
   useCreateSyllabusVersionMutation,
   useGetAllSyllabusVersionsQuery,

@@ -313,13 +313,51 @@ exports.updatePermission = async (req, res) => {
 };
 
 
-// ✅ Get Students with Permission
+// ✅ Get Students with Permission (filterable by status)
 exports.getPermissionStudents = async (req, res) => {
   try {
-    const students = await Student.find({ permissionDetails: { $ne: null } })
-      .select("prkey firstName lastName email studentMobile permissionDetails currentLevelId currentSubLevelId")
+    const { status = "pending" } = req.query;
+    const validStatuses = ["pending", "approved", "rejected"];
+    const statusFilter = validStatuses.includes(status) ? status : "pending";
+
+    const filter = req.subDeptFilter ? { ...req.subDeptFilter } : {};
+    filter["permissionDetails"] = { $ne: null };
+    filter["permissionDetails.status"] = statusFilter;
+
+    const students = await Student.find(filter)
+      .select("prkey firstName lastName email studentMobile permissionDetails currentLevelId currentSubLevelId subDepartmentId")
+      .populate("currentLevelId", "name")
+      .populate("currentSubLevelId", "name")
       .sort({ updatedAt: -1 });
     return res.status(200).json({ count: students.length, data: students });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ✅ Approve or Reject Permission (dummy student workflow)
+exports.updatePermissionStatus = async (req, res) => {
+  try {
+    const { status, remark } = req.body;
+    const validStatuses = ["approved", "rejected"];
+    if (!status || !validStatuses.includes(status)) {
+      return res.status(400).json({ message: `status must be one of: ${validStatuses.join(", ")}` });
+    }
+
+    const student = await Student.findById(req.params.id);
+    if (!student) return res.status(404).json({ message: "Student not found" });
+    if (!student.permissionDetails) {
+      return res.status(400).json({ message: "No permission request found for this student" });
+    }
+
+    student.permissionDetails.status = status;
+    if (remark !== undefined) student.permissionDetails.remark = remark;
+    await student.save();
+
+    return res.status(200).json({
+      message: `Permission ${status} successfully`,
+      data: student.permissionDetails,
+    });
   } catch (error) {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
