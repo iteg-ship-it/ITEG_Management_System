@@ -1,6 +1,7 @@
 const Department = require("../../models/department/Department");
 const mongoose = require("mongoose");
 const cloudinary = require("../../config/cloudinaryConfig");
+const { invalidateDeptCache } = require("../../middlewares/departmentFilter");
 
 // Helper function to validate ObjectId
 const isValidObjectId = (id) => {
@@ -108,7 +109,6 @@ exports.createDepartment = async (req, res) => {
     if (logoUrl) departmentData.logo = logoUrl;
 
     const department = await Department.create(departmentData);
-    console.log(`✅ Department created with code: ${department}`);
     res.status(201).json({
       success: true,
       message: "Department created successfully",
@@ -234,30 +234,20 @@ exports.updateDepartment = async (req, res) => {
     );
     
     if (!department) {
-      return res.status(404).json({
-        success: false,
-        message: "Department not found"
-      });
+      return res.status(404).json({ success: false, message: "Department not found" });
     }
-    
+
+    invalidateDeptCache(req.params.id);
     res.status(200).json({
       success: true,
       message: "Department updated successfully",
       data: department
     });
   } catch (error) {
-    // Handle duplicate key error
     if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: "Department code already exists"
-      });
+      return res.status(400).json({ success: false, message: "Department code already exists" });
     }
-    
-    res.status(400).json({
-      success: false,
-      message: error.message
-    });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
@@ -279,20 +269,12 @@ exports.deleteDepartment = async (req, res) => {
     );
     
     if (!department) {
-      return res.status(404).json({
-        success: false,
-        message: "Department not found"
-      });
+      return res.status(404).json({ success: false, message: "Department not found" });
     }
-    
-    res.status(200).json({
-      success: true,
-      message: "Department deleted successfully"
-    });
+
+    invalidateDeptCache(req.params.id);
+    res.status(200).json({ success: true, message: "Department deleted successfully" });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };

@@ -101,10 +101,19 @@ const studentProgressSnapshotSchema = new mongoose.Schema({
   changedAt: {
     type: Date,
     default: Date.now
+  },
+  // Archival flag — old task_update snapshots are archived by cleanup job.
+  // promotion snapshots are never archived (kept forever).
+  isArchived: {
+    type: Boolean,
+    default: false,
+    index: true
   }
 }, { timestamps: true });
 
 studentProgressSnapshotSchema.index({ studentId: 1, changedAt: -1 });
 studentProgressSnapshotSchema.index({ studentId: 1, snapshotScope: 1, subjectId: 1, changedAt: -1 });
+// Index for archival cleanup job: find old non-archived task_update snapshots per student
+studentProgressSnapshotSchema.index({ studentId: 1, snapshotScope: 1, isArchived: 1, changedAt: -1 });
 
 module.exports = mongoose.model("StudentProgressSnapshot", studentProgressSnapshotSchema);

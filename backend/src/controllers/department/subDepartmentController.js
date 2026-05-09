@@ -1,6 +1,7 @@
 const SubDepartment = require("../../models/department/SubDepartment");
 const Department = require("../../models/department/Department");
 const mongoose = require("mongoose");
+const { invalidateDeptCache } = require("../../middlewares/departmentFilter");
 
 // Helper function to validate ObjectId
 const isValidObjectId = (id) => {
@@ -42,7 +43,7 @@ exports.createSubDepartment = async (req, res) => {
 
     const subDepartment = await SubDepartment.create(req.body);
     const populatedSubDept = await SubDepartment.findById(subDepartment._id).populate('departmentId');
-    
+    invalidateDeptCache(req.body.departmentId);
     res.status(201).json({
       success: true,
       message: "SubDepartment created successfully",
@@ -182,30 +183,20 @@ exports.updateSubDepartment = async (req, res) => {
     ).populate('departmentId');
     
     if (!subDepartment) {
-      return res.status(404).json({
-        success: false,
-        message: "SubDepartment not found"
-      });
+      return res.status(404).json({ success: false, message: "SubDepartment not found" });
     }
-    
+
+    invalidateDeptCache(subDepartment.departmentId);
     res.status(200).json({
       success: true,
       message: "SubDepartment updated successfully",
       data: subDepartment
     });
   } catch (error) {
-    // Handle duplicate key error
     if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: "SubDepartment with this name already exists in this department"
-      });
+      return res.status(400).json({ success: false, message: "SubDepartment with this name already exists in this department" });
     }
-    
-    res.status(400).json({
-      success: false,
-      message: error.message
-    });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
@@ -227,20 +218,12 @@ exports.deleteSubDepartment = async (req, res) => {
     );
     
     if (!subDepartment) {
-      return res.status(404).json({
-        success: false,
-        message: "SubDepartment not found"
-      });
+      return res.status(404).json({ success: false, message: "SubDepartment not found" });
     }
-    
-    res.status(200).json({
-      success: true,
-      message: "SubDepartment deleted successfully"
-    });
+
+    invalidateDeptCache(subDepartment.departmentId);
+    res.status(200).json({ success: true, message: "SubDepartment deleted successfully" });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };

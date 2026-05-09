@@ -247,15 +247,22 @@ const assignTasksToMultipleStudents = async (studentIds, syllabusVersionId) => {
     throw new Error("studentIds must be a non-empty array");
   }
 
+  // Run up to 10 assignments concurrently instead of sequentially.
+  // For 200 students this reduces wall-clock time by ~10x.
+  const CONCURRENCY = 10;
   const results = [];
-
-  for (const studentId of studentIds) {
-    try {
-      const result = await assignTasksToStudent(studentId, syllabusVersionId);
-      results.push({ success: true, studentId, ...result });
-    } catch (error) {
-      results.push({ success: false, studentId, message: error.message });
-    }
+  for (let i = 0; i < studentIds.length; i += CONCURRENCY) {
+    const batch = studentIds.slice(i, i + CONCURRENCY);
+    const batchResults = await Promise.allSettled(
+      batch.map((studentId) => assignTasksToStudent(studentId, syllabusVersionId))
+    );
+    batchResults.forEach((r, idx) => {
+      if (r.status === "fulfilled") {
+        results.push({ success: true, studentId: batch[idx], ...r.value });
+      } else {
+        results.push({ success: false, studentId: batch[idx], message: r.reason?.message || "Unknown error" });
+      }
+    });
   }
 
   return results;
