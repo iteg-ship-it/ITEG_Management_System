@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MdCalendarMonth, MdAdd, MdEdit, MdDelete, MdCheckCircle, MdRadioButtonUnchecked } from "react-icons/md";
+import { MdCalendarMonth, MdAdd, MdEdit, MdDelete, MdCheckCircle, MdRadioButtonUnchecked, MdSchedule, MdEventAvailable } from "react-icons/md";
 import { toast } from "react-toastify";
 import {
   useGetAllSessionsQuery,
@@ -14,7 +14,12 @@ import Loader from "../../common-components/loader/Loader";
 const SessionManagement = () => {
   const [showForm,       setShowForm]       = useState(false);
   const [editingSession, setEditingSession] = useState(null);
-  const [name,           setName]           = useState("");
+  const [formData,       setFormData]       = useState({
+    name: "",
+    startDate: "",
+    endDate: "",
+    description: ""
+  });
   const [submitting,     setSubmitting]     = useState(false);
 
   // Pass all=true so admin can see inactive sessions too
@@ -26,20 +31,48 @@ const SessionManagement = () => {
   const [deleteSession]   = useDeleteSessionMutation();
   const [activateSession] = useActivateSessionMutation();
 
-  const openAdd    = () => { setEditingSession(null); setName(""); setShowForm(true); };
-  const openEdit   = (s) => { setEditingSession(s); setName(s.name); setShowForm(true); };
-  const handleCancel = () => { setShowForm(false); setEditingSession(null); setName(""); };
+  const openAdd = () => {
+    setEditingSession(null);
+    setFormData({ name: "", startDate: "", endDate: "", description: "" });
+    setShowForm(true);
+  };
+  
+  const openEdit = (s) => {
+    setEditingSession(s);
+    setFormData({
+      name: s.name,
+      startDate: s.startDate ? new Date(s.startDate).toISOString().split('T')[0] : "",
+      endDate: s.endDate ? new Date(s.endDate).toISOString().split('T')[0] : "",
+      description: s.description || ""
+    });
+    setShowForm(true);
+  };
+  
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingSession(null);
+    setFormData({ name: "", startDate: "", endDate: "", description: "" });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name.trim()) { toast.error("Session name is required"); return; }
+    if (!formData.name.trim() || !formData.startDate || !formData.endDate) {
+      toast.error("Name, start date, and end date are required");
+      return;
+    }
+    
+    if (new Date(formData.startDate) >= new Date(formData.endDate)) {
+      toast.error("End date must be after start date");
+      return;
+    }
+    
     setSubmitting(true);
     try {
       if (editingSession) {
-        await updateSession({ id: editingSession._id, name: name.trim() }).unwrap();
+        await updateSession({ id: editingSession._id, ...formData }).unwrap();
         toast.success("Session updated successfully!");
       } else {
-        await createSession({ name: name.trim() }).unwrap();
+        await createSession(formData).unwrap();
         toast.success("Session created successfully!");
       }
       handleCancel();
@@ -72,6 +105,26 @@ const SessionManagement = () => {
     }
   };
 
+  const getStatusBadge = (session) => {
+    const now = new Date();
+    const start = new Date(session.startDate);
+    const end = new Date(session.endDate);
+    
+    if (session.status === 'archived') {
+      return <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">Archived</span>;
+    }
+    
+    if (now < start) {
+      return <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-100 text-blue-600"><MdSchedule size={13} /> Upcoming</span>;
+    }
+    
+    if (now >= start && now <= end) {
+      return <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-600"><MdEventAvailable size={13} /> Active</span>;
+    }
+    
+    return <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-600">Completed</span>;
+  };
+
   if (isLoading) return <Loader />;
 
   return (
@@ -81,7 +134,7 @@ const SessionManagement = () => {
         breadcrumbs={[{ label: "Settings" }, { label: "Sessions" }]}
       />
 
-      <div className="px-6 py-6 max-w-3xl">
+      <div className="px-6 py-6 max-w-4xl">
 
         {!showForm && (
           <button
@@ -97,34 +150,74 @@ const SessionManagement = () => {
             <h3 className="text-sm font-bold text-gray-800 mb-4">
               {editingSession ? "Edit Session" : "Add New Session"}
             </h3>
-            <form onSubmit={handleSubmit} className="flex items-end gap-3">
-              <div className="flex-1">
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                  Session Name <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. 2024-25, Batch Jan 2025"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-400"
-                  autoFocus
-                />
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                    Session Name <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="e.g. 2024-25, Academic Year 2025"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-400"
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                    Description
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Optional description"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-400"
+                  />
+                </div>
               </div>
-              <button
-                type="submit"
-                disabled={submitting}
-                className="bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition"
-              >
-                {submitting ? "Saving..." : editingSession ? "Update" : "Create"}
-              </button>
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="px-5 py-2.5 text-sm text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
-              >
-                Cancel
-              </button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                    Start Date <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.startDate}
+                    onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                    End Date <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.endDate}
+                    onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-400"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition"
+                >
+                  {submitting ? "Saving..." : editingSession ? "Update" : "Create"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="px-5 py-2.5 text-sm text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+                >
+                  Cancel
+                </button>
+              </div>
             </form>
           </div>
         )}
@@ -150,12 +243,22 @@ const SessionManagement = () => {
                   </div>
                   <div>
                     <p className="font-semibold text-sm text-gray-800">{session.name}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      Created {new Date(session.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-xs text-gray-400">
+                        {session.startDate && session.endDate ? (
+                          `${new Date(session.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} - ${new Date(session.endDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
+                        ) : (
+                          `Created ${new Date(session.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
+                        )}
+                      </p>
+                      {session.description && (
+                        <span className="text-xs text-gray-400">• {session.description}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  {getStatusBadge(session)}
                   {session.isActive ? (
                     <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-600">
                       <MdCheckCircle size={13} /> Active

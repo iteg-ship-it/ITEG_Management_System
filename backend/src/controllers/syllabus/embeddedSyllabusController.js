@@ -503,6 +503,157 @@ exports.toggleSubTopicActive = async (req, res) => {
   }
 };
 
+// ── Combined Upload: Syllabus + Tasks from one Excel ─────
+// POST /syllabus/versions/upload-combined
+// Body: { sessionId, levelId, subLevelId, tasks: [...parsed rows] }
+// Each row: { subject, topic, subTopic, taskTitle, taskType, timeDays, measurablePoints }
+// Rows with empty taskTitle = syllabus-only rows
+// Rows with taskTitle = syllabus + task
+exports.uploadCombined = async (req, res) => {
+  try {
+    const { sessionId, levelId, subLevelId, tasks: rows } = req.body;
+    if (!sessionId || !levelId || !subLevelId)
+      return res.status(400).json({ success: false, message: "sessionId, levelId, subLevelId are required" });
+    if (!Array.isArray(rows) || rows.length === 0)
+      return res.status(400).json({ success: false, message: "tasks array is required" });
+
+    // Step 1: Build syllabus hierarchy from rows
+    const subjectMap = new Map();
+    let validRowCount = 0;
+    
+    for (const row of rows) {
+      const subjectName  = (row.subject  || "").trim();
+      const topicName    = (row.topic    || "").trim();
+      const subTopicName = (row.subTopic || "").trim();
+      
+      if (!subjectName || !topicName) {
+        console.warn('Skipping row with missing subject/topic:', row);
+        continue;
+      }
+      
+      validRowCount++;
+      if (!subjectMap.has(subjectName)) subjectMap.set(subjectName, new Map());
+      const topicMap = subjectMap.get(subjectName);
+      if (!topicMap.has(topicName)) topicMap.set(topicName, new Set());
+      if (subTopicName) topicMap.get(topicName).add(subTopicName);
+    }
+
+    if (validRowCount === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "No valid rows found. Please ensure Subject and Topic columns are filled." 
+      });
+    }
+
+    const subjects = Array.from(subjectMap.entries()).map(([sName, topicMap], si) => ({
+      name: sName,
+      order: si + 1,
+      topics: Array.from(topicMap.entries()).map(([tName, stSet], ti) => ({
+        name: tName,
+        order: ti + 1,
+        subTopics: Array.from(stSet).map((stName, sti) => ({ name: stName, order: sti + 1 }))
+      }))
+    }));
+
+    if (subjects.length === 0)
+      return res.status(400).json({ success: false, message: "No valid subject/topic rows found" });
+
+    // Step 2: Create or update SyllabusVersion
+    let sv = await SyllabusVersion.findOne({ sessionId, levelId, subLevelId, isActive: true }).sort({ createdAt: -1 });
+    if (sv) {
+      upsertSubjectTree(sv, subjects);
+      await sv.save();
+    } else {
+      sv = await SyllabusVersion.create({ sessionId, levelId, subLevelId, version: "v1.0", subjects: normalizeSubjects(subjects) });
+    }
+
+    // Step 3: Create tasks for rows that have taskTitle
+    const taskRows = rows.filter(r => (r.taskTitle || "").trim());
+    const taskDocs = [];
+    const taskErrors = [];
+
+    for (let i = 0; i < taskRows.length; i++) {
+      const row = taskRows[i];
+      const subjectName  = (row.subject  || row.Subject || "").trim();
+      const topicName    = (row.topic    || row.Topic || "").trim();
+      const subTopicName = (row.subTopic || row["Sub Topic"] || row.SubTopic || "").trim();
+      const taskTitle    = (row.taskTitle || row["Task Title"] || row.TaskTitle || "").trim();
+      const taskType     = (row.taskType || row["Task Type"] || row.TaskType || "assessment").trim().toLowerCase();
+      const maxMarks     = Number(row.maxMarks || row["Max Marks"]) || 5;
+      const timeDays     = row.timeDays || row["Time Days"] ? Number(row.timeDays || row["Time Days"]) : null;
+      const measurablePoints = (row.measurablePoints || row["Measurable Points"] || "").trim();
+
+      // Find subject in saved sv
+      const foundSubject = subjectName
+        ? sv.subjects.find(s => s.name.toLowerCase() === subjectName.toLowerCase())
+        : sv.subjects.find(s => s.topics.some(t => t.name.toLowerCase() === topicName.toLowerCase()));
+
+      if (!foundSubject) { taskErrors.push(`Row ${i + 2}: Subject "${subjectName}" not found`); continue; }
+
+      const foundTopic = foundSubject.topics.find(t => t.name.toLowerCase() === topicName.toLowerCase());
+      if (!foundTopic) { taskErrors.push(`Row ${i + 2}: Topic "${topicName}" not found`); continue; }
+
+      let foundSubTopic = null;
+      if (subTopicName) {
+        foundSubTopic = foundTopic.subTopics.find(st => st.name.toLowerCase() === subTopicName.toLowerCase());
+        if (!foundSubTopic) { taskErrors.push(`Row ${i + 2}: SubTopic "${subTopicName}" not found`); continue; }
+      }
+
+      // Skip duplicate tasks
+      const exists = await Task.findOne({
+        syllabusVersionId: sv._id,
+        topicId: foundTopic._id,
+        subTopicId: foundSubTopic?._id || null,
+        title: taskTitle,
+        isActive: true
+      });
+      if (exists) { taskErrors.push(`Row ${i + 2}: Task "${taskTitle}" already exists`); continue; }
+
+      const taskCount = await Task.countDocuments({ syllabusVersionId: sv._id, topicId: foundTopic._id, subTopicId: foundSubTopic?._id || null });
+
+      taskDocs.push({
+        syllabusVersionId: sv._id,
+        subjectId:    foundSubject._id,
+        subjectName:  foundSubject.name,
+        topicId:      foundTopic._id,
+        topicName:    foundTopic.name,
+        subTopicId:   foundSubTopic?._id || null,
+        subTopicName: foundSubTopic?.name || "",
+        taskNodeType: foundSubTopic ? "subTopic" : "topic",
+        title:        taskTitle,
+        type:         ["assignment","project","practice","reading","assessment","other"].includes(taskType) ? taskType : "assessment",
+        maxMarks,
+        timeDays,
+        measurablePoints,
+        order:        taskCount + 1,
+        isActive:     true
+      });
+    }
+
+    let insertedTasks = 0;
+    if (taskDocs.length > 0) {
+      await Task.insertMany(taskDocs);
+      insertedTasks = taskDocs.length;
+      await syncTasksToSubLevelStudents(sv._id).catch(() => {});
+    }
+
+    res.status(201).json({
+      success: true,
+      message: `Syllabus saved with ${subjects.length} subject(s). ${insertedTasks} task(s) created.`,
+      data: {
+        syllabusVersionId: sv._id,
+        syllabusStatus: sv.status,
+        subjectsCount: subjects.length,
+        tasksInserted: insertedTasks,
+        tasksSkipped: taskErrors.length,
+        errors: taskErrors
+      }
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 // ── Subject Upload ─────────────────────────────────────────
 
 exports.uploadSubjectWiseSyllabus = async (req, res) => {

@@ -48,7 +48,30 @@ const syllabusVersionSchema = new mongoose.Schema({
     default: "draft"
   },
   subjects: { type: [subjectSchema], default: [] },
-  isActive: { type: Boolean, default: true }
+  isActive: { type: Boolean, default: true },
+  
+  // Versioning and update tracking
+  versionNumber: { type: Number, default: 1 },
+  parentVersionId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "SyllabusVersion",
+    default: null
+  },
+  effectiveFrom: { type: Date, default: Date.now },
+  appliesTo: {
+    type: String,
+    enum: ["all", "upcoming", "new_admissions"],
+    default: "all"
+  },
+  changeLog: {
+    type: String,
+    default: ""
+  },
+  updatedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null
+  }
 }, { timestamps: true });
 
 syllabusVersionSchema.index(

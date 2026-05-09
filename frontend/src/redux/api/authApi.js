@@ -125,7 +125,7 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithAutoRefresh,
-  tagTypes: ['Student', 'PlacementStudent', 'User', 'Department', 'Role', 'Permission', 'SyllabusVersion', 'Session', 'TaskMaster'],
+  tagTypes: ['Student', 'PlacementStudent', 'User', 'Department', 'Role', 'Permission', 'SyllabusVersion', 'Session', 'TaskMaster', 'Task'],
   // Global configuration for better caching
   keepUnusedDataFor: 300, // 5 minutes default cache
   refetchOnMountOrArgChange: 30, // Only refetch if data is older than 30 seconds
@@ -1119,6 +1119,11 @@ export const authApi = createApi({
       providesTags: ['Session'],
     }),
 
+    getActiveSession: builder.query({
+      query: () => ({ url: '/sessions/active', method: 'GET' }),
+      providesTags: ['Session'],
+    }),
+
     createSession: builder.mutation({
       query: (data) => ({ url: '/sessions', method: 'POST', body: data }),
       invalidatesTags: ['Session'],
@@ -1126,6 +1131,11 @@ export const authApi = createApi({
 
     updateSession: builder.mutation({
       query: ({ id, ...data }) => ({ url: `/sessions/${id}`, method: 'PUT', body: data }),
+      invalidatesTags: ['Session'],
+    }),
+
+    updateSessionStatus: builder.mutation({
+      query: ({ id, status }) => ({ url: `/sessions/${id}/status`, method: 'PATCH', body: { status } }),
       invalidatesTags: ['Session'],
     }),
 
@@ -1148,6 +1158,15 @@ export const authApi = createApi({
     createSyllabusVersion: builder.mutation({
       query: (data) => ({
         url: '/syllabus/versions',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['SyllabusVersion'],
+    }),
+
+    uploadCombinedSyllabus: builder.mutation({
+      query: (data) => ({
+        url: '/syllabus/versions/upload-combined',
         method: 'POST',
         body: data,
       }),
@@ -1249,6 +1268,14 @@ export const authApi = createApi({
       ],
     }),
 
+    getTasksByLevel: builder.query({
+      query: ({ subLevelId, syllabusVersionId }) => ({
+        url: `/tasks/level/${subLevelId}${syllabusVersionId ? `?syllabusVersionId=${syllabusVersionId}` : ''}`,
+        method: 'GET',
+      }),
+      providesTags: ['Task'],
+    }),
+
     createTaskMaster: builder.mutation({
       query: ({ syllabusVersionId, subjectId, topicId, subTopicId, ...taskData }) => ({
         url: `/syllabus/versions/${syllabusVersionId}/tasks`,
@@ -1261,12 +1288,12 @@ export const authApi = createApi({
     }),
 
     updateTaskMaster: builder.mutation({
-      query: ({ syllabusVersionId, taskId, isActive }) => ({
-        url: `/syllabus/versions/${syllabusVersionId}/tasks/${taskId}/active`,
+      query: ({ taskId, ...data }) => ({
+        url: `/tasks/${taskId}`,
         method: 'PATCH',
-        body: { isActive },
+        body: data,
       }),
-      invalidatesTags: ['SyllabusVersion'],
+      invalidatesTags: ['SyllabusVersion', 'Task'],
     }),
 
     // Bulk upload tasks via Excel rows
@@ -1312,12 +1339,86 @@ export const authApi = createApi({
     }),
 
     createTaskManual: builder.mutation({
-      query: ({ syllabusVersionId, subjectId, topicId, subTopicId, ...taskData }) => ({
-        url: `/syllabus/versions/${syllabusVersionId}/tasks`,
-        method: 'POST',
-        body: { subjectId, topicId, subTopicId, ...taskData },
+      query: ({ syllabusVersionId, subjectId, topicId, subTopicId, ...taskData }) => {
+        if (syllabusVersionId) {
+          // Syllabus-based task
+          return {
+            url: `/syllabus/versions/${syllabusVersionId}/tasks`,
+            method: 'POST',
+            body: { subjectId, topicId, subTopicId, ...taskData },
+          };
+        } else {
+          // General task for level
+          return {
+            url: `/tasks/general`,
+            method: 'POST',
+            body: taskData,
+          };
+        }
+      },
+      invalidatesTags: ['SyllabusVersion', 'Task'],
+    }),
+
+    deleteTask: builder.mutation({
+      query: (taskId) => ({
+        url: `/tasks/${taskId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['SyllabusVersion', 'Task'],
+    }),
+
+    // Smart Syllabus APIs
+    getStudentSmartSyllabus: builder.query({
+      query: ({ studentId, subLevelId }) => ({
+        url: `/students/${studentId}/syllabus/${subLevelId}`,
+        method: 'GET'
+      }),
+      providesTags: (result, error, { studentId, subLevelId }) => [
+        { type: 'SyllabusVersion', id: `${studentId}-${subLevelId}` }
+      ],
+    }),
+
+    updateSyllabusSmartly: builder.mutation({
+      query: ({ sessionId, subLevelId, ...data }) => ({
+        url: `/syllabus/smart-update/${sessionId}/${subLevelId}`,
+        method: 'PUT',
+        body: data
       }),
       invalidatesTags: ['SyllabusVersion'],
+    }),
+
+    completeStudentLevel: builder.mutation({
+      query: ({ studentId, subLevelId }) => ({
+        url: `/students/${studentId}/complete-level/${subLevelId}`,
+        method: 'POST'
+      }),
+      invalidatesTags: (result, error, { studentId }) => [
+        { type: 'Student', id: studentId },
+        'SyllabusVersion'
+      ],
+    }),
+
+    getSyllabusHistory: builder.query({
+      query: ({ sessionId, subLevelId }) => ({
+        url: `/syllabus/history/${sessionId}/${subLevelId}`,
+        method: 'GET'
+      }),
+      providesTags: ['SyllabusVersion'],
+    }),
+
+    getAffectedStudents: builder.query({
+      query: ({ sessionId, subLevelId }) => ({
+        url: `/syllabus/affected-students/${sessionId}/${subLevelId}`,
+        method: 'GET'
+      }),
+      providesTags: ['Student', 'SyllabusVersion'],
+    }),
+
+    previewUpdateImpact: builder.mutation({
+      query: ({ sessionId, subLevelId }) => ({
+        url: `/syllabus/preview-update/${sessionId}/${subLevelId}`,
+        method: 'POST'
+      }),
     }),
 
   }),
@@ -1421,12 +1522,15 @@ export const {
   useGetUserPermissionsQuery,
   useUpdateUserPermissionsMutation,
   useGetAllSessionsQuery,
+  useGetActiveSessionQuery,
   useCreateSessionMutation,
   useUpdateSessionMutation,
+  useUpdateSessionStatusMutation,
   useActivateSessionMutation,
   useDeactivateSessionMutation,
   useDeleteSessionMutation,
   useCreateSyllabusVersionMutation,
+  useUploadCombinedSyllabusMutation,
   useGetAllSyllabusVersionsQuery,
   useGetSyllabusVersionByIdQuery,
   useGetSyllabusVersionWithHierarchyQuery,
@@ -1444,6 +1548,15 @@ export const {
   useGetSubjectsByVersionQuery,
   useGetTopicsBySubjectQuery,
   useGetSubTopicsByTopicQuery,
+  useGetTasksByLevelQuery,
   useCreateTaskManualMutation,
+  useDeleteTaskMutation,
   useAddSubjectToVersionMutation,
+  // Smart Syllabus hooks
+  useGetStudentSmartSyllabusQuery,
+  useUpdateSyllabusSmartlyMutation,
+  useCompleteStudentLevelMutation,
+  useGetSyllabusHistoryQuery,
+  useGetAffectedStudentsQuery,
+  usePreviewUpdateImpactMutation,
 } = authApi;

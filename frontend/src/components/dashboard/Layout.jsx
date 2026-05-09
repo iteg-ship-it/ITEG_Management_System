@@ -38,6 +38,7 @@ import TaskManagement from "./../Setting/TaskManagement";
 import TaskList from "./../student-records/TaskList";
 import SettingFIle from "./../Setting/SettingFIle";
 import Supportfile from "./../Setting/Supportfile";
+import SessionManagement from "../Setting/Sessions/SessionManagement";
 import CurriculumManagement from "./../Setting/CurriculumManagement";
 
 // admin/superadmin → DepartmentSelector, faculty → direct StudentDetailTable
@@ -90,6 +91,7 @@ const Layout = () => {
                     <Route path="/settings" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><SettingFIle /></ProtectedRoute>} />
                     <Route path="/support" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><Supportfile /></ProtectedRoute>} />
                     <Route path="/curriculum-management" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><CurriculumManagement /></ProtectedRoute>} />
+                    <Route path="/session-management" element={<ProtectedRoute allowedRoles={["superadmin", "admin"]}><SessionManagement /></ProtectedRoute>} />
                     <Route path="/unauthorized" element={<PageNotFound />} />
                     <Route path="*" element={<PageNotFound />} />
                 </Routes>

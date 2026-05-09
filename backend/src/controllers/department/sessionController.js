@@ -4,23 +4,47 @@ const Session = require("../../models/Session");
 exports.createSession = async (req, res) => {
   try {
     // Validate required fields
-    const { name } = req.body;
-    if (!name) {
+    const { name, startDate, endDate } = req.body;
+    if (!name || !startDate || !endDate) {
       return res.status(400).json({
         success: false,
-        message: "Name is required"
+        message: "Name, start date, and end date are required"
       });
     }
 
-    // Validate name format (basic validation for session names)
-    if (typeof name !== 'string' || name.trim().length === 0) {
+    // Validate date format and logic
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
       return res.status(400).json({
         success: false,
-        message: "Session name must be a valid non-empty string"
+        message: "Invalid date format"
+      });
+    }
+    
+    if (start >= end) {
+      return res.status(400).json({
+        success: false,
+        message: "End date must be after start date"
       });
     }
 
-    const session = await Session.create(req.body);
+    // Auto-determine status based on dates
+    const now = new Date();
+    let status = 'upcoming';
+    if (now >= start && now <= end) {
+      status = 'active';
+    } else if (now > end) {
+      status = 'completed';
+    }
+
+    const session = await Session.create({
+      ...req.body,
+      startDate: start,
+      endDate: end,
+      status
+    });
     
     res.status(201).json({
       success: true,
@@ -46,7 +70,18 @@ exports.createSession = async (req, res) => {
 // Get All Sessions
 exports.getAllSessions = async (req, res) => {
   try {
-    const sessions = await Session.find({ isActive: true })
+    const { all, status } = req.query;
+    let filter = {};
+    
+    if (all !== 'true') {
+      filter.isActive = true;
+    }
+    
+    if (status) {
+      filter.status = status;
+    }
+    
+    const sessions = await Session.find(filter)
       .sort({ createdAt: -1 });
       
     res.status(200).json({
@@ -107,12 +142,23 @@ exports.updateSession = async (req, res) => {
       });
     }
 
-    // Validate name if being updated
-    if (req.body.name !== undefined) {
-      if (typeof req.body.name !== 'string' || req.body.name.trim().length === 0) {
+    // Validate dates if being updated
+    if (req.body.startDate || req.body.endDate) {
+      const session = await Session.findById(req.params.id);
+      if (!session) {
+        return res.status(404).json({
+          success: false,
+          message: "Session not found"
+        });
+      }
+      
+      const startDate = req.body.startDate ? new Date(req.body.startDate) : session.startDate;
+      const endDate = req.body.endDate ? new Date(req.body.endDate) : session.endDate;
+      
+      if (startDate >= endDate) {
         return res.status(400).json({
           success: false,
-          message: "Session name must be a valid non-empty string"
+          message: "End date must be after start date"
         });
       }
     }
@@ -178,6 +224,71 @@ exports.deleteSession = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Session deleted successfully"
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// Get Active Session
+exports.getActiveSession = async (req, res) => {
+  try {
+    const activeSession = await Session.findOne({ 
+      isActive: true,
+      status: { $in: ['active', 'upcoming'] }
+    }).sort({ createdAt: -1 });
+    
+    if (!activeSession) {
+      return res.status(404).json({
+        success: false,
+        message: "No active session found"
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      data: activeSession
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// Update Session Status
+exports.updateSessionStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    
+    if (!['upcoming', 'active', 'completed', 'archived'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status. Must be: upcoming, active, completed, or archived"
+      });
+    }
+
+    const session = await Session.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+    
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found"
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: "Session status updated successfully",
+      data: session
     });
   } catch (error) {
     res.status(500).json({

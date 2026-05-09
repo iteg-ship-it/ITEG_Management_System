@@ -171,6 +171,7 @@ const Sidebar = ({ children }) => {
 
   const systemDirectLinks = [
     { name: "Settings", path: "/settings", icon: <IoSettingsSharp />, permission: "Page_Settings" },
+    { name: "Sessions", path: "/session-management", icon: <MdDashboard />, permission: "Page_Settings" },
     { name: "Support", path: "/support", icon: <MdSupportAgent />, permission: "Page_Support" },
   ];
 

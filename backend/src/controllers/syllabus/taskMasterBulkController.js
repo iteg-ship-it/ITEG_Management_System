@@ -27,14 +27,15 @@ exports.bulkUploadTasks = async (req, res) => {
       const row    = tasks[i];
       const rowNum = i + 2;
 
-      const topicName       = (row.topic            || "").trim();
-      const subTopicName    = (row.subTopic          || "").trim();
-      const taskTitle       = (row.taskTitle         || "").trim();
-      const taskType        = (row.taskType          || "assessment").trim().toLowerCase();
-      const priority        = (row.priority          || "medium").trim().toLowerCase();
-      const maxMarks        = Number(row.maxMarks)   || 5;
-      const timeDays        = row.timeDays           ? Number(row.timeDays) : null;
-      const measurablePoints = (row.measurablePoints || "").trim();
+      const subjectName    = (row.subject          || row.Subject || "").trim();
+      const topicName       = (row.topic            || row.Topic || "").trim();
+      const subTopicName    = (row.subTopic          || row["Sub Topic"] || row.SubTopic || "").trim();
+      const taskTitle       = (row.taskTitle         || row["Task Title"] || row.TaskTitle || "").trim();
+      const taskType        = (row.taskType          || row["Task Type"] || row.TaskType || "assessment").trim().toLowerCase();
+      const priority        = (row.priority          || row.Priority || "medium").trim().toLowerCase();
+      const maxMarks        = Number(row.maxMarks)   || Number(row["Max Marks"]) || 5;
+      const timeDays        = row.timeDays           || row["Time Days"] ? Number(row.timeDays || row["Time Days"]) : null;
+      const measurablePoints = (row.measurablePoints || row["Measurable Points"] || "").trim();
 
       if (!topicName || !taskTitle) {
         errors.push(`Row ${rowNum}: topic and taskTitle are required`);
@@ -48,11 +49,16 @@ exports.bulkUploadTasks = async (req, res) => {
       }
 
       // Find subject, topic, subtopic from embedded SyllabusVersion
+      // If subject column provided, filter by subject name first for accuracy
       let foundSubject  = null;
       let foundTopic    = null;
       let foundSubTopic = null;
 
-      for (const subj of sv.subjects || []) {
+      const subjectsToSearch = subjectName
+        ? (sv.subjects || []).filter(s => s.name.trim().toLowerCase() === subjectName.toLowerCase())
+        : (sv.subjects || []);
+
+      for (const subj of subjectsToSearch) {
         const topic = (subj.topics || []).find(
           (t) => t.name.trim().toLowerCase() === topicName.toLowerCase()
         );

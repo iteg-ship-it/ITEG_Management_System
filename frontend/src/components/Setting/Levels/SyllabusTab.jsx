@@ -3,11 +3,12 @@ import * as XLSX from "xlsx";
 import {
   MdCloudUpload, MdCheckCircle, MdExpandMore, MdExpandLess,
   MdBook, MdTopic, MdSubject, MdDelete, MdSave, MdEdit, MdVisibility,
-  MdAssignment,
+  MdAssignment, MdAdd,
 } from "react-icons/md";
 import { toast } from "react-toastify";
 import {
   useCreateSyllabusVersionMutation,
+  useUploadCombinedSyllabusMutation,
   useGetSyllabusVersionsBySubLevelQuery,
   useGetSyllabusVersionWithHierarchyQuery,
   useDeleteSyllabusVersionMutation,
@@ -22,77 +23,54 @@ import {
   useCreateTaskManualMutation,
   useAddSubjectToVersionMutation,
 } from "../../../redux/api/authApi";
+import TaskManagementModal from "./TaskManagementModal";
+import SmartSyllabusUpdate from "./SmartSyllabusUpdate";
 
 /* ─── helpers ─────────────────────────────────────────── */
 const normalize = (v) => (v === undefined || v === null ? "" : String(v).trim());
 
-/* Download syllabus template as XLSX */
+/* Download combined syllabus+task template */
 const downloadSyllabusTemplate = () => {
-  const instructions = [
-    ["SYLLABUS TEMPLATE - INSTRUCTIONS"],
-    [""],
-    ["REQUIRED COLUMNS:"],
-    ["Subject     → Subject ka naam (e.g. JavaScript, React, Node.js)"],
-    ["Topic Name  → Topic ka naam (e.g. Basics, Functions, Hooks)"],
-    ["SubTopic    → SubTopic ka naam (e.g. Variables, Arrow Functions, useState)"],
-    [""],
-    ["RULES:"],
-    ["1. Ek Subject ke andar multiple Topics ho sakte hain"],
-    ["2. Ek Topic ke andar multiple SubTopics ho sakte hain"],
-    ["3. Agar Topic ke andar koi SubTopic nahi hai to SubTopic column khali chhod do"],
-    ["4. Subject aur Topic Name columns REQUIRED hain"],
-    ["5. Tasks baad mein manually ya alag se add kar sakte ho"],
-    [""],
-    ["NOTE: Pehle sirf syllabus structure upload karo (Subject, Topic, SubTopic)"],
-    ["      Tasks baad mein 'Tasks Tab' se add karo"],
-  ];
-
   const data = [
-    ["Subject", "Topic Name", "SubTopic"],
-    // JavaScript
-    ["JavaScript", "Basics", "Variables & Data Types"],
-    ["JavaScript", "Basics", "Operators"],
-    ["JavaScript", "Basics", "Conditionals"],
-    ["JavaScript", "Functions", "Function Declaration"],
-    ["JavaScript", "Functions", "Arrow Functions"],
-    ["JavaScript", "Functions", "Callbacks"],
-    ["JavaScript", "Arrays", "Array Methods"],
-    ["JavaScript", "Arrays", "Destructuring"],
-    ["JavaScript", "DOM", ""],  // Topic without subtopic
-    // React
-    ["React", "Components", "Functional Components"],
-    ["React", "Components", "Props"],
-    ["React", "Hooks", "useState"],
-    ["React", "Hooks", "useEffect"],
-    ["React", "Hooks", "useContext"],
-    ["React", "Routing", "React Router"],
-    ["React", "Routing", "Protected Routes"],
-    // Node.js
-    ["Node.js", "Basics", "Modules"],
-    ["Node.js", "Basics", "File System"],
-    ["Node.js", "Express", "Routing"],
-    ["Node.js", "Express", "Middleware"],
-    ["Node.js", "Database", "MongoDB Connection"],
-    ["Node.js", "Database", "CRUD Operations"],
+    ["Subject", "Topic", "SubTopic", "Task", "Time Days", "Measurable Points"],
+    ["JavaScript", "Basics", "Variables", "Q1 - Explain var/let/const", "2", "Student should explain difference between var, let and const"],
+    ["JavaScript", "Basics", "Variables", "Q2 - Implement examples", "3", "Student should write 5 examples using each"],
+    ["JavaScript", "Basics", "Operators", "Q1 - Operator quiz", "1", "Student should solve 10 operator problems"],
+    ["JavaScript", "Functions", "", "Q1 - Write 3 functions", "2", "Student should write declaration, expression and arrow function"],
+    ["JavaScript", "DOM", "", "", "", ""],
+    ["React", "Hooks", "useState", "Q1 - Build counter", "5", "Student should build a counter app using useState"],
+    ["React", "Hooks", "useEffect", "Q1 - Fetch API", "7", "Student should fetch data from an API using useEffect"],
+    ["React", "Components", "", "", "", ""],
   ];
 
   const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws["!cols"] = [{ wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 30 }, { wch: 12 }, { wch: 40 }];
+  XLSX.utils.book_append_sheet(wb, ws, "Syllabus+Tasks");
 
-  // Sheet 1: Actual data
-  const ws1 = XLSX.utils.aoa_to_sheet(data);
-  ws1["!cols"] = [{ wch: 20 }, { wch: 25 }, { wch: 30 }];
-  // Header row bold styling
-  ["A1", "B1", "C1"].forEach((cell) => {
-    if (ws1[cell]) ws1[cell].s = { font: { bold: true }, fill: { fgColor: { rgb: "FF6B00" } } };
-  });
-  XLSX.utils.book_append_sheet(wb, ws1, "Syllabus");
-
-  // Sheet 2: Instructions
+  const instructions = [
+    ["INSTRUCTIONS"],
+    [""],
+    ["COLUMNS:"],
+    ["Subject         → Subject name (e.g. JavaScript, React)"],
+    ["Topic           → Topic name (e.g. Basics, Functions)"],
+    ["SubTopic        → SubTopic name — leave empty if topic has no subtopic"],
+    ["Task            → Task title (e.g. Q1 - Explain...) — leave empty for syllabus-only rows"],
+    ["Time Days       → Expected days to complete the task (number)"],
+    ["Measurable Points → What the student should be able to do"],
+    [""],
+    ["RULES:"],
+    ["1. Subject + Topic are REQUIRED in every row"],
+    ["2. SubTopic is optional — leave empty if topic has no subtopic"],
+    ["3. Task is optional — leave empty for syllabus-only rows (no task)"],
+    ["4. Multiple tasks for same topic/subtopic = multiple rows with same Subject/Topic/SubTopic"],
+    ["5. One upload creates both Syllabus structure AND Tasks together"],
+  ];
   const ws2 = XLSX.utils.aoa_to_sheet(instructions);
   ws2["!cols"] = [{ wch: 70 }];
   XLSX.utils.book_append_sheet(wb, ws2, "Instructions");
 
-  XLSX.writeFile(wb, "syllabus_template.xlsx");
+  XLSX.writeFile(wb, "syllabus_tasks_template.xlsx");
 };
 
 const parseExcel = (file) =>
@@ -112,25 +90,64 @@ const parseExcel = (file) =>
 const buildHierarchy = (rows) => {
   const subjectMap = new Map();
   rows.forEach((row) => {
-    const subject      = normalize(row["Subject"]    || row["subject"]);
-    const topic        = normalize(row["Topic Name"] || row["Topic"] || row["topic"]);
-    const subTopicName = normalize(row["SubTopic"]   || row["subtopic"] || row["sub_topic"]);
+    const subject      = normalize(row["Subject"]    || row["subject"] || row["SUBJECT"]);
+    const topic        = normalize(row["Topic"]      || row["Topic Name"] || row["topic"] || row["TOPIC"]);
+    const subTopicName = normalize(row["SubTopic"]   || row["Sub Topic"]  || row["subtopic"] || row["sub_topic"] || row["SUBTOPIC"]);
+    const taskTitle    = normalize(row["Task"]       || row["Task Title"] || row["taskTitle"] || row["Tasks"] || row["TASK"] || "");
+    const timeDays     = row["Time Days"] || row["timeDays"] || row["Time"] || row["TIME DAYS"] || null;
+    const measurablePoints = normalize(row["Measurable Points"] || row["Measurable Point"] || row["measurablePoints"] || row["MEASURABLE POINTS"] || "");
     if (!subject || !topic) return;
     if (!subjectMap.has(subject)) subjectMap.set(subject, new Map());
     const topicMap = subjectMap.get(subject);
     if (!topicMap.has(topic)) topicMap.set(topic, []);
-    // agar subtopic khali hai to topic register ho gaya, bas skip karo subtopic push
-    if (!subTopicName) return;
     const stList = topicMap.get(topic);
-    stList.push({ name: subTopicName });
+    // Store subtopic with optional task info
+    if (subTopicName) {
+      const existing = stList.find(st => (typeof st === "object" ? st.name : st) === subTopicName && !taskTitle);
+      if (!existing || taskTitle) {
+        stList.push(taskTitle ? { name: subTopicName, taskTitle, timeDays, measurablePoints } : { name: subTopicName });
+      }
+    } else if (taskTitle) {
+      // Topic-level task (no subtopic)
+      stList.push({ name: "__topic_task__", taskTitle, timeDays, measurablePoints, isTopicTask: true });
+    }
   });
   return Array.from(subjectMap.entries()).map(([subjectName, topicMap]) => ({
     subject: subjectName,
     topics: Array.from(topicMap.entries()).map(([topicName, stList]) => ({
       topic: topicName,
-      subTopics: stList,
+      subTopics: stList.filter(st => !st.isTopicTask),
+      topicTasks: stList.filter(st => st.isTopicTask),
     })),
   }));
+};
+
+// Build flat task rows from hierarchy for combined upload
+const buildTaskRows = (hierarchy) => {
+  const rows = [];
+  hierarchy.forEach(({ subject, topics }) => {
+    topics.forEach(({ topic, subTopics, topicTasks }) => {
+      // Topic-level tasks
+      (topicTasks || []).forEach(t => {
+        rows.push({ subject, topic, subTopic: "", taskTitle: t.taskTitle, timeDays: t.timeDays, measurablePoints: t.measurablePoints });
+      });
+      // SubTopic rows (with or without tasks)
+      (subTopics || []).forEach(st => {
+        rows.push({
+          subject, topic,
+          subTopic: st.name,
+          taskTitle: st.taskTitle || "",
+          timeDays: st.timeDays || null,
+          measurablePoints: st.measurablePoints || ""
+        });
+      });
+      // If no subtopics and no topic tasks, still register the topic
+      if (!topicTasks?.length && !subTopics?.length) {
+        rows.push({ subject, topic, subTopic: "", taskTitle: "", timeDays: null, measurablePoints: "" });
+      }
+    });
+  });
+  return rows;
 };
 
 /* ─── Status badge ─────────────────────────────────────── */
@@ -341,30 +358,65 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
   const [fileName,         setFileName]         = useState("");
   const [selectedSessionId,setSelectedSessionId]= useState("");
 
-  const [createSyllabusVersion] = useCreateSyllabusVersionMutation();
+  const [uploadCombined]        = useUploadCombinedSyllabusMutation();
   const { data: sessionsData }  = useGetAllSessionsQuery();
   const sessions = sessionsData?.data || [];
 
   const totalSubjects  = hierarchy.length;
   const totalTopics    = hierarchy.reduce((acc, s) => acc + s.topics.length, 0);
-  const totalSubTopics = hierarchy.reduce((acc, s) => acc + s.topics.reduce((a, t) => a + t.subTopics.length, 0), 0);
+  const totalSubTopics = hierarchy.reduce((acc, s) => acc + s.topics.reduce((a, t) => a + (t.subTopics?.length || 0), 0), 0);
+  const totalTasks     = hierarchy.reduce((acc, s) => acc + s.topics.reduce((a, t) => {
+    const stTasks = (t.subTopics || []).filter(st => st.taskTitle).length;
+    const topicTasks = (t.topicTasks || []).length;
+    return a + stTasks + topicTasks;
+  }, 0), 0);
 
   const reset = () => { setHierarchy([]); setFileName(""); setSelectedSessionId(""); };
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!/\.(xlsx|xls|csv)$/i.test(file.name)) { toast.error("Please upload .xlsx, .xls or .csv file"); return; }
-    setParsing(true); setHierarchy([]); setFileName(file.name);
+    if (!/\.(xlsx|xls|csv)$/i.test(file.name)) { 
+      toast.error("Please upload .xlsx, .xls or .csv file"); 
+      return; 
+    }
+    setParsing(true); 
+    setHierarchy([]); 
+    setFileName(file.name);
     try {
       const rows = await parseExcel(file);
-      if (!rows.length) { toast.error("File is empty"); return; }
+      if (!rows.length) { 
+        toast.error("File is empty or has no data rows"); 
+        return; 
+      }
+      
+      // Validate required columns
+      const firstRow = rows[0];
+      const hasSubject = Object.keys(firstRow).some(key => 
+        key.toLowerCase().includes('subject'));
+      const hasTopic = Object.keys(firstRow).some(key => 
+        key.toLowerCase().includes('topic'));
+      
+      if (!hasSubject || !hasTopic) {
+        toast.error("Excel file must contain 'Subject' and 'Topic' columns");
+        return;
+      }
+      
       const parsed = buildHierarchy(rows);
-      if (!parsed.length) { toast.error("No valid data. Columns needed: Subject, Topic Name, SubTopic"); return; }
+      if (!parsed.length) { 
+        toast.error("No valid data found. Please check your Excel format and column names"); 
+        return; 
+      }
       setHierarchy(parsed);
-      toast.success(`Parsed ${parsed.length} subject(s)`);
-    } catch { toast.error("Failed to parse Excel file"); }
-    finally { setParsing(false); e.target.value = ""; }
+      toast.success(`Parsed ${parsed.length} subject(s) successfully`);
+    } catch (error) { 
+      console.error('Excel parsing error:', error);
+      toast.error("Failed to parse Excel file. Please check the file format"); 
+    }
+    finally { 
+      setParsing(false); 
+      e.target.value = ""; 
+    }
   };
 
   const handleSave = async () => {
@@ -373,29 +425,34 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
     if (!level?._id)         { toast.error("Level not found"); return; }
     if (!selectedSessionId)  { toast.error("Please select a session"); return; }
     setSaving(true);
-    const payload = {
-      sessionId:  selectedSessionId,
-      levelId:    level._id,
-      subLevelId: subLevel._id,
-      subjects: hierarchy.map((s, si) => ({
-        name:  s.subject,
-        order: si + 1,
-        topics: s.topics.map((t, ti) => ({
-          name:  t.topic,
-          order: ti + 1,
-          subTopics: t.subTopics.map((st, sti) => ({ name: st.name, order: sti + 1 })),
-        })),
-      })),
-    };
     try {
-      await createSyllabusVersion(payload).unwrap();
-      const taskCount = hierarchy.reduce((a, s) => a + s.topics.reduce((b, t) => b + t.subTopics.filter((st) => typeof st === "object" && st.taskTitle).length, 0), 0);
-      toast.success(`${hierarchy.length} subject(s) syllabus saved!${taskCount > 0 ? ` + ${taskCount} task(s) bhi save ho gaye!` : ""}`);
+      const taskRows = buildTaskRows(hierarchy);
+      console.log('Uploading syllabus data:', {
+        sessionId: selectedSessionId,
+        levelId: level._id,
+        subLevelId: subLevel._id,
+        tasks: taskRows
+      });
+      const res = await uploadCombined({
+        sessionId:  selectedSessionId,
+        levelId:    level._id,
+        subLevelId: subLevel._id,
+        tasks:      taskRows,
+      }).unwrap();
+      toast.success(res.message || "Syllabus + Tasks saved!");
+      if (res.data?.errors?.length) {
+        console.warn('Upload warnings:', res.data.errors);
+        res.data.errors.forEach(e => toast.warn(e, { autoClose: 8000 }));
+      }
       reset();
       onSaved?.();
     } catch (err) {
-      const msg = err?.data?.message || err?.message || "Failed to save syllabus";
-      toast.error(msg);
+      console.error('Upload error:', err);
+      const errorMessage = err?.data?.message || err?.message || "Failed to save";
+      toast.error(errorMessage);
+      if (err?.data?.errors?.length) {
+        err.data.errors.forEach(e => toast.warn(e, { autoClose: 8000 }));
+      }
     } finally { setSaving(false); }
   };
 
@@ -424,13 +481,13 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
         <div>
           <div className="flex items-center justify-between mb-1">
             <p className="text-xs text-blue-600 font-semibold">Required columns:</p>
-            <button
-              type="button"
-              onClick={() => downloadSyllabusTemplate()}
+            <a
+              href="/syllabus_template.csv"
+              download="syllabus_template.csv"
               className="text-xs text-orange-600 hover:text-orange-700 font-semibold bg-orange-50 hover:bg-orange-100 px-2.5 py-1 rounded-lg transition"
             >
               ⬇ Download Template
-            </button>
+            </a>
           </div>
           <div className="flex gap-2 flex-wrap text-xs">
             {["Subject", "Topic Name", "SubTopic"].map((c) => (
@@ -622,46 +679,78 @@ export const TaskUploadDrawer = ({ syllabusVersionId, subjectName, version, onSa
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!/\.(xlsx|xls|csv)$/i.test(file.name)) { toast.error("Please upload .xlsx, .xls or .csv file"); return; }
-    setParsing(true); setRows([]); setFileName(file.name);
+    if (!/\.(xlsx|xls|csv)$/i.test(file.name)) { 
+      toast.error("Please upload .xlsx, .xls or .csv file"); 
+      return; 
+    }
+    setParsing(true); 
+    setRows([]); 
+    setFileName(file.name);
     try {
       const parsed = await parseTaskExcel(file);
-      if (!parsed.length) { toast.error("Excel file is empty"); return; }
+      if (!parsed.length) { 
+        toast.error("Excel file is empty or has no data rows"); 
+        return; 
+      }
+      
+      // Validate required columns
+      const firstRow = parsed[0];
+      const hasTopic = Object.keys(firstRow).some(key => 
+        key.toLowerCase().includes('topic'));
+      const hasTask = Object.keys(firstRow).some(key => 
+        key.toLowerCase().includes('task'));
+      
+      if (!hasTopic || !hasTask) {
+        toast.error("Excel file must contain 'Topic' and 'Task Title' columns");
+        return;
+      }
+      
       // Map column headers (case-insensitive)
       const mapped = parsed.map((r) => ({
-        topic:             String(r["Topic"]            || r["topic"]            || r["Topic Name"] || "").trim(),
-        subTopic:          String(r["Sub Topic"]        || r["subTopic"]         || r["SubTopic"]   || r["sub_topic"] || "").trim(),
-        taskTitle:         String(r["Task Title"]       || r["taskTitle"]        || r["TaskTitle"]  || r["Tasks"] || "").trim(),
-        taskType:          String(r["taskType"]         || r["TaskType"]         || r["Task Type"]  || "assessment").trim(),
-        priority:          String(r["priority"]         || r["Priority"]         || "medium").trim(),
-        maxMarks:          Number(r["maxMarks"]         || r["MaxMarks"]         || r["Max Marks"]  || 100),
-        timeDays:          r["Time Days"] || r["timeDays"] || r["TimeDays"] || r["Time"] || null,
-        measurablePoints:  String(r["Measurable Point"] || r["measurablePoints"] || r["MeasurablePoints"] || "").trim(),
+        subject:           String(r["Subject"]          || r["subject"]          || r["SUBJECT"] || "").trim(),
+        topic:             String(r["Topic"]            || r["topic"]            || r["Topic Name"] || r["TOPIC"] || "").trim(),
+        subTopic:          String(r["Sub Topic"]        || r["subTopic"]         || r["SubTopic"]   || r["sub_topic"] || r["SUBTOPIC"] || "").trim(),
+        taskTitle:         String(r["Task Title"]       || r["taskTitle"]        || r["TaskTitle"]  || r["Tasks"] || r["TASK"] || "").trim(),
+        taskType:          String(r["taskType"]         || r["TaskType"]         || r["Task Type"]  || r["TASK TYPE"] || "assessment").trim(),
+        priority:          String(r["priority"]         || r["Priority"]         || r["PRIORITY"] || "medium").trim(),
+        maxMarks:          Number(r["maxMarks"]         || r["MaxMarks"]         || r["Max Marks"]  || r["MAX MARKS"] || 5),
+        timeDays:          r["Time Days"] || r["timeDays"] || r["TimeDays"] || r["Time"] || r["TIME DAYS"] || null,
+        measurablePoints:  String(r["Measurable Point"] || r["measurablePoints"] || r["MeasurablePoints"] || r["Measurable Points"] || r["MEASURABLE POINTS"] || "").trim(),
       })).filter((r) => r.topic && r.taskTitle);
 
-      if (!mapped.length) { toast.error("No valid rows found. Check column names."); return; }
+      if (!mapped.length) { 
+        toast.error("No valid task rows found. Check column names and ensure Topic and Task Title are filled."); 
+        return; 
+      }
       setRows(mapped);
-      toast.success(`${mapped.length} task rows parsed`);
-    } catch { toast.error("Failed to parse Excel"); }
-    finally { setParsing(false); e.target.value = ""; }
+      toast.success(`${mapped.length} task rows parsed successfully`);
+    } catch (error) { 
+      console.error('Task Excel parsing error:', error);
+      toast.error("Failed to parse Excel file. Please check the file format"); 
+    }
+    finally { 
+      setParsing(false); 
+      e.target.value = ""; 
+    }
   };
 
   const handleUpload = async () => {
     if (!rows.length) { toast.error("No data to upload"); return; }
     setSaving(true);
     try {
-      console.log("📦 Bulk Task Upload DB me ja raha hai:", { syllabusVersionId, tasks: rows });
-      console.table(rows.map(r => ({ topic: r.topic, subTopic: r.subTopic, taskTitle: r.taskTitle, type: r.taskType, maxMarks: r.maxMarks })));
       const res = await bulkUploadTasks({ syllabusVersionId, tasks: rows }).unwrap();
       toast.success(`${res.inserted} task(s) uploaded!`);
       if (res.errors?.length) {
+        console.warn('Task upload warnings:', res.errors);
         res.errors.forEach((e) => toast.warn(e, { autoClose: 8000 }));
       }
       reset();
       onSaved?.();
     } catch (err) {
+      console.error('Task upload error:', err);
       const errData = err?.data;
-      toast.error(errData?.message || "Upload failed");
+      const errorMessage = errData?.message || err?.message || "Upload failed";
+      toast.error(errorMessage);
       if (errData?.errors?.length) {
         errData.errors.forEach((e) => toast.warn(e, { autoClose: 8000 }));
       }
@@ -1102,11 +1191,12 @@ export const TasksTab = ({ level, subLevel, onVersionChange }) => {
   const [selectedSessionId, setSelectedSessionId] = useState("");
   const [activeVersionId,   setActiveVersionId]   = useState("");
   const [searchTerm,        setSearchTerm]        = useState("");
+  const [showTaskModal,     setShowTaskModal]     = useState(false);
 
   const { data: sessionsData } = useGetAllSessionsQuery();
   const sessions = sessionsData?.data || [];
 
-  const { data: versionsData } = useGetSyllabusVersionsBySubLevelQuery(
+  const { data: versionsData, refetch } = useGetSyllabusVersionsBySubLevelQuery(
     { subLevelId, sessionId: selectedSessionId },
     { skip: !subLevelId, refetchOnMountOrArgChange: true }
   );
@@ -1122,25 +1212,33 @@ export const TasksTab = ({ level, subLevel, onVersionChange }) => {
   if (!subLevelId) return <div className="py-16 text-center text-gray-400 text-sm">SubLevel not found</div>;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-      {/* Top bar: search + session filter */}
-      <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-gray-100">
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search tasks by title, topic..."
-          className="flex-1 min-w-[180px] border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white"
-        />
-        <select
-          value={selectedSessionId}
-          onChange={(e) => { setSelectedSessionId(e.target.value); setActiveVersionId(""); }}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white min-w-[160px]"
-        >
-          <option value="">All Sessions</option>
-          {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
-        </select>
-      </div>
+    <>
+      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+        {/* Top bar: search + session filter + Add Task button */}
+        <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-gray-100">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search tasks by title, topic..."
+            className="flex-1 min-w-[180px] border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white"
+          />
+          <select
+            value={selectedSessionId}
+            onChange={(e) => { setSelectedSessionId(e.target.value); setActiveVersionId(""); }}
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white min-w-[160px]"
+          >
+            <option value="">All Sessions</option>
+            {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
+          </select>
+          <button
+            onClick={() => setShowTaskModal(true)}
+            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition"
+          >
+            <MdAdd size={16} />
+            Add Task
+          </button>
+        </div>
 
       {/* Version tabs */}
       {allVersions.length > 1 && (
@@ -1162,19 +1260,32 @@ export const TasksTab = ({ level, subLevel, onVersionChange }) => {
         </div>
       )}
 
-      {/* Table or empty state */}
-      {allVersions.length === 0 ? (
-        <div className="py-14 text-center">
-          <div className="w-14 h-14 rounded-full bg-orange-50 flex items-center justify-center mx-auto mb-3">
-            <MdAssignment size={26} className="text-orange-300" />
+        {/* Table or empty state */}
+        {allVersions.length === 0 ? (
+          <div className="py-14 text-center">
+            <div className="w-14 h-14 rounded-full bg-orange-50 flex items-center justify-center mx-auto mb-3">
+              <MdAssignment size={26} className="text-orange-300" />
+            </div>
+            <p className="text-sm font-semibold text-gray-500">No syllabus found</p>
+            <p className="text-xs text-gray-400 mt-1">{selectedSessionId ? "Try a different session" : "Upload syllabus first from Syllabus tab"}</p>
           </div>
-          <p className="text-sm font-semibold text-gray-500">No syllabus found</p>
-          <p className="text-xs text-gray-400 mt-1">{selectedSessionId ? "Try a different session" : "Upload syllabus first from Syllabus tab"}</p>
-        </div>
-      ) : (
-        <VersionTasksTable versionId={currentVersionId} searchTerm={searchTerm} />
-      )}
-    </div>
+        ) : (
+          <VersionTasksTable versionId={currentVersionId} searchTerm={searchTerm} />
+        )}
+      </div>
+
+      {/* Task Management Modal */}
+      <TaskManagementModal
+        isOpen={showTaskModal}
+        onClose={() => setShowTaskModal(false)}
+        level={level}
+        subLevel={subLevel}
+        onSuccess={() => {
+          setShowTaskModal(false);
+          refetch();
+        }}
+      />
+    </>
   );
 };
 const EmptyUploadState = ({ level, subLevel, onSaved }) => {
@@ -1199,13 +1310,13 @@ const EmptyUploadState = ({ level, subLevel, onSaved }) => {
           >
             <MdCloudUpload size={16} /> Upload Syllabus
           </button>
-          <button
-            type="button"
-            onClick={() => downloadSyllabusTemplate()}
+          <a
+            href="/syllabus_template.csv"
+            download="syllabus_template.csv"
             className="flex items-center gap-2 text-sm font-semibold text-orange-500 bg-white border border-orange-300 hover:bg-orange-50 px-6 py-2.5 rounded-xl transition"
           >
             ⬇ Browse Template
-          </button>
+          </a>
         </div>
       ) : (
         <div className="w-full max-w-md text-left mt-2">

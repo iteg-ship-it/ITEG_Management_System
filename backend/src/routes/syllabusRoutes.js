@@ -14,6 +14,9 @@ const writeRoles = ["superadmin", "admin", "faculty"];
 // ── Bulk Task Upload ──
 router.post("/bulk-upload-tasks", verifyToken, checkRole(writeRoles), taskMasterBulkController.bulkUploadTasks);
 
+// ── Combined Syllabus + Tasks Upload (one Excel) ──
+router.post("/upload-combined", verifyToken, checkRole(writeRoles), embeddedSyllabusController.uploadCombined);
+
 // ── Syllabus Version CRUD ──
 router.post("/", verifyToken, checkRole(writeRoles), embeddedSyllabusController.createSyllabusVersion);
 router.get("/", verifyToken, embeddedSyllabusController.getAllSyllabusVersions);
