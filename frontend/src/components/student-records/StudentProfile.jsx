@@ -260,7 +260,7 @@ export default function StudentProfile() {
   
   const overallAttendanceRate = calculateOverallAttendance();
   const hasPermission = !!(studentData?.permissionDetails && Object.keys(studentData.permissionDetails).length > 0);
-  const permissionStatus = hasPermission ? "Yes" : "No";
+  const permissionStatus = studentData?.permissionDetails?.status || (hasPermission ? "pending" : "No Request");
   const hasPlacement = !!(studentData?.status === "Placed");
   const placementStatus = hasPlacement ? "Placed" : "Not Placed";
 
@@ -624,7 +624,7 @@ export default function StudentProfile() {
               <div className="mt-6 p-4 bg-gray-50 rounded-lg" style={{ boxShadow: '0 0 15px 4px rgba(0, 0, 0, 0.06)' }}>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">Current Status</span>
-                  <StatusBadge status={hasPermission ? "Approved" : "No Permission"} />
+                  <StatusBadge status={studentData?.permissionDetails?.status || (hasPermission ? "pending" : "No Request")} />
                 </div>
               </div>
             </div>
