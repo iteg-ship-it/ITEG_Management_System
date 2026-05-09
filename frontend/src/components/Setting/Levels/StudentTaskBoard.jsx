@@ -434,6 +434,13 @@ const StudentTaskBoard = () => {
         const studentId = student._id;
         const taskId    = task.taskId || task._id;
 
+        // Validate IDs — only allow MongoDB ObjectId format
+        const mongoIdRegex = /^[a-f\d]{24}$/i;
+        if (!mongoIdRegex.test(studentId) || !mongoIdRegex.test(taskId)) {
+            toast.error("Invalid task or student ID");
+            return;
+        }
+
         // Optimistic update
         const updated = allTasks.map(t =>
             t._id === task._id ? { ...t, status: newStatus, ...extra } : t
@@ -443,31 +450,29 @@ const StudentTaskBoard = () => {
         setSaving(true);
         try {
             const body = { status: newStatus, ...extra };
-            await fetch(
-                `${import.meta.env.VITE_API_URL}/syllabus/versions/students/${studentId}/tasks/${taskId}`,
-                {
-                    method: "PATCH",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${getToken()}`
-                    },
-                    body: JSON.stringify(body)
-                }
-            ).then(async r => {
-                if (!r.ok) {
-                    const err = await r.json();
-                    throw new Error(err.message || "Update failed");
-                }
-                return r.json();
+            const baseUrl = import.meta.env.VITE_API_URL;
+            const url = `${baseUrl}/syllabus/versions/students/${studentId}/tasks/${taskId}`;
+
+            const r = await fetch(url, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${getToken()}`
+                },
+                body: JSON.stringify(body)
             });
 
+            if (!r.ok) {
+                const errData = await r.json();
+                throw new Error(errData.message || "Update failed");
+            }
+
             toast.success(`Task moved to ${newStatus === "inProgress" ? "In Progress" : newStatus}`);
-            // Refetch to sync
             const fresh = await refetch();
-            if (fresh?.data) setTasks(null); // clear optimistic, use fresh
+            if (fresh?.data) setTasks(null);
         } catch (err) {
             toast.error(err.message || "Failed to update task");
-            setTasks(null); // revert optimistic
+            setTasks(null);
         } finally {
             setSaving(false);
         }
