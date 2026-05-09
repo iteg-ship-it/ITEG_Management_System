@@ -6,13 +6,14 @@ import { toast } from "react-toastify";
 import { MdFilterList, MdCloudUpload, MdTableChart } from "react-icons/md";
 import Header from "../../common-components/sidebar/Header";
 import OrangeButton from "../../common-components/sidebar/OrangeButton";
-import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation, useGetSyllabusVersionsBySubLevelQuery } from "../../../redux/api/authApi";
+import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation, useGetSyllabusVersionsBySubLevelQuery, useGetNewStudentsQuery } from "../../../redux/api/authApi";
 import SearchBox from "../../common-components/seach-export/SearchBox";
 import ExportDropdown from "../../common-components/seach-export/ExportDropdown";
 import CommonTable from "../../common-components/table/CommonTable";
 import InputField from "../../common-components/common-feild/InputField";
 import RadioGroup from "../../common-components/common-feild/RadioGroup";
 import SyllabusTab, { TasksTab, ManualTaskForm, TaskUploadDrawer, SyllabusUploadDrawer, ManualSyllabusForm } from "./SyllabusTab";
+import Loader from "../../common-components/loader/Loader";
 
 const validationSchema = Yup.object({
     name: Yup.string().required("SubLevel name is required"),
@@ -20,43 +21,123 @@ const validationSchema = Yup.object({
     isActive: Yup.boolean(),
 });
 
-const DUMMY_STUDENTS = [
-    { sno: 1, fullName: "Rahul Sharma",  fatherName: "Ramesh Sharma",  mobile: "9876543210", course: "B.Tech" },
-    { sno: 2, fullName: "Priya Verma",   fatherName: "Suresh Verma",   mobile: "9812345678", course: "MCA"    },
-    { sno: 3, fullName: "Amit Patel",    fatherName: "Dinesh Patel",   mobile: "9898765432", course: "BCA"    },
-];
-
 const STUDENT_COLUMNS = [
     { label: "S.No",        key: "sno" },
     { label: "Full Name",   key: "fullName" },
     { label: "Father Name", key: "fatherName" },
     { label: "Mobile No.",  key: "mobile" },
     { label: "Course",      key: "course", render: (row) => <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full">{row.course}</span> },
+    { label: "Status",      key: "status", render: (row) => (
+        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+            row.status === "Active"    ? "bg-green-100 text-green-700" :
+            row.status === "Dropped"   ? "bg-red-100 text-red-700" :
+            row.status === "Placed"    ? "bg-purple-100 text-purple-700" :
+            "bg-gray-100 text-gray-600"
+        }`}>{row.status}</span>
+    )},
 ];
 
-const DUMMY_PROGRESS = [
-    { _id: "P001", name: "Alex Harrison", level: "1A", taskDone: 4, taskTotal: 8, pending: 2, inProgress: 2, done: 4, status: "ACTIVE" },
-    { _id: "P002", name: "Sarah Miller",  level: "1B", taskDone: 6, taskTotal: 8, pending: 1, inProgress: 1, done: 6, status: "ACTIVE" },
-];
+const StudentsTab = ({ subLevel, searchTerm, setSearchTerm, onRowClick, onTaskBoard }) => {
+    const params = subLevel?._id ? `currentSubLevelId=${subLevel._id}` : "";
+    const { data, isLoading } = useGetNewStudentsQuery(params, { skip: !subLevel?._id });
 
-const PROGRESS_COLUMNS = [
-    { key: "name",   label: "Student Name",   render: (row) => <span className="font-semibold text-sm text-orange-500">{row.name}</span> },
-    { key: "level",  label: "Level",          render: (row) => <span className="text-sm text-gray-700">{row.level}</span> },
-    { key: "done",   label: "Tasks Done",     render: (row) => <span className="text-sm text-gray-700">{row.taskDone}/{row.taskTotal}</span> },
-    { key: "status", label: "Status",         render: (row) => <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${row.status === "ACTIVE" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>{row.status}</span> },
-];
+    const students = (data?.data || []).map((s, i) => ({
+        _id: s._id,
+        sno: i + 1,
+        fullName: `${s.firstName} ${s.lastName}`,
+        fatherName: s.fatherName,
+        mobile: s.studentMobile,
+        course: s.course,
+        status: s.status,
+        prkey: s.prkey,
+        raw: s,
+    }));
 
-const ProgressTab = () => {
+    const columns = [
+        ...STUDENT_COLUMNS,
+        { label: "Task Board", key: "taskboard", render: (row) => (
+            <button
+                onClick={(e) => { e.stopPropagation(); onTaskBoard(row); }}
+                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-orange-50 text-orange-500 hover:bg-orange-100 border border-orange-200 transition"
+            >
+                <MdTableChart size={14} /> Task Board
+            </button>
+        )},
+    ];
+
+    if (isLoading) return <Loader />;
+
+    return (
+        <div className="space-y-3">
+            <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-3">
+                <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+                <div className="ml-auto flex items-center gap-3">
+                    <button className="flex items-center gap-1.5 h-10 px-4 text-sm border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 transition flex-shrink-0">
+                        <MdFilterList size={16} /> Filter
+                    </button>
+                    <ExportDropdown data={students} sectionName="students" />
+                </div>
+            </div>
+            {students.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 bg-white border border-gray-200 rounded-xl">
+                    <div className="w-14 h-14 rounded-2xl bg-orange-50 flex items-center justify-center mb-3">
+                        <MdCloudUpload size={28} className="text-orange-300" />
+                    </div>
+                    <p className="text-sm font-semibold text-gray-600">No students in this sub-level</p>
+                    <p className="text-xs text-gray-400 mt-1">Students will appear here once enrolled in this sub-level</p>
+                </div>
+            ) : (
+                <CommonTable
+                    key={`students-${subLevel?._id}`}
+                    columns={columns}
+                    data={students}
+                    editable={false}
+                    pagination={true}
+                    rowsPerPage={10}
+                    searchTerm={searchTerm}
+                    onRowClick={onRowClick}
+                />
+            )}
+        </div>
+    );
+};
+
+const ProgressTab = ({ subLevel }) => {
     const [progressSearch, setProgressSearch] = useState("");
+    const params = subLevel?._id ? `currentSubLevelId=${subLevel._id}` : "";
+    const { data, isLoading } = useGetNewStudentsQuery(params, { skip: !subLevel?._id });
+
+    const progressData = (data?.data || []).map((s) => ({
+        _id: s._id,
+        name: `${s.firstName} ${s.lastName}`,
+        prkey: s.prkey,
+        status: s.status,
+    }));
+
+    const PROGRESS_COLUMNS = [
+        { key: "prkey",  label: "PR Key",       render: (row) => <span className="text-xs font-mono text-gray-500">{row.prkey}</span> },
+        { key: "name",   label: "Student Name", render: (row) => <span className="font-semibold text-sm text-orange-500">{row.name}</span> },
+        { key: "status", label: "Status",       render: (row) => (
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                row.status === "Active"  ? "bg-green-100 text-green-700" :
+                row.status === "Dropped" ? "bg-red-100 text-red-700" :
+                row.status === "Placed"  ? "bg-purple-100 text-purple-700" :
+                "bg-gray-100 text-gray-600"
+            }`}>{row.status}</span>
+        )},
+    ];
+
+    if (isLoading) return <Loader />;
+
     return (
         <div className="space-y-3">
             <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-3">
                 <SearchBox searchTerm={progressSearch} setSearchTerm={setProgressSearch} />
                 <div className="ml-auto">
-                    <ExportDropdown data={DUMMY_PROGRESS} sectionName="progress" />
+                    <ExportDropdown data={progressData} sectionName="progress" />
                 </div>
             </div>
-            <CommonTable columns={PROGRESS_COLUMNS} data={DUMMY_PROGRESS} editable={false} pagination={true} rowsPerPage={10} searchTerm={progressSearch} />
+            <CommonTable columns={PROGRESS_COLUMNS} data={progressData} editable={false} pagination={true} rowsPerPage={10} searchTerm={progressSearch} />
         </div>
     );
 };
@@ -267,27 +348,13 @@ const ShowSubLevelTablesData = () => {
                 {subLevels.length > 0 && (
                     <div className="py-6">
                         {activeSection === "Students" && (
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-3">
-                                    <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-                                    <div className="ml-auto flex items-center gap-3">
-                                        <button className="flex items-center gap-1.5 h-10 px-4 text-sm border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 transition flex-shrink-0">
-                                            <MdFilterList size={16} /> Filter
-                                        </button>
-                                        <ExportDropdown data={DUMMY_STUDENTS} sectionName="students" />
-                                    </div>
-                                </div>
-                                <CommonTable
-                                    key={`students-${activeTab?._id}`}
-                                    columns={STUDENT_COLUMNS}
-                                    data={DUMMY_STUDENTS}
-                                    editable={false}
-                                    pagination={true}
-                                    rowsPerPage={10}
-                                    searchTerm={searchTerm}
-                                    onRowClick={(row) => navigate("/setting/student-profile", { state: { student: row } })}
-                                />
-                            </div>
+                            <StudentsTab
+                                subLevel={activeTab}
+                                searchTerm={searchTerm}
+                                setSearchTerm={setSearchTerm}
+                                onRowClick={(row) => navigate("/setting/student-profile", { state: { student: row.raw, level, subdepartment } })}
+                                onTaskBoard={(row) => navigate("/student/task-board", { state: { student: row.raw, level, subdepartment } })}
+                            />
                         )}
                         {activeSection === "Tasks" && (
                             <TasksTab level={level} subLevel={activeTab} onVersionChange={setActiveTaskVersionId} />
@@ -295,7 +362,7 @@ const ShowSubLevelTablesData = () => {
                         {activeSection === "Syllabus" && (
                             <SyllabusTab level={level} subLevel={activeTab} />
                         )}
-                        {activeSection === "Progress" && <ProgressTab />}
+                        {activeSection === "Progress" && <ProgressTab subLevel={activeTab} />}
                     </div>
                 )}
             </div>

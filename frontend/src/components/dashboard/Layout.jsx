@@ -34,6 +34,7 @@ import SubdepartmentDetails from "./../Setting/Departments/SubdepartmentDetails"
 import ShowSubLevelTablesData from "./../Setting/Levels/ShowSubLevelTablesData";
 import SubLevelManagement from "./../Setting/Levels/SubLevelManagement";
 import StudentProfilePage from "./../Setting/Levels/StudentProfilePage";
+import StudentTaskBoard from "./../Setting/Levels/StudentTaskBoard";
 import TaskManagement from "./../Setting/TaskManagement";
 import TaskList from "./../student-records/TaskList";
 import SettingFIle from "./../Setting/SettingFIle";
@@ -84,6 +85,7 @@ const Layout = () => {
                     <Route path="/subdepartment-details" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><SubdepartmentDetails /></ProtectedRoute>} />
                     <Route path="/show-sublevel-tables" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><ShowSubLevelTablesData /></ProtectedRoute>} />
                     <Route path="/setting/student-profile" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentProfilePage /></ProtectedRoute>} />
+                    <Route path="/student/task-board" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentTaskBoard /></ProtectedRoute>} />
                     <Route path="/task-management" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><TaskManagement /></ProtectedRoute>} />
                     <Route path="/subdepartments" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><SubDepartment /></ProtectedRoute>} />
                     <Route path="/levels" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><ShowLevels /></ProtectedRoute>} />
