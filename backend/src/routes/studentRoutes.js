@@ -77,7 +77,17 @@ router.patch("/:id/profile-image", ...auth, studentController.updateProfileImage
 router.post("/:id/documents", ...auth, studentController.uploadDocument);
 router.delete("/:id/documents/:docId", ...auth, studentController.deleteDocument);
 
-// Permission
+// Extra Documents
+router.post("/:id/extra-documents", ...auth, studentController.uploadExtraDocument);
+router.get("/:id/extra-documents", ...auth, studentController.getExtraDocuments);
+router.delete("/:id/documents/:docId", ...auth, studentController.deleteDocument);
+
+// Permission (history-based flow)
+router.post("/:id/permissions", ...auth, studentController.applyPermission);
+router.get("/:id/permissions", ...auth, studentController.getPermissions);
+router.patch("/:id/permissions/:permissionId/resolve", ...auth, studentController.resolvePermission);
+
+// Permission (legacy)
 router.patch("/:id/permission", ...auth, studentController.updatePermission);
 router.patch("/:id/permission/status", ...auth, studentController.updatePermissionStatus);
 

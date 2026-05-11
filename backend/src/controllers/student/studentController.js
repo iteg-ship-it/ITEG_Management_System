@@ -671,6 +671,144 @@ exports.getExtraTasks = async (req, res) => {
   }
 };
 
+// ✅ Upload Extra Document (with remark)
+exports.uploadExtraDocument = async (req, res) => {
+  try {
+    const { title, fileData, fileType, remark } = req.body;
+    if (!title || !fileData || !fileType)
+      return res.status(400).json({ message: "title, fileData, and fileType are required" });
+    if (!["image", "pdf"].includes(fileType))
+      return res.status(400).json({ message: "fileType must be 'image' or 'pdf'" });
+
+    const student = await Student.findById(req.params.id);
+    if (!student) return res.status(404).json({ message: "Student not found" });
+
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+
+    const uploadResponse = await cloudinary.uploader.upload(fileData, {
+      folder: "student_extra_documents",
+      resource_type: fileType === "pdf" ? "raw" : "image",
+      public_id: `extradoc_${req.params.id}_${Date.now()}`,
+    });
+
+    const doc = {
+      title,
+      fileURL: uploadResponse.secure_url,
+      fileType,
+      remark: remark || "",
+      isExtra: true,
+      uploadedBy: req.user?._id || null,
+      uploadedByName: req.user?.name || "",
+      uploadedAt: new Date(),
+    };
+
+    student.documents.push(doc);
+    await student.save();
+    return res.status(201).json({ message: "Extra document uploaded successfully", data: doc });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ✅ Get Extra Documents
+exports.getExtraDocuments = async (req, res) => {
+  try {
+    const student = await Student.findById(req.params.id).select("documents");
+    if (!student) return res.status(404).json({ message: "Student not found" });
+    const extraDocs = student.documents.filter(d => d.isExtra === true);
+    return res.status(200).json({ count: extraDocs.length, data: extraDocs });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ✅ Apply for Permission (student-initiated flow)
+exports.applyPermission = async (req, res) => {
+  try {
+    const { reason, fromDate, toDate, imageURL } = req.body;
+    if (!reason || !fromDate || !toDate)
+      return res.status(400).json({ message: "reason, fromDate, toDate are required" });
+
+    const student = await Student.findById(req.params.id);
+    if (!student) return res.status(404).json({ message: "Student not found" });
+
+    let uploadedImageURL = "";
+    if (imageURL) {
+      cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+      });
+      const uploadResponse = await cloudinary.uploader.upload(imageURL, { folder: "permission_applications" });
+      uploadedImageURL = uploadResponse.secure_url;
+    }
+
+    const permission = {
+      imageURL: uploadedImageURL,
+      reason,
+      fromDate: new Date(fromDate),
+      toDate: new Date(toDate),
+      status: "pending",
+      uploadDate: new Date(),
+    };
+
+    student.permissions.push(permission);
+    await student.save();
+
+    return res.status(201).json({
+      message: "Permission applied successfully",
+      data: student.permissions[student.permissions.length - 1],
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ✅ Get Permission History
+exports.getPermissions = async (req, res) => {
+  try {
+    const student = await Student.findById(req.params.id).select("permissions");
+    if (!student) return res.status(404).json({ message: "Student not found" });
+    return res.status(200).json({
+      count: student.permissions.length,
+      data: student.permissions.sort((a, b) => new Date(b.uploadDate) - new Date(a.uploadDate)),
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ✅ Approve / Reject Permission
+exports.resolvePermission = async (req, res) => {
+  try {
+    const { status, remark } = req.body;
+    if (!["approved", "rejected"].includes(status))
+      return res.status(400).json({ message: "status must be 'approved' or 'rejected'" });
+
+    const student = await Student.findById(req.params.id);
+    if (!student) return res.status(404).json({ message: "Student not found" });
+
+    const permission = student.permissions.id(req.params.permissionId);
+    if (!permission) return res.status(404).json({ message: "Permission not found" });
+    if (permission.status !== "pending")
+      return res.status(400).json({ message: "Permission already resolved" });
+
+    permission.status = status;
+    permission.remark = remark || "";
+    permission.approvedBy = req.user?.name || "";
+    permission.approvedAt = new Date();
+
+    await student.save();
+    return res.status(200).json({ message: `Permission ${status}`, data: permission });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 // ✅ Get Student Dashboard Stats (department-aware)
 exports.getStudentStats = async (req, res) => {
   try {

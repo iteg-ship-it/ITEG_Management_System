@@ -306,6 +306,45 @@ export const authApi = createApi({
       providesTags: (result, error, id) => [{ type: 'Student', id }],
     }),
 
+    // Extra Documents
+    uploadExtraDocument: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `/students/${id}/extra-documents`,
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: 'Student', id }],
+    }),
+
+    getExtraDocuments: builder.query({
+      query: (id) => ({ url: `/students/${id}/extra-documents`, method: 'GET' }),
+      providesTags: (result, error, id) => [{ type: 'Student', id }],
+    }),
+
+    // Permissions (history-based)
+    applyPermission: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `/students/${id}/permissions`,
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: 'Student', id }],
+    }),
+
+    getPermissions: builder.query({
+      query: (id) => ({ url: `/students/${id}/permissions`, method: 'GET' }),
+      providesTags: (result, error, id) => [{ type: 'Student', id }],
+    }),
+
+    resolvePermission: builder.mutation({
+      query: ({ id, permissionId, status, remark }) => ({
+        url: `/students/${id}/permissions/${permissionId}/resolve`,
+        method: 'PATCH',
+        body: { status, remark },
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: 'Student', id }],
+    }),
+
     getNewReadyStudents: builder.query({
       query: () => ({ url: '/students/Ready_Students', method: 'GET' }),
       providesTags: ['PlacementStudent'],
@@ -1434,6 +1473,11 @@ export const {
   useUpdatePlacementReadinessMutation,
   useAssignExtraTaskMutation,
   useGetExtraTasksQuery,
+  useUploadExtraDocumentMutation,
+  useGetExtraDocumentsQuery,
+  useApplyPermissionMutation,
+  useGetPermissionsQuery,
+  useResolvePermissionMutation,
   useGetNewReadyStudentsQuery,
   useGetNewPlacedStudentsQuery,
   useGetNewSelectedStudentsQuery,

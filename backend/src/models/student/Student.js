@@ -1,19 +1,19 @@
 const mongoose = require("mongoose");
 
 const permissionSchema = new mongoose.Schema({
-  imageURL: { type: String, required: true },
+  imageURL: { type: String, default: "" },
   remark: { type: String, default: "" },
+  reason: { type: String, default: "" },
+  fromDate: { type: Date, default: null },
+  toDate: { type: Date, default: null },
   status: {
     type: String,
     enum: ["pending", "approved", "rejected"],
     default: "pending"
   },
   uploadDate: { type: Date, default: Date.now },
-  approved_by: {
-    type: String,
-    enum: ["super admin", "admin", "faculty"],
-    required: true
-  }
+  approvedBy: { type: String, default: "" },
+  approvedAt: { type: Date, default: null }
 });
 
 const documentSchema = new mongoose.Schema({
@@ -24,6 +24,8 @@ const documentSchema = new mongoose.Schema({
     enum: ["image", "pdf"],
     required: true
   },
+  remark: { type: String, default: "" },
+  isExtra: { type: Boolean, default: false },
   uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   uploadedByName: { type: String, default: "" },
   uploadedAt: { type: Date, default: Date.now }
@@ -95,7 +97,10 @@ const studentSchema = new mongoose.Schema({
   // 🔒 Promotion Lock (prevents race condition on concurrent task updates)
   promotionPending: { type: Boolean, default: false },
 
-  // 🔐 Permission
+  // 🔐 Permissions (history array)
+  permissions: { type: [permissionSchema], default: [] },
+
+  // 🔐 Permission (legacy single — kept for backward compat)
   permissionDetails: { type: permissionSchema, default: null },
 
   // 📁 Student Documents (images & PDFs)
