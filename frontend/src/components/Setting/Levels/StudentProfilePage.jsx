@@ -20,10 +20,12 @@ import {
     usePromoteNewStudentMutation,
     useUpdateStudentByIdMutation,
     useUpdatePlacementReadinessMutation,
+    useUploadDocumentMutation,
+    useUploadExtraDocumentMutation,
     useMarkStudentDroppedMutation,
 } from "../../../redux/api/authApi";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// History helpers
 
 const ProgressBar = ({ label, value, color = "bg-blue-500" }) => (
     <div>
@@ -119,6 +121,35 @@ const formatStatus = (status) => {
     return status.charAt(0).toUpperCase() + status.slice(1);
 };
 
+const statusBadgeClass = (status = "") => {
+    const normalized = status.toLowerCase();
+    if (["approved", "completed", "selected", "joined", "placed", "ready"].includes(normalized)) {
+        return "bg-green-50 text-green-600";
+    }
+    if (["pending", "scheduled", "ongoing", "in progress", "ready for interview"].includes(normalized)) {
+        return "bg-blue-50 text-blue-600";
+    }
+    if (["rejected", "overdue", "not ready"].includes(normalized)) {
+        return "bg-red-50 text-red-600";
+    }
+    return "bg-gray-50 text-gray-600";
+};
+
+const openFile = (url) => {
+    if (!url) {
+        toast.info("No file available.");
+        return;
+    }
+    window.open(url, "_blank", "noopener,noreferrer");
+};
+
+const readUploadFile = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => resolve(event.target.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+});
+
 const activityStyle = (type) => {
     switch (type) {
         case "task":
@@ -176,7 +207,7 @@ const LevelJourneyBar = ({ items = [] }) => {
                                     state === "current" ? "bg-blue-50 border-blue-500 text-blue-600 shadow-[0_0_0_5px_rgba(37,99,235,0.10)]" :
                                     "bg-white border-gray-300 text-gray-400"
                                 }`}>
-                                    {state === "completed" ? <MdCheckCircle size={12} /> : state === "current" ? "•" : ""}
+                                    {state === "completed" ? <MdCheckCircle size={12} /> : ""}
                                 </div>
                                 <p className={`text-xs font-bold ${state === "current" ? "text-blue-600" : state === "completed" ? "text-gray-900" : "text-gray-500"}`}>
                                     {item.code}
@@ -224,7 +255,294 @@ const ModuleCard = ({ title, icon, summary, meta, action, accent = "blue", onCli
     );
 };
 
-// ── Shift to Ready Student Modal ──────────────────────────────────────────────────
+const ActivityIcon = ({ item }) => (
+    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${item.color}`}>
+        {item.icon === "task"       && <MdTableChart size={15} />}
+        {item.icon === "promote"    && <MdArrowUpward size={15} />}
+        {item.icon === "email"      && <MdEmail size={15} />}
+        {item.icon === "note"       && <MdAccessTime size={15} />}
+        {item.icon === "document"   && <MdSchool size={15} />}
+    </div>
+);
+
+const ActivityRow = ({ item }) => (
+    <div className="flex items-start gap-3 relative z-10">
+        <ActivityIcon item={item} />
+        <div className="flex-1 min-w-0">
+            <p className="text-xs font-bold text-gray-800">{item.title}</p>
+            {item.sub && <p className="text-[11px] text-gray-500 mt-0.5">{item.sub}</p>}
+            <p className="text-[10px] text-gray-400 mt-0.5">
+                {formatDateTime(item.time)}
+                {item.createdByName ? ` - ${item.createdByName}` : ""}
+            </p>
+        </div>
+    </div>
+);
+
+const FullStudentActivityModal = ({ isOpen, onClose, name, activityItems }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm">
+            <div className="flex max-h-[90vh] w-full max-w-3xl flex-col rounded-2xl bg-white shadow-2xl">
+                <div className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-5">
+                    <div>
+                        <h2 className="text-lg font-bold text-gray-900">Student Activity</h2>
+                        <p className="mt-1 text-xs font-medium text-gray-500">{name}</p>
+                    </div>
+                    <button onClick={onClose} className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700">
+                        <MdClose size={20} />
+                    </button>
+                </div>
+
+                <div className="flex items-center justify-between border-b border-gray-100 px-6 py-3">
+                    <p className="text-xs font-semibold text-gray-500">All logged lifecycle events</p>
+                    <span className="rounded-full bg-gray-50 px-2.5 py-1 text-[10px] font-bold text-gray-500">{activityItems.length} events</span>
+                </div>
+
+                <div className="flex-1 overflow-y-auto px-6 py-5">
+                    <div className="relative">
+                        <div className="absolute left-4 top-0 bottom-0 w-px bg-gray-100" />
+                        <div className="space-y-4 pr-1">
+                            {activityItems.length > 0 ? activityItems.map(item => (
+                                <ActivityRow key={item._id} item={item} />
+                            )) : (
+                                <div className="relative z-10 rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-10 text-center">
+                                    <p className="text-sm font-semibold text-gray-500">No student activity found yet.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const ProfileSectionModal = ({ isOpen, onClose, title, subtitle, countLabel, children, footer }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm">
+            <div className="flex max-h-[90vh] w-full max-w-3xl flex-col rounded-2xl bg-white shadow-2xl">
+                <div className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-5">
+                    <div>
+                        <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+                        {subtitle && <p className="mt-1 text-xs font-medium text-gray-500">{subtitle}</p>}
+                    </div>
+                    <button onClick={onClose} className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700">
+                        <MdClose size={20} />
+                    </button>
+                </div>
+
+                {countLabel && (
+                    <div className="flex items-center justify-between border-b border-gray-100 px-6 py-3">
+                        <p className="text-xs font-semibold text-gray-500">Summary-first view</p>
+                        <span className="rounded-full bg-gray-50 px-2.5 py-1 text-[10px] font-bold text-gray-500">{countLabel}</span>
+                    </div>
+                )}
+
+                <div className="flex-1 overflow-y-auto px-6 py-5">
+                    {children}
+                </div>
+
+                {footer && (
+                    <div className="border-t border-gray-100 px-6 py-4">
+                        {footer}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const EmptySectionState = ({ text }) => (
+    <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-10 text-center">
+        <p className="text-sm font-semibold text-gray-500">{text}</p>
+    </div>
+);
+
+const DocumentRow = ({ doc }) => (
+    <div className="flex items-start justify-between gap-4 rounded-xl border border-gray-100 bg-white px-4 py-3">
+        <div className="flex min-w-0 items-start gap-3">
+            <div className={`mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${
+                doc.fileType === "pdf" ? "bg-red-50 text-red-500" : "bg-blue-50 text-blue-600"
+            }`}>
+                <MdBadge size={16} />
+            </div>
+            <div className="min-w-0">
+                <p className="truncate text-sm font-bold text-gray-900">{doc.title || "Document"}</p>
+                <p className="mt-0.5 text-[11px] font-medium text-gray-500">
+                    {(doc.fileType || "file").toUpperCase()}{doc.uploadedAt ? ` - ${formatShortDate(doc.uploadedAt)}` : ""}
+                </p>
+                {doc.remark && <p className="mt-1 text-xs text-gray-500">{doc.remark}</p>}
+                {doc.uploadedByName && <p className="mt-1 text-[10px] font-semibold text-gray-400">Uploaded by {doc.uploadedByName}</p>}
+            </div>
+        </div>
+        <button
+            type="button"
+            onClick={() => openFile(doc.fileURL)}
+            className="flex-shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
+        >
+            Open
+        </button>
+    </div>
+);
+
+const DocumentUploadPanel = ({ type = "document", loading, onUpload }) => {
+    const isExtra = type === "extra";
+    const [title, setTitle] = useState("");
+    const [remark, setRemark] = useState("");
+    const [file, setFile] = useState(null);
+    const [fileError, setFileError] = useState("");
+
+    const handleFile = (event) => {
+        const selected = event.target.files?.[0];
+        if (!selected) return;
+
+        const isPdf = selected.type === "application/pdf";
+        const isImage = selected.type.startsWith("image/");
+        if (!isPdf && !isImage) {
+            setFile(null);
+            setFileError("Only image or PDF files are allowed.");
+            return;
+        }
+        if (selected.size > 5 * 1024 * 1024) {
+            setFile(null);
+            setFileError("File must be under 5 MB.");
+            return;
+        }
+
+        setFileError("");
+        setFile(selected);
+        if (!title.trim()) {
+            setTitle(selected.name.replace(/\.[^/.]+$/, ""));
+        }
+    };
+
+    const handleSubmit = async () => {
+        if (!title.trim()) {
+            toast.error("Document title is required");
+            return;
+        }
+        if (!file) {
+            toast.error("Please select a document file");
+            return;
+        }
+
+        try {
+            const fileData = await readUploadFile(file);
+            await onUpload({
+                title: title.trim(),
+                fileData,
+                fileType: file.type === "application/pdf" ? "pdf" : "image",
+                remark: isExtra ? remark.trim() : undefined,
+            });
+            setTitle("");
+            setRemark("");
+            setFile(null);
+            setFileError("");
+        } catch (error) {
+            setFileError(error?.data?.message || "Upload failed. Please try again.");
+        }
+    };
+
+    return (
+        <div className="rounded-2xl border border-dashed border-blue-200 bg-blue-50/40 p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                    <p className="text-sm font-bold text-gray-900">Add {isExtra ? "Extra Document" : "Document"}</p>
+                    <p className="mt-0.5 text-[11px] font-medium text-gray-500">Image or PDF, max 5 MB</p>
+                </div>
+                <MdArrowUpward size={18} className="text-blue-500" />
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div>
+                    <label className="mb-1 block text-xs font-semibold text-gray-600">Title</label>
+                    <input
+                        value={title}
+                        onChange={(event) => setTitle(event.target.value)}
+                        placeholder={isExtra ? "Resume, certificate..." : "Aadhar card, marksheet..."}
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
+                    />
+                </div>
+                <div>
+                    <label className="mb-1 block text-xs font-semibold text-gray-600">File</label>
+                    <input
+                        type="file"
+                        accept="image/*,application/pdf"
+                        onChange={handleFile}
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-gray-600 focus:border-blue-400 focus:outline-none"
+                    />
+                </div>
+                {isExtra && (
+                    <div className="sm:col-span-2">
+                        <label className="mb-1 block text-xs font-semibold text-gray-600">Remark</label>
+                        <textarea
+                            value={remark}
+                            onChange={(event) => setRemark(event.target.value)}
+                            rows={2}
+                            placeholder="Short context for this supporting file..."
+                            className="w-full resize-none rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
+                        />
+                    </div>
+                )}
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                <p className={`text-[11px] font-medium ${fileError ? "text-red-500" : "text-gray-500"}`}>
+                    {fileError || (file ? file.name : "No file selected")}
+                </p>
+                <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-blue-700 disabled:bg-blue-300"
+                >
+                    {loading ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <MdCheckCircle size={14} />}
+                    Upload
+                </button>
+            </div>
+        </div>
+    );
+};
+
+const DetailPill = ({ label, value }) => (
+    <div className="rounded-xl border border-gray-100 bg-gray-50 px-3 py-2">
+        <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">{label}</p>
+        <p className="mt-1 truncate text-xs font-semibold text-gray-800">{value || "N/A"}</p>
+    </div>
+);
+
+const PermissionRow = ({ item }) => (
+    <div className="rounded-xl border border-gray-100 bg-white px-4 py-3">
+        <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+                <p className="text-sm font-bold text-gray-900">{item.reason || "Permission request"}</p>
+                <p className="mt-1 text-[11px] font-medium text-gray-500">
+                    {formatShortDate(item.fromDate) || "Start date"} to {formatShortDate(item.toDate) || "End date"}
+                </p>
+            </div>
+            <span className={`flex-shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${statusBadgeClass(item.status)}`}>
+                {formatStatus(item.status)}
+            </span>
+        </div>
+        {(item.remark || item.approvedBy || item.imageURL) && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+                {item.remark && <span className="rounded-full bg-gray-50 px-2 py-1 text-[10px] font-semibold text-gray-500">{item.remark}</span>}
+                {item.approvedBy && <span className="rounded-full bg-green-50 px-2 py-1 text-[10px] font-semibold text-green-600">By {item.approvedBy}</span>}
+                {item.imageURL && (
+                    <button type="button" onClick={() => openFile(item.imageURL)} className="rounded-full bg-blue-50 px-2 py-1 text-[10px] font-semibold text-blue-600">
+                        Attachment
+                    </button>
+                )}
+            </div>
+        )}
+    </div>
+);
+
+// Shift to Ready Student Modal
 const ReadyStudentModal = ({ name, currentStatus, onConfirm, onCancel, loading }) => {
     const statuses = ["Not Ready", "In Progress", "Ready", "Ready for Interview"];
     const [selected, setSelected] = useState(currentStatus || "Ready");
@@ -263,7 +581,7 @@ const ReadyStudentModal = ({ name, currentStatus, onConfirm, onCancel, loading }
     );
 };
 
-// ── Edit Profile Modal ─────────────────────────────────────────────────────────────────
+// Edit Profile Modal
 const EditProfileModal = ({ raw, onConfirm, onCancel, loading }) => {
     const [form, setForm] = useState({
         firstName:     raw.firstName     || "",
@@ -323,7 +641,7 @@ const EditProfileModal = ({ raw, onConfirm, onCancel, loading }) => {
     );
 };
 
-// ── Mark Dropped Modal ─────────────────────────────────────────────────────────────────
+// Mark Dropped Modal
 const MarkDroppedModal = ({ name, onConfirm, onCancel, loading }) => {
     const [remark,   setRemark]   = useState("");
     const [fileData, setFileData] = useState(null);
@@ -409,7 +727,7 @@ const MarkDroppedModal = ({ name, onConfirm, onCancel, loading }) => {
     );
 };
 
-// ── Promote Modal ────────────────────────────────────────────────────────────
+// Promote Modal
 const PromoteModal = ({ name, onConfirm, onCancel, loading }) => {
     const [remark, setRemark] = useState("");
     return (
@@ -442,7 +760,7 @@ const PromoteModal = ({ name, onConfirm, onCancel, loading }) => {
     );
 };
 
-// ── Hero Section ──────────────────────────────────────────────────────────────
+// Helpers
 const taskStatusClass = (status) => {
     switch (status) {
         case "completed":
@@ -577,7 +895,7 @@ const FullLevelHistoryModal = ({
                                                         Task Status Changed
                                                     </span>
                                                     <span className={`rounded-full border px-2.5 py-1 text-[11px] font-bold ${taskStatusClass(event.status)}`}>
-                                                        {event.previousStatus ? `${formatStatus(event.previousStatus)} → ${formatStatus(event.status)}` : `Updated to ${formatStatus(event.status)}`}
+                                                        {event.previousStatus ? `${formatStatus(event.previousStatus)} -> ${formatStatus(event.status)}` : `Updated to ${formatStatus(event.status)}`}
                                                     </span>
                                                     {typeof event.marks === "number" && (
                                                         <span className="rounded-full border border-yellow-100 bg-yellow-50 px-2.5 py-1 text-[11px] font-bold text-yellow-700">
@@ -721,160 +1039,6 @@ const FullLevelHistoryModal = ({
     );
 };
 
-const HeroSection = ({ raw, name, initials, level, subdepartment, taskPct, overallPct, readinessStatus, goToTaskBoard, moreOpen, setMoreOpen, onPromote, onFtpToggle, ftpLoading, onReadyStudent, onViewReport, onEditProfile, onMarkDropped }) => (
-    <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
-        <div className="flex items-start gap-5">
-
-            {/* Avatar */}
-            <div className="relative flex-shrink-0">
-                {raw.image ? (
-                    <img src={raw.image} alt={name} className="w-20 h-20 rounded-full object-cover border-2 border-gray-200" />
-                ) : (
-                    <div className="w-20 h-20 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-2xl font-bold">{initials}</div>
-                )}
-                <span className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-green-400 border-2 border-white rounded-full" />
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 min-w-0">
-                {/* Name + Actions */}
-                <div className="flex items-start justify-between gap-4 mb-3">
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <h1 className="text-xl font-bold text-gray-900">{name}</h1>
-                            <MdVerified size={20} className="text-blue-500" />
-                            {raw.isFTP && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-600">FTP</span>}
-                        </div>
-                        <p className="text-sm font-semibold text-blue-600 mt-0.5">
-                            {raw.course || "BCA"}
-                            <span className="text-gray-400 font-normal mx-1.5">•</span>
-                            {level?.name || "Level 1"}
-                            <span className="text-gray-400 font-normal mx-1.5">•</span>
-                            {subdepartment?.name || "Sub Dept"}
-                        </p>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                        <button onClick={onPromote}
-                            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold border border-green-500 text-green-600 hover:bg-green-50 rounded-lg transition">
-                            <MdArrowUpward size={13} /> Promote
-                        </button>
-                        <button onClick={onFtpToggle} disabled={ftpLoading}
-                            className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition border ${
-                                raw.isFTP
-                                    ? "border-red-300 text-red-500 hover:bg-red-50"
-                                    : "border-blue-400 text-blue-600 hover:bg-blue-50"
-                            }`}>
-                            <MdArrowUpward size={13} /> {raw.isFTP ? "Remove FTP" : "FTP Shift"}
-                        </button>
-                        <button onClick={goToTaskBoard}
-                            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold border border-purple-400 text-purple-600 hover:bg-purple-50 rounded-lg transition">
-                            <MdTableChart size={13} /> Assign Task
-                        </button>
-                        <div className="relative">
-                            <button onClick={() => setMoreOpen(p => !p)}
-                                className="flex items-center gap-1 px-3.5 py-1.5 text-xs font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg transition">
-                                More <MdMoreVert size={13} />
-                            </button>
-                            {moreOpen && (
-                                <>
-                                    <div className="fixed inset-0 z-10" onClick={() => setMoreOpen(false)} />
-                                    <div className="absolute right-0 top-9 z-20 bg-white border border-gray-100 rounded-xl shadow-lg w-48 py-1">
-                                            <button onClick={onReadyStudent} className="w-full text-left px-4 py-2 text-xs text-blue-600 font-semibold hover:bg-blue-50 transition">Shift to Ready Student</button>
-                                            <button onClick={onViewReport}   className="w-full text-left px-4 py-2 text-xs text-gray-600 hover:bg-gray-50 transition">View Report Card</button>
-                                            <button onClick={onEditProfile}  className="w-full text-left px-4 py-2 text-xs text-gray-600 hover:bg-gray-50 transition">Edit Profile</button>
-                                            <div className="border-t border-gray-100 my-1" />
-                                            <button onClick={onMarkDropped}  className="w-full text-left px-4 py-2 text-xs text-red-500 font-semibold hover:bg-red-50 transition">Mark Dropped</button>
-                                        </div>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Details: LEFT | CENTER | RIGHT */}
-                <div className="flex items-start gap-5">
-
-                    {/* LEFT */}
-                    <div className="space-y-2 min-w-[155px]">
-                        <div>
-                            <p className="text-[10px] text-gray-400 flex items-center gap-1 mb-0.5"><MdBadge size={10} /> PR Key</p>
-                            <p className="text-xs font-bold text-gray-800">{raw.prkey || "—"}</p>
-                        </div>
-                        <div>
-                            <p className="text-[10px] text-gray-400 flex items-center gap-1 mb-0.5"><MdEmail size={10} /> Email</p>
-                            <p className="text-xs font-bold text-gray-800">{raw.email || "—"}</p>
-                        </div>
-                        <div>
-                            <p className="text-[10px] text-gray-400 flex items-center gap-1 mb-0.5"><MdPhone size={10} /> Mobile</p>
-                            <p className="text-xs font-bold text-gray-800">{raw.studentMobile || "—"}</p>
-                        </div>
-                    </div>
-
-                    <div className="w-px self-stretch bg-gray-100" />
-
-                    {/* CENTER */}
-                    <div className="space-y-2 min-w-[195px]">
-                        <div>
-                            <p className="text-[10px] text-gray-400 flex items-center gap-1 mb-0.5"><MdBusiness size={10} /> Department</p>
-                            <p className="text-xs font-bold text-gray-800">{raw.subDepartmentId?.departmentId?.name || "ITEG"}</p>
-                        </div>
-                        <div>
-                            <p className="text-[10px] text-gray-400 flex items-center gap-1 mb-0.5"><MdAccountTree size={10} /> Sub Department</p>
-                            <p className="text-xs font-bold text-gray-800">{subdepartment?.name || raw.subDepartmentId?.name || "—"}</p>
-                        </div>
-                        <div>
-                            <p className="text-[10px] text-gray-400 flex items-center gap-1 mb-0.5"><MdCalendarToday size={10} /> Session</p>
-                            <p className="text-xs font-bold text-gray-800">
-                                {raw.sessionId?.name || "—"} <span className="text-green-500">(Active)</span>
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="w-px self-stretch bg-gray-100" />
-
-                    {/* RIGHT: Status Mini Cards */}
-                    <div className="flex items-stretch gap-3 flex-1">
-                        <div className="flex-1 flex flex-col items-center justify-center text-center p-3 border border-gray-100 rounded-xl">
-                            <p className="text-[10px] text-gray-400 mb-1.5">Placement Ready</p>
-                            <div className={`flex items-center gap-1 font-bold text-xs ${
-                                readinessStatus === "Ready for Interview" ? "text-green-600" :
-                                readinessStatus === "Ready"               ? "text-blue-600"  :
-                                readinessStatus === "In Progress"         ? "text-orange-500" :
-                                "text-gray-400"
-                            }`}>
-                                <MdCheckCircle size={13} />
-                                {readinessStatus}
-                            </div>
-                        </div>
-
-                        <div className="flex-1 flex flex-col items-center justify-center text-center p-3 border border-gray-100 rounded-xl">
-                            <p className="text-[10px] text-gray-400 mb-1.5">Attendance (This Month)</p>
-                            <div className="flex items-center gap-1 text-blue-600 font-bold text-sm">
-                                <MdSchool size={15} /> —
-                            </div>
-                        </div>
-
-                        <div className="flex-1 flex flex-col items-center justify-center text-center p-3 border border-gray-100 rounded-xl">
-                            <p className="text-[10px] text-gray-400 mb-1.5">Overall Progress</p>
-                            <div className="relative w-12 h-12">
-                                <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                                    <circle cx="18" cy="18" r="14" fill="none" stroke="#e5e7eb" strokeWidth="3.5" />
-                                    <circle cx="18" cy="18" r="14" fill="none" stroke="#6366f1" strokeWidth="3.5"
-                                        strokeDasharray={`${overallPct * 0.879} 87.9`} strokeLinecap="round" />
-                                </svg>
-                                <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-700">{overallPct}%</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-);
-
-// ── Main Page ─────────────────────────────────────────────────────────────────
 const MissionHeroSection = ({ raw, name, initials, level, subdepartment, readinessStatus, taskRating, goToTaskBoard, moreOpen, setMoreOpen, onPromote, onFtpToggle, ftpLoading, onReadyStudent, onViewReport, onEditProfile, onMarkDropped }) => (
     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
         <div className="flex flex-col xl:flex-row xl:items-start gap-5">
@@ -897,9 +1061,9 @@ const MissionHeroSection = ({ raw, name, initials, level, subdepartment, readine
                         </div>
                         <p className="text-sm font-semibold text-blue-600 mt-1">
                             {raw.course || "BCA"}
-                            <span className="text-gray-400 font-normal mx-1.5">•</span>
+                            <span className="text-gray-400 font-normal mx-1.5">/</span>
                             {level?.name || raw.currentLevelId?.name || "Level"}
-                            <span className="text-gray-400 font-normal mx-1.5">•</span>
+                            <span className="text-gray-400 font-normal mx-1.5">/</span>
                             {subdepartment?.name || raw.subDepartmentId?.name || "Sub Dept"}
                         </p>
                     </div>
@@ -939,15 +1103,15 @@ const MissionHeroSection = ({ raw, name, initials, level, subdepartment, readine
                     <div className="space-y-2">
                         <div>
                             <p className="text-[10px] text-gray-400 flex items-center gap-1 mb-0.5"><MdBadge size={10} /> PR Key</p>
-                            <p className="text-xs font-bold text-gray-800">{raw.prkey || "—"}</p>
+                            <p className="text-xs font-bold text-gray-800">{raw.prkey || "N/A"}</p>
                         </div>
                         <div>
                             <p className="text-[10px] text-gray-400 flex items-center gap-1 mb-0.5"><MdEmail size={10} /> Email</p>
-                            <p className="text-xs font-bold text-gray-800">{raw.email || "—"}</p>
+                            <p className="text-xs font-bold text-gray-800">{raw.email || "N/A"}</p>
                         </div>
                         <div>
                             <p className="text-[10px] text-gray-400 flex items-center gap-1 mb-0.5"><MdPhone size={10} /> Mobile</p>
-                            <p className="text-xs font-bold text-gray-800">{raw.studentMobile || "—"}</p>
+                            <p className="text-xs font-bold text-gray-800">{raw.studentMobile || "N/A"}</p>
                         </div>
                     </div>
 
@@ -958,11 +1122,11 @@ const MissionHeroSection = ({ raw, name, initials, level, subdepartment, readine
                         </div>
                         <div>
                             <p className="text-[10px] text-gray-400 flex items-center gap-1 mb-0.5"><MdAccountTree size={10} /> Sub Department</p>
-                            <p className="text-xs font-bold text-gray-800">{subdepartment?.name || raw.subDepartmentId?.name || "—"}</p>
+                            <p className="text-xs font-bold text-gray-800">{subdepartment?.name || raw.subDepartmentId?.name || "N/A"}</p>
                         </div>
                         <div>
                             <p className="text-[10px] text-gray-400 flex items-center gap-1 mb-0.5"><MdCalendarToday size={10} /> Session</p>
-                            <p className="text-xs font-bold text-gray-800">{raw.sessionId?.name || "—"} <span className="text-green-500">(Active)</span></p>
+                            <p className="text-xs font-bold text-gray-800">{raw.sessionId?.name || "N/A"} <span className="text-green-500">(Active)</span></p>
                         </div>
                     </div>
 
@@ -981,17 +1145,27 @@ const MissionHeroSection = ({ raw, name, initials, level, subdepartment, readine
 
                         <HeroMetricCard title="Attendance (This Month)">
                             <div className="flex items-center gap-1 text-blue-600 font-bold text-sm">
-                                <MdSchool size={15} /> —
+                                <MdSchool size={15} /> N/A
                             </div>
                         </HeroMetricCard>
 
                         <HeroMetricCard title="Taskwise Rating">
-                            <p className="text-2xl font-bold text-gray-900">{taskRating} <span className="text-base text-gray-400">/ 5</span></p>
-                            <div className="mt-1 flex items-center justify-center gap-0.5 text-yellow-400">
-                                {[1, 2, 3, 4].map(item => <MdStar key={item} size={16} />)}
-                                <MdStar size={16} className="text-gray-200" />
-                            </div>
-                            <span className="mt-2 inline-flex rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold text-green-600">Very Good</span>
+                            {taskRating === "N/A" ? (
+                                <>
+                                    <p className="text-2xl font-bold text-gray-400">N/A</p>
+                                    <span className="mt-2 inline-flex rounded-full bg-gray-50 px-2 py-0.5 text-[10px] font-bold text-gray-500">Not rated</span>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="text-2xl font-bold text-gray-900">{taskRating} <span className="text-base text-gray-400">/ 5</span></p>
+                                    <div className="mt-1 flex items-center justify-center gap-0.5 text-yellow-400">
+                                        {[1, 2, 3, 4, 5].map(item => (
+                                            <MdStar key={item} size={16} className={item <= Math.round(Number(taskRating)) ? "" : "text-gray-200"} />
+                                        ))}
+                                    </div>
+                                    <span className="mt-2 inline-flex rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold text-green-600">Rated</span>
+                                </>
+                            )}
                         </HeroMetricCard>
                     </div>
                 </div>
@@ -1013,6 +1187,8 @@ const StudentProfilePage = () => {
     const [editModal,     setEditModal]     = useState(false);
     const [dropModal,     setDropModal]     = useState(false);
     const [historyModal,  setHistoryModal]  = useState(false);
+    const [activityModal, setActivityModal] = useState(false);
+    const [sectionModal,  setSectionModal]  = useState(null);
     const [ftpLoading,    setFtpLoading]    = useState(false);
     const [readyLoading,  setReadyLoading]  = useState(false);
     const [editLoading,   setEditLoading]   = useState(false);
@@ -1021,6 +1197,8 @@ const StudentProfilePage = () => {
     const [promoteStudent,          { isLoading: promoting }]  = usePromoteNewStudentMutation();
     const [updateStudent]                                       = useUpdateStudentByIdMutation();
     const [updatePlacementReadiness]                            = useUpdatePlacementReadinessMutation();
+    const [uploadDocument,          { isLoading: uploadingDocument }] = useUploadDocumentMutation();
+    const [uploadExtraDocument,     { isLoading: uploadingExtraDocument }] = useUploadExtraDocumentMutation();
     const [markStudentDropped]                                  = useMarkStudentDroppedMutation();
 
     const { data: taskData } = useGetNewStudentTasksQuery(
@@ -1048,7 +1226,7 @@ const StudentProfilePage = () => {
     );
 
     const { data: activityResponse } = useGetStudentActivityQuery(
-        { id: studentId, limit: 20 },
+        { id: studentId, limit: 100 },
         { skip: !studentId }
     );
 
@@ -1089,10 +1267,8 @@ const StudentProfilePage = () => {
     const totalTasks     = taskData?.totalTasks     || 0;
     const completedTasks = taskData?.completedTasks || 0;
     const pendingTasks   = taskData?.pendingTasks   || 0;
+    const overdueTasks   = taskData?.overdueTasks   || taskData?.overDueTasks || 0;
     const taskPct        = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-
-    // Overall progress across ALL tasks (from backend)
-    const overallPct = raw.overallProgress?.percentage ?? taskPct;
 
     const subjectGroups = taskData?.groupedBySubject || {};
     const subjects = Object.entries(subjectGroups).map(([sName, group]) => {
@@ -1104,26 +1280,11 @@ const StudentProfilePage = () => {
     const evaluatedTasks = allSubjectTasks.filter(t => typeof t.marks === "number");
     const averageMarks = evaluatedTasks.length > 0
         ? (evaluatedTasks.reduce((sum, t) => sum + t.marks, 0) / evaluatedTasks.length).toFixed(1)
-        : "4.0";
+        : "N/A";
     const taskRating = averageMarks;
     const currentSubLevelName = raw.currentSubLevelId?.name || level?.currentSubLevelName || "Current Sub Level";
     const snapshots = progressSnapshotsResponse?.data || [];
     const taskHistory = taskHistoryResponse?.data || [];
-    const activityItems = (activityResponse?.data || []).map((item) => {
-        const style = activityStyle(item.type);
-        const meta = item.meta || {};
-        const sub = item.description ||
-            (item.type === "task" && meta.status ? `Status: ${formatStatus(meta.status)}` : "") ||
-            (item.type === "promotion" && meta.tasksAssigned !== undefined ? `${meta.tasksAssigned} tasks assigned` : "");
-
-        return {
-            ...item,
-            icon: style.icon,
-            color: style.color,
-            sub,
-            time: item.createdAt,
-        };
-    });
     const completedLevelSnapshots = snapshots
         .filter(item => item.snapshotScope === "overall")
         .sort((a, b) => new Date(b.changedAt || b.createdAt) - new Date(a.changedAt || a.createdAt));
@@ -1173,6 +1334,37 @@ const StudentProfilePage = () => {
             const levelDiff = (levelOrderMap.get(getId(a.levelId)) || 0) - (levelOrderMap.get(getId(b.levelId)) || 0);
             return levelDiff || ((a.order || 0) - (b.order || 0));
         });
+    const subLevelNameMap = new Map(subLevels.map(item => [getId(item), item.name || "Sub Level"]));
+    if (currentSubLevelId) {
+        subLevelNameMap.set(currentSubLevelId, currentSubLevelName);
+    }
+    const getSubLevelName = (value, fallback = "Sub Level") => {
+        const id = getId(value);
+        return subLevelNameMap.get(id) || value?.name || fallback;
+    };
+    const activityItems = (activityResponse?.data || []).map((item) => {
+        const style = activityStyle(item.type);
+        const meta = item.meta || {};
+        const prevSubLevelName = getSubLevelName(meta.prevSubLevelId, "Previous Sub Level");
+        const newSubLevelName = getSubLevelName(meta.newSubLevelId, "New Sub Level");
+        const promotionSub = item.type === "promotion"
+            ? [
+                meta.prevSubLevelId || meta.newSubLevelId ? `${prevSubLevelName} to ${newSubLevelName}` : "",
+                meta.tasksAssigned !== undefined ? `${meta.tasksAssigned} tasks assigned` : "",
+            ].filter(Boolean).join(" - ")
+            : "";
+        const sub = promotionSub ||
+            item.description ||
+            (item.type === "task" && meta.status ? `Status: ${formatStatus(meta.status)}` : "");
+
+        return {
+            ...item,
+            icon: style.icon,
+            color: style.color,
+            sub,
+            time: item.createdAt,
+        };
+    });
     const journeyItems = (subLevels.length > 0 ? subLevels : [{
         _id: currentSubLevelId,
         name: currentSubLevelName,
@@ -1221,13 +1413,27 @@ const StudentProfilePage = () => {
     const documents = Array.isArray(raw.documents) ? raw.documents : [];
     const regularDocs = documents.filter(doc => !doc.isExtra);
     const extraDocs = documents.filter(doc => doc.isExtra);
-    const permissionHistory = Array.isArray(raw.permissions) ? raw.permissions : [];
+    const permissionHistory = (Array.isArray(raw.permissions) ? raw.permissions : [])
+        .slice()
+        .sort((a, b) => getTime(b.uploadDate || b.createdAt) - getTime(a.uploadDate || a.createdAt));
     const pendingPermissions = permissionHistory.filter(item => item.status === "pending").length;
     const latestPermissionStatus = pendingPermissions > 0
         ? "Pending"
         : permissionHistory[0]?.status
             ? permissionHistory[0].status
             : "No Active";
+    const placement = raw.placement || {};
+    const interviewRecords = (placement.PlacementinterviewRecord || [])
+        .slice()
+        .sort((a, b) => getTime(b.rescheduleDate || b.scheduleDate || b.createdAt) - getTime(a.rescheduleDate || a.scheduleDate || a.createdAt));
+    const latestInterview = interviewRecords[0];
+    const placedInfo = placement.placedInfo || {};
+    const latestInterviewCompany = latestInterview?.companyName || latestInterview?.companyRef?.name || latestInterview?.companyRef?.companyName || "";
+    const latestInterviewDate = latestInterview?.rescheduleDate || latestInterview?.scheduleDate;
+    const placementCompany = placedInfo.companyName || latestInterviewCompany || "No company assigned";
+    const placementRole = placedInfo.jobProfile || latestInterview?.jobProfile || latestInterview?.position || "";
+    const placementDocumentsCount = [placement.resumeURL, placement.offerLetter, placement.commitmentApplication, placedInfo.offerLetterURL, placedInfo.applicationURL]
+        .filter(Boolean).length;
 
     const goToTaskBoard = () => {
         if (level || subdepartment) {
@@ -1237,7 +1443,7 @@ const StudentProfilePage = () => {
         navigate(`/student/${raw._id}/task-list`);
     };
 
-    // ── Promote handler ──
+    // Promote handler
     const handlePromote = async (remark) => {
         try {
             await promoteStudent(raw._id).unwrap();
@@ -1249,7 +1455,7 @@ const StudentProfilePage = () => {
         }
     };
 
-    // ── FTP toggle handler ──
+    // FTP toggle handler
     const handleFtpToggle = async () => {
         setFtpLoading(true);
         try {
@@ -1263,7 +1469,7 @@ const StudentProfilePage = () => {
         }
     };
 
-    // ── Readiness handler ──
+    // Readiness handler
     const handleReadiness = async (readinessStatus) => {
         setReadyLoading(true);
         try {
@@ -1277,7 +1483,7 @@ const StudentProfilePage = () => {
         }
     };
 
-    // ── Edit profile handler ──
+    // Edit profile handler
     const handleEditProfile = async (form) => {
         setEditLoading(true);
         try {
@@ -1292,7 +1498,7 @@ const StudentProfilePage = () => {
         }
     };
 
-    // ── Mark dropped handler ──
+    // Mark dropped handler
     const handleMarkDropped = async ({ remark, fileData, fileType }) => {
         setDropLoading(true);
         try {
@@ -1304,6 +1510,26 @@ const StudentProfilePage = () => {
             toast.error(err?.data?.message || "Update failed");
         } finally {
             setDropLoading(false);
+        }
+    };
+
+    const handleDocumentUpload = async (payload) => {
+        try {
+            await uploadDocument({ id: raw._id, ...payload }).unwrap();
+            toast.success("Document uploaded successfully");
+        } catch (err) {
+            toast.error(err?.data?.message || "Document upload failed");
+            throw err;
+        }
+    };
+
+    const handleExtraDocumentUpload = async (payload) => {
+        try {
+            await uploadExtraDocument({ id: raw._id, ...payload }).unwrap();
+            toast.success("Extra document uploaded successfully");
+        } catch (err) {
+            toast.error(err?.data?.message || "Extra document upload failed");
+            throw err;
         }
     };
 
@@ -1336,6 +1562,165 @@ const StudentProfilePage = () => {
                 currentSubjectGroups={subjectGroups}
                 taskHistoryEvents={taskHistoryEvents}
             />
+            <FullStudentActivityModal
+                isOpen={activityModal}
+                onClose={() => setActivityModal(false)}
+                name={name}
+                activityItems={activityItems}
+            />
+            <ProfileSectionModal
+                isOpen={sectionModal === "documents"}
+                onClose={() => setSectionModal(null)}
+                title="Documents"
+                subtitle={name}
+                countLabel={`${regularDocs.length} core file${regularDocs.length === 1 ? "" : "s"}`}
+                footer={(
+                    <div className="flex justify-end">
+                        <button
+                            type="button"
+                            onClick={() => setSectionModal(null)}
+                            className="rounded-xl bg-gray-100 px-4 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-200"
+                        >
+                            Close
+                        </button>
+                    </div>
+                )}
+            >
+                <div className="space-y-3">
+                    <DocumentUploadPanel
+                        type="document"
+                        loading={uploadingDocument}
+                        onUpload={handleDocumentUpload}
+                    />
+                    {regularDocs.length > 0 ? regularDocs.map(doc => (
+                        <DocumentRow key={doc._id || doc.fileURL || doc.title} doc={doc} />
+                    )) : (
+                        <EmptySectionState text="No core documents uploaded yet." />
+                    )}
+                </div>
+            </ProfileSectionModal>
+            <ProfileSectionModal
+                isOpen={sectionModal === "extraDocuments"}
+                onClose={() => setSectionModal(null)}
+                title="Extra Documents"
+                subtitle={name}
+                countLabel={`${extraDocs.length} supporting file${extraDocs.length === 1 ? "" : "s"}`}
+                footer={(
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <p className="text-xs font-medium text-gray-500">Extra documents are saved as supporting profile files.</p>
+                        <button
+                            type="button"
+                            onClick={() => setSectionModal(null)}
+                            className="rounded-xl bg-gray-100 px-4 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-200"
+                        >
+                            Close
+                        </button>
+                    </div>
+                )}
+            >
+                <div className="space-y-3">
+                    <DocumentUploadPanel
+                        type="extra"
+                        loading={uploadingExtraDocument}
+                        onUpload={handleExtraDocumentUpload}
+                    />
+                    {extraDocs.length > 0 ? extraDocs.map(doc => (
+                        <DocumentRow key={doc._id || doc.fileURL || doc.title} doc={doc} />
+                    )) : (
+                        <EmptySectionState text="No extra documents uploaded yet." />
+                    )}
+                </div>
+            </ProfileSectionModal>
+            <ProfileSectionModal
+                isOpen={sectionModal === "placement"}
+                onClose={() => setSectionModal(null)}
+                title="Placement"
+                subtitle={name}
+                countLabel={`${interviewRecords.length} interview record${interviewRecords.length === 1 ? "" : "s"}`}
+                footer={(
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <button
+                            type="button"
+                            onClick={() => { setSectionModal(null); setReadyModal(true); }}
+                            className="rounded-xl border border-blue-200 px-4 py-2 text-xs font-semibold text-blue-600 transition hover:bg-blue-50"
+                        >
+                            Update Readiness
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => { setSectionModal(null); navigate("/readiness-status"); }}
+                            className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-blue-700"
+                        >
+                            Open Placement Module
+                        </button>
+                    </div>
+                )}
+            >
+                <div className="space-y-4">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                        <DetailPill label="Readiness" value={readinessStatus} />
+                        <DetailPill label="Company" value={placementCompany} />
+                        <DetailPill label="Role" value={placementRole || "Not assigned"} />
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                        <DetailPill label="Stage" value={placedInfo.companyName ? "Placed" : latestInterview?.status || readinessStatus} />
+                        <DetailPill label="Latest Interview" value={latestInterviewDate ? formatShortDate(latestInterviewDate) : "Not scheduled"} />
+                        <DetailPill label="Documents" value={`${placementDocumentsCount} ready`} />
+                    </div>
+
+                    {placedInfo.companyName ? (
+                        <div className="rounded-xl border border-green-100 bg-green-50 px-4 py-3">
+                            <p className="text-sm font-bold text-green-700">Placed at {placedInfo.companyName}</p>
+                            <p className="mt-1 text-xs text-green-600">
+                                {[placedInfo.jobProfile, placedInfo.jobType, placedInfo.location].filter(Boolean).join(" - ") || "Placement details available"}
+                            </p>
+                            {placedInfo.joiningDate && <p className="mt-1 text-[11px] font-semibold text-green-600">Joining: {formatShortDate(placedInfo.joiningDate)}</p>}
+                        </div>
+                    ) : latestInterview ? (
+                        <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
+                            <div className="flex items-start justify-between gap-3">
+                                <div>
+                                    <p className="text-sm font-bold text-blue-700">{latestInterviewCompany || "Interview scheduled"}</p>
+                                    <p className="mt-1 text-xs text-blue-600">{latestInterview.status || "Scheduled"}{latestInterviewDate ? ` - ${formatShortDate(latestInterviewDate)}` : ""}</p>
+                                </div>
+                                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${statusBadgeClass(latestInterview.status)}`}>
+                                    {formatStatus(latestInterview.status)}
+                                </span>
+                            </div>
+                        </div>
+                    ) : (
+                        <EmptySectionState text="No placement interview activity yet." />
+                    )}
+                </div>
+            </ProfileSectionModal>
+            <ProfileSectionModal
+                isOpen={sectionModal === "permissions"}
+                onClose={() => setSectionModal(null)}
+                title="Permissions"
+                subtitle={name}
+                countLabel={`${permissionHistory.length} request${permissionHistory.length === 1 ? "" : "s"}`}
+                footer={(
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <p className="text-xs font-medium text-gray-500">Approvals and full workflow remain in the permission module.</p>
+                        <button
+                            type="button"
+                            onClick={() => { setSectionModal(null); navigate("/student-permission"); }}
+                            className="rounded-xl bg-orange-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-orange-600"
+                        >
+                            Open Permission Module
+                        </button>
+                    </div>
+                )}
+            >
+                <div className="space-y-3">
+                    {permissionHistory.length > 0 ? permissionHistory.map(item => (
+                        <PermissionRow key={item._id || `${item.reason}-${item.uploadDate}`} item={item} />
+                    )) : (
+                        <EmptySectionState text="No permission requests found yet." />
+                    )}
+                </div>
+            </ProfileSectionModal>
 
             <Header
                 showBack
@@ -1365,9 +1750,7 @@ const StudentProfilePage = () => {
                     onMarkDropped={() => { setMoreOpen(false); setDropModal(true); }}
                 />
 
-                {/* Sections will be added here one by one */}
-
-                {/* ── ROW 1: 6 STAT CARDS ─────────────────────────────────── */}
+                {/* Level journey */}
                 <LevelJourneyBar items={journeyItems} />
 
                 {/* Main Content Grid */}
@@ -1401,7 +1784,7 @@ const StudentProfilePage = () => {
                                 </svg>
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                                     <p className="text-[10px] text-gray-400">Total Tasks</p>
-                                    <p className="text-2xl font-bold text-gray-800">{totalTasks || 120}</p>
+                                    <p className="text-2xl font-bold text-gray-800">{totalTasks}</p>
                                 </div>
                             </div>
 
@@ -1409,13 +1792,7 @@ const StudentProfilePage = () => {
                             <div className="flex-1 min-w-0">
                                 <p className="text-xs font-bold text-gray-700">Subject Wise Progress</p>
                                 <div className="mt-2 space-y-2.5 max-h-32 overflow-y-auto pr-1">
-                                    {(subjects.length > 0 ? subjects : [
-                                        { name: "Data Structures", pct: 85 },
-                                        { name: "Web Development", pct: 72 },
-                                        { name: "Database Mgmt",   pct: 65 },
-                                        { name: "Soft. Engineering",pct: 60 },
-                                        { name: "AI",              pct: 50 },
-                                    ]).map(s => (
+                                    {subjects.length > 0 ? subjects.map(s => (
                                         <div key={s.name}>
                                             <div className="flex justify-between mb-1 gap-3">
                                                 <span className="text-[11px] text-gray-600 truncate">{s.name}</span>
@@ -1425,20 +1802,24 @@ const StudentProfilePage = () => {
                                                 <div className="h-1.5 rounded-full bg-blue-500" style={{ width: `${s.pct}%` }} />
                                             </div>
                                         </div>
-                                    ))}
+                                    )) : (
+                                        <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-3 py-5 text-center">
+                                            <p className="text-[11px] font-semibold text-gray-500">No subject progress available yet.</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
 
                         {/* Legend */}
                         <div className="flex items-center gap-4 pt-3 mt-3 border-t border-gray-100">
-                            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-green-500" /><span className="text-[11px] text-gray-600">Completed ({completedTasks || 82})</span></div>
-                            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-orange-500" /><span className="text-[11px] text-gray-600">Pending ({pendingTasks || 28})</span></div>
-                            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500" /><span className="text-[11px] text-gray-600">Overdue (0)</span></div>
+                            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-green-500" /><span className="text-[11px] text-gray-600">Completed ({completedTasks})</span></div>
+                            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-orange-500" /><span className="text-[11px] text-gray-600">Pending ({pendingTasks})</span></div>
+                            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500" /><span className="text-[11px] text-gray-600">Overdue ({overdueTasks})</span></div>
                         </div>
 
                         <button onClick={goToTaskBoard} className="mt-3 w-full py-2 text-xs font-semibold text-blue-600 border border-blue-200 rounded-xl hover:bg-blue-50 transition">
-                            View Task Board →
+                            View Task Board
                         </button>
                     </div>
 
@@ -1446,7 +1827,7 @@ const StudentProfilePage = () => {
                     <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-sm font-bold text-gray-800">Level History</h3>
-                            <button onClick={() => setHistoryModal(true)} className="text-xs font-semibold text-blue-600 hover:text-blue-700">View Full History →</button>
+                            <button onClick={() => setHistoryModal(true)} className="text-xs font-semibold text-blue-600 hover:text-blue-700">View Full History</button>
                         </div>
                         <div className="relative">
                             <div className="absolute left-[7px] top-2 bottom-2 w-px bg-gray-200" />
@@ -1462,7 +1843,7 @@ const StudentProfilePage = () => {
                                                 </p>
                                                 <p className="text-[11px] text-gray-400 mt-0.5">
                                                     {item.status === "current" ? "Current level" : "Completed"}{formatShortDate(item.date) ? ` on ${formatShortDate(item.date)}` : ""}
-                                                    {item.meta ? ` • ${item.meta}` : ""}
+                                                    {item.meta ? ` - ${item.meta}` : ""}
                                                 </p>
                                             </div>
                                             <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ml-2
@@ -1484,29 +1865,13 @@ const StudentProfilePage = () => {
                     <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-sm font-bold text-gray-800">Student Activity</h3>
-                            <button className="text-xs font-semibold text-blue-600 hover:text-blue-700">View All Activity →</button>
+                            <button onClick={() => setActivityModal(true)} className="text-xs font-semibold text-blue-600 hover:text-blue-700">View All Activity</button>
                         </div>
                         <div className="relative">
                             <div className="absolute left-4 top-0 bottom-0 w-px bg-gray-100" />
                             <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
                                 {activityItems.length > 0 ? activityItems.map((item) => (
-                                    <div key={item._id} className="flex items-start gap-3 relative z-10">
-                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${item.color}`}>
-                                            {item.icon === "task"       && <MdTableChart size={15} />}
-                                            {item.icon === "promote"    && <MdArrowUpward size={15} />}
-                                            {item.icon === "email"      && <MdEmail size={15} />}
-                                            {item.icon === "note"       && <MdAccessTime size={15} />}
-                                            {item.icon === "document"   && <MdSchool size={15} />}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-xs font-bold text-gray-800">{item.title}</p>
-                                            {item.sub && <p className="text-[11px] text-gray-500 mt-0.5">{item.sub}</p>}
-                                            <p className="text-[10px] text-gray-400 mt-0.5">
-                                                {formatDateTime(item.time)}
-                                                {item.createdByName ? ` � ${item.createdByName}` : ""}
-                                            </p>
-                                        </div>
-                                    </div>
+                                    <ActivityRow key={item._id} item={item} />
                                 )) : (
                                     <div className="relative z-10 rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center">
                                         <p className="text-xs font-semibold text-gray-500">No student activity found yet.</p>
@@ -1518,31 +1883,34 @@ const StudentProfilePage = () => {
 
                 </div>
 
-                {/* ── SECTION 5: Documents | Extra Docs | Permissions | Placement Overview ── */}
+                {/* Compact module entry points */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 pb-6">
                     <ModuleCard
                         title="Documents"
                         icon={<MdBadge size={18} />}
-                        summary={`${regularDocs.length || 4} core documents`}
+                        summary={`${regularDocs.length} core document${regularDocs.length === 1 ? "" : "s"}`}
                         meta="ID, marksheets, admission files"
                         action="View"
                         accent="blue"
+                        onClick={() => setSectionModal("documents")}
                     />
                     <ModuleCard
                         title="Extra Documents"
                         icon={<MdSchool size={18} />}
-                        summary={`${extraDocs.length || 3} supporting files`}
+                        summary={`${extraDocs.length} supporting file${extraDocs.length === 1 ? "" : "s"}`}
                         meta="Resume, certificates, achievements"
                         action="Manage"
                         accent="green"
+                        onClick={() => setSectionModal("extraDocuments")}
                     />
                     <ModuleCard
                         title="Placement"
                         icon={<MdWork size={18} />}
                         summary={readinessStatus}
-                        meta={raw.placement?.placedInfo?.companyName || "No company assigned"}
+                        meta={placementCompany}
                         action="Open"
                         accent="purple"
+                        onClick={() => setSectionModal("placement")}
                     />
                     <ModuleCard
                         title="Permissions"
@@ -1551,137 +1919,9 @@ const StudentProfilePage = () => {
                         meta={latestPermissionStatus}
                         action="Review"
                         accent="orange"
+                        onClick={() => setSectionModal("permissions")}
                     />
                 </div>
-
-                <div className="hidden">
-
-                    {/* Documents */}
-                    <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-sm font-bold text-gray-800">Documents</h3>
-                            <button className="text-xs font-semibold text-blue-600 hover:text-blue-700">View All</button>
-                        </div>
-                        <div className="space-y-3">
-                            {[
-                                { name: "Aadhar Card",         size: "PDF • 1.2 MB", date: "20 Jan 2025" },
-                                { name: "10th Marksheet",      size: "PDF • 1.5 MB", date: "20 Jan 2025" },
-                                { name: "12th Marksheet",      size: "PDF • 1.3 MB", date: "20 Jan 2025" },
-                                { name: "BCA Admission Letter",size: "PDF • 1.1 MB", date: "20 Jan 2025" },
-                            ].map((doc, i) => (
-                                <div key={i} className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
-                                        <MdSchool size={15} className="text-red-500" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-xs font-semibold text-gray-800 truncate">{doc.name}</p>
-                                        <p className="text-[10px] text-gray-400">{doc.size}</p>
-                                    </div>
-                                    <span className="text-[10px] text-gray-400 flex-shrink-0">{doc.date}</span>
-                                </div>
-                            ))}
-                        </div>
-                        <button className="mt-4 w-full py-2 text-xs font-semibold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition flex items-center justify-center gap-1.5">
-                            <MdArrowUpward size={13} /> Upload Document
-                        </button>
-                    </div>
-
-                    {/* Extra Documents */}
-                    <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-sm font-bold text-gray-800">Extra Documents</h3>
-                            <button className="text-xs font-semibold text-blue-600 hover:text-blue-700">View All</button>
-                        </div>
-                        <div className="space-y-3">
-                            {[
-                                { name: "Resume",           size: "PDF • 2.4 MB", date: "15 Feb 2025" },
-                                { name: "Python Certificate",size: "PDF • 1.8 MB", date: "10 Feb 2025" },
-                                { name: "NCC Certificate",  size: "PDF • 1.2 MB", date: "05 Feb 2025" },
-                            ].map((doc, i) => (
-                                <div key={i} className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                                        <MdSchool size={15} className="text-blue-500" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-xs font-semibold text-gray-800 truncate">{doc.name}</p>
-                                        <p className="text-[10px] text-gray-400">{doc.size}</p>
-                                    </div>
-                                    <span className="text-[10px] text-gray-400 flex-shrink-0">{doc.date}</span>
-                                </div>
-                            ))}
-                        </div>
-                        <button className="mt-4 w-full py-2 text-xs font-semibold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition flex items-center justify-center gap-1.5">
-                            <MdArrowUpward size={13} /> Upload Extra Document
-                        </button>
-                    </div>
-
-                    {/* Permissions */}
-                    <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-sm font-bold text-gray-800">Permissions</h3>
-                            <button className="text-xs font-semibold text-blue-600 hover:text-blue-700">View All</button>
-                        </div>
-                        <div className="space-y-3">
-                            {/* Active permission */}
-                            <div className="border border-orange-100 rounded-xl p-3 bg-orange-50/40">
-                                <div className="flex items-center justify-between mb-2">
-                                    <p className="text-xs font-bold text-gray-800">Leave Application</p>
-                                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">Pending</span>
-                                </div>
-                                <p className="text-[10px] text-gray-500">From: <span className="font-semibold">20 May 2025</span> &nbsp; To: <span className="font-semibold">25 May 2025</span></p>
-                                <p className="text-[10px] text-gray-500 mt-0.5">Reason: Personal Work</p>
-                                <p className="text-[10px] text-gray-400 mt-0.5">Applied On: 18 May 2025</p>
-                            </div>
-                            {/* Past permissions */}
-                            {[
-                                { label: "Medical Leave",   status: "Approved", date: "05 Apr 2025" },
-                                { label: "Event Permission",status: "Approved", date: "12 Mar 2025" },
-                            ].map((p, i) => (
-                                <div key={i} className="flex items-center justify-between">
-                                    <p className="text-xs text-gray-700">{p.label}</p>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-[10px] font-semibold text-green-600">{p.status}</span>
-                                        <span className="text-[10px] text-gray-400">{p.date}</span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <button className="mt-4 w-full py-2 text-xs font-semibold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition">
-                            Apply for Permission
-                        </button>
-                    </div>
-
-                    {/* Placement Overview */}
-                    <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-sm font-bold text-gray-800">Placement Overview</h3>
-                            <button className="text-xs font-semibold text-blue-600 hover:text-blue-700">View All</button>
-                        </div>
-                        <div className="space-y-3">
-                            {[
-                                { label: "Current Status", value: "Interview Round 1", highlight: true },
-                                { label: "Company",        value: "TechNova Solutions" },
-                                { label: "Job Role",       value: "Software Developer" },
-                                { label: "Interview Date", value: "20 May 2025" },
-                                { label: "Rounds Completed", value: "0 / 3" },
-                            ].map((row, i) => (
-                                <div key={i} className="flex items-center justify-between">
-                                    <p className="text-[11px] text-gray-500">{row.label}</p>
-                                    {row.highlight ? (
-                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">{row.value}</span>
-                                    ) : (
-                                        <p className="text-xs font-semibold text-gray-800">{row.value}</p>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                        <button className="mt-4 w-full py-2 text-xs font-semibold text-white bg-blue-500 hover:bg-blue-600 rounded-xl transition">
-                            View Placement Details →
-                        </button>
-                    </div>
-
-                </div>
-
             </div>
         </>
     );

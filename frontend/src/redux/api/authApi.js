@@ -306,6 +306,16 @@ export const authApi = createApi({
       providesTags: (result, error, id) => [{ type: 'Student', id }],
     }),
 
+    // Student Documents
+    uploadDocument: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `/students/${id}/documents`,
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: 'Student', id }],
+    }),
+
     // Extra Documents
     uploadExtraDocument: builder.mutation({
       query: ({ id, ...data }) => ({
@@ -1525,6 +1535,7 @@ export const {
   useUpdatePlacementReadinessMutation,
   useAssignExtraTaskMutation,
   useGetExtraTasksQuery,
+  useUploadDocumentMutation,
   useUploadExtraDocumentMutation,
   useGetExtraDocumentsQuery,
   useApplyPermissionMutation,
