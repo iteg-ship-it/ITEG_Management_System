@@ -39,44 +39,6 @@ const ProgressBar = ({ label, value, color = "bg-blue-500" }) => (
     </div>
 );
 
-const StudentStatCard = ({ title, icon, value, subValue, badge, badgeClass = "bg-gray-50 text-gray-600", footer, children, onClick }) => {
-    const CardElement = onClick ? "button" : "div";
-
-    return (
-    <CardElement
-        type={onClick ? "button" : undefined}
-        onClick={onClick}
-        className={`group bg-white border border-gray-100 rounded-xl p-4 shadow-sm text-left transition ${
-            onClick ? "hover:border-blue-100 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-100" : ""
-        }`}
-    >
-        <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">{title}</p>
-                {value && <p className="mt-2 text-lg font-bold text-gray-900 truncate">{value}</p>}
-                {subValue && <p className="mt-0.5 text-[11px] font-medium text-gray-500 truncate">{subValue}</p>}
-            </div>
-            {icon && (
-                <div className="w-9 h-9 rounded-lg bg-gray-50 text-gray-500 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-50 group-hover:text-blue-600 transition">
-                    {icon}
-                </div>
-            )}
-        </div>
-
-        {children && <div className="mt-3">{children}</div>}
-
-        <div className="mt-3 flex items-center justify-between gap-3">
-            {footer && <p className="text-[11px] text-gray-400 truncate">{footer}</p>}
-            {badge && (
-                <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${badgeClass}`}>
-                    {badge}
-                </span>
-            )}
-        </div>
-    </CardElement>
-    );
-};
-
 const HeroMetricCard = ({ title, children }) => (
     <div className="flex-1 min-h-[92px] flex flex-col items-center justify-center text-center p-4 border border-gray-100 rounded-2xl bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
         <p className="text-[11px] font-semibold text-gray-500 mb-2">{title}</p>
@@ -1268,8 +1230,6 @@ const StudentProfilePage = () => {
     const completedTasks = taskData?.completedTasks || 0;
     const pendingTasks   = taskData?.pendingTasks   || 0;
     const overdueTasks   = taskData?.overdueTasks   || taskData?.overDueTasks || 0;
-    const taskPct        = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-
     const subjectGroups = taskData?.groupedBySubject || {};
     const subjects = Object.entries(subjectGroups).map(([sName, group]) => {
         const tasks = group.tasks || [];
@@ -1318,7 +1278,10 @@ const StudentProfilePage = () => {
         }));
     const completedSubLevelIds = new Set(
         levelSnapshots
-            .filter(item => item.snapshotScope === "overall" && Number(item.completedTasks || 0) >= Number(item.totalTasks || 0))
+            .filter(item => {
+                const total = Number(item.totalTasks || 0);
+                return item.snapshotScope === "overall" && total > 0 && Number(item.completedTasks || 0) >= total;
+            })
             .map(item => getId(item.subLevelId))
             .filter(Boolean)
     );
@@ -1423,7 +1386,7 @@ const StudentProfilePage = () => {
             ? permissionHistory[0].status
             : "No Active";
     const placement = raw.placement || {};
-    const interviewRecords = (placement.PlacementinterviewRecord || [])
+    const interviewRecords = (Array.isArray(placement.PlacementinterviewRecord) ? placement.PlacementinterviewRecord : [])
         .slice()
         .sort((a, b) => getTime(b.rescheduleDate || b.scheduleDate || b.createdAt) - getTime(a.rescheduleDate || a.scheduleDate || a.createdAt));
     const latestInterview = interviewRecords[0];
@@ -1444,7 +1407,7 @@ const StudentProfilePage = () => {
     };
 
     // Promote handler
-    const handlePromote = async (remark) => {
+    const handlePromote = async () => {
         try {
             await promoteStudent(raw._id).unwrap();
             toast.success(`${name} promoted successfully!`);
@@ -1459,7 +1422,7 @@ const StudentProfilePage = () => {
     const handleFtpToggle = async () => {
         setFtpLoading(true);
         try {
-            await updateStudent({ data: { studentId: raw._id, isFTP: !raw.isFTP } }).unwrap();
+            await updateStudent({ id: raw._id, data: { isFTP: !raw.isFTP } }).unwrap();
             toast.success(raw.isFTP ? "FTP removed" : "Student shifted to FTP");
             navigate(0);
         } catch (err) {
@@ -1487,7 +1450,7 @@ const StudentProfilePage = () => {
     const handleEditProfile = async (form) => {
         setEditLoading(true);
         try {
-            await updateStudent({ data: { studentId: raw._id, ...form } }).unwrap();
+            await updateStudent({ id: raw._id, data: form }).unwrap();
             toast.success("Profile updated successfully");
             setEditModal(false);
             navigate(0);

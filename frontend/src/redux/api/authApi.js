@@ -502,11 +502,19 @@ export const authApi = createApi({
     }),
 
     updateStudentById: builder.mutation({
-      query: ({ data }) => ({
-        url: `${import.meta.env.VITE_UPDATE_STUDENT_BY_ID}`,
-        method: "PATCH",
-        body: data,
-      }),
+      query: ({ id, data }) => {
+        const studentId = id || data?.studentId;
+        const { studentId: _studentId, ...body } = data || {};
+        return {
+          url: `/students/${studentId}`,
+          method: "PATCH",
+          body,
+        };
+      },
+      invalidatesTags: (result, error, { id, data }) => [
+        { type: 'Student', id: id || data?.studentId },
+        'Student',
+      ],
     }),
 
     // apiSlice.js or interviewApi.js
