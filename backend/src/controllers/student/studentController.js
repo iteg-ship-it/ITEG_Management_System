@@ -2,6 +2,7 @@ const Student = require("../../models/student/Student");
 const StudentTask = require("../../models/syllabus/StudentTask");
 const StudentProgressSnapshot = require("../../models/student/StudentProgressSnapshot");
 const StudentTaskHistory = require("../../models/student/StudentTaskHistory");
+const StudentEventLog = require("../../models/student/StudentEventLog");
 const SubDepartment = require("../../models/department/SubDepartment");
 const Level = require("../../models/department/Level");
 const SubLevel = require("../../models/department/SubLevel");
@@ -528,6 +529,32 @@ exports.getStudentProgressSnapshots = async (req, res) => {
 
 
 // ✅ Promote Student to Next SubLevel (Manual or Auto-triggered)
+// ✅ Get Student Activity Feed
+exports.getStudentActivity = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { type, page = 1, limit = 20 } = req.query;
+
+    const filter = { studentId: id };
+    if (type) filter.type = type;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const [activity, total] = await Promise.all([
+      StudentEventLog.find(filter).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit)),
+      StudentEventLog.countDocuments(filter),
+    ]);
+
+    return res.status(200).json({
+      total,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / parseInt(limit)),
+      data: activity,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 exports.promoteStudent = async (req, res) => {
   try {
     const result = await promoteToNextSubLevel(req.params.id, req.user);

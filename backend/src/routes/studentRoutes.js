@@ -108,5 +108,6 @@ router.get("/:id/extra-tasks", ...auth, studentController.getExtraTasks);
 // History & Snapshots
 router.get("/:id/task-history", ...auth, studentController.getStudentTaskHistory);
 router.get("/:id/progress-snapshots", ...auth, studentController.getStudentProgressSnapshots);
+router.get("/:id/activity", ...auth, studentController.getStudentActivity);
 
 module.exports = router;

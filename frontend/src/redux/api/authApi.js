@@ -359,6 +359,17 @@ export const authApi = createApi({
       providesTags: (result, error, { id }) => [{ type: 'Student', id }],
     }),
 
+    getStudentActivity: builder.query({
+      query: ({ id, page = 1, limit = 20, type } = {}) => {
+        const params = new URLSearchParams();
+        params.append('page', page);
+        params.append('limit', limit);
+        if (type) params.append('type', type);
+        return { url: `/students/${id}/activity?${params.toString()}`, method: 'GET' };
+      },
+      providesTags: (result, error, { id }) => [{ type: 'Student', id }],
+    }),
+
     resolvePermission: builder.mutation({
       query: ({ id, permissionId, status, remark }) => ({
         url: `/students/${id}/permissions/${permissionId}/resolve`,
@@ -1520,6 +1531,7 @@ export const {
   useGetPermissionsQuery,
   useGetStudentProgressSnapshotsQuery,
   useGetStudentTaskHistoryQuery,
+  useGetStudentActivityQuery,
   useResolvePermissionMutation,
   useMarkStudentDroppedMutation,
   useGetNewReadyStudentsQuery,

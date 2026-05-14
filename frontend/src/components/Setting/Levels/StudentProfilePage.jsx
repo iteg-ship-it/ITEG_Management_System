@@ -14,6 +14,7 @@ import {
     useGetNewStudentByIdQuery,
     useGetStudentProgressSnapshotsQuery,
     useGetStudentTaskHistoryQuery,
+    useGetStudentActivityQuery,
     useGetLevelsBySubdepartmentQuery,
     useGetAllSubLevelsQuery,
     usePromoteNewStudentMutation,
@@ -116,6 +117,23 @@ const formatStatus = (status) => {
     if (status === "inProgress") return "In Progress";
     if (!status) return "Updated";
     return status.charAt(0).toUpperCase() + status.slice(1);
+};
+
+const activityStyle = (type) => {
+    switch (type) {
+        case "task":
+            return { color: "bg-indigo-50 text-indigo-500", icon: "task" };
+        case "promotion":
+            return { color: "bg-green-50 text-green-600", icon: "promote" };
+        case "document":
+            return { color: "bg-blue-50 text-blue-600", icon: "document" };
+        case "email":
+            return { color: "bg-sky-50 text-sky-600", icon: "email" };
+        case "note":
+            return { color: "bg-orange-50 text-orange-500", icon: "note" };
+        default:
+            return { color: "bg-gray-50 text-gray-500", icon: "note" };
+    }
 };
 
 const LevelJourneyBar = ({ items = [] }) => {
@@ -1029,6 +1047,11 @@ const StudentProfilePage = () => {
         { skip: !studentId }
     );
 
+    const { data: activityResponse } = useGetStudentActivityQuery(
+        { id: studentId, limit: 20 },
+        { skip: !studentId }
+    );
+
     const { data: levelsResponse } = useGetLevelsBySubdepartmentQuery(
         subDepartmentId,
         { skip: !subDepartmentId }
@@ -1086,6 +1109,21 @@ const StudentProfilePage = () => {
     const currentSubLevelName = raw.currentSubLevelId?.name || level?.currentSubLevelName || "Current Sub Level";
     const snapshots = progressSnapshotsResponse?.data || [];
     const taskHistory = taskHistoryResponse?.data || [];
+    const activityItems = (activityResponse?.data || []).map((item) => {
+        const style = activityStyle(item.type);
+        const meta = item.meta || {};
+        const sub = item.description ||
+            (item.type === "task" && meta.status ? `Status: ${formatStatus(meta.status)}` : "") ||
+            (item.type === "promotion" && meta.tasksAssigned !== undefined ? `${meta.tasksAssigned} tasks assigned` : "");
+
+        return {
+            ...item,
+            icon: style.icon,
+            color: style.color,
+            sub,
+            time: item.createdAt,
+        };
+    });
     const completedLevelSnapshots = snapshots
         .filter(item => item.snapshotScope === "overall")
         .sort((a, b) => new Date(b.changedAt || b.createdAt) - new Date(a.changedAt || a.createdAt));
@@ -1451,28 +1489,29 @@ const StudentProfilePage = () => {
                         <div className="relative">
                             <div className="absolute left-4 top-0 bottom-0 w-px bg-gray-100" />
                             <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
-                                {[
-                                    { icon: "task",       color: "bg-indigo-50 text-indigo-500",  title: "Task Submitted",                    sub: "Web Development - Assignment 4",  time: "10 May 2025, 11:30 AM" },
-                                    { icon: "promote",    color: "bg-indigo-50 text-indigo-500",  title: "Promoted to Level 3 â€“ Sub Level 1", sub: "",                               time: "10 May 2025, 09:15 AM" },
-                                    { icon: "interview",  color: "bg-indigo-50 text-indigo-500",  title: "Interview Scheduled",               sub: "TechNova Solutions - Round 1",    time: "08 May 2025, 04:00 PM" },
-                                    { icon: "permission", color: "bg-orange-50 text-orange-500",  title: "Permission Requested",              sub: "Leave Application",              time: "05 May 2025, 10:20 AM" },
-                                    { icon: "document",   color: "bg-orange-50 text-orange-500",  title: "Certificate Uploaded",              sub: "Data Structures Certificate",    time: "03 May 2025, 02:10 PM" },
-                                ].map((item, i) => (
-                                    <div key={i} className="flex items-start gap-3 relative z-10">
+                                {activityItems.length > 0 ? activityItems.map((item) => (
+                                    <div key={item._id} className="flex items-start gap-3 relative z-10">
                                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${item.color}`}>
                                             {item.icon === "task"       && <MdTableChart size={15} />}
                                             {item.icon === "promote"    && <MdArrowUpward size={15} />}
-                                            {item.icon === "interview"  && <MdWork size={15} />}
-                                            {item.icon === "permission" && <MdAccessTime size={15} />}
+                                            {item.icon === "email"      && <MdEmail size={15} />}
+                                            {item.icon === "note"       && <MdAccessTime size={15} />}
                                             {item.icon === "document"   && <MdSchool size={15} />}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-xs font-bold text-gray-800">{item.title}</p>
                                             {item.sub && <p className="text-[11px] text-gray-500 mt-0.5">{item.sub}</p>}
-                                            <p className="text-[10px] text-gray-400 mt-0.5">{item.time}</p>
+                                            <p className="text-[10px] text-gray-400 mt-0.5">
+                                                {formatDateTime(item.time)}
+                                                {item.createdByName ? ` • ${item.createdByName}` : ""}
+                                            </p>
                                         </div>
                                     </div>
-                                ))}
+                                )) : (
+                                    <div className="relative z-10 rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center">
+                                        <p className="text-xs font-semibold text-gray-500">No student activity found yet.</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
