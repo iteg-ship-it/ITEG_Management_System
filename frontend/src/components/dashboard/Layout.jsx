@@ -5,7 +5,6 @@ import AdminDashboard from "./AdminDashboard";
 import StudentDetailTable from "../student-records/StudentDetailTable";
 import DepartmentSelector from "../student-records/DepartmentSelector";
 import StudentEditPage from "../student-records/StudentEditPage";
-import StudentProfile from "../student-records/StudentProfile";
 import StudentReport from "../student-records/StudentReport";
 import StudentReportForm from "../student-records/StudentReportForm";
 import StudentLevelData from "../student-records/StudentLevelData";
@@ -63,7 +62,7 @@ const Layout = () => {
                     <Route path="/student-detail-table" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><RoleBasedStudentPage /></ProtectedRoute>} />
                     <Route path="/student-detail-table/:subDepartmentId" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentDetailTable /></ProtectedRoute>} />
                     <Route path="/student/leveldata/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentLevelData /></ProtectedRoute>} />
-                    <Route path="/student-profile/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentProfile /></ProtectedRoute>} />
+                    <Route path="/student-profile/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentProfilePage /></ProtectedRoute>} />
                     <Route path="/student/:id/report/edit" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentReportForm /></ProtectedRoute>} />
                     <Route path="/student/:id/report" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentReport /></ProtectedRoute>} />
                     <Route path="/student-level-interviews/:studentId" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentLevelInterviewHistory /></ProtectedRoute>} />

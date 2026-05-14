@@ -136,9 +136,26 @@ exports.getStudentById = async (req, res) => {
       .populate("currentLevelId", "name order")
       .populate("currentSubLevelId", "name order");
 
-
     if (!student) return res.status(404).json({ message: "Student not found" });
-    return res.status(200).json({ data: student });
+
+    // Attach placement readiness
+    const StudentPlacement = require("../../models/placement/StudentPlacement");
+    const placement = await StudentPlacement.findOne({ studentId: req.params.id })
+      .select("readinessStatus placedInfo PlacementinterviewRecord");
+
+    // Attach overall task progress (all non-extra tasks)
+    const allTasks = await StudentTask.find({ studentId: req.params.id, isExtra: false });
+    const overallTotal     = allTasks.length;
+    const overallCompleted = allTasks.filter(t => t.status === "completed").length;
+    const overallPct       = overallTotal > 0 ? Math.round((overallCompleted / overallTotal) * 100) : 0;
+
+    return res.status(200).json({
+      data: {
+        ...student.toObject(),
+        placement: placement || null,
+        overallProgress: { total: overallTotal, completed: overallCompleted, percentage: overallPct },
+      }
+    });
   } catch (error) {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -515,16 +532,19 @@ exports.promoteStudent = async (req, res) => {
   try {
     const result = await promoteToNextSubLevel(req.params.id, req.user);
     return res.status(200).json({
-      message: result.promotedToNewLevel
+      message: result.completedAllLevels
+        ? "Student completed all levels and is ready for placement"
+        : result.promotedToNewLevel
         ? "Student promoted to next level"
         : "Student promoted to next sub-level",
       data: result,
     });
   } catch (error) {
-    const status = error.message.includes("not found") ? 404
+    const status = error.statusCode
+      || (error.message.includes("not found") ? 404
       : error.message.includes("already completed") ? 400
       : error.message.includes("Only active") ? 400
-      : 500;
+      : 500);
     return res.status(status).json({ message: error.message });
   }
 };
@@ -804,6 +824,54 @@ exports.resolvePermission = async (req, res) => {
 
     await student.save();
     return res.status(200).json({ message: `Permission ${status}`, data: permission });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ✅ Mark Student as Dropped (with application document upload)
+exports.markDropped = async (req, res) => {
+  try {
+    const { remark, fileData, fileType } = req.body;
+    if (!remark) return res.status(400).json({ message: "remark is required" });
+    if (!fileData || !fileType) return res.status(400).json({ message: "Application document is required" });
+    if (!["image", "pdf"].includes(fileType)) return res.status(400).json({ message: "fileType must be image or pdf" });
+
+    const student = await Student.findById(req.params.id);
+    if (!student) return res.status(404).json({ message: "Student not found" });
+    if (student.status === "Dropped") return res.status(400).json({ message: "Student is already dropped" });
+
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+
+    const uploadResponse = await cloudinary.uploader.upload(fileData, {
+      folder: "drop_applications",
+      resource_type: fileType === "pdf" ? "raw" : "image",
+      public_id: `drop_${req.params.id}_${Date.now()}`,
+    });
+
+    // Store document in student.documents with isExtra: false
+    student.documents.push({
+      title: `Drop Application`,
+      fileURL: uploadResponse.secure_url,
+      fileType,
+      remark,
+      isExtra: false,
+      uploadedBy: req.user?._id || null,
+      uploadedByName: req.user?.name || "",
+      uploadedAt: new Date(),
+    });
+
+    student.status = "Dropped";
+    await student.save();
+
+    return res.status(200).json({
+      message: "Student marked as Dropped",
+      data: { studentId: student._id, status: student.status },
+    });
   } catch (error) {
     return res.status(500).json({ message: "Server error", error: error.message });
   }

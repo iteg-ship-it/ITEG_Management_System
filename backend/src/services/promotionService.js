@@ -1,4 +1,5 @@
 const Student = require("../models/student/Student");
+const mongoose = require("mongoose");
 const Level = require("../models/department/Level");
 const SubLevel = require("../models/department/SubLevel");
 const StudentTask = require("../models/syllabus/StudentTask");
@@ -8,6 +9,30 @@ const StudentEventLog = require("../models/student/StudentEventLog");
 const StudentProgressSnapshot = require("../models/student/StudentProgressSnapshot");
 const StudentPlacement = require("../models/placement/StudentPlacement");
 const { withTransaction } = require("../utils/withTransaction");
+
+const toClientError = (message, statusCode = 400) => {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  return error;
+};
+
+const getActorId = (actorUser = null) => {
+  const actorId = actorUser?.id || actorUser?._id || null;
+  return actorId && mongoose.Types.ObjectId.isValid(actorId) ? actorId : null;
+};
+
+const markPlacementReady = async (studentId, subDepartmentId) => {
+  const placement = await StudentPlacement.findOneAndUpdate(
+    { studentId },
+    {
+      $set: { readinessStatus: "Ready" },
+      $setOnInsert: { studentId, subDepartmentId },
+    },
+    { new: true, upsert: true, runValidators: true }
+  );
+
+  return placement;
+};
 
 // Called after every task status update.
 // If all mandatory tasks in current sublevel are completed -> auto-promote.
@@ -88,14 +113,15 @@ const syncStudentReadiness = async (studentId) => {
 //   8. Log promotion event
 const promoteToNextSubLevel = async (studentId, actorUser = null, options = {}) => {
   const { isAuto = false } = options;
+  const actorId = getActorId(actorUser);
 
   const student = await Student.findById(studentId);
-  if (!student) throw new Error("Student not found");
-  if (student.status !== "Active") throw new Error("Only active students can be promoted");
+  if (!student) throw toClientError("Student not found", 404);
+  if (student.status !== "Active") throw toClientError("Only active students can be promoted");
 
   // Step 1: Find next SubLevel in same Level
   const currentSubLevel = await SubLevel.findById(student.currentSubLevelId);
-  if (!currentSubLevel) throw new Error("Current sub-level not found");
+  if (!currentSubLevel) throw toClientError("Current sub-level not found");
 
   let nextSubLevel = await SubLevel.findOne({
     levelId: student.currentLevelId,
@@ -109,7 +135,7 @@ const promoteToNextSubLevel = async (studentId, actorUser = null, options = {}) 
   // Step 2: No next sublevel -> find next Level
   if (!nextSubLevel) {
     const currentLevel = await Level.findById(student.currentLevelId);
-    if (!currentLevel) throw new Error("Current level not found");
+    if (!currentLevel) throw toClientError("Current level not found");
 
     nextLevel = await Level.findOne({
       subDepartmentId: student.subDepartmentId,
@@ -117,14 +143,39 @@ const promoteToNextSubLevel = async (studentId, actorUser = null, options = {}) 
       isActive: true,
     }).sort({ order: 1 });
 
-    if (!nextLevel) throw new Error("Student has already completed all levels");
+    if (!nextLevel) {
+      await markPlacementReady(studentId, student.subDepartmentId);
+
+      await StudentEventLog.create({
+        studentId,
+        type: "promotion",
+        action: isAuto ? "auto_all_levels_completed" : "manual_all_levels_completed",
+        title: "All levels completed",
+        description: "Student has completed all levels and is ready for placement",
+        meta: { placementReady: true, isAuto },
+        createdBy: actorId,
+        createdByName: actorUser?.name || "",
+        createdByRole: actorUser?.role || "",
+      });
+
+      return {
+        promotedToNewLevel: false,
+        completedAllLevels: true,
+        placementReady: true,
+        newLevelId: student.currentLevelId,
+        newSubLevelId: student.currentSubLevelId,
+        newSyllabusVersionId: student.syllabusVersionId,
+        tasksAssigned: 0,
+        isAuto,
+      };
+    }
 
     nextSubLevel = await SubLevel.findOne({
       levelId: nextLevel._id,
       isActive: true,
     }).sort({ order: 1 });
 
-    if (!nextSubLevel) throw new Error("No active sub-level found in next level");
+    if (!nextSubLevel) throw toClientError("No active sub-level found in next level");
     promotedToNewLevel = true;
   }
 
@@ -132,7 +183,7 @@ const promoteToNextSubLevel = async (studentId, actorUser = null, options = {}) 
 
   // Step 3: Find active SyllabusVersion for new position
   const latestSession = await Session.findOne({ isActive: true }).sort({ createdAt: -1 });
-  if (!latestSession) throw new Error("No active session found");
+  if (!latestSession) throw toClientError("No active session found");
 
   const newSyllabus = await SyllabusVersion.findOne({
     sessionId: latestSession._id,
@@ -142,7 +193,7 @@ const promoteToNextSubLevel = async (studentId, actorUser = null, options = {}) 
     isActive: true,
   }).sort({ createdAt: -1 });
 
-  if (!newSyllabus) throw new Error("No active syllabus found for the next sub-level");
+  if (!newSyllabus) throw toClientError("No active syllabus found for the next sub-level");
 
   const prevLevelId = student.currentLevelId;
   const prevSubLevelId = student.currentSubLevelId;
@@ -193,7 +244,7 @@ const promoteToNextSubLevel = async (studentId, actorUser = null, options = {}) 
         pendingTasks: prevTasks.filter((t) => t.status === "pending").length,
         inProgressTasks: prevTasks.filter((t) => t.status === "inProgress").length,
         averageMarks,
-        changedBy: actorUser?.id || actorUser?._id || null,
+        changedBy: actorId,
         changedByName: actorUser?.name || "",
         changedByRole: actorUser?.role || "",
         changedAt: new Date(),
@@ -226,7 +277,7 @@ const promoteToNextSubLevel = async (studentId, actorUser = null, options = {}) 
           sMarks.length > 0
             ? Number((sMarks.reduce((s, t) => s + t.marks, 0) / sMarks.length).toFixed(2))
             : 0,
-        changedBy: actorUser?.id || actorUser?._id || null,
+        changedBy: actorId,
         changedByName: actorUser?.name || "",
         changedByRole: actorUser?.role || "",
         changedAt: new Date(),
@@ -287,7 +338,7 @@ const promoteToNextSubLevel = async (studentId, actorUser = null, options = {}) 
       pendingTasks: tasksAssigned,
       inProgressTasks: 0,
       averageMarks: 0,
-      changedBy: actorUser?.id || actorUser?._id || null,
+      changedBy: actorId,
       changedByName: actorUser?.name || "",
       changedByRole: actorUser?.role || "",
       changedAt: new Date(),
@@ -314,7 +365,7 @@ const promoteToNextSubLevel = async (studentId, actorUser = null, options = {}) 
       tasksAssigned,
       isAuto,
     },
-    createdBy: actorUser?.id || actorUser?._id || null,
+    createdBy: actorId,
     createdByName: actorUser?.name || "",
     createdByRole: actorUser?.role || "",
   });

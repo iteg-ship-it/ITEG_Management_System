@@ -336,6 +336,29 @@ export const authApi = createApi({
       providesTags: (result, error, id) => [{ type: 'Student', id }],
     }),
 
+    getStudentProgressSnapshots: builder.query({
+      query: ({ id, page = 1, limit = 100, scope } = {}) => {
+        const params = new URLSearchParams();
+        params.append('page', page);
+        params.append('limit', limit);
+        if (scope) params.append('scope', scope);
+        return { url: `/students/${id}/progress-snapshots?${params.toString()}`, method: 'GET' };
+      },
+      providesTags: (result, error, { id }) => [{ type: 'Student', id }],
+    }),
+
+    getStudentTaskHistory: builder.query({
+      query: ({ id, page = 1, limit = 100, taskId, subLevelId } = {}) => {
+        const params = new URLSearchParams();
+        params.append('page', page);
+        params.append('limit', limit);
+        if (taskId) params.append('taskId', taskId);
+        if (subLevelId) params.append('subLevelId', subLevelId);
+        return { url: `/students/${id}/task-history?${params.toString()}`, method: 'GET' };
+      },
+      providesTags: (result, error, { id }) => [{ type: 'Student', id }],
+    }),
+
     resolvePermission: builder.mutation({
       query: ({ id, permissionId, status, remark }) => ({
         url: `/students/${id}/permissions/${permissionId}/resolve`,
@@ -343,6 +366,15 @@ export const authApi = createApi({
         body: { status, remark },
       }),
       invalidatesTags: (result, error, { id }) => [{ type: 'Student', id }],
+    }),
+
+    markStudentDropped: builder.mutation({
+      query: ({ id, remark, fileData, fileType }) => ({
+        url: `/students/${id}/mark-dropped`,
+        method: 'PATCH',
+        body: { remark, fileData, fileType },
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: 'Student', id }, 'Student'],
     }),
 
     getNewReadyStudents: builder.query({
@@ -1088,6 +1120,15 @@ export const authApi = createApi({
       providesTags: ['Department'],
     }),
 
+    getAllSubLevels: builder.query({
+      query: () => ({
+        url: '/sublevels',
+        method: "GET",
+      }),
+      providesTags: ['Department'],
+      keepUnusedDataFor: 300,
+    }),
+
  // Get All Levels
     getAllLevels: builder.query({
       query: () => ({
@@ -1477,7 +1518,10 @@ export const {
   useGetExtraDocumentsQuery,
   useApplyPermissionMutation,
   useGetPermissionsQuery,
+  useGetStudentProgressSnapshotsQuery,
+  useGetStudentTaskHistoryQuery,
   useResolvePermissionMutation,
+  useMarkStudentDroppedMutation,
   useGetNewReadyStudentsQuery,
   useGetNewPlacedStudentsQuery,
   useGetNewSelectedStudentsQuery,
@@ -1557,6 +1601,7 @@ export const {
   useUpdateSubLevelMutation,
   useDeleteSubLevelMutation,
   useGetSubLevelsByLevelQuery,  
+  useGetAllSubLevelsQuery,
   useGetAllLevelsQuery,
   useCreateRoleMutation,
   useGetAllRolesQuery,

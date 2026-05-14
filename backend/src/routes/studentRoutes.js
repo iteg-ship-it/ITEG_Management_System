@@ -94,6 +94,9 @@ router.patch("/:id/permission/status", ...auth, studentController.updatePermissi
 // Placement Readiness (updates StudentPlacement.readinessStatus, creates record if missing)
 router.patch("/:id/placement-readiness", ...auth, studentController.updatePlacementReadiness);
 
+// Mark Dropped (with document upload)
+router.patch("/:id/mark-dropped", ...auth, studentController.markDropped);
+
 // Syllabus Tasks
 router.get("/:id/tasks", ...auth, studentController.getStudentTasks);
 router.get("/:id/tasks/sublevel/:subLevelId", ...auth, studentController.getStudentTasksBySubLevel);
