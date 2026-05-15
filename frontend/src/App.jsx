@@ -2,20 +2,20 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import Layout from "./components/dashboard/Layout.jsx";
+import Layout from "./components/modules/dashboard/Layout.jsx";
 import { useSessionTimeout } from "./hooks/useSessionTimeout";
 import { PermissionProvider } from './contexts/PermissionContext';
 import { SessionProvider } from './contexts/SessionContext';
 
 // Lazy load components
-const LoginPage = React.lazy(() => import("./components/common-components/login-page/LoginPage"));
-const ForgetPassword = React.lazy(() => import("./components/common-components/forget-password/ForgetPassword"));
-const ConfirmPassword = React.lazy(() => import("./components/common-components/confirm-password/ConfirmPassword"));
-const OtpVerification = React.lazy(() => import("./components/common-components/otp-verfication/OtpVeriFication"));
-const OtpEnter = React.lazy(() => import("./components/common-components/otp-verfication/OtpEnter"));
-const GoogleSuccess = React.lazy(() => import('./components/common-components/login-page/GoogleSuccess.jsx'));
-const ServerError = React.lazy(() => import("./components/common-components/error-pages/ServerError"));
-const SessionTimeoutModal = React.lazy(() => import('./components/common-components/user-profile/SessionTimeoutModal'));
+const LoginPage = React.lazy(() => import("./components/modules/auth/login/LoginPage"));
+const ForgetPassword = React.lazy(() => import("./components/modules/auth/forgot-password/ForgetPassword"));
+const ConfirmPassword = React.lazy(() => import("./components/modules/auth/confirm-password/ConfirmPassword"));
+const OtpVerification = React.lazy(() => import("./components/modules/auth/otp/OtpVeriFication"));
+const OtpEnter = React.lazy(() => import("./components/modules/auth/otp/OtpEnter"));
+const GoogleSuccess = React.lazy(() => import('./components/modules/auth/login/GoogleSuccess.jsx'));
+const ServerError = React.lazy(() => import("./components/shared/error-pages/ServerError"));
+const SessionTimeoutModal = React.lazy(() => import('./components/shared/user-profile/SessionTimeoutModal'));
 
 
 // ✅ Protected Route Component

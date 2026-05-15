@@ -196,8 +196,16 @@ exports.getAllSyllabusVersions = async (req, res) => {
     if (subLevelId) filter.subLevelId = subLevelId;
     if (status) filter.status = status;
     const versions = await SyllabusVersion.find(filter)
-      .populate("sessionId", "name")
-      .populate("levelId", "name order")
+      .populate("sessionId", "name startDate endDate status")
+      .populate({
+        path: "levelId",
+        select: "name order subDepartmentId",
+        populate: {
+          path: "subDepartmentId",
+          select: "name departmentId",
+          populate: { path: "departmentId", select: "name" }
+        }
+      })
       .populate("subLevelId", "name order")
       .sort({ createdAt: -1 });
     res.status(200).json({ success: true, count: versions.length, data: versions });
@@ -209,8 +217,16 @@ exports.getAllSyllabusVersions = async (req, res) => {
 exports.getSyllabusVersionById = async (req, res) => {
   try {
     const sv = await SyllabusVersion.findById(req.params.id)
-      .populate("sessionId", "name")
-      .populate("levelId", "name order")
+      .populate("sessionId", "name startDate endDate status")
+      .populate({
+        path: "levelId",
+        select: "name order subDepartmentId",
+        populate: {
+          path: "subDepartmentId",
+          select: "name departmentId",
+          populate: { path: "departmentId", select: "name" }
+        }
+      })
       .populate("subLevelId", "name order");
     if (!sv || !sv.isActive) return res.status(404).json({ success: false, message: "Syllabus version not found" });
     res.status(200).json({ success: true, data: sv });

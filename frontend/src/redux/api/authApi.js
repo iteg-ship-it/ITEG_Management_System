@@ -1367,6 +1367,21 @@ export const authApi = createApi({
     }),
 
     // --- Task APIs (separate Task collection) ---
+    getAllTasks: builder.query({
+      query: (params = {}) => {
+        const searchParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+          if (value) searchParams.append(key, value);
+        });
+        const queryString = searchParams.toString();
+        return {
+          url: `/tasks${queryString ? `?${queryString}` : ''}`,
+          method: 'GET',
+        };
+      },
+      providesTags: ['Task'],
+    }),
+
     getTasksBySyllabusVersion: builder.query({
       query: (syllabusVersionId) => ({
         url: `/syllabus/versions/${syllabusVersionId}/tasks`,
@@ -1661,6 +1676,7 @@ export const {
   useApproveSyllabusVersionMutation,
   useActivateSyllabusVersionMutation,
   useArchiveSyllabusVersionMutation,
+  useGetAllTasksQuery,
   useGetTasksBySyllabusVersionQuery,
   useCreateTaskMasterMutation,
   useUpdateTaskMasterMutation,

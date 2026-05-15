@@ -1,6 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { authApi } from "../redux/api/authApi";
-import authReducer from "../redux/auth/authSlice";
+import { authApi } from "./api/authApi";
+import authReducer from "./auth/authSlice";
 
 const rtkQueryErrorLogger = () => (next) => (action) => {
   if (action?.payload?.status >= 400 && action?.payload?.status < 500) {

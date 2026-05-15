@@ -29,8 +29,16 @@ router.get("/sublevel/:subLevelId", verifyToken, async (req, res) => {
     const filter = { subLevelId, isActive: true };
     if (sessionId) filter.sessionId = sessionId;
     const versions = await SyllabusVersion.find(filter)
-      .populate("sessionId", "name")
-      .populate("levelId", "name order")
+      .populate("sessionId", "name startDate endDate status")
+      .populate({
+        path: "levelId",
+        select: "name order subDepartmentId",
+        populate: {
+          path: "subDepartmentId",
+          select: "name departmentId",
+          populate: { path: "departmentId", select: "name" }
+        }
+      })
       .populate("subLevelId", "name order")
       .sort({ createdAt: -1 });
     res.json({ success: true, count: versions.length, data: versions });
