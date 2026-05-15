@@ -635,7 +635,7 @@ export const authApi = createApi({
 
     addPlacementInterviewRecord: builder.mutation({
       query: ({ studentId, interviewData }) => ({
-        url: `/admitted/students/interviews/${studentId}`,
+        url: `/students/interviews/${studentId}`,
         method: "POST",
         body: interviewData,
       }),
@@ -656,7 +656,7 @@ export const authApi = createApi({
     // In redux/api/authApi.js
     updatePlacedInfo: builder.mutation({
       query: ({ studentId, interviewId, ...data }) => ({
-        url: `/admitted/students/update/interviews/${studentId}/${interviewId}`,
+        url: `/students/update/interviews/${studentId}/${interviewId}`,
         method: "PATCH",
         body: data,
       }),
@@ -676,7 +676,7 @@ export const authApi = createApi({
     // Upload resume
     uploadResume: builder.mutation({
       query: ({ studentId, fileName, fileData }) => ({
-        url: '/admitted/students/upload_Resume_Base64',
+        url: '/students/upload_Resume_Base64',
         method: "POST",
         body: { studentId, fileName, fileData },
       }),
@@ -698,7 +698,7 @@ export const authApi = createApi({
     // Get interview history for placement students
     getInterviewHistory: builder.query({
       query: (studentId) => ({
-        url: `admitted/students/interview_history/${studentId}`,
+        url: `/students/interview_history/${studentId}`,
         method: "GET",
       }),
       providesTags: (result, error, studentId) => [
@@ -709,7 +709,7 @@ export const authApi = createApi({
     // Reschedule interview
     rescheduleInterview: builder.mutation({
       query: ({ studentId, interviewId, ...data }) => ({
-        url: `admitted/students/reschedule/interview/${studentId}/${interviewId}`,
+        url: `/students/reschedule/interview/${studentId}/${interviewId}`,
         method: "PATCH",
         body: data,
       }),
@@ -728,7 +728,7 @@ export const authApi = createApi({
     // Add interview round
     addInterviewRound: builder.mutation({
       query: ({ studentId, interviewId, ...data }) => ({
-        url: `admitted/students/interviews/${studentId}/${interviewId}/add_round`,
+        url: `/students/interviews/${studentId}/${interviewId}/add_round`,
         method: "POST",
         body: data,
       }),
@@ -747,10 +747,9 @@ export const authApi = createApi({
     // Confirm placement
     confirmPlacement: builder.mutation({
       query: (data) => ({
-        url: `/admitted/students/confirm_placement`,
+        url: `/students/confirm_placement`,
         method: "POST",
         body: data,
-        formData: true,
       }),
       invalidatesTags: ['PlacementStudent', 'Student'],
       async onQueryStarted(data, { dispatch, queryFulfilled }) {
@@ -767,7 +766,7 @@ export const authApi = createApi({
     // Create placement post
     createPlacementPost: builder.mutation({
       query: (data) => ({
-        url: `/admitted/students/placement_post`,
+        url: `/students/placement_post`,
         method: "POST",
         body: data,
       }),
@@ -777,7 +776,7 @@ export const authApi = createApi({
     // Update placement post
     updatePlacementPost: builder.mutation({
       query: ({ studentId, ...data }) => ({
-        url: `/admitted/students/placement_post/update/${studentId}`,
+        url: `/students/placement_post/update/${studentId}`,
         method: "POST",
         body: data,
       }),
@@ -787,7 +786,16 @@ export const authApi = createApi({
     // Get all companies
     getAllCompanies: builder.query({
       query: () => ({
-        url: '/admitted/students/companies',
+        url: '/students/companies',
+        method: "GET",
+      }),
+      providesTags: ['Company'],
+    }),
+
+    // Get company by name
+    getCompanyByName: builder.query({
+      query: (companyName) => ({
+        url: `/students/companies/${encodeURIComponent(companyName)}`,
         method: "GET",
       }),
       providesTags: ['Company'],
@@ -796,7 +804,7 @@ export const authApi = createApi({
     // Get placed students by company ID
     getPlacedStudentsByCompany: builder.query({
       query: (companyId) => ({
-        url: `/admitted/students/companies/placed_students/${companyId}`,
+        url: `/students/companies/placed_students/${companyId}`,
         method: "GET",
       }),
       providesTags: (result, error, companyId) => [
@@ -1612,6 +1620,7 @@ export const {
  useCreatePlacementPostMutation ,
   useUpdatePlacementPostMutation,
   useGetAllCompaniesQuery,
+  useGetCompanyByNameQuery,
   useGetPlacedStudentsByCompanyQuery,
   useGetDepartmentWisePlacementStatsQuery,
   useGetPlacedStudentsByDepartmentQuery,

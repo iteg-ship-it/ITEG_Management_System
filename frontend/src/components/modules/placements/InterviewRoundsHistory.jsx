@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useGetInterviewHistoryQuery, useGetReadyStudentsForPlacementQuery } from "../../../redux/api/authApi";
+import { useGetInterviewHistoryQuery } from "../../../redux/api/authApi";
 import Loader from "../../shared/loader/Loader";
 import { CheckCircle, XCircle } from "lucide-react";
 import { HiArrowNarrowLeft } from "react-icons/hi";
@@ -7,25 +7,11 @@ import { HiArrowNarrowLeft } from "react-icons/hi";
 const InterviewRoundsHistory = () => {
   const { studentId, interviewId } = useParams();
   const navigate = useNavigate();
-  
-  // Get interview history with company data
-  const { data: historyData, isLoading: historyLoading, isError: historyError } = useGetInterviewHistoryQuery(studentId);
-  
-  // Get student data from Ready Students API
-  const { data: studentsData, isLoading: studentsLoading, isError: studentsError } = useGetReadyStudentsForPlacementQuery();
-  
-  // Combine data from both APIs
-  const isLoading = historyLoading || studentsLoading;
-  const isError = historyError && studentsError;
-  const error = historyError || studentsError;
-  
-  // Get student data
-  const students = studentsData?.data || [];
-  const studentData = students.find(student => student._id === studentId) || {};
-  
-  // Get specific interview data
+
+  const { data: historyData, isLoading, isError, error } = useGetInterviewHistoryQuery(studentId);
+
   const interviews = historyData?.data?.interviews || [];
-  const selectedInterview = interviews.find(interview => interview._id === interviewId) || {};
+  const selectedInterview = interviews.find((i) => i._id === interviewId) || {};
   
   const renderBadge = (status) => {
     const base = "inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium";
@@ -102,7 +88,7 @@ const InterviewRoundsHistory = () => {
                     {selectedInterview.company?.companyName || 'Company Name'}
                   </h2>
                   <p className="text-gray-600 mb-2">
-                    Interview with {studentData.firstName} {studentData.lastName}
+                    Interview with {historyData?.data?.studentName || ""}
                   </p>
                   <div className="flex items-center gap-4 text-sm text-gray-600">
                     <span className="flex items-center gap-1">

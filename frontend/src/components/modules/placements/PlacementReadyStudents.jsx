@@ -41,16 +41,21 @@ const PlacementReadyStudents = () => {
 
   const isLoading = loadingReady || loadingSelected || loadingPlaced;
 
-  // For "Ongoing Interviews" — ready students who have at least one interview record
+  // For "Ongoing Interviews" — ready students who have at least one active interview (Scheduled/Ongoing/Rescheduled)
   const ongoingStudents = useMemo(() =>
     readyStudents.filter((s) =>
-      s.PlacementinterviewRecord?.length > 0 &&
-      !s.PlacementinterviewRecord.some((r) => r.status === "Selected")
+      s.PlacementinterviewRecord?.some((r) =>
+        ["Scheduled", "Ongoing", "Rescheduled"].includes(r.status)
+      )
     ), [readyStudents]);
 
-  // For "Qualified Students" — ready students with no interview yet
+  // For "Qualified Students" — ready students with no active interview
   const qualifiedStudents = useMemo(() =>
-    readyStudents.filter((s) => !s.PlacementinterviewRecord?.length), [readyStudents]);
+    readyStudents.filter((s) =>
+      !s.PlacementinterviewRecord?.some((r) =>
+        ["Scheduled", "Ongoing", "Rescheduled"].includes(r.status)
+      )
+    ), [readyStudents]);
 
   const getActiveData = () => {
     const map = {
@@ -143,17 +148,52 @@ const PlacementReadyStudents = () => {
   const ongoingColumns = [
     ...baseColumns,
     {
-      key: "interviews", label: "Interviews",
-      render: (row) => (
-        <span className="text-xs text-gray-600">{row.PlacementinterviewRecord?.length || 0} interview(s)</span>
-      ),
+      key: "interviews", label: "Active Interview",
+      render: (row) => {
+        const active = row.PlacementinterviewRecord?.find((r) =>
+          ["Scheduled", "Ongoing", "Rescheduled"].includes(r.status)
+        );
+        return (
+          <div>
+            <p className="text-sm font-medium text-gray-800">{active?.jobProfile || "—"}</p>
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+              active?.status === "Ongoing" ? "bg-orange-100 text-orange-600" :
+              active?.status === "Rescheduled" ? "bg-yellow-100 text-yellow-600" :
+              "bg-blue-100 text-blue-600"
+            }`}>{active?.status || "—"}</span>
+          </div>
+        );
+      },
     },
     {
       key: "action", label: "",
       render: (row) => (
-        <button onClick={(e) => { e.stopPropagation(); setSelectedStudent(row); setIsInterviewModalOpen(true); }}
-          className={buttonStyles.primary}>
-          + Add Round
+        <div className="flex gap-2">
+          <button
+            onClick={(e) => { e.stopPropagation(); navigate(`/interview-history/${row._id}`); }}
+            className={buttonStyles.primary}>
+            View History
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  const qualifiedColumns = [
+    ...baseColumns,
+    {
+      key: "action",
+      label: "",
+      render: (row) => (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelectedStudent(row);
+            setIsInterviewModalOpen(true);
+          }}
+          className={buttonStyles.primary}
+        >
+          Schedule Interview
         </button>
       ),
     },
@@ -163,14 +203,15 @@ const PlacementReadyStudents = () => {
     if (activeTab === "Placed Student")   return placedColumns;
     if (activeTab === "Selected Student") return selectedColumns;
     if (activeTab === "Ongoing Interviews") return ongoingColumns;
-    return baseColumns;
+    return qualifiedColumns;
   };
 
   const handleRowClick = (row) => {
     if (activeTab === "Placed Student" || activeTab === "Qualified Students") {
       navigate(`/student-profile/${row.studentId?._id || row._id}`);
     } else {
-      navigate(`/interview-history/${row.studentId?._id || row._id}`);
+      // Ongoing Interviews & Selected Student → interview history
+      navigate(`/interview-history/${row._id}`);
     }
   };
 

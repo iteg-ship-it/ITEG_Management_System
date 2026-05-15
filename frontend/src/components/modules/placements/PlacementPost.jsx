@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { useAdmitedStudentsQuery, useUpdateStudentImageMutation, useGetAllCompaniesQuery } from "../../../redux/api/authApi";
+import { useState } from "react";
+import { useGetNewPlacedStudentsQuery, useGetAllCompaniesQuery } from "../../../redux/api/authApi";
 import { pdf } from "@react-pdf/renderer";
 import CreatePostModal from "./CreatePostModal";
 import CommonTable from "../../shared/table/CommonTable";
@@ -15,98 +15,28 @@ const PlacementPost = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [viewMode, setViewMode] = useState('grid');
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTracks, setSelectedTracks] = useState([]);
-  const [selectedSubjects, setSelectedSubjects] = useState([]);
-  const [uploadingStudents, setUploadingStudents] = useState({});
-  const [updateStudentImage] = useUpdateStudentImageMutation();
-  const fileInputRef = useRef(null);
-  
-  const { data: admittedStudents, isLoading, error, refetch } = useAdmitedStudentsQuery();
-  const { data: companiesData } = useGetAllCompaniesQuery(undefined, {
-    skip: false,
-    refetchOnMountOrArgChange: false,
+
+  const { data: placedRes, isLoading, error, refetch } = useGetNewPlacedStudentsQuery();
+  const { data: companiesData } = useGetAllCompaniesQuery();
+
+  const allPlacedStudents = placedRes?.data || [];
+
+  const placedStudents = allPlacedStudents.filter((s) => {
+    if (!searchTerm.trim()) return true;
+    const q = searchTerm.toLowerCase();
+    return (
+      `${s.firstName} ${s.lastName}`.toLowerCase().includes(q) ||
+      s.placedInfo?.companyName?.toLowerCase().includes(q) ||
+      s.placedInfo?.jobProfile?.toLowerCase().includes(q)
+    );
   });
 
-  const toTitleCase = (str) => {
-    return str?.toLowerCase().split(' ').map(word =>
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' ');
-  };
+  const toTitleCase = (str) =>
+    str?.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') || '';
 
   const smartCapitalize = (str) => {
-    if (!str) return str;
-    if (str === str.toUpperCase()) return str;
+    if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-  };
-
-  const getCompanyDetails = (companyName) => {
-    try {
-      if (!companiesData || !Array.isArray(companiesData) || !companyName) return null;
-      return companiesData.find(company => 
-        company?.companyName?.toLowerCase() === companyName.toLowerCase()
-      );
-    } catch (error) {
-      console.warn('Error getting company details:', error);
-      return null;
-    }
-  };
-
-  const allPlacedStudents = admittedStudents?.filter(student => student.placedInfo !== null) || [];
-
-  const placedStudents = allPlacedStudents.filter((student) => {
-    const searchMatch = searchTerm.trim() === "" ||
-      `${student.firstName} ${student.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.placedInfo?.companyName?.toLowerCase().includes(searchTerm.toLowerCase());
-
-    return searchMatch;
-  });
-
-  const handleImageUpload = async (event, student) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      alert('Please select a valid image file');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Image size should be less than 5MB');
-      return;
-    }
-
-    setUploadingStudents(prev => ({ ...prev, [student._id]: true }));
-
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const base64Image = e.target.result;
-        await updateStudentImage({
-          id: student._id,
-          image: base64Image
-        }).unwrap();
-        
-        refetch();
-      } catch (error) {
-        const errorMessage = error?.data?.message || error?.message || 'Unknown error';
-        alert(`Failed to upload image: ${errorMessage}`);
-      } finally {
-        setUploadingStudents(prev => ({ ...prev, [student._id]: false }));
-      }
-    };
-
-    reader.onerror = () => {
-      alert('Error reading file');
-      setUploadingStudents(prev => ({ ...prev, [student._id]: false }));
-    };
-
-    reader.readAsDataURL(file);
-  };
-
-  const triggerImageUpload = (student) => {
-    fileInputRef.current?.click();
-    fileInputRef.current.onchange = (e) => handleImageUpload(e, student);
   };
 
   const downloadPost = async (student) => {
@@ -303,30 +233,15 @@ const PlacementPost = () => {
                     <p className="text-xl text-gray-500">We are proud to announce that <br />Our ITEG student</p>
                   </div>
                   <div className="flex justify-center items-center flex-1">
-                    <div className="relative">
-                      <div className="rounded-full p-1 bg-white">
-                        <div className="rounded-full p-1 bg-orange-500">
-                          <div className="rounded-full p-1 bg-white">
-                            <img
-                              src={student.image || profile}
-                              alt={`${student.firstName} ${student.lastName}`}
-                              className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover shadow-md"
-                            />
-                          </div>
+                    <div className="rounded-full p-1 bg-white">
+                      <div className="rounded-full p-1 bg-orange-500">
+                        <div className="rounded-full p-1 bg-white">
+                          <img
+                            src={student.image || profile}
+                            alt={`${student.firstName} ${student.lastName}`}
+                            className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover shadow-md"
+                          />
                         </div>
-                      </div>
-                      <div
-                        className="absolute -bottom-1 -right-1 w-6 h-6 sm:w-8 sm:h-8 bg-white rounded-full shadow-md flex items-center justify-center cursor-pointer hover:shadow-lg transition-shadow"
-                        onClick={() => triggerImageUpload(student)}
-                      >
-                        {uploadingStudents[student._id] ? (
-                          <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
-                        ) : (
-                          <svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -387,21 +302,12 @@ const PlacementPost = () => {
         )}
       </div>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-      />
-
       <CreatePostModal
         isOpen={isCreatePostModalOpen}
         onClose={() => setCreatePostModalOpen(false)}
         student={selectedStudent}
         isUpdateMode={true}
-        onSuccess={() => {
-          console.log('Post updated successfully');
-        }}
+        onSuccess={refetch}
       />
     </>
   );

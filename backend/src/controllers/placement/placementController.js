@@ -19,7 +19,7 @@ exports.getReadyStudents = async (req, res) => {
     });
 
     const placements = await StudentPlacement.find(filter)
-      .populate("studentId", "firstName lastName prkey course")
+      .populate("studentId", "firstName lastName prkey course studentMobile image")
       .lean();
 
     const data = placements.map((p) => ({
@@ -28,6 +28,8 @@ exports.getReadyStudents = async (req, res) => {
       lastName: p.studentId?.lastName,
       prkey: p.studentId?.prkey,
       course: p.studentId?.course,
+      studentMobile: p.studentId?.studentMobile,
+      image: p.studentId?.image,
       readinessStatus: p.readinessStatus,
       PlacementinterviewRecord: p.PlacementinterviewRecord,
     }));
@@ -60,6 +62,11 @@ exports.createInterview = async (req, res) => {
     let company = await Company.findOne({ companyName });
     if (!company) {
       company = new Company({ companyName, hrEmail, hrContact: hrContact || "", location });
+      await company.save();
+    } else {
+      company.hrEmail = hrEmail;
+      company.hrContact = hrContact || company.hrContact;
+      company.location = location;
       await company.save();
     }
 
@@ -141,9 +148,10 @@ exports.addInterviewRound = async (req, res) => {
 exports.rescheduleInterview = async (req, res) => {
   try {
     const { studentId, interviewId } = req.params;
-    const { rescheduleDate } = req.body;
+    const { rescheduleDate, newDate } = req.body;
+    const dateValue = rescheduleDate || newDate;
 
-    if (!rescheduleDate) return res.status(400).json({ message: "rescheduleDate is required" });
+    if (!dateValue) return res.status(400).json({ message: "rescheduleDate is required" });
 
     const placement = await StudentPlacement.findOne(placementFilter(req, { studentId }));
     if (!placement) return res.status(404).json({ message: "Student placement not found or access denied" });
@@ -152,7 +160,7 @@ exports.rescheduleInterview = async (req, res) => {
     if (!interview) return res.status(404).json({ message: "Interview not found" });
 
     interview.status = "Rescheduled";
-    interview.rescheduleDate = new Date(rescheduleDate);
+    interview.rescheduleDate = new Date(dateValue);
     await placement.save();
 
     res.json({ success: true, message: "Interview rescheduled", data: interview });
@@ -170,16 +178,22 @@ exports.getSelectedStudents = async (req, res) => {
     });
 
     const placements = await StudentPlacement.find(filter)
-      .populate("studentId", "firstName lastName prkey course")
-      .populate("PlacementinterviewRecord.companyRef")
+      .populate("studentId", "firstName lastName prkey course studentMobile image")
+      .populate("PlacementinterviewRecord.companyRef", "companyName location")
       .lean();
 
     const data = placements.map((p) => ({
       _id: p.studentId?._id,
+      firstName: p.studentId?.firstName,
+      lastName: p.studentId?.lastName,
       name: p.studentId ? `${p.studentId.firstName} ${p.studentId.lastName}` : "—",
       prkey: p.studentId?.prkey,
       course: p.studentId?.course,
+      studentMobile: p.studentId?.studentMobile,
+      image: p.studentId?.image,
+      readinessStatus: p.readinessStatus,
       selectedInterviews: p.PlacementinterviewRecord.filter((i) => i.status === "Selected"),
+      PlacementinterviewRecord: p.PlacementinterviewRecord,
     }));
 
     res.json({ success: true, data });
@@ -291,11 +305,25 @@ exports.getPlacedStudents = async (req, res) => {
     const filter = placementFilter(req, { placedInfo: { $ne: null } });
 
     const placements = await StudentPlacement.find(filter)
-      .populate("studentId", "firstName lastName prkey course email studentMobile")
-      .populate("placedInfo.companyRef")
+      .populate("studentId", "firstName lastName prkey course email studentMobile image")
+      .populate("placedInfo.companyRef", "companyName location companyLogo")
       .lean();
 
-    res.json({ success: true, data: placements });
+    const data = placements.map((p) => ({
+      _id: p.studentId?._id,
+      firstName: p.studentId?.firstName,
+      lastName: p.studentId?.lastName,
+      prkey: p.studentId?.prkey,
+      course: p.studentId?.course,
+      email: p.studentId?.email,
+      studentMobile: p.studentId?.studentMobile,
+      image: p.studentId?.image,
+      readinessStatus: p.readinessStatus,
+      placedInfo: p.placedInfo,
+      PlacementinterviewRecord: p.PlacementinterviewRecord,
+    }));
+
+    res.json({ success: true, data });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -362,10 +390,8 @@ exports.createPlacementPost = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields: studentId, position, companyName, headOffice" });
     }
 
-    const student = await Student.findOne(
-      req.subDeptFilter ? { _id: studentId, ...req.subDeptFilter } : { _id: studentId }
-    );
-    if (!student) return res.status(404).json({ message: "Student not found or access denied" });
+    const student = await Student.findById(studentId);
+    if (!student) return res.status(404).json({ message: "Student not found" });
 
     let company = await Company.findOne({ companyName });
 
@@ -376,12 +402,20 @@ exports.createPlacementPost = async (req, res) => {
         const r = await cloudinary.uploader.upload(companyLogo, { folder: "company-logos", resource_type: "image" });
         logoURL = r.secure_url;
       }
-      company = new Company({ companyName, companyLogo: logoURL, headOffice, location, hrEmail });
+      company = new Company({
+        companyName,
+        companyLogo: logoURL,
+        headOffice,
+        location: location || headOffice,
+        hrEmail: hrEmail || "not-provided@example.com",
+      });
       await company.save();
-    } else if (companyLogo?.startsWith("data:image/")) {
-      const r = await cloudinary.uploader.upload(companyLogo, { folder: "company-logos", resource_type: "image" });
-      company.companyLogo = r.secure_url;
-      await company.save();
+    } else {
+      if (companyLogo?.startsWith("data:image/")) {
+        const r = await cloudinary.uploader.upload(companyLogo, { folder: "company-logos", resource_type: "image" });
+        company.companyLogo = r.secure_url;
+        await company.save();
+      }
     }
 
     let finalStudentImage = studentImage || student.image;
@@ -416,10 +450,8 @@ exports.updatePlacementPost = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields: position, companyName, headOffice" });
     }
 
-    const student = await Student.findOne(
-      req.subDeptFilter ? { _id: studentId, ...req.subDeptFilter } : { _id: studentId }
-    );
-    if (!student) return res.status(404).json({ message: "Student not found or access denied" });
+    const student = await Student.findById(studentId);
+    if (!student) return res.status(404).json({ message: "Student not found" });
 
     const company = await Company.findOne({ companyName });
     if (!company) return res.status(404).json({ message: "Company not found" });

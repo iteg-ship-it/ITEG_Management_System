@@ -1,10 +1,8 @@
 /* eslint-disable react/prop-types */
-/* eslint-disable no-unused-vars */
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useGetInterviewHistoryQuery, useGetReadyStudentsForPlacementQuery, useUpdatePlacedInfoMutation, useRescheduleInterviewMutation, useAddInterviewRoundMutation } from "../../../redux/api/authApi";
+import { useGetInterviewHistoryQuery, useUpdatePlacedInfoMutation, useRescheduleInterviewMutation, useAddInterviewRoundMutation } from "../../../redux/api/authApi";
 import Loader from "../../shared/loader/Loader";
-import { Dialog } from "@headlessui/react";
 import { toast } from "react-toastify";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
 import { FaCalendarAlt } from "react-icons/fa";
@@ -15,44 +13,20 @@ import BlurBackground from "../../shared/BlurBackground";
 const InterviewHistory = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  
-  // Get interview history with company data
-  const { data: historyData, isLoading: historyLoading, isError: historyError, refetch: refetchHistory } = useGetInterviewHistoryQuery(id, {
+
+  const { data: historyData, isLoading, isError, error, refetch: refetchHistory } = useGetInterviewHistoryQuery(id, {
     refetchOnMountOrArgChange: true,
-    refetchOnFocus: true, 
+    refetchOnFocus: true,
     refetchOnReconnect: true,
   });
-  
-  // Get student data from Ready Students API
-  const { data: studentsData, isLoading: studentsLoading, isError: studentsError, refetch: refetchStudents } = useGetReadyStudentsForPlacementQuery(undefined, {
-    refetchOnMountOrArgChange: true,
-  });
-  
-  // Combine data from both APIs
-  const isLoading = historyLoading || studentsLoading;
-  const isError = historyError && studentsError;
-  const error = historyError || studentsError;
-  
-  // Get student data from Ready Students API
-  const students = studentsData?.data || [];
-  const studentData = students.find(student => student._id === id) || {};
-  
-  // Get interviews with company data from Interview History API
+
   const interviews = historyData?.data?.interviews || [];
-  
-  console.log('🔍 History API:', historyData);
-  console.log('🔍 Students API:', studentsData);
-  console.log('🔍 Student Data:', studentData);
-  console.log('🔍 Interviews:', interviews);
-  if (interviews.length > 0) {
-    console.log('🔍 First Interview:', interviews[0]);
-    console.log('🔍 Company Data:', interviews[0]?.company);
-  }
+  const studentName = historyData?.data?.studentName || "";
+
   
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isUpdateRoundModalOpen, setIsUpdateRoundModalOpen] = useState(false);
   const [isAddNextRoundModalOpen, setIsAddNextRoundModalOpen] = useState(false);
-
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [nextRoundData, setNextRoundData] = useState({});
   const [nextRoundDate, setNextRoundDate] = useState("");
@@ -67,47 +41,16 @@ const InterviewHistory = () => {
   const [remark, setRemark] = useState("");
   const [result, setResult] = useState("Scheduled");
   const [round, setRound] = useState("Round 1");
-  const [localRounds, setLocalRounds] = useState({});
-  const [addedRounds, setAddedRounds] = useState(() => {
-    try {
-      const saved = localStorage.getItem(`addedRounds_${id}`);
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  });
-  const [addedRoundDetails, setAddedRoundDetails] = useState(() => {
-    try {
-      const saved = localStorage.getItem(`addedRoundDetails_${id}`);
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  });
   const [newInterviewDate, setNewInterviewDate] = useState("");
   const [newInterviewTime, setNewInterviewTime] = useState("");
   const [showRescheduleDatePicker, setShowRescheduleDatePicker] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isCompanyHistoryModalOpen, setIsCompanyHistoryModalOpen] = useState(false);
-  const [selectedCompanyHistory, setSelectedCompanyHistory] = useState([]);
-  const [selectedCompanyName, setSelectedCompanyName] = useState('');
   
   const [updateInterviewRecord, { isLoading: isUpdating }] = useUpdatePlacedInfoMutation();
   const [rescheduleInterview, { isLoading: isRescheduling }] = useRescheduleInterviewMutation();
   const [addInterviewRound, { isLoading: isAddingRound }] = useAddInterviewRoundMutation();
   
-  // Show all interviews as individual cards
-  const displayInterviews = interviews || [];
-  
-  const handleCompanyNameClick = (companyName) => {
-    const companyInterviews = interviews.filter(interview => interview.company?.companyName === companyName);
-    // Add locally added rounds for this company to the modal
-    const addedRoundsForCompany = addedRoundDetails[companyName] || [];
-    const allCompanyRounds = [...companyInterviews, ...addedRoundsForCompany];
-    setSelectedCompanyHistory(allCompanyRounds);
-    setSelectedCompanyName(companyName);
-    setIsCompanyHistoryModalOpen(true);
-  };
   
   const handleUpdateClick = (interview) => {
     setSelectedInterview({ studentId: id, ...interview });
@@ -116,17 +59,8 @@ const InterviewHistory = () => {
   };
 
   const handleAddNextRoundClick = (interview) => {
-    const companyName = interview.company?.companyName;
-    
-    // Calculate next round number based on existing rounds + added rounds
-    const baseRoundNumber = parseInt(interview.round?.replace('Round ', '') || '1');
-    const addedCount = addedRounds[companyName]?.count || 0;
-    const nextRoundNumber = baseRoundNumber + addedCount + 1;
-    
-    setNextRoundData({
-      baseInterview: interview,
-      companyName: companyName
-    });
+    const nextRoundNumber = (interview.rounds?.length || 0) + 1;
+    setNextRoundData({ baseInterview: interview, companyName: interview.company?.companyName });
     setRound(`Round ${nextRoundNumber}`);
     setNextRoundDate("");
     setNextRoundTime("");
@@ -138,74 +72,30 @@ const InterviewHistory = () => {
   
   const handleAddNextRoundSubmit = async () => {
     try {
-      const companyName = nextRoundData.companyName;
-      const newRoundId = `temp_${Date.now()}`;
-      
-      // Create complete round details for history
-      const newRoundDetail = {
-        _id: newRoundId,
-        ...nextRoundData.baseInterview,
-        round: round,
-        jobProfile: nextRoundData.baseInterview.jobProfile || nextRoundData.baseInterview.positionOffered,
-        scheduleDate: nextRoundDate && nextRoundTime ? 
-          new Date(`${nextRoundDate.split('/').reverse().join('-')} ${nextRoundTime}`).toISOString() : null,
-        interviewDate: nextRoundDate && nextRoundTime ? 
-          new Date(`${nextRoundDate.split('/').reverse().join('-')} ${nextRoundTime}`).toISOString() : null,
-        remark: nextRoundFeedback,
-        result: nextRoundResult,
+      const interviewId = nextRoundData.baseInterview._id;
+
+      let roundDate = null;
+      if (nextRoundDate && nextRoundTime) {
+        const [day, month, year] = nextRoundDate.split('/');
+        roundDate = new Date(`${year}-${month.padStart(2,'0')}-${day.padStart(2,'0')} ${nextRoundTime}`).toISOString();
+      }
+
+      await addInterviewRound({
+        studentId: id,
+        interviewId,
+        roundName: round,
+        date: roundDate,
         mode: nextRoundMode,
-        company: nextRoundData.baseInterview.company,
-        isLocallyAdded: true
-      };
-      
-      // Update added rounds count for this company
-      setAddedRounds(prev => {
-        const currentCount = prev[companyName]?.count || 0;
-        const newAddedRounds = {
-          ...prev,
-          [companyName]: {
-            count: currentCount + 1,
-            latestRound: round
-          }
-        };
-        localStorage.setItem(`addedRounds_${id}`, JSON.stringify(newAddedRounds));
-        return newAddedRounds;
-      });
-      
-      // Store complete round details for history display
-      setAddedRoundDetails(prev => {
-        const existingRounds = prev[companyName] || [];
-        const newRoundDetails = {
-          ...prev,
-          [companyName]: [...existingRounds, newRoundDetail]
-        };
-        localStorage.setItem(`addedRoundDetails_${id}`, JSON.stringify(newRoundDetails));
-        return newRoundDetails;
-      });
-      
-      // TODO: Backend integration - create new interview record
-      // await createNewInterviewRound({
-      //   studentId: id,
-      //   companyName: nextRoundData.companyName,
-      //   round,
-      //   interviewDate: nextRoundDate && nextRoundTime ? `${nextRoundDate} ${nextRoundTime}` : null,
-      //   feedback: nextRoundFeedback,
-      //   result: nextRoundResult,
-      //   mode: nextRoundMode,
-      //   ...nextRoundData.baseInterview
-      // }).unwrap();
-      
-      toast.success(`Added ${round} for ${companyName}`);
+        feedback: nextRoundFeedback,
+        result: nextRoundResult,
+      }).unwrap();
+
+      toast.success(`${round} added successfully`);
       setIsAddNextRoundModalOpen(false);
-      
-      // Refetch both APIs to show the new round
-      await Promise.all([
-        refetchHistory(),
-        refetchStudents()
-      ]);
+      await refetchHistory();
     } catch (err) {
-      console.error('Failed to add next round:', err);
-      toast.error(err?.data?.message || "Failed to add next round");
+      console.error('Failed to add round:', err);
+      toast.error(err?.data?.message || err?.data?.error || "Failed to add round");
     }
   };
   
@@ -230,43 +120,14 @@ const InterviewHistory = () => {
         interviewId: selectedInterview._id,
         status: result,
       }).unwrap();
-      
       toast.success("Interview updated successfully");
       setIsUpdateModalOpen(false);
-      // Refetch both APIs to get updated data
-      await Promise.all([
-        refetchHistory(),
-        refetchStudents()
-      ]);
+      await refetchHistory();
     } catch (err) {
-      console.error('Update failed:', err);
       toast.error(err?.data?.message || "Failed to update interview");
     }
   };
 
-  const handleUpdateRoundSubmit = async () => {
-    try {
-      // Store locally for immediate UI update
-      setLocalRounds(prev => ({
-        ...prev,
-        [selectedInterview._id]: round
-      }));
-      
-      // TODO: Backend integration - uncomment when ready
-      // await updateInterviewRecord({
-      //   studentId: selectedInterview.studentId,
-      //   interviewId: selectedInterview._id,
-      //   round,
-      // }).unwrap();
-      
-      toast.success("Round updated successfully");
-      setIsUpdateRoundModalOpen(false);
-      // await refetch(); // Uncomment when backend is ready
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to update round");
-    }
-  };
   
   const handleRescheduleSubmit = async () => {
     if (isRescheduling) return; // Prevent duplicate calls
@@ -291,11 +152,7 @@ const InterviewHistory = () => {
       toast.success("Interview rescheduled successfully");
       setIsRescheduleModalOpen(false);
       setShowRescheduleDatePicker(false);
-      // Refetch both APIs to show updated schedule
-      await Promise.all([
-        refetchHistory(),
-        refetchStudents()
-      ]);
+      await refetchHistory();
     } catch (err) {
       console.error(err);
       toast.error("Failed to reschedule interview");
@@ -309,14 +166,22 @@ const InterviewHistory = () => {
         return <span className={`${base} bg-green-100 text-green-700`}><CheckCircle className="w-4 h-4" />Selected</span>;
       case "Passed":
         return <span className={`${base} bg-green-100 text-green-700`}><CheckCircle className="w-4 h-4" />Passed</span>;
+      case "Scheduled":
+        return <span className={`${base} bg-blue-100 text-blue-700`}><Clock className="w-4 h-4" />Scheduled</span>;
+      case "Rescheduled":
+        return <span className={`${base} bg-yellow-100 text-yellow-700`}><Clock className="w-4 h-4" />Rescheduled</span>;
+      case "Ongoing":
+        return <span className={`${base} bg-orange-100 text-orange-700`}><Clock className="w-4 h-4" />Ongoing</span>;
+      case "RejectedByCompany":
+        return <span className={`${base} bg-red-100 text-red-700`}><XCircle className="w-4 h-4" />Rejected by Company</span>;
+      case "RejectedByStudent":
+        return <span className={`${base} bg-red-100 text-red-700`}><XCircle className="w-4 h-4" />Rejected by Student</span>;
       case "Reject":
       case "Rejected":
       case "Failed":
         return <span className={`${base} bg-red-100 text-red-700`}><XCircle className="w-4 h-4" />Failed</span>;
-      case "Pending":
-        return null; // Don't show pending status
       default:
-        return null; // Don't show any badge for unknown status
+        return <span className={`${base} bg-gray-100 text-gray-600`}><Clock className="w-4 h-4" />{status || "Pending"}</span>;
     }
   };
 
@@ -350,32 +215,19 @@ const InterviewHistory = () => {
       />
 
       {/* Student Info */}
-      {studentData && studentData._id && (
-  <div className="bg-gray-50 rounded-lg p-4 mb-6">
-    <div className="flex justify-between items-center">
-      <div className="grid grid-cols-1 md:grid-cols-3 divide-x divide-gray-300 text-sm flex-1">
-        <div className="pr-4">
-          <span className="font-semibold text-gray-600">Student Name:</span>
-          <p className="text-gray-800 font-bold">{studentData.firstName} {studentData.lastName}</p>
+      {studentName && (
+        <div className="bg-gray-50 rounded-lg p-4 mb-6">
+          <div className="flex justify-between items-center">
+            <p className="font-bold text-gray-800">{studentName}</p>
+            <button
+              onClick={() => navigate(`/student-profile/${id}`)}
+              className="ml-4 bg-[#FDA92D] text-white px-3 py-1 rounded text-sm hover:bg-orange-600 transition"
+            >
+              View Profile
+            </button>
+          </div>
         </div>
-        <div className="px-4">
-          <span className="font-semibold text-gray-600">Track:</span>
-          <p className="text-gray-800 font-bold">{studentData.track || 'N/A'}</p>
-        </div>
-        <div className="pl-4">
-          <span className="font-semibold text-gray-600">Technology:</span>
-          <p className="text-gray-800 font-bold">{studentData.techno || 'N/A'}</p>
-        </div>
-      </div>
-      <button
-        onClick={() => navigate(`/student-profile/${studentData._id}`)}
-        className="ml-4 bg-brandYellow text-white px-3 py-1 rounded text-sm hover:bg-orange-600 transition"
-      >
-        View Profile
-      </button>
-    </div>
-  </div>
-)}
+      )}
 
       {/* Interview History Cards */}
       <div className="mb-6">
@@ -389,7 +241,7 @@ const InterviewHistory = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            {displayInterviews.map((interview, index) => (
+            {interviews.map((interview, index) => (
               <div key={interview._id || interview.id || index} 
                    className="bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden backdrop-blur-sm">
                 
@@ -424,7 +276,7 @@ const InterviewHistory = () => {
                           <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                           </svg>
-                          {interview.requiredTechnology || studentData?.techno || "Not specified"}
+                          {interview.requiredTechnology || "Not specified"}
                         </div>
                         
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-full transition-all duration-200">
@@ -432,13 +284,7 @@ const InterviewHistory = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                           <span className="text-blue-600 text-xs font-semibold">
-                            {(() => {
-                              const companyName = interview.company?.companyName;
-                              const addedCount = addedRounds[companyName]?.count || 0;
-                              const baseRoundNumber = parseInt(interview.round?.replace('Round ', '') || '1');
-                              const currentRoundNumber = baseRoundNumber + addedCount;
-                              return `Round ${currentRoundNumber}`;
-                            })()}
+                            {interview.rounds?.length || 0} Round(s)
                           </span>
                         </div>
                       </div>
@@ -526,22 +372,7 @@ const InterviewHistory = () => {
                         </div>
                         <div>
                           <p className="text-sm text-gray-500 font-medium">Result Status</p>
-                          {(() => {
-                            // Get latest status from localStorage
-                            try {
-                              const companyStatus = localStorage.getItem(`companyStatus_${id}`);
-                              if (companyStatus) {
-                                const parsed = JSON.parse(companyStatus);
-                                const companyKey = interview.company?.companyName;
-                                if (parsed[companyKey]?.latestResult) {
-                                  return renderBadge(parsed[companyKey].latestResult);
-                                }
-                              }
-                            } catch (e) {
-                              console.error('Error reading company status:', e);
-                            }
-                            return renderBadge(interview.result || interview.status || "Pending");
-                          })()}
+                          {renderBadge(interview.status || "Pending")}
                         </div>
                       </div>
 
