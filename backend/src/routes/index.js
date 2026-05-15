@@ -16,6 +16,7 @@ const sessionSyllabusRoutes = require('./sessionSyllabusRoutes');
 const superAdminDashboardRoutes = require('./superAdminDashboardRoutes');
 const deptPlacementRoutes = require('./deptPlacementRoutes');
 const taskRoutes = require('./taskRoutes');
+const studentAuthRoutes = require('./studentAuthRoutes');
 
 // Mount routes
 router.use('/user', userRoutes);
@@ -32,5 +33,6 @@ router.use('/session-syllabus', sessionSyllabusRoutes);
 router.use('/superadmin/dashboard', superAdminDashboardRoutes);
 router.use('/placements/department', deptPlacementRoutes);
 router.use('/tasks', taskRoutes);
+router.use('/student-auth', studentAuthRoutes);
 
 module.exports = router;

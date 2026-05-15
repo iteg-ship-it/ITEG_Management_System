@@ -86,6 +86,9 @@ const studentSchema = new mongoose.Schema({
     required: true
   },
 
+  // 🔒 Auth
+  password: { type: String, default: null },
+
   // 🚦 Status
   status: {
     type: String,

@@ -1499,6 +1499,46 @@ export const authApi = createApi({
       invalidatesTags: ['SyllabusVersion', 'Task'],
     }),
 
+    // --- Student Auth APIs ---
+    studentLogin: builder.mutation({
+      query: (credentials) => ({
+        url: '/student-auth/login',
+        method: 'POST',
+        body: credentials,
+      }),
+    }),
+
+    getMyStudentProfile: builder.query({
+      query: () => ({ url: '/student-auth/me', method: 'GET' }),
+      providesTags: ['StudentProfile'],
+    }),
+
+    updateMyStudentProfileImage: builder.mutation({
+      query: ({ image }) => ({
+        url: '/student-auth/me/profile-image',
+        method: 'PATCH',
+        body: { image },
+      }),
+      invalidatesTags: ['StudentProfile'],
+    }),
+
+    changeMyStudentPassword: builder.mutation({
+      query: (data) => ({
+        url: '/student-auth/me/change-password',
+        method: 'PATCH',
+        body: data,
+      }),
+    }),
+
+    setStudentPassword: builder.mutation({
+      query: ({ id, password }) => ({
+        url: `/student-auth/${id}/set-password`,
+        method: 'PATCH',
+        body: { password },
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: 'Student', id }],
+    }),
+
     // Smart Syllabus APIs
     getStudentSmartSyllabus: builder.query({
       query: ({ studentId, subLevelId }) => ({
@@ -1704,4 +1744,9 @@ export const {
   useGetSyllabusHistoryQuery,
   useGetAffectedStudentsQuery,
   usePreviewUpdateImpactMutation,
+  useStudentLoginMutation,
+  useGetMyStudentProfileQuery,
+  useUpdateMyStudentProfileImageMutation,
+  useChangeMyStudentPasswordMutation,
+  useSetStudentPasswordMutation,
 } = authApi;
