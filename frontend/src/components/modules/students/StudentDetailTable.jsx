@@ -5,6 +5,7 @@ import Loader from "../../shared/loader/Loader";
 import CommonTable from "../../shared/table/CommonTable";
 import Header from "../../shared/sidebar/Header";
 import Avatar from "../../shared/Avatar";
+import { MdTableChart } from "react-icons/md";
 
 const toTitle = (str) =>
   str?.toLowerCase().split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") || "";
@@ -14,6 +15,7 @@ const STATUS_COLORS = {
   Placed:    "bg-purple-100 text-purple-700",
   Dropped:   "bg-red-100 text-red-700",
   Completed: "bg-blue-100 text-blue-700",
+  Dummy:     "bg-orange-100 text-orange-700",
 };
 
 const StudentDetailTable = () => {
@@ -155,11 +157,32 @@ const StudentDetailTable = () => {
           filtersConfig={[
             {
               title: "Status",
-              options: ["Active", "Placed", "Dropped", "Completed"],
+              options: ["Active", "Placed", "Dropped", "Completed", "Dummy"],
               selected: selectedStatus,
               setter: setSelectedStatus,
             },
           ]}
+          extraColumn={{
+            header: "Task Board",
+            render: (row) => (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  navigate("/student/task-board", {
+                    state: {
+                      student: row,
+                      level: row.currentLevelId,
+                      subdepartment: row.subDepartmentId,
+                    },
+                  });
+                }}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-500 transition hover:bg-orange-100"
+              >
+                <MdTableChart size={14} /> Task Board
+              </button>
+            ),
+          }}
           onRowClick={(row) => navigate(`/student-profile/${row._id}`)}
         />
       </div>

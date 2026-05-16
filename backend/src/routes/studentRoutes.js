@@ -22,6 +22,9 @@ router.get("/stats", ...auth, studentController.getStudentStats);
 // Permission
 router.get("/permission/list", ...auth, studentController.getPermissionStudents);
 
+// Dummy Students
+router.get("/dummy/list", ...auth, studentController.getDummyStudents);
+
 // Placement: Ready / Selected / Placed lists
 router.get("/Ready_Students", ...auth, placementController.getReadyStudents);
 router.get("/selected_students", ...auth, placementController.getSelectedStudents);
@@ -96,6 +99,7 @@ router.patch("/:id/placement-readiness", ...auth, studentController.updatePlacem
 
 // Mark Dropped (with document upload)
 router.patch("/:id/mark-dropped", ...auth, studentController.markDropped);
+router.patch("/:id/mark-dummy", ...auth, studentController.markDummy);
 
 // Syllabus Tasks
 router.get("/:id/tasks", ...auth, studentController.getStudentTasks);

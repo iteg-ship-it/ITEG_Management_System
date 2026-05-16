@@ -412,6 +412,15 @@ export const authApi = createApi({
       invalidatesTags: (result, error, { id }) => [{ type: 'Student', id }, 'Student'],
     }),
 
+    markStudentDummy: builder.mutation({
+      query: ({ id, reason, remark, fileData, fileType }) => ({
+        url: `/students/${id}/mark-dummy`,
+        method: 'PATCH',
+        body: { reason, remark, fileData, fileType },
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: 'Student', id }, 'Student'],
+    }),
+
     getNewReadyStudents: builder.query({
       query: () => ({ url: '/students/Ready_Students', method: 'GET' }),
       providesTags: ['PlacementStudent'],
@@ -430,6 +439,11 @@ export const authApi = createApi({
 
     getNewPermissionStudents: builder.query({
       query: (status = 'pending') => ({ url: `/students/permission/list?status=${status}`, method: 'GET' }),
+      providesTags: ['Student'],
+    }),
+
+    getDummyStudents: builder.query({
+      query: () => ({ url: '/students/dummy/list', method: 'GET' }),
       providesTags: ['Student'],
     }),
 
@@ -1693,10 +1707,12 @@ export const {
   useGetStudentActivityQuery,
   useResolvePermissionMutation,
   useMarkStudentDroppedMutation,
+  useMarkStudentDummyMutation,
   useGetNewReadyStudentsQuery,
   useGetNewPlacedStudentsQuery,
   useGetNewSelectedStudentsQuery,
   useGetNewPermissionStudentsQuery,
+  useGetDummyStudentsQuery,
   useUpdatePermissionStatusMutation,
   useLoginMutation,
   useSignupMutation,

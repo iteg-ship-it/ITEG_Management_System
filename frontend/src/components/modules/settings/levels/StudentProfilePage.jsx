@@ -23,6 +23,7 @@ import {
     useUploadDocumentMutation,
     useUploadExtraDocumentMutation,
     useMarkStudentDroppedMutation,
+    useMarkStudentDummyMutation,
 } from "../../../../redux/api/authApi";
 
 // History helpers
@@ -481,7 +482,7 @@ const PermissionRow = ({ item }) => (
     <div className="rounded-xl border border-gray-100 bg-white px-4 py-3">
         <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-                <p className="text-sm font-bold text-gray-900">{item.reason || "Permission request"}</p>
+                <p className="text-sm font-bold text-gray-900">{item.reason || "Leave permission request"}</p>
                 <p className="mt-1 text-[11px] font-medium text-gray-500">
                     {formatShortDate(item.fromDate) || "Start date"} to {formatShortDate(item.toDate) || "End date"}
                 </p>
@@ -603,8 +604,10 @@ const EditProfileModal = ({ raw, onConfirm, onCancel, loading }) => {
     );
 };
 
-// Mark Dropped Modal
-const MarkDroppedModal = ({ name, onConfirm, onCancel, loading }) => {
+// Mark Dropped / Dummy Modal
+const MarkDroppedModal = ({ name, onConfirm, onCancel, loading, variant = "dropped" }) => {
+    const isDummy = variant === "dummy";
+    const [reason,   setReason]   = useState("");
     const [remark,   setRemark]   = useState("");
     const [fileData, setFileData] = useState(null);
     const [fileType, setFileType] = useState("");
@@ -627,9 +630,10 @@ const MarkDroppedModal = ({ name, onConfirm, onCancel, loading }) => {
     };
 
     const handleSubmit = () => {
-        if (!remark.trim()) { toast.error("Reason is required"); return; }
+        if (isDummy && !reason.trim()) { toast.error("Reason is required"); return; }
+        if (!isDummy && !remark.trim()) { toast.error("Reason is required"); return; }
         if (!fileData)       { toast.error("Application document is required"); return; }
-        onConfirm({ remark, fileData, fileType, fileName });
+        onConfirm({ reason, remark, fileData, fileType, fileName });
     };
 
     return (
@@ -637,22 +641,38 @@ const MarkDroppedModal = ({ name, onConfirm, onCancel, loading }) => {
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                     <div>
-                        <h3 className="text-sm font-bold text-gray-800">Mark as Dropped</h3>
+                        <h3 className="text-sm font-bold text-gray-800">{isDummy ? "Mark as Dummy" : "Mark as Dropped"}</h3>
                         <p className="text-xs text-gray-500 mt-0.5">{name}</p>
                     </div>
                     <button onClick={onCancel} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400"><MdClose size={18} /></button>
                 </div>
                 <div className="px-5 py-4 space-y-4">
-                    <div className="flex items-start gap-3 p-3 bg-red-50 border border-red-100 rounded-xl">
-                        <MdWarning size={18} className="text-red-500 flex-shrink-0 mt-0.5" />
-                        <p className="text-xs text-red-600">This will mark the student as <strong>Dropped</strong>. This action can be reversed later.</p>
+                    <div className={`flex items-start gap-3 p-3 border rounded-xl ${isDummy ? "bg-orange-50 border-orange-100" : "bg-red-50 border-red-100"}`}>
+                        <MdWarning size={18} className={`${isDummy ? "text-orange-500" : "text-red-500"} flex-shrink-0 mt-0.5`} />
+                        <p className={`text-xs ${isDummy ? "text-orange-600" : "text-red-600"}`}>
+                            This will mark the student as <strong>{isDummy ? "Dummy" : "Dropped"}</strong>. This action can be reversed later.
+                        </p>
                     </div>
 
+                    {isDummy && (
+                        <div>
+                            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Reason <span className="text-red-400">*</span></label>
+                            <input
+                                value={reason}
+                                onChange={e => setReason(e.target.value)}
+                                placeholder="Enter dummy student reason..."
+                                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                            />
+                        </div>
+                    )}
+
                     <div>
-                        <label className="block text-xs font-semibold text-gray-600 mb-1.5">Reason <span className="text-red-400">*</span></label>
+                        <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                            {isDummy ? "Remark" : "Reason"} {!isDummy && <span className="text-red-400">*</span>}
+                        </label>
                         <textarea value={remark} onChange={e => setRemark(e.target.value)}
-                            rows={3} placeholder="Enter reason for dropping..."
-                            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-400 resize-none" />
+                            rows={3} placeholder={isDummy ? "Add remark..." : "Enter reason for dropping..."}
+                            className={`w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none resize-none ${isDummy ? "focus:border-orange-400" : "focus:border-red-400"}`} />
                     </div>
 
                     <div>
@@ -679,9 +699,9 @@ const MarkDroppedModal = ({ name, onConfirm, onCancel, loading }) => {
                 <div className="flex gap-3 px-5 pb-5">
                     <button onClick={onCancel} className="flex-1 py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition">Cancel</button>
                     <button onClick={handleSubmit} disabled={loading}
-                        className="flex-1 py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 disabled:bg-red-300 rounded-xl transition flex items-center justify-center gap-2">
+                        className={`flex-1 py-2.5 text-sm font-semibold text-white rounded-xl transition flex items-center justify-center gap-2 disabled:opacity-60 ${isDummy ? "bg-orange-500 hover:bg-orange-600" : "bg-red-500 hover:bg-red-600"}`}>
                         {loading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <MdWarning size={15} />}
-                        Confirm Drop
+                        {isDummy ? "Confirm Dummy" : "Confirm Drop"}
                     </button>
                 </div>
             </div>
@@ -1001,7 +1021,7 @@ const FullLevelHistoryModal = ({
     );
 };
 
-const MissionHeroSection = ({ raw, name, initials, level, subdepartment, readinessStatus, taskRating, goToTaskBoard, moreOpen, setMoreOpen, onPromote, onFtpToggle, ftpLoading, onReadyStudent, onViewReport, onEditProfile, onMarkDropped }) => (
+const MissionHeroSection = ({ raw, name, initials, level, subdepartment, readinessStatus, taskRating, goToTaskBoard, moreOpen, setMoreOpen, onPromote, onFtpToggle, ftpLoading, onReadyStudent, onViewReport, onEditProfile, onMarkDropped, onMarkDummy }) => (
     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
         <div className="flex flex-col xl:flex-row xl:items-start gap-5">
             <div className="relative flex-shrink-0">
@@ -1053,6 +1073,7 @@ const MissionHeroSection = ({ raw, name, initials, level, subdepartment, readine
                                         <button onClick={onViewReport} className="w-full text-left px-4 py-2 text-xs text-gray-600 hover:bg-gray-50 transition">View Report Card</button>
                                         <button onClick={onEditProfile} className="w-full text-left px-4 py-2 text-xs text-gray-600 hover:bg-gray-50 transition">Edit Profile</button>
                                         <div className="border-t border-gray-100 my-1" />
+                                        <button onClick={onMarkDummy} className="w-full text-left px-4 py-2 text-xs text-orange-500 font-semibold hover:bg-orange-50 transition">Mark Dummy</button>
                                         <button onClick={onMarkDropped} className="w-full text-left px-4 py-2 text-xs text-red-500 font-semibold hover:bg-red-50 transition">Mark Dropped</button>
                                     </div>
                                 </>
@@ -1148,6 +1169,7 @@ const StudentProfilePage = () => {
     const [readyModal,    setReadyModal]    = useState(false);
     const [editModal,     setEditModal]     = useState(false);
     const [dropModal,     setDropModal]     = useState(false);
+    const [dummyModal,    setDummyModal]    = useState(false);
     const [historyModal,  setHistoryModal]  = useState(false);
     const [activityModal, setActivityModal] = useState(false);
     const [sectionModal,  setSectionModal]  = useState(null);
@@ -1155,6 +1177,7 @@ const StudentProfilePage = () => {
     const [readyLoading,  setReadyLoading]  = useState(false);
     const [editLoading,   setEditLoading]   = useState(false);
     const [dropLoading,   setDropLoading]   = useState(false);
+    const [dummyLoading,  setDummyLoading]  = useState(false);
 
     const [promoteStudent,          { isLoading: promoting }]  = usePromoteNewStudentMutation();
     const [updateStudent]                                       = useUpdateStudentByIdMutation();
@@ -1162,6 +1185,7 @@ const StudentProfilePage = () => {
     const [uploadDocument,          { isLoading: uploadingDocument }] = useUploadDocumentMutation();
     const [uploadExtraDocument,     { isLoading: uploadingExtraDocument }] = useUploadExtraDocumentMutation();
     const [markStudentDropped]                                  = useMarkStudentDroppedMutation();
+    const [markStudentDummy]                                    = useMarkStudentDummyMutation();
 
     const { data: taskData } = useGetNewStudentTasksQuery(
         { id: studentId },
@@ -1399,11 +1423,13 @@ const StudentProfilePage = () => {
         .filter(Boolean).length;
 
     const goToTaskBoard = () => {
-        if (level || subdepartment) {
-            navigate("/student/task-board", { state: { student: raw, level, subdepartment } });
-            return;
-        }
-        navigate(`/student/${raw._id}/task-list`);
+        navigate("/student/task-board", {
+            state: {
+                student: raw,
+                level: level || raw.currentLevelId,
+                subdepartment: subdepartment || raw.subDepartmentId,
+            },
+        });
     };
 
     // Promote handler
@@ -1476,6 +1502,20 @@ const StudentProfilePage = () => {
         }
     };
 
+    const handleMarkDummy = async ({ reason, remark, fileData, fileType }) => {
+        setDummyLoading(true);
+        try {
+            await markStudentDummy({ id: raw._id, reason, remark, fileData, fileType }).unwrap();
+            toast.success(`${name} marked as Dummy`);
+            setDummyModal(false);
+            navigate("/student-permission");
+        } catch (err) {
+            toast.error(err?.data?.message || "Update failed");
+        } finally {
+            setDummyLoading(false);
+        }
+    };
+
     const handleDocumentUpload = async (payload) => {
         try {
             await uploadDocument({ id: raw._id, ...payload }).unwrap();
@@ -1509,6 +1549,9 @@ const StudentProfilePage = () => {
             )}
             {dropModal && (
                 <MarkDroppedModal name={name} onConfirm={handleMarkDropped} onCancel={() => setDropModal(false)} loading={dropLoading} />
+            )}
+            {dummyModal && (
+                <MarkDroppedModal name={name} onConfirm={handleMarkDummy} onCancel={() => setDummyModal(false)} loading={dummyLoading} variant="dummy" />
             )}
             <FullLevelHistoryModal
                 isOpen={historyModal}
@@ -1660,20 +1703,11 @@ const StudentProfilePage = () => {
             <ProfileSectionModal
                 isOpen={sectionModal === "permissions"}
                 onClose={() => setSectionModal(null)}
-                title="Permissions"
+                title="Leave Permissions"
                 subtitle={name}
                 countLabel={`${permissionHistory.length} request${permissionHistory.length === 1 ? "" : "s"}`}
                 footer={(
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                        <p className="text-xs font-medium text-gray-500">Approvals and full workflow remain in the permission module.</p>
-                        <button
-                            type="button"
-                            onClick={() => { setSectionModal(null); navigate("/student-permission"); }}
-                            className="rounded-xl bg-orange-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-orange-600"
-                        >
-                            Open Permission Module
-                        </button>
-                    </div>
+                    <p className="text-xs font-medium text-gray-500">Leave permission history is separate from dummy and dropped student workflows.</p>
                 )}
             >
                 <div className="space-y-3">
@@ -1710,6 +1744,7 @@ const StudentProfilePage = () => {
                     onReadyStudent={() => { setMoreOpen(false); setReadyModal(true); }}
                     onViewReport={() => { setMoreOpen(false); navigate(`/student/${raw._id}/report`); }}
                     onEditProfile={() => { setMoreOpen(false); setEditModal(true); }}
+                    onMarkDummy={() => { setMoreOpen(false); setDummyModal(true); }}
                     onMarkDropped={() => { setMoreOpen(false); setDropModal(true); }}
                 />
 
@@ -1876,11 +1911,11 @@ const StudentProfilePage = () => {
                         onClick={() => setSectionModal("placement")}
                     />
                     <ModuleCard
-                        title="Permissions"
+                        title="Leave Permissions"
                         icon={<MdAccessTime size={18} />}
                         summary={`${pendingPermissions} pending request${pendingPermissions === 1 ? "" : "s"}`}
                         meta={latestPermissionStatus}
-                        action="Review"
+                        action="View"
                         accent="orange"
                         onClick={() => setSectionModal("permissions")}
                     />

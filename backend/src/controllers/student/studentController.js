@@ -352,7 +352,7 @@ exports.getPermissionStudents = async (req, res) => {
   }
 };
 
-// ✅ Approve or Reject Permission (dummy student workflow)
+// ✅ Approve or Reject Leave Permission (legacy single permission workflow)
 exports.updatePermissionStatus = async (req, res) => {
   try {
     const { status, remark } = req.body;
@@ -550,6 +550,25 @@ exports.getStudentActivity = async (req, res) => {
       totalPages: Math.ceil(total / parseInt(limit)),
       data: activity,
     });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ✅ Get Dummy Students
+exports.getDummyStudents = async (req, res) => {
+  try {
+    const filter = req.subDeptFilter ? { ...req.subDeptFilter } : {};
+    filter.status = "Dummy";
+
+    const students = await Student.find(filter)
+      .select("prkey firstName lastName email studentMobile course status dummyDetails currentLevelId currentSubLevelId subDepartmentId")
+      .populate("subDepartmentId", "name departmentId")
+      .populate("currentLevelId", "name order")
+      .populate("currentSubLevelId", "name order")
+      .sort({ "dummyDetails.markedAt": -1, updatedAt: -1 });
+
+    return res.status(200).json({ count: students.length, data: students });
   } catch (error) {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -905,17 +924,75 @@ exports.markDropped = async (req, res) => {
 };
 
 // ✅ Get Student Dashboard Stats (department-aware)
+// ✅ Mark Student as Dummy (separate from dropped and leave permission)
+exports.markDummy = async (req, res) => {
+  try {
+    const { reason, remark, fileData, fileType } = req.body;
+    if (!reason) return res.status(400).json({ message: "reason is required" });
+    if (!fileData || !fileType) return res.status(400).json({ message: "Application document is required" });
+    if (!["image", "pdf"].includes(fileType)) return res.status(400).json({ message: "fileType must be image or pdf" });
+
+    const student = await Student.findById(req.params.id);
+    if (!student) return res.status(404).json({ message: "Student not found" });
+    if (student.status === "Dummy") return res.status(400).json({ message: "Student is already marked as dummy" });
+
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+
+    const uploadResponse = await cloudinary.uploader.upload(fileData, {
+      folder: "dummy_applications",
+      resource_type: fileType === "pdf" ? "raw" : "image",
+      public_id: `dummy_${req.params.id}_${Date.now()}`,
+    });
+
+    student.dummyDetails = {
+      reason,
+      remark: remark || "",
+      applicationURL: uploadResponse.secure_url,
+      applicationType: fileType,
+      markedBy: req.user?._id || null,
+      markedByName: req.user?.name || "",
+      markedAt: new Date(),
+    };
+
+    student.documents.push({
+      title: "Dummy Student Application",
+      fileURL: uploadResponse.secure_url,
+      fileType,
+      remark: remark || reason,
+      isExtra: false,
+      uploadedBy: req.user?._id || null,
+      uploadedByName: req.user?.name || "",
+      uploadedAt: new Date(),
+    });
+
+    student.status = "Dummy";
+    await student.save();
+
+    return res.status(200).json({
+      message: "Student marked as Dummy",
+      data: { studentId: student._id, status: student.status, dummyDetails: student.dummyDetails },
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 exports.getStudentStats = async (req, res) => {
   try {
     const base = req.subDeptFilter ? { ...req.subDeptFilter } : {};
 
-    const [total, active, placed, dropped] = await Promise.all([
+    const [total, active, placed, dropped, dummy] = await Promise.all([
       Student.countDocuments(base),
       Student.countDocuments({ ...base, status: "Active" }),
       Student.countDocuments({ ...base, status: "Placed" }),
       Student.countDocuments({ ...base, status: "Dropped" }),
+      Student.countDocuments({ ...base, status: "Dummy" }),
     ]);
-    return res.status(200).json({ total, active, placed, dropped });
+    return res.status(200).json({ total, active, placed, dropped, dummy });
   } catch (error) {
     return res.status(500).json({ message: "Server error", error: error.message });
   }

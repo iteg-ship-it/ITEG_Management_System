@@ -31,6 +31,20 @@ const documentSchema = new mongoose.Schema({
   uploadedAt: { type: Date, default: Date.now }
 }, { _id: true });
 
+const dummyDetailsSchema = new mongoose.Schema({
+  reason: { type: String, default: "" },
+  remark: { type: String, default: "" },
+  applicationURL: { type: String, default: "" },
+  applicationType: {
+    type: String,
+    enum: ["image", "pdf", ""],
+    default: ""
+  },
+  markedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+  markedByName: { type: String, default: "" },
+  markedAt: { type: Date, default: null }
+}, { _id: false });
+
 const studentSchema = new mongoose.Schema({
   // 🎓 Personal Details
   prkey: { type: String, required: true, unique: true },
@@ -92,7 +106,7 @@ const studentSchema = new mongoose.Schema({
   // 🚦 Status
   status: {
     type: String,
-    enum: ["Active", "Completed", "Dropped", "Placed"],
+    enum: ["Active", "Completed", "Dropped", "Placed", "Dummy"],
     default: "Active"
   },
   isFTP: { type: Boolean, default: false },
@@ -105,6 +119,9 @@ const studentSchema = new mongoose.Schema({
 
   // 🔐 Permission (legacy single — kept for backward compat)
   permissionDetails: { type: permissionSchema, default: null },
+
+  // 🧾 Dummy student workflow (separate from leave permissions and dropped students)
+  dummyDetails: { type: dummyDetailsSchema, default: null },
 
   // 📁 Student Documents (images & PDFs)
   documents: { type: [documentSchema], default: [] },
