@@ -400,7 +400,7 @@ export const authApi = createApi({
         method: 'PATCH',
         body: { status, remark },
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'Student', id }],
+      invalidatesTags: (result, error, { id }) => [{ type: 'Student', id }, 'Student'],
     }),
 
     markStudentDropped: builder.mutation({
@@ -439,6 +439,11 @@ export const authApi = createApi({
 
     getNewPermissionStudents: builder.query({
       query: (status = 'pending') => ({ url: `/students/permission/list?status=${status}`, method: 'GET' }),
+      providesTags: ['Student'],
+    }),
+
+    getLeaveRequests: builder.query({
+      query: (status = 'pending') => ({ url: `/students/leave-requests?status=${status}`, method: 'GET' }),
       providesTags: ['Student'],
     }),
 
@@ -1602,7 +1607,7 @@ export const authApi = createApi({
 
     applyMyPermission: builder.mutation({
       query: (data) => ({ url: '/student-auth/me/permissions', method: 'POST', body: data }),
-      invalidatesTags: ['StudentProfile'],
+      invalidatesTags: ['StudentProfile', 'StudentEvents'],
     }),
 
     getMyPermissions: builder.query({
@@ -1712,6 +1717,7 @@ export const {
   useGetNewPlacedStudentsQuery,
   useGetNewSelectedStudentsQuery,
   useGetNewPermissionStudentsQuery,
+  useGetLeaveRequestsQuery,
   useGetDummyStudentsQuery,
   useUpdatePermissionStatusMutation,
   useLoginMutation,

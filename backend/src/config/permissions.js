@@ -48,6 +48,7 @@ const allPermissions = {
         // Admitted Students Extras
         { feature: 'Page_LevelWiseManagement', description: 'Access to level-wise management', access: ['read'] },
         { feature: 'Page_DummyStudents', description: 'Access to dummy students section', access: ['read'] },
+        { feature: 'Page_LeaveRequests', description: 'Access to student leave requests', access: ['read', 'update'] },
 
         // Placements Extras
         { feature: 'Page_CompanyDetails', description: 'Access to company details', access: ['read'] },
@@ -69,6 +70,7 @@ const allPermissions = {
         // Student Management
         { feature: 'Page_AdmittedStudents', description: 'Access to the Admitted Students section', access: ['read'] },
         { feature: 'Page_LevelWiseManagement', description: 'Access to level-wise management', access: ['read'] },
+        { feature: 'Page_LeaveRequests', description: 'Access to student leave requests', access: ['read', 'update'] },
         
         // Placement
         { feature: 'Page_Placement', description: 'Access to the Placement section', access: ['read'] },
@@ -89,8 +91,17 @@ const allPermissions = {
         
         // Student Management (Read Only)
         { feature: 'Page_AdmittedStudents', description: 'Access to the Admitted Students section', access: ['read'] },
+        { feature: 'Page_LeaveRequests', description: 'Access to student leave requests', access: ['read', 'update'] },
         
         // Academic Content
+        { feature: 'Page_Syllabus', description: 'Access to the Syllabus page', access: ['read'] },
+    ],
+
+    hod: [
+        { feature: 'Page_Dashboard', description: 'Access to the main dashboard', access: ['read'] },
+        { feature: 'Page_AttendanceDetails', description: 'Access to attendance details', access: ['read'] },
+        { feature: 'Page_AdmittedStudents', description: 'Access to the Admitted Students section', access: ['read'] },
+        { feature: 'Page_LeaveRequests', description: 'Access to student leave requests', access: ['read', 'update'] },
         { feature: 'Page_Syllabus', description: 'Access to the Syllabus page', access: ['read'] },
     ]
 };

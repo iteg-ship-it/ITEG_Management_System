@@ -34,8 +34,8 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    if (role === "faculty" && !department) {
-      return res.status(400).json({ message: "Department is required for faculty" });
+    if (["faculty", "hod"].includes(role) && !department) {
+      return res.status(400).json({ message: "Department is required for faculty/HOD" });
     }
 
     const collegeEmailRegex = /^[a-zA-Z0-9._%+-]+@ssism\.org$/;
@@ -45,14 +45,14 @@ exports.createUser = async (req, res) => {
 
     email = email.toLowerCase();
 
-    const allowedRoles = ["admin", "superadmin", "faculty"];
+    const allowedRoles = ["admin", "superadmin", "faculty", "hod"];
     if (!allowedRoles.includes(role)) {
       return res.status(400).json({ message: "Invalid role. Only admin, superadmin, and faculty are allowed." });
     }
 
-    // Resolve departmentId from department name for faculty
+    // Resolve departmentId from department name for department-scoped roles
     let departmentId = null;
-    if (role === "faculty" && department) {
+    if (["faculty", "hod"].includes(role) && department) {
       const deptDoc = await Department.findOne({ name: department, isActive: true }).select("_id");
       if (!deptDoc) return res.status(400).json({ message: "Selected department does not exist" });
       departmentId = deptDoc._id;

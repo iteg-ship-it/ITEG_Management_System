@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Student = require("../../models/student/Student");
+const StudentEventLog = require("../../models/student/StudentEventLog");
 const cloudinary = require("../../config/cloudinaryConfig");
 
 // ✅ Student Login (PR Key + Password)
@@ -279,6 +280,24 @@ exports.applyMyPermission = async (req, res) => {
     await student.save();
 
     const added = student.permissions[student.permissions.length - 1];
+    await StudentEventLog.create({
+      studentId: student._id,
+      type: "permission",
+      action: "leave_request_submitted",
+      title: "Leave request submitted",
+      description: reason,
+      meta: {
+        permissionId: added._id,
+        status: "pending",
+        fromDate: added.fromDate,
+        toDate: added.toDate,
+        hasDocument: Boolean(uploadedImageURL),
+      },
+      createdBy: null,
+      createdByName: `${student.firstName || ""} ${student.lastName || ""}`.trim(),
+      createdByRole: "student",
+    });
+
     return res.status(201).json({ message: "Permission applied successfully", data: added });
   } catch (error) {
     return res.status(500).json({ message: "Server error", error: error.message });
@@ -386,7 +405,6 @@ exports.getMyExtraDocuments = async (req, res) => {
 // ✅ Get My Event Log / Activity Timeline (Student)
 exports.getMyEventLog = async (req, res) => {
   try {
-    const StudentEventLog = require("../../models/student/StudentEventLog");
     const { type, page = 1, limit = 15 } = req.query;
     const filter = { studentId: req.user.id };
     if (type) filter.type = type;

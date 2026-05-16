@@ -13,6 +13,7 @@ import PlacementReadyStudents from "../placements/PlacementReadyStudents";
 import PlacementDashboard from "../placements/dashboard/PlacementDashboard";
 import DepartmentPlacementDetail from "../placements/dashboard/DepartmentPlacementDetail";
 import StudentPermission from "../students/StudentPermission";
+import LeaveRequests from "../students/LeaveRequests";
 import PlacementRecords from "../placements/PlacementRecords";
 import PlacementPost from "../placements/PlacementPost";
 import CompanyDetail from "../placements/CompanyDetail";
@@ -43,9 +44,7 @@ import CurriculumManagement from "../settings/curriculum/CurriculumManagement";
 
 // admin/superadmin → DepartmentSelector, faculty → direct StudentDetailTable
 const RoleBasedStudentPage = () => {
-  const role = (localStorage.getItem("role") || "").toLowerCase();
-  if (role === "superadmin" || role === "admin") return <DepartmentSelector />;
-  return <StudentDetailTable />;
+  return <DepartmentSelector />;
 };
 
 const Layout = () => {
@@ -58,16 +57,17 @@ const Layout = () => {
                     <Route path="/attendance-details" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AttendanceDetails /></ProtectedRoute>} />
                     <Route path="/user-management" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><UsersManagement /></ProtectedRoute>} />
                     <Route path="/user-profile/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><UserProfile /></ProtectedRoute>} />
-                    <Route path="/student/edit/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentEditPage /></ProtectedRoute>} />
-                    <Route path="/student-detail-table" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><RoleBasedStudentPage /></ProtectedRoute>} />
-                    <Route path="/student-detail-table/:subDepartmentId" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentDetailTable /></ProtectedRoute>} />
-                    <Route path="/student/leveldata/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentLevelData /></ProtectedRoute>} />
-                    <Route path="/student-profile/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentProfilePage /></ProtectedRoute>} />
-                    <Route path="/student/:id/report/edit" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentReportForm /></ProtectedRoute>} />
-                    <Route path="/student/:id/report" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentReport /></ProtectedRoute>} />
-                    <Route path="/student-level-interviews/:studentId" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentLevelInterviewHistory /></ProtectedRoute>} />
-                    <Route path="/student/:id/task-list" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><TaskList /></ProtectedRoute>} />
-                    <Route path="/student-permission" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><StudentPermission /></ProtectedRoute>} />
+                    <Route path="/student/edit/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod"]}><StudentEditPage /></ProtectedRoute>} />
+                    <Route path="/student-detail-table" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod"]}><RoleBasedStudentPage /></ProtectedRoute>} />
+                    <Route path="/student-detail-table/:subDepartmentId" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod"]}><StudentDetailTable /></ProtectedRoute>} />
+                    <Route path="/student/leveldata/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod"]}><StudentLevelData /></ProtectedRoute>} />
+                    <Route path="/student-profile/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod"]}><StudentProfilePage /></ProtectedRoute>} />
+                    <Route path="/student/:id/report/edit" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod"]}><StudentReportForm /></ProtectedRoute>} />
+                    <Route path="/student/:id/report" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod"]}><StudentReport /></ProtectedRoute>} />
+                    <Route path="/student-level-interviews/:studentId" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod"]}><StudentLevelInterviewHistory /></ProtectedRoute>} />
+                    <Route path="/student/:id/task-list" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod"]}><TaskList /></ProtectedRoute>} />
+                    <Route path="/student-permission" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod"]}><StudentPermission /></ProtectedRoute>} />
+                    <Route path="/leave-requests" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod"]}><LeaveRequests /></ProtectedRoute>} />
                     <Route path="/readiness-status" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><PlacementReadyStudents /></ProtectedRoute>} />
                     <Route path="/placements/dashboard" element={<ProtectedRoute allowedRoles={["superadmin", "admin"]}><PlacementDashboard /></ProtectedRoute>} />
                     <Route path="/placements/department/:subDepartmentId" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><DepartmentPlacementDetail /></ProtectedRoute>} />

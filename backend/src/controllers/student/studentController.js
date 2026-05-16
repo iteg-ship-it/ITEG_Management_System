@@ -555,6 +555,52 @@ exports.getStudentActivity = async (req, res) => {
   }
 };
 
+// Get leave permission requests from the history-based permissions array.
+// Department filtering is handled by departmentFilter middleware.
+exports.getLeaveRequests = async (req, res) => {
+  try {
+    const { status = "pending" } = req.query;
+    const validStatuses = ["pending", "approved", "rejected", "all"];
+    const statusFilter = validStatuses.includes(status) ? status : "pending";
+
+    const filter = req.subDeptFilter ? { ...req.subDeptFilter } : {};
+    filter["permissions.0"] = { $exists: true };
+    if (statusFilter !== "all") filter["permissions.status"] = statusFilter;
+
+    const students = await Student.find(filter)
+      .select("prkey firstName lastName image email studentMobile permissions currentLevelId currentSubLevelId subDepartmentId")
+      .populate("subDepartmentId", "name departmentId")
+      .populate("currentLevelId", "name order")
+      .populate("currentSubLevelId", "name order")
+      .sort({ updatedAt: -1 });
+
+    const requests = students.flatMap((student) => {
+      const studentObj = student.toObject();
+      return (studentObj.permissions || [])
+        .filter((permission) => statusFilter === "all" || permission.status === statusFilter)
+        .map((permission) => ({
+          ...permission,
+          student: {
+            _id: studentObj._id,
+            prkey: studentObj.prkey,
+            firstName: studentObj.firstName,
+            lastName: studentObj.lastName,
+            image: studentObj.image,
+            email: studentObj.email,
+            studentMobile: studentObj.studentMobile,
+            subDepartmentId: studentObj.subDepartmentId,
+            currentLevelId: studentObj.currentLevelId,
+            currentSubLevelId: studentObj.currentSubLevelId,
+          },
+        }));
+    }).sort((a, b) => new Date(b.uploadDate || 0) - new Date(a.uploadDate || 0));
+
+    return res.status(200).json({ count: requests.length, data: requests });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 // ✅ Get Dummy Students
 exports.getDummyStudents = async (req, res) => {
   try {
@@ -824,10 +870,29 @@ exports.applyPermission = async (req, res) => {
 
     student.permissions.push(permission);
     await student.save();
+    const addedPermission = student.permissions[student.permissions.length - 1];
+
+    await StudentEventLog.create({
+      studentId: student._id,
+      type: "permission",
+      action: "leave_request_submitted",
+      title: "Leave request submitted",
+      description: reason,
+      meta: {
+        permissionId: addedPermission._id,
+        status: "pending",
+        fromDate: permission.fromDate,
+        toDate: permission.toDate,
+        hasDocument: Boolean(uploadedImageURL),
+      },
+      createdBy: req.user?.id || req.user?._id || null,
+      createdByName: req.user?.name || `${student.firstName || ""} ${student.lastName || ""}`.trim(),
+      createdByRole: req.user?.role || "student",
+    });
 
     return res.status(201).json({
       message: "Permission applied successfully",
-      data: student.permissions[student.permissions.length - 1],
+      data: addedPermission,
     });
   } catch (error) {
     return res.status(500).json({ message: "Server error", error: error.message });
@@ -869,6 +934,25 @@ exports.resolvePermission = async (req, res) => {
     permission.approvedAt = new Date();
 
     await student.save();
+    await StudentEventLog.create({
+      studentId: student._id,
+      type: "permission",
+      action: `leave_request_${status}`,
+      title: `Leave request ${status}`,
+      description: remark || permission.reason || "",
+      meta: {
+        permissionId: permission._id,
+        status,
+        reason: permission.reason,
+        remark: remark || "",
+        fromDate: permission.fromDate,
+        toDate: permission.toDate,
+      },
+      createdBy: req.user?.id || req.user?._id || null,
+      createdByName: req.user?.name || "",
+      createdByRole: req.user?.role || "",
+    });
+
     return res.status(200).json({ message: `Permission ${status}`, data: permission });
   } catch (error) {
     return res.status(500).json({ message: "Server error", error: error.message });

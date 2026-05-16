@@ -59,7 +59,7 @@ export const studentApi = createApi({
     // Phase 3 — Permissions
     applyMyPermission: builder.mutation({
       query: (data) => ({ url: "/student-auth/me/permissions", method: "POST", body: data }),
-      invalidatesTags: ["StudentProfile"],
+      invalidatesTags: ["StudentProfile", "StudentEvents"],
     }),
 
     getMyPermissions: builder.query({

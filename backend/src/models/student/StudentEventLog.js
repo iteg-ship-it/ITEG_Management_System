@@ -8,7 +8,7 @@ const studentEventLogSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ["promotion", "email", "document", "task", "note"],
+    enum: ["promotion", "email", "document", "task", "permission", "note"],
     required: true
   },
   action: {

@@ -1,5 +1,6 @@
 const SubDepartment = require("../../models/department/SubDepartment");
 const Department = require("../../models/department/Department");
+const Student = require("../../models/student/Student");
 const mongoose = require("mongoose");
 const { invalidateDeptCache } = require("../../middlewares/departmentFilter");
 
@@ -78,13 +79,43 @@ exports.getSubDepartmentsByDepartment = async (req, res) => {
       });
     }
     
-    const subDepartments = await SubDepartment.find({ 
+    if (!["superadmin", "admin"].includes(req.user?.role)) {
+      let userDepartmentId = req.user?.departmentId?.toString();
+
+      if (!userDepartmentId && req.user?.department) {
+        const department = await Department.findOne({ name: req.user.department, isActive: true }).select("_id");
+        userDepartmentId = department?._id?.toString();
+      }
+
+      if (!userDepartmentId) {
+        return res.status(403).json({
+          success: false,
+          message: "Department not assigned to your account."
+        });
+      }
+
+      if (userDepartmentId !== departmentId) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied for this department"
+        });
+      }
+    }
+
+    const subDepartments = await SubDepartment.find({
       departmentId
     }).populate('departmentId');
+
+    const subDepartmentsWithCounts = await Promise.all(
+      subDepartments.map(async (subDepartment) => {
+        const totalStudents = await Student.countDocuments({ subDepartmentId: subDepartment._id });
+        return { ...subDepartment.toObject(), totalStudents };
+      })
+    );
     
     res.status(200).json({
       success: true,
-      data: subDepartments
+      data: subDepartmentsWithCounts
     });
   } catch (error) {
     res.status(500).json({
@@ -97,10 +128,37 @@ exports.getSubDepartmentsByDepartment = async (req, res) => {
 // Get All SubDepartments
 exports.getAllSubDepartments = async (req, res) => {
   try {
-    const subDepartments = await SubDepartment.find().populate('departmentId');
+    const filter = {};
+
+    if (!["superadmin", "admin"].includes(req.user?.role)) {
+      let departmentId = req.user?.departmentId || null;
+
+      if (!departmentId && req.user?.department) {
+        const department = await Department.findOne({ name: req.user.department, isActive: true }).select("_id");
+        departmentId = department?._id || null;
+      }
+
+      if (!departmentId) {
+        return res.status(403).json({
+          success: false,
+          message: "Department not assigned to your account."
+        });
+      }
+
+      filter.departmentId = departmentId;
+    }
+
+    const subDepartments = await SubDepartment.find(filter).populate('departmentId');
+    const subDepartmentsWithCounts = await Promise.all(
+      subDepartments.map(async (subDepartment) => {
+        const totalStudents = await Student.countDocuments({ subDepartmentId: subDepartment._id });
+        return { ...subDepartment.toObject(), totalStudents };
+      })
+    );
+
     res.status(200).json({
       success: true,
-      data: subDepartments
+      data: subDepartmentsWithCounts
     });
   } catch (error) {
     res.status(500).json({

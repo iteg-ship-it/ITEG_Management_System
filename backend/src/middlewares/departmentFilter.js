@@ -90,7 +90,17 @@ const departmentFilter = async (req, res, next) => {
     }
 
     req.allowedSubDeptIds = ids;
-    req.subDeptFilter = { subDepartmentId: { $in: ids } };
+
+    if (req.query.subDepartmentId) {
+      const requestedSubDeptId = req.query.subDepartmentId.toString();
+      const isAllowed = ids.some((id) => id.toString() === requestedSubDeptId);
+      if (!isAllowed) {
+        return res.status(403).json({ message: "Access denied for this sub-department." });
+      }
+      req.subDeptFilter = { subDepartmentId: req.query.subDepartmentId };
+    } else {
+      req.subDeptFilter = { subDepartmentId: { $in: ids } };
+    }
 
     next();
   } catch (err) {

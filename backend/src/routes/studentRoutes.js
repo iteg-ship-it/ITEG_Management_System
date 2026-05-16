@@ -8,7 +8,7 @@ const placementController = require("../controllers/placement/placementControlle
 const attendanceController = require("../controllers/student/attendanceController");
 const upload = require("../config/multerConfig");
 
-const allowedRoles = ["superadmin", "faculty", "admin"];
+const allowedRoles = ["superadmin", "faculty", "admin", "hod"];
 const auth = [verifyToken, checkRole(allowedRoles), departmentFilter];
 
 // =============================================================
@@ -21,6 +21,7 @@ router.get("/stats", ...auth, studentController.getStudentStats);
 
 // Permission
 router.get("/permission/list", ...auth, studentController.getPermissionStudents);
+router.get("/leave-requests", ...auth, studentController.getLeaveRequests);
 
 // Dummy Students
 router.get("/dummy/list", ...auth, studentController.getDummyStudents);

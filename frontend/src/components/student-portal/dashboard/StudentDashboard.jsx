@@ -25,6 +25,7 @@ const activityStyle = (type) => {
         case "task":       return { color: "bg-indigo-50 text-indigo-500", icon: "task" };
         case "promotion":  return { color: "bg-green-50 text-green-600",   icon: "promote" };
         case "document":   return { color: "bg-blue-50 text-blue-600",     icon: "document" };
+        case "permission": return { color: "bg-orange-50 text-orange-600", icon: "permission" };
         case "email":      return { color: "bg-sky-50 text-sky-600",       icon: "email" };
         default:           return { color: "bg-gray-50 text-gray-500",     icon: "note" };
     }
@@ -367,6 +368,7 @@ export default function StudentDashboard() {
                                         {item.icon === "task"      && <MdTableChart size={15} />}
                                         {item.icon === "promote"   && <MdArrowUpward size={15} />}
                                         {item.icon === "document"  && <MdSchool size={15} />}
+                                        {item.icon === "permission" && <MdCalendarToday size={15} />}
                                         {item.icon === "email"     && <MdEmail size={15} />}
                                         {item.icon === "note"      && <MdAccessTime size={15} />}
                                     </div>
@@ -399,6 +401,7 @@ export default function StudentDashboard() {
                                         {item.icon === "task"     && <MdTableChart size={15} />}
                                         {item.icon === "promote"  && <MdArrowUpward size={15} />}
                                         {item.icon === "document" && <MdSchool size={15} />}
+                                        {item.icon === "permission" && <MdCalendarToday size={15} />}
                                         {item.icon === "email"    && <MdEmail size={15} />}
                                         {item.icon === "note"     && <MdAccessTime size={15} />}
                                     </div>

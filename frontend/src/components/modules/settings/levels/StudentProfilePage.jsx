@@ -121,6 +121,8 @@ const activityStyle = (type) => {
             return { color: "bg-green-50 text-green-600", icon: "promote" };
         case "document":
             return { color: "bg-blue-50 text-blue-600", icon: "document" };
+        case "permission":
+            return { color: "bg-orange-50 text-orange-600", icon: "permission" };
         case "email":
             return { color: "bg-sky-50 text-sky-600", icon: "email" };
         case "note":
@@ -225,6 +227,7 @@ const ActivityIcon = ({ item }) => (
         {item.icon === "email"      && <MdEmail size={15} />}
         {item.icon === "note"       && <MdAccessTime size={15} />}
         {item.icon === "document"   && <MdSchool size={15} />}
+        {item.icon === "permission" && <MdCalendarToday size={15} />}
     </div>
 );
 
@@ -1342,6 +1345,7 @@ const StudentProfilePage = () => {
             : "";
         const sub = promotionSub ||
             item.description ||
+            (item.type === "permission" && meta.status ? `Status: ${formatStatus(meta.status)}` : "") ||
             (item.type === "task" && meta.status ? `Status: ${formatStatus(meta.status)}` : "");
 
         return {
