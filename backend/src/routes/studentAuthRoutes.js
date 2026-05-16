@@ -16,5 +16,15 @@ router.patch("/:id/set-password", ...adminAuth, studentAuthController.setStudent
 router.get("/me", ...studentAuth, studentAuthController.getMyProfile);
 router.patch("/me/profile-image", ...studentAuth, studentAuthController.updateMyProfileImage);
 router.patch("/me/change-password", ...studentAuth, studentAuthController.changeMyPassword);
+router.get("/me/tasks", ...studentAuth, studentAuthController.getMyTasks);
+router.get("/me/level-history", ...studentAuth, studentAuthController.getMyLevelHistory);
+router.get("/me/snapshots", ...studentAuth, studentAuthController.getMySnapshots);
+router.get("/me/event-log", ...studentAuth, studentAuthController.getMyEventLog);
+router.post("/me/permissions", ...studentAuth, studentAuthController.applyMyPermission);
+router.get("/me/permissions", ...studentAuth, studentAuthController.getMyPermissions);
+router.post("/me/extra-documents", ...studentAuth, studentAuthController.uploadMyExtraDocument);
+router.get("/me/extra-documents", ...studentAuth, studentAuthController.getMyExtraDocuments);
+router.get("/me/placement", ...studentAuth, studentAuthController.getMyPlacement);
+router.get("/me/report-card", ...studentAuth, studentAuthController.getMyReportCard);
 
 module.exports = router;

@@ -17,11 +17,29 @@ const GoogleSuccess = React.lazy(() => import('./components/modules/auth/login/G
 const ServerError = React.lazy(() => import("./components/shared/error-pages/ServerError"));
 const SessionTimeoutModal = React.lazy(() => import('./components/shared/user-profile/SessionTimeoutModal'));
 
+// Student Portal
+const StudentPortalLayout = React.lazy(() => import("./components/student-portal/layout/StudentPortalLayout"));
+const StudentDashboard = React.lazy(() => import("./components/student-portal/dashboard/StudentDashboard"));
+const StudentTasks = React.lazy(() => import("./components/student-portal/tasks/StudentTasks"));
+const StudentLevelHistory = React.lazy(() => import("./components/student-portal/progress/StudentLevelHistory"));
+const StudentProfile = React.lazy(() => import("./components/student-portal/profile/StudentProfile"));
+const StudentPermissions = React.lazy(() => import("./components/student-portal/permissions/StudentPermissions"));
+const StudentDocuments = React.lazy(() => import("./components/student-portal/documents/StudentDocuments"));
+const StudentPlacement = React.lazy(() => import("./components/student-portal/placement/StudentPlacement"));
+const StudentReportCard = React.lazy(() => import("./components/student-portal/reportcard/StudentReportCard"));
 
-// ✅ Protected Route Component
+
+// ✅ Protected Route Component (Admin/Faculty)
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
   return token ? children : <Navigate to="/login" replace />;
+};
+
+// ✅ Student Protected Route
+const StudentRoute = ({ children }) => {
+  const token = localStorage.getItem("studentToken");
+  const role = localStorage.getItem("role");
+  return token && role === "student" ? children : <Navigate to="/login" replace />;
 };
 
 function App() {
@@ -42,6 +60,27 @@ function App() {
           <Route path="/otp-enter" element={<OtpEnter />} />
           <Route path="/google-success" element={<GoogleSuccess />} />
           <Route path="/server-error" element={<ServerError />} />
+
+          {/* Student Portal Routes */}
+          <Route
+            path="/student-portal"
+            element={
+              <StudentRoute>
+                <StudentPortalLayout />
+              </StudentRoute>
+            }
+          >
+            <Route index element={<Navigate to="/student-portal/dashboard" replace />} />
+            <Route path="dashboard" element={<StudentDashboard />} />
+            <Route path="tasks" element={<StudentTasks />} />
+            <Route path="progress" element={<StudentLevelHistory />} />
+            <Route path="permissions" element={<StudentPermissions />} />
+            <Route path="documents" element={<StudentDocuments />} />
+            <Route path="placement" element={<StudentPlacement />} />
+            <Route path="report-card" element={<StudentReportCard />} />
+            <Route path="profile" element={<StudentProfile />} />
+          </Route>
+
           <Route
             path="/*"
             element={

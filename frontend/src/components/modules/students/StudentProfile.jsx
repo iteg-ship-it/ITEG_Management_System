@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
-import { useGetNewStudentByIdQuery, useUpdateStudentImageMutation, useUploadResumeMutation, useUpdateStudentEmailMutation, useGetReportCardQuery } from "../../../redux/api/authApi";
+import { useGetNewStudentByIdQuery, useUpdateStudentImageMutation, useUploadResumeMutation, useUpdateStudentEmailMutation, useGetReportCardQuery, useSetStudentPasswordMutation } from "../../../redux/api/authApi";
 import { taskAPI } from '../../../services/taskService';
 import PermissionModal from "./PermissionModal";
 import PlacementModal from "./PlacementModal";
@@ -33,6 +33,7 @@ export default function StudentProfile() {
   const [updateStudentImage] = useUpdateStudentImageMutation();
   const [uploadResume, { isLoading: isResumeUploading }] = useUploadResumeMutation();
   const [updateStudentEmail, { isLoading: isEmailUpdating }] = useUpdateStudentEmailMutation();
+  const [setStudentPassword] = useSetStudentPasswordMutation();
 
   // New schema adapters — map new fields to what the UI expects
   const currentLevelName    = studentData?.currentLevelId?.name    || "—";
@@ -47,6 +48,7 @@ export default function StudentProfile() {
   const [isImageUploading, setIsImageUploading]         = useState(false);
   const [isEmailModalOpen, setEmailModalOpen]           = useState(false);
   const [isReportCardOpen, setReportCardOpen]           = useState(false);
+  const [isSetPasswordOpen, setSetPasswordOpen]         = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -317,6 +319,13 @@ export default function StudentProfile() {
               >
                 <span className="hidden sm:inline">Update Email</span>
                 <span className="sm:hidden">Email</span>
+              </button>
+              <button
+                onClick={() => setSetPasswordOpen(true)}
+                className="px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 shadow-lg bg-[#FDA92D] hover:bg-[#E6941A] hover:shadow-xl hover:scale-105 text-white"
+              >
+                <span className="hidden sm:inline">Set Password</span>
+                <span className="sm:hidden">Password</span>
               </button>
               {/* <button
                 onClick={() => document.getElementById('resume-upload').click()}
@@ -838,6 +847,12 @@ export default function StudentProfile() {
         onUpdate={updateStudentEmail}
         isLoading={isEmailUpdating}
       />
+      <SetPasswordModal
+        isOpen={isSetPasswordOpen}
+        onClose={() => setSetPasswordOpen(false)}
+        studentId={studentData._id}
+        onSetPassword={setStudentPassword}
+      />
       <ReportCardModal
         isOpen={isReportCardOpen}
         onClose={() => setReportCardOpen(false)}
@@ -1295,6 +1310,78 @@ import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import InputField from '../../shared/form-fields/InputField';
 import CryptoJS from 'crypto-js';
+
+const SetPasswordModal = ({ isOpen, onClose, studentId, onSetPassword }) => {
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [show, setShow] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (password.length < 6) { toast.error("Password must be at least 6 characters"); return; }
+    if (password !== confirm) { toast.error("Passwords do not match"); return; }
+    setLoading(true);
+    try {
+      await onSetPassword({ id: studentId, password }).unwrap();
+      toast.success("Password set successfully");
+      setPassword(""); setConfirm("");
+      onClose();
+    } catch (err) {
+      toast.error(err?.data?.message || "Failed to set password");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl py-4 px-4 sm:px-6 w-full max-w-sm relative">
+        <button onClick={onClose} className="absolute top-3 right-3 text-xl text-gray-400 hover:text-gray-700">&times;</button>
+        <h2 className="text-lg font-semibold text-center mb-4 text-[#FDA92D]">Set Student Password</h2>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="relative">
+            <label className="block text-xs text-gray-500 mb-1">New Password</label>
+            <input
+              type={show ? "text" : "password"}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 pr-10"
+              placeholder="Min. 6 characters"
+              required
+            />
+            <button type="button" onClick={() => setShow(p => !p)}
+              className="absolute right-3 top-[26px] text-gray-400 hover:text-gray-600 text-xs">
+              {show ? "Hide" : "Show"}
+            </button>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">Confirm Password</label>
+            <input
+              type={show ? "text" : "password"}
+              value={confirm}
+              onChange={e => setConfirm(e.target.value)}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+              placeholder="Re-enter password"
+              required
+            />
+          </div>
+          <div className="flex gap-3 pt-1">
+            <button type="button" onClick={onClose}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm">
+              Cancel
+            </button>
+            <button type="submit" disabled={loading}
+              className="flex-1 px-4 py-2 bg-[#FDA92D] hover:bg-[#E6941A] text-white rounded-lg text-sm disabled:opacity-50">
+              {loading ? "Setting..." : "Set Password"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
 
 const UpdateEmailModal = ({ isOpen, onClose, studentData, onUpdate, isLoading }) => {
   const validationSchema = Yup.object({

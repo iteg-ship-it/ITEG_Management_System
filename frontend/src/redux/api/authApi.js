@@ -41,10 +41,24 @@ const jwtDecode = (token) => {
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_API_URL,
   credentials: "include",
-  prepareHeaders: (headers) => {
-    const encryptedToken = localStorage.getItem("token");
-    const token = decrypt(encryptedToken);
-    if (token) headers.set("Authorization", `Bearer ${token}`);
+  prepareHeaders: (headers, { endpoint }) => {
+    // Student portal endpoints use studentToken
+    const studentEndpoints = [
+      "getMyStudentProfile", "updateMyStudentProfileImage", "changeMyStudentPassword",
+      "getMyStudentTasks", "getMyStudentLevelHistory", "getMyStudentSnapshots",
+      "getMyStudentEventLog", "applyMyPermission", "getMyPermissions",
+      "uploadMyExtraDocument", "getMyExtraDocuments", "getMyStudentPlacement",
+      "getMyStudentReportCard",
+    ];
+    if (studentEndpoints.includes(endpoint)) {
+      const encryptedToken = localStorage.getItem("studentToken");
+      const token = decrypt(encryptedToken);
+      if (token) headers.set("Authorization", `Bearer ${token}`);
+    } else {
+      const encryptedToken = localStorage.getItem("token");
+      const token = decrypt(encryptedToken);
+      if (token) headers.set("Authorization", `Bearer ${token}`);
+    }
     return headers;
   },
 });
@@ -1539,6 +1553,69 @@ export const authApi = createApi({
       invalidatesTags: (result, error, { id }) => [{ type: 'Student', id }],
     }),
 
+    getMyStudentTasks: builder.query({
+      query: ({ status, subLevelId } = {}) => {
+        const params = new URLSearchParams();
+        if (status) params.append('status', status);
+        if (subLevelId) params.append('subLevelId', subLevelId);
+        return { url: `/student-auth/me/tasks?${params.toString()}`, method: 'GET' };
+      },
+      providesTags: ['StudentProfile'],
+    }),
+
+    getMyStudentLevelHistory: builder.query({
+      query: () => ({ url: '/student-auth/me/level-history', method: 'GET' }),
+      providesTags: ['StudentProfile'],
+    }),
+
+    getMyStudentSnapshots: builder.query({
+      query: ({ scope, page = 1, limit = 20 } = {}) => {
+        const params = new URLSearchParams({ page, limit });
+        if (scope) params.append('scope', scope);
+        return { url: `/student-auth/me/snapshots?${params.toString()}`, method: 'GET' };
+      },
+      providesTags: ['StudentProfile'],
+    }),
+
+    getMyStudentEventLog: builder.query({
+      query: ({ type, page = 1, limit = 15 } = {}) => {
+        const params = new URLSearchParams({ page, limit });
+        if (type) params.append('type', type);
+        return { url: `/student-auth/me/event-log?${params.toString()}`, method: 'GET' };
+      },
+      providesTags: ['StudentProfile'],
+    }),
+
+    applyMyPermission: builder.mutation({
+      query: (data) => ({ url: '/student-auth/me/permissions', method: 'POST', body: data }),
+      invalidatesTags: ['StudentProfile'],
+    }),
+
+    getMyPermissions: builder.query({
+      query: () => ({ url: '/student-auth/me/permissions', method: 'GET' }),
+      providesTags: ['StudentProfile'],
+    }),
+
+    uploadMyExtraDocument: builder.mutation({
+      query: (data) => ({ url: '/student-auth/me/extra-documents', method: 'POST', body: data }),
+      invalidatesTags: ['StudentProfile'],
+    }),
+
+    getMyExtraDocuments: builder.query({
+      query: () => ({ url: '/student-auth/me/extra-documents', method: 'GET' }),
+      providesTags: ['StudentProfile'],
+    }),
+
+    getMyStudentPlacement: builder.query({
+      query: () => ({ url: '/student-auth/me/placement', method: 'GET' }),
+      providesTags: ['StudentProfile'],
+    }),
+
+    getMyStudentReportCard: builder.query({
+      query: () => ({ url: '/student-auth/me/report-card', method: 'GET' }),
+      providesTags: ['StudentProfile'],
+    }),
+
     // Smart Syllabus APIs
     getStudentSmartSyllabus: builder.query({
       query: ({ studentId, subLevelId }) => ({
@@ -1749,4 +1826,14 @@ export const {
   useUpdateMyStudentProfileImageMutation,
   useChangeMyStudentPasswordMutation,
   useSetStudentPasswordMutation,
+  useGetMyStudentTasksQuery,
+  useGetMyStudentLevelHistoryQuery,
+  useGetMyStudentSnapshotsQuery,
+  useGetMyStudentEventLogQuery,
+  useApplyMyPermissionMutation,
+  useGetMyPermissionsQuery,
+  useUploadMyExtraDocumentMutation,
+  useGetMyExtraDocumentsQuery,
+  useGetMyStudentPlacementQuery,
+  useGetMyStudentReportCardQuery,
 } = authApi;
