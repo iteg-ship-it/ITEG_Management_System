@@ -166,21 +166,22 @@ const LevelJourneyBar = ({ items = [] }) => {
 
 const ModuleCard = ({ title, icon, summary, meta, action, accent = "blue", onClick }) => {
     const accents = {
-        blue: "bg-blue-50 text-blue-600 border-blue-100",
-        green: "bg-green-50 text-green-600 border-green-100",
-        purple: "bg-purple-50 text-purple-600 border-purple-100",
-        orange: "bg-orange-50 text-orange-600 border-orange-100",
+        blue: "bg-blue-50 text-blue-600 border-blue-100 shadow-blue-100/50",
+        green: "bg-green-50 text-green-600 border-green-100 shadow-green-100/50",
+        purple: "bg-purple-50 text-purple-600 border-purple-100 shadow-purple-100/50",
+        orange: "bg-orange-50 text-orange-600 border-orange-100 shadow-orange-100/50",
     };
     return (
-        <button onClick={onClick} className="active:scale-95 group bg-white border border-gray-100 rounded-[28px] p-5 text-left shadow-sm transition-all duration-200 hover:shadow-md">
+        <button onClick={onClick} className="active:scale-95 group bg-white border border-slate-100 rounded-[32px] p-6 text-left shadow-[0_4px_12px_rgba(0,0,0,0.02)] transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1">
             <div className="flex items-start justify-between gap-3">
-                <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center flex-shrink-0 ${accents[accent]} shadow-sm`}>{icon}</div>
-                <div className="px-2 py-1 bg-gray-50 rounded-lg text-[9px] font-black text-gray-400 uppercase tracking-widest">{action}</div>
+                <div className={`w-14 h-14 rounded-2xl border-2 flex items-center justify-center flex-shrink-0 ${accents[accent]} shadow-lg transition-transform group-hover:rotate-6`}>{icon}</div>
+                <div className="px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-xl text-[9px] font-black text-slate-400 uppercase tracking-widest group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-colors">{action}</div>
             </div>
-            <h3 className="mt-5 text-[14px] font-black text-gray-900 uppercase tracking-tight">{title}</h3>
-            <p className="mt-1 text-[11px] font-bold text-gray-500 line-clamp-1">{summary}</p>
-            <div className="mt-4 pt-4 border-t border-gray-50">
-                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{meta}</p>
+            <h3 className="mt-6 text-[15px] font-black text-slate-900 uppercase tracking-tight">{title}</h3>
+            <p className="mt-1.5 text-[11px] font-bold text-slate-500 line-clamp-1 opacity-80">{summary}</p>
+            <div className="mt-5 pt-5 border-t border-slate-50 flex items-center justify-between">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.1em]">{meta}</p>
+                <div className="w-1.5 h-1.5 rounded-full bg-slate-200 group-hover:bg-blue-500 transition-colors" />
             </div>
         </button>
     );
@@ -208,24 +209,27 @@ const ActivityRow = ({ item }) => (
 const SectionModal = ({ isOpen, onClose, title, subtitle, countLabel, children, footer }) => {
     if (!isOpen) return null;
     return (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-md p-0 sm:p-4">
-            <div className="flex max-h-[95vh] sm:max-h-[90vh] w-full max-w-2xl flex-col rounded-t-[36px] sm:rounded-[36px] bg-white shadow-2xl overflow-hidden animate-slide-up">
-                <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3 sm:hidden" />
-                <div className="flex items-start justify-between gap-4 border-b border-gray-50 px-6 py-7 sm:px-8">
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-slate-900/40 backdrop-blur-md p-0 sm:p-4 transition-opacity duration-300">
+            <div className="flex max-h-[95vh] sm:max-h-[90vh] w-full max-w-2xl flex-col rounded-t-[40px] sm:rounded-[40px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.2)] overflow-hidden animate-slide-up">
+                <div className="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mt-4 sm:hidden" />
+                <div className="flex items-start justify-between gap-4 border-b border-slate-50 px-8 py-8 sm:px-10">
                     <div>
-                        <h2 className="text-xl sm:text-2xl font-black text-gray-900 uppercase tracking-tight leading-none">{title}</h2>
-                        {subtitle && <p className="mt-2 text-[10px] font-black text-blue-600 uppercase tracking-widest">{subtitle}</p>}
+                        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 uppercase tracking-tighter leading-none">{title}</h2>
+                        {subtitle && <p className="mt-3 text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+                            {subtitle}
+                        </p>}
                     </div>
-                    <button onClick={onClose} className="rounded-2xl p-3 bg-gray-50 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 active:scale-90"><MdClose size={24} /></button>
+                    <button onClick={onClose} className="rounded-2xl p-3 bg-slate-50 text-slate-400 transition hover:bg-slate-100 hover:text-slate-900 active:scale-90"><MdClose size={24} /></button>
                 </div>
                 {countLabel && (
-                    <div className="flex items-center justify-between border-b border-gray-50 px-6 py-4 sm:px-8 bg-gray-50/20">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Records</p>
-                        <span className="rounded-xl bg-white border border-gray-100 px-4 py-1.5 text-[10px] font-black text-gray-600 uppercase shadow-sm">{countLabel}</span>
+                    <div className="flex items-center justify-between border-b border-slate-50 px-8 py-5 sm:px-10 bg-slate-50/30">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operational Data</p>
+                        <span className="rounded-2xl bg-white border border-slate-100 px-5 py-2 text-[10px] font-black text-blue-600 uppercase shadow-sm tracking-widest">{countLabel}</span>
                     </div>
                 )}
-                <div className="flex-1 overflow-y-auto px-6 py-6 sm:px-10 pb-12 sm:pb-10">{children}</div>
-                {footer && <div className="border-t border-gray-50 px-6 py-6 sm:px-10 bg-white">{footer}</div>}
+                <div className="flex-1 overflow-y-auto px-8 py-8 sm:px-12 pb-16 sm:pb-12 scrollbar-hide">{children}</div>
+                {footer && <div className="border-t border-slate-50 px-8 py-8 sm:px-12 bg-white/50 backdrop-blur-md">{footer}</div>}
             </div>
         </div>
     );
