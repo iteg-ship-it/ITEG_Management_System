@@ -16,7 +16,6 @@ const OtpEnter = React.lazy(() => import("./components/modules/auth/otp/OtpEnter
 const GoogleSuccess = React.lazy(() => import('./components/modules/auth/login/GoogleSuccess.jsx'));
 const ServerError = React.lazy(() => import("./components/shared/error-pages/ServerError"));
 const SessionTimeoutModal = React.lazy(() => import('./components/shared/user-profile/SessionTimeoutModal'));
-const HardwareBackButton = React.lazy(() => import("./components/shared/HardwareBackButton"));
 
 // Student Portal
 const StudentPortalLayout = React.lazy(() => import("./components/student-portal/layout/StudentPortalLayout"));
@@ -53,7 +52,6 @@ function App() {
       </div>
     }>
       <Router>
-        <HardwareBackButton />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/otp-verification" element={<OtpVerification />} />

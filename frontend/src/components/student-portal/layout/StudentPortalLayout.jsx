@@ -31,43 +31,41 @@ export default function StudentPortalLayout() {
   };
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-white border-r border-slate-100">
-      <div className="flex items-center gap-3 px-6 py-8 border-b border-slate-50">
-        <img src={logo} alt="Logo" className="h-9 w-auto" />
-        <div className="min-w-0">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Student Portal</p>
-          <p className="text-[12px] font-black text-slate-900 uppercase tracking-tight truncate">SSISM IT-Cell</p>
+    <div className="flex flex-col h-full">
+      <div className="flex items-center gap-3 px-4 py-5 border-b border-orange-100">
+        <img src={logo} alt="Logo" className="h-10" />
+        <div>
+          <p className="text-xs font-bold text-orange-600 uppercase tracking-wide">Student Portal</p>
+          <p className="text-xs text-gray-500 truncate max-w-[130px]">
+            {studentData.firstName} {studentData.lastName}
+          </p>
         </div>
       </div>
 
-      <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto scrollbar-hide">
+      <nav className="flex-1 px-3 py-4 space-y-1">
         {navItems.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
             onClick={() => setSidebarOpen(false)}
             className={({ isActive }) =>
-              `flex items-center gap-4 px-4 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all duration-200 group ${
+              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
                 isActive
-                  ? "bg-slate-900 text-white shadow-xl shadow-slate-200"
-                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                  ? "bg-orange-50 text-orange-600"
+                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               }`
             }
           >
-            {({ isActive }) => (
-                <>
-                    <Icon size={18} className={`${isActive ? "text-white" : "text-slate-400"}`} />
-                    {label}
-                </>
-            )}
+            <Icon size={18} />
+            {label}
           </NavLink>
         ))}
       </nav>
 
-      <div className="px-4 pb-8 pt-4 border-t border-slate-50">
+      <div className="px-3 pb-4">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-4 w-full px-4 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest text-rose-500 hover:bg-rose-50 transition-all duration-200"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition"
         >
           <LogOut size={18} />
           Logout
@@ -77,17 +75,17 @@ export default function StudentPortalLayout() {
   );
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden font-inter">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 shrink-0 shadow-sm z-20">
+      <aside className="hidden md:flex flex-col w-56 bg-white border-r border-gray-200 shrink-0">
         <SidebarContent />
       </aside>
 
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-[100] md:hidden">
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-          <aside className="relative z-[110] w-64 h-full animate-slide-right">
+        <div className="fixed inset-0 z-40 md:hidden">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setSidebarOpen(false)} />
+          <aside className="relative z-50 w-56 h-full bg-white shadow-xl">
             <SidebarContent />
           </aside>
         </div>
@@ -96,26 +94,27 @@ export default function StudentPortalLayout() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Navbar */}
-        <header className="bg-white border-b border-slate-100 px-6 py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-sm">
-          <div className="flex items-center gap-4">
-            <button className="md:hidden text-slate-600 p-2 hover:bg-slate-50 rounded-xl transition-colors" onClick={() => setSidebarOpen(true)}>
-              <Menu size={24} />
-            </button>
-            <div className="hidden md:block">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Institutional Management System</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center">
-            <img src={logo} alt="SSISM Logo" className="h-9 sm:h-11 w-auto" />
+        <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between md:justify-end shrink-0">
+          <button className="md:hidden text-gray-600" onClick={() => setSidebarOpen(true)}>
+            <Menu size={22} />
+          </button>
+          <div className="flex items-center gap-2">
+            {studentData.image ? (
+              <img src={studentData.image} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-sm font-bold">
+                {studentData.firstName?.[0]}
+              </div>
+            )}
+            <span className="text-sm font-medium text-gray-700 hidden sm:block">
+              {studentData.firstName} {studentData.lastName}
+            </span>
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto scrollbar-hide">
-          <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-            <Outlet />
-          </div>
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          <Outlet />
         </main>
       </div>
     </div>
