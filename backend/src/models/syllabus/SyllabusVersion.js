@@ -21,7 +21,10 @@ const subjectSchema = new mongoose.Schema({
   description: { type: String, default: "" },
   order: { type: Number, default: 1 },
   isActive: { type: Boolean, default: true },
-  topics: { type: [topicSchema], default: [] }
+  topics: { type: [topicSchema], default: [] },
+  // Report card metadata (set during syllabus upload)
+  includeInReportCard: { type: Boolean, default: false },
+  reportCategory: { type: String, enum: ["technical", "softskill", ""], default: "" }
 }, { _id: true });
 
 const syllabusVersionSchema = new mongoose.Schema({

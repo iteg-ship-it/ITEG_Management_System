@@ -22,6 +22,8 @@ const normalizeSubjects = (subjects = []) =>
     description: subject.description || "",
     order: subject.order || si + 1,
     isActive: subject.isActive !== false,
+    includeInReportCard: subject.includeInReportCard === true,
+    reportCategory: ["technical", "softskill"].includes(subject.reportCategory) ? subject.reportCategory : "",
     topics: (subject.topics || []).map((topic, ti) => ({
       name: topic.name,
       description: topic.description || "",
@@ -81,6 +83,8 @@ const upsertSubjectTree = (syllabusVersion, inputSubjects) => {
       description: payload.description || "",
       order: typeof payload.order === "number" ? payload.order : syllabusVersion.subjects.length + i + 1,
       isActive: payload.isActive !== false,
+      includeInReportCard: payload.includeInReportCard === true,
+      reportCategory: ["technical", "softskill"].includes(payload.reportCategory) ? payload.reportCategory : "",
       topics: (payload.topics || []).map((t, ti) => ({
         name: t.name,
         description: t.description || "",
@@ -527,11 +531,20 @@ exports.toggleSubTopicActive = async (req, res) => {
 // Rows with taskTitle = syllabus + task
 exports.uploadCombined = async (req, res) => {
   try {
-    const { sessionId, levelId, subLevelId, tasks: rows } = req.body;
+    const { sessionId, levelId, subLevelId, tasks: rows, subjectMeta = [] } = req.body;
     if (!sessionId || !levelId || !subLevelId)
       return res.status(400).json({ success: false, message: "sessionId, levelId, subLevelId are required" });
     if (!Array.isArray(rows) || rows.length === 0)
       return res.status(400).json({ success: false, message: "tasks array is required" });
+
+    // Build a quick lookup: subjectName → { includeInReportCard, reportCategory }
+    const metaMap = {};
+    (Array.isArray(subjectMeta) ? subjectMeta : []).forEach(m => {
+      if (m.name) metaMap[m.name.trim()] = {
+        includeInReportCard: m.includeInReportCard === true,
+        reportCategory: ["technical", "softskill"].includes(m.reportCategory) ? m.reportCategory : ""
+      };
+    });
 
     // Step 1: Build syllabus hierarchy from rows
     const subjectMap = new Map();
@@ -564,6 +577,7 @@ exports.uploadCombined = async (req, res) => {
     const subjects = Array.from(subjectMap.entries()).map(([sName, topicMap], si) => ({
       name: sName,
       order: si + 1,
+      ...(metaMap[sName] || {}),
       topics: Array.from(topicMap.entries()).map(([tName, stSet], ti) => ({
         name: tName,
         order: ti + 1,

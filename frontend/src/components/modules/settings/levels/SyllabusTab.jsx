@@ -357,6 +357,9 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
   const [hierarchy,        setHierarchy]        = useState([]);
   const [fileName,         setFileName]         = useState("");
   const [selectedSessionId,setSelectedSessionId]= useState("");
+  // Subject metadata modal state
+  const [showMetaModal,    setShowMetaModal]    = useState(false);
+  const [subjectMeta,      setSubjectMeta]      = useState([]); // [{ name, includeInReportCard, reportCategory }]
 
   const [uploadCombined]        = useUploadCombinedSyllabusMutation();
   const { data: sessionsData }  = useGetAllSessionsQuery();
@@ -371,7 +374,7 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
     return a + stTasks + topicTasks;
   }, 0), 0);
 
-  const reset = () => { setHierarchy([]); setFileName(""); setSelectedSessionId(""); };
+  const reset = () => { setHierarchy([]); setFileName(""); setSelectedSessionId(""); setSubjectMeta([]); setShowMetaModal(false); };
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
@@ -408,6 +411,8 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
         return; 
       }
       setHierarchy(parsed);
+      // Initialize subjectMeta with defaults for each parsed subject
+      setSubjectMeta(parsed.map(s => ({ name: s.subject, includeInReportCard: false, reportCategory: "" })));
       toast.success(`Parsed ${parsed.length} subject(s) successfully`);
     } catch (error) { 
       console.error('Excel parsing error:', error);
@@ -419,35 +424,34 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
     }
   };
 
-  const handleSave = async () => {
+  // Step 1: validate → open metadata modal
+  const handleSaveClick = () => {
     if (!hierarchy.length)   { toast.error("No data to save"); return; }
     if (!subLevel?._id)      { toast.error("SubLevel not found"); return; }
     if (!level?._id)         { toast.error("Level not found"); return; }
     if (!selectedSessionId)  { toast.error("Please select a session"); return; }
+    setShowMetaModal(true);
+  };
+
+  // Step 2: called from modal after metadata confirmed
+  const handleSave = async (confirmedMeta) => {
     setSaving(true);
     try {
       const taskRows = buildTaskRows(hierarchy);
-      console.log('Uploading syllabus data:', {
-        sessionId: selectedSessionId,
-        levelId: level._id,
-        subLevelId: subLevel._id,
-        tasks: taskRows
-      });
       const res = await uploadCombined({
         sessionId:  selectedSessionId,
         levelId:    level._id,
         subLevelId: subLevel._id,
         tasks:      taskRows,
+        subjectMeta: confirmedMeta,
       }).unwrap();
       toast.success(res.message || "Syllabus + Tasks saved!");
       if (res.data?.errors?.length) {
-        console.warn('Upload warnings:', res.data.errors);
         res.data.errors.forEach(e => toast.warn(e, { autoClose: 8000 }));
       }
       reset();
       onSaved?.();
     } catch (err) {
-      console.error('Upload error:', err);
       const errorMessage = err?.data?.message || err?.message || "Failed to save";
       toast.error(errorMessage);
       if (err?.data?.errors?.length) {
@@ -456,9 +460,108 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
     } finally { setSaving(false); }
   };
 
-  useImperativeHandle(ref, () => ({ reset, save: handleSave }));
+  useImperativeHandle(ref, () => ({ reset, save: handleSaveClick }));
 
   return (
+    <>
+    {/* ── Report Card Metadata Modal ── */}
+    {showMetaModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
+          {/* Header */}
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-bold text-gray-900">Report Card Settings</p>
+              <p className="text-xs text-gray-400 mt-0.5">Configure each subject for report card generation</p>
+            </div>
+            <button onClick={() => setShowMetaModal(false)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition">✕</button>
+          </div>
+          {/* Subject cards */}
+          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+            {subjectMeta.map((sm, idx) => (
+              <div key={sm.name} className="border border-gray-200 rounded-xl p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <MdBook size={15} className="text-orange-500 flex-shrink-0" />
+                  <span className="text-sm font-bold text-gray-800">{sm.name}</span>
+                </div>
+                {/* Q1: Include in report card */}
+                <div>
+                  <p className="text-xs text-gray-500 mb-2">Include this subject in Report Card?</p>
+                  <div className="flex gap-2">
+                    {[true, false].map((val) => (
+                      <button
+                        key={String(val)}
+                        type="button"
+                        onClick={() => setSubjectMeta(prev => prev.map((s, i) =>
+                          i === idx ? { ...s, includeInReportCard: val, reportCategory: val ? s.reportCategory : "" } : s
+                        ))}
+                        className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition ${
+                          sm.includeInReportCard === val
+                            ? val ? "bg-green-50 border-green-400 text-green-700" : "bg-gray-100 border-gray-300 text-gray-600"
+                            : "bg-white border-gray-200 text-gray-400 hover:border-gray-300"
+                        }`}
+                      >
+                        {val ? "✓ Yes" : "✗ No"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Q2: Category — only if Yes */}
+                {sm.includeInReportCard && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-2">Category</p>
+                    <div className="flex gap-2">
+                      {["technical", "softskill"].map((cat) => (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setSubjectMeta(prev => prev.map((s, i) =>
+                            i === idx ? { ...s, reportCategory: cat } : s
+                          ))}
+                          className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition ${
+                            sm.reportCategory === cat
+                              ? cat === "technical"
+                                ? "bg-blue-50 border-blue-400 text-blue-700"
+                                : "bg-purple-50 border-purple-400 text-purple-700"
+                              : "bg-white border-gray-200 text-gray-400 hover:border-gray-300"
+                          }`}
+                        >
+                          {cat === "technical" ? "💻 Technical" : "🤝 Soft Skill"}
+                        </button>
+                      ))}
+                    </div>
+                    {sm.includeInReportCard && !sm.reportCategory && (
+                      <p className="text-[11px] text-red-400 mt-1">Please select a category</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          {/* Footer */}
+          <div className="px-5 py-4 border-t border-gray-100 flex gap-2">
+            <button
+              onClick={() => setShowMetaModal(false)}
+              className="px-4 py-2 text-sm text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+            >
+              Back
+            </button>
+            <button
+              onClick={() => {
+                const invalid = subjectMeta.find(s => s.includeInReportCard && !s.reportCategory);
+                if (invalid) { toast.error(`Select category for "${invalid.name}"`); return; }
+                setShowMetaModal(false);
+                handleSave(subjectMeta);
+              }}
+              disabled={saving}
+              className="flex-1 flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-semibold py-2 rounded-lg transition"
+            >
+              <MdSave size={15} />{saving ? "Saving..." : "Confirm & Save"}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
     <div className="space-y-4">
       <div onClick={() => fileRef.current?.click()} className="border-2 border-dashed border-orange-200 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-orange-400 hover:bg-orange-50 transition group">
         {parsing ? (
@@ -530,7 +633,7 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
             {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
           </select>
           <div className="flex gap-2">
-            <button onClick={handleSave} disabled={saving} className="flex-1 flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-semibold py-2 rounded-lg transition">
+            <button onClick={handleSaveClick} disabled={saving} className="flex-1 flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-semibold py-2 rounded-lg transition">
               <MdSave size={15} />{saving ? "Saving..." : "Save Syllabus + Tasks"}
             </button>
             <button onClick={reset} className="px-4 py-2 text-sm text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">Clear</button>
@@ -541,6 +644,7 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
         </div>
       )}
     </div>
+    </>
   );
 });
 SyllabusUploadDrawer.displayName = "SyllabusUploadDrawer";
