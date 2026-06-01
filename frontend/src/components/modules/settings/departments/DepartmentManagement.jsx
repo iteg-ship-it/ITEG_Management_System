@@ -34,10 +34,6 @@ const DepartmentManagement = () => {
         durationInYears: Yup.number().required("Duration is required").positive("Must be positive")
       })
     ),
-    reportConfig: Yup.object({
-      templateType: Yup.string().required("Template type is required"),
-      sections: Yup.object()
-    }).required("Report config is required"),
     isActive: Yup.boolean()
   });
 
@@ -52,7 +48,6 @@ const DepartmentManagement = () => {
       .filter(c => c.courseName && c.durationInYears)
       .map(c => ({ ...c, durationInYears: Number(c.durationInYears) }));
     fd.append("allowedCourses", JSON.stringify(courses));
-    fd.append("reportConfig", JSON.stringify(values.reportConfig));
     if (values.logoFile) fd.append("logo", values.logoFile);
     return fd;
   };
@@ -108,19 +103,6 @@ const DepartmentManagement = () => {
                 universityName: editingDepartment?.universityName || "",
                 headOfDepartment: editingDepartment?.headOfDepartment || "",
                 allowedCourses: editingDepartment?.allowedCourses || [{ courseName: "", durationInYears: "" }],
-                reportConfig: editingDepartment?.reportConfig || {
-                  templateType: "ITEG_STANDARD",
-                  sections: {
-                    showTechnicalSkills: true,
-                    showSoftSkills: true,
-                    showDiscipline: true,
-                    showProjects: true,
-                    showCareerReadiness: true,
-                    showUniversityAcademicHistory: true,
-                    showTaskCompletionPercentage: true,
-                    showEvaluationBreakdown: true
-                  }
-                },
                 isActive: editingDepartment?.isActive !== undefined ? editingDepartment.isActive : true,
                 logoFile: null,
                 logoPreview: editingDepartment?.logo || ""
@@ -189,16 +171,6 @@ const DepartmentManagement = () => {
                         <button type="button" onClick={() => setFieldValue('allowedCourses', [...values.allowedCourses, { courseName: '', durationInYears: '' }])} className="text-sm text-orange-500 hover:text-orange-600">+ Add Course</button>
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Template Type</label>
-                        <Field as="select" name="reportConfig.templateType" className="w-full border rounded px-3 py-2">
-                          <option value="ITEG_STANDARD">ITEG Standard</option>
-                          <option value="MEG_WEIGHTED">MEG Weighted</option>
-                          <option value="BEG_CUTOFF">BEG Cutoff</option>
-                          <option value="BTECH_STAGE">BTech Stage</option>
-                        </Field>
-                      </div>
-
                       <RadioGroup label="Status" name="isActive" required={false} />
                     </Form>
                   }
@@ -227,7 +199,6 @@ const DepartmentManagement = () => {
                   universityName: dept.universityName,
                   headOfDepartment: dept.headOfDepartment || "",
                   allowedCourses: dept.allowedCourses || [{ courseName: "", durationInYears: "" }],
-                  reportConfig: dept.reportConfig,
                   isActive: dept.isActive,
                   logoFile: null,
                   logoPreview: dept.logo || ""
@@ -315,15 +286,6 @@ const DepartmentManagement = () => {
                                 </div>
                               ))}
                               <button type="button" onClick={() => setFieldValue('allowedCourses', [...values.allowedCourses, { courseName: '', durationInYears: '' }])} className="text-sm text-orange-500 hover:text-orange-600">+ Add Course</button>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-2">Template Type</label>
-                              <Field as="select" name="reportConfig.templateType" className="w-full border rounded px-3 py-2">
-                                <option value="ITEG_STANDARD">ITEG Standard</option>
-                                <option value="MEG_WEIGHTED">MEG Weighted</option>
-                                <option value="BEG_CUTOFF">BEG Cutoff</option>
-                                <option value="BTECH_STAGE">BTech Stage</option>
-                              </Field>
                             </div>
                             <RadioGroup label="Status" name="isActive" required={false} />
                           </Form>

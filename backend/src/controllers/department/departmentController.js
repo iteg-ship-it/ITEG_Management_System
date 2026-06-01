@@ -20,22 +20,6 @@ const validateAllowedCourses = (courses) => {
   );
 };
 
-// Helper function to validate reportConfig structure
-const validateReportConfig = (reportConfig) => {
-  if (!reportConfig || typeof reportConfig !== 'object') return false;
-  
-  const validTemplateTypes = ["ITEG_STANDARD", "MEG_WEIGHTED", "BEG_CUTOFF", "BTECH_STAGE"];
-  if (!reportConfig.templateType || !validTemplateTypes.includes(reportConfig.templateType)) {
-    return false;
-  }
-  
-  if (!reportConfig.sections || typeof reportConfig.sections !== 'object') {
-    return false;
-  }
-  
-  return true;
-};
-
 const generateDeptCode = async (name) => {
   const initials = name.trim().split(/\s+/).filter(Boolean).map(w => w[0].toUpperCase()).join("");
   let counter = 1, code, exists = true;
@@ -50,35 +34,23 @@ const generateDeptCode = async (name) => {
 // Create Department
 exports.createDepartment = async (req, res) => {
   try {
-    const { name, universityName, reportConfig: rawReportConfig, allowedCourses: rawCourses } = req.body;
+    const { name, universityName, allowedCourses: rawCourses } = req.body;
 
-    if (!name || !universityName || !rawReportConfig) {
+    if (!name || !universityName) {
       return res.status(400).json({
         success: false,
-        message: "Name, universityName, and reportConfig are required"
+        message: "Name and universityName are required"
       });
     }
 
     const autoCode = await generateDeptCode(name);
 
-    let reportConfig = rawReportConfig;
-    if (typeof rawReportConfig === 'string') {
-      try { reportConfig = JSON.parse(rawReportConfig); } catch (_) {}
-    }
     let allowedCourses = rawCourses;
     if (typeof rawCourses === 'string') {
       try { allowedCourses = JSON.parse(rawCourses); } catch (_) {}
     }
     if (req.body.isActive !== undefined) {
       req.body.isActive = req.body.isActive === 'true' || req.body.isActive === true;
-    }
-
-    // Validate reportConfig
-    if (!validateReportConfig(reportConfig)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid reportConfig structure"
-      });
     }
 
     if (allowedCourses && !validateAllowedCourses(allowedCourses)) {
@@ -102,7 +74,6 @@ exports.createDepartment = async (req, res) => {
 
     const departmentData = {
       ...req.body,
-      reportConfig,
       allowedCourses: allowedCourses || [],
       code: autoCode
     };
@@ -205,15 +176,8 @@ exports.updateDepartment = async (req, res) => {
     if (updateData.allowedCourses && typeof updateData.allowedCourses === 'string') {
       try { updateData.allowedCourses = JSON.parse(updateData.allowedCourses); } catch (_) {}
     }
-    if (updateData.reportConfig && typeof updateData.reportConfig === 'string') {
-      try { updateData.reportConfig = JSON.parse(updateData.reportConfig); } catch (_) {}
-    }
     if (updateData.isActive !== undefined) updateData.isActive = updateData.isActive === 'true' || updateData.isActive === true;
 
-    // Validate after parsing
-    if (updateData.reportConfig && !validateReportConfig(updateData.reportConfig)) {
-      return res.status(400).json({ success: false, message: "Invalid reportConfig structure." });
-    }
     if (updateData.allowedCourses && !validateAllowedCourses(updateData.allowedCourses)) {
       return res.status(400).json({ success: false, message: "Invalid allowedCourses structure." });
     }

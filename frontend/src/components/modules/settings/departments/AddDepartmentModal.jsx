@@ -20,7 +20,6 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
     universityName: Yup.string().required("University name is required"),
     headOfDepartment: Yup.string(),
     description: Yup.string(),
-    templateType: Yup.string().required("Template type is required"),
     isActive: Yup.boolean()
   });
 
@@ -29,7 +28,6 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
     universityName: editData?.universityName || "",
     headOfDepartment: editData?.headOfDepartment || "",
     description: editData?.description || "",
-    templateType: editData?.reportConfig?.templateType || "ITEG_STANDARD",
     allowedCourses: editData?.allowedCourses || [],
     isActive: editData?.isActive !== undefined ? editData.isActive : true
   };
@@ -42,19 +40,6 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
         headOfDepartment: values.headOfDepartment,
         description: values.description,
         allowedCourses: values.allowedCourses,
-        reportConfig: {
-          templateType: values.templateType,
-          sections: {
-            showTechnicalSkills: true,
-            showSoftSkills: true,
-            showDiscipline: true,
-            showProjects: true,
-            showCareerReadiness: true,
-            showUniversityAcademicHistory: true,
-            showTaskCompletionPercentage: true,
-            showEvaluationBreakdown: true
-          }
-        },
         isActive: values.isActive
       };
 
@@ -137,21 +122,6 @@ const AddDepartmentModal = ({ isOpen, onClose, onSuccess, editData }) => {
                 type="textarea"
                 placeholder="Enter department description"
               />
-
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Template Type</label>
-                <select
-                  name="templateType"
-                  value={values.templateType}
-                  onChange={(e) => setFieldValue('templateType', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FDA92D]"
-                >
-                  <option value="ITEG_STANDARD">ITEG Standard</option>
-                  <option value="MEG_WEIGHTED">MEG Weighted</option>
-                  <option value="BEG_CUTOFF">BEG Cutoff</option>
-                  <option value="BTECH_STAGE">BTech Stage</option>
-                </select>
-              </div>
 
               <div className="flex items-center gap-3">
                 <label className="text-sm font-medium text-gray-700">Status:</label>

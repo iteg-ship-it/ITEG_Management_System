@@ -11,34 +11,15 @@ const parseField = (value) => {
 const validateDepartmentInput = (req, res, next) => {
   const name = req.body.name;
   const universityName = req.body.universityName;
-  const reportConfig = parseField(req.body.reportConfig);
   const allowedCourses = parseField(req.body.allowedCourses);
 
-  // Reassign parsed values back so controller gets objects
-  if (reportConfig) req.body.reportConfig = reportConfig;
   if (allowedCourses) req.body.allowedCourses = allowedCourses;
 
   if (req.method === 'POST') {
-    if (!name || !universityName || !reportConfig) {
+    if (!name || !universityName) {
       return res.status(400).json({
         success: false,
-        message: "Name, universityName, and reportConfig are required"
-      });
-    }
-  }
-
-  if (reportConfig) {
-    const validTemplateTypes = ["ITEG_STANDARD", "MEG_WEIGHTED", "BEG_CUTOFF", "BTECH_STAGE"];
-    if (!reportConfig.templateType || !validTemplateTypes.includes(reportConfig.templateType)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid templateType. Must be one of: " + validTemplateTypes.join(", ")
-      });
-    }
-    if (!reportConfig.sections || typeof reportConfig.sections !== 'object') {
-      return res.status(400).json({
-        success: false,
-        message: "reportConfig must include sections object"
+        message: "Name and universityName are required"
       });
     }
   }
