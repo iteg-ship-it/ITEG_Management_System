@@ -141,6 +141,8 @@ body, html {
 .hover\:text-orange-500:hover { color: var(--primary) !important; }
 .hover\:text-orange-600:hover { color: var(--primary-dark) !important; }
 
+.hover\:text-white:hover { color: #ffffff !important; }
+
 .from-\[\#FDA92D\] { --tw-gradient-from: var(--primary) !important; }
 .to-\[\#FDB84D\]   { --tw-gradient-to: var(--primary-light) !important; }
 

@@ -1,18 +1,21 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { LayoutDashboard, ClipboardList, TrendingUp, User, LogOut, Menu, X, ShieldCheck, FolderOpen, Award, FileText } from "lucide-react";
+import {
+  LayoutDashboard, ClipboardList, TrendingUp, User,
+  LogOut, Menu, X, ShieldCheck, FolderOpen, Award, FileText
+} from "lucide-react";
 import { toast } from "react-toastify";
 import logo from "../../../assets/images/logo-ssism.png";
 
 const navItems = [
-  { to: "/student-portal/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/student-portal/tasks", icon: ClipboardList, label: "My Tasks" },
-  { to: "/student-portal/progress", icon: TrendingUp, label: "Level History" },
-  { to: "/student-portal/permissions", icon: ShieldCheck, label: "Permissions" },
-  { to: "/student-portal/documents", icon: FolderOpen, label: "Documents" },
-  { to: "/student-portal/placement", icon: Award, label: "Placement" },
-  { to: "/student-portal/report-card", icon: FileText, label: "Report Card" },
-  { to: "/student-portal/profile", icon: User, label: "My Profile" },
+  { to: "/student-portal/dashboard",   icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/student-portal/tasks",        icon: ClipboardList,   label: "My Tasks" },
+  { to: "/student-portal/progress",     icon: TrendingUp,      label: "Level History" },
+  { to: "/student-portal/permissions",  icon: ShieldCheck,     label: "Permissions" },
+  { to: "/student-portal/documents",    icon: FolderOpen,      label: "Documents" },
+  { to: "/student-portal/placement",    icon: Award,           label: "Placement" },
+  { to: "/student-portal/report-card",  icon: FileText,        label: "Report Card" },
+  { to: "/student-portal/profile",      icon: User,            label: "My Profile" },
 ];
 
 export default function StudentPortalLayout() {
@@ -20,6 +23,8 @@ export default function StudentPortalLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const studentData = JSON.parse(localStorage.getItem("studentData") || "{}");
+  const name = `${studentData.firstName || ""} ${studentData.lastName || ""}`.trim() || "Student";
+  const initials = name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
 
   const handleLogout = () => {
     localStorage.removeItem("studentToken");
@@ -30,44 +35,66 @@ export default function StudentPortalLayout() {
     navigate("/login");
   };
 
-  const SidebarContent = () => (
+  const SidebarContent = ({ onClose }) => (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-orange-100">
-        <img src={logo} alt="Logo" className="h-10" />
-        <div>
-          <p className="text-xs font-bold text-orange-600 uppercase tracking-wide">Student Portal</p>
-          <p className="text-xs text-gray-500 truncate max-w-[130px]">
-            {studentData.firstName} {studentData.lastName}
-          </p>
+
+      {/* Logo */}
+      <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100">
+        <div className="flex items-center gap-3">
+          <img src={logo} alt="Logo" className="h-9 w-auto object-contain" />
+          <div>
+            <p className="text-[11px] font-bold text-orange-500 uppercase tracking-wider leading-tight">Student Portal</p>
+            <p className="text-[11px] text-gray-400 truncate max-w-[110px]">{name}</p>
+          </div>
         </div>
+        {onClose && (
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition">
+            <X size={18} />
+          </button>
+        )}
       </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      {/* Nav Links */}
+      <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
         {navItems.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
-            onClick={() => setSidebarOpen(false)}
+            onClick={onClose}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
                 isActive
-                  ? "bg-orange-50 text-orange-600"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  ? "bg-orange-500 text-white shadow-sm"
+                  : "text-gray-600 hover:bg-orange-50 hover:text-orange-600"
               }`
             }
           >
-            <Icon size={18} />
+            <Icon size={16} />
             {label}
           </NavLink>
         ))}
       </nav>
 
-      <div className="px-3 pb-4">
+      {/* Logout */}
+      <div className="px-2 py-3 border-t border-gray-100">
+        <div className="flex items-center gap-3 px-3 py-2.5 mb-2 rounded-xl bg-gray-50">
+          {studentData.image ? (
+            <img src={studentData.image} alt={name} className="w-8 h-8 rounded-full object-cover shrink-0" />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-500 flex items-center justify-center text-xs font-bold shrink-0">
+              {initials}
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-gray-800 truncate">{name}</p>
+            <p className="text-[10px] text-gray-400 truncate">{studentData.email || "—"}</p>
+          </div>
+        </div>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all duration-150"
         >
-          <LogOut size={18} />
+          <LogOut size={16} />
           Logout
         </button>
       </div>
@@ -76,9 +103,10 @@ export default function StudentPortalLayout() {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
+
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-56 bg-white border-r border-gray-200 shrink-0">
-        <SidebarContent />
+      <aside className="hidden md:flex flex-col w-56 bg-white border-r border-gray-100 shrink-0">
+        <SidebarContent onClose={null} />
       </aside>
 
       {/* Mobile Sidebar Overlay */}
@@ -86,29 +114,42 @@ export default function StudentPortalLayout() {
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setSidebarOpen(false)} />
           <aside className="relative z-50 w-56 h-full bg-white shadow-xl">
-            <SidebarContent />
+            <SidebarContent onClose={() => setSidebarOpen(false)} />
           </aside>
         </div>
       )}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Navbar */}
-        <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between md:justify-end shrink-0">
-          <button className="md:hidden text-gray-600" onClick={() => setSidebarOpen(true)}>
-            <Menu size={22} />
+
+        {/* Navbar */}
+        <header className="bg-white border-b border-gray-100 px-4 h-14 flex items-center justify-between shrink-0">
+          <button
+            className="md:hidden p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Menu size={20} />
           </button>
-          <div className="flex items-center gap-2">
+
+          {/* Mobile logo */}
+          <div className="flex items-center gap-2 md:hidden">
+            <img src={logo} alt="Logo" className="h-7 w-auto object-contain" />
+            <span className="text-xs font-bold text-orange-500 uppercase tracking-wide">Student Portal</span>
+          </div>
+
+          {/* Right side — name + avatar */}
+          <div className="flex items-center gap-2.5 ml-auto">
+            <div className="text-right hidden sm:block">
+              <p className="text-xs font-semibold text-gray-800 leading-tight">{name}</p>
+              <p className="text-[10px] text-gray-400">{studentData.email || "—"}</p>
+            </div>
             {studentData.image ? (
-              <img src={studentData.image} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
+              <img src={studentData.image} alt={name} className="w-8 h-8 rounded-full object-cover border border-gray-200" />
             ) : (
-              <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-sm font-bold">
-                {studentData.firstName?.[0]}
+              <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-500 flex items-center justify-center text-xs font-bold border border-orange-200">
+                {initials}
               </div>
             )}
-            <span className="text-sm font-medium text-gray-700 hidden sm:block">
-              {studentData.firstName} {studentData.lastName}
-            </span>
           </div>
         </header>
 
