@@ -1,4 +1,4 @@
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Student = require("../../models/student/Student");
 const StudentEventLog = require("../../models/student/StudentEventLog");

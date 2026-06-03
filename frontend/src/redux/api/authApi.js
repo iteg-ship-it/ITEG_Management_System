@@ -85,6 +85,12 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
     return result;
   }
 
+  // Student login/auth endpoints pe 401 aaye toh logout mat karo
+  const isStudentAuthEndpoint = typeof args.url === 'string' && args.url.includes('/student-auth/');
+  if (isStudentAuthEndpoint && result?.error?.status === 401) {
+    return result;
+  }
+
   if (result?.error?.status === 401) {
     console.warn("Token expired. Attempting refresh...");
 
@@ -93,9 +99,13 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
 
     if (!refreshToken) {
       console.error("No valid refresh token. Logging out...");
-      api.dispatch(logout());
-      localStorage.clear();
-      window.location.href = "/login";
+      // Only logout if admin token exists — student session pe logout mat karo
+      if (localStorage.getItem("token")) {
+        api.dispatch(logout());
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        window.location.href = "/login";
+      }
       return result;
     }
 

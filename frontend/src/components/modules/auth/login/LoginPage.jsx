@@ -35,13 +35,16 @@ const StudentLoginForm = () => {
     }
     try {
       const res = await studentLogin(form).unwrap();
+      console.log("Student login response:", res);
       localStorage.setItem("studentToken", encrypt(res.token));
       localStorage.setItem("studentRefreshToken", encrypt(res.refreshToken));
       localStorage.setItem("studentData", JSON.stringify(res.student));
       localStorage.setItem("role", "student");
+      console.log("localStorage set, navigating to /student-portal/dashboard");
       toast.success(`Welcome, ${res.student.firstName}!`);
       navigate("/student-portal/dashboard");
     } catch (err) {
+      console.error("Student login error:", err);
       toast.error(err?.data?.message || "Login failed");
     }
   };
