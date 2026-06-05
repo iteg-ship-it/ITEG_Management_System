@@ -69,12 +69,13 @@ const ConfirmPassword = () => {
                   type={showPassword ? "text" : "password"}
                   label="New Password"
                 />
-                <div
+                <button
+                  type="button"
+                  onMouseDown={(e) => { e.preventDefault(); setShowPassword(!showPassword); }}
                   className="absolute top-[38px] right-3 transform -translate-y-1/2 text-gray-500 cursor-pointer z-10"
-                  onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </div>
+                </button>
               </div>
               <div className="mt-4 relative">
                 <InputField
@@ -82,12 +83,13 @@ const ConfirmPassword = () => {
                   type={showConfirmPassword ? "text" : "password"}
                   label="Confirm Password"
                 />
-                <div
+                <button
+                  type="button"
+                  onMouseDown={(e) => { e.preventDefault(); setShowConfirmPassword(!showConfirmPassword); }}
                   className="absolute top-[38px] right-3 transform -translate-y-1/2 text-gray-500 cursor-pointer z-10"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
                   {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </div>
+                </button>
               </div>
               <button
                 type="submit"

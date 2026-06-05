@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { MdArrowUpward, MdCheckCircle, MdInsertDriveFile, MdFolder, MdOpenInNew, MdSearch } from "react-icons/md";
+import { MdArrowUpward, MdCheckCircle, MdInsertDriveFile, MdFolder, MdOpenInNew, MdSearch, MdClose } from "react-icons/md";
 import {
     useGetMyStudentProfileQuery,
     useGetMyExtraDocumentsQuery,
@@ -94,7 +94,7 @@ const UploadModal = ({ onClose, onSuccess }) => {
                         <p className="text-xs text-gray-400 mt-0.5">Image or PDF, max 5 MB</p>
                     </div>
                     <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors">
-                        ✕
+                        <MdClose size={18} />
                     </button>
                 </div>
 

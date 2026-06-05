@@ -101,8 +101,8 @@ const HeroCard = ({ raw, name, initials, readinessStatus, overallPct }) => (
                         { icon: <MdBadge size={11} />, label: "PR Key",       value: raw.prkey },
                         { icon: <MdEmail size={11} />, label: "Email",         value: raw.email },
                         { icon: <MdPhone size={11} />, label: "Mobile",        value: raw.studentMobile },
-                        { icon: <MdBusiness size={11} />, label: "Department", value: raw.subDepartmentId?.name },
-                        { icon: <MdAccountTree size={11} />, label: "Sub Dept",value: raw.subDepartmentId?.name },
+                        { icon: <MdBusiness size={11} />, label: "Department",  value: raw.departmentId?.name },
+                        { icon: <MdAccountTree size={11} />, label: "Sub Dept", value: raw.subDepartmentId?.name },
                         { icon: <MdCalendarToday size={11} />, label: "Session", value: raw.sessionId?.name },
                     ].map(({ icon, label, value }) => (
                         <div key={label}>

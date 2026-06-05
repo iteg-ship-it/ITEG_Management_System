@@ -12,6 +12,31 @@ import {
 
 const formatDate = (d) => d ? new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
 
+const ic = "w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-orange-400 bg-gray-50 pr-10 transition-all duration-200";
+const lc = "block text-xs font-semibold text-gray-600 mb-1.5";
+
+// ── Password Field ────────────────────────────────────────────────────────────
+const PasswordField = ({ field, label, showKey, show, setShow, form, setForm }) => (
+    <div>
+        <label className={lc}>{label} <span className="text-red-400">*</span></label>
+        <div className="relative">
+            <input
+                type={show[showKey] ? "text" : "password"}
+                value={form[field]}
+                onChange={e => setForm(p => ({ ...p, [field]: e.target.value }))}
+                placeholder={label}
+                className={ic}
+            />
+            <button
+                type="button"
+                onMouseDown={e => { e.preventDefault(); setShow(p => ({ ...p, [showKey]: !p[showKey] })); }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                {show[showKey] ? <MdVisibilityOff size={18} /> : <MdVisibility size={18} />}
+            </button>
+        </div>
+    </div>
+);
+
 // ── Change Password Modal ─────────────────────────────────────────────────────
 const ChangePasswordModal = ({ onClose }) => {
     const [form, setForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
@@ -38,28 +63,6 @@ const ChangePasswordModal = ({ onClose }) => {
         }
     };
 
-    const ic = "w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-orange-400 bg-gray-50 pr-10 transition-all duration-200";
-    const lc = "block text-xs font-semibold text-gray-600 mb-1.5";
-
-    const PasswordField = ({ field, label, showKey }) => (
-        <div>
-            <label className={lc}>{label} <span className="text-red-400">*</span></label>
-            <div className="relative">
-                <input
-                    type={show[showKey] ? "text" : "password"}
-                    value={form[field]}
-                    onChange={e => setForm(p => ({ ...p, [field]: e.target.value }))}
-                    placeholder={label}
-                    className={ic}
-                />
-                <button type="button" onClick={() => setShow(p => ({ ...p, [showKey]: !p[showKey] }))}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
-                    {show[showKey] ? <MdVisibilityOff size={18} /> : <MdVisibility size={18} />}
-                </button>
-            </div>
-        </div>
-    );
-
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
@@ -73,9 +76,9 @@ const ChangePasswordModal = ({ onClose }) => {
                     </button>
                 </div>
                 <form onSubmit={handleSubmit} className="px-5 py-4 space-y-4">
-                    <PasswordField field="currentPassword" label="Current Password" showKey="current" />
-                    <PasswordField field="newPassword"     label="New Password"     showKey="new" />
-                    <PasswordField field="confirmPassword" label="Confirm Password" showKey="confirm" />
+                    <PasswordField field="currentPassword" label="Current Password" showKey="current" show={show} setShow={setShow} form={form} setForm={setForm} />
+                    <PasswordField field="newPassword"     label="New Password"     showKey="new"     show={show} setShow={setShow} form={form} setForm={setForm} />
+                    <PasswordField field="confirmPassword" label="Confirm Password" showKey="confirm" show={show} setShow={setShow} form={form} setForm={setForm} />
                 </form>
                 <div className="flex gap-3 px-5 pb-5">
                     <button onClick={onClose}
@@ -251,8 +254,8 @@ export default function StudentProfile() {
             {/* ── Personal + Academic ── */}
             <div className="space-y-5">
 
-                    {/* Personal Info */}
-                    <div className="bg-white border border-gray-100 rounded-2xl shadow-sm">
+                {/* Personal Info */}
+                <div className="bg-white border border-gray-100 rounded-2xl shadow-sm">
                         <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-2">
                             <div className="w-7 h-7 rounded-lg bg-orange-50 flex items-center justify-center">
                                 <MdPerson size={15} className="text-orange-500" />
@@ -262,10 +265,10 @@ export default function StudentProfile() {
                             </div>
                         </div>
                         <InfoGrid fields={personalFields} />
-                    </div>
+                </div>
 
-                    {/* Academic Info */}
-                    <div className="bg-white border border-gray-100 rounded-2xl shadow-sm">
+                {/* Academic Info */}
+                <div className="bg-white border border-gray-100 rounded-2xl shadow-sm">
                         <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-2">
                             <div className="w-7 h-7 rounded-lg bg-violet-50 flex items-center justify-center">
                                 <MdSchool size={15} className="text-violet-500" />
@@ -275,8 +278,8 @@ export default function StudentProfile() {
                             </div>
                         </div>
                         <InfoGrid fields={academicFields} />
-                    </div>
                 </div>
+            </div>
         </div>
     );
 }

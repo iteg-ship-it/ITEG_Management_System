@@ -42,10 +42,7 @@ export default function StudentPortalLayout() {
       <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100">
         <div className="flex items-center gap-3">
           <img src={logo} alt="Logo" className="h-9 w-auto object-contain" />
-          <div>
-            <p className="text-[11px] font-bold text-orange-500 uppercase tracking-wider leading-tight">Student Portal</p>
-            <p className="text-[11px] text-gray-400 truncate max-w-[110px]">{name}</p>
-          </div>
+          <p className="text-[11px] font-bold text-orange-500 uppercase tracking-wider leading-tight">Student Portal</p>
         </div>
         {onClose && (
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition">
@@ -87,7 +84,6 @@ export default function StudentPortalLayout() {
           )}
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-gray-800 truncate">{name}</p>
-            <p className="text-[10px] text-gray-400 truncate">{studentData.email || "—"}</p>
           </div>
         </div>
         <button
@@ -137,12 +133,8 @@ export default function StudentPortalLayout() {
             <span className="text-xs font-bold text-orange-500 uppercase tracking-wide">Student Portal</span>
           </div>
 
-          {/* Right side — name + avatar */}
+          {/* Right side — avatar only */}
           <div className="flex items-center gap-2.5 ml-auto">
-            <div className="text-right hidden sm:block">
-              <p className="text-xs font-semibold text-gray-800 leading-tight">{name}</p>
-              <p className="text-[10px] text-gray-400">{studentData.email || "—"}</p>
-            </div>
             {studentData.image ? (
               <img src={studentData.image} alt={name} className="w-8 h-8 rounded-full object-cover border border-gray-200" />
             ) : (
