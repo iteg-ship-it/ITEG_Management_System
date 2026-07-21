@@ -18,6 +18,7 @@ exports.createLevel = async (req, res) => {
       isActive: true 
     });
     
+    
     if (!subDepartment) {
       return res.status(404).json({
         success: false,
