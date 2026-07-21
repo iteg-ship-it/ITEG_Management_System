@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import {
     MdMoreVert, MdSearch, MdNotificationsNone, MdAdd, MdRefresh,
-    MdCheckCircle, MdCancel, MdChevronLeft, MdChevronRight, MdFilterList
+    MdCheckCircle, MdCancel, MdChevronLeft, MdChevronRight
 } from "react-icons/md";
 import { toast } from "react-toastify";
 import Header from "../../../shared/sidebar/Header";
@@ -22,20 +22,6 @@ const formatValue = (value) => {
         .filter(Boolean)
         .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
         .join(" ");
-};
-
-const PriorityPill = ({ priority }) => {
-    const p = String(priority).toLowerCase();
-    let cls = "bg-slate-100 text-slate-600 border-slate-200";
-    if (p === "high") cls = "bg-rose-50 text-rose-600 border-rose-100 font-extrabold";
-    if (p === "medium") cls = "bg-amber-50 text-amber-600 border-amber-100 font-bold";
-    if (p === "low") cls = "bg-emerald-50 text-emerald-600 border-emerald-100 font-bold";
-
-    return (
-        <span className={`text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${cls}`}>
-            {formatValue(priority)}
-        </span>
-    );
 };
 
 const ActionMenu = ({ task, onDelete }) => {
@@ -189,12 +175,12 @@ const TaskManagement = () => {
     return (
         <div className="bg-[#F8F9FA] min-h-screen px-8 py-6 space-y-6">
 
-            {/* TOP HEADER SECTION */}
+            {/* TOP HEADER SECTION (EXACT REFERENCE REPLICA) */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-black text-slate-900 tracking-tight">Task Management</h1>
                     <p className="text-xs font-semibold text-slate-400 mt-0.5">
-                        Manage all exams & tasks across departments and levels
+                        Manage and monitor sub-level tasks across departments and sessions
                     </p>
                 </div>
 
@@ -203,154 +189,121 @@ const TaskManagement = () => {
                         onClick={refetch}
                         className="h-10 px-5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs shadow-sm transition flex items-center gap-2"
                     >
-                        <MdRefresh size={18} className={isFetching ? "animate-spin" : ""} /> Refresh Tasks
-                    </button>
-                    <button
-                        type="button"
-                        className="h-10 w-10 flex items-center justify-center rounded-xl bg-white border border-slate-200/90 text-slate-600 hover:bg-slate-50 hover:border-slate-300 shadow-sm transition-all relative flex-shrink-0"
-                        title="Notifications"
-                    >
-                        <MdNotificationsNone size={19} />
-                        <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-orange-500 rounded-full ring-2 ring-white" />
+                        <MdAdd size={18} /> Add New Task
                     </button>
                 </div>
             </div>
 
-            {/* FILTER CARD CONTAINER (EXACT REFERENCE UI REPLICA) */}
+            {/* FILTER CARD CONTAINER (EXACT REFERENCE REPLICA) */}
             <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-4">
-                {/* Row 1 Filters */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                    {/* SEARCH INPUT */}
-                    <div className="sm:col-span-2 lg:col-span-2 space-y-1.5">
-                        <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400">SEARCH</label>
-                        <div className="flex items-center h-10 w-full bg-slate-100/60 border border-slate-200/80 rounded-xl px-3.5 shadow-sm hover:border-slate-300 focus-within:border-orange-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-orange-400/20 transition-all">
-                            <MdSearch className="text-slate-400 flex-shrink-0 mr-2" size={18} />
-                            <input
-                                type="text"
-                                value={searchTerm}
-                                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                                placeholder="Search exams or subjects..."
-                                className="w-full h-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none focus:border-none text-xs font-medium text-slate-800 placeholder-slate-400 p-0 shadow-none"
-                            />
-                        </div>
-                    </div>
-
-                    {/* ACADEMIC YEAR */}
-                    <div className="space-y-1.5">
-                        <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400">ACADEMIC YEAR</label>
-                        <select
-                            value={filterYear}
-                            onChange={(e) => { setFilterYear(e.target.value); setCurrentPage(1); }}
-                            className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
-                        >
-                            <option value="">All Years</option>
-                            {years.map((y) => <option key={y} value={y}>{y}</option>)}
-                        </select>
-                    </div>
-
-                    {/* DEPARTMENT */}
-                    <div className="space-y-1.5">
-                        <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400">DEPARTMENT</label>
-                        <select
-                            value={filterDept}
-                            onChange={(e) => { setFilterDept(e.target.value); setCurrentPage(1); }}
-                            className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
-                        >
-                            <option value="">All Departments</option>
-                            {depts.map((d) => <option key={d} value={d}>{d}</option>)}
-                        </select>
-                    </div>
-
-                    {/* LEVEL */}
-                    <div className="space-y-1.5">
-                        <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400">LEVEL</label>
-                        <select
-                            value={filterLevel}
-                            onChange={(e) => { setFilterLevel(e.target.value); setCurrentPage(1); }}
-                            className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
-                        >
-                            <option value="">All Levels</option>
-                            {levels.map((l) => <option key={l} value={l}>{l}</option>)}
-                        </select>
-                    </div>
-
-                    {/* STATUS */}
-                    <div className="space-y-1.5">
-                        <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400">STATUS</label>
-                        <select
-                            value={filterStatus}
-                            onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
-                            className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
-                        >
-                            <option value="">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Disabled</option>
-                        </select>
-                    </div>
-                </div>
-
-                {/* Row 2 Secondary Filters */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-1 border-t border-slate-100">
-                    <div className="space-y-1.5">
-                        <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400">SUB-DEPARTMENT</label>
-                        <select
-                            value={filterSub}
-                            onChange={(e) => { setFilterSub(e.target.value); setCurrentPage(1); }}
-                            className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
-                        >
-                            <option value="">All Sub-Depts</option>
-                            {subDepts.map((sd) => <option key={sd} value={sd}>{sd}</option>)}
-                        </select>
-                    </div>
-
-                    <div className="space-y-1.5">
-                        <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400">SUB-LEVEL</label>
-                        <select
-                            value={filterSubLevel}
-                            onChange={(e) => { setFilterSubLevel(e.target.value); setCurrentPage(1); }}
-                            className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
-                        >
-                            <option value="">All Sub-Levels</option>
-                            {subLevels.map((sl) => <option key={sl} value={sl}>{sl}</option>)}
-                        </select>
-                    </div>
-
-                    <div className="space-y-1.5">
-                        <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400">SESSION</label>
-                        <select
-                            value={filterSession}
-                            onChange={(e) => { setFilterSession(e.target.value); setCurrentPage(1); }}
-                            className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
-                        >
-                            <option value="">All Sessions</option>
-                            {sessions.map((s) => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                    </div>
-
-                    <div className="space-y-1.5">
-                        <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400">PRIORITY</label>
-                        <select
-                            value={filterPriority}
-                            onChange={(e) => { setFilterPriority(e.target.value); setCurrentPage(1); }}
-                            className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
-                        >
-                            <option value="">All Priority</option>
-                            <option value="high">High</option>
-                            <option value="medium">Medium</option>
-                            <option value="low">Low</option>
-                        </select>
-                    </div>
-                </div>
-
-                {/* Reset Filters Link */}
-                <div className="pt-1 flex items-center">
-                    <button
-                        onClick={resetFilters}
-                        className="text-xs font-extrabold text-orange-500 hover:text-orange-600 transition flex items-center gap-1.5 cursor-pointer"
+                {/* Top Filter Selectors Row (Spans Across Full Container) */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 w-full">
+                    {/* Academic Year */}
+                    <select
+                        value={filterYear}
+                        onChange={(e) => { setFilterYear(e.target.value); setCurrentPage(1); }}
+                        className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
                     >
-                        <MdRefresh size={16} /> Reset Filters
-                    </button>
+                        <option value="">Academic Year ▾</option>
+                        {years.map((y) => <option key={y} value={y}>{y}</option>)}
+                    </select>
+
+                    {/* Session */}
+                    <select
+                        value={filterSession}
+                        onChange={(e) => { setFilterSession(e.target.value); setCurrentPage(1); }}
+                        className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
+                    >
+                        <option value="">Session ▾</option>
+                        {sessions.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+
+                    {/* Department */}
+                    <select
+                        value={filterDept}
+                        onChange={(e) => { setFilterDept(e.target.value); setCurrentPage(1); }}
+                        className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
+                    >
+                        <option value="">Department ▾</option>
+                        {depts.map((d) => <option key={d} value={d}>{d}</option>)}
+                    </select>
+
+                    {/* Sub-Dept */}
+                    <select
+                        value={filterSub}
+                        onChange={(e) => { setFilterSub(e.target.value); setCurrentPage(1); }}
+                        className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
+                    >
+                        <option value="">Sub-Dept ▾</option>
+                        {subDepts.map((sd) => <option key={sd} value={sd}>{sd}</option>)}
+                    </select>
+
+                    {/* Level */}
+                    <select
+                        value={filterLevel}
+                        onChange={(e) => { setFilterLevel(e.target.value); setCurrentPage(1); }}
+                        className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
+                    >
+                        <option value="">Level ▾</option>
+                        {levels.map((l) => <option key={l} value={l}>{l}</option>)}
+                    </select>
+
+                    {/* Sub-Level */}
+                    <select
+                        value={filterSubLevel}
+                        onChange={(e) => { setFilterSubLevel(e.target.value); setCurrentPage(1); }}
+                        className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
+                    >
+                        <option value="">Sub-Level ▾</option>
+                        {subLevels.map((sl) => <option key={sl} value={sl}>{sl}</option>)}
+                    </select>
+
+                    {/* Priority */}
+                    <select
+                        value={filterPriority}
+                        onChange={(e) => { setFilterPriority(e.target.value); setCurrentPage(1); }}
+                        className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
+                    >
+                        <option value="">Priority ▾</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+
+                    {/* Status */}
+                    <select
+                        value={filterStatus}
+                        onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
+                        className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
+                    >
+                        <option value="">Status ▾</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Disabled</option>
+                    </select>
                 </div>
+
+                {/* Bottom Full-Width Search Bar */}
+                <div className="flex items-center h-10 w-full bg-slate-100/60 border border-slate-200/80 rounded-xl px-3.5 shadow-sm hover:border-slate-300 focus-within:border-orange-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-orange-400/20 transition-all">
+                    <MdSearch className="text-slate-400 flex-shrink-0 mr-2" size={18} />
+                    <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                        placeholder="Search tasks by title, subject, or ID..."
+                        className="w-full h-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none focus:border-none text-xs font-medium text-slate-800 placeholder-slate-400 p-0 shadow-none"
+                    />
+                </div>
+
+                {hasActiveFilters && (
+                    <div className="pt-1 flex items-center justify-end">
+                        <button
+                            onClick={resetFilters}
+                            className="text-xs font-extrabold text-orange-500 hover:text-orange-600 transition flex items-center gap-1 cursor-pointer"
+                        >
+                            Reset Filters
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* DATA TABLE CONTAINER (EXACT REFERENCE REPLICA) */}
@@ -370,13 +323,13 @@ const TaskManagement = () => {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="border-b border-slate-100 bg-slate-50/50 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                                        <th className="py-4 px-6">DEPARTMENT & SUB</th>
-                                        <th className="py-4 px-4">LEVEL</th>
-                                        <th className="py-4 px-6">TASK TITLE</th>
-                                        <th className="py-4 px-6">TYPE / SUBJECT</th>
-                                        <th className="py-4 px-4">PRIORITY</th>
+                                        <th className="py-4 px-6">ACADEMIC YEAR</th>
                                         <th className="py-4 px-4">SESSION</th>
-                                        <th className="py-4 px-4">STATUS</th>
+                                        <th className="py-4 px-6">DEPARTMENT</th>
+                                        <th className="py-4 px-6">SUB-DEPT</th>
+                                        <th className="py-4 px-4">LEVEL</th>
+                                        <th className="py-4 px-4">SUB-LEVEL</th>
+                                        <th className="py-4 px-6">TASK TITLE</th>
                                         <th className="py-4 px-6 text-right">ACTION</th>
                                     </tr>
                                 </thead>
@@ -384,51 +337,39 @@ const TaskManagement = () => {
                                     {paginatedData.length > 0 ? (
                                         paginatedData.map((r) => (
                                             <tr key={r.id} className="hover:bg-slate-50/80 transition">
-                                                {/* Dept & Sub */}
-                                                <td className="py-4 px-6">
-                                                    <div className="font-bold text-slate-900">{r.department}</div>
-                                                    <div className="text-[11px] font-medium text-slate-400 mt-0.5">{r.subDept}</div>
+                                                {/* Academic Year */}
+                                                <td className="py-4 px-6 font-extrabold text-slate-900">
+                                                    {r.academicYear}
                                                 </td>
 
-                                                {/* Level Badge */}
-                                                <td className="py-4 px-4">
-                                                    <span className="inline-block bg-blue-50 text-blue-600 border border-blue-100 font-extrabold text-[10px] px-2.5 py-1 rounded-md uppercase text-center whitespace-nowrap">
-                                                        {r.level} ({r.subLevel})
-                                                    </span>
+                                                {/* Session */}
+                                                <td className="py-4 px-4 text-slate-600 font-medium">
+                                                    {r.session}
+                                                </td>
+
+                                                {/* Department */}
+                                                <td className="py-4 px-6 font-bold text-slate-900">
+                                                    {r.department}
+                                                </td>
+
+                                                {/* Sub-Dept */}
+                                                <td className="py-4 px-6 text-slate-500 font-medium">
+                                                    {r.subDept}
+                                                </td>
+
+                                                {/* Level */}
+                                                <td className="py-4 px-4 font-bold text-slate-800">
+                                                    {r.level}
+                                                </td>
+
+                                                {/* Sub-Level */}
+                                                <td className="py-4 px-4 text-slate-600 font-medium">
+                                                    {r.subLevel}
                                                 </td>
 
                                                 {/* Task Title */}
                                                 <td className="py-4 px-6">
                                                     <div className="font-extrabold text-slate-900 text-sm line-clamp-1">{r.taskTitle}</div>
-                                                </td>
-
-                                                {/* Type / Subject */}
-                                                <td className="py-4 px-6">
-                                                    <div className="font-bold text-slate-800">{formatValue(r.type)}</div>
-                                                    <div className="text-[11px] font-extrabold text-orange-500 mt-0.5">{r.subject}</div>
-                                                </td>
-
-                                                {/* Priority */}
-                                                <td className="py-4 px-4">
-                                                    <PriorityPill priority={r.priority} />
-                                                </td>
-
-                                                {/* Session */}
-                                                <td className="py-4 px-4 text-slate-500 font-medium">
-                                                    {r.session}
-                                                </td>
-
-                                                {/* Status */}
-                                                <td className="py-4 px-4">
-                                                    {r.status === "active" ? (
-                                                        <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 border border-emerald-100 font-extrabold text-[11px] px-3 py-1 rounded-full">
-                                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Active
-                                                        </span>
-                                                    ) : (
-                                                        <span className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-500 border border-slate-200 font-bold text-[11px] px-3 py-1 rounded-full">
-                                                            <span className="w-1.5 h-1.5 rounded-full bg-slate-400" /> Disabled
-                                                        </span>
-                                                    )}
                                                 </td>
 
                                                 {/* Action Menu */}
@@ -451,7 +392,7 @@ const TaskManagement = () => {
                         {/* TABLE FOOTER / PAGINATION ROW */}
                         <div className="px-6 py-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-semibold text-slate-500">
                             <div>
-                                Showing {filtered.length > 0 ? startIndex + 1 : 0} to {Math.min(startIndex + rowsPerPage, filtered.length)} of {filtered.length} entries
+                                Showing {filtered.length > 0 ? startIndex + 1 : 0} to {Math.min(startIndex + rowsPerPage, filtered.length)} of {filtered.length} tasks
                             </div>
 
                             <div className="flex items-center gap-1">
