@@ -213,8 +213,8 @@ const ShowSubLevelTablesData = () => {
 
     const breadcrumbs = [
         { label: "Departments", path: "/department-management" },
-        { label: departmentName || "Department", path: `/department-details/${departmentId}`, state: { department: subdepartment?.departmentId } },
-        { label: subdepartment?.name || "Subdepartment", path: "/subdepartment-details", state: { subdepartment, departmentId, departmentName } },
+        { label: departmentName || "Department", path: departmentId ? `/department-details/${departmentId}` : "/department-management", state: { department: subdepartment?.departmentId } },
+        { label: subdepartment?.name || "Subdepartment", path: subdepartment?._id ? `/subdepartment/${subdepartment._id}/levels` : "/subdepartment-details", state: { subdepartment, departmentId, departmentName } },
         { label: level?.name || "Level" },
     ];
 

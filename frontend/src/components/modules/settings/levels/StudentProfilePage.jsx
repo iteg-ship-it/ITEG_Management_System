@@ -1727,8 +1727,11 @@ const StudentProfilePage = () => {
                 showBack
                 breadcrumbs={[
                     { label: "Departments", path: "/department-management" },
-                    { label: subdepartment?.name || raw.subDepartmentId?.name || "Student Progress", path: "/student-detail-table" },
-                    { label: level?.name || raw.currentLevelId?.name || "Profile", path: -1 },
+                    { 
+                      label: subdepartment?.name || raw.subDepartmentId?.name || "Student Progress", 
+                      path: (subdepartment?._id || raw.subDepartmentId?._id) ? `/subdepartment/${subdepartment?._id || raw.subDepartmentId?._id}/levels` : "/student-detail-table" 
+                    },
+                    { label: level?.name || raw.currentLevelId?.name || "Level", path: -1 },
                     { label: name },
                 ]}
             />

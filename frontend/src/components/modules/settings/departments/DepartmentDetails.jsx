@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Header from "../../../shared/sidebar/Header";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useGetSubdepartmentsByDepartmentQuery, useAddSubdepartmentMutation, useUpdateSubdepartmentMutation } from "../../../../redux/api/authApi";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useGetSubdepartmentsByDepartmentQuery, useGetAllDepartmentsQuery, useAddSubdepartmentMutation, useUpdateSubdepartmentMutation } from "../../../../redux/api/authApi";
 import { toast } from "react-toastify";
 import OrangeButton from "../../../shared/sidebar/OrangeButton";
 import { Formik, Form } from "formik";
@@ -17,12 +17,21 @@ import Loader from "../../../shared/loader/Loader";
 const DepartmentDetails = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const department = location.state?.department;
+  const { id: departmentIdParam } = useParams();
+
+  const stateDept = location.state?.department;
+  const { data: allDepartmentsData, isLoading: isDeptsLoading } = useGetAllDepartmentsQuery(undefined, {
+    skip: Boolean(stateDept?._id)
+  });
+
+  const department = stateDept || (allDepartmentsData?.data || []).find(d => d._id === departmentIdParam);
+  const departmentId = department?._id || departmentIdParam;
+
   // Extract course names from department's allowedCourses for subdept dropdown
   const departmentCourses = (department?.allowedCourses || []).map(c => c.courseName).filter(Boolean);
 
-  const { data: subdepartmentsData, isLoading, refetch } = useGetSubdepartmentsByDepartmentQuery(department?._id, {
-    skip: !department?._id
+  const { data: subdepartmentsData, isLoading: isSubdeptsLoading, refetch } = useGetSubdepartmentsByDepartmentQuery(departmentId, {
+    skip: !departmentId
   });
   const [addSubdepartment] = useAddSubdepartmentMutation();
   const [updateSubdepartment] = useUpdateSubdepartmentMutation();
@@ -54,8 +63,8 @@ const DepartmentDetails = () => {
     }
   };
 
+  if (isDeptsLoading || isSubdeptsLoading) return <Loader />;
   if (!department) return <div className="p-6">No department data found</div>;
-  if (isLoading) return <Loader />;
 
   return (
     <>

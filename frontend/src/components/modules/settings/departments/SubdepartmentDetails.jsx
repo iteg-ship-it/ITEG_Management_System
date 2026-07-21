@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useGetSubdepartmentByIdQuery, useGetLevelsBySubdepartmentQuery, useGetSubLevelsByLevelQuery, useAddLevelMutation, useUpdateLevelMutation } from "../../../../redux/api/authApi";
 import { toast } from "react-toastify";
 import Header from "../../../shared/sidebar/Header";
@@ -27,11 +27,16 @@ const validationSchema = Yup.object({
 const SubdepartmentDetails = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const subdepartmentId = location.state?.subdepartment?._id;
-  const departmentId = location.state?.departmentId || location.state?.subdepartment?.departmentId?._id;
+  const { id: paramSubdeptId } = useParams();
 
-  const { data: subdepartmentData } = useGetSubdepartmentByIdQuery(subdepartmentId, { skip: !subdepartmentId });
-  const { data: levelsData, isLoading, refetch } = useGetLevelsBySubdepartmentQuery(subdepartmentId, { skip: !subdepartmentId });
+  const subdepartmentId = paramSubdeptId || location.state?.subdepartment?._id;
+  const { data: subdepartmentData, isLoading: isSubdeptLoading } = useGetSubdepartmentByIdQuery(subdepartmentId, { skip: !subdepartmentId });
+
+  const subdepartment  = subdepartmentData?.data || location.state?.subdepartment;
+  const departmentObj  = typeof subdepartment?.departmentId === "object" ? subdepartment?.departmentId : null;
+  const departmentId   = location.state?.departmentId || departmentObj?._id || (typeof subdepartment?.departmentId === "string" ? subdepartment?.departmentId : "");
+
+  const { data: levelsData, isLoading: isLevelsLoading, refetch } = useGetLevelsBySubdepartmentQuery(subdepartmentId, { skip: !subdepartmentId });
   const [addLevel] = useAddLevelMutation();
   const [updateLevel] = useUpdateLevelMutation();
 
@@ -41,12 +46,11 @@ const SubdepartmentDetails = () => {
   const [editingSubLevel,     setEditingSubLevel]     = useState(null);
   const [selectedLevel,       setSelectedLevel]       = useState(null);
 
-  const subdepartment  = subdepartmentData?.data || location.state?.subdepartment;
-  const departmentName = location.state?.departmentName || subdepartment?.departmentId?.name;
+  const departmentName = location.state?.departmentName || departmentObj?.name || "Department";
   const levels = [...(levelsData?.data || [])].sort((a, b) => b.isActive - a.isActive);
 
+  if (isSubdeptLoading || isLevelsLoading) return <Loader />;
   if (!subdepartment) return <div className="p-6">No subdepartment data found</div>;
-  if (isLoading) return <Loader />;
 
   /* ════════════════════════════════════════════════════════════
      RENDER
