@@ -53,7 +53,7 @@ const Layout = () => {
             <SidebarProvider>
                 <Sidebar>
                 <Routes>
-                    <Route path="/" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AdminDashboard /></ProtectedRoute>} />
+                    <Route path="/" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod"]}><AdminDashboard /></ProtectedRoute>} />
                     <Route path="/attendance-details" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><AttendanceDetails /></ProtectedRoute>} />
                     <Route path="/user-management" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><UsersManagement /></ProtectedRoute>} />
                     <Route path="/user-profile/:id" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty"]}><UserProfile /></ProtectedRoute>} />
