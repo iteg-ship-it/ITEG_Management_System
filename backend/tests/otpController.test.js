@@ -1,11 +1,11 @@
-const otpController = require('../modules/user/controllers/otpController');
-const User = require('../modules/user/models/user');
-const { generateOTP, sendEmailOtp } = require('../modules/user/helpers/sendOtp');
+const otpController = require('../src/controllers/user/otpController');
+const User = require('../src/models/user/user');
+const { generateOTP, sendEmailOtp } = require('../src/services/emailService');
 const jwt = require('jsonwebtoken');
 
 // Mock external modules and functions
-jest.mock('../modules/user/models/user');
-jest.mock('../modules/user/helpers/sendOtp');
+jest.mock('../src/models/user/user');
+jest.mock('../src/services/emailService');
 jest.mock('jsonwebtoken');
 
 // ✅ Custom mockRequest and mockResponse functions
@@ -17,10 +17,14 @@ const mockResponse = () => {
   return res;
 };
 
-beforeEach(() => {
+const mongoose = require('mongoose');
+
+beforeEach(async () => {
   jest.clearAllMocks();
-  otpController.otpStore = new Map();
-  otpController.otpAttempts = new Map();
+  try {
+    const OtpModel = mongoose.model('Otp');
+    await OtpModel.deleteMany({});
+  } catch (_) {}
 });
 
 describe('OTP Controller', () => {
@@ -37,7 +41,7 @@ describe('OTP Controller', () => {
     });
 
     it('should return 404 if user is not found', async () => {
-      const req = mockRequest({ email: 'test@example.com' });
+      const req = mockRequest({ email: 'test@ssism.org' });
       const res = mockResponse();
 
       User.findOne.mockResolvedValue(null);
@@ -45,25 +49,38 @@ describe('OTP Controller', () => {
       await otpController.sendOtpToEmail(req, res);
 
       expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ message: 'User with this email does not exist' });
+      expect(res.json).toHaveBeenCalledWith({ message: 'User not found' });
     });
 
     it('should return 429 if OTP request limit is exceeded', async () => {
-      const req = mockRequest({ email: 'anees774883@gmail.com' });
+      const email = 'blocked@ssism.org';
+      const req = mockRequest({ email });
       const res = mockResponse();
 
-      const attempts = 4; // Simulate exceeding the limit
-      otpController.otpAttempts.set('4', attempts);
-      User.findOne.mockResolvedValue({ email: 'anees774883@gmail.com' });
+      const OtpModel = mongoose.model('Otp');
+      await OtpModel.create({
+        email,
+        otp: '123456',
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+        blockedUntil: new Date(Date.now() + 10 * 60 * 1000),
+        attempts: 5
+      });
+
+      User.findOne.mockResolvedValue({ email });
 
       await otpController.sendOtpToEmail(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(429);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        message: expect.stringMatching(/Too many attempts/)
+      }));
     });
 
     it('should send OTP successfully if email exists', async () => {
-      const req = mockRequest({ email: 'test@example.com' });
+      const req = mockRequest({ email: 'test@ssism.org' });
       const res = mockResponse();
 
-      const mockUser = { _id: '123', email: 'test@example.com' };
+      const mockUser = { _id: '123', email: 'test@ssism.org' };
       User.findOne.mockResolvedValue(mockUser);
       generateOTP.mockReturnValue('123456');
       sendEmailOtp.mockResolvedValue(true);
@@ -87,35 +104,43 @@ describe('OTP Controller', () => {
     });
 
     it('should return 400 if no OTP is found for the email', async () => {
-      const req = mockRequest({ email: 'anees774883@gmailcom', otp: '123456' });
+      const req = mockRequest({ email: 'no_otp@ssism.org', otp: '123456' });
       const res = mockResponse();
 
-      otpController.otpStore.set('6', { otp: '123456', expiresAt: Date.now() + 100000 });
-
       await otpController.verifyEmailOtp(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: 'No OTP found' });
     });
 
     it('should return 400 if OTP is expired', async () => {
-      const req = mockRequest({ email: 'anees774883@gmail.com', otp: '123456' });
+      const email = 'expired@ssism.org';
+      const req = mockRequest({ email, otp: '123456' });
       const res = mockResponse();
 
-      const expiredOtp = {
+      const OtpModel = mongoose.model('Otp');
+      await OtpModel.create({
+        email,
         otp: '123456',
-        expiresAt: Date.now() - 1000, // expired OTP
-
-      };
-      otpController.otpStore.set('anees774883@gmail.com', expiredOtp);
+        expiresAt: new Date(Date.now() - 1000) // expired
+      });
 
       await otpController.verifyEmailOtp(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: 'OTP expired' });
     });
 
     it('should return 400 if OTP is incorrect', async () => {
-      const req = mockRequest({ email: 'test@example.com', otp: '000000' });
+      const email = 'test@ssism.org';
+      const req = mockRequest({ email, otp: '000000' });
       const res = mockResponse();
 
-      otpController.otpStore.set('test@example.com', {
+      const OtpModel = mongoose.model('Otp');
+      await OtpModel.create({
+        email,
         otp: '123456',
-        expiresAt: Date.now() + 100000, // not expired
+        expiresAt: new Date(Date.now() + 100000)
       });
 
       await otpController.verifyEmailOtp(req, res);
@@ -125,19 +150,22 @@ describe('OTP Controller', () => {
     });
 
     it('should successfully verify OTP and return JWT tokens', async () => {
-      const req = mockRequest({ email: 'test@example.com', otp: '123456' });
+      const email = 'test@ssism.org';
+      const req = mockRequest({ email, otp: '123456' });
       const res = mockResponse();
 
       const mockUser = {
         _id: 'mockId',
-        email: 'test@example.com',
-        save: jest.fn(), // ✅ Mock save method
+        email,
+        save: jest.fn(),
       };
       User.findOne = jest.fn().mockResolvedValue(mockUser);
 
-      otpController.otpStore.set('test@example.com', {
+      const OtpModel = mongoose.model('Otp');
+      await OtpModel.create({
+        email,
         otp: '123456',
-        expiresAt: Date.now() + 100000, // not expired
+        expiresAt: new Date(Date.now() + 100000)
       });
 
       jwt.sign.mockReturnValue('mockJwtToken');
@@ -151,7 +179,7 @@ describe('OTP Controller', () => {
         refreshToken: 'mockJwtToken',
       }));
 
-      expect(mockUser.save).toHaveBeenCalled(); // ✅ Also test user.save() called
+      expect(mockUser.save).toHaveBeenCalled();
     });
   });
 

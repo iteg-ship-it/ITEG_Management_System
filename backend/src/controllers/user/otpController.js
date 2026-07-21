@@ -34,13 +34,19 @@ const sendOtpToEmail = async (req, res) => {
         const user = await User.findOne({ email });
         if (!user) return res.status(404).json({ message: 'User not found' });
 
+        const existingRecord = await OtpModel.findOne({ email });
+        if (existingRecord && existingRecord.blockedUntil && existingRecord.blockedUntil > new Date()) {
+            const remaining = Math.ceil((existingRecord.blockedUntil - new Date()) / 60000);
+            return res.status(429).json({ message: `Too many attempts. Try again in ${remaining} min` });
+        }
+
         const otp = generateOTP();
         const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
 
-        // Save or update OTP in DB
+        // Save or update OTP in DB, resetting attempts when generating a new OTP (unless blocked)
         await OtpModel.findOneAndUpdate(
             { email },
-            { otp, expiresAt },
+            { otp, expiresAt, attempts: 0 },
             { upsert: true, new: true }
         );
 

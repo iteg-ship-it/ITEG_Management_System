@@ -23,6 +23,7 @@ router.use('/user', userRoutes);
 router.use('/user/otp', otpRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/students', studentRoutes);
+router.use('/admitted/students', studentRoutes);
 router.use('/face-auth', faceAuthRoutes);
 router.use('/reportcards', reportCardRoutes);
 router.use('/protected', protectedRoutes);

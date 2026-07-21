@@ -1,14 +1,14 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const User = require("../modules/user/models/user");
-const { refreshAccessToken, logout } = require("../modules/user/controllers/userController"); // ✅ FIXED
-const { forgotPassword, resetPassword } = require("../modules/user/controllers/userController");
-const { sendResetLinkEmail } = require("../modules/user/helpers/sendOtp");
+const User = require("../src/models/user/user");
+const { refreshAccessToken, logout } = require("../src/controllers/user/userController"); // ✅ FIXED
+const { forgotPassword, resetPassword } = require("../src/controllers/user/userController");
+const { sendResetLinkEmail } = require("../src/services/emailService");
 
-jest.mock("../modules/user/models/user");
+jest.mock("../src/models/user/user");
 jest.mock("jsonwebtoken");
 
-jest.mock("../modules/user/helpers/sendOtp", () => ({
+jest.mock("../src/services/emailService", () => ({
   sendResetLinkEmail: jest.fn()
 }));
 
@@ -147,7 +147,7 @@ describe("logout", () => {
     expect(mockUser.save).toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
-      message: "Logged out successfully, refresh token removed",
+      message: "Logged out successfully",
     });
   });
 

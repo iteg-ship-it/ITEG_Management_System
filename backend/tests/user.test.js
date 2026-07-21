@@ -1,11 +1,30 @@
 const request = require('supertest');
 const app = require('../server'); // your Express app
 const mongoose = require('mongoose');
-const User = require('../modules/user/models/user');
-const bcrypt = require('bcryptjs');
+const User = require('../src/models/user/user');
+const bcrypt = require('bcrypt');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 
+const Department = require('../src/models/department/Department');
+const jwt = require('jsonwebtoken');
+
+let user;
+let authToken;
+
 beforeEach(async () => {
+  let dept = await Department.findOne({ name: 'IT' });
+  if (!dept) {
+    dept = await Department.create({
+      name: 'IT',
+      universityName: 'IT University',
+      code: 'IT-001',
+      reportConfig: {
+        templateType: "ITEG_STANDARD"
+      },
+      isActive: true
+    });
+  }
+
   user = await User.create({
     name: 'Test User',
     email: `testuser${Date.now()}@example.com`,
@@ -13,10 +32,16 @@ beforeEach(async () => {
     password: 'hashedpassword',
     adharCard: `${Math.floor(Math.random() * 1000000000000)}`,
     department: 'IT',
+    departmentId: dept._id,
     position: 'Developer',
     role: 'admin',
     isActive: true,
   });
+
+  authToken = jwt.sign(
+    { id: user._id.toString(), role: user.role },
+    process.env.JWT_SECRET || "default_secret"
+  );
 });
   
  
@@ -33,6 +58,7 @@ beforeAll(async () => {
   // After each test, clear users
   afterEach(async () => {
     await User.deleteMany({});
+    await Department.deleteMany({});
   });
   describe('User API - Create User', () => {
 
@@ -180,6 +206,7 @@ describe('User API - Udate User', () => {
 it('1 should update the user\'s position successfully', async () => {
   const res = await request(app)
     .patch(`/api/user/update/${user._id}`)
+    .set('Authorization', `Bearer ${authToken}`)
     .send({ position: 'Senior Developer' });
 
   expect(res.statusCode).toBe(200);
@@ -190,6 +217,7 @@ it('1 should update the user\'s position successfully', async () => {
 it('2 should update multiple fields successfully', async () => {
   const res = await request(app)
     .patch(`/api/user/update/${user._id}`)
+    .set('Authorization', `Bearer ${authToken}`)
     .send({
       position: 'Team Lead',
       department: 'Engineering',
@@ -210,6 +238,7 @@ it('3 should return 404 if ID is invalid', async () => {
 
   const res = await request(app)
     .patch(`/api/user/update/${invalidId}`)
+    .set('Authorization', `Bearer ${authToken}`)
     .send({ position: 'Senior Developer' });
 
   expect(res.statusCode).toBe(404);
@@ -222,6 +251,7 @@ it('4 should return 404 if user does not exist', async () => {
 
   const res = await request(app)
     .patch(`/api/user/update/${validNonExistentId}`)
+    .set('Authorization', `Bearer ${authToken}`)
     .send({ position: 'Senior Developer' });
 
   expect(res.statusCode).toBe(404);
@@ -231,6 +261,7 @@ it('4 should return 404 if user does not exist', async () => {
 it('5 should return 200 even if no fields are updated (optional behavior)', async () => {
   const res = await request(app)
     .patch(`/api/user/update/${user._id}`)
+    .set('Authorization', `Bearer ${authToken}`)
     .send({});
 
   expect(res.statusCode).toBe(200);

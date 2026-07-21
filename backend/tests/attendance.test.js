@@ -1,18 +1,22 @@
 const request = require('supertest');
 const app = require('../server');
+const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 
 describe('Attendance Statistics API', () => {
   let authToken;
 
   beforeAll(async () => {
-    // Mock authentication - replace with actual login if needed
-    authToken = 'mock-token';
+    authToken = jwt.sign(
+      { id: new mongoose.Types.ObjectId().toString(), role: "superadmin" },
+      process.env.JWT_SECRET || "default_secret"
+    );
   });
 
-  describe('GET /api/admitted/students/attendance/stats', () => {
+  describe('GET /api/students/attendance/stats', () => {
     it('should return attendance statistics with default pagination', async () => {
       const response = await request(app)
-        .get('/api/admitted/students/attendance/stats')
+        .get('/api/students/attendance/stats')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
@@ -24,7 +28,7 @@ describe('Attendance Statistics API', () => {
 
     it('should filter by gender', async () => {
       const response = await request(app)
-        .get('/api/admitted/students/attendance/stats?gender=male')
+        .get('/api/students/attendance/stats?gender=male')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
@@ -33,7 +37,7 @@ describe('Attendance Statistics API', () => {
 
     it('should handle pagination parameters', async () => {
       const response = await request(app)
-        .get('/api/admitted/students/attendance/stats?page=1&limit=5')
+        .get('/api/students/attendance/stats?page=1&limit=5')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 

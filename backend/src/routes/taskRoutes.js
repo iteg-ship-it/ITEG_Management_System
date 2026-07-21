@@ -4,7 +4,7 @@ const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
 const Task = require("../models/syllabus/Task");
 const { syncTasksToSubLevelStudents } = require("../services/taskAssignmentService");
 
-const writeRoles = ["superadmin", "admin", "faculty"];
+const writeRoles = ["superadmin", "admin", "faculty", "hod"];
 
 const populateTaskContext = [
   {
