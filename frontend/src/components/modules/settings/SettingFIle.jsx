@@ -1,107 +1,307 @@
-import { useState, useEffect } from 'react';
-import Header from '../../shared/sidebar/Header';
+import { useState, useEffect } from "react";
+import {
+    MdSettings, MdPalette, MdTrendingUp, MdCalendarToday,
+    MdLock, MdWarning, MdInfo, MdCheck, MdUpload, MdAdd,
+    MdToggleOn, MdToggleOff, MdNotificationsNone, MdSearch
+} from "react-icons/md";
+import { toast } from "react-toastify";
+import Header from "../../shared/sidebar/Header";
 
 const themes = [
-  { id: 'orange', label: 'Orange', color: '#FDA92D', shade: '#FED7AA', description: 'Default warm orange' },
-  { id: 'blue',   label: 'Blue',   color: '#3B82F6', shade: '#BFDBFE', description: 'Classic ocean blue' },
-  { id: 'green',  label: 'Green',  color: '#22C55E', shade: '#BBF7D0', description: 'Fresh nature green' },
-  { id: 'purple', label: 'Purple', color: '#8B5CF6', shade: '#DDD6FE', description: 'Royal violet purple' },
-  { id: 'rose',   label: 'Rose',   color: '#F43F5E', shade: '#FECDD3', description: 'Vibrant rose red' },
-  { id: 'teal',   label: 'Teal',   color: '#14B8A6', shade: '#99F6E4', description: 'Cool teal cyan' },
-  { id: 'indigo', label: 'Indigo', color: '#6366F1', shade: '#C7D2FE', description: 'Deep indigo blue' },
+    { id: "orange", label: "Orange", color: "#F97316", shade: "#FFEDD5" },
+    { id: "blue",   label: "Blue",   color: "#3B82F6", shade: "#DBEAFE" },
+    { id: "green",  label: "Green",  color: "#22C55E", shade: "#DCFCE7" },
+    { id: "purple", label: "Purple", color: "#8B5CF6", shade: "#EDE9FE" },
+    { id: "rose",   label: "Rose",   color: "#F43F5E", shade: "#FFE4E6" },
+    { id: "indigo", label: "Indigo", color: "#6366F1", shade: "#E0E7FF" },
 ];
 
 const SettingFIle = () => {
-  const [activeTheme, setActiveTheme] = useState(() => localStorage.getItem('theme') || 'orange');
+    const [activeTheme, setActiveTheme] = useState(() => localStorage.getItem("theme") || "orange");
+    const [maintenanceMode, setMaintenanceMode] = useState(false);
+    const [hasUnsaved, setHasUnsaved] = useState(false);
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', activeTheme);
-    localStorage.setItem('theme', activeTheme);
-  }, [activeTheme]);
+    // Form states
+    const [minGpa, setMinGpa] = useState("2.5");
+    const [minAttendance, setMinAttendance] = useState("75");
+    const [backlogLimit, setBacklogLimit] = useState("Maximum 2 subjects");
 
-  return (
-    <>
-      <Header title="Settings" breadcrumbs={[{ label: 'Settings' }]} />
-      <div className="p-6 max-w-3xl">
+    useEffect(() => {
+        document.documentElement.setAttribute("data-theme", activeTheme);
+        localStorage.setItem("theme", activeTheme);
+    }, [activeTheme]);
 
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-          <div className="mb-6">
-            <h2 className="text-lg font-bold text-gray-800">Color Theme</h2>
-            <p className="text-sm text-gray-500 mt-1">Choose a primary color for the interface. All buttons, badges and accents will update accordingly.</p>
-          </div>
+    const handleThemeChange = (themeId) => {
+        setActiveTheme(themeId);
+        setHasUnsaved(true);
+    };
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {themes.map((theme) => {
-              const isActive = activeTheme === theme.id;
-              return (
-                <button
-                  key={theme.id}
-                  onClick={() => setActiveTheme(theme.id)}
-                  className={`relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200 ${
-                    isActive
-                      ? 'border-gray-800 shadow-md scale-[1.03]'
-                      : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                  }`}
-                >
-                  {/* Color preview */}
-                  <div className="flex gap-1.5">
-                    <div className="w-8 h-8 rounded-full shadow-sm" style={{ backgroundColor: theme.color }} />
-                    <div className="w-8 h-8 rounded-full shadow-sm" style={{ backgroundColor: theme.shade }} />
-                  </div>
+    const handleFormChange = () => {
+        setHasUnsaved(true);
+    };
 
-                  <span className="text-sm font-semibold text-gray-700">{theme.label}</span>
-                  <span className="text-[10px] text-gray-400 text-center leading-tight">{theme.description}</span>
+    const handleSaveAll = () => {
+        toast.success("System configuration saved successfully!");
+        setHasUnsaved(false);
+    };
 
-                  {/* Active checkmark */}
-                  {isActive && (
-                    <div
-                      className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                      style={{ backgroundColor: theme.color }}
-                    >
-                      ✓
+    const handleDiscard = () => {
+        setMinGpa("2.5");
+        setMinAttendance("75");
+        setBacklogLimit("Maximum 2 subjects");
+        setHasUnsaved(false);
+        toast.info("Changes discarded.");
+    };
+
+    return (
+        <div className="bg-[#F8F9FA] min-h-screen px-8 py-6 space-y-6 pb-24 relative">
+
+            {/* TOP HEADER SECTION */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-black text-slate-900 tracking-tight">System Configuration</h1>
+                    <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                        Manage institutional global rules, branding, and academic lifecycles.
+                    </p>
+                </div>
+
+                {/* Maintenance Mode Toggle Card */}
+                <div className="flex items-center gap-3.5 bg-white border border-slate-100 px-4 py-2.5 rounded-2xl shadow-sm">
+                    <div className="text-right">
+                        <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">MAINTENANCE MODE</p>
+                        <p className={`text-xs font-extrabold ${maintenanceMode ? "text-amber-600" : "text-emerald-600"}`}>
+                            {maintenanceMode ? "Maintenance On" : "System Live"}
+                        </p>
                     </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Preview bar */}
-          <div className="mt-6 p-4 rounded-xl border border-gray-100 bg-gray-50">
-            <p className="text-xs text-gray-500 mb-3 font-medium uppercase tracking-wider">Preview</p>
-            <div className="flex items-center gap-3 flex-wrap">
-              <button
-                className="px-4 py-2 rounded-lg text-white text-sm font-semibold transition"
-                style={{ backgroundColor: themes.find(t => t.id === activeTheme)?.color }}
-              >
-                Primary Button
-              </button>
-              <span
-                className="px-3 py-1 rounded-full text-xs font-semibold text-white"
-                style={{ backgroundColor: themes.find(t => t.id === activeTheme)?.color }}
-              >
-                Badge
-              </span>
-              <span
-                className="px-3 py-1 rounded-full text-xs font-semibold"
-                style={{
-                  backgroundColor: themes.find(t => t.id === activeTheme)?.shade,
-                  color: themes.find(t => t.id === activeTheme)?.color
-                }}
-              >
-                Light Badge
-              </span>
-              <div
-                className="w-6 h-6 rounded-full"
-                style={{ backgroundColor: themes.find(t => t.id === activeTheme)?.color }}
-              />
+                    <button
+                        onClick={() => { setMaintenanceMode(p => !p); setHasUnsaved(true); }}
+                        className="text-slate-400 hover:text-slate-600 transition"
+                    >
+                        {maintenanceMode ? (
+                            <MdToggleOn size={36} className="text-amber-500" />
+                        ) : (
+                            <MdToggleOff size={36} className="text-slate-300" />
+                        )}
+                    </button>
+                </div>
             </div>
-          </div>
-        </div>
 
-      </div>
-    </>
-  );
+            {/* 2X2 GRID OF CONFIGURATION CARDS (EXACT REFERENCE ASPECT RATIO) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                {/* CARD 1: Academic Year Management */}
+                <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-5">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-9 h-9 rounded-2xl bg-orange-50 text-orange-500 border border-orange-100 flex items-center justify-center">
+                                <MdCalendarToday size={18} />
+                            </div>
+                            <h3 className="text-base font-black text-slate-900">Academic Year Management</h3>
+                        </div>
+                        <button
+                            onClick={() => toast.info("Create new Academic Year modal")}
+                            className="text-xs font-extrabold text-orange-500 hover:text-orange-600 transition flex items-center gap-1"
+                        >
+                            + Add New
+                        </button>
+                    </div>
+
+                    {/* Cycles List */}
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between p-4 rounded-2xl border border-orange-200/80 bg-orange-50/40">
+                            <div>
+                                <h4 className="text-sm font-extrabold text-slate-900">AY 2024 - 2025</h4>
+                                <p className="text-xs font-semibold text-slate-400 mt-0.5">Current Active Cycle</p>
+                            </div>
+                            <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 font-extrabold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider">
+                                ACTIVE
+                            </span>
+                        </div>
+
+                        <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 bg-slate-50/50">
+                            <div>
+                                <h4 className="text-sm font-bold text-slate-700">AY 2023 - 2024</h4>
+                                <p className="text-xs font-semibold text-slate-400 mt-0.5">Previous Cycle</p>
+                            </div>
+                            <span className="bg-slate-200/70 text-slate-600 font-bold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider">
+                                ARCHIVED
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* CARD 2: Promotion Rules */}
+                <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-5">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-2xl bg-orange-50 text-orange-500 border border-orange-100 flex items-center justify-center">
+                            <MdTrendingUp size={18} />
+                        </div>
+                        <h3 className="text-base font-black text-slate-900">Promotion Rules</h3>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">
+                                    MINIMUM GPA
+                                </label>
+                                <input
+                                    type="text"
+                                    value={minGpa}
+                                    onChange={(e) => { setMinGpa(e.target.value); handleFormChange(); }}
+                                    className="w-full h-10 px-3.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-400 shadow-sm"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">
+                                    ATTENDANCE %
+                                </label>
+                                <input
+                                    type="text"
+                                    value={minAttendance}
+                                    onChange={(e) => { setMinAttendance(e.target.value); handleFormChange(); }}
+                                    className="w-full h-10 px-3.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-400 shadow-sm"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">
+                                BACKLOG LIMIT
+                            </label>
+                            <select
+                                value={backlogLimit}
+                                onChange={(e) => { setBacklogLimit(e.target.value); handleFormChange(); }}
+                                className="w-full h-10 px-3.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-400 shadow-sm cursor-pointer"
+                            >
+                                <option value="Maximum 1 subject">Maximum 1 subject</option>
+                                <option value="Maximum 2 subjects">Maximum 2 subjects</option>
+                                <option value="Maximum 3 subjects">Maximum 3 subjects</option>
+                                <option value="No Backlog Allowed">No Backlog Allowed</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                {/* CARD 3: Society Logo & Branding (THEME COLOR SELECTOR) */}
+                <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-5">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-2xl bg-orange-50 text-orange-500 border border-orange-100 flex items-center justify-center">
+                            <MdPalette size={18} />
+                        </div>
+                        <h3 className="text-base font-black text-slate-900">Society Logo & Branding</h3>
+                    </div>
+
+                    <div className="flex items-center gap-5 p-4 rounded-2xl border border-slate-100 bg-slate-50/50">
+                        <div className="w-16 h-16 rounded-2xl bg-orange-100 text-orange-600 font-black flex items-center justify-center text-xl border border-orange-200 flex-shrink-0">
+                            ITEG
+                        </div>
+                        <div className="space-y-1">
+                            <h4 className="text-xs font-black text-slate-900">Official Society Logo</h4>
+                            <p className="text-[11px] font-semibold text-slate-400">Upload high-res PNG or SVG. Max 2MB.</p>
+                            <button
+                                type="button"
+                                onClick={() => toast.info("Select new logo file")}
+                                className="mt-1.5 inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold shadow-sm transition"
+                            >
+                                <MdUpload size={14} /> Change Logo
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2 pt-1">
+                        <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                            THEME PRIMARY COLOR
+                        </label>
+                        <div className="flex items-center gap-3">
+                            {themes.map((t) => {
+                                const isActive = activeTheme === t.id;
+                                return (
+                                    <button
+                                        key={t.id}
+                                        type="button"
+                                        onClick={() => handleThemeChange(t.id)}
+                                        title={t.label}
+                                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+                                            isActive ? "ring-4 ring-orange-200 scale-110 shadow-md" : "hover:scale-105"
+                                        }`}
+                                        style={{ backgroundColor: t.color }}
+                                    >
+                                        {isActive && <MdCheck size={18} className="text-white" />}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+
+                {/* CARD 4: Lock Academic Year */}
+                <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm space-y-5">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-2xl bg-rose-50 text-rose-500 border border-rose-100 flex items-center justify-center">
+                            <MdLock size={18} />
+                        </div>
+                        <h3 className="text-base font-black text-slate-900">Lock Academic Year</h3>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-rose-50/70 border border-rose-100 text-xs font-semibold text-rose-700 flex items-start gap-3">
+                        <MdWarning size={20} className="text-rose-500 flex-shrink-0 mt-0.5" />
+                        <p className="leading-relaxed">
+                            Locking the academic year <strong>(2023-2024)</strong> will freeze all marks, attendance, and faculty records. This action is <u>irreversible</u> and ensures data integrity for audits.
+                        </p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                        <div>
+                            <p className="text-xs font-black text-slate-900">Ready for Finalization?</p>
+                            <p className="text-[10px] font-bold text-slate-400 mt-0.5">LAST CHECK: 12 OCT 2023</p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (window.confirm("Are you sure you want to lock AY 2023-2024? This cannot be undone.")) {
+                                    toast.success("AY 2023-2024 locked successfully");
+                                }
+                            }}
+                            className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition"
+                        >
+                            Lock 2023-2024
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            {/* FLOATING STICKY SAVE BAR */}
+            {hasUnsaved && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-6 py-3.5 rounded-full shadow-2xl flex items-center gap-6 border border-slate-800 animate-bounce-short">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-200">
+                        <MdInfo size={18} className="text-orange-400" />
+                        <span>You have unsaved changes in System Settings</span>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={handleDiscard}
+                            className="text-xs font-bold text-slate-400 hover:text-white transition"
+                        >
+                            Discard
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleSaveAll}
+                            className="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-xs rounded-full shadow-md transition"
+                        >
+                            Save All Settings
+                        </button>
+                    </div>
+                </div>
+            )}
+
+        </div>
+    );
 };
 
 export default SettingFIle;
