@@ -4,7 +4,7 @@ const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
 const { departmentFilter } = require("../middlewares/departmentFilter");
 const { getDashboardOverview } = require("../controllers/dashboard/dashboardController");
 
-const auth = [verifyToken, checkRole(["superadmin", "admin", "faculty"]), departmentFilter];
+const auth = [verifyToken, checkRole(["superadmin", "admin", "faculty", "hod"]), departmentFilter];
 
 router.get("/overview", ...auth, getDashboardOverview);
 

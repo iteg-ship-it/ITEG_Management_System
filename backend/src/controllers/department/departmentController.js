@@ -102,7 +102,26 @@ exports.getAllDepartments = async (req, res) => {
     const SubDepartment = require("../../models/department/SubDepartment");
     const Student = require("../../models/student/Student");
 
-    const departments = await Department.find();
+    const filter = {};
+    if (!["superadmin", "admin"].includes(req.user?.role)) {
+      let departmentId = req.user?.departmentId || null;
+
+      if (!departmentId && req.user?.department) {
+        const deptDoc = await Department.findOne({ name: req.user.department, isActive: true }).select("_id");
+        departmentId = deptDoc?._id || null;
+      }
+
+      if (!departmentId) {
+        return res.status(403).json({
+          success: false,
+          message: "Department not assigned to your account."
+        });
+      }
+
+      filter._id = departmentId;
+    }
+
+    const departments = await Department.find(filter);
 
     const departmentsWithCounts = await Promise.all(
       departments.map(async (dept) => {
@@ -134,6 +153,20 @@ exports.getDepartmentById = async (req, res) => {
         success: false,
         message: "Invalid department ID format"
       });
+    }
+
+    if (!["superadmin", "admin"].includes(req.user?.role)) {
+      let userDeptId = req.user?.departmentId?.toString();
+      if (!userDeptId && req.user?.department) {
+        const deptDoc = await Department.findOne({ name: req.user.department, isActive: true }).select("_id");
+        userDeptId = deptDoc?._id?.toString();
+      }
+      if (userDeptId !== req.params.id) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied for this department"
+        });
+      }
     }
 
     const department = await Department.findOne({ 

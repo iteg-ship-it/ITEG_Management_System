@@ -17,6 +17,7 @@ const auth = [verifyToken, checkRole(allowedRoles), departmentFilter];
 
 router.post("/", ...auth, studentController.createStudent);
 router.get("/", ...auth, studentController.getAllStudents);
+router.get("/getall", ...auth, studentController.getAllStudents);
 router.get("/stats", ...auth, studentController.getStudentStats);
 
 // Permission

@@ -9,7 +9,7 @@ const SyllabusVersion = require("../models/syllabus/SyllabusVersion");
 const StudentTask = require("../models/syllabus/StudentTask");
 const { updateStudentTaskStatus } = require("../services/taskAssignmentService");
 
-const writeRoles = ["superadmin", "admin", "faculty"];
+const writeRoles = ["superadmin", "admin", "faculty", "hod"];
 
 // ── Bulk Task Upload ──
 router.post("/bulk-upload-tasks", verifyToken, checkRole(writeRoles), taskMasterBulkController.bulkUploadTasks);
