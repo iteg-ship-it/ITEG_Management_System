@@ -139,20 +139,15 @@ const AttendanceDetails = () => {
 
         <div className="p-6">
           {/* Filters Section */}
-          <div className="bg-[var(--backgroundColor)] border rounded-lg p-6 mb-6 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <FiFilter className="w-5 h-5 text-gray-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="bg-white border border-gray-200 rounded-xl p-4 mb-5 shadow-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
               <div>
                 <DatePicker
                   label="From Date"
                   value={filters.dateFrom}
                   max={new Date().toISOString().split('T')[0]}
                   onChange={(value) => handleFilterChange('dateFrom', value)}
-                  className="black-calendar-icon"
+                  className="black-calendar-icon text-sm"
                 />
               </div>
 
@@ -163,7 +158,7 @@ const AttendanceDetails = () => {
                   min={filters.dateFrom}
                   max={new Date().toISOString().split('T')[0]}
                   onChange={(value) => handleFilterChange('dateTo', value)}
-                  className="black-calendar-icon"
+                  className="black-calendar-icon text-sm"
                 />
               </div>
 
@@ -171,29 +166,20 @@ const AttendanceDetails = () => {
                 <button
                   type="button"
                   onClick={() => setIsYearOpen(!isYearOpen)}
-                  className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-black focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200"
+                  className="peer h-10 w-full border border-gray-300 rounded-lg px-3 py-1.5 leading-tight bg-white text-left focus:outline-none focus:border-black focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200 text-sm shadow-sm"
                 >
-                  <span className="text-gray-900">
+                  <span className="text-gray-900 font-medium">
                     {years.find(y => y.value === filters.year)?.label || 'Select Year'}
                   </span>
-                  <span className={`ml-2 transition-transform duration-200 ${isYearOpen ? 'rotate-180' : ''}`}>
+                  <span className={`ml-2 text-xs transition-transform duration-200 text-gray-400 ${isYearOpen ? 'rotate-180' : ''}`}>
                     ▼
                   </span>
                 </button>
-                <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
+                <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-[10px] -top-2 text-gray-500 font-semibold">
                   Year
                 </label>
                 {isYearOpen && (
-                  <div
-                    className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden border"
-                    style={{
-                      background: `
-                      linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 20%),
-                      linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 20%),
-                      white
-                    `
-                    }}
-                  >
+                  <div className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden border border-gray-200 bg-white">
                     {years.map((year) => (
                       <div
                         key={year.value}
@@ -201,7 +187,7 @@ const AttendanceDetails = () => {
                           handleFilterChange('year', year.value);
                           setIsYearOpen(false);
                         }}
-                        className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left transition-colors duration-150"
+                        className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left transition-colors duration-150 text-sm"
                       >
                         {year.label}
                       </div>
@@ -214,35 +200,26 @@ const AttendanceDetails = () => {
                 <button
                   type="button"
                   onClick={() => setIsGenderOpen(!isGenderOpen)}
-                  className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-black focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200"
+                  className="peer h-10 w-full border border-gray-300 rounded-lg px-3 py-1.5 leading-tight bg-white text-left focus:outline-none focus:border-black focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200 text-sm shadow-sm"
                 >
-                  <span className="text-gray-900">
+                  <span className="text-gray-900 font-medium">
                     {filters.gender === '' ? 'All' : filters.gender === 'male' ? 'Male' : 'Female'}
                   </span>
-                  <span className={`ml-2 transition-transform duration-200 ${isGenderOpen ? 'rotate-180' : ''}`}>
+                  <span className={`ml-2 text-xs transition-transform duration-200 text-gray-400 ${isGenderOpen ? 'rotate-180' : ''}`}>
                     ▼
                   </span>
                 </button>
-                <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
+                <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-[10px] -top-2 text-gray-500 font-semibold">
                   Gender
                 </label>
                 {isGenderOpen && (
-                  <div
-                    className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden border"
-                    style={{
-                      background: `
-                      linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 20%),
-                      linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 20%),
-                      white
-                    `
-                    }}
-                  >
+                  <div className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden border border-gray-200 bg-white">
                     <div
                       onClick={() => {
                         handleFilterChange('gender', '');
                         setIsGenderOpen(false);
                       }}
-                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left transition-colors duration-150"
+                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left transition-colors duration-150 text-sm"
                     >
                       All
                     </div>
@@ -251,7 +228,7 @@ const AttendanceDetails = () => {
                         handleFilterChange('gender', 'male');
                         setIsGenderOpen(false);
                       }}
-                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left transition-colors duration-150"
+                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left transition-colors duration-150 text-sm"
                     >
                       Male
                     </div>
@@ -260,7 +237,7 @@ const AttendanceDetails = () => {
                         handleFilterChange('gender', 'female');
                         setIsGenderOpen(false);
                       }}
-                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left transition-colors duration-150"
+                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left transition-colors duration-150 text-sm"
                     >
                       Female
                     </div>
@@ -280,7 +257,7 @@ const AttendanceDetails = () => {
                       gender: ''
                     });
                   }}
-                  className="w-full bg-[#FDA92D] text-white px-3 py-3 rounded-md hover:bg-[#ED9A21] active:bg-[#B66816] transition-all duration-200"
+                  className="w-full h-10 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-semibold transition shadow-sm"
                 >
                   Reset
                 </button>
@@ -295,44 +272,44 @@ const AttendanceDetails = () => {
 
           {/* Statistics Section */}
           {overallStats && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-purple-900">Total Students</p>
-                    <p className="text-2xl font-bold text-purple-600">{overallStats.totalStudents}</p>
-                  </div>
-                  <FiEye className="w-8 h-8 text-purple-500" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="bg-white rounded-xl border border-gray-150 shadow-sm p-4 flex justify-between items-center transition hover:shadow-md">
+                <div>
+                  <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Total Students</p>
+                  <p className="text-2xl font-extrabold text-gray-800 mt-0.5">{overallStats.totalStudents}</p>
+                </div>
+                <div className="bg-orange-50 text-orange-500 p-2.5 rounded-xl shrink-0">
+                  <FiEye size={20} />
                 </div>
               </div>
 
-              <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-blue-900">Male Students</p>
-                    <p className="text-2xl font-bold text-blue-600">{overallStats.maleStudents}</p>
-                  </div>
-                  <BsPersonFill className="w-8 h-8 text-blue-500" />
+              <div className="bg-white rounded-xl border border-gray-150 shadow-sm p-4 flex justify-between items-center transition hover:shadow-md">
+                <div>
+                  <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Male Students</p>
+                  <p className="text-2xl font-extrabold text-gray-800 mt-0.5">{overallStats.maleStudents}</p>
+                </div>
+                <div className="bg-orange-50 text-orange-500 p-2.5 rounded-xl shrink-0">
+                  <BsPersonFill size={20} />
                 </div>
               </div>
 
-              <div className="bg-gradient-to-r from-pink-50 to-pink-100 rounded-lg p-4 border border-pink-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-pink-900">Female Students</p>
-                    <p className="text-2xl font-bold text-pink-600">{overallStats.femaleStudents}</p>
-                  </div>
-                  <BsPersonFillCheck className="w-8 h-8 text-pink-500" />
+              <div className="bg-white rounded-xl border border-gray-150 shadow-sm p-4 flex justify-between items-center transition hover:shadow-md">
+                <div>
+                  <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Female Students</p>
+                  <p className="text-2xl font-extrabold text-gray-800 mt-0.5">{overallStats.femaleStudents}</p>
+                </div>
+                <div className="bg-orange-50 text-orange-500 p-2.5 rounded-xl shrink-0">
+                  <BsPersonFillCheck size={20} />
                 </div>
               </div>
 
-              <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-green-900">Avg Attendance</p>
-                    <p className="text-2xl font-bold text-green-600">{overallStats.avgAttendance}%</p>
-                  </div>
-                  <FiCalendar className="w-8 h-8 text-green-500" />
+              <div className="bg-white rounded-xl border border-gray-150 shadow-sm p-4 flex justify-between items-center transition hover:shadow-md">
+                <div>
+                  <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Avg Attendance</p>
+                  <p className="text-2xl font-extrabold text-gray-800 mt-0.5">{overallStats.avgAttendance}%</p>
+                </div>
+                <div className="bg-orange-50 text-orange-500 p-2.5 rounded-xl shrink-0">
+                  <FiCalendar size={20} />
                 </div>
               </div>
             </div>

@@ -49,11 +49,11 @@ const AttendanceCalendarModal = ({ isOpen, onClose, student, initialDateFrom, in
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'present': return 'bg-green-500 text-white';
-      case 'absent': return 'bg-red-500 text-white';
-      case 'holiday': return 'bg-blue-500 text-white';
-      case 'weekend': return 'bg-yellow-500 text-white';
-      default: return 'bg-gray-200 text-gray-600';
+      case 'present': return 'bg-green-50 text-green-700 border border-green-200';
+      case 'absent': return 'bg-red-50 text-red-700 border border-red-200';
+      case 'holiday': return 'bg-orange-50 text-orange-700 border border-orange-200';
+      case 'weekend': return 'bg-slate-50 text-slate-700 border border-slate-200';
+      default: return 'bg-slate-50 text-slate-500 border border-slate-100';
     }
   };
 
@@ -88,11 +88,8 @@ const AttendanceCalendarModal = ({ isOpen, onClose, student, initialDateFrom, in
         const dayData = calendarData?.data?.calendarData?.[dateStr];
         const isCurrentMonth = current.getMonth() === month;
         
-        // Fix date comparison by comparing date strings
         const currentDateStr = current.toISOString().split('T')[0];
         const isInRange = currentDateStr >= dateFrom && currentDateStr <= dateTo;
-        
-
         
         weekDays.push({
           date: new Date(current),
@@ -122,14 +119,12 @@ const AttendanceCalendarModal = ({ isOpen, onClose, student, initialDateFrom, in
     let weekendCount = 0;
     
     Object.entries(calData).forEach(([dateStr, dayData]) => {
-      // Use string comparison for date range
       if (dateStr >= dateFrom && dateStr <= dateTo) {
         if (dayData.isHoliday) {
           holidayCount++;
         } else if (dayData.isWeekend) {
           weekendCount++;
         } else {
-          // Check if student has data for this day
           const studentData = dayData.students?.find(s => s.stdId === student?.stdId);
           if (studentData) {
             if (studentData.status === 'present') {
@@ -138,7 +133,6 @@ const AttendanceCalendarModal = ({ isOpen, onClose, student, initialDateFrom, in
               absentCount++;
             }
           } else {
-            // No data for working day = absent
             absentCount++;
           }
         }
@@ -152,6 +146,11 @@ const AttendanceCalendarModal = ({ isOpen, onClose, student, initialDateFrom, in
       weekend: weekendCount
     };
   }, [calendarData, student, dateFrom, dateTo]);
+
+  const attendanceRate = useMemo(() => {
+    const total = summary.present + summary.absent;
+    return total > 0 ? Math.round((summary.present / total) * 100) : 0;
+  }, [summary]);
 
   const canNavigateMonth = (direction) => {
     const fromDate = new Date(dateFrom);
@@ -175,69 +174,109 @@ const AttendanceCalendarModal = ({ isOpen, onClose, student, initialDateFrom, in
   };
 
   const handleDateChange = () => {
-    // The query will automatically refetch when dateFrom or dateTo changes
-    // due to the dependency in useGetStudentAttendanceCalendarQuery
   };
   
   if (!isOpen) return null;
 
-
   return (
     <BlurBackground isOpen={isOpen} onClose={onClose}>
-      <div className="bg-white rounded-lg max-w-3xl w-full h-[75vh] flex flex-col m-4">
+      <div className="bg-white rounded-2xl border border-gray-150 max-w-xl w-full flex flex-col m-4 overflow-hidden shadow-2xl transition-all duration-300">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
+        <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-white">
           <div className="flex items-center gap-3">
-            <FiUser className="w-5 h-5 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900">
-              {student?.firstName} {student?.lastName}
-            </h2>
-          </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
-            <FiX className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Summary */}
-        <div className="p-4 border-b bg-gray-50 flex-shrink-0">
-          <div className="flex justify-between items-center mb-2">
-            <div className="text-sm text-gray-600">
-              <span className="font-medium">Father:</span> {student?.fathersName} | 
-              <span className="font-medium"> Mobile:</span> {student?.mobile}
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-orange-50 text-orange-500 shadow-sm shrink-0">
+              <FiUser className="w-5 h-5" />
             </div>
-            <div className="flex gap-4 text-sm">
-              <span className="text-green-600 font-medium">Present: {summary.present}</span>
-              <span className="text-red-600 font-medium">Absent: {summary.absent}</span>
-              <span className="text-blue-600 font-medium">Holiday: {summary.holiday}</span>
-              <span className="text-yellow-600 font-medium">Weekend: {summary.weekend}</span>
+            <div>
+              <h2 className="text-base font-extrabold text-gray-900 leading-tight">
+                {student?.firstName} {student?.lastName}
+              </h2>
+              <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">Attendance Profile</p>
             </div>
           </div>
-          <div className="text-xs text-gray-500">
-            <span className="font-medium">Date Range:</span> {dateFrom} to {dateTo}
+          
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div className="text-right">
+                <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider block">Present Rate</span>
+                <span className={`text-sm font-extrabold ${attendanceRate >= 75 ? 'text-green-600' : 'text-red-500'}`}>
+                  {attendanceRate}%
+                </span>
+              </div>
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs border ${
+                attendanceRate >= 75 
+                  ? 'bg-green-50 text-green-600 border-green-150' 
+                  : 'bg-red-50 text-red-600 border-red-150'
+              }`}>
+                {attendanceRate}%
+              </div>
+            </div>
+            <button onClick={onClose} className="p-1.5 hover:bg-gray-50 text-gray-400 hover:text-gray-600 rounded-lg transition shrink-0">
+              <FiX className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
-        {/* Calendar */}
-        <div className="flex-1 p-4 overflow-hidden">
+        {/* Profile Stats */}
+        <div className="p-4 border-b border-gray-100 bg-slate-50/50 flex-shrink-0 text-xs">
+          <div className="grid grid-cols-2 gap-y-2 gap-x-4 mb-3.5 text-gray-600">
+            <div>
+              <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Father's Name</span>
+              <span className="font-bold text-gray-800 text-sm mt-0.5 block">{student?.fathersName || 'N/A'}</span>
+            </div>
+            <div>
+              <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Mobile Contact</span>
+              <span className="font-bold text-gray-800 text-sm mt-0.5 block">{student?.mobile || 'N/A'}</span>
+            </div>
+            <div className="col-span-2">
+              <span className="text-gray-400 font-bold uppercase tracking-wider block text-[9px]">Scope Range</span>
+              <span className="font-semibold text-gray-700 bg-slate-100 border border-slate-200 rounded-md px-2 py-0.5 mt-1 inline-block">
+                {dateFrom} to {dateTo}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-1.5 pt-2 border-t border-gray-200/60">
+            <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-green-50 text-green-700 border border-green-150 shadow-sm">
+              Present: {summary.present}
+            </span>
+            <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-red-50 text-red-700 border border-red-150 shadow-sm">
+              Absent: {summary.absent}
+            </span>
+            <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-orange-50 text-orange-700 border border-orange-150 shadow-sm">
+              Holiday: {summary.holiday}
+            </span>
+            <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 shadow-sm">
+              Weekend: {summary.weekend}
+            </span>
+          </div>
+        </div>
+
+        {/* Calendar Box */}
+        <div className="flex-1 p-4 bg-white">
           {/* Month Navigation */}
           <div className="flex items-center justify-between mb-4">
             <button 
               onClick={() => changeMonth(-1)} 
               disabled={!canNavigateMonth(-1)}
-              className={`p-2 rounded-lg ${
-                canNavigateMonth(-1) ? 'hover:bg-gray-100 text-gray-700' : 'text-gray-300 cursor-not-allowed'
+              className={`p-1.5 rounded-lg border transition duration-200 ${
+                canNavigateMonth(-1) 
+                  ? 'border-gray-200 hover:bg-slate-50 text-gray-700 hover:border-gray-300' 
+                  : 'border-gray-100 text-gray-300 cursor-not-allowed opacity-50'
               }`}
             >
               <FiChevronLeft className="w-4 h-4" />
             </button>
-            <h3 className="text-base font-semibold">
+            <h3 className="text-xs font-extrabold text-gray-800 tracking-widest uppercase">
               {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
             </h3>
             <button 
               onClick={() => changeMonth(1)} 
               disabled={!canNavigateMonth(1)}
-              className={`p-2 rounded-lg ${
-                canNavigateMonth(1) ? 'hover:bg-gray-100 text-gray-700' : 'text-gray-300 cursor-not-allowed'
+              className={`p-1.5 rounded-lg border transition duration-200 ${
+                canNavigateMonth(1) 
+                  ? 'border-gray-200 hover:bg-slate-50 text-gray-700 hover:border-gray-300' 
+                  : 'border-gray-100 text-gray-300 cursor-not-allowed opacity-50'
               }`}
             >
               <FiChevronRight className="w-4 h-4" />
@@ -245,8 +284,8 @@ const AttendanceCalendarModal = ({ isOpen, onClose, student, initialDateFrom, in
           </div>
 
           {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <div className="flex items-center justify-center py-16">
+              <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
           ) : error ? (
             <div className="py-4">
@@ -256,49 +295,67 @@ const AttendanceCalendarModal = ({ isOpen, onClose, student, initialDateFrom, in
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-7 gap-2 mb-3">
+              {/* Day Titles */}
+              <div className="grid grid-cols-7 gap-1.5 mb-2.5">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                  <div key={day} className="p-2 text-center font-medium text-gray-600 text-sm">
+                  <div key={day} className="text-center font-bold text-gray-400 text-[10px] uppercase tracking-wider">
                     {day}
                   </div>
                 ))}
               </div>
               
-              <div className="grid grid-cols-7 gap-1">
-                {calendar.flat().map((day, index) => (
-                  <div
-                    key={index}
-                    className={`relative h-10 w-10 mx-auto flex items-center justify-center text-sm rounded-full ${
-                      day.isInRange ? 'text-gray-900' : 'text-gray-300'
-                    } ${
-                      day.isInRange && day.status === 'present' ? 'bg-green-100 border-2 border-green-500' :
-                      day.isInRange && day.status === 'absent' ? 'bg-red-100 border-2 border-red-500' :
-                      day.isInRange && day.status === 'holiday' ? 'bg-blue-100 border-2 border-blue-500' :
-                      day.isInRange && day.status === 'weekend' ? 'bg-yellow-100 border-2 border-yellow-500' :
-                      day.isInRange ? 'bg-gray-50 hover:bg-gray-100' :
-                      'bg-gray-100 opacity-30'
-                    }`}
-                  >
-                    <span className="font-medium">{day.date.getDate()}</span>
-                  </div>
-                ))}
+              {/* Calendar Grid */}
+              <div className="grid grid-cols-7 gap-1.5">
+                {calendar.flat().map((day, index) => {
+                  const isPresent = day.isInRange && day.status === 'present';
+                  const isAbsent = day.isInRange && day.status === 'absent';
+                  const isHoliday = day.isInRange && day.status === 'holiday';
+                  const isWeekend = day.isInRange && day.status === 'weekend';
+                  
+                  let cellClasses = "bg-slate-50/50 border border-slate-100/50 text-gray-300 opacity-30 select-none pointer-events-none";
+                  if (day.isInRange) {
+                    if (isPresent) {
+                      cellClasses = "bg-green-50 text-green-700 border border-green-200 font-bold hover:scale-105 hover:shadow-sm";
+                    } else if (isAbsent) {
+                      cellClasses = "bg-red-50 text-red-700 border border-red-200 font-bold hover:scale-105 hover:shadow-sm";
+                    } else if (isHoliday) {
+                      cellClasses = "bg-orange-50 text-orange-600 border border-orange-200 font-bold hover:scale-105 hover:shadow-sm";
+                    } else if (isWeekend) {
+                      cellClasses = "bg-slate-50 text-slate-500 border border-slate-200 font-bold hover:scale-105 hover:shadow-sm";
+                    } else {
+                      cellClasses = "bg-white border border-gray-200 text-gray-700 hover:bg-slate-50 hover:border-gray-300 hover:scale-105 hover:shadow-sm transition";
+                    }
+                  } else if (day.isCurrentMonth) {
+                    cellClasses = "bg-white border border-gray-100 text-gray-400 opacity-50";
+                  }
+
+                  return (
+                    <div
+                      key={index}
+                      className={`h-10 w-10 mx-auto flex items-center justify-center text-sm rounded-xl cursor-default transition-all duration-200 ${cellClasses}`}
+                    >
+                      <span>{day.date.getDate()}</span>
+                    </div>
+                  );
+                })}
               </div>
 
-              <div className="mt-4 flex gap-4 justify-center text-xs">
-                <div className="flex items-center gap-1">
-                  <div className="w-4 h-4 bg-green-100 border border-green-500 rounded-full"></div>
+              {/* Legend */}
+              <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2 justify-center text-[10px] font-bold text-gray-500 uppercase tracking-wider pt-4 border-t border-gray-100">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3.5 h-3.5 bg-green-50 border border-green-200 rounded-md"></div>
                   <span>Present</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-4 h-4 bg-red-100 border border-red-500 rounded-full"></div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3.5 h-3.5 bg-red-50 border border-red-200 rounded-md"></div>
                   <span>Absent</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-4 h-4 bg-blue-100 border border-blue-500 rounded-full"></div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3.5 h-3.5 bg-orange-50 border border-orange-200 rounded-md"></div>
                   <span>Holiday</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-4 h-4 bg-yellow-100 border border-yellow-500 rounded-full"></div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3.5 h-3.5 bg-slate-100 border border-slate-200 rounded-md"></div>
                   <span>Weekend</span>
                 </div>
               </div>

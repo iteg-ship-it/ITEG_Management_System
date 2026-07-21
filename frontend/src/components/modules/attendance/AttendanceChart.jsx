@@ -51,8 +51,8 @@ const AttendanceChart = () => {
     if (!attendanceData?.data?.summary) return [];
     const { totalMaleStudents, totalFemaleStudents } = attendanceData.data.summary;
     return [
-      { name: 'Male Students', value: totalMaleStudents, fill: '#60A5FA' },
-      { name: 'Female Students', value: totalFemaleStudents, fill: '#F472B6' }
+      { name: 'Male Students', value: totalMaleStudents, fill: '#fb923c' },
+      { name: 'Female Students', value: totalFemaleStudents, fill: '#cbd5e1' }
     ];
   }, [attendanceData]);
 
@@ -109,13 +109,13 @@ const AttendanceChart = () => {
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
           <p className="font-semibold text-gray-900">{label}</p>
-          <p className="text-sm" style={{ color: '#A78BFA' }}>
+          <p className="text-sm" style={{ color: '#f97316' }}>
             Overall: <span className="font-medium">{data.attendance}%</span>
           </p>
-          <p className="text-sm" style={{ color: '#60A5FA' }}>
+          <p className="text-sm" style={{ color: '#fb923c' }}>
             Male: <span className="font-medium">{data.male}%</span>
           </p>
-          <p className="text-sm" style={{ color: '#F472B6' }}>
+          <p className="text-sm" style={{ color: '#94a3b8' }}>
             Female: <span className="font-medium">{data.female}%</span>
           </p>
           <p className="text-sm text-gray-600">
@@ -128,12 +128,12 @@ const AttendanceChart = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl overflow-hidden mb-8" style={{ boxShadow: '0 0 22px 6px rgba(0, 0, 0, 0.09)' }}>
-      <div className="px-6 py-4 border-b-2 border-gray-200 shadow-sm bg-white">
-        <div className="flex items-center justify-between">
+    <div className="bg-white rounded-xl border shadow-sm overflow-hidden mb-8">
+      <div className="px-6 py-4 border-b border-gray-200 bg-white">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-100">
-              <FiTrendingUp className="w-5 h-5 text-gray-700" />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-orange-50 text-orange-500">
+              <FiTrendingUp className="w-5 h-5" />
             </div>
             <div>
               <h3 className="text-lg font-bold text-gray-900">ITEG Attendance Analytics</h3>
@@ -141,8 +141,8 @@ const AttendanceChart = () => {
             </div>
           </div>
           
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <FiCalendar className="w-4 h-4" />
+          <div className="flex items-center gap-2 text-sm text-gray-500 bg-slate-50 border border-slate-100 rounded-xl px-4 py-1.5 font-medium">
+            <FiCalendar className="w-4 h-4 text-orange-500" />
             <span>Current Week: {dateRange.dateFrom} to {dateRange.dateTo}</span>
           </div>
         </div>
@@ -151,42 +151,42 @@ const AttendanceChart = () => {
       <div className="p-6">
         {/* Date Range Filters */}
         <div className="mb-6 p-4 bg-white rounded-xl border border-gray-200">
-                  <div className="flex flex-wrap items-end gap-3">
-                    <div className="flex-1 min-w-[140px]">
-                      <DatePicker
-                        label="From Date"
-                        value={tempDateRange.dateFrom}
-                        max={new Date().toISOString().split('T')[0]}
-                        onChange={(value) => handleTempDateChange('dateFrom', value)}
-                        className="black-calendar-icon"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-[140px]">
-                      <DatePicker
-                        label="To Date"
-                        value={tempDateRange.dateTo}
-                        min={tempDateRange.dateFrom}
-                        max={new Date().toISOString().split('T')[0]}
-                        onChange={(value) => handleTempDateChange('dateTo', value)}
-                        className="black-calendar-icon"
-                      />
-                    </div>
-                    <div className="flex gap-2">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex-1 min-w-[140px]">
+              <DatePicker
+                label="From Date"
+                value={tempDateRange.dateFrom}
+                max={new Date().toISOString().split('T')[0]}
+                onChange={(value) => handleTempDateChange('dateFrom', value)}
+                className="black-calendar-icon"
+              />
+            </div>
+            <div className="flex-1 min-w-[140px]">
+              <DatePicker
+                label="To Date"
+                value={tempDateRange.dateTo}
+                min={tempDateRange.dateFrom}
+                max={new Date().toISOString().split('T')[0]}
+                onChange={(value) => handleTempDateChange('dateTo', value)}
+                className="black-calendar-icon"
+              />
+            </div>
+            <div className="flex gap-2">
               <button
                 onClick={handleReset}
-                className="px-4 py-2.5 h-[48px] bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors shadow-sm border border-black"
+                className="px-4 py-2.5 h-[40px] border border-gray-200 bg-white hover:bg-slate-50 hover:border-gray-300 text-gray-700 rounded-lg text-sm font-semibold transition shadow-sm"
               >
                 Reset
               </button>
               <button
                 onClick={handleViewAttendance}
-                className="px-4 py-2.5 h-[48px] bg-[#FDA92D] text-white rounded-lg text-sm font-medium hover:bg-[#ED9A21] transition-colors flex items-center gap-2 shadow-sm"
+                className="px-4 py-2.5 h-[40px] bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-semibold transition flex items-center gap-2 shadow-sm"
               >
                 <FiEye className="w-4 h-4" />
                 View Attendance
               </button>
-                    </div>
-                  </div>
+            </div>
+          </div>
           {dateError && (
             <div className="mt-2 text-sm text-red-600 font-medium">
               {dateError}
@@ -197,7 +197,7 @@ const AttendanceChart = () => {
         {isLoading ? (
           <div className="h-64 flex items-center justify-center">
             <div className="text-center">
-              <div className="w-8 h-8 border-2 border-[#FDA92D] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+              <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
               <p className="text-sm text-gray-600">Loading attendance data...</p>
             </div>
           </div>
@@ -209,87 +209,89 @@ const AttendanceChart = () => {
         ) : (
           <div className="space-y-6">
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-purple-900">Total Students</p>
-                    <p className="text-2xl font-bold text-purple-600">
-                      {parseInt(attendanceData?.data?.summary?.totalITEGStudents) || 0}
-                    </p>
-                  </div>
-                  <FiUsers className="w-8 h-8 text-purple-500" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white rounded-xl border border-gray-150 shadow-sm p-4 flex justify-between items-center transition hover:shadow-md">
+                <div>
+                  <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Total Students</p>
+                  <p className="text-2xl font-extrabold text-gray-800 mt-0.5">
+                    {parseInt(attendanceData?.data?.summary?.totalITEGStudents) || 0}
+                  </p>
+                </div>
+                <div className="bg-orange-50 text-orange-500 p-2.5 rounded-xl shrink-0">
+                  <FiUsers size={20} />
                 </div>
               </div>
               
-              <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-blue-900">Male Students</p>
-                    <p className="text-2xl font-bold text-blue-600">
-                      {parseInt(attendanceData?.data?.summary?.totalMaleStudents) || 0}
-                    </p>
-                  </div>
-                  <BsPersonFill className="w-8 h-8 text-blue-500" />
+              <div className="bg-white rounded-xl border border-gray-150 shadow-sm p-4 flex justify-between items-center transition hover:shadow-md">
+                <div>
+                  <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Male Students</p>
+                  <p className="text-2xl font-extrabold text-gray-800 mt-0.5">
+                    {parseInt(attendanceData?.data?.summary?.totalMaleStudents) || 0}
+                  </p>
+                </div>
+                <div className="bg-orange-50 text-orange-500 p-2.5 rounded-xl shrink-0">
+                  <BsPersonFill size={20} />
                 </div>
               </div>
               
-              <div className="bg-gradient-to-r from-pink-50 to-pink-100 rounded-lg p-4 border border-pink-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-pink-900">Female Students</p>
-                    <p className="text-2xl font-bold text-pink-600">
-                      {parseInt(attendanceData?.data?.summary?.totalFemaleStudents) || 0}
-                    </p>
-                  </div>
-                  <BsPersonFillCheck className="w-8 h-8 text-pink-500" />
+              <div className="bg-white rounded-xl border border-gray-150 shadow-sm p-4 flex justify-between items-center transition hover:shadow-md">
+                <div>
+                  <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Female Students</p>
+                  <p className="text-2xl font-extrabold text-gray-800 mt-0.5">
+                    {parseInt(attendanceData?.data?.summary?.totalFemaleStudents) || 0}
+                  </p>
+                </div>
+                <div className="bg-orange-50 text-orange-500 p-2.5 rounded-xl shrink-0">
+                  <BsPersonFillCheck size={20} />
                 </div>
               </div>
               
-              <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-green-900">Working Days</p>
-                    <p className="text-2xl font-bold text-green-600">
-                      {parseInt(attendanceData?.data?.dateRange?.workingDays) || 0}
-                    </p>
-                  </div>
-                  <FiCalendar className="w-8 h-8 text-green-500" />
+              <div className="bg-white rounded-xl border border-gray-150 shadow-sm p-4 flex justify-between items-center transition hover:shadow-md">
+                <div>
+                  <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Working Days</p>
+                  <p className="text-2xl font-extrabold text-gray-800 mt-0.5">
+                    {parseInt(attendanceData?.data?.dateRange?.workingDays) || 0}
+                  </p>
+                </div>
+                <div className="bg-orange-50 text-orange-500 p-2.5 rounded-xl shrink-0">
+                  <FiCalendar size={20} />
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Bar Chart */}
-              <div className="lg:col-span-2 bg-white rounded-lg p-4 border border-gray-300">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Year-wise Attendance</h4>
+              <div className="lg:col-span-2 bg-white rounded-xl p-5 border shadow-sm">
+                <h4 className="text-sm font-semibold text-gray-700 mb-6">Year-wise Attendance</h4>
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                       <XAxis 
                         dataKey="year" 
-                        tick={{ fontSize: 12, fill: '#6B7280' }}
-                        axisLine={{ stroke: '#E5E7EB' }}
+                        tickLine={false}
+                        axisLine={false}
+                        tick={{ fontSize: 12, fill: '#94a3b8' }}
                       />
                       <YAxis 
-                        tick={{ fontSize: 12, fill: '#6B7280' }}
-                        axisLine={{ stroke: '#E5E7EB' }}
+                        tickLine={false}
+                        axisLine={false}
+                        tick={{ fontSize: 12, fill: '#94a3b8' }}
                         domain={[0, 100]}
                         tickFormatter={(value) => `${value}%`}
                       />
                       <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="attendance" fill="#A78BFA" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="male" fill="#60A5FA" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="female" fill="#F472B6" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="attendance" fill="#f97316" radius={[4, 4, 0, 0]} barSize={25} />
+                      <Bar dataKey="male" fill="#fb923c" radius={[4, 4, 0, 0]} barSize={25} />
+                      <Bar dataKey="female" fill="#cbd5e1" radius={[4, 4, 0, 0]} barSize={25} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
               {/* Pie Chart */}
-              <div className="bg-white rounded-lg p-4 border border-gray-300">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Gender Distribution</h4>
+              <div className="bg-white rounded-xl p-5 border shadow-sm flex flex-col justify-between">
+                <h4 className="text-sm font-semibold text-gray-700 mb-4">Gender Distribution</h4>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -297,7 +299,7 @@ const AttendanceChart = () => {
                         data={pieData}
                         cx="50%"
                         cy="50%"
-                        innerRadius={40}
+                        innerRadius={45}
                         outerRadius={80}
                         paddingAngle={5}
                         dataKey="value"
@@ -309,11 +311,13 @@ const AttendanceChart = () => {
                       <Tooltip 
                         formatter={(value, name) => [value, name]}
                         contentStyle={{
-                          backgroundColor: 'white',
-                          border: '1px solid #e5e7eb',
+                          backgroundColor: '#1e293b',
+                          border: 'none',
                           borderRadius: '8px',
+                          color: '#fff',
                           fontSize: '12px'
                         }}
+                        itemStyle={{ color: '#fff' }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
@@ -322,7 +326,7 @@ const AttendanceChart = () => {
                   {pieData.map((entry, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.fill }}></div>
-                      <span className="text-xs text-gray-600">{entry.name}</span>
+                      <span className="text-xs text-gray-600 font-semibold">{entry.name}</span>
                     </div>
                   ))}
                 </div>
