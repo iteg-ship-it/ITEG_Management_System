@@ -66,7 +66,7 @@ const UserProfile = () => {
           buttonTitle={
             <div className="flex items-center gap-4 flex-1">
               <img
-                src={user?.avatar || profileImg}
+                src={user?.profileImage || user?.avatar || profileImg}
                 alt="User avatar"
                 className="w-12 h-12 rounded-full object-cover border-2 border-orange-500"
               />

@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/prop-types */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useUpdateUserMutation } from "../../../redux/api/authApi";
 import { toast } from "react-toastify";
 import profileImg from "../../../assets/images/profile-img.png";
@@ -16,6 +16,9 @@ const SettingsDrawerContent = ({ user, saveButtonRef }) => {
     });
     const [showFaceRegistration, setShowFaceRegistration] = useState(false);
     const [hasFaceRegistered, setHasFaceRegistered] = useState(false);
+    const [previewUrl, setPreviewUrl] = useState("");
+    const [profileImageBase64, setProfileImageBase64] = useState("");
+    const fileInputRef = useRef(null);
 
     const [updateUser, { isLoading }] = useUpdateUserMutation();
 
@@ -43,6 +46,35 @@ const SettingsDrawerContent = ({ user, saveButtonRef }) => {
         }));
     };
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            toast.error("Please select a valid image file");
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error("Image size should be less than 5MB");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            setPreviewUrl(event.target.result);
+            setProfileImageBase64(event.target.result);
+        };
+        reader.onerror = () => {
+            toast.error("Error reading file");
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const triggerImageUpload = () => {
+        fileInputRef.current?.click();
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -52,6 +84,7 @@ const SettingsDrawerContent = ({ user, saveButtonRef }) => {
             ...(formData.role && { role: formData.role }),
             ...(formData.department && { department: formData.department }),
             ...(typeof formData.isActive === "boolean" && { isActive: formData.isActive }),
+            ...(profileImageBase64 && { profileImage: profileImageBase64 }),
             updatedAt: new Date(),
         };
 
@@ -63,6 +96,9 @@ const SettingsDrawerContent = ({ user, saveButtonRef }) => {
 
             toast.success("Profile updated successfully!");
             localStorage.setItem("user", JSON.stringify(response.user));
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
         } catch (error) {
             toast.error(error?.data?.message || "Failed to update profile");
         }
@@ -72,12 +108,19 @@ const SettingsDrawerContent = ({ user, saveButtonRef }) => {
         <>
             {/* Profile Header */}
             <div className="bg-[#FCD2AA] -mx-6 -mt-6 mb-6 p-6 flex flex-col items-center">
-                <div className="relative">
+                <div 
+                    onClick={triggerImageUpload}
+                    className="relative group cursor-pointer"
+                    title="Click to change profile image"
+                >
                     <img
-                        src={user?.avatar || profileImg}
+                        src={previewUrl || user?.profileImage || user?.avatar || profileImg}
                         alt="Profile"
-                        className="rounded-full w-20 h-20 object-cover border-2 border-white"
+                        className="rounded-full w-20 h-20 object-cover border-2 border-white transition-opacity group-hover:opacity-75"
                     />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <span className="text-white text-xs font-semibold">Change</span>
+                    </div>
                     <span className="absolute bottom-1 right-1 bg-green-500 w-3 h-3 rounded-full border-2 border-white" />
                 </div>
                 <p className="text-sm text-gray-600 mt-2">{user?.email}</p>
@@ -87,6 +130,14 @@ const SettingsDrawerContent = ({ user, saveButtonRef }) => {
             <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Hidden submit button */}
                 <button type="submit" ref={saveButtonRef} className="hidden" />
+                
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImageChange}
+                    accept="image/*"
+                    className="hidden"
+                />
                 
                 <div className="relative">
                     <input
