@@ -140,7 +140,7 @@ const AttendanceDetails = () => {
         <div className="p-6">
           {/* Filters Section */}
           <div className="bg-white border border-gray-200 rounded-xl p-4 mb-5 shadow-sm">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
               <div>
                 <DatePicker
                   label="From Date"
@@ -166,7 +166,7 @@ const AttendanceDetails = () => {
                 <button
                   type="button"
                   onClick={() => setIsYearOpen(!isYearOpen)}
-                  className="peer h-10 w-full border border-gray-300 rounded-lg px-3 py-1.5 leading-tight bg-white text-left focus:outline-none focus:border-black focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200 text-sm shadow-sm"
+                  className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-black focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200 text-sm shadow-sm"
                 >
                   <span className="text-gray-900 font-medium">
                     {years.find(y => y.value === filters.year)?.label || 'Select Year'}
@@ -175,7 +175,7 @@ const AttendanceDetails = () => {
                     ▼
                   </span>
                 </button>
-                <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-[10px] -top-2 text-gray-500 font-semibold">
+                <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-gray-500 font-semibold">
                   Year
                 </label>
                 {isYearOpen && (
@@ -200,7 +200,7 @@ const AttendanceDetails = () => {
                 <button
                   type="button"
                   onClick={() => setIsGenderOpen(!isGenderOpen)}
-                  className="peer h-10 w-full border border-gray-300 rounded-lg px-3 py-1.5 leading-tight bg-white text-left focus:outline-none focus:border-black focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200 text-sm shadow-sm"
+                  className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-black focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200 text-sm shadow-sm"
                 >
                   <span className="text-gray-900 font-medium">
                     {filters.gender === '' ? 'All' : filters.gender === 'male' ? 'Male' : 'Female'}
@@ -209,7 +209,7 @@ const AttendanceDetails = () => {
                     ▼
                   </span>
                 </button>
-                <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-[10px] -top-2 text-gray-500 font-semibold">
+                <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-gray-500 font-semibold">
                   Gender
                 </label>
                 {isGenderOpen && (
@@ -245,7 +245,7 @@ const AttendanceDetails = () => {
                 )}
               </div>
 
-              <div className="flex items-end">
+              <div>
                 <button
                   onClick={() => {
                     setDateError('');
@@ -257,7 +257,7 @@ const AttendanceDetails = () => {
                       gender: ''
                     });
                   }}
-                  className="w-full h-10 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-semibold transition shadow-sm"
+                  className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white rounded-md text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow active:scale-[0.98] cursor-pointer"
                 >
                   Reset
                 </button>

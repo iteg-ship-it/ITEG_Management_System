@@ -1,24 +1,24 @@
-
 import { MdBusiness } from 'react-icons/md';
 
-
 const ActionButtons = ({ onView, onEdit, inactive }) => (
-  <div className="flex gap-2 px-4 pb-4">
+  <div className="flex gap-3 px-5 pb-5">
     {onView && (
       <button
         onClick={inactive ? undefined : onView}
         disabled={inactive}
-        className={`flex-1 border rounded-lg py-2 text-sm font-semibold transition ${
+        className={`flex-1 border border-gray-300 rounded-xl py-2.5 text-xs font-bold tracking-wider uppercase transition-all duration-200 active:scale-[0.97] ${
           inactive
-            ? 'border-gray-200 text-gray-300 cursor-not-allowed'
-            : 'border-gray-300 text-gray-600 hover:bg-gray-50 cursor-pointer'
+            ? 'border-gray-150 bg-gray-50 text-gray-300 cursor-not-allowed'
+            : 'border-gray-300 text-gray-600 hover:bg-slate-50 hover:border-gray-400 cursor-pointer shadow-sm hover:shadow'
         }`}
       >
         VIEW
       </button>
     )}
     {onEdit && (
-      <div className={`${onView ? 'flex-1' : 'w-full'} ${inactive ? '[&_button]:!bg-gray-500 [&_button]:!text-white [&_button]:!border-0' : ''}`}>{onEdit}</div>
+      <div className={`${onView ? 'flex-1' : 'w-full'} ${inactive ? 'opacity-40 pointer-events-none' : ''} [&_button]:!w-full [&_button]:!h-full [&_button]:!py-2.5 [&_button]:!text-xs [&_button]:!font-bold [&_button]:!tracking-wider [&_button]:!uppercase [&_button]:!rounded-xl [&_button]:!transition-all [&_button]:!duration-200 [&_button]:active:scale-[0.97] [&_button]:!shadow-sm`}>
+        {onEdit}
+      </div>
     )}
   </div>
 );
@@ -41,40 +41,52 @@ const CommonCard = ({
   // card1 — icon + title side by side, status badge below title, single-row info, VIEW + EDIT buttons
   if (variant === 'card1') {
     return (
-      <div className={`bg-white border rounded-2xl shadow-sm transition-all duration-300 overflow-hidden flex flex-col ${
-        inactive ? 'border-gray-200' : 'border-gray-200 hover:shadow-md'
+      <div className={`bg-gradient-to-b from-white to-slate-50/20 border rounded-2xl shadow-sm transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col ${
+        inactive ? 'border-gray-150' : 'border-gray-200 hover:shadow-xl hover:border-orange-200'
       }`}>
-        <div className="p-4 flex-1">
+        <div className="p-5 flex-1">
 
           {/* Icon + Title + Status */}
           <div className="flex items-center gap-3 mb-4">
-            <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
-              inactive ? 'bg-gray-200' : 'bg-orange-50 border border-orange-100'
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm border ${
+              inactive ? 'bg-gray-100 border-gray-200' : 'bg-gradient-to-tr from-orange-50 to-amber-50/50 border-orange-100'
             }`}>
-              <Icon size={22} className={inactive ? 'text-gray-400' : 'text-orange-500'} />
+              <Icon size={24} className={inactive ? 'text-gray-400' : 'text-orange-500'} />
             </div>
-            <div className="min-w-0">
-              <h3 className={`text-sm font-bold leading-tight truncate ${inactive ? 'text-gray-400' : 'text-gray-900'}`}>
+            <div className="min-w-0 flex-1">
+              <h3 className={`text-sm font-extrabold tracking-tight leading-tight truncate ${inactive ? 'text-gray-450' : 'text-gray-900'}`}>
                 {title}
               </h3>
-              <span className={`mt-1 inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${
-                inactive ? 'bg-gray-200 text-gray-400' : 'bg-green-100 text-green-600'
+              <span className={`mt-1.5 inline-flex items-center text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                inactive 
+                  ? 'bg-slate-50 text-slate-400 border-slate-200' 
+                  : 'bg-emerald-50 text-emerald-700 border-emerald-100'
               }`}>
+                {!inactive && (
+                  <span className="relative flex h-2 w-2 mr-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                )}
                 {statusLabel || (inactive ? 'Inactive' : 'Active')}
               </span>
             </div>
           </div>
 
           {/* Divider */}
-          <div className={`border-t mb-3 ${inactive ? 'border-gray-200' : 'border-gray-100'}`} />
+          <div className={`border-t mb-4 ${inactive ? 'border-gray-150' : 'border-slate-100/70'}`} />
 
-          {/* Info — single row */}
-          <div className="flex items-center gap-4 flex-wrap text-xs text-gray-500">
+          {/* Info — single row as neat metric badges */}
+          <div className="flex items-center gap-2 flex-wrap text-xs text-gray-500 mb-2">
             {infoItems?.map((item, i) => (
-              <span key={i} className="flex items-center gap-1.5 whitespace-nowrap">
-                <span className={inactive ? 'text-gray-400 [&_svg]:text-gray-400' : ''}>{item.icon}</span>
-                <span className={`font-semibold ${inactive ? 'text-gray-400' : 'text-gray-700'}`}>{item.value}</span>
-                {item.label && <span className={inactive ? 'text-gray-400' : ''}>{item.label}</span>}
+              <span key={i} className={`flex items-center gap-1.5 whitespace-nowrap px-2.5 py-1 rounded-lg border text-[11px] font-bold ${
+                inactive 
+                  ? 'bg-slate-50 text-slate-400 border-slate-200' 
+                  : 'bg-slate-50/60 text-slate-600 border-slate-100 transition hover:bg-slate-50'
+              }`}>
+                {item.icon && <span className={inactive ? 'text-gray-400 [&_svg]:text-gray-400' : 'text-orange-500/80'}>{item.icon}</span>}
+                {item.label && <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{item.label}:</span>}
+                <span className={`font-extrabold ${inactive ? 'text-gray-455' : 'text-gray-800'}`}>{item.value}</span>
               </span>
             ))}
           </div>
@@ -89,52 +101,90 @@ const CommonCard = ({
 
   // card2 — icon + status badge top row, title with more space, description, divider, info list, VIEW + EDIT
   return (
-    <div className={`bg-white border rounded-2xl shadow-sm transition-all duration-300 overflow-hidden flex flex-col ${
-      inactive ? 'border-gray-200' : 'border-gray-200 hover:shadow-md'
+    <div className={`bg-gradient-to-b from-white to-slate-50/20 border rounded-2xl shadow-sm transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col ${
+      inactive ? 'border-gray-150' : 'border-gray-200 hover:shadow-xl hover:border-orange-200'
     }`}>
-      <div className="p-4 flex-1">
+      {/* Top Accent Gradient Line */}
+      {!inactive && <div className="h-1 w-full bg-gradient-to-r from-orange-400 to-amber-400 flex-shrink-0" />}
+      
+      <div className="p-5 flex-1">
 
         {/* Top row: icon/logo + status badge */}
-        <div className="flex items-start justify-between mb-3">
-          <div className={`w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden ${
-            inactive ? 'bg-gray-200' : 'bg-orange-50 border border-orange-100'
+        <div className="flex items-start justify-between mb-4">
+          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden shadow-xs border ${
+            inactive 
+              ? 'bg-gray-100 border-gray-250' 
+              : 'bg-gradient-to-tr from-orange-50 to-amber-50/50 border-orange-100'
           }`}>
             {logo
               ? <img src={logo} alt={title} className="w-full h-full object-cover" />
-              : <Icon size={20} className={inactive ? 'text-gray-400' : 'text-orange-500'} />
+              : <Icon size={24} className={inactive ? 'text-gray-400' : 'text-orange-500'} />
             }
           </div>
           {status !== undefined && (
-            <span className={`text-xs font-bold px-2.5 py-1 rounded-full tracking-wide ${
-              inactive ? 'bg-gray-200 text-gray-500' : 'bg-green-100 text-green-600'
+            <span className={`inline-flex items-center text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${
+              inactive 
+                ? 'bg-slate-50 text-slate-400 border-slate-200' 
+                : 'bg-emerald-50 text-emerald-700 border-emerald-100'
             }`}>
+              {!inactive && (
+                <span className="relative flex h-2 w-2 mr-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+              )}
               {statusLabel || (inactive ? 'INACTIVE' : 'ACTIVE')}
             </span>
           )}
         </div>
 
         {/* Title */}
-        <h3 className={`text-xl font-bold mb-1 min-h-[2.5rem] leading-snug ${inactive ? 'text-gray-400' : 'text-gray-900'}`}>
+        <h3 className={`text-base sm:text-lg font-extrabold mb-1 min-h-[2.5rem] tracking-tight leading-snug ${
+          inactive ? 'text-gray-400' : 'text-gray-900'
+        }`}>
           {title}
         </h3>
 
         {/* Description */}
         {description && (
-          <p className={`text-md min-h-[4.5rem] line-clamp-2 mb-3 ${inactive ? 'text-gray-400' : 'text-gray-500'}`}>{description}</p>
+          <p className={`text-xs min-h-[3rem] font-medium leading-relaxed line-clamp-2 mb-3.5 ${
+            inactive ? 'text-gray-400' : 'text-gray-500'
+          }`}>{description}</p>
         )}
 
         {/* Divider */}
-        <div className={`border-t my-3 ${inactive ? 'border-gray-200' : 'border-gray-100'}`} />
+        <div className={`border-t my-4 ${inactive ? 'border-gray-150' : 'border-slate-100/70'}`} />
 
-        {/* Info items */}
-        <div className="space-y-1.5 h-20">
-          {infoItems?.map((item, i) => (
-            <div key={i} className={`flex items-center gap-2 text-md ${inactive ? 'text-gray-400' : 'text-gray-500'}`}>
-              <span className={inactive ? 'text-gray-400 [&_svg]:text-gray-400' : ''}>{item.icon}</span>
-              <span>{item.label ? `${item.label}: ` : ''}<span className={`font-semibold ${inactive ? 'text-gray-400' : 'text-gray-700'}`}>{item.value}</span></span>
-            </div>
-          ))}
-        </div>
+        {/* Redesigned Info Items Grid with individual cards */}
+        {infoItems && infoItems.length > 0 && (
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            {infoItems.map((item, i) => (
+              <div key={i} className={`border rounded-xl p-2.5 flex items-center gap-2.5 transition-all duration-200 ${
+                inactive 
+                  ? 'bg-gray-50 border-gray-150' 
+                  : 'bg-slate-50/50 border-slate-100/75 hover:bg-white hover:border-orange-100 hover:shadow-xs'
+              }`}>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${
+                  inactive 
+                    ? 'bg-gray-100 border-gray-200 text-gray-450' 
+                    : 'bg-gradient-to-tr from-orange-50 to-amber-50 border-orange-100/40 text-orange-500'
+                }`}>
+                  {item.icon}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider block">
+                    {item.label}
+                  </span>
+                  <span className={`text-xs font-black truncate block ${
+                    inactive ? 'text-gray-455' : 'text-gray-800'
+                  }`}>
+                    {item.value}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {children}
       </div>
