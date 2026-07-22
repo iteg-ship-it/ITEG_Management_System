@@ -1,12 +1,12 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
-import { MdFilterList, MdCloudUpload, MdTableChart } from "react-icons/md";
+import { MdFilterList, MdCloudUpload, MdTableChart, MdSearch } from "react-icons/md";
 import Header from "../../../shared/sidebar/Header";
 import OrangeButton from "../../../shared/sidebar/OrangeButton";
-import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation, useGetSyllabusVersionsBySubLevelQuery, useGetNewStudentsQuery } from "../../../../redux/api/authApi";
+import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation, useGetSyllabusVersionsBySubLevelQuery, useGetNewStudentsQuery, useGetSubLevelProgressQuery } from "../../../../redux/api/authApi";
 import SearchBox from "../../../shared/search-export/SearchBox";
 import ExportDropdown from "../../../shared/search-export/ExportDropdown";
 import CommonTable from "../../../shared/table/CommonTable";
@@ -104,40 +104,167 @@ const StudentsTab = ({ subLevel, searchTerm, setSearchTerm, onRowClick, onTaskBo
 
 const ProgressTab = ({ subLevel }) => {
     const [progressSearch, setProgressSearch] = useState("");
-    const params = subLevel?._id ? `currentSubLevelId=${subLevel._id}` : "";
-    const { data, isLoading } = useGetNewStudentsQuery(params, { skip: !subLevel?._id });
+    const { data, isLoading } = useGetSubLevelProgressQuery(subLevel?._id, { skip: !subLevel?._id });
+    const progressList = data?.data || [];
 
-    const progressData = (data?.data || []).map((s) => ({
-        _id: s._id,
-        name: `${s.firstName} ${s.lastName}`,
-        prkey: s.prkey,
-        status: s.status,
-    }));
+    const filteredProgress = useMemo(() => {
+        if (!progressSearch.trim()) return progressList;
+        const q = progressSearch.toLowerCase();
+        return progressList.filter(s =>
+            s.name.toLowerCase().includes(q) ||
+            s.prkey.toLowerCase().includes(q)
+        );
+    }, [progressList, progressSearch]);
 
     const PROGRESS_COLUMNS = [
-        { key: "prkey",  label: "PR Key",       render: (row) => <span className="text-xs font-mono text-gray-500">{row.prkey}</span> },
-        { key: "name",   label: "Student Name", render: (row) => <span className="font-semibold text-sm text-orange-500">{row.name}</span> },
-        { key: "status", label: "Status",       render: (row) => (
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                row.status === "Active"  ? "bg-green-100 text-green-700" :
-                row.status === "Dropped" ? "bg-red-100 text-red-700" :
-                row.status === "Placed"  ? "bg-purple-100 text-purple-700" :
-                "bg-gray-100 text-gray-600"
-            }`}>{row.status}</span>
-        )},
+        {
+            key: "name",
+            label: "STUDENT NAME",
+            render: (row) => (
+                <div className="flex flex-col">
+                    <span className="font-bold text-sm text-orange-500 hover:text-orange-600 transition-colors cursor-pointer">
+                        {row.name}
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-medium tracking-wide uppercase mt-0.5">
+                        PR Key: {row.prkey}
+                    </span>
+                </div>
+            )
+        },
+        {
+            key: "level",
+            label: "LEVEL",
+            render: (row) => (
+                <span className="text-sm font-semibold text-gray-700">
+                    {row.level}
+                </span>
+            )
+        },
+        {
+            key: "taskProgress",
+            label: "TASK PROGRESS",
+            render: (row) => {
+                const { completed = 0, total = 0, percentage = 0 } = row.taskProgress || {};
+                return (
+                    <div className="flex items-center gap-3">
+                        <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden flex-shrink-0 border border-gray-250/20">
+                            <div
+                                className="h-full bg-orange-500 rounded-full transition-all duration-300"
+                                style={{ width: `${percentage}%` }}
+                            />
+                        </div>
+                        <span className="text-xs text-gray-500 whitespace-nowrap">
+                            <strong className="text-gray-700 font-bold">{completed}/{total}</strong> ({percentage}%)
+                        </span>
+                    </div>
+                );
+            }
+        },
+        {
+            key: "subjectProgress",
+            label: "SUBJECT PROGRESS",
+            render: (row) => {
+                const subjects = row.subjectProgress || [];
+                if (subjects.length === 0) {
+                    return <span className="text-xs text-gray-400 italic">No active syllabus</span>;
+                }
+                return (
+                    <div className="flex items-center gap-1">
+                        {subjects.map((sub, sIdx) => {
+                            const colorClass =
+                                sub.status === "completed" ? "bg-emerald-500" :
+                                sub.status === "inProgress" ? "bg-orange-500" :
+                                "bg-gray-200";
+                            return (
+                                <div
+                                    key={sIdx}
+                                    className={`w-7 h-1.5 rounded-full ${colorClass} transition-all`}
+                                    title={`${sub.subjectName}: ${sub.status}`}
+                                />
+                            );
+                        })}
+                    </div>
+                );
+            }
+        },
+        {
+            key: "statusCounters",
+            label: "STATUS COUNTERS",
+            render: (row) => {
+                const { pending = 0, inProgress = 0, completed = 0 } = row.statusCounters || {};
+                return (
+                    <div className="flex items-center gap-1.5">
+                        <span className="px-2.5 py-1 text-[10.5px] font-bold rounded-lg bg-amber-50 text-amber-800 border border-amber-100/60 flex items-center justify-center">
+                            {pending} Pending
+                        </span>
+                        <span className="px-2.5 py-1 text-[10.5px] font-bold rounded-lg bg-blue-50 text-blue-800 border border-blue-100/60 flex items-center justify-center">
+                            {inProgress} In Progress
+                        </span>
+                        <span className="px-2.5 py-1 text-[10.5px] font-bold rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-100/60 flex items-center justify-center">
+                            {completed} Done
+                        </span>
+                    </div>
+                );
+            }
+        },
+        {
+            key: "currentStatus",
+            label: "CURRENT STATUS",
+            render: (row) => {
+                const status = row.currentStatus || "Active";
+                const statusCls =
+                    status === "Active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                    status === "Placed" ? "bg-purple-50 text-purple-700 border-purple-200" :
+                    status === "Dropped" ? "bg-rose-50 text-rose-700 border-rose-200" :
+                    "bg-amber-50 text-amber-700 border-amber-200";
+                return (
+                    <span className={`inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full border ${statusCls}`}>
+                        {status}
+                    </span>
+                );
+            }
+        }
     ];
 
     if (isLoading) return <Loader />;
 
     return (
-        <div className="space-y-3">
-            <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-3">
-                <SearchBox searchTerm={progressSearch} setSearchTerm={setProgressSearch} />
-                <div className="ml-auto">
-                    <ExportDropdown data={progressData} sectionName="progress" />
+        <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-3 bg-white border border-gray-150 rounded-2xl p-4 shadow-sm/5">
+                {/* Search Box */}
+                <div className="relative flex-1 min-w-[240px] max-w-md">
+                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 z-10">
+                        <MdSearch size={18} />
+                    </span>
+                    <input
+                        type="text"
+                        value={progressSearch}
+                        onChange={(e) => setProgressSearch(e.target.value)}
+                        placeholder="Search by name or ID..."
+                        className="w-full pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 bg-white placeholder-gray-400 transition-all duration-200"
+                        style={{ paddingLeft: '2.75rem' }}
+                    />
+                </div>
+
+                {/* Filter and Export Actions */}
+                <div className="ml-auto flex items-center gap-3">
+                    <button className="flex items-center gap-2 h-10 px-4 text-sm font-semibold border border-gray-200 rounded-xl bg-white text-gray-600 hover:bg-gray-50 active:scale-[0.98] transition-all">
+                        <MdFilterList size={16} className="text-gray-400" />
+                        <span>Filter</span>
+                    </button>
+                    <ExportDropdown data={filteredProgress} sectionName="progress" />
                 </div>
             </div>
-            <CommonTable columns={PROGRESS_COLUMNS} data={progressData} editable={false} pagination={true} rowsPerPage={10} searchTerm={progressSearch} />
+
+            <CommonTable
+                key={`progress-${subLevel?._id}`}
+                columns={PROGRESS_COLUMNS}
+                data={filteredProgress}
+                editable={false}
+                pagination={true}
+                rowsPerPage={10}
+                searchTerm={progressSearch}
+            />
         </div>
     );
 };

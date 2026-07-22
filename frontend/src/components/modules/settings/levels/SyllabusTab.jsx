@@ -1,9 +1,9 @@
-﻿﻿import { useState, useRef, useMemo, forwardRef, useImperativeHandle, useEffect } from "react";
+﻿import { useState, useRef, useMemo, forwardRef, useImperativeHandle, useEffect } from "react";
 import * as XLSX from "xlsx";
 import {
   MdCloudUpload, MdCheckCircle, MdExpandMore, MdExpandLess,
   MdBook, MdTopic, MdSubject, MdDelete, MdSave, MdEdit, MdVisibility,
-  MdAssignment, MdAdd,
+  MdAssignment, MdAdd, MdSearch, MdChevronRight, MdCalendarToday, MdAccessTime,
 } from "react-icons/md";
 import { toast } from "react-toastify";
 import {
@@ -665,17 +665,12 @@ const VersionTopicTable = ({ versionId, searchTerm, activeSubject }) => {
             result.push({ _id: String(st._id), subject: subject.name, topic: topic.name, subTopic: st.name, topicIdStr });
           });
         } else {
-          result.push({ _id: topicIdStr, subject: subject.name, topic: topic.name, subTopic: "\u2014", topicIdStr });
+          result.push({ _id: topicIdStr, subject: subject.name, topic: topic.name, subTopic: "\u2514", topicIdStr });
         }
       });
     });
     return result;
   }, [data, activeSubject]);
-
-  const subjects = useMemo(() => {
-    if (!data?.data?.subjects) return [];
-    return data.data.subjects.map((s) => s.name);
-  }, [data]);
 
   const filtered = useMemo(() => {
     if (!searchTerm.trim()) return rows;
@@ -687,64 +682,86 @@ const VersionTopicTable = ({ versionId, searchTerm, activeSubject }) => {
     );
   }, [rows, searchTerm]);
 
+  const groupedTopics = useMemo(() => {
+    const groups = {};
+    filtered.forEach((item) => {
+      const key = item.topicIdStr;
+      if (!groups[key]) {
+        groups[key] = {
+          topicIdStr: key,
+          topic: item.topic,
+          subject: item.subject,
+          subTopics: []
+        };
+      }
+      if (item.subTopic !== "—" && item.subTopic !== "\u2014" && item.subTopic !== "\u2514") {
+        groups[key].subTopics.push(item.subTopic);
+      }
+    });
+    return Object.values(groups);
+  }, [filtered]);
+
   if (isLoading) return (
-    <div className="flex justify-center py-10">
-      <div className="w-7 h-7 border-[3px] border-orange-500 border-t-transparent rounded-full animate-spin" />
+    <div className="flex justify-center py-20">
+      <div className="w-9 h-9 border-[3.5px] border-orange-500 border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
-  if (!filtered.length) return <div className="py-10 text-center text-gray-400 text-sm">No topics found</div>;
+  if (!groupedTopics.length) return (
+    <div className="py-20 text-center px-4">
+      <div className="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center mx-auto mb-3 border border-orange-100/50">
+        <MdBook size={28} className="text-orange-400" />
+      </div>
+      <h4 className="text-sm font-bold text-gray-800">No topics found</h4>
+      <p className="text-xs text-gray-400 mt-1 max-w-xs mx-auto leading-relaxed">
+        Try entering a different keyword or selecting another subject.
+      </p>
+    </div>
+  );
 
   return (
-    <>
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="bg-[#F8F7F5] border-b border-gray-100">
-            <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider w-10">#</th>
-            <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Topic</th>
-            <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">SubTopic</th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-50">
-          {filtered.map((row, idx) => {
-            const showTopic = idx === 0 || filtered[idx - 1].topicIdStr !== row.topicIdStr;
-            return (
-              <tr key={`${row._id}-${idx}`} className="hover:bg-orange-50/40 transition-colors duration-150">
-                <td className="px-5 py-3">
-                  <span className="w-6 h-6 rounded-full bg-gray-100 text-gray-400 text-xs font-semibold flex items-center justify-center">
-                    {idx + 1}
+    <div className="p-4 bg-gray-50/20 grid grid-cols-1 md:grid-cols-2 gap-4">
+      {groupedTopics.map((item) => (
+        <div key={item.topicIdStr} className="bg-white border border-gray-150 rounded-2xl p-5 hover:shadow-md hover:border-orange-200/50 transition-all duration-200 flex flex-col justify-between">
+          <div>
+            {/* Header: Topic Title & Subject Badge */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="p-2.5 rounded-xl bg-orange-50 text-orange-500 border border-orange-100 flex-shrink-0 flex items-center justify-center">
+                  <MdTopic size={16} />
+                </span>
+                <div>
+                  <span className="text-[10px] font-bold text-orange-600 bg-orange-50 border border-orange-100/60 px-2.5 py-0.5 rounded-full uppercase tracking-wide">
+                    {item.subject}
                   </span>
-                </td>
-                <td className="px-5 py-3">
-                  {showTopic ? (
-                    <span className="flex items-center gap-1.5">
-                      <MdTopic size={13} className="text-orange-400 flex-shrink-0" />
-                      <span className="font-semibold text-gray-800 text-xs">{row.topic}</span>
-                    </span>
-                  ) : <span className="text-gray-200 text-xs pl-5">└</span>}
-                </td>
-                <td className="px-5 py-3">
-                  <span className="flex items-center gap-1.5">
-                    {row.subTopic !== "—" && <MdSubject size={12} className="text-gray-300 flex-shrink-0" />}
-                    <span className="text-gray-600 text-xs">{row.subTopic}</span>
+                  <h4 className="text-sm font-bold text-gray-800 mt-1.5 leading-snug">{item.topic}</h4>
+                </div>
+              </div>
+              <span className="text-[10.5px] font-bold text-gray-550 bg-gray-55 px-2.5 py-1 rounded-full border border-gray-200/30 flex-shrink-0">
+                {item.subTopics.length} {item.subTopics.length === 1 ? "Subtopic" : "Subtopics"}
+              </span>
+            </div>
+
+            {/* Subtopics collection */}
+            {item.subTopics.length > 0 ? (
+              <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-100">
+                {item.subTopics.map((sub, sIdx) => (
+                  <span key={sIdx} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-gray-600 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200/50 transition-all duration-150 text-xs font-medium">
+                    <MdSubject size={12} className="text-gray-400 flex-shrink-0" />
+                    <span>{sub}</span>
                   </span>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-        <tfoot>
-          <tr className="border-t border-gray-100 bg-[#F8F7F5]">
-            <td colSpan={3} className="px-5 py-3 text-xs text-gray-400">
-              Total <span className="font-semibold text-gray-600">{filtered.length}</span> entries
-              {searchTerm && rows.length !== filtered.length && (
-                <span className="ml-1">(filtered from {rows.length})</span>
-              )}
-            </td>
-          </tr>
-        </tfoot>
-      </table>
-    </>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-4 pt-3.5 border-t border-gray-100 flex items-center gap-1.5 text-xs text-gray-400 italic">
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+                <span>Covers core topic content directly</span>
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
   );
 };
 
@@ -957,128 +974,107 @@ export const VersionTasksTable = ({ versionId, searchTerm = "" }) => {
   }, [allTasks, searchTerm]);
 
   if (isLoading) return (
-    <div className="flex justify-center py-14">
-      <div className="w-7 h-7 border-[3px] border-orange-500 border-t-transparent rounded-full animate-spin" />
+    <div className="flex justify-center py-20">
+      <div className="w-9 h-9 border-[3.5px] border-orange-500 border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
   if (!tasks.length) return (
-    <div className="py-16 text-center">
-      <div className="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center mx-auto mb-3">
-        <MdAssignment size={30} className="text-orange-300" />
+    <div className="py-20 text-center px-4">
+      <div className="w-20 h-20 rounded-full bg-orange-50/50 flex items-center justify-center mx-auto mb-4 border border-orange-100/50 shadow-sm">
+        <MdAssignment size={36} className="text-orange-400" />
       </div>
-      <p className="text-sm font-semibold text-gray-500">No tasks added yet</p>
-      <p className="text-xs text-gray-400 mt-1">Add tasks from the button above</p>
+      <h3 className="text-base font-bold text-gray-800 mb-1">No tasks added yet</h3>
+      <p className="text-xs text-gray-400 max-w-xs mx-auto leading-relaxed">Add tasks from the button above to populate this syllabus version.</p>
     </div>
   );
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm min-w-[820px]">
-        <thead>
-          <tr className="bg-[#F8F7F5] border-b border-gray-100">
-            <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider w-10">#</th>
-            <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Task Title</th>
-            <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Topic / SubTopic</th>
-            <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Type</th>
-            <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Priority</th>
-            <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Time</th>
-            <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Measurable Points</th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-50">
-          {tasks.map((task, idx) => {
-            const measurePoints = splitNumberedPoints(task.measurablePoints);
-            const priorityKey   = (task.priority || "medium").toLowerCase();
-            const typeKey       = task.type || "assessment";
-            const pBadge        = PRIORITY_BADGE[priorityKey] || PRIORITY_BADGE.medium;
-            return (
-              <tr key={task._id} className="hover:bg-orange-50/40 transition-colors duration-150 align-top">
-
-                {/* # */}
-                <td className="px-5 py-4">
-                  <span className="w-6 h-6 rounded-full bg-gray-100 text-gray-400 text-xs font-semibold flex items-center justify-center">
-                    {idx + 1}
-                  </span>
-                </td>
-
-                {/* Task Title */}
-                <td className="px-5 py-4 max-w-[210px]">
-                  <p className="text-sm font-semibold text-gray-800 leading-snug">{task.title}</p>
+    <div className="p-4 bg-gray-50/20 space-y-3.5">
+      {tasks.map((task, idx) => {
+        const measurePoints = splitNumberedPoints(task.measurablePoints);
+        const priorityKey   = (task.priority || "medium").toLowerCase();
+        const typeKey       = task.type || "assessment";
+        const pBadge        = PRIORITY_BADGE[priorityKey] || PRIORITY_BADGE.medium;
+        return (
+          <div key={task._id} className="bg-white border border-gray-150 rounded-2xl p-5 hover:shadow-md hover:border-orange-200/50 transition-all duration-200 flex flex-col md:flex-row md:items-start justify-between gap-5">
+            {/* Left side: Task Title, Topic path, badges */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start gap-3">
+                <span className="inline-flex w-7 h-7 rounded-xl bg-gray-50 text-gray-555 text-xs font-bold items-center justify-center border border-gray-200 flex-shrink-0 mt-0.5 shadow-sm">
+                  {idx + 1}
+                </span>
+                <div className="space-y-1">
+                  <h4 className="text-sm font-bold text-gray-855 leading-snug">{task.title}</h4>
                   {task.dueDate && (
-                    <span className="inline-flex items-center gap-1 mt-1.5 text-[11px] text-gray-400 bg-gray-50 border border-gray-100 px-2 py-0.5 rounded-full">
-                      📅 {new Date(task.dueDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                    <span className="inline-flex items-center gap-1.5 mt-2.5 text-[10.5px] font-medium text-gray-455 bg-gray-50 border border-gray-200/50 px-2.5 py-0.5 rounded-full">
+                      <MdCalendarToday size={11} className="text-gray-400" />
+                      {new Date(task.dueDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
                     </span>
                   )}
-                </td>
+                </div>
+              </div>
 
-                {/* Topic / SubTopic */}
-                <td className="px-5 py-4">
-                  <div className="flex items-center gap-1.5">
-                    <MdTopic size={13} className="text-orange-400 flex-shrink-0" />
-                    <span className="text-xs font-semibold text-gray-700">{task.topicName || "—"}</span>
-                  </div>
-                  {task.subTopicName && (
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <MdSubject size={12} className="text-gray-300 flex-shrink-0" />
-                      <span className="text-xs text-gray-500">{task.subTopicName}</span>
-                    </div>
-                  )}
-                </td>
-
-                {/* Type */}
-                <td className="px-5 py-4">
-                  <span className={`inline-block text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${TYPE_BADGE[typeKey] || "bg-gray-100 text-gray-600 border border-gray-200"}`}>
-                    {typeKey}
-                  </span>
-                </td>
-
-                {/* Priority */}
-                <td className="px-5 py-4">
-                  <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${pBadge.cls}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${pBadge.dot}`} />
-                    {priorityKey}
-                  </span>
-                </td>
-
-                {/* Time */}
-                <td className="px-5 py-4 whitespace-nowrap">
-                  {task.timeDays ? (
-                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-full">
-                      ⏱ {task.timeDays} <span className="font-normal text-gray-400">day{task.timeDays > 1 ? "s" : ""}</span>
+              {/* Breadcrumbs for Topic & Subtopic */}
+              <div className="flex items-center flex-wrap gap-1.5 mt-3 text-xs text-gray-655 bg-gray-50 border border-gray-150/40 rounded-xl px-3 py-2 w-fit">
+                <span className="p-0.5 rounded bg-orange-55 text-orange-500 border border-orange-100 flex-shrink-0 flex items-center justify-center">
+                  <MdTopic size={12} />
+                </span>
+                <span className="font-semibold text-gray-800">{task.topicName || "—"}</span>
+                {task.subTopicName && (
+                  <>
+                    <MdChevronRight size={14} className="text-gray-305" />
+                    <span className="p-0.5 rounded bg-white text-gray-400 border border-gray-150 flex items-center justify-center">
+                      <MdSubject size={10} />
                     </span>
-                  ) : <span className="text-gray-300 text-xs">—</span>}
-                </td>
+                    <span className="text-gray-655 text-xs">{task.subTopicName}</span>
+                  </>
+                )}
+              </div>
 
-                {/* Measurable Points */}
-                <td className="px-5 py-4 max-w-[230px]">
-                  {measurePoints.length > 0 && measurePoints[0] ? (
-                    <ul className="space-y-1">
-                      {measurePoints.map((pt, i) => (
-                        <li key={i} className="flex items-start gap-2 text-xs text-gray-500">
-                          <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0" />
-                          <span className="leading-relaxed">{pt}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : <span className="text-gray-300 text-xs">—</span>}
-                </td>
+              {/* Badges row */}
+              <div className="flex flex-wrap gap-2 mt-3.5">
+                <span className={`inline-block text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-sm/5 ${TYPE_BADGE[typeKey] || "bg-gray-100 text-gray-600 border border-gray-200"}`}>
+                  {typeKey}
+                </span>
+                <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-sm/5 ${pBadge.cls}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${pBadge.dot}`} />
+                  {priorityKey}
+                </span>
+                {task.timeDays ? (
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-600 bg-gray-55 border border-gray-200/50 px-2.5 py-0.5 rounded-full">
+                    <MdAccessTime size={12} className="text-gray-450" />
+                    {task.timeDays} day{task.timeDays > 1 ? "s" : ""}
+                  </span>
+                ) : null}
+              </div>
+            </div>
 
-              </tr>
-            );
-          })}
-        </tbody>
-        <tfoot>
-          <tr className="border-t border-gray-100 bg-[#F8F7F5]">
-            <td colSpan={7} className="px-5 py-3 text-xs text-gray-400">
-              Total <span className="font-semibold text-gray-600">{tasks.length}</span> tasks
-              {searchTerm && allTasks.length !== tasks.length && (
-                <span className="ml-1 text-gray-400">(filtered from {allTasks.length})</span>
-              )}
-            </td>
-          </tr>
-        </tfoot>
-      </table>
+            {/* Right side: Measurable Points list (if present) */}
+            {measurePoints.length > 0 && measurePoints[0] && (
+              <div className="md:w-[38%] w-full md:border-l md:border-t-0 border-t border-gray-105 md:pl-5 md:pt-0 pt-3.5 flex-shrink-0">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Measurable Points</p>
+                <ul className="space-y-1.5">
+                  {measurePoints.map((pt, i) => (
+                    <li key={i} className="flex items-start gap-2 text-xs text-gray-500 leading-relaxed">
+                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-orange-400/80 flex-shrink-0" />
+                      <span>{pt}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Footer */}
+      <div className="p-4 bg-white border border-gray-150 rounded-2xl text-xs text-gray-500 font-semibold shadow-sm/5">
+        Total <span className="font-bold text-gray-700">{tasks.length}</span> tasks
+        {searchTerm && allTasks.length !== tasks.length && (
+          <span className="ml-1 text-gray-400">(filtered from {allTasks.length})</span>
+        )}
+      </div>
     </div>
   );
 };
@@ -1313,65 +1309,84 @@ export const TasksTab = ({ level, subLevel, onVersionChange }) => {
 
   useEffect(() => { onVersionChange?.(currentVersionId); }, [currentVersionId]);
 
-  if (!subLevelId) return <div className="py-16 text-center text-gray-400 text-sm">SubLevel not found</div>;
+  if (!subLevelId) return <div className="py-16 text-center text-gray-450 text-sm">SubLevel not found</div>;
 
   return (
     <>
       <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
         {/* Top bar: search + session filter + Add Task button */}
-        <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-gray-100">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search tasks by title, topic..."
-            className="flex-1 min-w-[180px] border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white"
-          />
-          <select
-            value={selectedSessionId}
-            onChange={(e) => { setSelectedSessionId(e.target.value); setActiveVersionId(""); }}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white min-w-[160px]"
-          >
-            <option value="">All Sessions</option>
-            {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
-          </select>
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 border-b border-gray-100 bg-white">
+          <div className="flex flex-1 flex-wrap items-center gap-3">
+            {/* Search Input Container */}
+            <div className="relative flex-1 min-w-[200px] max-w-sm">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 z-10">
+                <MdSearch size={18} />
+              </span>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search tasks by title, topic..."
+                className="w-full pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 bg-white placeholder-gray-400 transition-all duration-200"
+                style={{ paddingLeft: '2.75rem' }}
+              />
+            </div>
+
+            {/* Session Select Container */}
+            <div className="relative min-w-[180px]">
+              <select
+                value={selectedSessionId}
+                onChange={(e) => { setSelectedSessionId(e.target.value); setActiveVersionId(""); }}
+                className="w-full pl-3.5 pr-8 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 bg-white text-gray-750 transition-all duration-200 appearance-none cursor-pointer"
+              >
+                <option value="">All Sessions</option>
+                {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
+              </select>
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                <MdExpandMore size={18} />
+              </div>
+            </div>
+          </div>
+
           <button
             onClick={() => setShowTaskModal(true)}
-            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition"
+            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 active:scale-[0.98] text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all shadow-sm shadow-orange-500/10"
           >
-            <MdAdd size={16} />
-            Add Task
+            <MdAdd size={18} />
+            <span>Add Task</span>
           </button>
         </div>
 
-      {/* Version tabs */}
-      {allVersions.length > 1 && (
-        <div className="flex gap-0 overflow-x-auto border-b border-gray-100">
-          {allVersions.map((v) => (
-            <button
-              key={v._id}
-              onClick={() => setActiveVersionId(v._id)}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-all flex-shrink-0 ${
-                currentVersionId === v._id
-                  ? "border-orange-500 text-orange-600 bg-orange-50"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              <MdBook size={13} className={currentVersionId === v._id ? "text-orange-500" : "text-gray-400"} />
-              <span>{v.title || v.version}</span>
-            </button>
-          ))}
-        </div>
-      )}
+        {/* Version selector (Pills layout) */}
+        {allVersions.length > 1 && (
+          <div className="flex gap-2 overflow-x-auto p-2 bg-gray-50/55 rounded-xl border border-gray-150/45 m-4">
+            {allVersions.map((v) => (
+              <button
+                key={v._id}
+                onClick={() => setActiveVersionId(v._id)}
+                className={`flex items-center gap-2 px-4 py-2 text-xs font-bold whitespace-nowrap rounded-lg border transition-all flex-shrink-0 ${
+                  currentVersionId === v._id
+                    ? "bg-white text-orange-600 shadow-sm border-orange-200/30"
+                    : "border-transparent text-gray-555 hover:text-gray-800 hover:bg-gray-100/50"
+                }`}
+              >
+                <MdBook size={13} className={currentVersionId === v._id ? "text-orange-500" : "text-gray-400"} />
+                <span>{v.title || v.version}</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Table or empty state */}
         {allVersions.length === 0 ? (
-          <div className="py-14 text-center">
-            <div className="w-14 h-14 rounded-full bg-orange-50 flex items-center justify-center mx-auto mb-3">
-              <MdAssignment size={26} className="text-orange-300" />
+          <div className="py-20 text-center px-4">
+            <div className="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center mx-auto mb-3 border border-orange-100/40">
+              <MdAssignment size={26} className="text-orange-400" />
             </div>
-            <p className="text-sm font-semibold text-gray-500">No syllabus found</p>
-            <p className="text-xs text-gray-400 mt-1">{selectedSessionId ? "Try a different session" : "Upload syllabus first from Syllabus tab"}</p>
+            <h4 className="text-sm font-bold text-gray-800">No syllabus found</h4>
+            <p className="text-xs text-gray-450 mt-1 max-w-xs mx-auto leading-relaxed">
+              {selectedSessionId ? "Try selecting a different session or create one." : "Upload syllabus first from the Syllabus tab."}
+            </p>
           </div>
         ) : (
           <VersionTasksTable versionId={currentVersionId} searchTerm={searchTerm} />
@@ -1392,6 +1407,7 @@ export const TasksTab = ({ level, subLevel, onVersionChange }) => {
     </>
   );
 };
+
 const EmptyUploadState = ({ level, subLevel, onSaved }) => {
   const [showUpload, setShowUpload] = useState(false);
   const drawerRef = useRef(null);
@@ -1503,33 +1519,47 @@ const SyllabusTab = ({ level, subLevel }) => {
     <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
 
       {/* Top bar: search + session */}
-      <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-gray-100">
-        <input
-          type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search topic or subtopic..."
-          className="flex-1 min-w-[180px] border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white"
-        />
-        <select
-          value={selectedSessionId}
-          onChange={(e) => { setSelectedSessionId(e.target.value); setActiveVersionId(""); setSearchTerm(""); }}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white min-w-[160px]"
-        >
-          <option value="">All Sessions</option>
-          {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
-        </select>
+      <div className="flex flex-wrap items-center gap-3 px-5 py-4 border-b border-gray-100">
+        {/* Search Container */}
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 z-10">
+            <MdSearch size={18} />
+          </span>
+          <input
+            type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search topic or subtopic..."
+            className="w-full pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 bg-white placeholder-gray-400 transition-all duration-200"
+            style={{ paddingLeft: '2.75rem' }}
+          />
+        </div>
+
+        {/* Session Container */}
+        <div className="relative min-w-[185px]">
+          <select
+            value={selectedSessionId}
+            onChange={(e) => { setSelectedSessionId(e.target.value); setActiveVersionId(""); setSearchTerm(""); }}
+            className="w-full pl-3.5 pr-8 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 bg-white text-gray-750 transition-all duration-200 appearance-none cursor-pointer"
+          >
+            <option value="">All Sessions</option>
+            {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
+          </select>
+          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+            <MdExpandMore size={18} />
+          </div>
+        </div>
       </div>
 
-      {/* Version tabs — sirf multiple versions hone par */}
+      {/* Version selector (Pills layout) */}
       {allVersions.length > 1 && (
-        <div className="flex gap-0 overflow-x-auto border-b border-gray-100">
+        <div className="flex gap-2 overflow-x-auto p-2 bg-gray-50/50 rounded-xl border border-gray-150/45 m-4">
           {allVersions.map((v) => (
             <button
               key={v._id}
               onClick={() => { setActiveVersionId(v._id); setSearchTerm(""); }}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-all flex-shrink-0 ${
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold whitespace-nowrap rounded-lg border transition-all flex-shrink-0 ${
                 currentVersionId === v._id
-                  ? "border-orange-500 text-orange-600 bg-orange-50"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                  ? "bg-white text-orange-600 shadow-sm border-orange-200/30"
+                  : "border-transparent text-gray-550 hover:text-gray-800 hover:bg-gray-100/50"
               }`}
             >
               <MdBook size={13} className={currentVersionId === v._id ? "text-orange-500" : "text-gray-400"} />
@@ -1541,15 +1571,15 @@ const SyllabusTab = ({ level, subLevel }) => {
 
       {/* Version status bar */}
       {currentVersionDoc && (
-        <div className="flex items-center gap-3 px-4 py-2.5 bg-[#F8F7F5] border-b border-gray-100 flex-wrap">
+        <div className="flex items-center gap-3 px-5 py-3 bg-[#F8F7F5] border-b border-gray-100 flex-wrap">
           <StatusBadge status={currentVersionDoc.status} />
-          <span className="text-xs text-gray-400">Session: {currentVersionDoc.sessionId?.name || "—"}</span>
+          <span className="text-xs text-gray-400 font-medium">Session: {currentVersionDoc.sessionId?.name || "—"}</span>
           <div className="flex items-center gap-2 ml-auto">
             {currentVersionDoc.status === "draft" && (
-              <button onClick={() => handleActivate(currentVersionDoc._id)} className="text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 font-semibold transition border border-green-200">Activate</button>
+              <button onClick={() => handleActivate(currentVersionDoc._id)} className="text-xs px-3.5 py-1.5 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 font-bold transition border border-green-200">Activate</button>
             )}
             {currentVersionDoc.status !== "active" && (
-              <button onClick={() => handleDelete(currentVersionDoc._id)} className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition">
+              <button onClick={() => handleDelete(currentVersionDoc._id)} className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition">
                 <MdDelete size={15} />
               </button>
             )}
@@ -1557,22 +1587,24 @@ const SyllabusTab = ({ level, subLevel }) => {
         </div>
       )}
 
-      {/* Subject tabs */}
+      {/* Subject tabs (Pill selectors) */}
       {subjectsList.length > 0 && (
-        <div className="flex gap-0 overflow-x-auto border-b border-gray-100 bg-white">
+        <div className="flex gap-2 overflow-x-auto p-2 bg-gray-50/50 rounded-xl border border-gray-150/45 m-4">
           {subjectsList.map((s) => (
             <button
               key={s.name}
               onClick={() => { setActiveSubject(s.name); setSearchTerm(""); }}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-all flex-shrink-0 ${
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-bold whitespace-nowrap rounded-lg border transition-all flex-shrink-0 ${
                 activeSubject === s.name
-                  ? "border-orange-500 text-orange-600 bg-orange-50"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                  ? "bg-white text-orange-600 shadow-sm border-orange-200/30"
+                  : "border-transparent text-gray-550 hover:text-gray-805 hover:bg-gray-100/50"
               }`}
             >
               <MdBook size={13} className={activeSubject === s.name ? "text-orange-500" : "text-gray-400"} />
               <span>{s.name}</span>
-              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition-all ${
+                activeSubject === s.name ? "bg-orange-50 text-orange-600 border border-orange-100" : "bg-gray-100 text-gray-500"
+              }`}>
                 {s.topicCount}
               </span>
             </button>
@@ -1582,12 +1614,14 @@ const SyllabusTab = ({ level, subLevel }) => {
 
       {/* Content */}
       {allVersions.length === 0 ? (
-        <div className="py-14 text-center">
-          <div className="w-14 h-14 rounded-full bg-orange-50 flex items-center justify-center mx-auto mb-3">
-            <MdBook size={26} className="text-orange-300" />
+        <div className="py-20 text-center px-4">
+          <div className="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center mx-auto mb-3 border border-orange-100/40">
+            <MdBook size={26} className="text-orange-400" />
           </div>
-          <p className="text-sm font-semibold text-gray-500">No syllabus found</p>
-          <p className="text-xs text-gray-400 mt-1">{selectedSessionId ? "Try a different session" : "Upload syllabus first"}</p>
+          <h4 className="text-sm font-bold text-gray-800">No syllabus found</h4>
+          <p className="text-xs text-gray-455 mt-1 max-w-xs mx-auto leading-relaxed">
+            {selectedSessionId ? "Try selecting a different session" : "Upload syllabus first"}
+          </p>
         </div>
       ) : (
         <VersionTopicTable versionId={currentVersionId} searchTerm={searchTerm} activeSubject={activeSubject} />
@@ -1596,4 +1630,5 @@ const SyllabusTab = ({ level, subLevel }) => {
     </div>
   );
 };
+
 export default SyllabusTab;

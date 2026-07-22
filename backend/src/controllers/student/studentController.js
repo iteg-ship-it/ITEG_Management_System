@@ -1081,3 +1081,83 @@ exports.getStudentStats = async (req, res) => {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+exports.getSubLevelStudentsProgress = async (req, res) => {
+  try {
+    const { subLevelId } = req.params;
+
+    const students = await Student.find({ currentSubLevelId: subLevelId })
+      .populate("currentSubLevelId", "name")
+      .select("firstName lastName prkey status currentSubLevelId");
+
+    const studentIds = students.map(s => s._id);
+
+    const tasks = await StudentTask.find({
+      studentId: { $in: studentIds },
+      subLevelId: subLevelId,
+      isExtra: false,
+      isActive: true
+    }).select("studentId subjectId subjectName status");
+
+    const tasksByStudent = {};
+    studentIds.forEach(id => {
+      tasksByStudent[id.toString()] = [];
+    });
+    tasks.forEach(t => {
+      const sIdStr = t.studentId.toString();
+      if (tasksByStudent[sIdStr]) {
+        tasksByStudent[sIdStr].push(t);
+      }
+    });
+
+    const data = students.map(student => {
+      const sIdStr = student._id.toString();
+      const sTasks = tasksByStudent[sIdStr] || [];
+
+      const total = sTasks.length;
+      const completed = sTasks.filter(t => t.status === "completed").length;
+      const inProgress = sTasks.filter(t => t.status === "inProgress").length;
+      const pending = sTasks.filter(t => t.status === "pending").length;
+      const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+      const subjectsMap = {};
+      sTasks.forEach(t => {
+        const subName = t.subjectName || "Unknown";
+        if (!subjectsMap[subName]) {
+          subjectsMap[subName] = [];
+        }
+        subjectsMap[subName].push(t);
+      });
+
+      const subjectProgress = Object.entries(subjectsMap).map(([subjectName, subTasks]) => {
+        const subTotal = subTasks.length;
+        const subCompleted = subTasks.filter(t => t.status === "completed").length;
+        const subInProgress = subTasks.filter(t => t.status === "inProgress").length;
+
+        let status = "pending";
+        if (subCompleted === subTotal && subTotal > 0) {
+          status = "completed";
+        } else if (subCompleted > 0 || subInProgress > 0) {
+          status = "inProgress";
+        }
+
+        return { subjectName, status };
+      });
+
+      return {
+        _id: student._id,
+        name: `${student.firstName} ${student.lastName}`,
+        level: student.currentSubLevelId?.name || "—",
+        prkey: student.prkey,
+        currentStatus: student.status,
+        taskProgress: { completed, total, percentage },
+        subjectProgress,
+        statusCounters: { pending, inProgress, completed }
+      };
+    });
+
+    return res.status(200).json({ success: true, data });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};

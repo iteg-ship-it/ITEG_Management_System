@@ -344,6 +344,11 @@ export const authApi = createApi({
       keepUnusedDataFor: 300,
     }),
 
+    getSubLevelProgress: builder.query({
+      query: (subLevelId) => ({ url: `/students/sublevel/${subLevelId}/progress`, method: 'GET' }),
+      providesTags: ['Student'],
+    }),
+
     getNewStudentById: builder.query({
       query: (id) => ({ url: `/students/${id}`, method: 'GET' }),
       providesTags: (result, error, id) => [{ type: 'Student', id }],
@@ -1776,6 +1781,7 @@ export const authApi = createApi({
 
 export const {
   useGetNewStudentsQuery,
+  useGetSubLevelProgressQuery,
   useGetNewStudentByIdQuery,
   useGetNewStudentStatsQuery,
   useGetNewStudentTasksQuery,
