@@ -184,9 +184,10 @@ const promoteToNextSubLevel = async (studentId, actorUser = null, options = {}) 
   // Step 3: Find active SyllabusVersion for new position
   const latestSession = await Session.findOne({ isActive: true }).sort({ createdAt: -1 });
   if (!latestSession) throw toClientError("No active session found");
+  const targetSessionId = student.sessionId || latestSession._id;
 
   const newSyllabus = await SyllabusVersion.findOne({
-    sessionId: latestSession._id,
+    sessionId: targetSessionId,
     levelId: targetLevelId,
     subLevelId: nextSubLevel._id,
     status: "active",
@@ -295,7 +296,7 @@ const promoteToNextSubLevel = async (studentId, actorUser = null, options = {}) 
     student.currentLevelId = targetLevelId;
     student.currentSubLevelId = nextSubLevel._id;
     student.syllabusVersionId = newSyllabus._id;
-    student.sessionId = latestSession._id;
+    student.sessionId = targetSessionId;
     await student.save({ session });
   });
 
@@ -315,14 +316,14 @@ const promoteToNextSubLevel = async (studentId, actorUser = null, options = {}) 
     const [newLevelDoc, newSubLevelDoc, newSessionDoc, newSyllabusDoc] = await Promise.all([
       Level.findById(targetLevelId).select("name"),
       SubLevel.findById(nextSubLevel._id).select("name"),
-      Session.findById(latestSession._id).select("name"),
+      Session.findById(targetSessionId).select("name"),
       SyllabusVersion.findById(newSyllabus._id).select("title version"),
     ]);
 
     await StudentProgressSnapshot.create({
       studentId,
       snapshotScope: "promotion",
-      sessionId: latestSession._id,
+      sessionId: targetSessionId,
       sessionName: newSessionDoc?.name || "",
       levelId: targetLevelId,
       levelName: newLevelDoc?.name || "",

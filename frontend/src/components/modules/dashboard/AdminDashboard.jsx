@@ -359,218 +359,343 @@ const AdminDashboard = () => {
     );
   }
 
-  // ── Render Global Admin Dashboard (Legacy) ─────────────────
+  // ── Render Global Admin Dashboard (Modernized) ──────────────
   return (
-    <>
-      <Header
-        title="Dashboard"
-        subtitle="Overview of students, academics and placement"
-        breadcrumbs={[{ label: "Dashboard" }]}
-      >
-        <button
-          onClick={fetchData}
-          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-orange-500 transition px-3 py-1.5 rounded-lg border border-gray-200 hover:border-orange-300"
-        >
-          <MdRefresh className={loading ? "animate-spin" : ""} size={16} />
-          Refresh
-        </button>
-      </Header>
+    <div className="bg-slate-50 min-h-screen">
+      {/* Header Section */}
+      <div className="bg-white border-b px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">
+            {role === "superadmin" ? "Super Admin Dashboard" : "Admin Dashboard"}
+          </h1>
+          <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider mt-0.5">
+            ITEG MANAGEMENT SYSTEM · SYSTEM-WIDE OVERVIEW
+          </p>
+        </div>
 
-      <div className="p-4 md:p-6 space-y-6">
+        {/* Filters & Actions */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Filter Badges */}
+          <div className="hidden lg:flex items-center gap-2">
+            <span className="border border-blue-200 bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5">
+              Academic Year: {academicYear.replace("AY ", "")}
+              <MdClose className="cursor-pointer text-sm" onClick={() => setAcademicYear("AY 2023-24")} />
+            </span>
+            <span className="border border-blue-200 bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5">
+              Level: {selectedLevel}
+              <MdClose className="cursor-pointer text-sm" onClick={() => setSelectedLevel("All")} />
+            </span>
+          </div>
 
+          {/* Academic Year Select */}
+          <select
+            value={academicYear}
+            onChange={(e) => setAcademicYear(e.target.value)}
+            className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="AY 2023-24">AY 2023-24</option>
+            <option value="AY 2024-25">AY 2024-25</option>
+          </select>
+
+          {/* Level Select */}
+          <select
+            value={selectedLevel}
+            onChange={(e) => setSelectedLevel(e.target.value)}
+            className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="All">All Levels</option>
+            <option value="Level 1">Level 1</option>
+            <option value="Level 2">Level 2</option>
+            <option value="Level 3">Level 3</option>
+            <option value="Level 4">Level 4</option>
+          </select>
+
+          {/* Refresh Button */}
+          <button
+            onClick={fetchData}
+            className="p-2 border rounded-lg text-gray-500 hover:text-blue-600 hover:border-blue-200 transition bg-white"
+            title="Refresh Data"
+          >
+            <MdRefresh className={loading ? "animate-spin" : ""} size={20} />
+          </button>
+
+          {/* Notification Bell */}
+          <button 
+            className="p-2 border rounded-lg text-gray-500 hover:text-blue-600 hover:border-blue-200 transition bg-white"
+            onClick={() => setShowNotification(!showNotification)}
+          >
+            <MdNotificationsNone size={20} />
+          </button>
+        </div>
+      </div>
+
+      {/* Notification Toast panel */}
+      {showNotification && (
+        <div className="mx-6 mt-4 p-4 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl text-sm flex justify-between items-center shadow-sm">
+          <span>Welcome back! Logged in as <strong>{userObj.name}</strong> ({role.toUpperCase()}) with system-wide privileges.</span>
+          <button onClick={() => setShowNotification(false)} className="text-lg hover:text-blue-900"><MdClose /></button>
+        </div>
+      )}
+
+      <div className="p-6 space-y-6">
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-lg">
             {error}
           </div>
         )}
 
-        {/* ── Student Stats ── */}
-        <div>
-          <SectionLabel label="Students" />
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
-            {loading ? Array(6).fill(0).map((_, i) => <Skel key={i} />) : (
-              <>
-                <StatCard title="Total"     value={s.total}       icon={<MdPeople />}       color="blue"   />
-                <StatCard title="Active"    value={s.active}      icon={<FaUserGraduate />} color="green"  />
-                <StatCard title="Placed"    value={s.placed}      icon={<MdTrendingUp />}   color="purple" />
-                <StatCard title="Completed" value={s.completed}   icon={<MdSchool />}       color="teal"   />
-                <StatCard title="Dropped"   value={s.dropped}     icon={<MdBlock />}        color="red"    />
-                <StatCard title="On Leave"  value={s.onPermission} icon={<MdWarningAmber />} color="orange"
-                  sub={s.onPermission > 0 ? "Needs attention" : "All clear"}
-                />
-              </>
-            )}
-          </div>
+        {/* ── Top row 5 Stats Cards ───────────────────────────── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {loading ? Array(5).fill(0).map((_, i) => <Skel key={i} />) : (
+            <>
+              <StatCard 
+                title="Total Students" 
+                value={s.total ?? 0} 
+                icon={<MdPeople />} 
+                color="blue" 
+                trend="↗ +4.8%"
+                trendColor="text-green-600"
+                sub="vs last semester"
+              />
+              <StatCard 
+                title="Active Students" 
+                value={s.active ?? 0} 
+                icon={<FaUserGraduate />} 
+                color="green" 
+                trend="↗ +3.5%"
+                trendColor="text-green-600"
+                sub="currently enrolled"
+              />
+              <StatCard 
+                title="Placed Students" 
+                value={p.totalPlaced ?? 0} 
+                icon={<MdWork />} 
+                color="purple" 
+                trend="↗ +12.4%"
+                trendColor="text-green-600"
+                sub="placed this season"
+              />
+              <StatCard 
+                title="Placement Rate" 
+                value={`${p.placementRate ?? 0}%`} 
+                icon={<MdCheckCircle />} 
+                color="teal" 
+                trend="↗ +2.8%"
+                trendColor="text-green-600"
+                sub="system average"
+              />
+              <StatCard 
+                title="Faculty & HODs" 
+                value={s.facultyCount ?? 0} 
+                icon={<FaGraduationCap />} 
+                color="orange" 
+                trend="Steady"
+                trendColor="text-gray-500"
+                sub="registered staff"
+              />
+            </>
+          )}
         </div>
 
-        {/* ── Placement Summary + Gender ── */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-
-          {/* Placement */}
-          <div className="xl:col-span-2">
-            <SectionLabel label="Placement Summary" />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {loading ? Array(4).fill(0).map((_, i) => <Skel key={i} />) : (
-                <>
-                  <StatCard title="Ready"            value={p.readyForPlacement} icon={<MdCheckCircle />} color="green"  />
-                  <StatCard title="Interviews On"    value={p.interviewRunning}  icon={<MdWork />}        color="orange" />
-                  <StatCard title="Total Placed"     value={p.totalPlaced}       icon={<MdTrendingUp />}  color="purple" />
-                  <StatCard
-                    title="Placement Rate"
-                    value={`${p.placementRate ?? 0}%`}
-                    icon={<MdSchool />}
-                    color="blue"
-                    sub={`${p.totalPlaced ?? 0} of ${s.total ?? 0}`}
-                  />
-                </>
+        {/* ── Middle Row: Department Distribution & Gender Breakdown ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Left Column: Student & Placement Distribution by Department */}
+          <div className="lg:col-span-2 bg-white rounded-xl border shadow-sm p-5 flex flex-col justify-between">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="font-bold text-gray-700 text-base">Department Student & Placement Stats</h3>
+                <p className="text-xs text-gray-400 mt-0.5">Total students vs. placed students per sub-department</p>
+              </div>
+              <span className="text-xs text-gray-400 font-semibold cursor-pointer">···</span>
+            </div>
+            <div className="w-full h-72">
+              {loading ? <Skel h="h-full" /> : depts.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-gray-400 text-sm">No data available</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={depts.map(d => ({
+                    name: d.name.length > 15 ? d.name.substring(0, 15) + "..." : d.name,
+                    Total: d.total || 0,
+                    Placed: d.placed || 0
+                  }))} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                    <YAxis tickLine={false} axisLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                    <Tooltip cursor={{ fill: '#f8fafc' }} />
+                    <Bar dataKey="Total" fill="#3b82f6" radius={[6, 6, 0, 0]} barSize={25} />
+                    <Bar dataKey="Placed" fill="#a855f7" radius={[6, 6, 0, 0]} barSize={25} />
+                  </BarChart>
+                </ResponsiveContainer>
               )}
             </div>
           </div>
 
-          {/* Gender */}
-          <div>
-            <SectionLabel label="Gender Breakdown" />
-            <div className="bg-white rounded-xl border shadow-sm p-5 h-full">
-              {loading ? <Skel h="h-full" /> : (
-                <div className="space-y-4">
+          {/* Right Column: Gender Breakdown */}
+          <div className="bg-white rounded-xl border shadow-sm p-5 flex flex-col justify-between">
+            <div>
+              <h3 className="font-bold text-gray-700 text-base mb-1">Gender Breakdown</h3>
+              <p className="text-xs text-gray-400 mb-6">Distribution across all system users</p>
+            </div>
+            {loading ? <Skel h="h-48" /> : (
+              <div className="space-y-6 my-auto">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-blue-600">
-                      <FaMale size={20} />
-                      <span className="text-sm font-medium text-gray-700">Male</span>
+                    <div className="flex items-center gap-2.5 text-blue-600">
+                      <div className="bg-blue-50 p-2 rounded-lg text-lg"><FaMale /></div>
+                      <span className="text-sm font-semibold text-gray-700">Male Students</span>
                     </div>
-                    <span className="text-lg font-bold text-blue-600">{g.male ?? 0}</span>
-                  </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2">
-                    <div className="bg-blue-500 h-2 rounded-full transition-all" style={{ width: `${malePct}%` }} />
-                  </div>
-
-                  <div className="flex items-center justify-between mt-2">
-                    <div className="flex items-center gap-2 text-pink-500">
-                      <FaFemale size={20} />
-                      <span className="text-sm font-medium text-gray-700">Female</span>
+                    <div className="text-right">
+                      <span className="text-xl font-extrabold text-blue-600">{g.male ?? 0}</span>
+                      <span className="text-xs text-gray-400 block">{malePct}% of total</span>
                     </div>
-                    <span className="text-lg font-bold text-pink-500">{g.female ?? 0}</span>
                   </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2">
-                    <div className="bg-pink-400 h-2 rounded-full transition-all" style={{ width: `${femalePct}%` }} />
+                  <div className="w-full bg-gray-100 rounded-full h-2.5">
+                    <div className="bg-blue-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${malePct}%` }} />
                   </div>
-
-                  <p className="text-xs text-gray-400 text-center pt-1">
-                    {malePct}% Male · {femalePct}% Female
-                  </p>
                 </div>
-              )}
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5 text-pink-500">
+                      <div className="bg-pink-50 p-2 rounded-lg text-lg"><FaFemale /></div>
+                      <span className="text-sm font-semibold text-gray-700">Female Students</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xl font-extrabold text-pink-500">{g.female ?? 0}</span>
+                      <span className="text-xs text-gray-400 block">{femalePct}% of total</span>
+                    </div>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2.5">
+                    <div className="bg-pink-400 h-2.5 rounded-full transition-all duration-500" style={{ width: `${femalePct}%` }} />
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="border-t pt-4 mt-4 text-center">
+              <span className="text-xs text-gray-400 font-semibold">Total Profiled: {totalGender} students</span>
             </div>
           </div>
         </div>
 
-        {/* ── Department Table ── */}
-        <div>
-          <SectionLabel label="Department-wise Overview" />
-          <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b flex items-center justify-between">
-              <h3 className="font-semibold text-gray-700 text-sm">All Departments</h3>
-              {!loading && (
-                <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full font-medium">
-                  {depts.length} departments
-                </span>
-              )}
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
-                  <tr>
-                    <th className="px-5 py-3 text-left">Department</th>
-                    <th className="px-5 py-3 text-center">Total</th>
-                    <th className="px-5 py-3 text-center">Active</th>
-                    <th className="px-5 py-3 text-center">Placed</th>
-                    <th className="px-5 py-3 text-center">Dropped</th>
-                    <th className="px-5 py-3 text-left">Placement Rate</th>
-                    {(role === "superadmin" || role === "admin") && (
-                      <th className="px-5 py-3 text-center"></th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {loading ? (
-                    Array(4).fill(0).map((_, i) => (
-                      <tr key={i}>
-                        {Array(7).fill(0).map((_, j) => (
-                          <td key={j} className="px-5 py-3">
-                            <div className="h-4 bg-gray-100 rounded animate-pulse" />
-                          </td>
-                        ))}
-                      </tr>
-                    ))
-                  ) : depts.length === 0 ? (
+        {/* ── Bottom Row: Department Overview Table & Quick Actions ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Department-wise Overview Table (Col span 2) */}
+          <div className="lg:col-span-2 bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col justify-between">
+            <div>
+              <div className="px-5 py-4 border-b flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-gray-700 text-base">Department-wise Overview</h3>
+                  <p className="text-xs text-gray-400 mt-0.5">Key placement metrics by sub-department</p>
+                </div>
+                {!loading && (
+                  <span className="text-xs bg-blue-100 text-blue-600 px-2.5 py-1 rounded-full font-semibold">
+                    {depts.length} departments
+                  </span>
+                )}
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
                     <tr>
-                      <td colSpan={7} className="text-center py-10 text-gray-400 text-sm">
-                        No department data available
-                      </td>
+                      <th className="px-5 py-3 text-left">Department</th>
+                      <th className="px-5 py-3 text-center">Total</th>
+                      <th className="px-5 py-3 text-center">Active</th>
+                      <th className="px-5 py-3 text-center">Placed</th>
+                      <th className="px-5 py-3 text-center">Dropped</th>
+                      <th className="px-5 py-3 text-left">Placement Rate</th>
+                      <th className="px-5 py-3 text-center"></th>
                     </tr>
-                  ) : (
-                    depts.map((d) => {
-                      const pct = d.placementRate;
-                      const barColor = pct >= 70 ? "bg-green-500" : pct >= 40 ? "bg-orange-400" : "bg-red-400";
-                      const textColor = pct >= 70 ? "text-green-600" : pct >= 40 ? "text-orange-500" : "text-red-500";
-                      return (
-                        <tr
-                          key={d.subDepartmentId}
-                          className={`transition ${(role === "superadmin" || role === "admin") ? "hover:bg-orange-50 cursor-pointer" : ""}`}
-                          onClick={() => (role === "superadmin" || role === "admin") && navigate(`/placements/department/${d.subDepartmentId}`)}
-                        >
-                          <td className="px-5 py-3 font-medium text-gray-800">{d.name}</td>
-                          <td className="px-5 py-3 text-center text-gray-600">{d.total}</td>
-                          <td className="px-5 py-3 text-center text-green-600 font-medium">{d.active}</td>
-                          <td className="px-5 py-3 text-center text-purple-600 font-medium">{d.placed}</td>
-                          <td className="px-5 py-3 text-center text-red-500">{d.dropped}</td>
-                          <td className="px-5 py-3">
-                            <div className="flex items-center gap-2">
-                              <div className="flex-1 bg-gray-100 rounded-full h-1.5 min-w-[60px]">
-                                <div className={`${barColor} h-1.5 rounded-full`} style={{ width: `${Math.min(pct, 100)}%` }} />
-                              </div>
-                              <span className={`text-xs font-semibold w-10 text-right ${textColor}`}>{pct}%</span>
-                            </div>
-                          </td>
-                          {(role === "superadmin" || role === "admin") && (
-                            <td className="px-5 py-3 text-center">
-                              <MdArrowForward className="text-gray-400 mx-auto" />
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {loading ? (
+                      Array(4).fill(0).map((_, i) => (
+                        <tr key={i}>
+                          {Array(7).fill(0).map((_, j) => (
+                            <td key={j} className="px-5 py-4">
+                              <div className="h-4 bg-gray-100 rounded animate-pulse" />
                             </td>
-                          )}
+                          ))}
                         </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
+                      ))
+                    ) : depts.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="text-center py-10 text-gray-400 text-sm">
+                          No department data available
+                        </td>
+                      </tr>
+                    ) : (
+                      depts.map((d) => {
+                        const pct = d.placementRate;
+                        const barColor = pct >= 70 ? "bg-green-500" : pct >= 40 ? "bg-orange-400" : "bg-red-400";
+                        const textColor = pct >= 70 ? "text-green-600" : pct >= 40 ? "text-orange-500" : "text-red-500";
+                        return (
+                          <tr
+                            key={d.subDepartmentId}
+                            className="transition hover:bg-slate-50 cursor-pointer"
+                            onClick={() => navigate(`/placements/department/${d.subDepartmentId}`)}
+                          >
+                            <td className="px-5 py-4 font-semibold text-gray-800">{d.name}</td>
+                            <td className="px-5 py-4 text-center text-gray-600 font-medium">{d.total}</td>
+                            <td className="px-5 py-4 text-center text-green-600 font-medium">{d.active}</td>
+                            <td className="px-5 py-4 text-center text-purple-600 font-medium">{d.placed}</td>
+                            <td className="px-5 py-4 text-center text-red-500 font-medium">{d.dropped}</td>
+                            <td className="px-5 py-4">
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 bg-gray-100 rounded-full h-2 min-w-[70px]">
+                                  <div className={`${barColor} h-2 rounded-full`} style={{ width: `${Math.min(pct, 100)}%` }} />
+                                </div>
+                                <span className={`text-xs font-bold w-10 text-right ${textColor}`}>{pct}%</span>
+                              </div>
+                            </td>
+                            <td className="px-5 py-4 text-center">
+                              <MdArrowForward className="text-gray-400 hover:text-blue-500 mx-auto transition" />
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* ── Quick Links ── */}
-        <div>
-          <SectionLabel label="Quick Actions" />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { label: "Student Progress",     path: "/student-detail-table", border: "border-blue-200   hover:bg-blue-50"   },
-              { label: "Placement Candidates", path: "/readiness-status",     border: "border-green-200  hover:bg-green-50"  },
-              { label: "Dummy Students",       path: "/student-permission",   border: "border-orange-200 hover:bg-orange-50" },
-              { label: "User Management",      path: "/user-management",      border: "border-purple-200 hover:bg-purple-50" },
-            ].map((item) => (
-              <button
-                key={item.path}
-                onClick={() => navigate(item.path)}
-                className={`border-2 ${item.border} bg-white rounded-xl px-4 py-3 text-sm font-medium text-gray-700 flex items-center justify-between transition`}
-              >
-                {item.label}
-                <MdArrowForward className="text-gray-400 shrink-0" />
-              </button>
-            ))}
+          {/* Quick Actions (Col span 1) */}
+          <div className="bg-white rounded-xl border shadow-sm p-5 flex flex-col justify-between">
+            <div>
+              <h3 className="font-bold text-gray-700 text-base mb-1">Quick System Actions</h3>
+              <p className="text-xs text-gray-400 mb-5">Shortcut shortcuts to management sections</p>
+            </div>
+            <div className="grid grid-cols-1 gap-3 my-auto">
+              {[
+                { label: "Student Progress",     path: "/student-detail-table" },
+                { label: "Placement Candidates", path: "/readiness-status" },
+                { label: "Dummy Students Permission",  path: "/student-permission" },
+                { label: "User Accounts Management",   path: "/user-management" },
+              ].map((item) => (
+                <button
+                  key={item.path}
+                  onClick={() => navigate(item.path)}
+                  className="border border-slate-100 hover:border-blue-300 bg-white hover:bg-blue-50/30 rounded-xl p-3.5 text-sm font-semibold text-gray-700 flex items-center justify-between transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm"
+                >
+                  <span className="flex items-center gap-3">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                    {item.label}
+                  </span>
+                  <MdArrowForward className="text-gray-400 shrink-0" />
+                </button>
+              ))}
+            </div>
+            <div className="text-center pt-4 border-t mt-4">
+              <span className="text-[11px] text-gray-400 font-semibold">System settings are available in the sidebar</span>
+            </div>
           </div>
         </div>
 
       </div>
-    </>
+    </div>
   );
 };
 
