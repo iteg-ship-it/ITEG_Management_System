@@ -44,6 +44,7 @@ const CommonCard = ({
       <div className={`bg-gradient-to-b from-white to-slate-50/20 border rounded-2xl shadow-sm transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col ${
         inactive ? 'border-gray-150' : 'border-gray-200 hover:shadow-xl hover:border-orange-200'
       }`}>
+        {!inactive && <div className="h-1 w-full bg-gradient-to-r from-orange-400 to-amber-400 flex-shrink-0" />}
         <div className="p-5 flex-1">
 
           {/* Icon + Title + Status */}
@@ -54,7 +55,7 @@ const CommonCard = ({
               <Icon size={24} className={inactive ? 'text-gray-400' : 'text-orange-500'} />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className={`text-sm font-extrabold tracking-tight leading-tight truncate ${inactive ? 'text-gray-450' : 'text-gray-900'}`}>
+              <h3 className={`text-sm font-extrabold tracking-tight leading-tight truncate ${inactive ? 'text-gray-455' : 'text-gray-900'}`}>
                 {title}
               </h3>
               <span className={`mt-1.5 inline-flex items-center text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${
@@ -79,14 +80,22 @@ const CommonCard = ({
           {/* Info — single row as neat metric badges */}
           <div className="flex items-center gap-2 flex-wrap text-xs text-gray-500 mb-2">
             {infoItems?.map((item, i) => (
-              <span key={i} className={`flex items-center gap-1.5 whitespace-nowrap px-2.5 py-1 rounded-lg border text-[11px] font-bold ${
+              <span key={i} className={`flex items-center gap-1.5 whitespace-nowrap px-2.5 py-1.5 rounded-lg border text-[11px] font-bold transition hover:scale-105 shadow-xs ${
                 inactive 
                   ? 'bg-slate-50 text-slate-400 border-slate-200' 
-                  : 'bg-slate-50/60 text-slate-600 border-slate-100 transition hover:bg-slate-50'
+                  : 'bg-slate-50/70 text-slate-600 border-slate-100/80 hover:bg-white hover:border-orange-150'
               }`}>
-                {item.icon && <span className={inactive ? 'text-gray-400 [&_svg]:text-gray-400' : 'text-orange-500/80'}>{item.icon}</span>}
-                {item.label && <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{item.label}:</span>}
-                <span className={`font-extrabold ${inactive ? 'text-gray-455' : 'text-gray-800'}`}>{item.value}</span>
+                {item.icon && <span className={inactive ? 'text-gray-400 [&_svg]:text-gray-400' : 'text-orange-500/85'}>{item.icon}</span>}
+                {item.label && item.value ? (
+                  <>
+                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{item.label}:</span>
+                    <span className={`font-extrabold ${inactive ? 'text-gray-455' : 'text-gray-800'}`}>{item.value}</span>
+                  </>
+                ) : (
+                  <span className={`font-extrabold ${inactive ? 'text-gray-455' : 'text-gray-800'}`}>
+                    {item.value || item.label}
+                  </span>
+                )}
               </span>
             ))}
           </div>

@@ -80,7 +80,10 @@ const OrangeButton = ({
             <div className="px-6 py-5 border-t bg-white">
               <div className="flex gap-4">
                 <button
-                  onClick={onLeftClick ? onLeftClick : closeDrawer}
+                  onClick={() => {
+                    if (onLeftClick) onLeftClick();
+                    closeDrawer();
+                  }}
                   className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-700 font-semibold transition-all duration-200 hover:bg-gray-200 hover:scale-[1.02] active:scale-[0.98] shadow-sm"
                 >
                   {leftBtnText}
