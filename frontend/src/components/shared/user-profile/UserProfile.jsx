@@ -60,27 +60,30 @@ const UserProfile = () => {
   return (
     <div className="border-t bg-white">
       {/* PROFILE CARD */}
-      <div className="flex items-center gap-4 bg-[#F4EFE9] px-4 py-3">
+      <div className="flex items-center gap-4 px-4 py-3 hover:bg-gray-50/60 transition-colors duration-200">
         {/* Avatar + Name with OrangeButton */}
         <OrangeButton
           buttonTitle={
-            <div className="flex items-center gap-4 flex-1">
-              <img
-                src={user?.profileImage || user?.avatar || profileImg}
-                alt="User avatar"
-                className="w-12 h-12 rounded-full object-cover border-2 border-orange-500"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-[16px] font-semibold text-gray-800 truncate">
+            <div className="flex items-center gap-3.5 flex-1">
+              <div className="relative">
+                <img
+                  src={user?.profileImage || user?.avatar || profileImg}
+                  alt="User avatar"
+                  className="w-11 h-11 rounded-full object-cover border-2 border-orange-400 shadow-sm"
+                />
+                <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white" />
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <p className="text-[15px] font-semibold text-gray-800 truncate leading-snug">
                   {user?.name || "User Name"}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-xs text-gray-500 font-medium truncate">
                   {user?.role || "System Admin"}
                 </p>
               </div>
             </div>
           }
-          customButtonClass="flex items-center w-full hover:opacity-80 transition bg-transparent p-0"
+          customButtonClass="flex items-center w-full hover:opacity-90 transition bg-transparent p-0"
           panelTitle="Edit Profile"
           panelSubtitle="Update your profile information and settings"
           drawerContent={<SettingsDrawerContent user={user} saveButtonRef={saveButtonRef} />}
@@ -92,7 +95,8 @@ const UserProfile = () => {
         {/* Logout icon */}
         <button
           onClick={handleLogoutClick}
-          className="text-gray-400 hover:text-orange-500 transition text-xl"
+          title="Logout"
+          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition text-xl"
         >
           <FiLogOut />
         </button>

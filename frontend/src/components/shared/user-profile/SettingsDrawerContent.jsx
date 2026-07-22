@@ -5,6 +5,7 @@ import { useUpdateUserMutation } from "../../../redux/api/authApi";
 import { toast } from "react-toastify";
 import profileImg from "../../../assets/images/profile-img.png";
 import FaceRegistration from "../../modules/face-auth/FaceRegistration";
+import { FiCamera, FiCheck } from "react-icons/fi";
 
 const SettingsDrawerContent = ({ user, saveButtonRef }) => {
     const [formData, setFormData] = useState({
@@ -106,24 +107,49 @@ const SettingsDrawerContent = ({ user, saveButtonRef }) => {
 
     return (
         <>
-            {/* Profile Header */}
-            <div className="bg-[#FCD2AA] -mx-6 -mt-6 mb-6 p-6 flex flex-col items-center">
-                <div 
-                    onClick={triggerImageUpload}
-                    className="relative group cursor-pointer"
-                    title="Click to change profile image"
-                >
-                    <img
-                        src={previewUrl || user?.profileImage || user?.avatar || profileImg}
-                        alt="Profile"
-                        className="rounded-full w-20 h-20 object-cover border-2 border-white transition-opacity group-hover:opacity-75"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <span className="text-white text-xs font-semibold">Change</span>
+            {/* Profile Header & Image Upload */}
+            <div className="-mx-6 -mt-6 mb-6 p-6 flex flex-col items-center border-b border-gray-100 bg-white">
+                <div className="relative group flex flex-col items-center">
+                    {/* Avatar Container */}
+                    <div 
+                        onClick={triggerImageUpload}
+                        className="relative cursor-pointer group/avatar rounded-full p-1 transition-all duration-300 hover:scale-[1.02]"
+                        title="Click to change profile picture"
+                    >
+                        <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-orange-400 shadow-md ring-4 ring-orange-500/10 group-hover/avatar:ring-orange-500/30 transition-all duration-300">
+                            <img
+                                src={previewUrl || user?.profileImage || user?.avatar || profileImg}
+                                alt="Profile"
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover/avatar:scale-105"
+                            />
+                        </div>
+
+                        {/* Floating Camera Badge */}
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                triggerImageUpload();
+                            }}
+                            className="absolute bottom-1 right-1 bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-full shadow-md transition-transform duration-200 hover:scale-110 active:scale-95"
+                            title="Upload new photo"
+                        >
+                            <FiCamera className="w-3.5 h-3.5" />
+                        </button>
                     </div>
-                    <span className="absolute bottom-1 right-1 bg-green-500 w-3 h-3 rounded-full border-2 border-white" />
+
+                    {/* Preview Selected Status */}
+                    {previewUrl && (
+                        <div className="mt-2.5 inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md animate-fade-in">
+                            <FiCheck className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>New photo selected</span>
+                        </div>
+                    )}
                 </div>
-                <p className="text-sm text-gray-600 mt-2">{user?.email}</p>
+
+                <p className="text-xs text-gray-500 mt-3 font-medium bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
+                    {user?.email}
+                </p>
             </div>
 
             {/* Form */}
