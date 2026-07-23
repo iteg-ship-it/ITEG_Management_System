@@ -1541,7 +1541,7 @@ export const TasksTab = ({ level, subLevel, onVersionChange }) => {
             </p>
           </div>
         ) : (
-          <VersionTasksTable versionId={currentVersionId} searchTerm={searchTerm} />
+          <VersionTasksTable versionId={currentVersionId} searchTerm={searchTerm} activeSubjectId={activeSubjectId} activeSubjectName={activeSubjectName} />
         )}
       </div>
 
