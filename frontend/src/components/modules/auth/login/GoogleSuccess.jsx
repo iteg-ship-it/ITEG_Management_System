@@ -14,6 +14,7 @@ const GoogleSuccess = () => {
     const name = queryParams.get("name");
     const role = queryParams.get("role");
     const email = queryParams.get("email");
+    const profileImage = queryParams.get("profileImage");
 
     if (token && userId) {
       // ✅ Encrypt token
@@ -28,6 +29,7 @@ const GoogleSuccess = () => {
         name,
         email,
         role,
+        profileImage: profileImage || "",
       };
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("role", role); // if you still rely on role directly

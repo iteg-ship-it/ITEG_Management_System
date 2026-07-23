@@ -58,6 +58,23 @@ exports.createUser = async (req, res) => {
       departmentId = deptDoc._id;
     }
 
+    const newUserId = new mongoose.Types.ObjectId();
+    let uploadedImageUrl = profileImage;
+    if (profileImage && /^data:image\/(png|jpeg|jpg|gif);base64,/.test(profileImage)) {
+      cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+      });
+
+      const uploadResponse = await cloudinary.uploader.upload(profileImage, {
+        folder: "user_profiles",
+        public_id: `user_${newUserId}`,
+        overwrite: true,
+      });
+      uploadedImageUrl = uploadResponse.secure_url;
+    }
+
     const existing = await User.findOne({ $or: [{ email }, { adharCard }] });
     if (existing) return res.status(400).json({ message: "User with this email or Aadhar already exists." });
 
@@ -65,7 +82,8 @@ exports.createUser = async (req, res) => {
     const permissions = getPermissionsForRole(role);
 
     const newUser = new User({
-      profileImage,
+      _id: newUserId,
+      profileImage: uploadedImageUrl,
       name,
       email,
       mobileNo,
@@ -132,6 +150,7 @@ exports.login = async (req, res) => {
         position: user.position,
         department: user.department,
         departmentId: user.departmentId,
+        profileImage: user.profileImage,
       },
     });
   } catch (error) {
@@ -199,13 +218,29 @@ exports.updateUserFields = async (req, res) => {
 
     const { name, position, role, department, isActive, profileImage } = req.body;
 
+    let uploadedImageUrl = profileImage;
+    if (profileImage && /^data:image\/(png|jpeg|jpg|gif);base64,/.test(profileImage)) {
+      cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+      });
+
+      const uploadResponse = await cloudinary.uploader.upload(profileImage, {
+        folder: "user_profiles",
+        public_id: `user_${id}`,
+        overwrite: true,
+      });
+      uploadedImageUrl = uploadResponse.secure_url;
+    }
+
     const updateData = {
       ...(name && { name }),
       ...(position && { position }),
       ...(role && { role }),
       ...(department !== undefined && { department }),
       ...(typeof isActive === "boolean" && { isActive }),
-      ...(profileImage && { profileImage }),
+      ...(profileImage && { profileImage: uploadedImageUrl }),
     };
 
     // When role changes, sync permissions to new role defaults
@@ -330,7 +365,7 @@ exports.googleAuthCallback = async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
-    const redirectUrl = `${process.env.GOOGLE_REDIRECT_URI}?token=${token}&refreshToken=${refreshToken}&userId=${user._id}&name=${encodeURIComponent(user.name)}&role=${user.role}&email=${user.email}&positionRole=${user.position || "admin"}`;
+    const redirectUrl = `${process.env.GOOGLE_REDIRECT_URI}?token=${token}&refreshToken=${refreshToken}&userId=${user._id}&name=${encodeURIComponent(user.name)}&role=${user.role}&email=${user.email}&positionRole=${user.position || "admin"}&profileImage=${encodeURIComponent(user.profileImage || "")}`;
     return res.redirect(redirectUrl);
   } catch {
     return res.redirect(`${process.env.GOOGLE_REDIRECT_URI}?error=server_error&message=Login failed`);

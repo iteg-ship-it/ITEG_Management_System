@@ -98,7 +98,7 @@ const SettingsModal = ({ user, isOpen, onClose }) => {
                 }`}
             >
                 {/* HEADER */}
-                <div className="bg-[#FCD2AA] p-6 flex flex-col items-center relative border-b">
+                <div className="bg-white p-6 flex flex-col items-center relative border-b border-gray-100">
                     <button
                         onClick={onClose}
                         className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
