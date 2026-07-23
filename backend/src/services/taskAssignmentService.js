@@ -396,10 +396,8 @@ const getStudentTasks = async (studentId, syllabusVersionId, filters = {}) => {
   if (filters.subTopicId) query.subTopicId = filters.subTopicId;
 
   const tasks = await StudentTask.find(query).sort({
-    subjectName: 1,
-    topicName: 1,
-    subTopicName: 1,
-    createdAt: 1
+    assignedAt: -1,
+    createdAt: -1
   });
 
   return tasks;

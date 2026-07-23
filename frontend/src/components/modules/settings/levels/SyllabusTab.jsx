@@ -1,9 +1,9 @@
-﻿import { useState, useRef, useMemo, forwardRef, useImperativeHandle, useEffect } from "react";
+import { useState, useRef, useMemo, forwardRef, useImperativeHandle, useEffect } from "react";
 import * as XLSX from "xlsx";
 import {
   MdCloudUpload, MdCheckCircle, MdExpandMore, MdExpandLess,
   MdBook, MdTopic, MdSubject, MdDelete, MdSave, MdEdit, MdVisibility,
-  MdAssignment, MdAdd, MdSearch, MdChevronRight, MdCalendarToday, MdAccessTime,
+  MdAssignment, MdAdd, MdSearch, MdChevronRight, MdCalendarToday, MdAccessTime, MdPerson,
 } from "react-icons/md";
 import { toast } from "react-toastify";
 import {
@@ -721,40 +721,42 @@ const VersionTopicTable = ({ versionId, searchTerm, activeSubject }) => {
 
   return (
     <div className="p-4 bg-gray-50/20 grid grid-cols-1 md:grid-cols-2 gap-4">
-      {groupedTopics.map((item) => (
-        <div key={item.topicIdStr} className="bg-white border border-gray-150 rounded-2xl p-5 hover:shadow-md hover:border-orange-200/50 transition-all duration-200 flex flex-col justify-between">
+      {groupedTopics.map((item, idx) => (
+        <div key={item.topicIdStr} className="bg-white border border-slate-150 rounded-xl p-5 hover:shadow-lg hover:border-orange-300/40 hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between border-l-4 border-l-orange-500/80">
           <div>
             {/* Header: Topic Title & Subject Badge */}
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <span className="p-2.5 rounded-xl bg-orange-50 text-orange-500 border border-orange-100 flex-shrink-0 flex items-center justify-center">
-                  <MdTopic size={16} />
+            <div className="flex items-start justify-between gap-3 pb-3.5 border-b border-slate-100/70">
+              <div className="flex items-start gap-3">
+                <span className="inline-flex w-7 h-7 rounded-lg bg-orange-50 text-orange-600 text-xs font-black items-center justify-center border border-orange-100/50 flex-shrink-0 mt-0.5 shadow-sm/5">
+                  {idx + 1}
                 </span>
                 <div>
-                  <span className="text-[10px] font-bold text-orange-600 bg-orange-50 border border-orange-100/60 px-2.5 py-0.5 rounded-full uppercase tracking-wide">
-                    {item.subject}
-                  </span>
-                  <h4 className="text-sm font-bold text-gray-800 mt-1.5 leading-snug">{item.topic}</h4>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[9px] font-black text-orange-600 bg-orange-50/70 border border-orange-100 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      {item.subject}
+                    </span>
+                  </div>
+                  <h4 className="text-xs font-extrabold text-slate-800 mt-1.5 leading-snug tracking-tight">{item.topic}</h4>
                 </div>
               </div>
-              <span className="text-[10.5px] font-bold text-gray-550 bg-gray-55 px-2.5 py-1 rounded-full border border-gray-200/30 flex-shrink-0">
+              <span className="text-[9.5px] font-black text-slate-500 bg-slate-50 border border-slate-200/60 px-2.5 py-1 rounded-full uppercase tracking-wider flex-shrink-0 shadow-sm/5">
                 {item.subTopics.length} {item.subTopics.length === 1 ? "Subtopic" : "Subtopics"}
               </span>
             </div>
 
             {/* Subtopics collection */}
             {item.subTopics.length > 0 ? (
-              <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-100">
+              <div className="flex flex-wrap gap-2 mt-4">
                 {item.subTopics.map((sub, sIdx) => (
-                  <span key={sIdx} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-gray-600 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200/50 transition-all duration-150 text-xs font-medium">
-                    <MdSubject size={12} className="text-gray-400 flex-shrink-0" />
+                  <span key={sIdx} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200/50 text-slate-600 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200/40 transition-all duration-150 text-[11px] font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-350 flex-shrink-0" />
                     <span>{sub}</span>
                   </span>
                 ))}
               </div>
             ) : (
-              <div className="mt-4 pt-3.5 border-t border-gray-100 flex items-center gap-1.5 text-xs text-gray-400 italic">
-                <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+              <div className="mt-4 flex items-center gap-1.5 text-[11px] text-slate-400 font-medium italic">
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
                 <span>Covers core topic content directly</span>
               </div>
             )}
@@ -768,7 +770,7 @@ const VersionTopicTable = ({ versionId, searchTerm, activeSubject }) => {
 /* helper: subjects list from version */
 export const useSubjectsList = (versionId) => {
   const { data } = useGetSyllabusVersionWithHierarchyQuery(versionId, { skip: !versionId });
-  return useMemo(() => (data?.data?.subjects || []).map((s) => ({ name: s.name, topicCount: s.topics?.length || 0 })), [data]);
+  return useMemo(() => (data?.data?.subjects || []).map((s) => ({ _id: s._id, name: s.name, topicCount: s.topics?.length || 0 })), [data]);
 };
 
 /* ─── Task Excel Upload Drawer ─────────────────────────── */
@@ -959,19 +961,65 @@ const TYPE_BADGE = {
   assessment:   "bg-gray-100 text-gray-600 border border-gray-200",
 };
 
-export const VersionTasksTable = ({ versionId, searchTerm = "" }) => {
+function formatTimeAgo(dateString) {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  const now = new Date();
+  const seconds = Math.floor((now - date) / 1000);
+  
+  if (isNaN(seconds)) return "";
+  if (seconds < 0) return "Just now";
+
+  const intervals = {
+    year: 31536000,
+    month: 2592000,
+    week: 604800,
+    day: 86400,
+    hour: 3600,
+        minute: 60,
+        second: 1
+      };
+
+      for (const [unit, value] of Object.entries(intervals)) {
+        const count = Math.floor(seconds / value);
+        if (count >= 1) {
+          return `${count} ${unit}${count > 1 ? "s" : ""} ago`;
+        }
+      }
+      return "Just now";
+    }
+
+export const VersionTasksTable = ({ versionId, searchTerm = "", activeSubjectId, activeSubjectName }) => {
   const { data, isLoading } = useGetTasksBySyllabusVersionQuery(versionId, { skip: !versionId });
   const allTasks = data?.tasks || data?.data || [];
 
+  console.log("VersionTasksTable render debug:", {
+    versionId,
+    activeSubjectId,
+    activeSubjectName,
+    allTasksLength: allTasks.length,
+    allTasks
+  });
+
   const tasks = useMemo(() => {
-    if (!searchTerm.trim()) return allTasks;
+    let filteredTasks = allTasks;
+    if (activeSubjectId) {
+      const activeNameClean = (activeSubjectName || "").trim().toLowerCase();
+      filteredTasks = allTasks.filter((t) => {
+        const idMatches = t.subjectId && String(t.subjectId) === String(activeSubjectId);
+        const tNameClean = (t.subjectName || "").trim().toLowerCase();
+        const nameMatches = activeNameClean && tNameClean === activeNameClean;
+        return idMatches || nameMatches;
+      });
+    }
+    if (!searchTerm.trim()) return filteredTasks;
     const q = searchTerm.toLowerCase();
-    return allTasks.filter((t) =>
+    return filteredTasks.filter((t) =>
       t.title?.toLowerCase().includes(q) ||
       t.topicName?.toLowerCase().includes(q) ||
       t.subTopicName?.toLowerCase().includes(q)
     );
-  }, [allTasks, searchTerm]);
+  }, [allTasks, searchTerm, activeSubjectId, activeSubjectName]);
 
   if (isLoading) return (
     <div className="flex justify-center py-20">
@@ -990,78 +1038,109 @@ export const VersionTasksTable = ({ versionId, searchTerm = "" }) => {
   );
 
   return (
-    <div className="p-4 bg-gray-50/20 space-y-3.5">
+    <div className="p-4 bg-gray-50/20 space-y-4">
       {tasks.map((task, idx) => {
         const measurePoints = splitNumberedPoints(task.measurablePoints);
         const priorityKey   = (task.priority || "medium").toLowerCase();
         const typeKey       = task.type || "assessment";
-        const pBadge        = PRIORITY_BADGE[priorityKey] || PRIORITY_BADGE.medium;
+        
+        // Define priority styles for accents
+        const priorityStyles = {
+          high: {
+            border: "border-l-4 border-l-rose-500/80 hover:border-rose-500",
+            badge: "bg-rose-50 text-rose-700 border-rose-100",
+            dot: "bg-rose-500"
+          },
+          medium: {
+            border: "border-l-4 border-l-amber-500/80 hover:border-amber-500",
+            badge: "bg-amber-50 text-amber-700 border-amber-100",
+            dot: "bg-amber-500"
+          },
+          low: {
+            border: "border-l-4 border-l-emerald-500/80 hover:border-emerald-500",
+            badge: "bg-emerald-50 text-emerald-700 border-emerald-100",
+            dot: "bg-emerald-500"
+          }
+        };
+        const style = priorityStyles[priorityKey] || priorityStyles.medium;
+
         return (
-          <div key={task._id} className="bg-white border border-gray-150 rounded-2xl p-5 hover:shadow-md hover:border-orange-200/50 transition-all duration-200 flex flex-col md:flex-row md:items-start justify-between gap-5">
+          <div key={task._id} className={`bg-white border border-gray-150 rounded-xl p-5 hover:shadow-md hover:scale-[1.005] transition-all duration-300 flex flex-col md:flex-row md:items-start justify-between gap-5 ${style.border}`}>
             {/* Left side: Task Title, Topic path, badges */}
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-3">
-                <span className="inline-flex w-7 h-7 rounded-xl bg-gray-50 text-gray-555 text-xs font-bold items-center justify-center border border-gray-200 flex-shrink-0 mt-0.5 shadow-sm">
+                <span className="inline-flex w-7 h-7 rounded-lg bg-slate-50 text-slate-600 text-xs font-black items-center justify-center border border-slate-200/65 flex-shrink-0 mt-0.5 shadow-sm">
                   {idx + 1}
                 </span>
                 <div className="space-y-1">
-                  <h4 className="text-sm font-bold text-gray-855 leading-snug">{task.title}</h4>
+                  <h4 className="text-sm font-extrabold text-gray-800 leading-snug tracking-tight">{task.title}</h4>
                   {task.dueDate && (
-                    <span className="inline-flex items-center gap-1.5 mt-2.5 text-[10.5px] font-medium text-gray-455 bg-gray-50 border border-gray-200/50 px-2.5 py-0.5 rounded-full">
+                    <span className="inline-flex items-center gap-1.5 mt-2.5 text-[10px] font-bold text-gray-500 bg-gray-50 border border-gray-200/50 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                       <MdCalendarToday size={11} className="text-gray-400" />
-                      {new Date(task.dueDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                      Due: {new Date(task.dueDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
                     </span>
                   )}
                 </div>
               </div>
 
               {/* Breadcrumbs for Topic & Subtopic */}
-              <div className="flex items-center flex-wrap gap-1.5 mt-3 text-xs text-gray-655 bg-gray-50 border border-gray-150/40 rounded-xl px-3 py-2 w-fit">
-                <span className="p-0.5 rounded bg-orange-55 text-orange-500 border border-orange-100 flex-shrink-0 flex items-center justify-center">
+              <div className="flex items-center flex-wrap gap-1.5 mt-3.5 text-[11px] text-gray-600 bg-slate-50 border border-slate-150/40 rounded-xl px-3 py-1.5 w-fit font-semibold font-sans">
+                <span className="p-0.5 rounded bg-orange-50 text-orange-500 border border-orange-100/50 flex-shrink-0 flex items-center justify-center">
                   <MdTopic size={12} />
                 </span>
-                <span className="font-semibold text-gray-800">{task.topicName || "—"}</span>
+                <span className="text-gray-700">{task.topicName || "—"}</span>
                 {task.subTopicName && (
                   <>
-                    <MdChevronRight size={14} className="text-gray-305" />
+                    <MdChevronRight size={14} className="text-gray-300" />
                     <span className="p-0.5 rounded bg-white text-gray-400 border border-gray-150 flex items-center justify-center">
                       <MdSubject size={10} />
                     </span>
-                    <span className="text-gray-655 text-xs">{task.subTopicName}</span>
+                    <span className="text-gray-500">{task.subTopicName}</span>
                   </>
                 )}
               </div>
 
               {/* Badges row */}
-              <div className="flex flex-wrap gap-2 mt-3.5">
-                <span className={`inline-block text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-sm/5 ${TYPE_BADGE[typeKey] || "bg-gray-100 text-gray-600 border border-gray-200"}`}>
+              <div className="flex flex-wrap gap-2 mt-4">
+                <span className={`inline-block text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-sm/5 ${TYPE_BADGE[typeKey] || "bg-gray-100 text-gray-600 border border-gray-200"}`}>
                   {typeKey}
                 </span>
-                <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-sm/5 ${pBadge.cls}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${pBadge.dot}`} />
+                <span className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-sm/5 ${style.badge}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${style.dot}`} />
                   {priorityKey}
                 </span>
                 {task.timeDays ? (
-                  <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-600 bg-gray-55 border border-gray-200/50 px-2.5 py-0.5 rounded-full">
-                    <MdAccessTime size={12} className="text-gray-450" />
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-gray-500 bg-gray-50 border border-gray-200/50 px-2.5 py-0.5 rounded-full">
+                    <MdAccessTime size={11} className="text-gray-400" />
                     {task.timeDays} day{task.timeDays > 1 ? "s" : ""}
                   </span>
                 ) : null}
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-gray-500 bg-gray-50 border border-gray-200/50 px-2.5 py-0.5 rounded-full">
+                  <MdPerson size={11} className="text-gray-400" />
+                  By: {task.assignedByName || "System"}
+                </span>
+                {task.createdAt && (
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-gray-400 whitespace-nowrap ml-1">
+                    {formatTimeAgo(task.createdAt)}
+                  </span>
+                )}
               </div>
             </div>
 
             {/* Right side: Measurable Points list (if present) */}
             {measurePoints.length > 0 && measurePoints[0] && (
-              <div className="md:w-[38%] w-full md:border-l md:border-t-0 border-t border-gray-105 md:pl-5 md:pt-0 pt-3.5 flex-shrink-0">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Measurable Points</p>
-                <ul className="space-y-1.5">
-                  {measurePoints.map((pt, i) => (
-                    <li key={i} className="flex items-start gap-2 text-xs text-gray-500 leading-relaxed">
-                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-orange-400/80 flex-shrink-0" />
-                      <span>{pt}</span>
-                    </li>
-                  ))}
-                </ul>
+              <div className="md:w-[38%] w-full md:border-l md:border-t-0 border-t border-gray-100 md:pl-5 md:pt-0 pt-4 flex-shrink-0">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2.5">Measurable Points</p>
+                <div className="bg-slate-50/50 border border-slate-100 rounded-xl p-3 shadow-sm/5">
+                  <ul className="space-y-1.5">
+                    {measurePoints.map((pt, i) => (
+                      <li key={i} className="flex items-start gap-2 text-xs text-gray-600 leading-relaxed font-medium">
+                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0" />
+                        <span>{pt}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             )}
           </div>
@@ -1100,11 +1179,23 @@ export const ManualTaskForm = ({ subLevel, versionId, onSaved, formId = "manual-
   const versions = versionsData?.data || [];
 
   useEffect(() => {
-    if (!versionId && versions.length > 0) {
-      const active = versions.find((v) => v.status === "active") || versions[0];
-      setSyllabusVersionId(active._id);
+    if (!versionId) {
+      if (versions.length > 0) {
+        if (!syllabusVersionId || !versions.some(v => v._id === syllabusVersionId)) {
+          const active = versions.find((v) => v.status === "active") || versions[0];
+          setSyllabusVersionId(active._id);
+        }
+      } else {
+        setSyllabusVersionId("");
+      }
     }
-  }, [versions, versionId]);
+  }, [versions, versionId, syllabusVersionId]);
+
+  useEffect(() => {
+    setSubjectId("");
+    setTopicId("");
+    setSubTopicId("");
+  }, [syllabusVersionId]);
 
   const { data: versionDetail } = useGetSyllabusVersionWithHierarchyQuery(syllabusVersionId, { skip: !syllabusVersionId });
   const subjects  = versionDetail?.data?.subjects || [];
@@ -1292,6 +1383,7 @@ export const TasksTab = ({ level, subLevel, onVersionChange }) => {
   const [activeVersionId,   setActiveVersionId]   = useState("");
   const [searchTerm,        setSearchTerm]        = useState("");
   const [showTaskModal,     setShowTaskModal]     = useState(false);
+  const [activeSubjectId,   setActiveSubjectId]   = useState("");
 
   const { data: sessionsData } = useGetAllSessionsQuery();
   const sessions = sessionsData?.data || [];
@@ -1306,6 +1398,41 @@ export const TasksTab = ({ level, subLevel, onVersionChange }) => {
     || allVersions.find((v) => v.status === "active")?._id
     || allVersions[0]?._id
     || "";
+
+  // Get subjects list for current tasks version
+  const subjectsList = useSubjectsList(currentVersionId);
+
+  // Auto-select first subject when version/subjects change
+  useEffect(() => {
+    if (subjectsList.length > 0) {
+      if (!activeSubjectId || !subjectsList.some(s => s._id === activeSubjectId)) {
+        setActiveSubjectId(subjectsList[0]._id);
+      }
+    } else {
+      setActiveSubjectId("");
+    }
+  }, [currentVersionId, subjectsList.length]);
+
+  // Get active subject name for robust fallback matching
+  const activeSubjectName = subjectsList.find(s => s._id === activeSubjectId)?.name || "";
+
+  console.log("TasksTab render debug:", {
+    currentVersionId,
+    subjectsList,
+    activeSubjectId,
+    activeSubjectName
+  });
+
+  useEffect(() => {
+    if (allVersions.length > 0) {
+      if (!activeVersionId || !allVersions.some(v => v._id === activeVersionId)) {
+        const active = allVersions.find((v) => v.status === "active") || allVersions[0];
+        setActiveVersionId(active._id);
+      }
+    } else {
+      setActiveVersionId("");
+    }
+  }, [allVersions, subLevelId]);
 
   useEffect(() => { onVersionChange?.(currentVersionId); }, [currentVersionId]);
 
@@ -1372,6 +1499,31 @@ export const TasksTab = ({ level, subLevel, onVersionChange }) => {
               >
                 <MdBook size={13} className={currentVersionId === v._id ? "text-orange-500" : "text-gray-400"} />
                 <span>{v.title || v.version}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Subject tabs (Pill selectors) */}
+        {subjectsList.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto p-2 bg-gray-50/50 rounded-xl border border-gray-150/45 m-4">
+            {subjectsList.map((s) => (
+              <button
+                key={s._id}
+                onClick={() => { setActiveSubjectId(s._id); setSearchTerm(""); }}
+                className={`flex items-center gap-2 px-4 py-2 text-xs font-bold whitespace-nowrap rounded-lg border transition-all flex-shrink-0 ${
+                  activeSubjectId === s._id
+                    ? "bg-white text-orange-600 shadow-sm border-orange-200/30"
+                    : "border-transparent text-gray-555 hover:text-gray-855 hover:bg-gray-100/50"
+                }`}
+              >
+                <MdBook size={13} className={activeSubjectId === s._id ? "text-orange-500" : "text-gray-400"} />
+                <span>{s.name}</span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition-all ${
+                  activeSubjectId === s._id ? "bg-orange-50 text-orange-600 border border-orange-100" : "bg-gray-100 text-gray-500"
+                }`}>
+                  {s.topicCount}
+                </span>
               </button>
             ))}
           </div>
@@ -1485,6 +1637,17 @@ const SyllabusTab = ({ level, subLevel }) => {
     || allVersions.find((v) => v.status === "active")?._id
     || allVersions[0]?._id
     || "";
+
+  useEffect(() => {
+    if (allVersions.length > 0) {
+      if (!activeVersionId || !allVersions.some(v => v._id === activeVersionId)) {
+        const active = allVersions.find((v) => v.status === "active") || allVersions[0];
+        setActiveVersionId(active._id);
+      }
+    } else {
+      setActiveVersionId("");
+    }
+  }, [allVersions, subLevelId]);
 
   const currentVersionDoc = allVersions.find((v) => v._id === currentVersionId);
 

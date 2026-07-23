@@ -136,53 +136,106 @@ const CompletionModal = ({ task, onConfirm, onCancel, loading }) => {
     );
 };
 
+function formatTimeAgo(dateString) {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+    
+    if (isNaN(seconds)) return "";
+    if (seconds < 0) return "Just now";
+
+    const intervals = {
+        year: 31536000,
+        month: 2592000,
+        week: 604800,
+        day: 86400,
+        hour: 3600,
+        minute: 60,
+        second: 1
+    };
+
+    for (const [unit, value] of Object.entries(intervals)) {
+        const count = Math.floor(seconds / value);
+        if (count >= 1) {
+            return `${count} ${unit}${count > 1 ? "s" : ""} ago`;
+        }
+    }
+    return "Just now";
+}
+
 // ── Task Card (Reference UI Replica) ──────────────────────────────────────────
 const TaskCard = ({ task, onDragStart, onStatusChange }) => {
     const priority    = task.priority || "medium";
     const isCompleted = task.status === "completed";
     const isInProgress = task.status === "inProgress";
 
+    // Accent lines and colors
+    const statusConfig = {
+        pending: "border-l-4 border-l-amber-500/80 hover:border-amber-500 hover:shadow-amber-500/5",
+        inProgress: "border-l-4 border-l-orange-500/80 hover:border-orange-500 hover:shadow-orange-500/5",
+        completed: "border-l-4 border-l-emerald-500/80 hover:border-emerald-500 hover:shadow-emerald-500/5"
+    };
+    const activeBorderClass = statusConfig[task.status] || statusConfig.pending;
+
     return (
         <div
             draggable
             onDragStart={() => onDragStart(task)}
-            className="bg-white rounded-2xl border border-slate-100/90 p-5 shadow-sm hover:shadow-md transition cursor-grab active:cursor-grabbing select-none space-y-3"
+            className={`bg-white rounded-xl border border-slate-150 p-4.5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 cursor-grab active:cursor-grabbing select-none space-y-3.5 ${activeBorderClass}`}
         >
             {/* Header: Priority Badge + Status Dropdown */}
-            <div className="flex items-center justify-between gap-2">
-                <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
-                    isCompleted ? "bg-slate-100 text-slate-500 border border-slate-200" : (PRIORITY_BADGES[priority] || PRIORITY_BADGES.medium)
+            <div className="flex items-center justify-between gap-2 pb-1">
+                <span className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-sm/5 ${
+                    isCompleted ? "bg-slate-50 text-slate-400 border-slate-200" : (PRIORITY_BADGES[priority] || PRIORITY_BADGES.medium)
                 }`}>
                     {isCompleted ? "COMPLETED" : `${priority} PRIORITY`}
                 </span>
 
-                <select
-                    value={task.status || "pending"}
-                    onChange={(e) => onStatusChange(task, e.target.value)}
-                    className="text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-700 bg-transparent border-none outline-none focus:outline-none cursor-pointer"
-                >
-                    <option value="pending">PENDING ▾</option>
-                    <option value="inProgress">IN PROGRESS ▾</option>
-                    <option value="completed">DONE ▾</option>
-                </select>
+                <div className="relative">
+                    <select
+                        value={task.status || "pending"}
+                        onChange={(e) => onStatusChange(task, e.target.value)}
+                        className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-700 bg-slate-50 border border-slate-200/50 rounded-lg px-2 py-1 outline-none focus:outline-none cursor-pointer transition"
+                    >
+                        <option value="pending">PENDING ▾</option>
+                        <option value="inProgress">IN PROGRESS ▾</option>
+                        <option value="completed">DONE ▾</option>
+                    </select>
+                </div>
             </div>
 
             {/* Title */}
             <div>
-                <h4 className={`text-xs font-bold text-slate-900 leading-snug ${isCompleted ? "line-through text-slate-400" : ""}`}>
+                <h4 className={`text-xs font-extrabold text-slate-800 leading-snug tracking-tight ${isCompleted ? "line-through text-slate-400" : ""}`}>
                     {task.title}
                 </h4>
                 {(task.subjectName || task.description) && (
-                    <p className="text-xs text-slate-400 mt-1 line-clamp-2 font-medium">
+                    <p className="text-[10.5px] text-slate-400 mt-1.5 line-clamp-2 font-medium leading-relaxed">
                         {task.description || (task.subjectName ? `${task.subjectName}${task.topicName ? ` › ${task.topicName}` : ""}` : "")}
                     </p>
                 )}
             </div>
 
+            {/* Given by & Time ago */}
+            <div className="flex items-center justify-between text-[9.5px] text-slate-400 font-semibold pt-2 border-t border-slate-100/70">
+                {task.assignedByName ? (
+                    <span className="truncate max-w-[60%] flex items-center gap-1 bg-slate-50 border border-slate-250/30 px-2 py-0.5 rounded-full" title={task.assignedByName}>
+                        <span className="w-1 h-1 rounded-full bg-slate-400 flex-shrink-0" />
+                        <span className="text-slate-500 font-bold truncate">{task.assignedByName}</span>
+                    </span>
+                ) : (
+                    <span className="text-slate-400 font-bold bg-slate-50 border border-slate-250/30 px-2 py-0.5 rounded-full">Auto-assigned</span>
+                )}
+                {(task.assignedAt || task.createdAt) && (
+                    <span className="text-slate-400/90 font-medium">{formatTimeAgo(task.assignedAt || task.createdAt)}</span>
+                )}
+            </div>
+
             {/* In Progress Progress Bar */}
             {isInProgress && (
-                <div className="space-y-1 pt-1">
-                    <div className="flex justify-between text-[11px] font-bold text-slate-400">
+                <div className="space-y-1.5 pt-1">
+                    <div className="flex justify-between text-[10px] font-bold text-slate-400">
                         <span>Progress</span>
                         <span className="text-orange-500 font-extrabold">65%</span>
                     </div>
@@ -195,25 +248,22 @@ const TaskCard = ({ task, onDragStart, onStatusChange }) => {
             {/* Marks & Verified Badge for Completed */}
             {isCompleted && (
                 <div className="flex items-center justify-between pt-1 text-xs">
-                    <span className="inline-flex items-center gap-1 text-emerald-600 font-extrabold text-[11px]">
-                        <MdVerified size={14} /> VERIFIED
+                    <span className="inline-flex items-center gap-1 text-emerald-600 font-black text-[10px] tracking-wider bg-emerald-50 border border-emerald-100 rounded-full px-2 py-0.5">
+                        <MdVerified size={12} /> VERIFIED
                     </span>
                     {task.marks != null && (
-                        <div className="flex items-center gap-0.5">
-                            {Array.from({ length: task.maxMarks || 5 }, (_, i) => (
-                                i < task.marks
-                                    ? <MdStar key={i} size={12} className="text-orange-400" />
-                                    : <MdStarBorder key={i} size={12} className="text-slate-300" />
-                            ))}
+                        <div className="flex items-center gap-0.5 bg-orange-50/50 border border-orange-100/50 rounded-lg px-1.5 py-0.5">
+                            <span className="text-[10px] font-extrabold text-orange-600 mr-1">{task.marks}/{task.maxMarks || 5}</span>
+                            <MdStar size={11} className="text-orange-400" />
                         </div>
                     )}
                 </div>
             )}
 
             {/* Footer Row */}
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px] font-medium text-slate-400">
-                <div className="flex items-center gap-1.5">
-                    <MdCalendarToday size={12} />
+            <div className="flex items-center justify-between pt-2.5 border-t border-slate-100/70 text-[10px] font-bold text-slate-400">
+                <div className="flex items-center gap-1.5 text-slate-400/90">
+                    <MdCalendarToday size={12} className="text-slate-350" />
                     <span>
                         {task.dueDate
                             ? new Date(task.dueDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
@@ -222,7 +272,7 @@ const TaskCard = ({ task, onDragStart, onStatusChange }) => {
                     </span>
                 </div>
 
-                <div className="w-6 h-6 rounded-full bg-orange-100 text-orange-600 font-bold flex items-center justify-center text-[10px]">
+                <div className="w-5 h-5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-150/40 font-black flex items-center justify-center text-[9px] shadow-sm/5">
                     {task.type?.[0]?.toUpperCase() || "T"}
                 </div>
             </div>
@@ -372,9 +422,16 @@ const StudentTaskBoard = () => {
     const allTasks = tasks
         ?? Object.values(data?.groupedBySubject || {}).flatMap(g => g.tasks || []);
 
+    // Sort allTasks by assignedAt/createdAt descending (latest first)
+    const sortedTasks = [...allTasks].sort((a, b) => {
+        const dateA = new Date(a.assignedAt || a.createdAt || 0);
+        const dateB = new Date(b.assignedAt || b.createdAt || 0);
+        return dateB - dateA;
+    });
+
     const subjects = Object.keys(data?.groupedBySubject || {});
 
-    const filtered = allTasks.filter(t => {
+    const filtered = sortedTasks.filter(t => {
         const matchSearch = !search ||
             t.title?.toLowerCase().includes(search.toLowerCase()) ||
             t.subjectName?.toLowerCase().includes(search.toLowerCase()) ||

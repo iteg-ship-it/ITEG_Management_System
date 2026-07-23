@@ -326,6 +326,7 @@ exports.addTaskToSyllabusVersion = async (req, res) => {
       timeDays: timeDays ? Number(timeDays) : null,
       measurablePoints: measurablePoints || "",
       order: taskCount + 1,
+      assignedByName: req.user?.name || "System",
       isActive: true
     });
 
@@ -656,6 +657,7 @@ exports.uploadCombined = async (req, res) => {
         timeDays,
         measurablePoints,
         order:        taskCount + 1,
+        assignedByName: req.user?.name || "System",
         isActive:     true
       });
     }

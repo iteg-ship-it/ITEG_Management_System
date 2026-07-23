@@ -117,6 +117,7 @@ exports.bulkUploadTasks = async (req, res) => {
         timeDays,
         measurablePoints,
         order:            taskCount + 1,
+        assignedByName:   req.user?.name || "System",
         isActive:         true,
       });
     }

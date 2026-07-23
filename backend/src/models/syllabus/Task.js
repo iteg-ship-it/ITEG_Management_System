@@ -55,6 +55,7 @@ const taskSchema = new mongoose.Schema({
   measurablePoints: { type: String, default: "" },
   dueDate: { type: Date, default: null },
   isGeneralTask: { type: Boolean, default: false }, // Flag for general tasks
+  assignedByName: { type: String, default: "" },
   isActive: { type: Boolean, default: true },
   deletedAt: { type: Date, default: null }
 }, { timestamps: true });

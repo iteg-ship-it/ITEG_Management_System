@@ -17,7 +17,14 @@ export default function StudentTasks() {
     const allSubjects   = Object.keys(subjectGroups);
     const allTasks      = Object.values(subjectGroups).flatMap(g => g.tasks || []);
 
-    const filtered = allTasks.filter(t => {
+    // Sort allTasks by assignedAt/createdAt descending (latest first)
+    const sortedTasks = [...allTasks].sort((a, b) => {
+        const dateA = new Date(a.assignedAt || a.createdAt || 0);
+        const dateB = new Date(b.assignedAt || b.createdAt || 0);
+        return dateB - dateA;
+    });
+
+    const filtered = sortedTasks.filter(t => {
         const matchSearch  = t.title?.toLowerCase().includes(search.toLowerCase()) ||
                              t.subjectName?.toLowerCase().includes(search.toLowerCase());
         const matchSubject = activeSubject === "All" || t.subjectName === activeSubject;
@@ -151,39 +158,113 @@ export default function StudentTasks() {
     );
 }
 
+function formatTimeAgo(dateString) {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+    
+    if (isNaN(seconds)) return "";
+    if (seconds < 0) return "Just now";
+
+    const intervals = {
+        year: 31536000,
+        month: 2592000,
+        week: 604800,
+        day: 86400,
+        hour: 3600,
+        minute: 60,
+        second: 1
+    };
+
+    for (const [unit, value] of Object.entries(intervals)) {
+        const count = Math.floor(seconds / value);
+        if (count >= 1) {
+            return `${count} ${unit}${count > 1 ? "s" : ""} ago`;
+        }
+    }
+    return "Just now";
+}
+
 function TaskCard({ task }) {
     const max = task.maxMarks || 5;
 
+    // Define status-based styles
+    const statusConfig = {
+        pending: {
+            borderClass: "border-l-4 border-l-amber-500/80 hover:border-amber-500",
+            bgClass: "hover:bg-amber-50/10",
+            iconColor: "text-amber-500"
+        },
+        inProgress: {
+            borderClass: "border-l-4 border-l-orange-500/80 hover:border-orange-500",
+            bgClass: "hover:bg-orange-50/10",
+            iconColor: "text-orange-500"
+        },
+        completed: {
+            borderClass: "border-l-4 border-l-emerald-500/80 hover:border-emerald-500",
+            bgClass: "hover:bg-emerald-50/10",
+            iconColor: "text-emerald-500"
+        }
+    };
+
+    const cfg = statusConfig[task.status] || statusConfig.pending;
+
     return (
-        <div className="bg-white rounded-xl border border-gray-100 p-3.5 shadow-sm hover:shadow-md hover:border-orange-100 transition-all duration-200">
-            {/* Subject tag */}
-            {task.subjectName && (
-                <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-100 mb-2">
-                    {task.subjectName}
-                </span>
-            )}
+        <div className={`bg-white rounded-xl border border-gray-150 p-4 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out flex flex-col justify-between h-full min-h-[140px] ${cfg.borderClass} ${cfg.bgClass}`}>
+            <div>
+                {/* Subject tag */}
+                {task.subjectName && (
+                    <span className="inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100/50 mb-2.5">
+                        {task.subjectName}
+                    </span>
+                )}
 
-            <p className="text-sm font-bold text-gray-800 leading-snug">{task.title}</p>
+                <h4 className="text-xs font-extrabold text-gray-800 leading-snug tracking-tight line-clamp-2">
+                    {task.title}
+                </h4>
 
-            {task.topicName && (
-                <p className="text-[11px] text-gray-400 mt-1">
-                    › {task.topicName}
-                </p>
-            )}
+                {task.topicName && (
+                    <p className="text-[10px] text-gray-400 font-semibold mt-1.5 flex items-center gap-1">
+                        <span className="text-gray-300 font-bold">›</span> {task.topicName}
+                    </p>
+                )}
+            </div>
 
-            {/* Marks */}
-            {task.status === "completed" && task.marks != null && (
-                <div className="flex items-center gap-1 mt-2.5 pt-2.5 border-t border-gray-50">
-                    <div className="flex items-center gap-0.5">
-                        {Array.from({ length: max }, (_, i) => (
-                            i < task.marks
-                                ? <MdStar key={i} size={13} className="text-orange-400" />
-                                : <MdStarBorder key={i} size={13} className="text-gray-200" />
-                        ))}
-                    </div>
-                    <span className="ml-1.5 text-xs font-bold text-gray-600">{task.marks}<span className="text-gray-400 font-normal">/{max}</span></span>
+            {/* Bottom Row */}
+            <div className="mt-4 pt-3 border-t border-gray-100 flex flex-col gap-2">
+                {/* Given by & Time ago */}
+                <div className="flex items-center justify-between text-[10px] text-gray-400">
+                    <span className="flex items-center gap-1 font-medium bg-gray-50 border border-gray-200/50 rounded-full px-2 py-0.5 max-w-[65%]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0" />
+                        <span className="truncate" title={task.assignedByName || "Auto-assigned"}>
+                            {task.assignedByName || "Auto-assigned"}
+                        </span>
+                    </span>
+                    {(task.assignedAt || task.createdAt) && (
+                        <span className="font-semibold text-gray-400/90 whitespace-nowrap">
+                            {formatTimeAgo(task.assignedAt || task.createdAt)}
+                        </span>
+                    )}
                 </div>
-            )}
+
+                {/* Marks */}
+                {task.status === "completed" && task.marks != null && (
+                    <div className="flex items-center justify-between mt-1 bg-orange-50/40 border border-orange-100/50 rounded-xl px-2.5 py-1.5 shadow-sm/5">
+                        <span className="text-[10px] font-extrabold text-orange-600/90 uppercase tracking-wider">Score</span>
+                        <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-0.5">
+                                {Array.from({ length: max }, (_, i) => (
+                                    i < task.marks
+                                        ? <MdStar key={i} size={11} className="text-orange-400" />
+                                        : <MdStarBorder key={i} size={11} className="text-gray-200" />
+                                ))}
+                            </div>
+                            <span className="text-[11px] font-black text-gray-700">{task.marks}<span className="text-gray-400 font-medium">/{max}</span></span>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

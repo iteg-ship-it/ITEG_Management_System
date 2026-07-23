@@ -52,9 +52,14 @@ export default function TaskList() {
         dueDate: st.taskId?.dueDate ? st.taskId.dueDate.split('T')[0] : new Date().toISOString().split('T')[0],
         taskId: st.taskId?._id,
         studentTaskId: st._id,
-        notes: st.notes || ''
+        notes: st.notes || '',
+        assignedByName: st.assignedByName || '',
+        assignedAt: st.assignedAt || st.createdAt
       }));
       
+      // Sort tasks by assignedAt/createdAt descending (latest first)
+      formattedTasks.sort((a, b) => new Date(b.assignedAt || b.createdAt || 0) - new Date(a.assignedAt || a.createdAt || 0));
+
       setTasks(formattedTasks);
     } catch (error) {
       console.error('Error fetching tasks:', error);
@@ -99,10 +104,12 @@ export default function TaskList() {
           dueDate: result.task.taskId.dueDate.split('T')[0],
           taskId: result.task.taskId._id,
           studentTaskId: result.task._id,
-          notes: result.task.notes || ''
+          notes: result.task.notes || '',
+          assignedByName: result.task.assignedByName || '',
+          assignedAt: result.task.assignedAt || result.task.createdAt
         };
 
-        setTasks([...tasks, formattedTask]);
+        setTasks([formattedTask, ...tasks]);
         setNewTask({ title: "", description: "", subject: "", customSubject: "", priority: "2nd", dueDate: new Date().toISOString().split('T')[0] });
         setAddModalOpen(false);
         
@@ -513,6 +520,34 @@ const TaskColumn = ({ title, tasks, color, status, onStatusChange, onEdit, onDel
   );
 };
 
+function formatTimeAgo(dateString) {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  const now = new Date();
+  const seconds = Math.floor((now - date) / 1000);
+  
+  if (isNaN(seconds)) return "";
+  if (seconds < 0) return "Just now";
+
+  const intervals = {
+    year: 31536000,
+    month: 2592000,
+    week: 604800,
+    day: 86400,
+    hour: 3600,
+    minute: 60,
+    second: 1
+  };
+
+  for (const [unit, value] of Object.entries(intervals)) {
+    const count = Math.floor(seconds / value);
+    if (count >= 1) {
+      return `${count} ${unit}${count > 1 ? "s" : ""} ago`;
+    }
+  }
+  return "Just now";
+}
+
 // Task Card Component
 const TaskCard = ({ task, onStatusChange, onEdit, onDelete, getPriorityColor, getStatusColor, onDragStart }) => {
   return (
@@ -539,6 +574,21 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete, getPriorityColor, ge
         <span className="text-xs text-gray-500">
           Due: {new Date(task.dueDate).toLocaleDateString()}
         </span>
+      </div>
+
+      {/* Given by & Time ago */}
+      <div className="flex items-center justify-between text-[11px] text-gray-400 mb-3 pt-2 border-t border-gray-100">
+        {task.assignedByName ? (
+          <span className="truncate max-w-[60%]" title={task.assignedByName}>
+            <span className="font-semibold text-gray-500">By: </span>
+            {task.assignedByName}
+          </span>
+        ) : (
+          <span className="font-semibold text-gray-500">Auto-assigned</span>
+        )}
+        {(task.assignedAt || task.createdAt) && (
+          <span>{formatTimeAgo(task.assignedAt || task.createdAt)}</span>
+        )}
       </div>
       
       <div className="flex items-center gap-2">

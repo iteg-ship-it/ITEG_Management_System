@@ -63,11 +63,21 @@ const TaskManagementModal = ({ isOpen, onClose, level, subLevel, onSuccess }) =>
   const [deleteTask] = useDeleteTaskMutation();
 
   useEffect(() => {
-    if (versions.length > 0 && !selectedVersionId) {
-      const activeVersion = versions.find(v => v.status === "active") || versions[0];
-      setSelectedVersionId(activeVersion._id);
+    if (versions.length > 0) {
+      if (!selectedVersionId || !versions.some(v => v._id === selectedVersionId)) {
+        const activeVersion = versions.find(v => v.status === "active") || versions[0];
+        setSelectedVersionId(activeVersion._id);
+      }
+    } else {
+      setSelectedVersionId("");
     }
   }, [versions, selectedVersionId]);
+
+  useEffect(() => {
+    setSelectedSubjectId("");
+    setSelectedTopicId("");
+    setSelectedSubTopicId("");
+  }, [selectedVersionId]);
 
   const resetForm = () => {
     setTaskForm({

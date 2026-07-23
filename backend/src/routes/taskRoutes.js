@@ -134,6 +134,7 @@ router.post("/general", verifyToken, checkRole(writeRoles), async (req, res) => 
       dueDate: dueDate || null,
       isGeneralTask: true,
       taskNodeType: "general",
+      assignedByName: req.user?.name || "System",
       isActive: true
     });
 

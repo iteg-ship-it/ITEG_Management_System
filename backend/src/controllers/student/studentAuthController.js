@@ -187,7 +187,7 @@ exports.getMyTasks = async (req, res) => {
     if (status) filter.status = status;
     if (subLevelId) filter.subLevelId = subLevelId;
 
-    const tasks = await StudentTask.find(filter).sort({ subjectName: 1, topicName: 1 });
+    const tasks = await StudentTask.find(filter).sort({ assignedAt: -1, createdAt: -1 });
 
     const grouped = {};
     tasks.forEach(t => {
