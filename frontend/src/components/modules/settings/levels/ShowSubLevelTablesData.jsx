@@ -102,7 +102,7 @@ const StudentsTab = ({ subLevel, searchTerm, setSearchTerm, onRowClick, onTaskBo
     );
 };
 
-const ProgressTab = ({ subLevel }) => {
+const ProgressTab = ({ subLevel, onRowClick }) => {
     const [progressSearch, setProgressSearch] = useState("");
     const { data, isLoading } = useGetSubLevelProgressQuery(subLevel?._id, { skip: !subLevel?._id });
     const progressList = data?.data || [];
@@ -122,7 +122,10 @@ const ProgressTab = ({ subLevel }) => {
             label: "STUDENT NAME",
             render: (row) => (
                 <div className="flex flex-col">
-                    <span className="font-bold text-sm text-orange-500 hover:text-orange-600 transition-colors cursor-pointer">
+                    <span 
+                        onClick={(e) => { e.stopPropagation(); onRowClick?.(row); }}
+                        className="font-bold text-sm text-orange-500 hover:text-orange-600 transition-colors cursor-pointer"
+                    >
                         {row.name}
                     </span>
                     <span className="text-[10px] text-gray-400 font-medium tracking-wide uppercase mt-0.5">
@@ -264,6 +267,7 @@ const ProgressTab = ({ subLevel }) => {
                 pagination={true}
                 rowsPerPage={10}
                 searchTerm={progressSearch}
+                onRowClick={onRowClick}
             />
         </div>
     );
@@ -489,7 +493,12 @@ const ShowSubLevelTablesData = () => {
                         {activeSection === "Syllabus" && (
                             <SyllabusTab level={level} subLevel={activeTab} />
                         )}
-                        {activeSection === "Progress" && <ProgressTab subLevel={activeTab} />}
+                        {activeSection === "Progress" && (
+                            <ProgressTab 
+                                subLevel={activeTab} 
+                                onRowClick={(row) => navigate("/setting/student-profile", { state: { student: { _id: row._id }, level, subdepartment } })}
+                            />
+                        )}
                     </div>
                 )}
             </div>
