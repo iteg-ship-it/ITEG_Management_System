@@ -25,6 +25,7 @@ import {
 } from "../../../../redux/api/authApi";
 import TaskManagementModal from "./TaskManagementModal";
 import SmartSyllabusUpdate from "./SmartSyllabusUpdate";
+import OrangeButton from "../../../shared/sidebar/OrangeButton";
 
 /* ─── helpers ─────────────────────────────────────────── */
 const normalize = (v) => (v === undefined || v === null ? "" : String(v).trim());
@@ -464,104 +465,83 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
 
   return (
     <>
-    {/* ── Report Card Metadata Modal ── */}
-    {showMetaModal && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-        <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
-          {/* Header */}
-          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-bold text-gray-900">Report Card Settings</p>
-              <p className="text-xs text-gray-400 mt-0.5">Configure each subject for report card generation</p>
-            </div>
-            <button onClick={() => setShowMetaModal(false)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition">✕</button>
-          </div>
-          {/* Subject cards */}
-          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
-            {subjectMeta.map((sm, idx) => (
-              <div key={sm.name} className="border border-gray-200 rounded-xl p-4 space-y-3">
-                <div className="flex items-center gap-2">
-                  <MdBook size={15} className="text-orange-500 flex-shrink-0" />
-                  <span className="text-sm font-bold text-gray-800">{sm.name}</span>
+    {/* ── Report Card Metadata Drawer ── */}
+    <OrangeButton
+      isOpen={showMetaModal}
+      onClose={() => setShowMetaModal(false)}
+      panelTitle="Report Card Settings"
+      panelSubtitle="Configure each subject for report card generation"
+      leftBtnText="Back"
+      rightBtnText={saving ? "Saving..." : "Confirm & Save"}
+      onLeftClick={() => setShowMetaModal(false)}
+      onRightClick={() => {
+        const invalid = subjectMeta.find(s => s.includeInReportCard && !s.reportCategory);
+        if (invalid) { toast.error(`Select category for "${invalid.name}"`); return; }
+        setShowMetaModal(false);
+        handleSave(subjectMeta);
+      }}
+      drawerContent={
+        <div className="space-y-3">
+          {subjectMeta.map((sm, idx) => (
+            <div key={sm.name} className="border border-gray-200 rounded-xl p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <MdBook size={15} className="text-orange-500 flex-shrink-0" />
+                <span className="text-sm font-bold text-gray-800">{sm.name}</span>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-2">Include this subject in Report Card?</p>
+                <div className="flex gap-2">
+                  {[true, false].map((val) => (
+                    <button
+                      key={String(val)}
+                      type="button"
+                      onClick={() => setSubjectMeta(prev => prev.map((s, i) =>
+                        i === idx ? { ...s, includeInReportCard: val, reportCategory: val ? s.reportCategory : "" } : s
+                      ))}
+                      className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition ${
+                        sm.includeInReportCard === val
+                          ? val ? "bg-green-50 border-green-400 text-green-700" : "bg-gray-100 border-gray-300 text-gray-600"
+                          : "bg-white border-gray-200 text-gray-400 hover:border-gray-300"
+                      }`}
+                    >
+                      {val ? "✓ Yes" : "✗ No"}
+                    </button>
+                  ))}
                 </div>
-                {/* Q1: Include in report card */}
+              </div>
+              {sm.includeInReportCard && (
                 <div>
-                  <p className="text-xs text-gray-500 mb-2">Include this subject in Report Card?</p>
+                  <p className="text-xs text-gray-500 mb-2">Category</p>
                   <div className="flex gap-2">
-                    {[true, false].map((val) => (
+                    {["technical", "softskill"].map((cat) => (
                       <button
-                        key={String(val)}
+                        key={cat}
                         type="button"
                         onClick={() => setSubjectMeta(prev => prev.map((s, i) =>
-                          i === idx ? { ...s, includeInReportCard: val, reportCategory: val ? s.reportCategory : "" } : s
+                          i === idx ? { ...s, reportCategory: cat } : s
                         ))}
                         className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition ${
-                          sm.includeInReportCard === val
-                            ? val ? "bg-green-50 border-green-400 text-green-700" : "bg-gray-100 border-gray-300 text-gray-600"
+                          sm.reportCategory === cat
+                            ? cat === "technical"
+                              ? "bg-blue-50 border-blue-400 text-blue-700"
+                              : "bg-purple-50 border-purple-400 text-purple-700"
                             : "bg-white border-gray-200 text-gray-400 hover:border-gray-300"
                         }`}
                       >
-                        {val ? "✓ Yes" : "✗ No"}
+                        {cat === "technical" ? "💻 Technical" : "🤝 Soft Skill"}
                       </button>
                     ))}
                   </div>
+                  {sm.includeInReportCard && !sm.reportCategory && (
+                    <p className="text-[11px] text-red-400 mt-1">Please select a category</p>
+                  )}
                 </div>
-                {/* Q2: Category — only if Yes */}
-                {sm.includeInReportCard && (
-                  <div>
-                    <p className="text-xs text-gray-500 mb-2">Category</p>
-                    <div className="flex gap-2">
-                      {["technical", "softskill"].map((cat) => (
-                        <button
-                          key={cat}
-                          type="button"
-                          onClick={() => setSubjectMeta(prev => prev.map((s, i) =>
-                            i === idx ? { ...s, reportCategory: cat } : s
-                          ))}
-                          className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition ${
-                            sm.reportCategory === cat
-                              ? cat === "technical"
-                                ? "bg-blue-50 border-blue-400 text-blue-700"
-                                : "bg-purple-50 border-purple-400 text-purple-700"
-                              : "bg-white border-gray-200 text-gray-400 hover:border-gray-300"
-                          }`}
-                        >
-                          {cat === "technical" ? "💻 Technical" : "🤝 Soft Skill"}
-                        </button>
-                      ))}
-                    </div>
-                    {sm.includeInReportCard && !sm.reportCategory && (
-                      <p className="text-[11px] text-red-400 mt-1">Please select a category</p>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-          {/* Footer */}
-          <div className="px-5 py-4 border-t border-gray-100 flex gap-2">
-            <button
-              onClick={() => setShowMetaModal(false)}
-              className="px-4 py-2 text-sm text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-            >
-              Back
-            </button>
-            <button
-              onClick={() => {
-                const invalid = subjectMeta.find(s => s.includeInReportCard && !s.reportCategory);
-                if (invalid) { toast.error(`Select category for "${invalid.name}"`); return; }
-                setShowMetaModal(false);
-                handleSave(subjectMeta);
-              }}
-              disabled={saving}
-              className="flex-1 flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-semibold py-2 rounded-lg transition"
-            >
-              <MdSave size={15} />{saving ? "Saving..." : "Confirm & Save"}
-            </button>
-          </div>
+              )}
+            </div>
+          ))}
         </div>
-      </div>
-    )}
+      }
+    />
     <div className="space-y-4">
       <div onClick={() => fileRef.current?.click()} className="border-2 border-dashed border-orange-200 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-orange-400 hover:bg-orange-50 transition group">
         {parsing ? (

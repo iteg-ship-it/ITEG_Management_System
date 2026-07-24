@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import * as faceapi from 'face-api.js';
 import { toast } from 'react-toastify';
 import CryptoJS from 'crypto-js';
+import OrangeButton from '../../shared/sidebar/OrangeButton';
 
 const FaceLogin = ({ onLoginSuccess, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -234,27 +235,18 @@ const FaceLogin = ({ onLoginSuccess, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full mx-4 border border-gray-100">
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-[#FDA92D] to-[#FED680] rounded-full flex items-center justify-center">
-              <span className="text-white text-xl">👤</span>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800">Face Authentication</h2>
-          </div>
-          <button
-            onClick={() => {
-              stopCamera();
-              onClose();
-            }}
-            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors"
-          >
-            ✕
-          </button>
-        </div>
-
-        <div className="space-y-6">
+  return (
+    <OrangeButton
+      isOpen={true}
+      onClose={() => {
+        stopCamera();
+        onClose();
+      }}
+      panelTitle="Face Authentication"
+      panelSubtitle="Verification via facial recognition"
+      showFooter={false}
+      drawerContent={
+        <div className="space-y-6 py-2">
           {!modelsLoaded ? (
             <div className="text-center py-12">
               <div className="relative">
@@ -262,48 +254,45 @@ const FaceLogin = ({ onLoginSuccess, onClose }) => {
                 <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#FDA92D] to-[#FED680] opacity-20 animate-pulse"></div>
               </div>
               <p className="text-gray-600 font-medium">Initializing Face Recognition...</p>
-              <p className="text-sm text-gray-500 mt-2">Please wait while we load the AI models</p>
+              <p className="text-sm text-gray-500 mt-2">Please wait while AI models load</p>
             </div>
           ) : (
             <>
-              <div className="relative overflow-hidden rounded-xl border-4 border-gradient-to-r from-[#FDA92D] to-[#FED680] shadow-lg">
+              <div className="relative overflow-hidden rounded-xl border-4 border-orange-200 shadow-lg">
                 <video
                   ref={videoRef}
                   autoPlay
                   muted
-                  className="w-full h-80 bg-gradient-to-br from-gray-100 to-gray-200 object-cover"
+                  className="w-full h-72 bg-gray-100 object-cover"
                 />
                 <canvas
                   ref={canvasRef}
                   className="absolute top-0 left-0 w-full h-full pointer-events-none"
                 />
                 
-                {/* Status indicators */}
-                <div className="absolute top-4 left-4 flex gap-2">
-                  <div className="bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2">
+                <div className="absolute top-3 left-3 flex gap-2">
+                  <div className="bg-black/60 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5">
                     <div className={`w-2 h-2 rounded-full ${isCapturing ? 'bg-red-500 animate-pulse' : 'bg-gray-400'}`}></div>
                     {isCapturing ? 'Live' : 'Offline'}
                   </div>
                   {faceDetected && (
-                    <div className="bg-green-500 bg-opacity-90 text-white px-3 py-1 rounded-full text-sm font-medium">
+                    <div className="bg-green-600/90 text-white px-3 py-1 rounded-full text-xs font-medium">
                       ✓ Face Detected
                     </div>
                   )}
                 </div>
                 
-                {/* Countdown overlay */}
                 {countdown > 0 && (
-                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <div className="text-6xl font-bold text-white animate-pulse">
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <div className="text-5xl font-bold text-white animate-pulse">
                       {countdown}
                     </div>
                   </div>
                 )}
                 
-                {/* Face detection guide */}
                 {isCapturing && !faceDetected && (
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-yellow-500 bg-opacity-90 text-white px-4 py-2 rounded-full text-sm font-medium">
-                    📍 Position your face in the camera
+                  <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 bg-amber-500/90 text-white px-3 py-1 rounded-full text-xs font-medium">
+                    Position face in camera
                   </div>
                 )}
               </div>
@@ -311,32 +300,33 @@ const FaceLogin = ({ onLoginSuccess, onClose }) => {
               <div className="text-center space-y-4">
                 {!isCapturing ? (
                   <button
+                    type="button"
                     onClick={startCamera}
-                    className="w-full bg-[#FDA92D] text-white py-3 rounded-full hover:bg-[#FED680] active:bg-[#B66816] transition relative"
+                    className="w-full bg-[#FDA92D] text-white py-3 rounded-xl hover:bg-orange-600 font-semibold transition"
                   >
-                    📹 Start Camera
+                    Start Camera
                   </button>
                 ) : (
                   <div className="space-y-3">
-                    <div className="space-y-3">
-                      <div className="text-center text-sm text-gray-600">
-                        Attempts: {attempts}/3 {faceDetected ? '• Face Ready ✓' : '• Position Face'}
-                      </div>
-                      <div className="flex gap-3">
-                        <button
-                          onClick={captureAndLogin}
-                          disabled={isLoading || !faceDetected || attempts >= 3}
-                          className="flex-1 bg-[#FDA92D] text-white py-3 rounded-full hover:bg-[#FED680] active:bg-[#B66816] transition relative disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {isLoading ? '🔄 Processing...' : countdown > 0 ? `📸 ${countdown}` : '🔐 Authenticate'}
-                        </button>
-                        <button
-                          onClick={stopCamera}
-                          className="px-6 py-3 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition relative"
-                        >
-                          ❌ Cancel
-                        </button>
-                      </div>
+                    <div className="text-center text-xs text-gray-600">
+                      Attempts: {attempts}/3 {faceDetected ? '• Face Ready ✓' : '• Position Face'}
+                    </div>
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={captureAndLogin}
+                        disabled={isLoading || !faceDetected || attempts >= 3}
+                        className="flex-1 bg-[#FDA92D] text-white py-3 rounded-xl hover:bg-orange-600 font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isLoading ? 'Processing...' : countdown > 0 ? `📸 ${countdown}` : 'Authenticate'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={stopCamera}
+                        className="px-5 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition"
+                      >
+                        Cancel
+                      </button>
                     </div>
                   </div>
                 )}
@@ -344,8 +334,8 @@ const FaceLogin = ({ onLoginSuccess, onClose }) => {
             </>
           )}
         </div>
-      </div>
-    </div>
+      }
+    />
   );
 };
 

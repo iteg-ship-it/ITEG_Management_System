@@ -4,7 +4,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import * as faceapi from 'face-api.js';
 import { toast } from 'react-toastify';
-import BlurBackground from '../../shared/BlurBackground';
+import OrangeButton from '../../shared/sidebar/OrangeButton';
 
 const FaceRegistration = ({ email, onRegistrationSuccess, onClose }) => {
   
@@ -227,31 +227,21 @@ const FaceRegistration = ({ email, onRegistrationSuccess, onClose }) => {
   };
 
   return (
-    <BlurBackground isOpen={true} onClose={() => { stopCamera(); onClose(); }}>
-      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full mx-4 border border-gray-100">
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#FDA92D] rounded-full flex items-center justify-center">
-              <span className="text-white text-xl">📷</span>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800">Register Face</h2>
-          </div>
-          <button
-            onClick={() => {
-              stopCamera();
-              onClose();
-            }}
-            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors"
-          >
-            ✕
-          </button>
-        </div>
-
-        <div className="space-y-6">
+    <OrangeButton
+      isOpen={true}
+      onClose={() => {
+        stopCamera();
+        onClose();
+      }}
+      panelTitle="Register Face ID"
+      panelSubtitle={email || "Facial recognition setup"}
+      showFooter={false}
+      drawerContent={
+        <div className="space-y-6 py-2">
           {!modelsLoaded ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#FDA92D] border-t-transparent mx-auto mb-4"></div>
-              <p className="text-gray-600 font-medium">Loading Face Recognition...</p>
+              <p className="text-gray-600 font-medium">Loading Face Recognition AI...</p>
             </div>
           ) : (
             <>
@@ -260,26 +250,26 @@ const FaceRegistration = ({ email, onRegistrationSuccess, onClose }) => {
                   ref={videoRef}
                   autoPlay
                   muted
-                  className="w-full h-80 bg-gradient-to-br from-gray-100 to-gray-200 object-cover"
+                  className="w-full h-72 bg-gray-100 object-cover"
                 />
                 <canvas
                   ref={canvasRef}
                   className="absolute top-0 left-0 w-full h-full pointer-events-none"
                 />
                 
-                <div className="absolute top-4 left-4 flex gap-2">
-                  <div className="bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2">
+                <div className="absolute top-3 left-3 flex gap-2">
+                  <div className="bg-black/60 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5">
                     <div className={`w-2 h-2 rounded-full ${isCapturing ? 'bg-red-500 animate-pulse' : 'bg-gray-400'}`}></div>
                     {isCapturing ? 'Live' : 'Offline'}
                   </div>
                   {faceDetected && (
-                    <div className="bg-green-500 bg-opacity-90 text-white px-3 py-1 rounded-full text-sm font-medium">
+                    <div className="bg-green-600/90 text-white px-3 py-1 rounded-full text-xs font-medium">
                       ✓ Face Detected
                     </div>
                   )}
                 </div>
                 
-                <div className="absolute top-4 right-4 bg-[#FDA92D] bg-opacity-90 text-white px-3 py-1 rounded-full text-sm font-medium">
+                <div className="absolute top-3 right-3 bg-[#FDA92D] text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
                   {capturedFaces.length}/3 Captured
                 </div>
               </div>
@@ -287,29 +277,32 @@ const FaceRegistration = ({ email, onRegistrationSuccess, onClose }) => {
               <div className="text-center space-y-4">
                 {!isCapturing ? (
                   <button
+                    type="button"
                     onClick={startCamera}
-                    className="w-full bg-[#FDA92D] text-white py-3 rounded-full hover:bg-[#FED680] transition"
+                    className="w-full bg-[#FDA92D] text-white py-3 rounded-xl hover:bg-orange-600 font-semibold transition"
                   >
-                    📹 Start Camera
+                    Start Camera
                   </button>
                 ) : (
                   <div className="space-y-3">
-                    <p className="text-sm text-gray-600">
-                      Capture your face from 3 different angles for better recognition
+                    <p className="text-xs text-gray-500">
+                      Capture face from 3 angles for high precision
                     </p>
                     <div className="flex gap-3">
                       <button
+                        type="button"
                         onClick={captureFace}
                         disabled={isLoading || !faceDetected || capturedFaces.length >= 3}
-                        className="flex-1 bg-[#FDA92D] text-white py-3 rounded-full hover:bg-[#FED680] transition disabled:opacity-50"
+                        className="flex-1 bg-[#FDA92D] text-white py-3 rounded-xl hover:bg-orange-600 font-semibold transition disabled:opacity-50"
                       >
-                        {isLoading ? '📸 Capturing...' : '📸 Capture Face'}
+                        {isLoading ? 'Capturing...' : 'Capture Face'}
                       </button>
                       <button
+                        type="button"
                         onClick={stopCamera}
-                        className="px-6 py-3 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition"
+                        className="px-5 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition"
                       >
-                        ❌ Cancel
+                        Cancel
                       </button>
                     </div>
                   </div>
@@ -318,8 +311,8 @@ const FaceRegistration = ({ email, onRegistrationSuccess, onClose }) => {
             </>
           )}
         </div>
-      </div>
-    </BlurBackground>
+      }
+    />
   );
 };
 

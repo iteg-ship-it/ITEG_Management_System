@@ -1,9 +1,8 @@
 /* eslint-disable react/prop-types */
 import { useEffect } from 'react';
-import BlurBackground from '../../shared/BlurBackground';
+import OrangeButton from '../../shared/sidebar/OrangeButton';
 
 const InterviewSuccessModal = ({ isOpen, onClose, studentName, currentLevel, nextLevel, result }) => {
-    // Auto close after 5 seconds
     useEffect(() => {
         if (isOpen) {
             const timer = setTimeout(() => {
@@ -12,8 +11,6 @@ const InterviewSuccessModal = ({ isOpen, onClose, studentName, currentLevel, nex
             return () => clearTimeout(timer);
         }
     }, [isOpen, onClose]);
-
-    if (!isOpen) return null;
 
     const getResultIcon = () => {
         switch (result) {
@@ -33,7 +30,7 @@ const InterviewSuccessModal = ({ isOpen, onClose, studentName, currentLevel, nex
             case 'Fail':
                 return 'text-red-600';
             default:
-                return 'text-yellow-600';
+                return 'text-amber-600';
         }
     };
 
@@ -48,47 +45,47 @@ const InterviewSuccessModal = ({ isOpen, onClose, studentName, currentLevel, nex
     };
 
     return (
-        <BlurBackground isOpen={isOpen} onClose={onClose}>
-            <div className="bg-white rounded-xl p-8 w-full max-w-md mx-4 shadow-2xl transform transition-all duration-300 scale-100">
-                <div className="text-center">
-                    {/* Result Icon */}
-                    <div className="text-6xl mb-4">
+        <OrangeButton
+            isOpen={isOpen}
+            onClose={onClose}
+            panelTitle="Interview Result"
+            panelSubtitle={studentName || "Candidate status update"}
+            showFooter={false}
+            drawerContent={
+                <div className="text-center py-6 space-y-6">
+                    <div className="text-6xl">
                         {getResultIcon()}
                     </div>
                     
-                    {/* Student Name */}
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                    <h2 className="text-2xl font-bold text-gray-800">
                         {studentName}
                     </h2>
                     
-                    {/* Result Status */}
-                    <p className={`text-lg font-semibold mb-4 ${getResultColor()}`}>
+                    <p className={`text-lg font-semibold ${getResultColor()}`}>
                         Interview {result}
                     </p>
                     
-                    {/* Level Progress */}
-                    <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                        <p className="text-sm text-gray-600 mb-1">Level Progress</p>
-                        <p className="text-xl font-bold text-gray-800">
+                    <div className="bg-orange-50/70 border border-orange-100 rounded-xl p-4">
+                        <p className="text-xs font-semibold text-gray-500 mb-1">Level Progress</p>
+                        <p className="text-lg font-bold text-gray-800">
                             {getProgressMessage()}
                         </p>
                     </div>
                     
-                    {/* Auto close message */}
-                    <p className="text-xs text-gray-500">
-                        This message will close automatically in 5 seconds
+                    <p className="text-xs text-gray-400">
+                        This panel will close automatically in 5 seconds
                     </p>
+
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs rounded-xl transition"
+                    >
+                        Close
+                    </button>
                 </div>
-                
-                {/* Manual close button */}
-                <button
-                    onClick={onClose}
-                    className="absolute top-3 right-3 text-xl text-gray-400 hover:text-gray-700 transition-colors"
-                >
-                    &times;
-                </button>
-            </div>
-        </BlurBackground>
+            }
+        />
     );
 };
 

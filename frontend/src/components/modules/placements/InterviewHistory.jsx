@@ -8,7 +8,7 @@ import { CheckCircle, XCircle, Clock } from "lucide-react";
 import { FaCalendarAlt } from "react-icons/fa";
 import PageNavbar from "../../shared/navbar/PageNavbar";
 import { buttonStyles } from "../../../styles/buttonStyles";
-import BlurBackground from "../../shared/BlurBackground";
+import OrangeButton from "../../shared/sidebar/OrangeButton";
 
 const InterviewHistory = () => {
   const { id } = useParams();
@@ -444,303 +444,241 @@ const InterviewHistory = () => {
             ))}
           </div>
         )}
-      </div>
-
-      {/* Update Modal */}
-      <BlurBackground isOpen={isUpdateModalOpen} onClose={() => setIsUpdateModalOpen(false)}>
-        <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-5">
-          <h2 className="text-xl font-semibold text-gray-800">Update Interview</h2>
-
-            <div className="space-y-4">
-              <div className="relative w-full">
-                <input
-                  value={round}
-                  onChange={(e) => setRound(e.target.value)}
-                  placeholder=" "
-                  className="peer w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-black focus:ring-0 transition-all duration-200"
-                />
-                <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${
-                  round ? "text-xs -top-2 text-black" : "text-gray-500 top-3"
-                }`}>
-                  Round
-                </label>
-              </div>
-
-              <div className="relative w-full">
-                <textarea
-                  value={remark}
-                  onChange={(e) => setRemark(e.target.value)}
-                  rows={3}
-                  placeholder=" "
-                  className="peer w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-black focus:ring-0 transition-all duration-200"
-                />
-                <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-gray-500 top-3 peer-focus:text-xs peer-focus:-top-2 peer-focus:text-black peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:text-black">
-                  Remark
-                </label>
-              </div>
-
-              <div className="relative w-full">
-                <button
-                  type="button"
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-black focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200"
-                >
-                  <span className={result ? 'text-gray-900' : 'text-gray-400'}>
-                    {result || 'Select'}
-                  </span>
-                  <span className={`ml-2 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}>
-                    ▼
-                  </span>
-                </button>
-                
-                <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${
-                  result ? "text-xs -top-2 text-black" : "text-gray-500 top-3"
-                }`}>
-                  Status
-                </label>
-
-                {isDropdownOpen && (
-                  <div
-                    className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden border"
-                    style={{
-                      background: `
-                        linear-gradient(to bottom left, rgba(173, 216, 230, 0.4) 0%, transparent 20%),
-                        linear-gradient(to top right, rgba(255, 182, 193, 0.4) 0%, transparent 20%),
-                        white
-                      `
-                    }}
-                  >
-                    {['Scheduled', 'Rescheduled', 'Ongoing', 'Selected', 'RejectedByStudent', 'RejectedByCompany'].map((option) => (
-                      <div
-                        key={option}
-                        onClick={() => {
-                          setResult(option);
-                          setIsDropdownOpen(false);
-                        }}
-                        className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left transition-colors duration-150"
-                      >
-                        {option}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="pt-4">
-                <button
-                  onClick={handleUpdateSubmit}
-                  disabled={isUpdating}
-                  className={`w-full py-3 ${buttonStyles.primary}`}
-                >
-                  {isUpdating ? "Submitting..." : "Save"}
-                </button>
-              </div>
+      </div>      {/* Update Drawer */}
+      <OrangeButton
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        panelTitle="Update Interview"
+        panelSubtitle="Update interview round, remark, and status"
+        leftBtnText="Cancel"
+        rightBtnText={isUpdating ? "Submitting..." : "Save Changes"}
+        onLeftClick={() => setIsUpdateModalOpen(false)}
+        onRightClick={handleUpdateSubmit}
+        drawerContent={
+          <div className="space-y-4 pt-2">
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Round</label>
+              <input
+                value={round}
+                onChange={(e) => setRound(e.target.value)}
+                placeholder="Enter round name"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+              />
             </div>
-        </div>
-      </BlurBackground>
 
-
-
-      {/* Add Next Round Modal */}
-      <BlurBackground isOpen={isAddNextRoundModalOpen} onClose={() => setIsAddNextRoundModalOpen(false)}>
-        <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-5">
-          <h2 className="text-xl font-semibold text-gray-800">Add Round</h2>
-
-            <div className="space-y-4">
-              {/* Round Field (Auto-filled and Disabled) */}
-              <div className="relative w-full">
-                <input
-                  value={round}
-                  readOnly
-                  disabled
-                  placeholder=" "
-                  className="peer w-full border border-gray-300 rounded-md px-3 py-2 leading-tight bg-gray-100 text-gray-600 cursor-not-allowed transition-all duration-200"
-                />
-                <label className="absolute left-3 bg-white px-1 text-xs -top-2 text-gray-600 pointer-events-none">
-                  Round (Auto-generated)
-                </label>
-              </div>
-
-              {/* Date & Time Field */}
-              <div className="relative w-full">
-                <input
-                  type="text"
-                  placeholder="Select Date & Time"
-                  value={`${nextRoundDate}${nextRoundTime ? ` at ${nextRoundTime}` : ''}`}
-                  onClick={() => setShowNextRoundDatePicker(!showNextRoundDatePicker)}
-                  readOnly
-                  className="peer w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200 cursor-pointer"
-                />
-                <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700" />
-                <label className="absolute left-3 bg-white px-1 text-xs -top-2 text-black pointer-events-none">
-                  Interview Date & Time
-                </label>
-                {showNextRoundDatePicker && (
-                  <DatePickerComponent
-                    selectedDate={nextRoundDate}
-                    selectedTime={nextRoundTime}
-                    onDateTimeSelect={(date, time) => {
-                      setNextRoundDate(date);
-                      setNextRoundTime(time);
-                      setShowNextRoundDatePicker(false);
-                    }}
-                    onClose={() => setShowNextRoundDatePicker(false)}
-                  />
-                )}
-              </div>
-
-              {/* Feedback Field */}
-              <div className="relative w-full">
-                <textarea
-                  value={nextRoundFeedback}
-                  onChange={(e) => setNextRoundFeedback(e.target.value)}
-                  rows={3}
-                  placeholder=" "
-                  className="peer w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200"
-                />
-                <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${
-                  nextRoundFeedback ? "text-xs -top-2 text-black" : "text-gray-500 top-3"
-                }`}>
-                  Feedback
-                </label>
-              </div>
-
-              {/* Result Dropdown */}
-              <div className="relative w-full">
-                <button
-                  type="button"
-                  onClick={() => setIsNextRoundDropdownOpen(!isNextRoundDropdownOpen)}
-                  className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-[#FDA92D] focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200"
-                >
-                  <span className={nextRoundResult ? 'text-gray-900' : 'text-gray-400'}>
-                    {nextRoundResult || 'Select'}
-                  </span>
-                  <span className={`ml-2 transition-transform duration-200 ${isNextRoundDropdownOpen ? 'rotate-180' : ''}`}>
-                    ▼
-                  </span>
-                </button>
-                
-                <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${
-                  nextRoundResult ? "text-xs -top-2 text-black" : "text-gray-500 top-3"
-                }`}>
-                  Result
-                </label>
-
-                {isNextRoundDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden border bg-white">
-                    {['Pending', 'Passed', 'Failed'].map((option) => (
-                      <div
-                        key={option}
-                        onClick={() => {
-                          setNextRoundResult(option);
-                          setIsNextRoundDropdownOpen(false);
-                        }}
-                        className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left transition-colors duration-150"
-                      >
-                        {option}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Mode Dropdown */}
-              <div className="relative w-full">
-                <button
-                  type="button"
-                  onClick={() => setIsModeDropdownOpen(!isModeDropdownOpen)}
-                  className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-[#FDA92D] focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200"
-                >
-                  <span className={nextRoundMode ? 'text-gray-900' : 'text-gray-400'}>
-                    {nextRoundMode || 'Select'}
-                  </span>
-                  <span className={`ml-2 transition-transform duration-200 ${isModeDropdownOpen ? 'rotate-180' : ''}`}>
-                    ▼
-                  </span>
-                </button>
-                
-                <label className={`absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none ${
-                  nextRoundMode ? "text-xs -top-2 text-black" : "text-gray-500 top-3"
-                }`}>
-                  Mode
-                </label>
-
-                {isModeDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden border bg-white">
-                    {['Online', 'Offline', 'Hybrid'].map((option) => (
-                      <div
-                        key={option}
-                        onClick={() => {
-                          setNextRoundMode(option);
-                          setIsModeDropdownOpen(false);
-                        }}
-                        className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left transition-colors duration-150"
-                      >
-                        {option}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="pt-4">
-                <button
-                  onClick={handleAddNextRoundSubmit}
-                  disabled={isUpdating}
-                  className={`w-full py-3 ${buttonStyles.primary}`}
-                >
-                  {isAddingRound ? "Adding..." : "Add Round"}
-                </button>
-              </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Remark</label>
+              <textarea
+                value={remark}
+                onChange={(e) => setRemark(e.target.value)}
+                rows={3}
+                placeholder="Enter remark"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+              />
             </div>
-        </div>
-      </BlurBackground>
 
-      {/* Reschedule Modal */}
-      <BlurBackground isOpen={isRescheduleModalOpen} onClose={() => setIsRescheduleModalOpen(false)}>
-        <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-5">
-          <h2 className="text-xl font-semibold text-gray-800">Reschedule Interview</h2>
+            <div className="relative">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Status</label>
+              <button
+                type="button"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="h-11 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-left focus:outline-none focus:border-orange-400 flex items-center justify-between cursor-pointer"
+              >
+                <span className={result ? 'text-gray-900' : 'text-gray-400'}>
+                  {result || 'Select Status'}
+                </span>
+                <span className={`ml-2 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}>
+                  ▼
+                </span>
+              </button>
 
-            <div className="space-y-4">
-              <div className="relative w-full">
-                <input
-                  type="text"
-                  placeholder="Select Date & Time"
-                  value={`${newInterviewDate}${newInterviewTime ? ` at ${newInterviewTime}` : ''}`}
-                  onClick={() => setShowRescheduleDatePicker(!showRescheduleDatePicker)}
-                  readOnly
-                  className="peer w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-[#FDA92D] focus:ring-0 transition-all duration-200 cursor-pointer"
-                />
-                <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700" />
-                <label className="absolute left-3 bg-white px-1 text-xs -top-2 text-black pointer-events-none">
-                  New Interview Date & Time
-                </label>
-                {showRescheduleDatePicker && (
-                  <DatePickerComponent
-                    selectedDate={newInterviewDate}
-                    selectedTime={newInterviewTime}
-                    onDateTimeSelect={(date, time) => {
-                      setNewInterviewDate(date);
-                      setNewInterviewTime(time);
-                      setShowRescheduleDatePicker(false);
-                    }}
-                    onClose={() => setShowRescheduleDatePicker(false)}
-                  />
-                )}
-              </div>
-
-              <div className="pt-4">
-                <button
-                  onClick={handleRescheduleSubmit}
-                  disabled={isRescheduling || !newInterviewDate || !newInterviewTime}
-                  className={`w-full py-3 ${buttonStyles.primary}`}
-                >
-                  {isRescheduling ? "Rescheduling..." : "Reschedule"}
-                </button>
-              </div>
+              {isDropdownOpen && (
+                <div className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden border bg-white">
+                  {['Scheduled', 'Rescheduled', 'Ongoing', 'Selected', 'RejectedByStudent', 'RejectedByCompany'].map((option) => (
+                    <div
+                      key={option}
+                      onClick={() => {
+                        setResult(option);
+                        setIsDropdownOpen(false);
+                      }}
+                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-xs text-left transition"
+                    >
+                      {option}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-        </div>
-      </BlurBackground>
+          </div>
+        }
+      />
+
+      {/* Add Next Round Drawer */}
+      <OrangeButton
+        isOpen={isAddNextRoundModalOpen}
+        onClose={() => setIsAddNextRoundModalOpen(false)}
+        panelTitle="Add Round"
+        panelSubtitle="Schedule the next round of interview"
+        leftBtnText="Cancel"
+        rightBtnText={isAddingRound ? "Adding..." : "Add Round"}
+        onLeftClick={() => setIsAddNextRoundModalOpen(false)}
+        onRightClick={handleAddNextRoundSubmit}
+        drawerContent={
+          <div className="space-y-4 pt-2">
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1">Round (Auto-generated)</label>
+              <input
+                value={round}
+                readOnly
+                disabled
+                className="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-500 cursor-not-allowed"
+              />
+            </div>
+
+            <div className="relative">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Interview Date & Time</label>
+              <input
+                type="text"
+                placeholder="Select Date & Time"
+                value={`${nextRoundDate}${nextRoundTime ? ` at ${nextRoundTime}` : ''}`}
+                onClick={() => setShowNextRoundDatePicker(!showNextRoundDatePicker)}
+                readOnly
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 cursor-pointer pr-10"
+              />
+              <FaCalendarAlt className="absolute right-3 top-8 text-gray-500" />
+              {showNextRoundDatePicker && (
+                <DatePickerComponent
+                  selectedDate={nextRoundDate}
+                  selectedTime={nextRoundTime}
+                  onDateTimeSelect={(date, time) => {
+                    setNextRoundDate(date);
+                    setNextRoundTime(time);
+                    setShowNextRoundDatePicker(false);
+                  }}
+                  onClose={() => setShowNextRoundDatePicker(false)}
+                />
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Feedback</label>
+              <textarea
+                value={nextRoundFeedback}
+                onChange={(e) => setNextRoundFeedback(e.target.value)}
+                rows={3}
+                placeholder="Enter round feedback"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+              />
+            </div>
+
+            <div className="relative">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Result</label>
+              <button
+                type="button"
+                onClick={() => setIsNextRoundDropdownOpen(!isNextRoundDropdownOpen)}
+                className="h-11 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-left focus:outline-none focus:border-orange-400 flex items-center justify-between cursor-pointer"
+              >
+                <span className={nextRoundResult ? 'text-gray-900' : 'text-gray-400'}>
+                  {nextRoundResult || 'Select Result'}
+                </span>
+                <span className={`ml-2 transition-transform duration-200 ${isNextRoundDropdownOpen ? 'rotate-180' : ''}`}>
+                  ▼
+                </span>
+              </button>
+
+              {isNextRoundDropdownOpen && (
+                <div className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden border bg-white">
+                  {['Pending', 'Passed', 'Failed'].map((option) => (
+                    <div
+                      key={option}
+                      onClick={() => {
+                        setNextRoundResult(option);
+                        setIsNextRoundDropdownOpen(false);
+                      }}
+                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-xs text-left transition"
+                    >
+                      {option}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="relative">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Mode</label>
+              <button
+                type="button"
+                onClick={() => setIsModeDropdownOpen(!isModeDropdownOpen)}
+                className="h-11 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-left focus:outline-none focus:border-orange-400 flex items-center justify-between cursor-pointer"
+              >
+                <span className={nextRoundMode ? 'text-gray-900' : 'text-gray-400'}>
+                  {nextRoundMode || 'Select Mode'}
+                </span>
+                <span className={`ml-2 transition-transform duration-200 ${isModeDropdownOpen ? 'rotate-180' : ''}`}>
+                  ▼
+                </span>
+              </button>
+
+              {isModeDropdownOpen && (
+                <div className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden border bg-white">
+                  {['Online', 'Offline', 'Hybrid'].map((option) => (
+                    <div
+                      key={option}
+                      onClick={() => {
+                        setNextRoundMode(option);
+                        setIsModeDropdownOpen(false);
+                      }}
+                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-xs text-left transition"
+                    >
+                      {option}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        }
+      />
+
+      {/* Reschedule Drawer */}
+      <OrangeButton
+        isOpen={isRescheduleModalOpen}
+        onClose={() => setIsRescheduleModalOpen(false)}
+        panelTitle="Reschedule Interview"
+        panelSubtitle="Pick a new date and time for the interview"
+        leftBtnText="Cancel"
+        rightBtnText={isRescheduling ? "Rescheduling..." : "Reschedule"}
+        onLeftClick={() => setIsRescheduleModalOpen(false)}
+        onRightClick={handleRescheduleSubmit}
+        drawerContent={
+          <div className="space-y-4 pt-2">
+            <div className="relative">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">New Interview Date & Time</label>
+              <input
+                type="text"
+                placeholder="Select Date & Time"
+                value={`${newInterviewDate}${newInterviewTime ? ` at ${newInterviewTime}` : ''}`}
+                onClick={() => setShowRescheduleDatePicker(!showRescheduleDatePicker)}
+                readOnly
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 cursor-pointer pr-10"
+              />
+              <FaCalendarAlt className="absolute right-3 top-8 text-gray-500" />
+              {showRescheduleDatePicker && (
+                <DatePickerComponent
+                  selectedDate={newInterviewDate}
+                  selectedTime={newInterviewTime}
+                  onDateTimeSelect={(date, time) => {
+                    setNewInterviewDate(date);
+                    setNewInterviewTime(time);
+                    setShowRescheduleDatePicker(false);
+                  }}
+                  onClose={() => setShowRescheduleDatePicker(false)}
+                />
+              )}
+            </div>
+          </div>
+        }
+      />
     </>
   );
 };

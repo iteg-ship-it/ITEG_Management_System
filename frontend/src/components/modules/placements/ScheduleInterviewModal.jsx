@@ -1,14 +1,14 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/prop-types */
 import { useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
-import { IoClose } from "react-icons/io5";
 import { FaCalendarAlt } from "react-icons/fa";
 import { useAddPlacementInterviewRecordMutation } from "../../../redux/api/authApi";
-import BlurBackground from "../../shared/BlurBackground";
+import OrangeButton from "../../shared/sidebar/OrangeButton";
 
-const inputClass = "h-12 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-700 placeholder:text-gray-500 focus:border-orange-400 focus:outline-none";
+const inputClass = "h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 placeholder:text-gray-400 focus:border-orange-400 focus:outline-none";
 
 const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
   const [addInterviewRecord, { isLoading }] = useAddPlacementInterviewRecordMutation();
@@ -63,8 +63,6 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
     if (!isOpen) formik.resetForm();
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
   const field = (name, placeholder, type = "text") => (
     <div>
       <input
@@ -80,49 +78,53 @@ const ScheduleInterviewModal = ({ isOpen, onClose, studentId, onSuccess }) => {
   );
 
   return (
-    <BlurBackground isOpen={isOpen} onClose={onClose}>
-      <div className="relative w-full max-w-[522px] rounded-2xl bg-white px-8 py-8 shadow-xl">
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-5 top-5 text-gray-500 transition hover:text-gray-700"
-        >
-          <IoClose size={22} />
-        </button>
+    <OrangeButton
+      isOpen={isOpen}
+      onClose={onClose}
+      panelTitle="Company Interview Details"
+      panelSubtitle="Schedule an interview for the selected candidate"
+      showFooter={false}
+      drawerContent={
+        <form onSubmit={formik.handleSubmit} className="space-y-4 pt-2">
+          <div className="grid grid-cols-1 gap-3">
+            {field("companyName", "Company Name")}
+            {field("hrEmail", "HR Email", "email")}
+            {field("hrContact", "HR Contact", "tel")}
+            {field("location", "Location")}
+            {field("jobProfile", "Job Profile")}
 
-        <h2 className="mb-6 text-center text-2xl font-semibold text-[#FDA92D]">
-          Company Interview Details
-        </h2>
-
-        <form onSubmit={formik.handleSubmit} className="grid grid-cols-2 gap-4">
-          {field("companyName", "Company Name")}
-          {field("hrEmail", "HR Email", "email")}
-          {field("hrContact", "HR Contact", "tel")}
-          {field("location", "Location")}
-          {field("jobProfile", "Job Profile")}
-
-          <div className="relative">
-            <input
-              {...formik.getFieldProps("scheduleDate")}
-              type="datetime-local"
-              className={`${inputClass} pr-10 ${formik.values.scheduleDate ? "" : "text-gray-500"}`}
-            />
-            <FaCalendarAlt className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-700" />
-            {formik.touched.scheduleDate && formik.errors.scheduleDate && (
-              <p className="mt-1 text-xs text-red-500">{formik.errors.scheduleDate}</p>
-            )}
+            <div className="relative">
+              <input
+                {...formik.getFieldProps("scheduleDate")}
+                type="datetime-local"
+                className={`${inputClass} pr-10 ${formik.values.scheduleDate ? "" : "text-gray-400"}`}
+              />
+              <FaCalendarAlt className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" />
+              {formik.touched.scheduleDate && formik.errors.scheduleDate && (
+                <p className="mt-1 text-xs text-red-500">{formik.errors.scheduleDate}</p>
+              )}
+            </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="col-span-2 mt-3 h-11 rounded-md bg-[#FDA92D] text-sm font-semibold text-white transition hover:bg-orange-500 disabled:opacity-60"
-          >
-            {isLoading ? "Submitting..." : "Submit"}
-          </button>
+          <div className="flex gap-3 pt-4 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2.5 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 py-2.5 text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-50 rounded-xl transition shadow-sm"
+            >
+              {isLoading ? "Submitting..." : "Schedule Interview"}
+            </button>
+          </div>
         </form>
-      </div>
-    </BlurBackground>
+      }
+    />
   );
 };
 

@@ -262,50 +262,50 @@ const UsersManagement = () => {
                 )}
             </div>
 
-            {editModal.show && (
-                <div className="modal-overlay">
-                    <div className="bg-white rounded-xl py-4 px-6 w-full max-w-2xl relative">
-                        <button onClick={() => setEditModal({ show: false, user: null })} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
-                            <X size={20} />
-                        </button>
-                        <h2 className="text-2xl font-semibold text-center mb-6 text-[var(--primary)]">Edit User</h2>
-                        <Formik
-                            initialValues={{ name: editModal.user?.name || '', position: editModal.user?.position || '', role: editModal.user?.role || '', department: editModal.user?.department || '', isActive: editModal.user?.isActive ?? true }}
-                            onSubmit={async (values) => {
-                                try {
-                                    await editUser({ id: editModal.user._id || editModal.user.id, ...values }).unwrap();
-                                    toast.success('User updated successfully');
-                                    setEditModal({ show: false, user: null });
-                                } catch {
-                                    toast.error('Failed to update user');
-                                }
-                            }}
-                        >
-                            <Form className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="col-span-2 text-sm font-semibold text-gray-600 mt-2">User Information</div>
-                                <div className="col-span-2 md:col-span-1"><InputField label="Name" name="name" placeholder="Enter user name" /></div>
-                                <div className="col-span-2 md:col-span-1">
-                                    <CustomDropdown label="Position" name="position" options={[{ value: 'Assistant Professor', label: 'Assistant Professor' }, { value: 'Associate Professor', label: 'Associate Professor' }, { value: 'Professor', label: 'Professor' }, { value: 'Lecturer', label: 'Lecturer' }, { value: 'Chairman', label: 'Chairman' }, { value: 'CEO', label: 'CEO' }]} />
-                                </div>
-                                <div className="col-span-2 text-sm font-semibold text-gray-600 mt-2">Access & Department</div>
-                                <div className="col-span-2 md:col-span-1">
-                                    <CustomDropdown label="Role" name="role" options={[{ value: 'faculty', label: 'Faculty' }, { value: 'admin', label: 'Admin' }, { value: 'superadmin', label: 'Super Admin' }]} />
-                                </div>
-                                <div className="col-span-2 md:col-span-1">
-                                    <CustomDropdown label="Department" name="department" options={[{ value: 'SSISM', label: 'SSISM' }, { value: 'ITEG', label: 'ITEG' }, { value: 'MEG', label: 'MEG' }, { value: 'BEG', label: 'BEG' }, { value: 'BTECH', label: 'BTECH' }]} />
-                                </div>
-                                <div className="col-span-2 md:col-span-1">
-                                    <CustomDropdown label="Status" name="isActive" options={[{ value: true, label: 'Active' }, { value: false, label: 'Inactive' }]} />
-                                </div>
-                                <div className="col-span-2 flex gap-3 pt-4">
-                                    <button type="submit" className={`flex-1 py-3 font-medium ${buttonStyles.primary}`}>Save Changes</button>
-                                    <button type="button" onClick={() => setEditModal({ show: false, user: null })} className={`flex-1 py-3 font-medium ${buttonStyles.secondary}`}>Cancel</button>
-                                </div>
-                            </Form>
-                        </Formik>
-                    </div>
-                </div>
-            )}
+            <OrangeButton
+                isOpen={editModal.show}
+                onClose={() => setEditModal({ show: false, user: null })}
+                panelTitle="Edit User"
+                panelSubtitle="Update user profile information and department role."
+                showFooter={false}
+                maxWidth="sm:max-w-xl"
+                drawerContent={
+                    <Formik
+                        initialValues={{ name: editModal.user?.name || '', position: editModal.user?.position || '', role: editModal.user?.role || '', department: editModal.user?.department || '', isActive: editModal.user?.isActive ?? true }}
+                        onSubmit={async (values) => {
+                            try {
+                                await editUser({ id: editModal.user._id || editModal.user.id, ...values }).unwrap();
+                                toast.success('User updated successfully');
+                                setEditModal({ show: false, user: null });
+                            } catch {
+                                toast.error('Failed to update user');
+                            }
+                        }}
+                    >
+                        <Form className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="col-span-2 text-sm font-semibold text-gray-600 mt-2">User Information</div>
+                            <div className="col-span-2 md:col-span-1"><InputField label="Name" name="name" placeholder="Enter user name" /></div>
+                            <div className="col-span-2 md:col-span-1">
+                                <CustomDropdown label="Position" name="position" options={[{ value: 'Assistant Professor', label: 'Assistant Professor' }, { value: 'Associate Professor', label: 'Associate Professor' }, { value: 'Professor', label: 'Professor' }, { value: 'Lecturer', label: 'Lecturer' }, { value: 'Chairman', label: 'Chairman' }, { value: 'CEO', label: 'CEO' }]} />
+                            </div>
+                            <div className="col-span-2 text-sm font-semibold text-gray-600 mt-2">Access & Department</div>
+                            <div className="col-span-2 md:col-span-1">
+                                <CustomDropdown label="Role" name="role" options={[{ value: 'faculty', label: 'Faculty' }, { value: 'admin', label: 'Admin' }, { value: 'superadmin', label: 'Super Admin' }]} />
+                            </div>
+                            <div className="col-span-2 md:col-span-1">
+                                <CustomDropdown label="Department" name="department" options={[{ value: 'SSISM', label: 'SSISM' }, { value: 'ITEG', label: 'ITEG' }, { value: 'MEG', label: 'MEG' }, { value: 'BEG', label: 'BEG' }, { value: 'BTECH', label: 'BTECH' }]} />
+                            </div>
+                            <div className="col-span-2 md:col-span-1">
+                                <CustomDropdown label="Status" name="isActive" options={[{ value: true, label: 'Active' }, { value: false, label: 'Inactive' }]} />
+                            </div>
+                            <div className="col-span-2 flex gap-3 pt-6">
+                                <button type="button" onClick={() => setEditModal({ show: false, user: null })} className={`flex-1 py-3 font-medium ${buttonStyles.secondary}`}>Cancel</button>
+                                <button type="submit" className={`flex-1 py-3 font-medium ${buttonStyles.primary}`}>Save Changes</button>
+                            </div>
+                        </Form>
+                    </Formik>
+                }
+            />
         </>
     );
 };

@@ -608,42 +608,46 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete, getPriorityColor, ge
 
 // Task Modal Component
 const TaskModal = ({ isOpen, onClose, task, setTask, onSave, isEditing }) => {
-  if (!isOpen) return null;
-
   return (
-    <div className="modal-overlay p-4">
-      <div className="bg-white rounded-xl w-full max-w-2xl p-6">
-        <h2 className="text-xl font-bold mb-4">{isEditing ? 'Edit Task' : 'Add New Task'}</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+    <OrangeButton
+      isOpen={isOpen}
+      onClose={onClose}
+      panelTitle={isEditing ? 'Edit Task' : 'Add New Task'}
+      panelSubtitle="Fill in details to manage task"
+      leftBtnText="Cancel"
+      rightBtnText={isEditing ? 'Update Task' : 'Add Task'}
+      onLeftClick={onClose}
+      onRightClick={onSave}
+      drawerContent={
+        <div className="grid grid-cols-1 gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">Title *</label>
             <input
               type="text"
               value={task.title}
               onChange={(e) => setTask({ ...task, title: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#FDA92D]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#FDA92D]"
               placeholder="Enter task title"
             />
           </div>
           
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">Description *</label>
             <textarea
               value={task.description}
               onChange={(e) => setTask({ ...task, description: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#FDA92D]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#FDA92D]"
               rows="3"
               placeholder="Enter task description"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Subject *</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">Subject *</label>
             <select
               value={task.subject}
               onChange={(e) => setTask({ ...task, subject: e.target.value, customSubject: '' })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#FDA92D]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#FDA92D]"
             >
               <option value="">Select Subject</option>
               <option value="HTML/CSS">HTML/CSS</option>
@@ -666,18 +670,18 @@ const TaskModal = ({ isOpen, onClose, task, setTask, onSave, isEditing }) => {
                 type="text"
                 value={task.customSubject || ''}
                 onChange={(e) => setTask({ ...task, customSubject: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#FDA92D] mt-2"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#FDA92D] mt-2"
                 placeholder="Enter custom subject"
               />
             )}
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">Priority</label>
             <select
               value={task.priority}
               onChange={(e) => setTask({ ...task, priority: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#FDA92D]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#FDA92D]"
             >
               <option value="1st">1st</option>
               <option value="2nd">2nd</option>
@@ -685,55 +689,42 @@ const TaskModal = ({ isOpen, onClose, task, setTask, onSave, isEditing }) => {
             </select>
           </div>
           
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">Date</label>
             <input
               type="date"
               value={task.dueDate}
               onChange={(e) => setTask({ ...task, dueDate: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#FDA92D]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#FDA92D]"
             />
           </div>
         </div>
-        
-        <div className="flex gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onSave}
-            className="flex-1 px-4 py-2 bg-[#FDA92D] hover:bg-[#E6941A] text-white rounded-lg font-medium transition-colors"
-          >
-            {isEditing ? 'Update' : 'Add'} Task
-          </button>
-        </div>
-      </div>
-    </div>
+      }
+    />
   );
 };
 
 // Bulk Upload Modal Component
 const BulkUploadModal = ({ isOpen, onClose, onUpload, onDownloadTemplate, fileInputRef }) => {
-  if (!isOpen) return null;
-
   return (
-    <div className="modal-overlay p-4">
-      <div className="bg-white rounded-xl w-full max-w-md p-6">
-        <h2 className="text-xl font-bold mb-4">Bulk Upload Tasks</h2>
-        
+    <OrangeButton
+      isOpen={isOpen}
+      onClose={onClose}
+      panelTitle="Bulk Upload Tasks"
+      panelSubtitle="Upload tasks in bulk using Excel or CSV files"
+      leftBtnText="Cancel"
+      rightBtnText=""
+      onLeftClick={onClose}
+      drawerContent={
         <div className="space-y-4">
           <div className="text-sm text-gray-600">
-            <p className="mb-2">Upload tasks in bulk using Excel or CSV files.</p>
             <p className="text-xs text-gray-500">Required columns: Title, Description, Subject, Priority (High/Medium/Low), DueDate (YYYY-MM-DD)</p>
           </div>
           
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-            <FaUpload className="mx-auto text-3xl text-gray-400 mb-2" />
+          <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center">
             <p className="text-sm text-gray-600 mb-3">Click to upload or drag and drop</p>
             <button
+              type="button"
               onClick={() => fileInputRef.current?.click()}
               className="px-4 py-2 bg-[#FDA92D] hover:bg-[#E6941A] text-white rounded-lg text-sm font-medium"
             >
@@ -752,25 +743,16 @@ const BulkUploadModal = ({ isOpen, onClose, onUpload, onDownloadTemplate, fileIn
             <p className="text-sm font-medium text-gray-700 mb-2">Download Template:</p>
             <div className="flex gap-2">
               <button
+                type="button"
                 onClick={() => onDownloadTemplate('excel')}
-                className="flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm"
+                className="flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium"
               >
-                <FaFileExcel />
                 Excel Template
               </button>
             </div>
           </div>
         </div>
-        
-        <div className="flex gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
+      }
+    />
   );
 };
