@@ -5,6 +5,7 @@ import Loader from "../../shared/loader/Loader";
 import CommonTable from "../../shared/table/CommonTable";
 import Header from "../../shared/sidebar/Header";
 import Avatar from "../../shared/Avatar";
+import SearchBox from "../../shared/search-export/SearchBox";
 
 const STATUS_STYLES = {
   Dummy: "bg-orange-100 text-orange-700 border-orange-200",
@@ -128,14 +129,20 @@ const StudentPermission = () => {
 
   return (
     <>
-      <Header title="Dummy Students" showBack={false} />
+      <Header
+        title="Dummy Students"
+        showBack={false}
+        badge={`${students.length} dummy students`}
+        breadcrumbs={[
+          { label: "Academics" },
+          { label: "Dummy Students" },
+        ]}
+      />
 
-      <div className="min-h-screen px-5 py-4">
-        <div className="mb-5 inline-flex rounded-xl border border-orange-200 bg-orange-50 px-4 py-2 text-center">
-          <div>
-            <p className="text-lg font-bold text-orange-700">{students.length}</p>
-            <p className="text-xs text-gray-500">dummy students</p>
-          </div>
+      <div className="p-5 space-y-4">
+        {/* Search box */}
+        <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-3 shadow-sm flex-wrap">
+          <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </div>
 
         <CommonTable

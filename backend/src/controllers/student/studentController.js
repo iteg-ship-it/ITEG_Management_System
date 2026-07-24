@@ -1088,7 +1088,7 @@ exports.getSubLevelStudentsProgress = async (req, res) => {
 
     const students = await Student.find({ currentSubLevelId: subLevelId })
       .populate("currentSubLevelId", "name")
-      .select("firstName lastName prkey status currentSubLevelId");
+      .select("firstName lastName prkey status currentSubLevelId image");
 
     const studentIds = students.map(s => s._id);
 
@@ -1147,6 +1147,9 @@ exports.getSubLevelStudentsProgress = async (req, res) => {
       return {
         _id: student._id,
         name: `${student.firstName} ${student.lastName}`,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        image: student.image,
         level: student.currentSubLevelId?.name || "—",
         prkey: student.prkey,
         currentStatus: student.status,
