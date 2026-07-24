@@ -102,37 +102,22 @@ const UserProfile = () => {
         </button>
       </div>
 
-      {/* LOGOUT CONFIRM MODAL */}
-      {showLogoutConfirm && (
-        <div className="modal-overlay">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Confirm Logout
-            </h3>
-
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to logout?
-            </p>
-
-            <div className="flex justify-end gap-4">
-              <button
-                onClick={() => setShowLogoutConfirm(false)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={handleLogout}
-                disabled={isLoggingOut}
-                className="bg-[#FDA92D] text-white px-3 py-1 rounded-md hover:bg-[#ED9A21]"
-              >
-                {isLoggingOut ? "Logging out..." : "OK"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* LOGOUT CONFIRM DRAWER */}
+      <OrangeButton
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        panelTitle="Confirm Logout"
+        panelSubtitle="Are you sure you want to logout?"
+        leftBtnText="Cancel"
+        rightBtnText={isLoggingOut ? "Logging out..." : "Logout"}
+        onLeftClick={() => setShowLogoutConfirm(false)}
+        onRightClick={handleLogout}
+        drawerContent={
+          <p className="text-gray-600 text-sm">
+            Clicking logout will end your active session on this device.
+          </p>
+        }
+      />
     </div>
   );
 };

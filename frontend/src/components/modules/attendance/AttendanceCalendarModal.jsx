@@ -3,7 +3,7 @@ import { useGetStudentAttendanceCalendarQuery } from '../../../redux/api/authApi
 import { FiX, FiChevronLeft, FiChevronRight, FiCalendar, FiUser } from 'react-icons/fi';
 import AttendanceApiError from '../../shared/error-pages/AttendanceApiError';
 import { useAttendanceErrorHandler } from '../../../hooks/useAttendanceErrorHandler';
-import BlurBackground from '../../shared/BlurBackground';
+import OrangeButton from '../../shared/sidebar/OrangeButton';
 
 const AttendanceCalendarModal = ({ isOpen, onClose, student, initialDateFrom, initialDateTo }) => {
   const [dateFrom, setDateFrom] = useState(initialDateFrom);
@@ -185,45 +185,48 @@ const AttendanceCalendarModal = ({ isOpen, onClose, student, initialDateFrom, in
   if (!isOpen) return null;
 
   return (
-    <BlurBackground isOpen={isOpen} onClose={onClose}>
-      <div className="bg-white rounded-2xl border border-gray-150 max-w-xl w-full flex flex-col m-4 overflow-hidden shadow-2xl transition-all duration-300">
-        {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-gray-100 bg-white">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-tr from-orange-400 to-amber-500 text-white font-extrabold text-sm shadow-md shrink-0">
-              {getInitials(student?.firstName, student?.lastName)}
+    <OrangeButton
+      isOpen={isOpen}
+      onClose={onClose}
+      panelTitle={`${student?.firstName || ''} ${student?.lastName || ''}`}
+      panelSubtitle="Attendance Profile & Monthly Calendar"
+      showFooter={false}
+      maxWidth="sm:max-w-xl"
+      drawerContent={
+        <div className="space-y-4 pt-2">
+          {/* Top Progress & Metrics */}
+          <div className="flex items-center justify-between p-4 bg-orange-50/70 border border-orange-100 rounded-xl">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-tr from-orange-400 to-amber-500 text-white font-extrabold text-sm shadow-md shrink-0">
+                {getInitials(student?.firstName, student?.lastName)}
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-gray-900">
+                  {student?.firstName} {student?.lastName}
+                </h3>
+                <p className="text-[11px] text-gray-500">Prkey: {student?.prkey || 'N/A'}</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-base font-extrabold text-gray-900 leading-tight">
-                {student?.firstName} {student?.lastName}
-              </h2>
-              <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">Attendance Profile</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
               <div className="text-right">
-                <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider block">Present Rate</span>
+                <span className="text-[10px] text-gray-400 font-bold uppercase block">Present Rate</span>
+                <span className="text-sm font-extrabold text-gray-900">{attendanceRate}%</span>
               </div>
-              {/* Circular progress bar */}
-              <div className="relative w-11 h-11 flex items-center justify-center shrink-0">
-                <svg className="w-11 h-11 transform -rotate-90">
+              <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
+                <svg className="w-10 h-10 transform -rotate-90">
                   <circle
-                    cx="22"
-                    cy="22"
+                    cx="20"
+                    cy="20"
                     r={radius}
-                    className="stroke-gray-100"
+                    className="stroke-gray-200"
                     strokeWidth={strokeWidth}
                     fill="transparent"
                   />
                   <circle
-                    cx="22"
-                    cy="22"
+                    cx="20"
+                    cy="20"
                     r={radius}
-                    className={`transition-all duration-500 ${
-                      attendanceRate >= 75 ? 'stroke-green-500' : 'stroke-red-500'
-                    }`}
+                    className="stroke-emerald-500 transition-all duration-1000 ease-out"
                     strokeWidth={strokeWidth}
                     strokeDasharray={circumference}
                     strokeDashoffset={strokeDashoffset}
@@ -231,20 +234,9 @@ const AttendanceCalendarModal = ({ isOpen, onClose, student, initialDateFrom, in
                     fill="transparent"
                   />
                 </svg>
-                <span className={`absolute text-[9px] font-black ${
-                  attendanceRate >= 75 ? 'text-green-600' : 'text-red-500'
-                }`}>
-                  {attendanceRate}%
-                </span>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-slate-100 text-gray-400 hover:text-gray-700 rounded-xl transition duration-205 shrink-0">
-              <FiX className="w-4 h-4" />
-            </button>
           </div>
-        </div>
-
-        {/* Profile Stats Cards */}
         <div className="p-5 border-b border-gray-100 bg-slate-50/40 flex-shrink-0 text-xs">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
             <div className="bg-white border border-gray-100 rounded-xl p-3 shadow-xs transition hover:shadow-sm">
@@ -413,7 +405,8 @@ const AttendanceCalendarModal = ({ isOpen, onClose, student, initialDateFrom, in
           )}
         </div>
       </div>
-    </BlurBackground>
+    }
+  />
   );
 };
 

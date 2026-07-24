@@ -1,6 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable react-hooks/exhaustive-deps */
-/* UpdateTechnologyModal.jsx */
 /* eslint-disable react/prop-types */
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
@@ -9,7 +8,7 @@ import { useState, useEffect } from "react";
 import { useUpdateTechnologyMutation } from "../../../redux/api/authApi";
 import CustomDropdown from "../../shared/form-fields/CustomDropdown";
 import { buttonStyles } from "../../../styles/buttonStyles";
-import BlurBackground from "../../shared/BlurBackground";
+import OrangeButton from "../../shared/sidebar/OrangeButton";
 
 const UpdateTechnologyModal = ({ isOpen, onClose, studentId }) => {
     const [updateTechnology, { isLoading }] = useUpdateTechnologyMutation();
@@ -58,13 +57,19 @@ const UpdateTechnologyModal = ({ isOpen, onClose, studentId }) => {
         }
     };
 
-    if (!isOpen) return null;
+    const handleClose = () => {
+        setShowCustomInput(false);
+        onClose();
+    };
 
     return (
-        <BlurBackground isOpen={isOpen} onClose={() => { setShowCustomInput(false); onClose(); }}>
-            <div className="bg-white rounded-xl py-4 px-6 w-full max-w-lg relative">
-                <h2 className="text-2xl font-semibold text-center mb-6 text-[var(--primary)]">Update Technology</h2>
-
+        <OrangeButton
+            isOpen={isOpen}
+            onClose={handleClose}
+            panelTitle="Update Technology"
+            panelSubtitle="Select primary technology stream"
+            showFooter={false}
+            drawerContent={
                 <TechnologyForm
                     initialValues={initialValues}
                     techSchema={techSchema}
@@ -73,25 +78,14 @@ const UpdateTechnologyModal = ({ isOpen, onClose, studentId }) => {
                     showCustomInput={showCustomInput}
                     setShowCustomInput={setShowCustomInput}
                     isLoading={isLoading}
-                    onClose={onClose}
+                    onClose={handleClose}
                 />
-
-                <button
-                    onClick={() => {
-                        setShowCustomInput(false);
-                        onClose();
-                    }}
-                    className="absolute top-3 right-3 text-xl text-gray-400 hover:text-gray-700"
-                >
-                    &times;
-                </button>
-            </div>
-        </BlurBackground>
+            }
+        />
     );
 };
 
-// Separate component to handle the form logic
-const TechnologyForm = ({ initialValues, techSchema, handleSubmit, techOptions, showCustomInput, setShowCustomInput, isLoading }) => {
+const TechnologyForm = ({ initialValues, techSchema, handleSubmit, techOptions, showCustomInput, setShowCustomInput, isLoading, onClose }) => {
     return (
         <Formik
             initialValues={initialValues}
@@ -99,7 +93,6 @@ const TechnologyForm = ({ initialValues, techSchema, handleSubmit, techOptions, 
             onSubmit={handleSubmit}
         >
             {({ values, handleChange, touched, errors, setFieldValue }) => {
-                // Watch for techno field changes
                 useEffect(() => {
                     setShowCustomInput(values.techno === "Others");
                     if (values.techno !== "Others") {
@@ -108,16 +101,14 @@ const TechnologyForm = ({ initialValues, techSchema, handleSubmit, techOptions, 
                 }, [values.techno, setFieldValue, setShowCustomInput]);
 
                 return (
-                    <Form>
+                    <Form className="pt-2">
                         <div className="grid grid-cols-1 gap-4">
-                            {/* Technology Dropdown */}
                             <CustomDropdown
                                 name="techno"
                                 label="Technology"
                                 options={techOptions}
                             />
 
-                            {/* Custom Technology Input - Only show when "Others" is selected */}
                             {showCustomInput && (
                                 <div className="relative w-full">
                                     <input
@@ -125,26 +116,32 @@ const TechnologyForm = ({ initialValues, techSchema, handleSubmit, techOptions, 
                                         name="customTechno"
                                         value={values.customTechno}
                                         onChange={handleChange}
-                                        className="peer h-12 w-full border border-gray-300 rounded-md px-3 py-2 leading-tight focus:outline-none focus:border-black focus:ring-0 transition-all duration-200"
-                                        placeholder=" "
+                                        className="peer h-12 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 transition"
+                                        placeholder="Enter technology name..."
                                     />
-                                    <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-black">
+                                    <label className="absolute left-3 bg-white px-1 text-xs -top-2 text-gray-700">
                                         Custom Technology
                                     </label>
                                     {touched.customTechno && errors.customTechno && (
-                                        <p className="text-sm text-red-500">{errors.customTechno}</p>
+                                        <p className="text-xs text-red-500 mt-1">{errors.customTechno}</p>
                                     )}
                                 </div>
                             )}
 
-                            {/* Submit Button */}
-                            <div className="mt-4">
+                            <div className="flex gap-3 pt-4 border-t border-gray-100">
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="flex-1 py-3 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition"
+                                >
+                                    Cancel
+                                </button>
                                 <button
                                     type="submit"
                                     disabled={isLoading}
-                                    className={`w-full py-3 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${buttonStyles.primary}`}
+                                    className={`flex-1 py-3 rounded-xl font-medium transition disabled:opacity-50 ${buttonStyles.primary}`}
                                 >
-                                    {isLoading ? "Updating..." : "Update"}
+                                    {isLoading ? "Updating..." : "Update Technology"}
                                 </button>
                             </div>
                         </div>

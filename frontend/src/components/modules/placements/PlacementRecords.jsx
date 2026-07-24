@@ -8,6 +8,7 @@ import { Dialog } from "@headlessui/react";
 import { toast } from "react-toastify";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
 import Avatar from "../../shared/Avatar";
+import OrangeButton from "../../shared/sidebar/OrangeButton";
 
 const PlacementRecords = () => {
   const { data = {}, refetch, isLoading } = useGetReadyStudentsForPlacementQuery(undefined, {
@@ -149,55 +150,44 @@ const PlacementRecords = () => {
         ))}
       </div>
 
-      {/* Modal */}
-      <Dialog open={isUpdateModalOpen} onClose={() => setIsUpdateModalOpen(false)} className="fixed z-50 inset-0">
-        <div className="flex items-center justify-center min-h-screen px-4 bg-black bg-opacity-30">
-          <Dialog.Panel className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-5">
-            <Dialog.Title className="text-xl font-semibold text-gray-800">Update Interview</Dialog.Title>
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700">Remark</label>
-                <textarea
-                  value={remark}
-                  onChange={(e) => setRemark(e.target.value)}
-                  rows={3}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700">Result</label>
-                <select
-                  value={result}
-                  onChange={(e) => setResult(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                >
-                  <option value="Pending">Pending</option>
-                  <option value="Selected">Selected</option>
-                  <option value="Rejected">Rejected</option>
-                </select>
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-4">
-                <button
-                  onClick={() => setIsUpdateModalOpen(false)}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleUpdateSubmit}
-                  disabled={isUpdating}
-                  className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-md hover:opacity-90 disabled:opacity-50"
-                >
-                  {isUpdating ? "Submitting..." : "Save"}
-                </button>
-              </div>
+      {/* Drawer */}
+      <OrangeButton
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        panelTitle="Update Interview"
+        panelSubtitle="Modify interview remark and result status"
+        leftBtnText="Cancel"
+        rightBtnText={isUpdating ? "Submitting..." : "Save"}
+        onLeftClick={() => setIsUpdateModalOpen(false)}
+        onRightClick={handleUpdateSubmit}
+        drawerContent={
+          <div className="space-y-4 pt-2">
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Remark</label>
+              <textarea
+                value={remark}
+                onChange={(e) => setRemark(e.target.value)}
+                rows={3}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                placeholder="Enter interview remark..."
+              />
             </div>
-          </Dialog.Panel>
-        </div>
-      </Dialog>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Result</label>
+              <select
+                value={result}
+                onChange={(e) => setResult(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+              >
+                <option value="Pending">Pending</option>
+                <option value="Selected">Selected</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+          </div>
+        }
+      />
     </>
   );
 };

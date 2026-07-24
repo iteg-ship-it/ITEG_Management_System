@@ -7,7 +7,7 @@ import { useUpdatePermissionMutation } from "../../../redux/api/authApi";
 import { toast } from "react-toastify";
 import imageCompression from "browser-image-compression";
 import { buttonStyles } from "../../../styles/buttonStyles";
-import BlurBackground from "../../shared/BlurBackground";
+import OrangeButton from "../../shared/sidebar/OrangeButton";
 
 const PermissionModal = ({ isOpen, onClose, studentId }) => {
     const [imageURL, setImageURL] = useState("");
@@ -24,7 +24,6 @@ const PermissionModal = ({ isOpen, onClose, studentId }) => {
         remark: ""
     };
 
-    // Get current logged-in user
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem("user") || "{}");
         const userName = user.name || "Unknown User";
@@ -85,22 +84,21 @@ const PermissionModal = ({ isOpen, onClose, studentId }) => {
         }
     };
 
-    if (!isOpen) return null;
-
     return (
-        <BlurBackground isOpen={isOpen} onClose={onClose}>
-            <div className="bg-white rounded-xl py-4 px-6 w-full max-w-lg relative">
-                <h2 className="text-2xl font-semibold text-center mb-6 text-[var(--primary)]"
-                >Permission Request Form</h2>
-
+        <OrangeButton
+            isOpen={isOpen}
+            onClose={onClose}
+            panelTitle="Permission Request Form"
+            panelSubtitle="Submit a permission request with signature"
+            showFooter={false}
+            drawerContent={
                 <Formik
                     initialValues={initialValues}
                     validationSchema={validationSchema}
                     onSubmit={handleSubmit}
                 >
                     {({ isSubmitting }) => (
-                        <Form className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Current User Field */}
+                        <Form className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                             <div className="col-span-2 md:col-span-1">
                                 <InputField 
                                     label="Requested By" 
@@ -111,7 +109,6 @@ const PermissionModal = ({ isOpen, onClose, studentId }) => {
                                 />
                             </div>
 
-                            {/* Approver Role */}
                             <div className="col-span-2 md:col-span-1">
                                 <InputField 
                                     label="Approved By" 
@@ -126,7 +123,6 @@ const PermissionModal = ({ isOpen, onClose, studentId }) => {
                                 />
                             </div>
 
-                            {/* Signature Upload */}
                             <div className="col-span-2">
                                 <div className="relative w-full">
                                     <div
@@ -139,23 +135,20 @@ const PermissionModal = ({ isOpen, onClose, studentId }) => {
                                                 handleImageUpload({ target: { files } });
                                             }
                                         }}
-                                        className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-gray-400 transition-colors duration-200 bg-gray-50"
+                                        className="border-2 border-dashed border-gray-300 rounded-xl p-5 text-center cursor-pointer hover:border-orange-400 transition bg-gray-50"
                                     >
                                         <div className="flex flex-col items-center space-y-2">
                                             <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                             </svg>
                                             <div>
-                                                <span className="text-blue-600 font-medium">Choose application file</span>
-                                                <span className="text-gray-500"> or drag and drop</span>
-                                            </div>
-                                            <div className="text-xs text-gray-400">
-                                                PDF, DOC, DOCX
+                                                <span className="text-orange-500 font-medium text-xs">Choose application file</span>
+                                                <span className="text-gray-500 text-xs"> or drag and drop</span>
                                             </div>
                                         </div>
                                         {imageURL && (
-                                            <div className="mt-2 text-green-600 text-sm">
-                                                ✓ File uploaded successfully
+                                            <div className="mt-2 text-green-600 text-xs font-semibold">
+                                                ✓ Signature uploaded successfully
                                             </div>
                                         )}
                                     </div>
@@ -171,7 +164,7 @@ const PermissionModal = ({ isOpen, onClose, studentId }) => {
                                     </label>
                                 </div>
                                 {imageURL && (
-                                    <div className="mt-3 p-2 border rounded-lg bg-gray-50">
+                                    <div className="mt-3 p-2 border rounded-xl bg-gray-50">
                                         <img
                                             src={imageURL}
                                             alt="Signature Preview"
@@ -182,7 +175,6 @@ const PermissionModal = ({ isOpen, onClose, studentId }) => {
                                 )}
                             </div>
 
-                            {/* Remark Field */}
                             <div className="col-span-2">
                                 <InputField 
                                     label="Remark / Reason" 
@@ -192,28 +184,27 @@ const PermissionModal = ({ isOpen, onClose, studentId }) => {
                                 />
                             </div>
 
-                            {/* Submit Button */}
-                            <div className="col-span-2 mt-4">
+                            <div className="col-span-2 flex gap-3 pt-4 border-t border-gray-100">
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="flex-1 py-3 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition"
+                                >
+                                    Cancel
+                                </button>
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className={`w-full py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed ${buttonStyles.primary}`}
+                                    className={`flex-1 py-3 rounded-xl font-medium transition disabled:opacity-50 ${buttonStyles.primary}`}
                                 >
-                                    {isSubmitting ? "Submitting..." : "Submit"}
+                                    {isSubmitting ? "Submitting..." : "Submit Permission"}
                                 </button>
                             </div>
                         </Form>
                     )}
                 </Formik>
-
-                <button
-                    onClick={onClose}
-                    className="absolute top-3 right-3 text-xl text-gray-400 hover:text-gray-700"
-                >
-                    &times;
-                </button>
-            </div>
-        </BlurBackground>
+            }
+        />
     );
 };
 

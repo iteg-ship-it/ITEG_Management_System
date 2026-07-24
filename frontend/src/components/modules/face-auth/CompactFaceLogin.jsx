@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import * as faceapi from 'face-api.js';
 import { toast } from 'react-toastify';
 import CryptoJS from 'crypto-js';
+import OrangeButton from '../../shared/sidebar/OrangeButton';
 
 const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -284,64 +285,65 @@ const CompactFaceLogin = ({ onLoginSuccess, onClose, onNoFaceRegistered }) => {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="bg-white rounded-3xl shadow-2xl p-6 w-80 text-center border border-gray-200">
-        {/* Video for face detection */}
-        {status === 'scanning' && (
+    <OrangeButton
+      isOpen={true}
+      onClose={() => {
+        stopCamera();
+        onClose();
+      }}
+      panelTitle="Face ID Authentication"
+      panelSubtitle={getStatusText()}
+      showFooter={false}
+      drawerContent={
+        <div className="text-center py-4 space-y-4">
+          {status === 'scanning' && (
+            <div className="mb-4">
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                className="w-full max-w-xs h-48 mx-auto rounded-xl border-2 border-[#FDA92D] object-cover"
+              />
+            </div>
+          )}
+          
           <div className="mb-4">
-            <video
-              ref={videoRef}
-              autoPlay
-              muted
-              className="w-48 h-36 mx-auto rounded-lg border-2 border-[#FDA92D]"
-            />
-          </div>
-        )}
-        
-        {/* Face ID Icon */}
-        <div className="mb-4">
-          <div className="w-20 h-20 mx-auto bg-[#FDA92D] rounded-full flex items-center justify-center shadow-lg">
-            {getStatusIcon()}
-          </div>
-        </div>
-
-        {/* Status Text */}
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">Face ID</h3>
-        <p className="text-sm text-gray-600 mb-6">{getStatusText()}</p>
-
-        {/* Progress indicator */}
-        {status === 'scanning' && (
-          <div className="mb-4">
-            <div className="w-full bg-gray-200 rounded-full h-1">
-              <div className="bg-[#FDA92D] h-1 rounded-full animate-pulse" style={{ width: '70%' }}></div>
+            <div className="w-20 h-20 mx-auto bg-[#FDA92D] rounded-full flex items-center justify-center shadow-lg text-white text-3xl">
+              {getStatusIcon()}
             </div>
           </div>
-        )}
 
-        {/* Action buttons */}
-        <div className="flex justify-center space-x-4 mb-4">
-          {status === 'ready' && (
-            <button
-              onClick={startFaceDetection}
-              className="bg-[#FDA92D] text-white px-6 py-2 rounded-full hover:bg-[#FED680] transition-colors"
-            >
-              Start Face ID
-            </button>
+          {status === 'scanning' && (
+            <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+              <div className="bg-[#FDA92D] h-1.5 rounded-full animate-pulse" style={{ width: '70%' }}></div>
+            </div>
           )}
-        </div>
 
-        {/* Cancel button */}
-        <button
-          onClick={() => {
-            stopCamera();
-            onClose();
-          }}
-          className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
+          <div className="flex flex-col gap-3 pt-4">
+            {status === 'ready' && (
+              <button
+                type="button"
+                onClick={startFaceDetection}
+                className="w-full bg-[#FDA92D] text-white py-3 rounded-xl font-semibold hover:bg-orange-600 transition"
+              >
+                Start Face ID Scan
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                stopCamera();
+                onClose();
+              }}
+              className="w-full py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      }
+    />
   );
 };
 
