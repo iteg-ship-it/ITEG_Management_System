@@ -27,7 +27,7 @@ const DatePickerInput = ({ label, name, className = '', disabled = false }) => {
         maxDate={new Date()} // Allow previous and current dates only
         dateFormat="dd/MM/yyyy"
         className={`peer h-12 w-full border border-gray-300 rounded-md px-3 pt-5 pb-2
-          leading-tight focus:outline-none focus:border-black focus:ring-0
+          leading-tight focus:outline-none focus:border-orange-400 focus:ring-0
           ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''} transition-all duration-200
         `}
         disabled={disabled}

@@ -96,8 +96,8 @@ const CustomDropdown = ({
                   px-4 py-2 text-sm cursor-pointer transition
                   ${
                     field.value === opt.value
-                      ? "bg-orange-200"
-                      : "hover:bg-orange-100"
+                      ? "bg-[var(--primary,#FDA92D)] text-white font-semibold"
+                      : "hover:bg-[var(--primary,#FDA92D)] hover:text-white"
                   }
                 `}
               >
