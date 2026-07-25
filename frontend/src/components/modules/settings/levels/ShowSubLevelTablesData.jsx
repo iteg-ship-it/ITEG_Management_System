@@ -80,6 +80,18 @@ const StudentsTab = ({ subLevel, searchTerm, setSearchTerm, onRowClick, onTaskBo
 
     if (isLoading) return <Loader />;
 
+    if (students.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-orange-50 flex items-center justify-center mb-4 border border-orange-100/50">
+                    <MdCloudUpload size={32} className="text-orange-400" />
+                </div>
+                <h3 className="text-base font-bold text-gray-705 mb-1">No students in this sub-level</h3>
+                <p className="text-xs text-gray-400 max-w-xs mx-auto">Students will appear here once enrolled in this sub-level.</p>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-3">
             <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-3">
@@ -91,26 +103,17 @@ const StudentsTab = ({ subLevel, searchTerm, setSearchTerm, onRowClick, onTaskBo
                     <ExportDropdown data={students} sectionName="students" />
                 </div>
             </div>
-            {students.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 bg-white border border-gray-200 rounded-xl">
-                    <div className="w-14 h-14 rounded-2xl bg-orange-50 flex items-center justify-center mb-3">
-                        <MdCloudUpload size={28} className="text-orange-300" />
-                    </div>
-                    <p className="text-sm font-semibold text-gray-600">No students in this sub-level</p>
-                    <p className="text-xs text-gray-400 mt-1">Students will appear here once enrolled in this sub-level</p>
-                </div>
-            ) : (
-                <CommonTable
-                    key={`students-${subLevel?._id}`}
-                    columns={columns}
-                    data={students}
-                    editable={false}
-                    pagination={true}
-                    rowsPerPage={10}
-                    searchTerm={searchTerm}
-                    onRowClick={onRowClick}
-                />
-            )}
+            <CommonTable
+                key={`students-${subLevel?._id}`}
+                columns={columns}
+                data={students}
+                editable={false}
+                pagination={true}
+                rowsPerPage={10}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                onRowClick={onRowClick}
+            />
         </div>
     );
 };
@@ -246,6 +249,18 @@ const ProgressTab = ({ subLevel, onRowClick }) => {
     ];
 
     if (isLoading) return <Loader />;
+
+    if (progressList.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-orange-50 flex items-center justify-center mb-4 border border-orange-100/50">
+                    <MdCloudUpload size={32} className="text-orange-400" />
+                </div>
+                <h3 className="text-base font-bold text-gray-705 mb-1">No progress data found</h3>
+                <p className="text-xs text-gray-400 max-w-xs mx-auto">No student progress data is available for this sub-level.</p>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-4">
@@ -416,16 +431,7 @@ const ShowSubLevelTablesData = () => {
                         onRightClick={() => syllabusMode === "excel" ? syllabusDrawerRef.current?.save() : manualSyllabusRef.current?.save()}
                     />
                 )}
-                {subLevels.length > 0 && activeSection === "Tasks" ? (
-                    <OrangeButton
-                        buttonTitle="+ Add Task"
-                        panelTitle="Add Task"
-                        drawerContent={<TaskDrawerContent activeTab={activeTab} />}
-                        leftBtnText="Cancel"
-                        rightBtnText="Save Task"
-                        onRightClick={() => document.getElementById("manual-task-form")?.requestSubmit()}
-                    />
-                ) : (
+                {subLevels.length > 0 && activeSection === "Tasks" ? null : (
                     /* Always show Add SubLevel button */
                     <Formik
                         initialValues={{ name: "", order: "", isActive: true }}

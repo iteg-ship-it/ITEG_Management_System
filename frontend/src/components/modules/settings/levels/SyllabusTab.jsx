@@ -1418,6 +1418,18 @@ export const TasksTab = ({ level, subLevel, onVersionChange }) => {
 
   if (!subLevelId) return <div className="py-16 text-center text-gray-450 text-sm">SubLevel not found</div>;
 
+  if (allVersions.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-orange-50 flex items-center justify-center mb-4 border border-orange-100/50">
+          <MdAssignment size={26} className="text-orange-400" />
+        </div>
+        <h3 className="text-base font-bold text-gray-705 mb-1">No syllabus found</h3>
+        <p className="text-xs text-gray-400 max-w-xs mx-auto">Upload syllabus first from the Syllabus tab.</p>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
@@ -1545,7 +1557,7 @@ const EmptyUploadState = ({ level, subLevel, onSaved }) => {
   const drawerRef = useRef(null);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm flex flex-col items-center justify-center py-16 px-8 text-center">
+    <div className="flex flex-col items-center justify-center py-20 px-8 text-center">
       <div className="w-24 h-24 rounded-full bg-orange-50 flex items-center justify-center mb-6">
         <MdCloudUpload size={44} className="text-orange-400" />
       </div>

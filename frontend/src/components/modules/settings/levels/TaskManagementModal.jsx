@@ -12,12 +12,14 @@ import {
   useGetAllSessionsQuery
 } from "../../../../redux/api/authApi";
 import OrangeButton from "../../../shared/sidebar/OrangeButton";
+import { TaskUploadDrawer } from "./SyllabusTab";
 
 const TASK_TYPES = ["assessment", "project", "assignment", "practice", "reading", "other"];
 const PRIORITIES = ["low", "medium", "high"];
 
 const TaskManagementModal = ({ isOpen, onClose, level, subLevel, onSuccess }) => {
   const [activeTab, setActiveTab] = useState("add"); // add, manage
+  const [addMode, setAddMode] = useState("manual"); // manual, bulk
   const [taskType, setTaskType] = useState("syllabus"); // syllabus, general
   const [selectedSessionId, setSelectedSessionId] = useState("");
   const [selectedVersionId, setSelectedVersionId] = useState("");
@@ -221,279 +223,361 @@ const TaskManagementModal = ({ isOpen, onClose, level, subLevel, onSuccess }) =>
           </div>
 
           {activeTab === "add" ? (
-            <form onSubmit={handleSubmit} className="space-y-6 pt-2">
-              {/* Task Type Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Task Type</label>
-                <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-4 pt-2">
+              {/* Add mode selector */}
+              {!editingTask && (
+                <div className="flex gap-1 bg-[#F8F7F5] border border-gray-200 p-1 rounded-xl">
                   <button
                     type="button"
-                    onClick={() => setTaskType("syllabus")}
-                    className={`p-3 border rounded-xl text-left transition ${
-                      taskType === "syllabus"
-                        ? "border-orange-500 bg-orange-50 text-orange-700"
-                        : "border-gray-200 hover:border-orange-300"
+                    onClick={() => setAddMode("manual")}
+                    className={`flex-1 py-2 text-xs font-semibold rounded-lg transition ${
+                      addMode === "manual" ? "bg-white text-orange-500 shadow-sm" : "text-gray-500 hover:text-gray-700"
                     }`}
                   >
-                    <MdBook size={18} className="mb-1" />
-                    <div className="font-medium text-sm">Syllabus Task</div>
-                    <div className="text-xs text-gray-500">Link to topic</div>
+                    Single Task
                   </button>
                   <button
                     type="button"
-                    onClick={() => setTaskType("general")}
-                    className={`p-3 border rounded-xl text-left transition ${
-                      taskType === "general"
-                        ? "border-blue-500 bg-blue-50 text-blue-700"
-                        : "border-gray-200 hover:border-blue-300"
+                    onClick={() => setAddMode("bulk")}
+                    className={`flex-1 py-2 text-xs font-semibold rounded-lg transition ${
+                      addMode === "bulk" ? "bg-white text-orange-500 shadow-sm" : "text-gray-500 hover:text-gray-700"
                     }`}
                   >
-                    <MdAssignment size={18} className="mb-1" />
-                    <div className="font-medium text-sm">General Task</div>
-                    <div className="text-xs text-gray-500">For all students</div>
+                    Bulk Upload
                   </button>
                 </div>
-              </div>
+              )}
 
-              {/* Syllabus Selection */}
-              {taskType === "syllabus" && (
-                <div className="space-y-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
-                  <h3 className="font-medium text-sm text-gray-800">Select Syllabus Topic</h3>
-                  
-                  {/* Session */}
+              {addMode === "manual" || editingTask ? (
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Task Type Selection */}
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Session</label>
-                    <select
-                      value={selectedSessionId}
-                      onChange={(e) => setSelectedSessionId(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
-                    >
-                      <option value="">All Sessions</option>
-                      {sessions.map(s => (
-                        <option key={s._id} value={s._id}>{s.name}</option>
-                      ))}
-                    </select>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Task Type</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setTaskType("syllabus")}
+                        className={`p-3 border rounded-xl text-left transition ${
+                          taskType === "syllabus"
+                            ? "border-orange-500 bg-orange-50 text-orange-700"
+                            : "border-gray-200 hover:border-orange-300"
+                        }`}
+                      >
+                        <MdBook size={18} className="mb-1" />
+                        <div className="font-medium text-sm">Syllabus Task</div>
+                        <div className="text-xs text-gray-500">Link to topic</div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTaskType("general")}
+                        className={`p-3 border rounded-xl text-left transition ${
+                          taskType === "general"
+                            ? "border-blue-500 bg-blue-50 text-blue-700"
+                            : "border-gray-200 hover:border-blue-300"
+                        }`}
+                      >
+                        <MdAssignment size={18} className="mb-1" />
+                        <div className="font-medium text-sm">General Task</div>
+                        <div className="text-xs text-gray-500">For all students</div>
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Version */}
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Syllabus Version</label>
-                    <select
-                      value={selectedVersionId}
-                      onChange={(e) => setSelectedVersionId(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
-                    >
-                      <option value="">Select Version</option>
-                      {versions.map(v => (
-                        <option key={v._id} value={v._id}>
-                          {v.title || v.version} ({v.status})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  {/* Syllabus Selection */}
+                  {taskType === "syllabus" && (
+                    <div className="space-y-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                      <h3 className="font-medium text-sm text-gray-800">Select Syllabus Topic</h3>
+                      
+                      {/* Session */}
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Session</label>
+                        <select
+                          value={selectedSessionId}
+                          onChange={(e) => setSelectedSessionId(e.target.value)}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                        >
+                          <option value="">All Sessions</option>
+                          {sessions.map(s => (
+                            <option key={s._id} value={s._id}>{s.name}</option>
+                          ))}
+                        </select>
+                      </div>
 
-                  {/* Subject */}
-                  {selectedVersionId && (
+                      {/* Version */}
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Syllabus Version</label>
+                        <select
+                          value={selectedVersionId}
+                          onChange={(e) => setSelectedVersionId(e.target.value)}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                        >
+                          <option value="">Select Version</option>
+                          {versions.map(v => (
+                            <option key={v._id} value={v._id}>
+                              {v.title || v.version} ({v.status})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Subject */}
+                      {selectedVersionId && (
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Subject</label>
+                          <select
+                            value={selectedSubjectId}
+                            onChange={(e) => {
+                              setSelectedSubjectId(e.target.value);
+                              setSelectedTopicId("");
+                              setSelectedSubTopicId("");
+                            }}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                          >
+                            <option value="">Select Subject</option>
+                            {subjects.map(s => (
+                              <option key={s._id} value={s._id}>{s.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {/* Topic */}
+                      {selectedSubjectId && (
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Topic *</label>
+                          <select
+                            value={selectedTopicId}
+                            onChange={(e) => {
+                              setSelectedTopicId(e.target.value);
+                              setSelectedSubTopicId("");
+                            }}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                            required
+                          >
+                            <option value="">Select Topic</option>
+                            {topics.map(t => (
+                              <option key={t._id} value={t._id}>{t.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {/* SubTopic */}
+                      {selectedTopicId && subTopics.length > 0 && (
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">SubTopic (Optional)</label>
+                          <select
+                            value={selectedSubTopicId}
+                            onChange={(e) => setSelectedSubTopicId(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                          >
+                            <option value="">No SubTopic (Topic Level Task)</option>
+                            {subTopics.map(st => (
+                              <option key={st._id} value={st._id}>{st.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {/* Summary Path Info */}
+                      {selectedTopicId && (
+                        <div className="mt-3 p-3 bg-white border border-gray-150 rounded-xl">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Selected Path</p>
+                          <div className="flex items-center gap-2 text-xs flex-wrap">
+                            <MdBook size={14} className="text-orange-500" />
+                            <span>{subjects.find(s => s._id === selectedSubjectId)?.name}</span>
+                            <span className="text-gray-400">›</span>
+                            <MdTopic size={14} className="text-blue-500" />
+                            <span>{topics.find(t => t._id === selectedTopicId)?.name}</span>
+                            {selectedSubTopicId && (
+                              <>
+                                <span className="text-gray-400">›</span>
+                                <MdSubject size={14} className="text-green-500" />
+                                <span>{subTopics.find(st => st._id === selectedSubTopicId)?.name}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Task Details */}
+                  <div className="space-y-4">
+                    <h3 className="font-medium text-sm text-gray-800">Task Information</h3>
+                    
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Subject</label>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Task Title *
+                      </label>
+                      <input
+                        type="text"
+                        value={taskForm.title}
+                        onChange={(e) => setTaskForm(prev => ({ ...prev, title: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                        placeholder="Enter task title"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
+                      <textarea
+                        value={taskForm.description}
+                        onChange={(e) => setTaskForm(prev => ({ ...prev, description: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                        rows={3}
+                        placeholder="Task description (optional)"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Type</label>
+                        <select
+                          value={taskForm.type}
+                          onChange={(e) => setTaskForm(prev => ({ ...prev, type: e.target.value }))}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                        >
+                          {TASK_TYPES.map(type => (
+                            <option key={type} value={type}>{type}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Priority</label>
+                        <select
+                          value={taskForm.priority}
+                          onChange={(e) => setTaskForm(prev => ({ ...prev, priority: e.target.value }))}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                        >
+                          {PRIORITIES.map(priority => (
+                            <option key={priority} value={priority}>{priority}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Max Marks</label>
+                        <input
+                          type="number"
+                          value={taskForm.maxMarks}
+                          onChange={(e) => setTaskForm(prev => ({ ...prev, maxMarks: e.target.value }))}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                          min="1"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Time (Days)</label>
+                        <input
+                          type="number"
+                          value={taskForm.timeDays}
+                          onChange={(e) => setTaskForm(prev => ({ ...prev, timeDays: e.target.value }))}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                          min="1"
+                          placeholder="Optional"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Due Date (Optional)</label>
+                      <input
+                        type="date"
+                        value={taskForm.dueDate}
+                        onChange={(e) => setTaskForm(prev => ({ ...prev, dueDate: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Measurable Points</label>
+                      <textarea
+                        value={taskForm.measurablePoints}
+                        onChange={(e) => setTaskForm(prev => ({ ...prev, measurablePoints: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                        rows={2}
+                        placeholder="Measurable outcomes..."
+                      />
+                    </div>
+                  </div>
+
+                  {/* Submit Buttons */}
+                  <div className="flex gap-3 pt-4 border-t border-gray-200">
+                    <button
+                      type="button"
+                      onClick={resetForm}
+                      className="px-4 py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition"
+                    >
+                      Reset
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={creating || updating}
+                      className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white text-sm font-semibold py-2.5 px-4 rounded-xl transition"
+                    >
+                      {creating || updating ? "Saving..." : editingTask ? "Update Task" : "Create Task"}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="space-y-4 pt-2">
+                  <div className="space-y-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                    <h3 className="font-medium text-sm text-gray-800">Select Syllabus Version</h3>
+                    
+                    {/* Session */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Session</label>
                       <select
-                        value={selectedSubjectId}
-                        onChange={(e) => {
-                          setSelectedSubjectId(e.target.value);
-                          setSelectedTopicId("");
-                          setSelectedSubTopicId("");
-                        }}
+                        value={selectedSessionId}
+                        onChange={(e) => setSelectedSessionId(e.target.value)}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
                       >
-                        <option value="">Select Subject</option>
-                        {subjects.map(s => (
+                        <option value="">All Sessions</option>
+                        {sessions.map(s => (
                           <option key={s._id} value={s._id}>{s.name}</option>
                         ))}
                       </select>
                     </div>
-                  )}
 
-                  {/* Topic */}
-                  {selectedSubjectId && (
+                    {/* Version */}
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Topic *</label>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Syllabus Version</label>
                       <select
-                        value={selectedTopicId}
-                        onChange={(e) => {
-                          setSelectedTopicId(e.target.value);
-                          setSelectedSubTopicId("");
-                        }}
+                        value={selectedVersionId}
+                        onChange={(e) => setSelectedVersionId(e.target.value)}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
-                        required
                       >
-                        <option value="">Select Topic</option>
-                        {topics.map(t => (
-                          <option key={t._id} value={t._id}>{t.name}</option>
+                        <option value="">Select Version</option>
+                        {versions.map(v => (
+                          <option key={v._id} value={v._id}>
+                            {v.title || v.version} ({v.status})
+                          </option>
                         ))}
                       </select>
                     </div>
-                  )}
+                  </div>
 
-                  {/* SubTopic */}
-                  {selectedTopicId && subTopics.length > 0 && (
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">SubTopic (Optional)</label>
-                      <select
-                        value={selectedSubTopicId}
-                        onChange={(e) => setSelectedSubTopicId(e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
-                      >
-                        <option value="">No SubTopic (Topic Level Task)</option>
-                        {subTopics.map(st => (
-                          <option key={st._id} value={st._id}>{st.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-
-                  {/* Selection Preview */}
-                  {selectedTopicId && (
-                    <div className="p-3 bg-white border border-gray-200 rounded-lg">
-                      <div className="text-xs text-gray-500 mb-1">Task target:</div>
-                      <div className="flex items-center gap-2 text-xs flex-wrap">
-                        <MdBook size={14} className="text-orange-500" />
-                        <span>{subjects.find(s => s._id === selectedSubjectId)?.name}</span>
-                        <span className="text-gray-400">›</span>
-                        <MdTopic size={14} className="text-blue-500" />
-                        <span>{topics.find(t => t._id === selectedTopicId)?.name}</span>
-                        {selectedSubTopicId && (
-                          <>
-                            <span className="text-gray-400">›</span>
-                            <MdSubject size={14} className="text-green-500" />
-                            <span>{subTopics.find(st => st._id === selectedSubTopicId)?.name}</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
+                  {selectedVersionId ? (
+                    <TaskUploadDrawer
+                      syllabusVersionId={selectedVersionId}
+                      subjectName={subLevel?.name || ""}
+                      version={versions.find(v => v._id === selectedVersionId)?.version || ""}
+                      onSaved={() => {
+                        refetchTasks();
+                        onSuccess?.();
+                      }}
+                    />
+                  ) : (
+                    <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                      Please select a session and syllabus version above to upload tasks in bulk.
+                    </p>
                   )}
                 </div>
               )}
-
-              {/* Task Details */}
-              <div className="space-y-4">
-                <h3 className="font-medium text-sm text-gray-800">Task Information</h3>
-                
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Task Title *
-                  </label>
-                  <input
-                    type="text"
-                    value={taskForm.title}
-                    onChange={(e) => setTaskForm(prev => ({ ...prev, title: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
-                    placeholder="Enter task title"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
-                  <textarea
-                    value={taskForm.description}
-                    onChange={(e) => setTaskForm(prev => ({ ...prev, description: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
-                    rows={3}
-                    placeholder="Task description (optional)"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Type</label>
-                    <select
-                      value={taskForm.type}
-                      onChange={(e) => setTaskForm(prev => ({ ...prev, type: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
-                    >
-                      {TASK_TYPES.map(type => (
-                        <option key={type} value={type}>{type}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Priority</label>
-                    <select
-                      value={taskForm.priority}
-                      onChange={(e) => setTaskForm(prev => ({ ...prev, priority: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
-                    >
-                      {PRIORITIES.map(priority => (
-                        <option key={priority} value={priority}>{priority}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Max Marks</label>
-                    <input
-                      type="number"
-                      value={taskForm.maxMarks}
-                      onChange={(e) => setTaskForm(prev => ({ ...prev, maxMarks: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
-                      min="1"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Time (Days)</label>
-                    <input
-                      type="number"
-                      value={taskForm.timeDays}
-                      onChange={(e) => setTaskForm(prev => ({ ...prev, timeDays: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
-                      min="1"
-                      placeholder="Optional"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Due Date (Optional)</label>
-                  <input
-                    type="date"
-                    value={taskForm.dueDate}
-                    onChange={(e) => setTaskForm(prev => ({ ...prev, dueDate: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Measurable Points</label>
-                  <textarea
-                    value={taskForm.measurablePoints}
-                    onChange={(e) => setTaskForm(prev => ({ ...prev, measurablePoints: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
-                    rows={2}
-                    placeholder="Measurable outcomes..."
-                  />
-                </div>
-              </div>
-
-              {/* Submit Buttons */}
-              <div className="flex gap-3 pt-4 border-t border-gray-200">
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="px-4 py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition"
-                >
-                  Reset
-                </button>
-                <button
-                  type="submit"
-                  disabled={creating || updating}
-                  className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white text-sm font-semibold py-2.5 px-4 rounded-xl transition"
-                >
-                  {creating || updating ? "Saving..." : editingTask ? "Update Task" : "Create Task"}
-                </button>
-              </div>
-            </form>
+            </div>
           ) : (
             /* Manage Tasks Tab */
             <div className="pt-2">
