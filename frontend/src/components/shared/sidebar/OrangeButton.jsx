@@ -23,19 +23,27 @@ const OrangeButton = ({
   const isControlled = controlledIsOpen !== undefined;
   const [internalIsMounted, setInternalIsMounted] = useState(false);
   const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const [animatedIsOpen, setAnimatedIsOpen] = useState(false);
 
-  const isOpen = isControlled ? controlledIsOpen : internalIsOpen;
-  const isMounted = isControlled ? Boolean(controlledIsOpen || internalIsMounted) : internalIsMounted;
+  const isOpen = isControlled ? animatedIsOpen : internalIsOpen;
+  const isMounted = isControlled ? (controlledIsOpen || internalIsMounted) : internalIsMounted;
 
   useEffect(() => {
     if (isControlled) {
       if (controlledIsOpen) {
         setInternalIsMounted(true);
-        const timer = setTimeout(() => {
+        const timer1 = setTimeout(() => {
+          setAnimatedIsOpen(true);
+        }, 50);
+        const timer2 = setTimeout(() => {
           document.body.classList.add("drawer-open");
         }, 10);
-        return () => clearTimeout(timer);
+        return () => {
+          clearTimeout(timer1);
+          clearTimeout(timer2);
+        };
       } else {
+        setAnimatedIsOpen(false);
         document.body.classList.remove("drawer-open");
         const timer = setTimeout(() => {
           setInternalIsMounted(false);
@@ -44,6 +52,12 @@ const OrangeButton = ({
       }
     }
   }, [controlledIsOpen, isControlled]);
+
+  useEffect(() => {
+    return () => {
+      document.body.classList.remove("drawer-open");
+    };
+  }, []);
 
   const openDrawer = () => {
     if (isControlled) return;

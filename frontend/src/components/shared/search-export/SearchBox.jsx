@@ -31,7 +31,7 @@ const SearchBox = ({ searchTerm = "", setSearchTerm = () => {} }) => {
 
       {/* Mobile: icon only, expands on click */}
       <div className={`sm:hidden flex items-center transition-all duration-300 ${
-        expanded ? "w-48 border border-gray-300 rounded-lg bg-white" : "w-9"
+        expanded ? "w-48 border border-orange-500 ring-2 ring-orange-500/20 rounded-lg bg-white" : "w-9"
       } h-9 overflow-hidden`}>
         {expanded ? (
           <div className="flex items-center w-full px-2 gap-1">
@@ -59,7 +59,7 @@ const SearchBox = ({ searchTerm = "", setSearchTerm = () => {} }) => {
       </div>
 
       {/* Desktop: always visible full input */}
-      <div className="hidden sm:flex items-center border border-gray-300 rounded-lg h-10 w-56 md:w-72 bg-white focus-within:border-gray-500 transition-colors px-3 gap-2">
+      <div className="hidden sm:flex items-center border border-gray-300 rounded-lg h-10 w-56 md:w-72 bg-white focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-500/20 transition-colors px-3 gap-2">
         <Search size={15} className="text-gray-400 flex-shrink-0" />
         <input
           type="text"

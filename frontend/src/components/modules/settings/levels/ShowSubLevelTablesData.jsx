@@ -14,6 +14,7 @@ import InputField from "../../../shared/form-fields/InputField";
 import RadioGroup from "../../../shared/form-fields/RadioGroup";
 import SyllabusTab, { TasksTab, ManualTaskForm, TaskUploadDrawer, SyllabusUploadDrawer, ManualSyllabusForm } from "./SyllabusTab";
 import Loader from "../../../shared/loader/Loader";
+import Avatar from "../../../shared/Avatar";
 
 const validationSchema = Yup.object({
     name: Yup.string().required("SubLevel name is required"),
@@ -23,7 +24,19 @@ const validationSchema = Yup.object({
 
 const STUDENT_COLUMNS = [
     { label: "S.No",        key: "sno" },
-    { label: "Full Name",   key: "fullName" },
+    { 
+        label: "Student",   
+        key: "fullName",
+        render: (row) => (
+            <div className="flex items-center gap-3">
+                <Avatar firstName={row.raw.firstName} lastName={row.raw.lastName} imageUrl={row.raw.image} size="sm" />
+                <div>
+                    <span className="font-semibold text-sm text-gray-805">{row.fullName}</span>
+                    <span className="block text-[10px] text-gray-400 font-medium">PR Key: {row.prkey}</span>
+                </div>
+            </div>
+        )
+    },
     { label: "Father Name", key: "fatherName" },
     { label: "Mobile No.",  key: "mobile" },
     { label: "Course",      key: "course", render: (row) => <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full">{row.course}</span> },
@@ -121,16 +134,19 @@ const ProgressTab = ({ subLevel, onRowClick }) => {
             key: "name",
             label: "STUDENT NAME",
             render: (row) => (
-                <div className="flex flex-col">
-                    <span 
-                        onClick={(e) => { e.stopPropagation(); onRowClick?.(row); }}
-                        className="font-bold text-sm text-orange-500 hover:text-orange-600 transition-colors cursor-pointer"
-                    >
-                        {row.name}
-                    </span>
-                    <span className="text-[10px] text-gray-400 font-medium tracking-wide uppercase mt-0.5">
-                        PR Key: {row.prkey}
-                    </span>
+                <div className="flex items-center gap-3">
+                    <Avatar firstName={row.firstName} lastName={row.lastName} imageUrl={row.image} size="sm" />
+                    <div className="flex flex-col">
+                        <span 
+                            onClick={(e) => { e.stopPropagation(); onRowClick?.(row); }}
+                            className="font-bold text-sm text-orange-500 hover:text-orange-600 transition-colors cursor-pointer"
+                        >
+                            {row.name}
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-medium tracking-wide uppercase mt-0.5">
+                            PR Key: {row.prkey}
+                        </span>
+                    </div>
                 </div>
             )
         },
