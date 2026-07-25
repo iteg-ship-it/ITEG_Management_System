@@ -1088,7 +1088,7 @@ exports.getSubLevelStudentsProgress = async (req, res) => {
 
     const students = await Student.find({ currentSubLevelId: subLevelId })
       .populate("currentSubLevelId", "name")
-      .select("firstName lastName prkey status currentSubLevelId image");
+      .select("firstName lastName prkey status currentSubLevelId image attendanceRate");
 
     const studentIds = students.map(s => s._id);
 
@@ -1153,6 +1153,7 @@ exports.getSubLevelStudentsProgress = async (req, res) => {
         level: student.currentSubLevelId?.name || "—",
         prkey: student.prkey,
         currentStatus: student.status,
+        attendanceRate: student.attendanceRate ?? 100,
         taskProgress: { completed, total, percentage },
         subjectProgress,
         statusCounters: { pending, inProgress, completed }

@@ -151,11 +151,11 @@ const ProgressTab = ({ subLevel, onRowClick }) => {
             )
         },
         {
-            key: "level",
-            label: "LEVEL",
+            key: "attendance",
+            label: "ATTENDANCE",
             render: (row) => (
                 <span className="text-sm font-semibold text-gray-700">
-                    {row.level}
+                    {row.attendanceRate ?? 100}%
                 </span>
             )
         },
