@@ -129,18 +129,7 @@ const TaskCard = ({ task, onDragStart, onStatusChange }) => {
                 )}
             </div>
 
-            {/* In Progress Progress Bar */}
-            {isInProgress && (
-                <div className="space-y-1.5 pt-1">
-                    <div className="flex justify-between text-[10px] font-bold text-slate-400">
-                        <span>Progress</span>
-                        <span className="text-orange-500 font-extrabold">65%</span>
-                    </div>
-                    <div className="w-full bg-slate-100 rounded-full h-1.5">
-                        <div className="h-1.5 rounded-full bg-orange-500" style={{ width: "65%" }} />
-                    </div>
-                </div>
-            )}
+
 
             {/* Marks & Verified Badge for Completed & In Progress */}
             {(isInProgress || isCompleted) && (
