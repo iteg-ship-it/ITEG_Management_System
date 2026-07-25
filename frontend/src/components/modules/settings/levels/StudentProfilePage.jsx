@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
     MdEmail, MdPhone, MdCheckCircle, MdAccessTime,
@@ -12,7 +12,10 @@ import {
     MdPerson
 } from "react-icons/md";
 import { toast } from "react-toastify";
+import CryptoJS from "crypto-js";
+import { FiCamera, FiCheck } from "react-icons/fi";
 import Header from "../../../shared/sidebar/Header";
+import OrangeButton from "../../../shared/sidebar/OrangeButton";
 import {
     useGetNewStudentTasksQuery,
     useGetNewStudentByIdQuery,
@@ -29,6 +32,19 @@ import {
     useMarkStudentDroppedMutation,
     useMarkStudentDummyMutation,
 } from "../../../../redux/api/authApi";
+
+const SECRET_KEY = "ITEG@123";
+const getToken = () => {
+    try {
+        const encryptedToken = localStorage.getItem("token");
+        if (!encryptedToken) return null;
+        const bytes = CryptoJS.AES.decrypt(encryptedToken, SECRET_KEY);
+        return bytes.toString(CryptoJS.enc.Utf8);
+    } catch (e) {
+        console.error("Error retrieving token:", e);
+        return null;
+    }
+};
 
 // Formatting helpers
 const formatShortDate = (value) => {
@@ -354,8 +370,8 @@ const ReadyStudentModal = ({ name, currentStatus, onConfirm, onCancel, loading }
     );
 };
 
-// Edit Profile Modal
 const EditProfileModal = ({ raw, onConfirm, onCancel, loading }) => {
+    const fileInputRef = useRef(null);
     const [form, setForm] = useState({
         firstName:     raw.firstName     || "",
         lastName:      raw.lastName      || "",
@@ -367,18 +383,104 @@ const EditProfileModal = ({ raw, onConfirm, onCancel, loading }) => {
         address:       raw.address       || "",
         course:        raw.course        || "",
         gender:        raw.gender        || "",
+        image:         raw.image         || "",
     });
     const ic = "w-full !h-10 !border !border-gray-200 !rounded-xl !px-3 !py-2 text-xs focus:outline-none focus:border-orange-400 bg-white";
     const lc = "block text-xs font-semibold text-gray-600 mb-1";
     const set = k => e => setForm(p => ({ ...p, [k]: e.target.value }));
+    const triggerImageUpload = () => { fileInputRef.current?.click(); };
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 w-full max-w-lg flex flex-col max-h-[90vh] overflow-hidden">
-                <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 flex-shrink-0">
-                    <h3 className="text-base font-bold text-gray-800">Edit Profile</h3>
-                    <button onClick={onCancel} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400"><MdClose size={18} /></button>
-                </div>
-                <div className="overflow-y-auto flex-1 p-6">
+        <OrangeButton
+            isOpen={true}
+            onClose={onCancel}
+            panelTitle="Edit Profile"
+            panelSubtitle={raw.firstName && raw.lastName ? `${raw.firstName} ${raw.lastName}` : "Student"}
+            leftBtnText="Cancel"
+            rightBtnText={loading ? "Saving..." : "Save Changes"}
+            onLeftClick={onCancel}
+            onRightClick={() => onConfirm(form)}
+            maxWidth="sm:max-w-lg"
+            drawerContent={
+                <div className="space-y-4">
+                    {/* Profile Header & Image Upload */}
+                    <div className="-mx-6 -mt-6 mb-6 p-6 flex flex-col items-center border-b border-gray-100 bg-white">
+                        <div className="relative group flex flex-col items-center">
+                            {/* Avatar Container */}
+                            <div 
+                                onClick={triggerImageUpload}
+                                className="relative cursor-pointer group/avatar rounded-full p-1 transition-all duration-300 hover:scale-[1.02]"
+                                title="Click to change profile picture"
+                            >
+                                <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-orange-400 shadow-md ring-4 ring-orange-500/10 group-hover/avatar:ring-orange-500/30 transition-all duration-300">
+                                    {form.image ? (
+                                        <img
+                                            src={form.image}
+                                            alt="Profile Preview"
+                                            className="w-full h-full object-cover transition-transform duration-300 group-hover/avatar:scale-105"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-orange-100 text-orange-600 flex items-center justify-center text-2xl font-bold transition-transform duration-300 group-hover/avatar:scale-105">
+                                            {(form.firstName?.[0] || "").toUpperCase()}{(form.lastName?.[0] || "").toUpperCase()}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Floating Camera Badge */}
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        triggerImageUpload();
+                                    }}
+                                    className="absolute bottom-1 right-1 bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-full shadow-md transition-transform duration-200 hover:scale-110 active:scale-95"
+                                    title="Upload new photo"
+                                >
+                                    <FiCamera className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+
+                            {/* Preview Selected Status */}
+                            {form.image && form.image.startsWith("data:image/") && (
+                                <div className="mt-2.5 inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md animate-fade-in">
+                                    <FiCheck className="w-3.5 h-3.5 text-emerald-600" />
+                                    <span>New photo selected</span>
+                                </div>
+                            )}
+                        </div>
+
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (file) {
+                                    if (!file.type.startsWith("image/")) {
+                                        toast.error("Please select a valid image file");
+                                        return;
+                                    }
+                                    if (file.size > 5 * 1024 * 1024) {
+                                        toast.error("Image size should be less than 5MB");
+                                        return;
+                                    }
+                                    const reader = new FileReader();
+                                    reader.onload = () => {
+                                        setForm(prev => ({ ...prev, image: reader.result }));
+                                    };
+                                    reader.readAsDataURL(file);
+                                }
+                            }}
+                        />
+
+                        {raw.email && (
+                            <p className="text-xs text-gray-500 mt-3 font-medium bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
+                                {raw.email}
+                            </p>
+                        )}
+                    </div>
+
                     <div className="grid grid-cols-2 gap-3">
                         {[{k:"firstName",l:"First Name"},{k:"lastName",l:"Last Name"},{k:"fatherName",l:"Father Name"},{k:"email",l:"Email"},{k:"studentMobile",l:"Student Mobile"},{k:"parentMobile",l:"Parent Mobile"},{k:"village",l:"Village"},{k:"course",l:"Course"}].map(({k,l}) => (
                             <div key={k}>
@@ -401,16 +503,8 @@ const EditProfileModal = ({ raw, onConfirm, onCancel, loading }) => {
                         </div>
                     </div>
                 </div>
-                <div className="flex gap-3 px-6 pb-6 flex-shrink-0 pt-2 border-t border-gray-100">
-                    <button onClick={onCancel} className="flex-1 py-2.5 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition">Cancel</button>
-                    <button onClick={() => onConfirm(form)} disabled={loading}
-                        className="flex-1 py-2.5 text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm">
-                        {loading ? <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <MdEdit size={15} />}
-                        Save Changes
-                    </button>
-                </div>
-            </div>
-        </div>
+            }
+        />
     );
 };
 
@@ -732,12 +826,30 @@ const StudentProfilePage = () => {
     const handleEditProfile = async (form) => {
         setEditLoading(true);
         try {
-            await updateStudent({ id: raw._id, data: form }).unwrap();
+            if (form.image && form.image.startsWith("data:image/")) {
+                const baseUrl = import.meta.env.VITE_API_URL;
+                const url = `${baseUrl}/students/${raw._id}/profile-image`;
+                const r = await fetch(url, {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({ image: form.image })
+                });
+                if (!r.ok) {
+                    const errData = await r.json();
+                    throw new Error(errData.message || "Failed to update profile photo");
+                }
+            }
+
+            const { image, ...otherFields } = form;
+            await updateStudent({ id: raw._id, data: otherFields }).unwrap();
             toast.success("Profile updated successfully");
             setEditModal(false);
             navigate(0);
         } catch (err) {
-            toast.error(err?.data?.message || "Update failed");
+            toast.error(err?.message || err?.data?.message || "Update failed");
         } finally {
             setEditLoading(false);
         }
