@@ -45,6 +45,12 @@ const OrangeButton = ({
     }
   }, [controlledIsOpen, isControlled]);
 
+  useEffect(() => {
+    return () => {
+      document.body.classList.remove("drawer-open");
+    };
+  }, []);
+
   const openDrawer = () => {
     if (isControlled) return;
     setInternalIsMounted(true);

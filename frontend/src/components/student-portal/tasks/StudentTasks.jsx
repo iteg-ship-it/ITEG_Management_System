@@ -211,7 +211,7 @@ function TaskCard({ task }) {
     const cfg = statusConfig[task.status] || statusConfig.pending;
 
     return (
-        <div className={`bg-white rounded-xl border border-gray-150 p-4 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out flex flex-col justify-between h-full min-h-[140px] ${cfg.borderClass} ${cfg.bgClass}`}>
+        <div className={`bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out flex flex-col justify-between h-full min-h-[140px] ${cfg.borderClass} ${cfg.bgClass}`}>
             <div>
                 {/* Subject tag */}
                 {task.subjectName && (
@@ -250,7 +250,7 @@ function TaskCard({ task }) {
 
                 {/* Marks */}
                 {task.status === "completed" && task.marks != null && (
-                    <div className="flex items-center justify-between mt-1 bg-orange-50/40 border border-orange-100/50 rounded-xl px-2.5 py-1.5 shadow-sm/5">
+                    <div className="flex items-center justify-between mt-1 bg-orange-50/40 border border-orange-100/50 rounded-xl px-2.5 py-1.5 shadow-sm">
                         <span className="text-[10px] font-extrabold text-orange-600/90 uppercase tracking-wider">Score</span>
                         <div className="flex items-center gap-1.5">
                             <div className="flex items-center gap-0.5">

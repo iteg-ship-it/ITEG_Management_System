@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
     MdCheckCircle, MdRadioButtonUnchecked, MdAccessTime,
@@ -32,88 +32,6 @@ const STATUS_COLUMNS = [
     { key: "completed",  label: "Completed",   badgeBg: "bg-emerald-100 text-emerald-700", dot: "bg-emerald-500" },
 ];
 
-// ── Completion Modal ──────────────────────────────────────────────────────────
-const CompletionModal = ({ task, onConfirm, onCancel, loading }) => {
-    const [marks,  setMarks]  = useState(task.marks ?? "");
-    const [remark, setRemark] = useState(task.notes || "");
-    const maxMarks = task.maxMarks || 5;
-
-    const handleConfirm = () => {
-        const m = Number(marks);
-        if (marks === "" || isNaN(m) || m < 0 || m > maxMarks) {
-            toast.error(`Marks must be between 0 and ${maxMarks}`);
-            return;
-        }
-        onConfirm({ marks: m, notes: remark });
-    };
-
-    return (
-        <OrangeButton
-            isOpen={true}
-            onClose={onCancel}
-            panelTitle="Complete Task"
-            panelSubtitle={task.title}
-            leftBtnText="Cancel"
-            rightBtnText={loading ? "Saving..." : "Mark Complete"}
-            onLeftClick={onCancel}
-            onRightClick={handleConfirm}
-            drawerContent={
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-2">
-                            Marks / Rating <span className="text-rose-500">*</span>
-                            <span className="ml-1 text-[11px] font-normal text-slate-400">(out of {maxMarks})</span>
-                        </label>
-
-                        {maxMarks <= 5 ? (
-                            <div className="flex items-center gap-2">
-                                {Array.from({ length: maxMarks }, (_, i) => i + 1).map(star => (
-                                    <button
-                                        key={star}
-                                        type="button"
-                                        onClick={() => setMarks(star)}
-                                        className="transition hover:scale-110"
-                                    >
-                                        {star <= Number(marks)
-                                            ? <MdStar size={30} className="text-orange-400" />
-                                            : <MdStarBorder size={30} className="text-slate-300" />
-                                        }
-                                    </button>
-                                ))}
-                                {marks !== "" && (
-                                    <span className="ml-2 text-xs font-bold text-orange-500">{marks}/{maxMarks}</span>
-                                )}
-                            </div>
-                        ) : (
-                            <input
-                                type="number"
-                                min={0}
-                                max={maxMarks}
-                                value={marks}
-                                onChange={e => setMarks(e.target.value)}
-                                placeholder={`0 - ${maxMarks}`}
-                                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-orange-400"
-                            />
-                        )}
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">
-                            Remark <span className="text-[11px] font-normal text-slate-400">(optional)</span>
-                        </label>
-                        <textarea
-                            value={remark}
-                            onChange={e => setRemark(e.target.value)}
-                            placeholder="Add a remark about task completion..."
-                            rows={3}
-                            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-orange-400 resize-none"
-                        />
-                    </div>
-                </div>
-            }
-        />
-    );
-};
 
 function formatTimeAgo(dateString) {
     if (!dateString) return "";
@@ -161,11 +79,11 @@ const TaskCard = ({ task, onDragStart, onStatusChange }) => {
         <div
             draggable
             onDragStart={() => onDragStart(task)}
-            className={`bg-white rounded-xl border border-slate-150 p-4.5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 cursor-grab active:cursor-grabbing select-none space-y-3.5 ${activeBorderClass}`}
+            className={`bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 cursor-grab active:cursor-grabbing select-none space-y-3.5 ${activeBorderClass}`}
         >
             {/* Header: Priority Badge + Status Dropdown */}
             <div className="flex items-center justify-between gap-2 pb-1">
-                <span className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-sm/5 ${
+                <span className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-sm ${
                     isCompleted ? "bg-slate-50 text-slate-400 border-slate-200" : (PRIORITY_BADGES[priority] || PRIORITY_BADGES.medium)
                 }`}>
                     {isCompleted ? "COMPLETED" : `${priority} PRIORITY`}
@@ -175,7 +93,7 @@ const TaskCard = ({ task, onDragStart, onStatusChange }) => {
                     <select
                         value={task.status || "pending"}
                         onChange={(e) => onStatusChange(task, e.target.value)}
-                        className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-700 bg-slate-50 border border-slate-200/50 rounded-lg px-2 py-1 outline-none focus:outline-none cursor-pointer transition"
+                        className="!h-auto !py-1 !px-2 !border !border-slate-200/50 !rounded-lg text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-700 bg-slate-50 outline-none focus:outline-none cursor-pointer transition"
                     >
                         <option value="pending">PENDING ▾</option>
                         <option value="inProgress">IN PROGRESS ▾</option>
@@ -199,12 +117,12 @@ const TaskCard = ({ task, onDragStart, onStatusChange }) => {
             {/* Given by & Time ago */}
             <div className="flex items-center justify-between text-[9.5px] text-slate-400 font-semibold pt-2 border-t border-slate-100/70">
                 {task.assignedByName ? (
-                    <span className="truncate max-w-[60%] flex items-center gap-1 bg-slate-50 border border-slate-250/30 px-2 py-0.5 rounded-full" title={task.assignedByName}>
+                    <span className="truncate max-w-[60%] flex items-center gap-1 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-full" title={task.assignedByName}>
                         <span className="w-1 h-1 rounded-full bg-slate-400 flex-shrink-0" />
                         <span className="text-slate-500 font-bold truncate">{task.assignedByName}</span>
                     </span>
                 ) : (
-                    <span className="text-slate-400 font-bold bg-slate-50 border border-slate-250/30 px-2 py-0.5 rounded-full">Auto-assigned</span>
+                    <span className="text-slate-400 font-bold bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-full">Auto-assigned</span>
                 )}
                 {(task.assignedAt || task.createdAt) && (
                     <span className="text-slate-400/90 font-medium">{formatTimeAgo(task.assignedAt || task.createdAt)}</span>
@@ -224,25 +142,52 @@ const TaskCard = ({ task, onDragStart, onStatusChange }) => {
                 </div>
             )}
 
-            {/* Marks & Verified Badge for Completed */}
-            {isCompleted && (
+            {/* Marks & Verified Badge for Completed & In Progress */}
+            {(isInProgress || isCompleted) && (
                 <div className="flex items-center justify-between pt-1 text-xs">
-                    <span className="inline-flex items-center gap-1 text-emerald-600 font-black text-[10px] tracking-wider bg-emerald-50 border border-emerald-100 rounded-full px-2 py-0.5">
-                        <MdVerified size={12} /> VERIFIED
-                    </span>
-                    {task.marks != null && (
-                        <div className="flex items-center gap-0.5 bg-orange-50/50 border border-orange-100/50 rounded-lg px-1.5 py-0.5">
-                            <span className="text-[10px] font-extrabold text-orange-600 mr-1">{task.marks}/{task.maxMarks || 5}</span>
-                            <MdStar size={11} className="text-orange-400" />
-                        </div>
+                    {isCompleted ? (
+                        <span className="inline-flex items-center gap-1 text-emerald-600 font-black text-[10px] tracking-wider bg-emerald-50 border border-emerald-100 rounded-full px-2 py-0.5">
+                            <MdVerified size={12} /> VERIFIED
+                        </span>
+                    ) : (
+                        <span className="inline-flex items-center gap-1 text-orange-600 font-black text-[10px] tracking-wider bg-orange-50 border border-orange-100 rounded-full px-2 py-0.5">
+                            RATING
+                        </span>
                     )}
+
+                    <div className="flex items-center gap-0.5">
+                        {Array.from({ length: task.maxMarks || 5 }, (_, i) => i + 1).map(star => {
+                            const isSelected = star <= (task.marks || 0);
+                            return (
+                                <button
+                                    key={star}
+                                    type="button"
+                                    disabled={isCompleted}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onStatusChange(task, task.status, { marks: star });
+                                    }}
+                                    className={`transition ${isCompleted ? "cursor-default" : "hover:scale-125 cursor-pointer"}`}
+                                >
+                                    {isSelected ? (
+                                        <MdStar size={14} className="text-orange-400" />
+                                    ) : (
+                                        <MdStarBorder size={14} className="text-slate-350" />
+                                    )}
+                                </button>
+                            );
+                        })}
+                        <span className="ml-1 text-[10px] font-black text-slate-500">
+                            {task.marks || 0}/{task.maxMarks || 5}
+                        </span>
+                    </div>
                 </div>
             )}
 
             {/* Footer Row */}
             <div className="flex items-center justify-between pt-2.5 border-t border-slate-100/70 text-[10px] font-bold text-slate-400">
                 <div className="flex items-center gap-1.5 text-slate-400/90">
-                    <MdCalendarToday size={12} className="text-slate-350" />
+                    <MdCalendarToday size={12} className="text-slate-400" />
                     <span>
                         {task.dueDate
                             ? new Date(task.dueDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
@@ -251,7 +196,7 @@ const TaskCard = ({ task, onDragStart, onStatusChange }) => {
                     </span>
                 </div>
 
-                <div className="w-5 h-5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-150/40 font-black flex items-center justify-center text-[9px] shadow-sm/5">
+                <div className="w-5 h-5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-200/45 font-black flex items-center justify-center text-[9px] shadow-sm">
                     {task.type?.[0]?.toUpperCase() || "T"}
                 </div>
             </div>
@@ -383,9 +328,12 @@ const StudentTaskBoard = () => {
     const [tasks,           setTasks]           = useState(null);
     const [dragTask,        setDragTask]        = useState(null);
     const [dragOver,        setDragOver]        = useState(null);
-    const [modal,           setModal]           = useState(null);
     const [saving,          setSaving]          = useState(false);
     const [showExtraModal,  setShowExtraModal]  = useState(false);
+
+    useEffect(() => {
+        setTasks(null);
+    }, [student?._id]);
 
     const { data, isLoading, refetch } = useGetNewStudentTasksQuery(
         { id: student?._id },
@@ -435,11 +383,16 @@ const StudentTaskBoard = () => {
         setDragOver(null);
         if (!dragTask || dragTask.status === targetStatus) { setDragTask(null); return; }
 
-        if (targetStatus === "completed") {
-            setModal({ task: dragTask, targetStatus });
-        } else {
-            applyStatusChange(dragTask, targetStatus, {});
+        if (targetStatus === "completed" && (dragTask.marks === null || dragTask.marks === undefined)) {
+            toast.error("Please rate/mark the task before completing it!");
+            setDragTask(null);
+            return;
         }
+        const finalMarks = targetStatus === "pending"
+            ? null
+            : dragTask.marks;
+
+        applyStatusChange(dragTask, targetStatus, { marks: finalMarks });
         setDragTask(null);
     };
 
@@ -479,21 +432,14 @@ const StudentTaskBoard = () => {
             }
 
             toast.success(`Task moved to ${newStatus === "inProgress" ? "In Progress" : newStatus}`);
-            const fresh = await refetch();
-            if (fresh?.data) setTasks(null);
+            await refetch();
         } catch (err) {
             toast.error(err.message || "Failed to update task");
+            refetch();
             setTasks(null);
         } finally {
             setSaving(false);
         }
-    };
-
-    const handleModalConfirm = async ({ marks, notes }) => {
-        setSaving(true);
-        await applyStatusChange(modal.task, "completed", { marks, notes });
-        setModal(null);
-        setSaving(false);
     };
 
     if (!student) {
@@ -512,14 +458,6 @@ const StudentTaskBoard = () => {
         <div className="min-h-screen bg-[#F8F9FA] px-8 py-6 space-y-6">
 
             {/* Modals */}
-            {modal && (
-                <CompletionModal
-                    task={modal.task}
-                    onConfirm={handleModalConfirm}
-                    onCancel={() => { setModal(null); setDragTask(null); }}
-                    loading={saving}
-                />
-            )}
             {showExtraModal && (
                 <ExtraTaskModal
                     student={student}
@@ -547,7 +485,7 @@ const StudentTaskBoard = () => {
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             placeholder="Search tasks..."
-                            className="w-full h-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none focus:border-none text-xs font-medium text-slate-800 placeholder-slate-400 p-0 shadow-none"
+                            className="w-full !h-full bg-transparent !border-none !outline-none !ring-0 focus:!ring-0 focus:!outline-none focus:!border-none text-xs font-medium text-slate-800 placeholder-slate-400 !p-0 !shadow-none"
                         />
                     </div>
 
@@ -681,12 +619,15 @@ const StudentTaskBoard = () => {
                                             key={task._id}
                                             task={task}
                                             onDragStart={handleDragStart}
-                                            onStatusChange={(t, st) => {
-                                                if (st === "completed") {
-                                                    setModal({ task: t, targetStatus: st });
-                                                } else {
-                                                    applyStatusChange(t, st, {});
+                                            onStatusChange={(t, st, extra = {}) => {
+                                                if (st === "completed" && (t.marks === null || t.marks === undefined) && extra.marks === undefined) {
+                                                    toast.error("Please rate/mark the task before completing it!");
+                                                    return;
                                                 }
+                                                const finalMarks = extra.marks !== undefined
+                                                    ? extra.marks
+                                                    : (st === "pending" ? null : t.marks);
+                                                applyStatusChange(t, st, { marks: finalMarks, ...extra });
                                             }}
                                         />
                                     ))

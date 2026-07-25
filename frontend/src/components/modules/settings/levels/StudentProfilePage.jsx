@@ -271,7 +271,7 @@ const DocumentUploadPanel = ({ type = "document", loading, onUpload }) => {
                         value={title}
                         onChange={(event) => setTitle(event.target.value)}
                         placeholder={isExtra ? "Resume, Certificate..." : "Aadhar card, Marksheet..."}
-                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs focus:border-orange-400 focus:outline-none"
+                        className="w-full !h-10 !border !border-gray-200 !rounded-xl bg-white !px-3 !py-2 text-xs focus:border-orange-400 focus:outline-none"
                     />
                 </div>
                 <div>
@@ -280,7 +280,7 @@ const DocumentUploadPanel = ({ type = "document", loading, onUpload }) => {
                         type="file"
                         accept="image/*,application/pdf"
                         onChange={handleFile}
-                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs file:mr-2 file:rounded-lg file:border-0 file:bg-gray-100 file:px-2.5 file:py-1 file:text-xs file:font-semibold file:text-gray-600 focus:border-orange-400 focus:outline-none"
+                        className="w-full !h-10 !border !border-gray-200 !rounded-xl bg-white !px-3 !py-1.5 text-xs file:mr-2 file:rounded-lg file:border-0 file:bg-gray-100 file:px-2.5 file:py-1 file:text-xs file:font-semibold file:text-gray-600 focus:border-orange-400 focus:outline-none"
                     />
                 </div>
                 {isExtra && (
@@ -291,7 +291,7 @@ const DocumentUploadPanel = ({ type = "document", loading, onUpload }) => {
                             onChange={(event) => setRemark(event.target.value)}
                             rows={2}
                             placeholder="Add brief description or remark..."
-                            className="w-full resize-none rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs focus:border-orange-400 focus:outline-none"
+                            className="w-full resize-none !border !border-gray-200 !rounded-xl bg-white !px-3 !py-2 text-xs focus:border-orange-400 focus:outline-none"
                         />
                     </div>
                 )}
@@ -368,7 +368,7 @@ const EditProfileModal = ({ raw, onConfirm, onCancel, loading }) => {
         course:        raw.course        || "",
         gender:        raw.gender        || "",
     });
-    const ic = "w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-orange-400";
+    const ic = "w-full !h-10 !border !border-gray-200 !rounded-xl !px-3 !py-2 text-xs focus:outline-none focus:border-orange-400 bg-white";
     const lc = "block text-xs font-semibold text-gray-600 mb-1";
     const set = k => e => setForm(p => ({ ...p, [k]: e.target.value }));
     return (
@@ -471,7 +471,7 @@ const MarkDroppedModal = ({ name, onConfirm, onCancel, loading, variant = "dropp
                                 value={reason}
                                 onChange={e => setReason(e.target.value)}
                                 placeholder="Enter dummy student reason..."
-                                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-orange-400"
+                                className="w-full !h-10 !border !border-gray-200 !rounded-xl !px-3 !py-2 text-xs focus:outline-none focus:border-orange-400 bg-white"
                             />
                         </div>
                     )}
@@ -482,7 +482,7 @@ const MarkDroppedModal = ({ name, onConfirm, onCancel, loading, variant = "dropp
                         </label>
                         <textarea value={remark} onChange={e => setRemark(e.target.value)}
                             rows={3} placeholder={isDummy ? "Add remark..." : "Enter reason for dropping..."}
-                            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-red-400 resize-none" />
+                            className="w-full !border !border-gray-200 !rounded-xl !px-3 !py-2 text-xs focus:outline-none focus:border-red-400 resize-none bg-white" />
                     </div>
 
                     <div>
@@ -854,7 +854,7 @@ const StudentProfilePage = () => {
                             <input
                                 type="text"
                                 placeholder="Search student records..."
-                                className="w-full h-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none focus:border-none text-xs font-medium text-slate-800 placeholder-slate-400 p-0 shadow-none"
+                                className="w-full !h-full bg-transparent !border-none !outline-none !ring-0 focus:!ring-0 focus:!outline-none focus:!border-none text-xs font-medium text-slate-800 placeholder-slate-400 !p-0 !shadow-none"
                             />
                         </div>
 

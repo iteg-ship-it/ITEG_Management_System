@@ -574,7 +574,7 @@ const updateStudentTaskStatus = async (studentId, taskId, payload) => {
     }
   }
 
-  if (nextStatus !== "completed") {
+  if (nextStatus === "pending") {
     studentTask.marks = null;
   } else if (payload.marks !== undefined) {
     studentTask.marks = payload.marks;
