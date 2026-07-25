@@ -111,7 +111,11 @@ exports.getAllStudents = async (req, res) => {
     if (sessionId) filter.sessionId = sessionId;
     if (currentLevelId) filter.currentLevelId = currentLevelId;
     if (currentSubLevelId) filter.currentSubLevelId = currentSubLevelId;
-    if (status) filter.status = status;
+    if (status) {
+      filter.status = status;
+    } else {
+      filter.status = { $nin: ["Dummy", "Dropped"] };
+    }
 
     const students = await Student.find(filter)
       .populate("subDepartmentId", "name departmentId")
@@ -607,7 +611,7 @@ exports.getLeaveRequests = async (req, res) => {
 exports.getDummyStudents = async (req, res) => {
   try {
     const filter = req.subDeptFilter ? { ...req.subDeptFilter } : {};
-    filter.status = "Dummy";
+    filter.status = { $in: ["Dummy", "Dropped"] };
 
     const students = await Student.find(filter)
       .select("prkey firstName lastName email studentMobile course status dummyDetails currentLevelId currentSubLevelId subDepartmentId")
@@ -1088,7 +1092,10 @@ exports.getSubLevelStudentsProgress = async (req, res) => {
   try {
     const { subLevelId } = req.params;
 
-    const students = await Student.find({ currentSubLevelId: subLevelId })
+    const students = await Student.find({
+      currentSubLevelId: subLevelId,
+      status: { $nin: ["Dummy", "Dropped"] },
+    })
       .populate("currentSubLevelId", "name")
       .select("firstName lastName prkey status currentSubLevelId image attendanceRate");
 

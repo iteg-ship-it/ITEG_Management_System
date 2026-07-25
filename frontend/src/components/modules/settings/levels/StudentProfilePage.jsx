@@ -1098,6 +1098,16 @@ const StudentProfilePage = () => {
         }
     };
 
+    const handleMarkActive = async () => {
+        try {
+            await updateStudent({ id: raw._id, data: { status: "Active" } }).unwrap();
+            toast.success(`${name} marked as Active`);
+            navigate(0);
+        } catch (err) {
+            toast.error(err?.data?.message || "Failed to mark as Active");
+        }
+    };
+
     const handleDocumentUpload = async (payload) => {
         try {
             await uploadDocument({ id: raw._id, ...payload }).unwrap();
@@ -1309,12 +1319,20 @@ const StudentProfilePage = () => {
                                                 <MdBarChart size={14} /> View Report Card
                                             </button>
                                             <div className="border-t border-slate-100 my-1" />
-                                            <button onClick={() => { setMoreOpen(false); setDummyModal(true); }} className="w-full text-left px-4 py-2 hover:bg-slate-50 text-amber-600 flex items-center gap-2">
-                                                <MdWarning size={14} /> Mark Dummy
-                                            </button>
-                                            <button onClick={() => { setMoreOpen(false); setDropModal(true); }} className="w-full text-left px-4 py-2 hover:bg-slate-50 text-rose-600 flex items-center gap-2">
-                                                <MdWarning size={14} /> Mark Dropped
-                                            </button>
+                                            {["Dummy", "Dropped"].includes(raw.status) ? (
+                                                <button onClick={handleMarkActive} className="w-full text-left px-4 py-2 hover:bg-slate-50 text-emerald-600 flex items-center gap-2 font-bold">
+                                                    <MdCheckCircle size={14} /> Mark Active
+                                                </button>
+                                            ) : (
+                                                <>
+                                                    <button onClick={() => { setMoreOpen(false); setDummyModal(true); }} className="w-full text-left px-4 py-2 hover:bg-slate-50 text-amber-600 flex items-center gap-2">
+                                                        <MdWarning size={14} /> Mark Dummy
+                                                    </button>
+                                                    <button onClick={() => { setMoreOpen(false); setDropModal(true); }} className="w-full text-left px-4 py-2 hover:bg-slate-50 text-rose-600 flex items-center gap-2">
+                                                        <MdWarning size={14} /> Mark Dropped
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </>
                                 )}
