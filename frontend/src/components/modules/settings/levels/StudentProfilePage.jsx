@@ -20,6 +20,7 @@ import {
     useGetNewStudentTasksQuery,
     useGetNewStudentByIdQuery,
     useGetStudentProgressSnapshotsQuery,
+    useGetStudentLevelHistoryQuery,
     useGetStudentTaskHistoryQuery,
     useGetStudentActivityQuery,
     useGetLevelsBySubdepartmentQuery,
@@ -508,6 +509,121 @@ const EditProfileModal = ({ raw, onConfirm, onCancel, loading }) => {
     );
 };
 
+// Level History Drawer for Admin/Faculty
+const LevelHistoryDrawer = ({ isOpen, onClose, levelHistory = [], student }) => {
+    const history = levelHistory || [];
+    const completedLevels = history.filter(h => h.status === "completed").length;
+
+    return (
+        <OrangeButton
+            isOpen={isOpen}
+            onClose={onClose}
+            panelTitle="Level History"
+            panelSubtitle={`${student.firstName || ""} ${student.lastName || ""}`}
+            showFooter={false}
+            maxWidth="sm:max-w-lg"
+            drawerContent={
+                <div className="space-y-6">
+                    {/* Header stats bar */}
+                    <div className="grid grid-cols-2 gap-4 bg-slate-50 border border-slate-150 p-4 rounded-2xl">
+                        <div className="text-center">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">Total Levels</p>
+                            <p className="text-lg font-black text-slate-800 mt-1">{history.length}</p>
+                        </div>
+                        <div className="text-center border-l border-slate-200">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">Completed</p>
+                            <p className="text-lg font-black text-emerald-600 mt-1">{completedLevels}</p>
+                        </div>
+                    </div>
+
+                    {/* Timeline */}
+                    <div className="relative pl-4">
+                        <div className="absolute left-6 top-3 bottom-3 w-0.5 bg-slate-100" />
+                        <div className="space-y-5">
+                            {history.length === 0 ? (
+                                <div className="text-center py-10">
+                                    <p className="text-xs font-semibold text-slate-400">No level history recorded yet.</p>
+                                </div>
+                            ) : (
+                                history.map((item, idx) => {
+                                    const isCurrent = item.status === "in_progress";
+                                    const pct = item.totalTasks > 0 
+                                        ? Math.round((item.completedTasksCount / item.totalTasks) * 100)
+                                        : 0;
+
+                                    return (
+                                        <div key={item._id || idx} className="flex items-start gap-4 relative">
+                                            {/* dot indicator */}
+                                            <div className={`relative z-10 w-4 h-4 rounded-full border-2 mt-1.5 flex-shrink-0 flex items-center justify-center ${
+                                                isCurrent 
+                                                    ? "bg-orange-500 border-orange-500 shadow-md ring-4 ring-orange-500/10" 
+                                                    : "bg-white border-slate-350"
+                                            }`}>
+                                                {!isCurrent && <div className="w-1.5 h-1.5 rounded-full bg-slate-350" />}
+                                            </div>
+
+                                            {/* card content */}
+                                            <div className={`flex-1 rounded-2xl border p-4 shadow-sm transition-all duration-300 ${
+                                                isCurrent 
+                                                    ? "border-orange-100 bg-orange-50/50" 
+                                                    : "border-slate-100 bg-white hover:border-slate-200"
+                                            }`}>
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wide">
+                                                            {item.levelId?.name || "Level"}
+                                                        </h4>
+                                                        <p className="text-[10px] font-bold text-slate-400 mt-0.5 uppercase tracking-widest">
+                                                            {item.subLevelId?.name || "Sub Level"}
+                                                        </p>
+                                                    </div>
+                                                    <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border shadow-sm ${
+                                                        isCurrent 
+                                                            ? "bg-orange-50 text-orange-600 border-orange-100" 
+                                                            : "bg-emerald-50 text-emerald-600 border-emerald-100"
+                                                    }`}>
+                                                        {isCurrent ? "CURRENT" : "COMPLETED"}
+                                                    </span>
+                                                </div>
+
+                                                {/* Stats progress bar */}
+                                                {item.totalTasks > 0 && (
+                                                    <div className="mt-3.5 space-y-1">
+                                                        <div className="flex justify-between text-[10px] font-bold text-slate-400">
+                                                            <span>{item.completedTasksCount} of {item.totalTasks} Tasks</span>
+                                                            <span className={isCurrent ? "text-orange-500" : "text-emerald-500"}>{pct}%</span>
+                                                        </div>
+                                                        <div className="w-full bg-slate-100 rounded-full h-1.5">
+                                                            <div 
+                                                                className={`h-1.5 rounded-full ${isCurrent ? "bg-orange-500" : "bg-emerald-500"}`} 
+                                                                style={{ width: `${pct}%` }} 
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Dates */}
+                                                <div className="mt-3 flex items-center justify-between text-[9px] text-slate-400 font-semibold pt-2.5 border-t border-slate-100">
+                                                    <span>
+                                                        {item.startedAt ? `Started: ${new Date(item.startedAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}` : ""}
+                                                    </span>
+                                                    <span>
+                                                        {item.completedAt ? `Ended: ${new Date(item.completedAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}` : ""}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </div>
+                </div>
+            }
+        />
+    );
+};
+
 // Mark Dropped / Dummy Modal
 const MarkDroppedModal = ({ name, onConfirm, onCancel, loading, variant = "dropped" }) => {
     const isDummy = variant === "dummy";
@@ -658,6 +774,7 @@ const StudentProfilePage = () => {
     const [moreOpen,      setMoreOpen]      = useState(false);
     const [promoteModal,  setPromoteModal]  = useState(false);
     const [readyModal,    setReadyModal]    = useState(false);
+    const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
     const [editModal,     setEditModal]     = useState(false);
     const [dropModal,     setDropModal]     = useState(false);
     const [dummyModal,    setDummyModal]    = useState(false);
@@ -692,6 +809,11 @@ const StudentProfilePage = () => {
 
     const { data: progressSnapshotsResponse } = useGetStudentProgressSnapshotsQuery(
         { id: studentId, limit: 100 },
+        { skip: !studentId }
+    );
+
+    const { data: levelHistoryResponse } = useGetStudentLevelHistoryQuery(
+        studentId,
         { skip: !studentId }
     );
 
@@ -914,6 +1036,14 @@ const StudentProfilePage = () => {
             {editModal && (
                 <EditProfileModal raw={raw} onConfirm={handleEditProfile} onCancel={() => setEditModal(false)} loading={editLoading} />
             )}
+            {historyDrawerOpen && (
+                <LevelHistoryDrawer
+                    isOpen={historyDrawerOpen}
+                    onClose={() => setHistoryDrawerOpen(false)}
+                    levelHistory={levelHistoryResponse?.data || []}
+                    student={raw}
+                />
+            )}
             {dropModal && (
                 <MarkDroppedModal name={name} onConfirm={handleMarkDropped} onCancel={() => setDropModal(false)} loading={dropLoading} />
             )}
@@ -1123,12 +1253,18 @@ const StudentProfilePage = () => {
                 {/* 4 STAT CARDS ROW */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
                     {/* Card 1: LEVEL HISTORY */}
-                    <div className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm space-y-2">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">LEVEL HISTORY</p>
+                    <div 
+                        onClick={() => setHistoryDrawerOpen(true)}
+                        className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm space-y-2 cursor-pointer hover:border-orange-200 transition group"
+                    >
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 group-hover:text-orange-500 transition">LEVEL HISTORY</p>
                         <div className="flex items-center justify-between">
-                            <h3 className="text-xl font-black text-slate-900">{currentLevelLabel}</h3>
+                            <h3 className="text-xl font-black text-slate-900 group-hover:text-orange-500 transition">{currentLevelLabel}</h3>
                             <button
-                                onClick={() => setPromoteModal(true)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setPromoteModal(true);
+                                }}
                                 className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full transition"
                             >
                                 +1 Level Up

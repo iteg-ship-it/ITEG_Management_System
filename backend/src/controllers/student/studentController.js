@@ -1164,3 +1164,19 @@ exports.getSubLevelStudentsProgress = async (req, res) => {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+// ✅ Get Student Level History (Admin / Faculty)
+exports.getStudentLevelHistory = async (req, res) => {
+  try {
+    const StudentLevelProgress = require("../../models/student/StudentLevelProgress");
+    const history = await StudentLevelProgress.find({ studentId: req.params.id })
+      .populate("levelId", "name order")
+      .populate("subLevelId", "name order")
+      .populate("sessionId", "name")
+      .sort({ createdAt: 1 });
+
+    return res.status(200).json({ count: history.length, data: history });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};

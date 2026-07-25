@@ -286,6 +286,32 @@ const promoteToNextSubLevel = async (studentId, actorUser = null, options = {}) 
     });
 
     await StudentProgressSnapshot.insertMany(snapshotsToSave);
+
+    try {
+      const StudentLevelProgress = require("../models/student/StudentLevelProgress");
+      await StudentLevelProgress.findOneAndUpdate(
+        { studentId, subLevelId: prevSubLevelId },
+        {
+          $set: {
+            status: "completed",
+            completedAt: new Date(),
+            totalTasks: prevTasks.length,
+            completedTasksCount: completedTasks.length,
+            completionPercentage: prevTasks.length > 0 ? Math.round((completedTasks.length / prevTasks.length) * 100) : 0
+          },
+          $setOnInsert: {
+            studentId,
+            sessionId: student.sessionId,
+            levelId: prevLevelId,
+            subLevelId: prevSubLevelId,
+            startedAt: new Date()
+          }
+        },
+        { upsert: true, new: true }
+      );
+    } catch (lvlProgressErr) {
+      // Must never block promotion
+    }
   } catch (snapErr) {
     // Snapshot failure must never block promotion
   }

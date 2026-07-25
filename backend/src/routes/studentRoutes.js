@@ -74,6 +74,7 @@ router.patch("/:id", ...auth, studentController.updateStudent);
 // Readiness & Promotion
 router.patch("/:id/readiness-status", ...auth, studentController.updateReadinessStatus);
 router.post("/:id/promote", ...auth, studentController.promoteStudent);
+router.get("/:id/level-history", ...auth, studentController.getStudentLevelHistory);
 
 // Profile Image
 router.patch("/:id/profile-image", ...auth, studentController.updateProfileImage);
