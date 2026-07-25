@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { MdFilterList, MdEdit, MdVisibility, MdBlock, MdCheckCircle, MdDownload, MdPictureAsPdf, MdDescription, MdTableChart, MdCloudUpload } from "react-icons/md";
 import Header from "../../common-components/sidebar/Header";
 import OrangeButton from "../../common-components/sidebar/OrangeButton";
-import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation } from "../../../redux/api/authApi";
+import { useGetSubLevelsByLevelQuery, useAddSubLevelMutation, useGetStudentsBySubLevelQuery } from "../../../redux/api/authApi";
 import SearchBox from "../../common-components/seach-export/SearchBox";
 import ExportDropdown from "../../common-components/seach-export/ExportDropdown";
 import CommonTable from "../../common-components/table/CommonTable";
@@ -21,29 +21,36 @@ const validationSchema = Yup.object({
 });
 
 /* ── Students ── */
-const DUMMY_STUDENTS = [
-    { sno: 1, fullName: "Rahul Sharma",  fatherName: "Ramesh Sharma",  mobile: "9876543210", course: "B.Tech", busRoute: "Route 1", attempts: 2 },
-    { sno: 2, fullName: "Priya Verma",   fatherName: "Suresh Verma",   mobile: "9812345678", course: "MCA",    busRoute: "Route 3", attempts: 1 },
-    { sno: 3, fullName: "Amit Patel",    fatherName: "Dinesh Patel",   mobile: "9898765432", course: "BCA",    busRoute: "Route 2", attempts: 3 },
-    { sno: 4, fullName: "Sneha Joshi",   fatherName: "Mahesh Joshi",   mobile: "9765432109", course: "B.Tech", busRoute: "Route 5", attempts: 1 },
-    { sno: 5, fullName: "Vikram Singh",  fatherName: "Rajendra Singh", mobile: "9654321098", course: "MBA",    busRoute: "Route 4", attempts: 2 },
-];
-
 const STUDENT_COLUMNS = [
-    { label: "S.No",        key: "sno" },
-    { label: "Full Name",   key: "fullName" },
-    { label: "Father Name", key: "fatherName" },
-    { label: "Mobile No.",  key: "mobile" },
+    {
+        label: "S.No", key: "sno",
+        render: (row, index) => <span className="text-sm text-gray-600">{index + 1}</span>,
+    },
+    {
+        label: "Full Name", key: "firstName",
+        render: (row) => {
+            const name = `${row.firstName} ${row.lastName}`;
+            const initials = name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+            return (
+                <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-orange-100 text-orange-600 text-xs font-bold flex items-center justify-center flex-shrink-0">{initials}</div>
+                    <span className="font-semibold text-sm text-gray-800">{name}</span>
+                </div>
+            );
+        },
+    },
+    { label: "Father Name", key: "fatherName", render: (row) => <span className="text-sm text-gray-600">{row.fatherName}</span> },
+    { label: "Mobile No.",  key: "studentMobile", render: (row) => <span className="text-sm text-gray-600">{row.studentMobile}</span> },
     {
         label: "Course", key: "course",
         render: (row) => <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full">{row.course}</span>,
     },
-    { label: "Bus Route", key: "busRoute" },
     {
-        label: "Attempts", key: "attempts",
-        render: (row) => (
-            <span className="w-7 h-7 rounded-full bg-green-100 text-green-700 text-xs font-bold flex items-center justify-center">{row.attempts}</span>
-        ),
+        label: "Status", key: "status",
+        render: (row) => {
+            const styles = { Active: "bg-green-100 text-green-700", Placed: "bg-blue-100 text-blue-700", Dropped: "bg-red-100 text-red-700", Completed: "bg-purple-100 text-purple-700" };
+            return <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${styles[row.status] || "bg-gray-100 text-gray-500"}`}>{row.status}</span>;
+        },
     },
 ];
 
@@ -269,9 +276,16 @@ const ShowSubLevelTablesData = () => {
 
     const { data: subLevelsData } = useGetSubLevelsByLevelQuery(level?._id, { skip: !level?._id });
     const subLevels = subLevelsData?.data || [];
-    const levelTabs = subLevels.length > 0
-        ? subLevels.map((sl) => sl.name)
-        : ["Level 1A", "Level 1B", "Level 1C", "Level 2A", "Level 2B", "Level 2C"];
+    const levelTabs = subLevels.length > 0 ? subLevels : [];
+
+    // Set first sublevel as default active tab
+    const activeSubLevel = subLevels.find(sl => sl.name === activeTab) || subLevels[0];
+
+    const { data: studentsData, isLoading: studentsLoading } = useGetStudentsBySubLevelQuery(
+        activeSubLevel?._id,
+        { skip: !activeSubLevel?._id || activeSection !== "Students" }
+    );
+    const realStudents = studentsData?.data || [];
 
     const [addSubLevel] = useAddSubLevelMutation();
 
@@ -294,17 +308,17 @@ const ShowSubLevelTablesData = () => {
                 breadcrumbs={breadcrumbs}
                 bottomRow={
                     <div className="flex gap-1 overflow-x-auto">
-                        {levelTabs.map((tab) => (
+                        {levelTabs.map((sl) => (
                             <button
-                                key={tab}
-                                onClick={() => setActiveTab(tab)}
+                                key={sl._id}
+                                onClick={() => setActiveTab(sl.name)}
                                 className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-all duration-200 border-b-2 ${
-                                    activeTab === tab
+                                    activeTab === sl.name
                                         ? "border-orange-500 text-orange-500 font-semibold"
                                         : "border-transparent text-gray-500 hover:text-gray-700"
                                 }`}
                             >
-                                {tab}
+                                {sl.name}
                             </button>
                         ))}
                     </div>
@@ -406,27 +420,27 @@ const ShowSubLevelTablesData = () => {
                                                             className="w-full h-10 px-3 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-700 focus:outline-none focus:border-orange-400 focus:bg-white transition"
                                                         />
                                                         <div className="space-y-2 max-h-40 overflow-y-auto">
-                                                            {DUMMY_STUDENTS
-                                                                .filter((s) => s.fullName.toLowerCase().includes(values.studentSearch.toLowerCase()))
+                                                            {realStudents
+                                                                .filter((s) => `${s.firstName} ${s.lastName}`.toLowerCase().includes(values.studentSearch.toLowerCase()))
                                                                 .map((s) => (
-                                                                    <label key={s.sno} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                                                    <label key={s._id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
                                                                         <input
                                                                             type="checkbox"
                                                                             className="w-4 h-4 accent-orange-500"
-                                                                            checked={values.selectedStudents.includes(s.sno)}
+                                                                            checked={values.selectedStudents.includes(s._id)}
                                                                             onChange={(e) => {
                                                                                 const updated = e.target.checked
-                                                                                    ? [...values.selectedStudents, s.sno]
-                                                                                    : values.selectedStudents.filter((id) => id !== s.sno);
+                                                                                    ? [...values.selectedStudents, s._id]
+                                                                                    : values.selectedStudents.filter((id) => id !== s._id);
                                                                                 setFieldValue("selectedStudents", updated);
                                                                             }}
                                                                         />
                                                                         <div className="w-7 h-7 rounded-full bg-orange-100 text-orange-600 text-xs font-bold flex items-center justify-center flex-shrink-0">
-                                                                            {s.fullName.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                                                                            {`${s.firstName} ${s.lastName}`.split(" ").map((n) => n[0]).join("").slice(0, 2)}
                                                                         </div>
                                                                         <div>
-                                                                            <p className="text-sm font-medium text-gray-800">{s.fullName}</p>
-                                                                            <p className="text-xs text-gray-400">{s.mobile}</p>
+                                                                            <p className="text-sm font-medium text-gray-800">{s.firstName} {s.lastName}</p>
+                                                                            <p className="text-xs text-gray-400">{s.studentMobile}</p>
                                                                         </div>
                                                                     </label>
                                                                 ))}
@@ -513,19 +527,27 @@ const ShowSubLevelTablesData = () => {
                                     <button className="flex items-center gap-1.5 h-10 px-4 text-sm border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 transition flex-shrink-0">
                                         <MdFilterList size={16} /> Filter
                                     </button>
-                                    <ExportDropdown data={DUMMY_STUDENTS} sectionName="students" />
+                                    <ExportDropdown data={realStudents} sectionName="students" />
                                 </div>
                             </div>
-                            <CommonTable
-                                key={`students-${activeTab}`}
-                                columns={STUDENT_COLUMNS}
-                                data={DUMMY_STUDENTS}
-                                editable={false}
-                                pagination={true}
-                                rowsPerPage={10}
-                                searchTerm={searchTerm}
-                                onRowClick={(row) => navigate("/setting/student-profile", { state: { student: row } })}
-                            />
+                            {studentsLoading ? (
+                                <div className="flex justify-center py-10 text-gray-400 text-sm">Loading students...</div>
+                            ) : realStudents.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+                                    <p className="text-sm font-medium">No students found in this sub-level</p>
+                                </div>
+                            ) : (
+                                <CommonTable
+                                    key={`students-${activeTab}`}
+                                    columns={STUDENT_COLUMNS}
+                                    data={realStudents}
+                                    editable={false}
+                                    pagination={true}
+                                    rowsPerPage={10}
+                                    searchTerm={searchTerm}
+                                    onRowClick={(row) => navigate(`/setting/student-profile/${row._id}`)}
+                                />
+                            )}
                         </div>
                     )}
 

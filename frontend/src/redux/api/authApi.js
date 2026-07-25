@@ -153,6 +153,11 @@ export const authApi = createApi({
       },
     }),
 
+    getNewStudentById: builder.query({
+      query: (id) => `/students/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Student', id }],
+    }),
+
     signup: builder.mutation({
       query: (userData) => ({
         url: '/user/signup',
@@ -1118,7 +1123,20 @@ export const authApi = createApi({
       providesTags: (result, error, id) => [{ type: 'Department', id }],
     }),
 
+    // ─── Students by SubLevel ──────────────────────────────────────
+    getStudentsBySubLevel: builder.query({
+      query: (subLevelId) => `/students?currentSubLevelId=${subLevelId}`,
+      providesTags: (result, error, subLevelId) => [{ type: 'Student', id: subLevelId }],
+    }),
+
+    getNewStudentById: builder.query({
+      query: (id) => `/students/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Student', id }],
+    }),
+
     // ─── Admission Process ─────────────────────────────────────────
+
+
     updateInterviewFlag: builder.mutation({
       query: (studentId) => ({ url: `/admission/students/update_interview_flag/${studentId}`, method: 'PUT' }),
       invalidatesTags: ['Student'],
@@ -1248,4 +1266,7 @@ export const {
   useGetDepartmentByIdQuery,
   // Admission
   useUpdateInterviewFlagMutation,
+  // Students by SubLevel
+  useGetStudentsBySubLevelQuery,
+  useGetNewStudentByIdQuery,
 } = authApi;

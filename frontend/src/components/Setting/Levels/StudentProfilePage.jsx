@@ -1,10 +1,15 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { MdEmail, MdPhone, MdBook, MdTrendingUp, MdCheckCircleOutline, MdWorkOutline, MdSchool } from "react-icons/md";
 import Header from "../../common-components/sidebar/Header";
+import Loader from "../../common-components/loader/Loader";
+import { useGetNewStudentByIdQuery } from "../../../redux/api/authApi";
 
 /* ── Sub-components ── */
-const StatCard = ({ label, value, sub, accent }) => (
-    <div className="bg-white border border-gray-100 rounded-xl p-4 flex flex-col gap-1 shadow-sm">
+const StatCard = ({ label, value, sub, accent, onClick }) => (
+    <div
+        className={`bg-white border border-gray-100 rounded-xl p-4 flex flex-col gap-1 shadow-sm ${onClick ? 'cursor-pointer hover:shadow-md hover:border-orange-200 transition-all' : ''}`}
+        onClick={onClick}
+    >
         <p className="text-xs text-gray-400 font-medium">{label}</p>
         <p className={`text-xl font-bold ${accent || "text-gray-800"}`}>{value}</p>
         {sub && <p className="text-xs text-gray-400">{sub}</p>}
@@ -40,11 +45,15 @@ const TimelineItem = ({ icon, title, sub, last }) => (
    MAIN PAGE
 ══════════════════════════════════════════════════════════════ */
 const StudentProfilePage = () => {
-    const location = useLocation();
+    const { id } = useParams();
     const navigate = useNavigate();
-    const student  = location.state?.student;
 
-    if (!student) {
+    const { data: studentRaw, isLoading, isError } = useGetNewStudentByIdQuery(id, { skip: !id });
+    const student = studentRaw?.data;
+
+    if (isLoading) return <Loader />;
+
+    if (isError || !student) {
         return (
             <div className="p-10 text-center text-gray-400">
                 <p className="text-lg font-semibold">No student data found.</p>
@@ -53,8 +62,12 @@ const StudentProfilePage = () => {
         );
     }
 
-    const name     = student.fullName || student.name || "";
+    const name     = `${student.firstName || ""} ${student.lastName || ""}`.trim() || "-";
     const initials = name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+    const levelName    = student.currentLevelId?.name || "-";
+    const subLevelName = student.currentSubLevelId?.name || "-";
+    const academicHistory = student.academicHistory || [];
+    const passedCount = academicHistory.filter(h => h.result === "Pass").length;
 
     return (
         <>
@@ -75,9 +88,13 @@ const StudentProfilePage = () => {
 
                         {/* Avatar */}
                         <div className="relative flex-shrink-0">
-                            <div className="w-20 h-20 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-2xl font-bold">
-                                {initials}
-                            </div>
+                            {student.image ? (
+                                <img src={student.image} alt={name} className="w-20 h-20 rounded-full object-cover" />
+                            ) : (
+                                <div className="w-20 h-20 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-2xl font-bold">
+                                    {initials}
+                                </div>
+                            )}
                             <span className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-green-400 border-2 border-white rounded-full" />
                         </div>
 
@@ -86,26 +103,38 @@ const StudentProfilePage = () => {
                             <div className="flex flex-wrap items-center gap-3 mb-1">
                                 <h1 className="text-xl font-bold text-gray-900">{name}</h1>
                                 <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-600">
-                                    ID: 2024-CSC-0{student.sno || "42"}
+                                    {student.prkey || "-"}
                                 </span>
                             </div>
-                            <p className="text-sm text-gray-500 mb-2">{student.course} • Level 3 (Final Year)</p>
-                            <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 mb-4">
-                                PLACEMENT PLACED
+                            <p className="text-sm text-gray-500 mb-2">{student.course || "-"} • {levelName} / {subLevelName}</p>
+                            <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full mb-4 ${
+                                student.status === "Placed"    ? "bg-green-100 text-green-700"  :
+                                student.status === "Active"    ? "bg-blue-100 text-blue-700"    :
+                                student.status === "Dropped"   ? "bg-red-100 text-red-700"      :
+                                student.status === "Completed" ? "bg-purple-100 text-purple-700":
+                                "bg-gray-100 text-gray-600"
+                            }`}>
+                                {student.status?.toUpperCase() || "-"}
                             </span>
                             <div className="flex flex-wrap gap-5">
-                                <span className="flex items-center gap-1.5 text-xs text-gray-500"><MdEmail size={14} className="text-orange-400" /> student@example.com</span>
-                                <span className="flex items-center gap-1.5 text-xs text-gray-500"><MdPhone size={14} className="text-orange-400" /> {student.mobile}</span>
-                                <span className="flex items-center gap-1.5 text-xs text-gray-500"><MdBook size={14} className="text-orange-400" /> {student.course}</span>
+                                <span className="flex items-center gap-1.5 text-xs text-gray-500"><MdEmail size={14} className="text-orange-400" /> {student.email || "-"}</span>
+                                <span className="flex items-center gap-1.5 text-xs text-gray-500"><MdPhone size={14} className="text-orange-400" /> {student.studentMobile || "-"}</span>
+                                <span className="flex items-center gap-1.5 text-xs text-gray-500"><MdBook size={14} className="text-orange-400" /> {student.course || "-"}</span>
                             </div>
                         </div>
 
                         {/* Action Buttons */}
                         <div className="flex gap-2 flex-shrink-0">
-                            <button className="px-4 py-2 text-sm font-semibold border border-orange-500 text-orange-500 rounded-lg hover:bg-orange-50 transition">
+                            <button
+                                onClick={() => navigate(`/student/${id}/task-list`)}
+                                className="px-4 py-2 text-sm font-semibold border border-orange-500 text-orange-500 rounded-lg hover:bg-orange-50 transition"
+                            >
                                 Task Board
                             </button>
-                            <button className="px-4 py-2 text-sm font-semibold bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition">
+                            <button
+                                onClick={() => navigate(`/student/edit/${id}`)}
+                                className="px-4 py-2 text-sm font-semibold bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
+                            >
                                 Edit Profile
                             </button>
                         </div>
@@ -114,10 +143,31 @@ const StudentProfilePage = () => {
 
                 {/* ── Stats Row ── */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <StatCard label="Level History"    value="Year 3"  sub="+1 Level Up"         accent="text-orange-500" />
-                    <StatCard label="Report"           value="View"    sub="Student Report card"  accent="text-blue-500" />
-                    <StatCard label="Attendance Rate"  value="92%"     sub="Missed 4 Lectures"    accent="text-green-600" />
-                    <StatCard label="Performance"      value="88.4%"   sub="+2.1% this term"      accent="text-purple-600" />
+                    <StatCard
+                        label="Level History"
+                        value={levelName}
+                        sub={subLevelName}
+                        accent="text-orange-500"
+                    />
+                    <StatCard
+                        label="Report"
+                        value="View"
+                        sub="Student Report card"
+                        accent="text-blue-500"
+                        onClick={() => navigate(`/student/${id}/task-list`)}
+                    />
+                    <StatCard
+                        label="Readiness"
+                        value={student.readinessStatus || "-"}
+                        sub="Placement readiness"
+                        accent="text-green-600"
+                    />
+                    <StatCard
+                        label="Performance"
+                        value={passedCount > 0 ? `${passedCount} Passed` : "-"}
+                        sub={`of ${academicHistory.length} records`}
+                        accent="text-purple-600"
+                    />
                 </div>
 
                 {/* ── Attendance Trend + Task Completion ── */}
@@ -167,8 +217,8 @@ const StudentProfilePage = () => {
                             </div>
                         </div>
                         <div className="space-y-3">
-                            <ProgressBar label="Assignment Progress" value={82} />
-                            <ProgressBar label="Quiz Participation"  value={68} color="bg-blue-400" />
+                            <ProgressBar label="Assignment Progress" value={parseFloat(student.percent12) || 82} />
+                            <ProgressBar label="Quiz Participation"  value={parseFloat(student.percent10) || 68} color="bg-blue-400" />
                             <ProgressBar label="Module Feedback"     value={90} color="bg-green-400" />
                         </div>
                     </div>
@@ -185,33 +235,62 @@ const StudentProfilePage = () => {
                             <span className="flex items-center gap-1.5 text-xs text-gray-500"><span className="w-2.5 h-2.5 rounded-sm bg-orange-200 inline-block" /> Midterm</span>
                         </div>
                         <div className="space-y-4">
-                            {[
-                                { sub: "Data Structures",  final: 95, mid: 88 },
-                                { sub: "Machine Learning", final: 82, mid: 75 },
-                                { sub: "Web Engineering",  final: 90, mid: 84 },
-                                { sub: "Cyber Security",   final: 74, mid: 70 },
-                            ].map(({ sub, final, mid }) => (
-                                <div key={sub}>
-                                    <div className="flex justify-between mb-1">
-                                        <span className="text-xs text-gray-600">{sub}</span>
-                                        <span className="text-xs font-semibold text-gray-700">{final}</span>
+                            {academicHistory.length > 0 ? (
+                                academicHistory.map(({ yearName, percentage }, i) => (
+                                    <div key={i}>
+                                        <div className="flex justify-between mb-1">
+                                            <span className="text-xs text-gray-600">{yearName || `Year ${i + 1}`}</span>
+                                            <span className="text-xs font-semibold text-gray-700">{percentage ?? "-"}</span>
+                                        </div>
+                                        <div className="w-full bg-gray-100 rounded-full h-2 relative">
+                                            <div className="h-2 rounded-full bg-orange-200" style={{ width: `${Math.min((percentage ?? 0) * 0.9, 100)}%` }} />
+                                            <div className="h-2 rounded-full bg-orange-500 absolute top-0 left-0" style={{ width: `${Math.min(percentage ?? 0, 100)}%` }} />
+                                        </div>
                                     </div>
-                                    <div className="w-full bg-gray-100 rounded-full h-2 relative">
-                                        <div className="h-2 rounded-full bg-orange-200" style={{ width: `${mid}%` }} />
-                                        <div className="h-2 rounded-full bg-orange-500 absolute top-0 left-0" style={{ width: `${final}%` }} />
+                                ))
+                            ) : (
+                                [
+                                    { sub: "Data Structures",  final: 95, mid: 88 },
+                                    { sub: "Machine Learning", final: 82, mid: 75 },
+                                    { sub: "Web Engineering",  final: 90, mid: 84 },
+                                    { sub: "Cyber Security",   final: 74, mid: 70 },
+                                ].map(({ sub, final, mid }) => (
+                                    <div key={sub}>
+                                        <div className="flex justify-between mb-1">
+                                            <span className="text-xs text-gray-600">{sub}</span>
+                                            <span className="text-xs font-semibold text-gray-700">{final}</span>
+                                        </div>
+                                        <div className="w-full bg-gray-100 rounded-full h-2 relative">
+                                            <div className="h-2 rounded-full bg-orange-200" style={{ width: `${mid}%` }} />
+                                            <div className="h-2 rounded-full bg-orange-500 absolute top-0 left-0" style={{ width: `${final}%` }} />
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
                     </div>
 
                     {/* Academic Timeline */}
                     <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
                         <h4 className="text-sm font-bold text-gray-800 mb-4">Academic Timeline</h4>
-                        <TimelineItem icon={<MdWorkOutline size={16} />}        title="Placed at TechCorp Solutions"  sub="Offer accepted • Mar 2024" />
-                        <TimelineItem icon={<MdSchool size={16} />}             title="Passed Semester 5 Finals"      sub="GPA 3.8 • Dec 2023" />
-                        <TimelineItem icon={<MdCheckCircleOutline size={16} />} title="AI Research Paper Accepted"    sub="IEEE Conference • Oct 2023" />
-                        <TimelineItem icon={<MdTrendingUp size={16} />}         title="Enrolled in Final Year"        sub="Aug 2023" last />
+                        {academicHistory.length > 0 ? (
+                            academicHistory.slice().reverse().map((entry, i, arr) => (
+                                <TimelineItem
+                                    key={i}
+                                    icon={entry.result === "Pass" ? <MdCheckCircleOutline size={16} /> : <MdSchool size={16} />}
+                                    title={`${entry.yearName || `Year ${i + 1}`} — ${entry.result || "-"}`}
+                                    sub={`${entry.percentage ?? "-"}% • ${entry.updatedAt ? new Date(entry.updatedAt).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "-"}`}
+                                    last={i === arr.length - 1}
+                                />
+                            ))
+                        ) : (
+                            <>
+                                <TimelineItem icon={<MdWorkOutline size={16} />}        title={`Enrolled — ${student.sessionId?.name || "-"}`}   sub={`Session • ${student.createdAt ? new Date(student.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "-"}`} />
+                                <TimelineItem icon={<MdSchool size={16} />}             title={`Level: ${levelName}`}                              sub={`Sub-Level: ${subLevelName}`} />
+                                <TimelineItem icon={<MdCheckCircleOutline size={16} />} title={`Status: ${student.status || "-"}`}                 sub={student.readinessStatus || "-"} />
+                                <TimelineItem icon={<MdTrendingUp size={16} />}         title={`Course: ${student.course || "-"}`}                 sub={student.subDepartmentId?.name || "-"} last />
+                            </>
+                        )}
                     </div>
                 </div>
 

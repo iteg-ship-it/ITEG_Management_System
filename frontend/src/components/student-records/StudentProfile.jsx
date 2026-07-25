@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
-import { useGetAdmittedStudentsByIdQuery, useUpdateStudentImageMutation, useUploadResumeMutation, useUpdateStudentEmailMutation, useGetReportCardQuery } from "../../redux/api/authApi";
+import { useGetNewStudentByIdQuery, useUpdateStudentImageMutation, useUploadResumeMutation, useUpdateStudentEmailMutation, useGetReportCardQuery } from "../../redux/api/authApi";
 import { taskAPI } from '../../services/taskService';
 import PermissionModal from "./PermissionModal";
 import PlacementModal from "./PlacementModal";
@@ -27,7 +27,8 @@ import { IoCamera } from "react-icons/io5";
 export default function StudentProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
+  const { data: studentRaw, isLoading, isError } = useGetNewStudentByIdQuery(id);
+  const studentData = studentRaw?.data;
   const { data: reportCardResponse, isLoading: reportLoading, isError: reportError } = useGetReportCardQuery(id);
   const reportCardData = reportCardResponse?.data;
   const [updateStudentImage] = useUpdateStudentImageMutation();
@@ -47,11 +48,7 @@ export default function StudentProfile() {
 
   // Helper function to get resume URL from various possible field names
   const getResumeUrl = () => {
-    return studentData?.resumeURL || 
-           studentData?.resume || 
-           studentData?.resumeUrl || 
-           studentData?.resume_url || 
-           null;
+    return studentData?.resumeURL || null;
   };
 
   // Function to handle resume link clicks with error handling
@@ -77,32 +74,15 @@ export default function StudentProfile() {
   };
 
   useEffect(() => {
-    if (studentData?.level?.length > 0) {
-      const passed = studentData.level.filter((lvl) => lvl.result === "Pass");
-      
-      // For Level History card - show last passed level
-      setLatestLevel(passed.length > 0 ? passed[passed.length - 1].levelNo : "1A");
-      
-      // For Course line - show current level (next level to pass)
-      const levelOrder = ["1A", "1B", "2A", "2B", "3A", "3B"];
-      if (passed.length > 0) {
-        const lastPassedLevel = passed[passed.length - 1].levelNo;
-        const currentIndex = levelOrder.indexOf(lastPassedLevel);
-        const nextLevel = currentIndex !== -1 && currentIndex < levelOrder.length - 1 
-          ? levelOrder[currentIndex + 1] 
-          : lastPassedLevel;
-        setCurrentLevel(nextLevel);
-      } else {
-        setCurrentLevel("1A");
-      }
+    if (studentData?.currentLevelId?.name) {
+      setLatestLevel(studentData.currentLevelId.name);
+      setCurrentLevel(studentData.currentSubLevelId?.name || studentData.currentLevelId.name);
     }
   }, [studentData]);
 
-  // Check if student can choose elective (Level 2B or 2C passed)
+  // Check if student can choose elective based on readinessStatus
   const canChooseElective = () => {
-    if (!studentData?.level?.length) return false;
-    const passedLevels = studentData.level.filter(lvl => lvl.result === "Pass");
-    return passedLevels.some(lvl => lvl.levelNo === "2B" || lvl.levelNo === "2C" || lvl.levelNo === "2A");
+    return studentData?.readinessStatus === "Ready" || studentData?.readinessStatus === "Ready for Interview";
   };
 
   const handleImageUpload = async (event) => {
@@ -241,51 +221,28 @@ export default function StudentProfile() {
 
   if (isError || !studentData) return <div className="p-4 text-red-500">Error loading student data.</div>;
 
-  // Calculate dynamic attendance data
+  // New API field helpers
+  const fullName = `${studentData.firstName || ''} ${studentData.lastName || ''}`.trim();
+
+  // Attendance data from academicHistory
   const calculateAttendanceData = () => {
-    const attendanceRecord = studentData.attendanceRecord || [];
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    
     const monthlyData = [["Month", "Attendance", { role: "style" }]];
-    
-    monthNames.forEach((month, index) => {
-      const monthRecord = attendanceRecord.find(record => {
-        if (!record.date) return false;
-        try {
-          const recordDate = new Date(record.date);
-          return !isNaN(recordDate.getTime()) && recordDate.getMonth() === index;
-        } catch {
-          return false;
-        }
-      });
-      
-      const attendanceRate = monthRecord ? monthRecord.attendancePercentage || 0 : 0;
-      const color = attendanceRate >= 80 ? "#22C55E" : attendanceRate >= 60 ? "#FDA92D" : "#EF4444";
-      
-      monthlyData.push([month, attendanceRate, color]);
+    monthNames.forEach((month) => {
+      monthlyData.push([month, 0, "#EF4444"]);
     });
-    
     return monthlyData;
   };
-  
+
   const monthlyData = calculateAttendanceData();
-  
-  // Calculate overall attendance rate
-  const calculateOverallAttendance = () => {
-    const attendanceRecord = studentData.attendanceRecord || [];
-    if (attendanceRecord.length === 0) return 0;
-    
-    const totalAttendance = attendanceRecord.reduce((sum, record) => sum + (record.attendancePercentage || 0), 0);
-    return Math.round(totalAttendance / attendanceRecord.length);
-  };
-  
-  const overallAttendanceRate = calculateOverallAttendance();
-  // Check permission status
+  const overallAttendanceRate = 0;
+
+  // Permission status from new API
   const hasPermission = studentData.permissionDetails && studentData.permissionDetails !== null && typeof studentData.permissionDetails === 'object' && Object.keys(studentData.permissionDetails).length > 0;
   const permissionStatus = hasPermission ? "Yes" : "No";
 
-  // Check placement status
-  const hasPlacement = studentData.placedInfo && studentData.placedInfo !== null && typeof studentData.placedInfo === 'object' && Object.keys(studentData.placedInfo).length > 0;
+  // Placement status from new API — status field
+  const hasPlacement = studentData.status === "Placed";
   const placementStatus = hasPlacement ? "Placed" : "Not Placed";
 
   // Debug student data to check resume field (removed console logs to reduce noise)
@@ -392,14 +349,14 @@ export default function StudentProfile() {
                 </div>
                 <div className="flex-1 text-center sm:text-left">
                   <h2 className="text-lg sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 text-white">
-                    {studentData.firstName} {studentData.lastName}
+                    {fullName || "-"}
                   </h2>
-                  <p className="text-gray-300 mb-3 sm:mb-4 text-xs sm:text-base">Course: {studentData.course || "N/A"} | Level - {currentLevel || "1A"}</p>
+                  <p className="text-gray-300 mb-3 sm:mb-4 text-xs sm:text-base">Course: {studentData.course || "-"} | Level - {currentLevel || "-"}</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2 lg:gap-6">
-                    <ContactCard icon={<svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>} label="Email" value={studentData.email} />
-                    <ContactCard icon={<svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>} label="Phone" value={studentData.studentMobile || "N/A"} />
-                    <ContactCard icon={<svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>} label="Location" value={studentData.address || studentData.village || "N/A"} />
-                    <ContactCard icon={<svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>} label="Elective" value={studentData.techno || "Not Selected"} />
+                    <ContactCard icon={<svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>} label="Email" value={studentData.email || "-"} />
+                    <ContactCard icon={<svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>} label="Phone" value={studentData.studentMobile || "-"} />
+                    <ContactCard icon={<svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>} label="Location" value={studentData.address || studentData.village || "-"} />
+                    <ContactCard icon={<svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>} label="Sub-Level" value={studentData.currentSubLevelId?.name || "-"} />
                   </div>
                 </div>
               </div>
@@ -594,10 +551,10 @@ export default function StudentProfile() {
             icon={<svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h4M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>}
           >
             <div className="space-y-4">
-              <DetailRow icon={company} label="Company" value={studentData.placedInfo?.companyName || "Not placed yet"} />
-              <DetailRow icon={position} label="Position" value={studentData.placedInfo?.jobProfile || "Not placed yet"} />
-              <DetailRow icon={loca} label="Location" value={studentData.placedInfo?.location || "Not placed yet"} />
-              <DetailRow icon={date} label="Joining Date" value={studentData.placedInfo?.joiningDate ? new Date(studentData.placedInfo.joiningDate).toLocaleDateString() : "Not available"} />
+              <DetailRow icon={company} label="Company" value={studentData.placedInfo?.companyName || "-"} />
+              <DetailRow icon={position} label="Position" value={studentData.placedInfo?.jobProfile || "-"} />
+              <DetailRow icon={loca} label="Location" value={studentData.placedInfo?.location || "-"} />
+              <DetailRow icon={date} label="Joining Date" value={studentData.placedInfo?.joiningDate ? new Date(studentData.placedInfo.joiningDate).toLocaleDateString() : "-"} />
             </div>
             {!studentData.placedInfo?.companyName && (
               <div className="mt-6 p-4 bg-yellow-50 rounded-lg" style={{ boxShadow: '0 0 15px 4px rgba(0, 0, 0, 0.06)' }}>
@@ -994,37 +951,26 @@ const DynamicProgressOverview = ({ studentData, reportCardData, reportLoading })
 
   // Calculate dynamic values from task performance and report card data
   const calculateDynamicMetrics = () => {
-    const passedLevels = studentData?.level?.filter(lvl => lvl.result === "Pass") || [];
+    const academicHistory = studentData?.academicHistory || [];
     const totalLevels = 6;
-    
-    // Use task completion rate as primary success metric
+    const passedCount = academicHistory.filter(h => h.result === "Pass").length;
+
     let successRate = 0;
     if (taskPerformance?.completionRate) {
       successRate = taskPerformance.completionRate;
-    } else if (reportCardData?.subjects && reportCardData.subjects.length > 0) {
-      const totalMarks = reportCardData.subjects.reduce((sum, subject) => sum + (subject.totalMarks || 0), 0);
-      const obtainedMarks = reportCardData.subjects.reduce((sum, subject) => sum + (subject.obtainedMarks || 0), 0);
-      successRate = totalMarks > 0 ? Math.round((obtainedMarks / totalMarks) * 100) : 0;
     } else {
-      const attendanceRecord = studentData.attendanceRecord || [];
-      if (attendanceRecord.length > 0) {
-        const totalAttendance = attendanceRecord.reduce((sum, record) => sum + (record.attendancePercentage || 0), 0);
-        successRate = Math.round(totalAttendance / attendanceRecord.length);
-      } else {
-        successRate = totalLevels > 0 ? Math.round((passedLevels.length / totalLevels) * 100) : 0;
-      }
+      successRate = totalLevels > 0 ? Math.round((passedCount / totalLevels) * 100) : 0;
     }
-    
-    // Calculate performance score based on task completion and level progress
-    const taskWeight = 0.6; // 60% weight to tasks
-    const levelWeight = 0.4; // 40% weight to levels
+
+    const taskWeight = 0.6;
+    const levelWeight = 0.4;
     const taskScore = taskPerformance?.completionRate || 0;
-    const levelScore = (passedLevels.length / totalLevels) * 100;
+    const levelScore = (passedCount / totalLevels) * 100;
     const performanceScore = Math.round((taskScore * taskWeight) + (levelScore * levelWeight));
-    
+
     return {
       successRate,
-      levelsCompleted: passedLevels.length,
+      levelsCompleted: passedCount,
       totalLevels,
       performanceScore,
       taskCompletion: taskPerformance?.completionRate || 0,
@@ -1139,10 +1085,8 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
     }
   };
 
-  const passedLevels = studentData?.level?.filter(lvl => lvl.result === "Pass") || [];
-  const overallAttendance = studentData.attendanceRecord?.length > 0 
-    ? Math.round(studentData.attendanceRecord.reduce((sum, record) => sum + (record.attendancePercentage || 0), 0) / studentData.attendanceRecord.length)
-    : 0;
+  const passedLevels = studentData?.academicHistory?.filter(lvl => lvl.result === "Pass") || [];
+  const overallAttendance = 0;
   const attendanceGrade = calculateGrade(overallAttendance);
   const academicGrade = passedLevels.length > 0 ? 'A' : 'C';
   
@@ -1197,7 +1141,7 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
                 <div><span className="font-medium text-gray-600">Email:</span> <br/><span className="font-semibold">{studentData.email}</span></div>
                 <div><span className="font-medium text-gray-600">Phone:</span> <br/><span className="font-semibold">{studentData.studentMobile || 'N/A'}</span></div>
                 <div><span className="font-medium text-gray-600">Enrollment Date:</span> <br/><span className="font-semibold">{enrollmentDate}</span></div>
-                <div><span className="font-medium text-gray-600">Specialization:</span> <br/><span className="font-semibold">{studentData.techno || 'Not Selected'}</span></div>
+                <div><span className="font-medium text-gray-600">Specialization:</span> <br/><span className="font-semibold">{studentData.track || studentData.stream || 'Not Selected'}</span></div>
                 <div><span className="font-medium text-gray-600">Address:</span> <br/><span className="font-semibold">{studentData.address || studentData.village || 'N/A'}</span></div>
                 <div><span className="font-medium text-gray-600">CGPA:</span> <br/><span className="font-semibold text-green-600 text-lg">{cgpa}/4.0</span></div>
               </div>
@@ -1214,15 +1158,15 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
             <div className="bg-gray-50 rounded-lg p-4">
               <h5 className="font-semibold text-gray-700 mb-3">📚 Course Progress</h5>
               <div className="space-y-2 max-h-48 overflow-y-auto">
-                {studentData?.level?.map((level, index) => (
+                {studentData?.academicHistory?.map((entry, index) => (
                   <div key={index} className="flex justify-between items-center p-2 bg-white rounded border">
-                    <span className="font-medium">Level {level.levelNo}</span>
+                    <span className="font-medium">{entry.yearName || `Year ${index + 1}`}</span>
                     <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      level.result === 'Pass' 
-                        ? 'bg-green-100 text-green-800' 
+                      entry.result === 'Pass'
+                        ? 'bg-green-100 text-green-800'
                         : 'bg-red-100 text-red-800'
                     }`}>
-                      {level.result}
+                      {entry.result}
                     </span>
                   </div>
                 )) || <p className="text-gray-500">No level data available</p>}
@@ -1263,7 +1207,7 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
               <div className="space-y-3">
                 <div className="bg-white p-3 rounded border">
                   <div className="text-sm font-medium text-gray-700">Technical Skills</div>
-                  <div className="text-xs text-[#FDA92D] mt-1">{studentData.techno || 'Not Selected'}</div>
+                  <div className="text-xs text-[#FDA92D] mt-1">{studentData.track || studentData.stream || 'Not Selected'}</div>
                 </div>
                 <div className="bg-white p-3 rounded border">
                   <div className="text-sm font-medium text-gray-700">Certifications</div>
@@ -1271,8 +1215,8 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
                 </div>
                 <div className="bg-white p-3 rounded border">
                   <div className="text-sm font-medium text-gray-700">Resume Status</div>
-                  <div className={`text-xs mt-1 ${studentData.resumeURL || studentData.resume ? 'text-green-600' : 'text-red-600'}`}>
-                    {studentData.resumeURL || studentData.resume ? '✓ Uploaded' : '✗ Not Uploaded'}
+                  <div className={`text-xs mt-1 ${studentData.resumeURL ? 'text-green-600' : 'text-red-600'}`}>
+                    {studentData.resumeURL ? '✓ Uploaded' : '✗ Not Uploaded'}
                   </div>
                 </div>
               </div>
@@ -1318,10 +1262,10 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
               <div><span className="font-medium text-gray-600">Father's Name:</span> <br/>{studentData.fatherName || 'N/A'}</div>
               <div><span className="font-medium text-gray-600">Mother's Name:</span> <br/>{studentData.motherName || 'N/A'}</div>
-              <div><span className="font-medium text-gray-600">Date of Birth:</span> <br/>{studentData.dateOfBirth ? new Date(studentData.dateOfBirth).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}</div>
+              <div><span className="font-medium text-gray-600">Date of Birth:</span> <br/>{studentData.dob ? new Date(studentData.dob).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}</div>
               <div><span className="font-medium text-gray-600">Gender:</span> <br/>{studentData.gender || 'N/A'}</div>
               <div><span className="font-medium text-gray-600">Blood Group:</span> <br/>{studentData.bloodGroup || 'N/A'}</div>
-              <div><span className="font-medium text-gray-600">Emergency Contact:</span> <br/>{studentData.emergencyContact || studentData.parentMobile || 'N/A'}</div>
+              <div><span className="font-medium text-gray-600">Emergency Contact:</span> <br/>{studentData.parentMobile || '-'}</div>
             </div>
           </div>
 
@@ -1331,9 +1275,9 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div className="bg-white p-4 rounded border">
                 <div className="font-medium text-gray-700 mb-2">Previous Education</div>
-                <div><span className="text-gray-600">12th Percentage:</span> {studentData.twelfthPercentage || 'N/A'}%</div>
-                <div><span className="text-gray-600">12th Board:</span> {studentData.twelfthBoard || 'N/A'}</div>
-                <div><span className="text-gray-600">School:</span> {studentData.schoolName || 'N/A'}</div>
+                <div><span className="text-gray-600">12th Percentage:</span> {studentData.percent12 || '-'}%</div>
+                <div><span className="text-gray-600">12th Subject:</span> {studentData.subject12 || '-'}</div>
+                <div><span className="text-gray-600">Year:</span> {studentData.year12 || '-'}</div>
               </div>
               <div className="bg-white p-4 rounded border">
                 <div className="font-medium text-gray-700 mb-2">Current Performance</div>
@@ -1362,7 +1306,7 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
                 <div className="text-lg font-medium text-gray-700">Placement In Progress</div>
                 <div className="text-sm text-gray-500 mt-1">Student is actively seeking placement opportunities</div>
                 <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-                  <div><span className="font-medium text-gray-600">Resume Status:</span> <br/><span className={`font-semibold ${studentData.resumeURL || studentData.resume ? 'text-[#FDA92D]' : 'text-red-600'}`}>{studentData.resumeURL || studentData.resume ? '✓ Ready' : '✗ Pending'}</span></div>
+                  <div><span className="font-medium text-gray-600">Resume Status:</span> <br/><span className={`font-semibold ${studentData.resumeURL ? 'text-[#FDA92D]' : 'text-red-600'}`}>{studentData.resumeURL ? '✓ Ready' : '✗ Pending'}</span></div>
                   <div><span className="font-medium text-gray-600">Eligibility:</span> <br/><span className={`font-semibold ${passedLevels.length >= 6 ? 'text-[#FDA92D]' : 'text-yellow-600'}`}>{passedLevels.length >= 6 ? '✓ Eligible' : '⚠ In Progress'}</span></div>
                 </div>
               </div>
