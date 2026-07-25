@@ -394,9 +394,12 @@ exports.getStudentTasks = async (req, res) => {
 
     const filter = {
       studentId: id,
-      syllabusVersionId: student.syllabusVersionId,
     };
-    if (subLevelId) filter.subLevelId = subLevelId;
+    if (subLevelId) {
+      filter.subLevelId = subLevelId;
+    } else {
+      filter.syllabusVersionId = student.syllabusVersionId;
+    }
     if (status) filter.status = status;
 
 
@@ -438,7 +441,6 @@ exports.getStudentTasksBySubLevel = async (req, res) => {
     const tasks = await StudentTask.find({
       studentId: id,
       subLevelId,
-      syllabusVersionId: student.syllabusVersionId,
     }).sort({ subjectName: 1, topicName: 1 });
 
 
