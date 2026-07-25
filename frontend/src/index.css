@@ -193,23 +193,79 @@ body, html {
 }
 
 .field-standard {
-  @apply h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-black transition-all duration-200;
+  @apply h-12 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-orange-400 transition-all duration-200;
 }
 
 .field-standard:disabled {
   @apply bg-gray-100 cursor-not-allowed;
 }
 
-input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="tel"], input[type="url"], input[type="date"], input[type="file"] {
-  @apply h-12 border-2 border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-black transition-all duration-200;
+input, input[type="text"], input[type="search"], input[type="email"], input[type="password"], input[type="number"], input[type="tel"], input[type="url"], input[type="date"], input[type="file"] {
+  @apply focus:outline-none focus:border-orange-400 transition-all duration-200;
 }
 
-select:not([multiple]) {
-  @apply h-12 border-2 border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-black transition-all duration-200 bg-white;
+select, select:not([multiple]) {
+  @apply focus:outline-none focus:border-orange-400 transition-all duration-200 bg-white;
 }
 
 textarea {
-  @apply border-2 border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-black transition-all duration-200;
+  @apply focus:outline-none focus:border-orange-400 transition-all duration-200;
+}
+
+/* ─── PREVENT BLACK BORDER / OUTLINE ON ALL INPUTS & FILTERS PROJECT-WIDE ─── */
+input, select, textarea, button {
+  outline: none !important;
+}
+
+input:focus, select:focus, textarea:focus, button:focus,
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible,
+input:active, select:active, textarea:active, button:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Ensure no black border on focus or hover globally for inputs, search boxes, and filter dropdowns */
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary, #FDA92D) !important;
+}
+
+input:hover, select:hover, textarea:hover {
+  border-color: var(--primary-light, #FED7AA) !important;
+}
+
+/* Search inputs and filter select boxes */
+input[type="search"]:focus,
+input[type="search"]:hover,
+.search-input:focus,
+.search-input:hover,
+.filter-input:focus,
+.filter-input:hover {
+  border-color: var(--primary, #FDA92D) !important;
+  outline: none !important;
+}
+
+/* ─── DYNAMIC THEME ACCENT & OPTION STYLING FOR DROPDOWNS ─── */
+select, input[type="radio"], input[type="checkbox"] {
+  accent-color: var(--primary, #FDA92D) !important;
+}
+
+select option {
+  background-color: #ffffff;
+  color: var(--text-color, #1C252E);
+}
+
+select option:checked {
+  background-color: var(--primary, #FDA92D) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 10px 100px var(--primary, #FDA92D) inset !important;
+}
+
+select option:hover,
+select option:focus,
+select option:active {
+  background-color: var(--primary, #FDA92D) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 10px 100px var(--primary, #FDA92D) inset !important;
 }
 
 /* ─── ANIMATIONS ──────────────────────────────────────── */

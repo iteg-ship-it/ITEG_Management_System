@@ -12,6 +12,7 @@ import {
   useGetAllSessionsQuery
 } from "../../../../redux/api/authApi";
 import OrangeButton from "../../../shared/sidebar/OrangeButton";
+import SelectDropdown from "../../../shared/form-fields/SelectDropdown";
 
 const TASK_TYPES = ["assessment", "project", "assignment", "practice", "reading", "other"];
 const PRIORITIES = ["low", "medium", "high"];
@@ -263,16 +264,12 @@ const TaskManagementModal = ({ isOpen, onClose, level, subLevel, onSuccess }) =>
                   {/* Session */}
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">Session</label>
-                    <select
+                    <SelectDropdown
                       value={selectedSessionId}
-                      onChange={(e) => setSelectedSessionId(e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
-                    >
-                      <option value="">All Sessions</option>
-                      {sessions.map(s => (
-                        <option key={s._id} value={s._id}>{s.name}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setSelectedSessionId(val)}
+                      options={[{ value: "", label: "All Sessions" }, ...sessions.map(s => ({ value: s._id, label: s.name }))]}
+                      placeholder="All Sessions"
+                    />
                   </div>
 
                   {/* Version */}

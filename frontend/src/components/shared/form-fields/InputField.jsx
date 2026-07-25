@@ -1,6 +1,6 @@
-/* eslint-disable react/prop-types */
 import { useField } from "formik";
 import { Field, ErrorMessage } from "formik";
+import SelectDropdown from "./SelectDropdown";
 
 const InputField = ({
   label,
@@ -15,7 +15,7 @@ const InputField = ({
 }) => {
   // Only use Formik's useField if we're inside a Formik context
   const isFormikControlled = !value && !onChange;
-  const [field, meta] = isFormikControlled ? useField(name) : [{ name, value: value || "", onChange }, {}];
+  const [field, meta, helpers] = isFormikControlled ? useField(name) : [{ name, value: value || "", onChange }, {}];
 
   const baseInputStyle = `
     w-full h-11 px-3 rounded-lg
@@ -26,6 +26,10 @@ const InputField = ({
     transition
     ${disabled ? "cursor-not-allowed opacity-70" : ""}
   `;
+
+  const selectOptions = placeholder
+    ? [{ value: "", label: placeholder }, ...options]
+    : options;
 
   return (
     <div className={`w-full ${className}`}>
@@ -49,25 +53,19 @@ const InputField = ({
 
       {/* ================= SELECT ================= */}
       {type === "select" && (
-        <div className="relative">
-          <select
-            {...field}
-            disabled={disabled}
-            className={`${baseInputStyle} appearance-none`}
-          >
-            <option value="">{placeholder || `Select ${label}`}</option>
-            {options.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-
-          {/* dropdown icon */}
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-            ▼
-          </div>
-        </div>
+        <SelectDropdown
+          value={field.value}
+          onChange={(val) => {
+            if (isFormikControlled) {
+              helpers.setValue(val);
+            } else if (onChange) {
+              onChange({ target: { name, value: val } });
+            }
+          }}
+          options={selectOptions}
+          placeholder={placeholder || `Select ${label || ''}`}
+          disabled={disabled}
+        />
       )}
 
       {/* ================= NORMAL INPUT ================= */}
