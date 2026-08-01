@@ -233,6 +233,8 @@ const assignTasksToStudent = async (studentId, syllabusVersionId, options = {}) 
     await student.save();
   }
 
+  await syncStudentLevelProgressStats(student._id);
+
   return {
     studentId: student._id,
     syllabusVersionId: syllabusVersion._id,
@@ -646,6 +648,7 @@ const updateStudentTaskStatus = async (studentId, taskId, payload) => {
 
   const { syncStudentReadiness } = require("./promotionService");
   await syncStudentReadiness(studentId);
+  await syncStudentLevelProgressStats(studentId);
 
   return studentTask;
 };
@@ -716,6 +719,51 @@ const syncTasksToSubLevelStudents = async (syllabusVersionId) => {
     }
   }
   return results;
+};
+
+const syncStudentLevelProgressStats = async (studentId) => {
+  try {
+    const Student = require("../models/student/Student");
+    const StudentTask = require("../models/syllabus/StudentTask");
+    const StudentLevelProgress = require("../models/student/StudentLevelProgress");
+
+    const student = await Student.findById(studentId).select("sessionId currentLevelId currentSubLevelId syllabusVersionId");
+    if (!student) return;
+
+    const tasks = await StudentTask.find({
+      studentId,
+      syllabusVersionId: student.syllabusVersionId,
+      subLevelId: student.currentSubLevelId,
+      isActive: true
+    }).select("status");
+
+    const totalTasks = tasks.length;
+    const completedTasksCount = tasks.filter(t => t.status === "completed").length;
+    const completionPercentage = totalTasks > 0 ? Math.round((completedTasksCount / totalTasks) * 100) : 0;
+
+    await StudentLevelProgress.findOneAndUpdate(
+      { studentId, subLevelId: student.currentSubLevelId },
+      {
+        $set: {
+          totalTasks,
+          completedTasksCount,
+          completionPercentage,
+          status: completionPercentage === 100 ? "completed" : "in_progress",
+          ...(completionPercentage === 100 ? { completedAt: new Date() } : {})
+        },
+        $setOnInsert: {
+          studentId,
+          sessionId: student.sessionId,
+          levelId: student.currentLevelId,
+          subLevelId: student.currentSubLevelId,
+          startedAt: new Date()
+        }
+      },
+      { upsert: true, new: true }
+    );
+  } catch (err) {
+    // Suppress errors to not block main thread
+  }
 };
 
 module.exports = {

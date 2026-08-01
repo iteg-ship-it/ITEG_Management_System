@@ -11,10 +11,10 @@ import Loader from "../../shared/loader/Loader";
 import CommonTable from "../../shared/table/CommonTable";
 
 const FILTERS = [
+  { label: "All", value: "all" },
   { label: "Pending", value: "pending" },
   { label: "Approved", value: "approved" },
   { label: "Rejected", value: "rejected" },
-  { label: "All", value: "all" },
 ];
 
 const statusStyles = {
@@ -142,41 +142,53 @@ const ResolveModal = ({ request, decision, onClose }) => {
 };
 
 const LeaveRequests = () => {
-  const [status, setStatus] = useState("pending");
+  const [activeTab, setActiveTab] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
   const [resolveState, setResolveState] = useState(null);
-  const { data, isLoading, isError, error } = useGetLeaveRequestsQuery(status);
+  const { data, isLoading, isError, error } = useGetLeaveRequestsQuery("all");
 
   const requests = data?.data || [];
 
   const filteredRequests = useMemo(() => {
+    let result = requests;
+
+    // 1. Filter by active tab status
+    if (activeTab !== "all") {
+      result = result.filter((item) => item.status === activeTab);
+    }
+
+    // 2. Filter by search term query
     const query = searchTerm.trim().toLowerCase();
-    if (!query) return requests;
+    if (query) {
+      result = result.filter((item) => {
+        const student = item.student || {};
+        return [
+          student.firstName,
+          student.lastName,
+          student.prkey,
+          student.studentMobile,
+          student.subDepartmentId?.name,
+          student.currentLevelId?.name,
+          student.currentSubLevelId?.name,
+          item.reason,
+          item.remark,
+          item.status,
+        ].join(" ").toLowerCase().includes(query);
+      });
+    }
 
-    return requests.filter((item) => {
-      const student = item.student || {};
-      return [
-        student.firstName,
-        student.lastName,
-        student.prkey,
-        student.studentMobile,
-        student.subDepartmentId?.name,
-        student.currentLevelId?.name,
-        student.currentSubLevelId?.name,
-        item.reason,
-        item.remark,
-        item.status,
-      ].join(" ").toLowerCase().includes(query);
-    });
-  }, [requests, searchTerm]);
+    return result;
+  }, [requests, activeTab, searchTerm]);
 
-  const counts = {
-    total: requests.length,
-    pending: requests.filter((item) => item.status === "pending").length,
-    approved: requests.filter((item) => item.status === "approved").length,
-    rejected: requests.filter((item) => item.status === "rejected").length,
-  };
+  const counts = useMemo(() => {
+    return {
+      total: requests.length,
+      pending: requests.filter((item) => item.status === "pending").length,
+      approved: requests.filter((item) => item.status === "approved").length,
+      rejected: requests.filter((item) => item.status === "rejected").length,
+    };
+  }, [requests]);
 
   const columns = [
     {
@@ -460,12 +472,12 @@ const LeaveRequests = () => {
         <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
           <div className="flex rounded-xl border border-gray-100 bg-gray-50/80 p-1">
             {FILTERS.map((item) => {
-              const isActive = status === item.value;
+              const isActive = activeTab === item.value;
               return (
                 <button
                   key={item.value}
                   type="button"
-                  onClick={() => setStatus(item.value)}
+                  onClick={() => setActiveTab(item.value)}
                   className={`rounded-lg px-4 py-2 text-xs font-bold transition-all duration-300 ${
                     isActive
                       ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"

@@ -20,6 +20,7 @@ import {
     useGetNewStudentTasksQuery,
     useGetNewStudentByIdQuery,
     useGetStudentProgressSnapshotsQuery,
+    useGetStudentLevelHistoryQuery,
     useGetStudentTaskHistoryQuery,
     useGetStudentActivityQuery,
     useGetLevelsBySubdepartmentQuery,
@@ -508,6 +509,202 @@ const EditProfileModal = ({ raw, onConfirm, onCancel, loading }) => {
     );
 };
 
+// Helper component to render subjects and tasks details for a level
+const LevelTasksList = ({ studentId, subLevelId }) => {
+    const { data, isLoading } = useGetNewStudentTasksQuery({ id: studentId, subLevelId });
+
+    if (isLoading) {
+        return (
+            <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-center py-4">
+                <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mr-2" />
+                <span className="text-[10px] text-slate-400 font-semibold animate-pulse">Loading syllabus details...</span>
+            </div>
+        );
+    }
+
+    const grouped = data?.groupedBySubject || {};
+    const subjects = Object.entries(grouped);
+
+    if (subjects.length === 0) {
+        return (
+            <div className="mt-3 pt-3 border-t border-slate-100 text-center py-2">
+                <p className="text-[10px] text-slate-450 italic font-semibold">No syllabus tasks assigned in this level.</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="mt-3.5 pt-3.5 border-t border-slate-100 space-y-3">
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Syllabus Details:</p>
+            <div className="space-y-2">
+                {subjects.map(([subjectName, group]) => {
+                    const tasks = group.tasks || [];
+                    const completed = tasks.filter(t => t.status === "completed").length;
+                    const pct = tasks.length > 0 ? Math.round((completed / tasks.length) * 100) : 0;
+                    return (
+                        <div key={subjectName} className="bg-slate-50 border border-slate-150 rounded-xl p-3">
+                            <div className="flex justify-between items-center">
+                                <span className="text-[11px] font-extrabold text-slate-700 uppercase tracking-tight">{subjectName}</span>
+                                <span className="text-[10px] font-bold text-slate-500">
+                                    {completed} of {tasks.length} Completed ({pct}%)
+                                </span>
+                            </div>
+                            <div className="w-full bg-slate-150 rounded-full h-1 mt-2">
+                                <div 
+                                    className="h-1 rounded-full bg-emerald-500" 
+                                    style={{ width: `${pct}%` }} 
+                                />
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
+// Collapsible item container for level history
+const LevelHistoryItem = ({ item, student, idx }) => {
+    const [expanded, setExpanded] = useState(false);
+    const isCurrent = item.status === "in_progress";
+    const pct = item.totalTasks > 0 
+        ? Math.round((item.completedTasksCount / item.totalTasks) * 100)
+        : 0;
+
+    return (
+        <div className="flex items-start gap-4 relative">
+            {/* dot indicator */}
+            <div className={`relative z-10 w-4 h-4 rounded-full border-2 mt-1.5 flex-shrink-0 flex items-center justify-center ${
+                isCurrent 
+                    ? "bg-orange-500 border-orange-500 shadow-md ring-4 ring-orange-500/10" 
+                    : "bg-white border-slate-350"
+            }`}>
+                {!isCurrent && <div className="w-1.5 h-1.5 rounded-full bg-slate-350" />}
+            </div>
+
+            {/* card content */}
+            <div className={`flex-1 rounded-2xl border p-4 shadow-sm transition-all duration-300 ${
+                isCurrent 
+                    ? "border-orange-150 bg-orange-50/20" 
+                    : "border-slate-100 bg-white hover:border-slate-200"
+            }`}>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wide">
+                            {item.levelId?.name || "Level"}
+                        </h4>
+                        <p className="text-[10px] font-bold text-slate-450 mt-0.5 uppercase tracking-widest">
+                            {item.subLevelId?.name || "Sub Level"}
+                        </p>
+                    </div>
+                    <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border shadow-sm ${
+                        isCurrent 
+                            ? "bg-orange-50 text-orange-600 border-orange-100" 
+                            : "bg-emerald-50 text-emerald-600 border-emerald-100"
+                    }`}>
+                        {isCurrent ? "CURRENT" : "COMPLETED"}
+                    </span>
+                </div>
+
+                {/* Stats progress bar */}
+                {item.totalTasks > 0 && (
+                    <div className="mt-3.5 space-y-1">
+                        <div className="flex justify-between text-[10px] font-bold text-slate-400">
+                            <span>{item.completedTasksCount} of {item.totalTasks} Tasks</span>
+                            <span className={isCurrent ? "text-orange-500" : "text-emerald-500"}>{pct}%</span>
+                        </div>
+                        <div className="w-full bg-slate-100 rounded-full h-1.5">
+                            <div 
+                                className={`h-1.5 rounded-full ${isCurrent ? "bg-orange-500" : "bg-emerald-500"}`} 
+                                style={{ width: `${pct}%` }} 
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {/* Collapsible Details list */}
+                {expanded && (
+                    <LevelTasksList studentId={student._id || student.raw?._id} subLevelId={item.subLevelId?._id} />
+                )}
+
+                {/* Footer with dates and toggle */}
+                <div className="mt-3 flex items-center justify-between text-[9px] text-slate-400 font-semibold pt-2.5 border-t border-slate-100">
+                    <button
+                        type="button"
+                        onClick={() => setExpanded(!expanded)}
+                        className="text-orange-500 hover:text-orange-600 font-extrabold flex items-center gap-0.5 transition"
+                    >
+                        {expanded ? "Hide Details" : "Show Details"}
+                    </button>
+                    <div className="flex items-center gap-2">
+                        <span>
+                            {item.startedAt ? `Started: ${new Date(item.startedAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}` : ""}
+                        </span>
+                        {item.completedAt && (
+                            <span>
+                                • Ended: {new Date(item.completedAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}
+                            </span>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Level History Drawer for Admin/Faculty
+const LevelHistoryDrawer = ({ isOpen, onClose, levelHistory = [], student }) => {
+    const history = levelHistory || [];
+    const completedLevels = history.filter(h => h.status === "completed").length;
+
+    return (
+        <OrangeButton
+            isOpen={isOpen}
+            onClose={onClose}
+            panelTitle="Level History"
+            panelSubtitle={`${student.firstName || ""} ${student.lastName || ""}`}
+            showFooter={false}
+            maxWidth="sm:max-w-lg"
+            drawerContent={
+                <div className="space-y-6">
+                    {/* Header stats bar */}
+                    <div className="grid grid-cols-2 gap-4 bg-slate-50 border border-slate-150 p-4 rounded-2xl">
+                        <div className="text-center">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">Total Levels</p>
+                            <p className="text-lg font-black text-slate-800 mt-1">{history.length}</p>
+                        </div>
+                        <div className="text-center border-l border-slate-200">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">Completed</p>
+                            <p className="text-lg font-black text-emerald-600 mt-1">{completedLevels}</p>
+                        </div>
+                    </div>
+
+                    {/* Timeline */}
+                    <div className="relative pl-4">
+                        <div className="absolute left-6 top-3 bottom-3 w-0.5 bg-slate-100" />
+                        <div className="space-y-5">
+                            {history.length === 0 ? (
+                                <div className="text-center py-10">
+                                    <p className="text-xs font-semibold text-slate-400">No level history recorded yet.</p>
+                                </div>
+                            ) : (
+                                history.map((item, idx) => (
+                                    <LevelHistoryItem
+                                        key={item._id || idx}
+                                        item={item}
+                                        student={student}
+                                        idx={idx}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+            }
+        />
+    );
+};
+
 // Mark Dropped / Dummy Modal
 const MarkDroppedModal = ({ name, onConfirm, onCancel, loading, variant = "dropped" }) => {
     const isDummy = variant === "dummy";
@@ -658,6 +855,7 @@ const StudentProfilePage = () => {
     const [moreOpen,      setMoreOpen]      = useState(false);
     const [promoteModal,  setPromoteModal]  = useState(false);
     const [readyModal,    setReadyModal]    = useState(false);
+    const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
     const [editModal,     setEditModal]     = useState(false);
     const [dropModal,     setDropModal]     = useState(false);
     const [dummyModal,    setDummyModal]    = useState(false);
@@ -692,6 +890,11 @@ const StudentProfilePage = () => {
 
     const { data: progressSnapshotsResponse } = useGetStudentProgressSnapshotsQuery(
         { id: studentId, limit: 100 },
+        { skip: !studentId }
+    );
+
+    const { data: levelHistoryResponse } = useGetStudentLevelHistoryQuery(
+        studentId,
         { skip: !studentId }
     );
 
@@ -764,6 +967,18 @@ const StudentProfilePage = () => {
 
     const currentSubLevelName = raw.currentSubLevelId?.name || level?.currentSubLevelName || "—";
     const currentLevelLabel   = raw.currentLevelId?.name || level?.name || "—";
+
+    const isEligibleForPlacement = (() => {
+        const levelOrder = raw?.currentLevelId?.order || level?.order;
+        if (typeof levelOrder === "number") {
+            return levelOrder > 1;
+        }
+        const levelName = (raw?.currentLevelId?.name || level?.name || "").toUpperCase();
+        if (levelName.includes("LEVEL 1") || levelName === "—" || levelName === "") {
+            return false;
+        }
+        return true;
+    })();
 
     const activityItems = (activityResponse?.data || []).map((item) => ({
         ...item,
@@ -883,6 +1098,16 @@ const StudentProfilePage = () => {
         }
     };
 
+    const handleMarkActive = async () => {
+        try {
+            await updateStudent({ id: raw._id, data: { status: "Active" } }).unwrap();
+            toast.success(`${name} marked as Active`);
+            navigate(0);
+        } catch (err) {
+            toast.error(err?.data?.message || "Failed to mark as Active");
+        }
+    };
+
     const handleDocumentUpload = async (payload) => {
         try {
             await uploadDocument({ id: raw._id, ...payload }).unwrap();
@@ -913,6 +1138,14 @@ const StudentProfilePage = () => {
             )}
             {editModal && (
                 <EditProfileModal raw={raw} onConfirm={handleEditProfile} onCancel={() => setEditModal(false)} loading={editLoading} />
+            )}
+            {historyDrawerOpen && (
+                <LevelHistoryDrawer
+                    isOpen={historyDrawerOpen}
+                    onClose={() => setHistoryDrawerOpen(false)}
+                    levelHistory={levelHistoryResponse?.data || []}
+                    student={raw}
+                />
             )}
             {dropModal && (
                 <MarkDroppedModal name={name} onConfirm={handleMarkDropped} onCancel={() => setDropModal(false)} loading={dropLoading} />
@@ -1015,9 +1248,31 @@ const StudentProfilePage = () => {
 
                                 {/* Placement Badge */}
                                 <div className="pt-1">
-                                    <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 border border-emerald-100 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
-                                        <MdCheckCircle size={14} /> PLACEMENT {readinessStatus.toUpperCase()}
-                                    </span>
+                                    {(() => {
+                                        const isReady = readinessStatus.toLowerCase() === "ready";
+                                        const isNotReady = readinessStatus.toLowerCase() === "not ready";
+                                        const isInProgress = readinessStatus.toLowerCase() === "in progress";
+
+                                        let badgeCls = "bg-purple-50 text-purple-600 border border-purple-100";
+                                        let icon = <MdCheckCircle size={14} />;
+
+                                        if (isReady) {
+                                            badgeCls = "bg-emerald-50 text-emerald-600 border border-emerald-100";
+                                            icon = <MdCheckCircle size={14} />;
+                                        } else if (isNotReady) {
+                                            badgeCls = "bg-rose-50 text-rose-600 border border-rose-100";
+                                            icon = <MdWarning size={14} />;
+                                        } else if (isInProgress) {
+                                            badgeCls = "bg-amber-50 text-amber-600 border border-amber-100";
+                                            icon = <MdAccessTime size={14} />;
+                                        }
+
+                                        return (
+                                            <span className={`inline-flex items-center gap-1.5 ${badgeCls} text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider`}>
+                                                {icon} PLACEMENT {readinessStatus}
+                                            </span>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                         </div>
@@ -1055,19 +1310,29 @@ const StudentProfilePage = () => {
                                             <button onClick={handleFtpToggle} className="w-full text-left px-4 py-2 hover:bg-slate-50 text-orange-600 flex items-center gap-2">
                                                 <MdArrowUpward size={14} /> {raw.isFTP ? "Remove FTP" : "Shift to FTP"}
                                             </button>
-                                            <button onClick={() => { setMoreOpen(false); setReadyModal(true); }} className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2">
-                                                <MdCheckCircle size={14} /> Shift Placement Status
-                                            </button>
+                                            {isEligibleForPlacement && (
+                                                <button onClick={() => { setMoreOpen(false); setReadyModal(true); }} className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2">
+                                                    <MdCheckCircle size={14} /> Shift Placement Status
+                                                </button>
+                                            )}
                                             <button onClick={() => { setMoreOpen(false); navigate(`/student/${raw._id}/report`); }} className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center gap-2">
                                                 <MdBarChart size={14} /> View Report Card
                                             </button>
                                             <div className="border-t border-slate-100 my-1" />
-                                            <button onClick={() => { setMoreOpen(false); setDummyModal(true); }} className="w-full text-left px-4 py-2 hover:bg-slate-50 text-amber-600 flex items-center gap-2">
-                                                <MdWarning size={14} /> Mark Dummy
-                                            </button>
-                                            <button onClick={() => { setMoreOpen(false); setDropModal(true); }} className="w-full text-left px-4 py-2 hover:bg-slate-50 text-rose-600 flex items-center gap-2">
-                                                <MdWarning size={14} /> Mark Dropped
-                                            </button>
+                                            {["Dummy", "Dropped"].includes(raw.status) ? (
+                                                <button onClick={handleMarkActive} className="w-full text-left px-4 py-2 hover:bg-slate-50 text-emerald-600 flex items-center gap-2 font-bold">
+                                                    <MdCheckCircle size={14} /> Mark Active
+                                                </button>
+                                            ) : (
+                                                <>
+                                                    <button onClick={() => { setMoreOpen(false); setDummyModal(true); }} className="w-full text-left px-4 py-2 hover:bg-slate-50 text-amber-600 flex items-center gap-2">
+                                                        <MdWarning size={14} /> Mark Dummy
+                                                    </button>
+                                                    <button onClick={() => { setMoreOpen(false); setDropModal(true); }} className="w-full text-left px-4 py-2 hover:bg-slate-50 text-rose-600 flex items-center gap-2">
+                                                        <MdWarning size={14} /> Mark Dropped
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </>
                                 )}
@@ -1123,12 +1388,18 @@ const StudentProfilePage = () => {
                 {/* 4 STAT CARDS ROW */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
                     {/* Card 1: LEVEL HISTORY */}
-                    <div className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm space-y-2">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">LEVEL HISTORY</p>
+                    <div 
+                        onClick={() => setHistoryDrawerOpen(true)}
+                        className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm space-y-2 cursor-pointer hover:border-orange-200 transition group"
+                    >
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 group-hover:text-orange-500 transition">LEVEL HISTORY</p>
                         <div className="flex items-center justify-between">
-                            <h3 className="text-xl font-black text-slate-900">{currentLevelLabel}</h3>
+                            <h3 className="text-xl font-black text-slate-900 group-hover:text-orange-500 transition">{currentLevelLabel}</h3>
                             <button
-                                onClick={() => setPromoteModal(true)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setPromoteModal(true);
+                                }}
                                 className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full transition"
                             >
                                 +1 Level Up

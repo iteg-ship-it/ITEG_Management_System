@@ -458,6 +458,11 @@ export const authApi = createApi({
       providesTags: (result, error, { id }) => [{ type: 'Student', id }],
     }),
 
+    getStudentLevelHistory: builder.query({
+      query: (id) => ({ url: `/students/${id}/level-history`, method: 'GET' }),
+      providesTags: (result, error, id) => [{ type: 'Student', id }],
+    }),
+
     getStudentTaskHistory: builder.query({
       query: ({ id, page = 1, limit = 100, taskId, subLevelId } = {}) => {
         const params = new URLSearchParams();
@@ -1796,6 +1801,7 @@ export const {
   useApplyPermissionMutation,
   useGetPermissionsQuery,
   useGetStudentProgressSnapshotsQuery,
+  useGetStudentLevelHistoryQuery,
   useGetStudentTaskHistoryQuery,
   useGetStudentActivityQuery,
   useResolvePermissionMutation,

@@ -111,7 +111,11 @@ exports.getAllStudents = async (req, res) => {
     if (sessionId) filter.sessionId = sessionId;
     if (currentLevelId) filter.currentLevelId = currentLevelId;
     if (currentSubLevelId) filter.currentSubLevelId = currentSubLevelId;
-    if (status) filter.status = status;
+    if (status) {
+      filter.status = status;
+    } else {
+      filter.status = { $nin: ["Dummy", "Dropped"] };
+    }
 
     const students = await Student.find(filter)
       .populate("subDepartmentId", "name departmentId")
@@ -394,9 +398,12 @@ exports.getStudentTasks = async (req, res) => {
 
     const filter = {
       studentId: id,
-      syllabusVersionId: student.syllabusVersionId,
     };
-    if (subLevelId) filter.subLevelId = subLevelId;
+    if (subLevelId) {
+      filter.subLevelId = subLevelId;
+    } else {
+      filter.syllabusVersionId = student.syllabusVersionId;
+    }
     if (status) filter.status = status;
 
 
@@ -438,7 +445,6 @@ exports.getStudentTasksBySubLevel = async (req, res) => {
     const tasks = await StudentTask.find({
       studentId: id,
       subLevelId,
-      syllabusVersionId: student.syllabusVersionId,
     }).sort({ subjectName: 1, topicName: 1 });
 
 
@@ -605,7 +611,7 @@ exports.getLeaveRequests = async (req, res) => {
 exports.getDummyStudents = async (req, res) => {
   try {
     const filter = req.subDeptFilter ? { ...req.subDeptFilter } : {};
-    filter.status = "Dummy";
+    filter.status = { $in: ["Dummy", "Dropped"] };
 
     const students = await Student.find(filter)
       .select("prkey firstName lastName email studentMobile course status dummyDetails currentLevelId currentSubLevelId subDepartmentId")
@@ -1086,9 +1092,12 @@ exports.getSubLevelStudentsProgress = async (req, res) => {
   try {
     const { subLevelId } = req.params;
 
-    const students = await Student.find({ currentSubLevelId: subLevelId })
+    const students = await Student.find({
+      currentSubLevelId: subLevelId,
+      status: { $nin: ["Dummy", "Dropped"] },
+    })
       .populate("currentSubLevelId", "name")
-      .select("firstName lastName prkey status currentSubLevelId image");
+      .select("firstName lastName prkey status currentSubLevelId image attendanceRate");
 
     const studentIds = students.map(s => s._id);
 
@@ -1153,6 +1162,7 @@ exports.getSubLevelStudentsProgress = async (req, res) => {
         level: student.currentSubLevelId?.name || "—",
         prkey: student.prkey,
         currentStatus: student.status,
+        attendanceRate: student.attendanceRate ?? 100,
         taskProgress: { completed, total, percentage },
         subjectProgress,
         statusCounters: { pending, inProgress, completed }
@@ -1160,6 +1170,22 @@ exports.getSubLevelStudentsProgress = async (req, res) => {
     });
 
     return res.status(200).json({ success: true, data });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ✅ Get Student Level History (Admin / Faculty)
+exports.getStudentLevelHistory = async (req, res) => {
+  try {
+    const StudentLevelProgress = require("../../models/student/StudentLevelProgress");
+    const history = await StudentLevelProgress.find({ studentId: req.params.id })
+      .populate("levelId", "name order")
+      .populate("subLevelId", "name order")
+      .populate("sessionId", "name")
+      .sort({ createdAt: 1 });
+
+    return res.status(200).json({ count: history.length, data: history });
   } catch (error) {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
