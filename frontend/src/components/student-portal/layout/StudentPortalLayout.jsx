@@ -2,7 +2,7 @@ import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, ClipboardList, TrendingUp, User,
-  LogOut, Menu, X, ShieldCheck, FolderOpen, Award, FileText
+  LogOut, Menu, X, ShieldCheck, FolderOpen, Award, FileText, Users
 } from "lucide-react";
 import { toast } from "react-toastify";
 import logo from "../../../assets/images/logo-ssism.png";
@@ -15,6 +15,7 @@ const navItems = [
   { to: "/student-portal/documents",    icon: FolderOpen,      label: "Documents" },
   { to: "/student-portal/placement",    icon: Award,           label: "Placement" },
   { to: "/student-portal/report-card",  icon: FileText,        label: "Report Card" },
+  { to: "/student-portal/faculty",      icon: Users,           label: "My Faculty" },
   { to: "/student-portal/profile",      icon: User,            label: "My Profile" },
 ];
 

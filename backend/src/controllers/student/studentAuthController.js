@@ -4,6 +4,7 @@ const Student = require("../../models/student/Student");
 const StudentEventLog = require("../../models/student/StudentEventLog");
 const cloudinary = require("../../config/cloudinaryConfig");
 const User = require("../../models/user/user");
+const SubDepartment = require("../../models/department/SubDepartment");
 
 // ✅ Student Login (PR Key + Password)
 exports.studentLogin = async (req, res) => {
@@ -433,10 +434,22 @@ exports.getMyEventLog = async (req, res) => {
 // ✅ Get Active Faculties / Admin Staff list for Student Assignment
 exports.getFaculties = async (req, res) => {
   try {
+    const student = await Student.findById(req.user.id).select("subDepartmentId");
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    const subDept = await SubDepartment.findById(student.subDepartmentId).select("departmentId");
+    if (!subDept) {
+      return res.status(404).json({ message: "Sub-department not found for student" });
+    }
+
     const faculties = await User.find({
+      departmentId: subDept.departmentId,
       role: { $in: ["faculty", "hod", "admin", "superadmin"] },
       isActive: true,
-    }).select("name role position email");
+    }).select("name role position email mobileNo profileImage");
+
     return res.status(200).json({ success: true, data: faculties });
   } catch (error) {
     return res.status(500).json({ message: "Server error", error: error.message });

@@ -2,7 +2,8 @@ import { useState, useRef, useMemo } from "react";
 import { toast } from "react-toastify";
 import {
     MdVerified, MdEdit, MdClose, MdCheckCircle,
-    MdVisibility, MdVisibilityOff, MdPerson, MdSchool, MdLock
+    MdVisibility, MdVisibilityOff, MdPerson, MdSchool, MdLock,
+    MdPeople, MdEmail, MdPhone
 } from "react-icons/md";
 import {
     useGetMyStudentProfileQuery,
@@ -314,6 +315,9 @@ export default function StudentProfile() {
                         </div>
                         <InfoGrid fields={academicFields} />
                 </div>
+
+
+
             </div>
         </div>
     );
