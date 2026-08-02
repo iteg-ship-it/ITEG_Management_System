@@ -19,9 +19,58 @@ const navItems = [
   { to: "/student-portal/profile",      icon: User,            label: "My Profile" },
 ];
 
+// ── Logout Confirmation Modal ────────────────────────────────────────────────
+const LogoutConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div>
+            <h3 className="text-sm font-bold text-gray-800">Confirm Logout</h3>
+            <p className="text-xs text-gray-400 mt-0.5">Are you sure you want to log out?</p>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        
+        <div className="p-5 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-full bg-red-50 text-red-500 flex items-center justify-center shrink-0">
+            <LogOut size={20} />
+          </div>
+          <p className="text-xs text-gray-600 leading-relaxed">
+            You will need to sign in again with your PR Key and password to access your dashboard.
+          </p>
+        </div>
+
+        <div className="px-5 py-4 bg-gray-50 border-t border-gray-100 flex items-center gap-3 justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-xs font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 text-xs font-bold text-white bg-red-500 rounded-xl hover:bg-red-600 transition-colors"
+          >
+            Yes, Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function StudentPortalLayout() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
 
   const studentData = JSON.parse(localStorage.getItem("studentData") || "{}");
   const name = `${studentData.firstName || ""} ${studentData.lastName || ""}`.trim() || "Student";
@@ -88,7 +137,7 @@ export default function StudentPortalLayout() {
           </div>
         </div>
         <button
-          onClick={handleLogout}
+          onClick={() => setLogoutModalOpen(true)}
           className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all duration-150"
         >
           <LogOut size={16} />
@@ -151,6 +200,13 @@ export default function StudentPortalLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      <LogoutConfirmationModal
+        isOpen={logoutModalOpen}
+        onClose={() => setLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+      />
     </div>
   );
 }
