@@ -80,19 +80,45 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
     console.log("Serving high-fidelity mock data directly for:", urlStr);
     
     if (urlStr.includes('/student-attendance-calendar')) {
+      const urlObj = new URL(urlStr, window.location.origin);
+      const stdId = urlObj.searchParams.get('stdId') || '1';
+      const dateFrom = urlObj.searchParams.get('dateFrom') || new Date().toISOString().split('T')[0];
+      const dateTo = urlObj.searchParams.get('dateTo') || new Date().toISOString().split('T')[0];
+
+      const calendarData = {};
+      const start = new Date(dateFrom);
+      const end = new Date(dateTo);
+
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split('T')[0];
+        const dayOfWeek = d.getDay();
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6; // Saturday or Sunday
+
+        // Deterministic status based on date and stdId
+        const numericId = stdId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const hash = (numericId + d.getDate() + d.getMonth()) % 10;
+
+        let status = 'present';
+        if (isWeekend) {
+          status = 'weekend';
+        } else if (hash === 3 || hash === 7) {
+          status = 'absent';
+        }
+
+        calendarData[dateStr] = {
+          isHoliday: false,
+          isWeekend,
+          students: [
+            { stdId, status }
+          ]
+        };
+      }
+
       return {
         data: {
           success: true,
           data: {
-            stdId: "1",
-            attendance: [
-              { date: "2026-07-15", status: "present" },
-              { date: "2026-07-16", status: "present" },
-              { date: "2026-07-17", status: "leave" },
-              { date: "2026-07-18", status: "present" },
-              { date: "2026-07-20", status: "present" },
-              { date: "2026-07-21", status: "present" }
-            ]
+            calendarData
           }
         }
       };
