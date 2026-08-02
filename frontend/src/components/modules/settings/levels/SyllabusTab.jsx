@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo, forwardRef, useImperativeHandle, useEffect } from "react";
+import SelectDropdown from "../../../shared/form-fields/SelectDropdown";
 import * as XLSX from "xlsx";
 import {
   MdCloudUpload, MdCheckCircle, MdExpandMore, MdExpandLess,
@@ -303,10 +304,12 @@ export const ManualSyllabusForm = forwardRef(({ level, subLevel, onSaved }, ref)
       {/* Session */}
       <div>
         <label className={lc}>Session <span className="text-red-400">*</span></label>
-        <select className={ic} value={selectedSessionId} onChange={(e) => setSelectedSessionId(e.target.value)}>
-          <option value="">-- Select Session --</option>
-          {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
-        </select>
+        <SelectDropdown
+          value={selectedSessionId}
+          onChange={(val) => setSelectedSessionId(val)}
+          options={[{ value: "", label: "-- Select Session --" }, ...sessions.map((s) => ({ value: s._id, label: s.name }))]}
+          placeholder="-- Select Session --"
+        />
       </div>
 
       {/* Subject */}
@@ -604,14 +607,12 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
               </span>
             ))}
           </div>
-          <select
+          <SelectDropdown
             value={selectedSessionId}
-            onChange={(e) => setSelectedSessionId(e.target.value)}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 bg-white"
-          >
-            <option value="">-- Select Session --</option>
-            {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
-          </select>
+            onChange={(val) => setSelectedSessionId(val)}
+            options={[{ value: "", label: "-- Select Session --" }, ...sessions.map((s) => ({ value: s._id, label: s.name }))]}
+            placeholder="-- Select Session --"
+          />
           <div className="flex gap-2">
             <button onClick={handleSaveClick} disabled={saving} className="flex-1 flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-semibold py-2 rounded-lg transition">
               <MdSave size={15} />{saving ? "Saving..." : "Save Syllabus + Tasks"}
@@ -1452,18 +1453,13 @@ export const TasksTab = ({ level, subLevel, onVersionChange }) => {
             </div>
 
             {/* Session Select Container */}
-            <div className="relative min-w-[180px]">
-              <select
+            <div className="min-w-[185px]">
+              <SelectDropdown
                 value={selectedSessionId}
-                onChange={(e) => { setSelectedSessionId(e.target.value); setActiveVersionId(""); }}
-                className="w-full pl-3.5 pr-8 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 bg-white text-gray-750 transition-all duration-200 appearance-none cursor-pointer"
-              >
-                <option value="">All Sessions</option>
-                {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
-              </select>
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
-                <MdExpandMore size={18} />
-              </div>
+                onChange={(val) => { setSelectedSessionId(val); setActiveVersionId(""); }}
+                options={[{ value: "", label: "All Sessions" }, ...sessions.map((s) => ({ value: s._id, label: s.name }))]}
+                placeholder="All Sessions"
+              />
             </div>
           </div>
 
@@ -1689,18 +1685,13 @@ const SyllabusTab = ({ level, subLevel }) => {
         </div>
 
         {/* Session Container */}
-        <div className="relative min-w-[185px]">
-          <select
+        <div className="min-w-[185px]">
+          <SelectDropdown
             value={selectedSessionId}
-            onChange={(e) => { setSelectedSessionId(e.target.value); setActiveVersionId(""); setSearchTerm(""); }}
-            className="w-full pl-3.5 pr-8 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 bg-white text-gray-750 transition-all duration-200 appearance-none cursor-pointer"
-          >
-            <option value="">All Sessions</option>
-            {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
-          </select>
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
-            <MdExpandMore size={18} />
-          </div>
+            onChange={(val) => { setSelectedSessionId(val); setActiveVersionId(""); setSearchTerm(""); }}
+            options={[{ value: "", label: "All Sessions" }, ...sessions.map((s) => ({ value: s._id, label: s.name }))]}
+            placeholder="All Sessions"
+          />
         </div>
       </div>
 

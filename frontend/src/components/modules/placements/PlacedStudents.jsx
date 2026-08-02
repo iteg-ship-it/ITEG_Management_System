@@ -1,18 +1,18 @@
-import { useState, useEffect } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useGetPlacedStudentsByCompanyQuery } from '../../../redux/api/authApi';
 import Loader from '../../shared/loader/Loader';
-import PageNavbar from '../../shared/navbar/PageNavbar';
 import CommonTable from '../../shared/table/CommonTable';
 import Header from '../../shared/sidebar/Header';
 import Avatar from '../../shared/Avatar';
+import { MdArrowBack, MdBusiness, MdPeople, MdEmail, MdPhone, MdLocationOn, MdAttachMoney, MdSearch } from 'react-icons/md';
 
 const PlacedStudents = () => {
   const { companyId } = useParams();
+  const navigate = useNavigate();
   const location = useLocation();
   const companyName = location.state?.companyName || 'Company';
 
-  // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -23,7 +23,6 @@ const PlacedStudents = () => {
   const totalPlaced = data?.totalPlaced || students.length;
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRows, setSelectedRows] = useState([]);
 
   const filteredStudents = students.filter((student) => {
     const searchableValues = [
@@ -47,9 +46,13 @@ const PlacedStudents = () => {
       render: (row) => (
         <div className="flex items-center gap-3">
           <Avatar firstName={row.firstName} lastName={row.lastName} imageUrl={row.profileImage} />
-          <div className="flex flex-col">
-            <span className="font-semibold text-gray-900">{`${row.firstName} ${row.lastName}`}</span>
-            <span className="text-xs text-gray-500">{row.course} - {row.stream}</span>
+          <div>
+            <p className="font-bold text-gray-800 text-sm hover:text-orange-600 transition">
+              {`${row.firstName} ${row.lastName}`}
+            </p>
+            <p className="text-[11px] text-gray-400 font-medium">
+              {row.course || 'Course'} {row.stream ? `• ${row.stream}` : ''}
+            </p>
           </div>
         </div>
       ),
@@ -58,56 +61,55 @@ const PlacedStudents = () => {
       key: "email",
       label: "Email",
       render: (row) => (
-        <span className="text-blue-600 hover:text-blue-800">{row.email}</span>
+        <span className="text-xs font-medium text-gray-700 flex items-center gap-1">
+          <MdEmail className="text-gray-400" /> {row.email}
+        </span>
       ),
     },
     {
       key: "studentMobile",
       label: "Phone",
-      render: (row) => row.studentMobile || 'N/A',
+      render: (row) => (
+        <span className="text-xs font-semibold text-gray-600">
+          {row.studentMobile ? `+91 ${row.studentMobile}` : '—'}
+        </span>
+      ),
     },
     {
       key: "jobProfile",
-      label: "Job Profile",
+      label: "Job Profile / Role",
       render: (row) => (
-        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-          {row.placedInfo?.jobProfile || 'N/A'}
+        <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold border border-blue-100">
+          {row.placedInfo?.jobProfile || 'Job Profile'}
         </span>
       ),
     },
     {
       key: "jobType",
-      label: "Job Type",
+      label: "Offer Type",
       render: (row) => (
-        <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
-          {row.placedInfo?.jobType || 'N/A'}
-        </span>
-      ),
-    },
-    {
-      key: "placedDate",
-      label: "Placement Date",
-      render: (row) => (
-        <span className="text-gray-700">
-          {row.placedInfo?.placedDate ? new Date(row.placedInfo.placedDate).toLocaleDateString() : 'N/A'}
+        <span className="px-2.5 py-1 bg-purple-50 text-purple-700 rounded-lg text-xs font-bold border border-purple-100">
+          {row.placedInfo?.jobType || 'Full-Time'}
         </span>
       ),
     },
     {
       key: "salary",
-      label: "Package",
+      label: "Offered CTC",
       render: (row) => (
-        <span className="font-semibold text-green-600">
-          {row.placedInfo?.salary ? `₹${(row.placedInfo.salary / 100000).toFixed(1)} LPA` : 'N/A'}
+        <span className="font-extrabold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg text-xs border border-emerald-100">
+          {row.placedInfo?.salary ? `₹${(row.placedInfo.salary / 100000).toFixed(1)} LPA` : '—'}
         </span>
       ),
     },
     {
-      key: "location",
-      label: "Location",
+      key: "placedDate",
+      label: "Placed Date",
       render: (row) => (
-        <span className="text-gray-700">
-          {row.placedInfo?.location || 'N/A'}
+        <span className="text-xs text-gray-500 font-medium">
+          {row.placedInfo?.placedDate 
+            ? new Date(row.placedInfo.placedDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+            : '—'}
         </span>
       ),
     },
@@ -115,94 +117,128 @@ const PlacedStudents = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <Loader />
       </div>
     );
   }
 
   if (error) {
-    // Check if it's a "no students found" error (404) vs actual error
     const isNoStudentsError = error?.status === 404 || error?.data?.message?.includes('No students found');
     
     if (isNoStudentsError) {
-      // Show "no students" message instead of error
       return (
-        <div className="min-h-screen">
-          <PageNavbar
-            title={`Placed Students`}
-            subtitle={`Students placed in ${companyName}`}
-            showBackButton={true}
-          />
-          <div className="rounded-xl shadow-sm border border-gray-200">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
+        <div className="bg-slate-50 min-h-screen pb-12">
+          <Header title={`Placed Students — ${apiCompanyName}`} />
+          <div className="p-6 max-w-[1600px] mx-auto space-y-6">
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => navigate("/company-details")}
+                  className="p-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-orange-50 hover:text-orange-600 transition"
+                >
+                  <MdArrowBack className="text-xl" />
+                </button>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">{companyName}</h2>
-                </div>
-                <div className="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg font-semibold">
-                  Total Placements: 0
+                  <h1 className="text-xl font-extrabold text-gray-800">{apiCompanyName}</h1>
+                  <p className="text-xs text-gray-500">Recruiting Partner Placements</p>
                 </div>
               </div>
             </div>
-            <div className="text-center py-12">
-              <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Students Placed</h3>
-              <p className="text-gray-500">No students have been placed in this company yet.</p>
+
+            <div className="text-center py-16 bg-white rounded-2xl border border-gray-100 shadow-sm">
+              <MdPeople className="text-5xl text-gray-300 mx-auto mb-3" />
+              <h3 className="text-base font-bold text-gray-800">No Students Placed Yet</h3>
+              <p className="text-xs text-gray-400 mt-1">No confirmed offers recorded for {apiCompanyName}</p>
             </div>
           </div>
         </div>
       );
     }
-    
-    // Show actual error for other types of errors
+
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="rounded-xl shadow-sm border border-red-200 max-w-md w-full mx-4 p-6">
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Students</h3>
-            <p className="text-red-600 mb-4">{error?.data?.message || 'Something went wrong'}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Try Again
-            </button>
-          </div>
+      <div className="bg-slate-50 min-h-screen p-6">
+        <Header title="Placed Students Error" />
+        <div className="max-w-md mx-auto bg-white p-8 rounded-2xl border border-red-200 text-center shadow-sm mt-12">
+          <h3 className="text-base font-bold text-gray-800">Error Loading Students</h3>
+          <p className="text-xs text-red-500 mt-1">{error?.data?.message || 'Something went wrong'}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-xl text-xs font-bold"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <>
-      <Header title={`Placed Students - ${apiCompanyName}`} />
-      <div className="min-h-screen px-5">
-        <PageNavbar
-          title={`Placed Students in ${apiCompanyName}`}
-          subtitle={`Total Placements: ${totalPlaced}`}
-          showBackButton={true}
-        />
+    <div className="bg-slate-50 min-h-screen pb-12">
+      <Header
+        title={`Placed Students — ${apiCompanyName}`}
+        breadcrumbs={[
+          { label: "Placements", path: "/placements/dashboard" },
+          { label: "Companies", path: "/company-details" },
+          { label: apiCompanyName },
+        ]}
+      />
 
-        <CommonTable
-          columns={columns}
-          data={filteredStudents}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          onSelectionChange={setSelectedRows}
-          rowsPerPage={10}
-        />
+      <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
+
+        {/* ── Company Header Banner Card ── */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate("/company-details")}
+              className="p-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition shrink-0"
+              title="Back to Company Details"
+            >
+              <MdArrowBack className="text-xl" />
+            </button>
+            <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-amber-500 text-white font-extrabold rounded-2xl flex items-center justify-center text-xl shadow-xs shrink-0">
+              {apiCompanyName.charAt(0)}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-extrabold text-gray-800 tracking-tight">{apiCompanyName}</h1>
+                <span className="bg-emerald-100 text-emerald-700 text-xs font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  {totalPlaced} Placed
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 mt-0.5">List of all students hired by {apiCompanyName}</p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative">
+              <MdSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+              <input
+                type="text"
+                placeholder="Search placed student name, role, or stream..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500 w-full sm:w-64 transition"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ── Main Common Table ── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <CommonTable
+            columns={columns}
+            data={filteredStudents}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            onRowClick={(row) => navigate(`/student-profile/${row._id}`)}
+            pagination
+            rowsPerPage={10}
+          />
+        </div>
+
       </div>
-    </>
+    </div>
   );
 };
 

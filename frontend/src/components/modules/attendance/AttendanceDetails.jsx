@@ -235,7 +235,7 @@ const AttendanceDetails = () => {
                 <button
                   type="button"
                   onClick={() => setIsYearOpen(!isYearOpen)}
-                  className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-black focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200 text-sm shadow-sm"
+                  className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-orange-400 focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200 text-sm shadow-sm"
                 >
                   <span className="text-gray-900 font-medium">
                     {years.find(y => y.value === filters.year)?.label || 'Select Year'}
@@ -303,7 +303,7 @@ const AttendanceDetails = () => {
                 <button
                   type="button"
                   onClick={() => setIsGenderOpen(!isGenderOpen)}
-                  className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-black focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200 text-sm shadow-sm"
+                  className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-orange-400 focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200 text-sm shadow-sm"
                 >
                   <span className="text-gray-900 font-medium">
                     {filters.gender === '' ? 'All' : filters.gender === 'male' ? 'Male' : 'Female'}

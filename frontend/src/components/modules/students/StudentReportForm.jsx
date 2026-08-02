@@ -47,10 +47,10 @@ const SimpleDropdown = ({ label, value, onChange, options }) => {
         className={`
           peer h-12 w-full border border-gray-300 rounded-md
           px-3 py-2 leading-tight bg-white text-left
-          focus:outline-none focus:border-black 
+          focus:outline-none focus:border-orange-400 
           focus:ring-0 appearance-none flex items-center justify-between
           cursor-pointer
-          ${isOpen ? "border-black" : ""}
+          ${isOpen ? "border-orange-400" : ""}
           transition-all duration-200
         `}
       >

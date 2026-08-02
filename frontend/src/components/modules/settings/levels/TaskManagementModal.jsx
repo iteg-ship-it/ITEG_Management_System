@@ -161,7 +161,7 @@ const TaskManagementModal = ({ isOpen, onClose, level, subLevel, onSuccess }) =>
       measurablePoints: task.measurablePoints || "",
       dueDate: task.dueDate ? task.dueDate.split('T')[0] : ""
     });
-    
+
     if (task.syllabusVersionId) {
       setTaskType("syllabus");
       setSelectedVersionId(task.syllabusVersionId);
@@ -176,7 +176,7 @@ const TaskManagementModal = ({ isOpen, onClose, level, subLevel, onSuccess }) =>
 
   const handleDelete = async (taskId) => {
     if (!window.confirm("Are you sure you want to delete this task?")) return;
-    
+
     try {
       await deleteTask(taskId).unwrap();
       toast.success("Task deleted successfully!");
@@ -200,22 +200,20 @@ const TaskManagementModal = ({ isOpen, onClose, level, subLevel, onSuccess }) =>
           <div className="flex border-b border-gray-200">
             <button
               onClick={() => setActiveTab("add")}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
-                activeTab === "add"
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition ${activeTab === "add"
                   ? "border-orange-500 text-orange-600 bg-orange-50"
                   : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
+                }`}
             >
               <MdAdd size={16} className="inline mr-1" />
               {editingTask ? "Edit Task" : "Add Task"}
             </button>
             <button
               onClick={() => setActiveTab("manage")}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
-                activeTab === "manage"
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition ${activeTab === "manage"
                   ? "border-orange-500 text-orange-600 bg-orange-50"
                   : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
+                }`}
             >
               <MdEdit size={16} className="inline mr-1" />
               Manage Tasks ({allTasks.length})
@@ -230,18 +228,16 @@ const TaskManagementModal = ({ isOpen, onClose, level, subLevel, onSuccess }) =>
                   <button
                     type="button"
                     onClick={() => setAddMode("manual")}
-                    className={`flex-1 py-2 text-xs font-semibold rounded-lg transition ${
-                      addMode === "manual" ? "bg-white text-orange-500 shadow-sm" : "text-gray-500 hover:text-gray-700"
-                    }`}
+                    className={`flex-1 py-2 text-xs font-semibold rounded-lg transition ${addMode === "manual" ? "bg-white text-orange-500 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                      }`}
                   >
                     Single Task
                   </button>
                   <button
                     type="button"
                     onClick={() => setAddMode("bulk")}
-                    className={`flex-1 py-2 text-xs font-semibold rounded-lg transition ${
-                      addMode === "bulk" ? "bg-white text-orange-500 shadow-sm" : "text-gray-500 hover:text-gray-700"
-                    }`}
+                    className={`flex-1 py-2 text-xs font-semibold rounded-lg transition ${addMode === "bulk" ? "bg-white text-orange-500 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                      }`}
                   >
                     Bulk Upload
                   </button>
@@ -257,11 +253,10 @@ const TaskManagementModal = ({ isOpen, onClose, level, subLevel, onSuccess }) =>
                       <button
                         type="button"
                         onClick={() => setTaskType("syllabus")}
-                        className={`p-3 border rounded-xl text-left transition ${
-                          taskType === "syllabus"
+                        className={`p-3 border rounded-xl text-left transition ${taskType === "syllabus"
                             ? "border-orange-500 bg-orange-50 text-orange-700"
                             : "border-gray-200 hover:border-orange-300"
-                        }`}
+                          }`}
                       >
                         <MdBook size={18} className="mb-1" />
                         <div className="font-medium text-sm">Syllabus Task</div>
@@ -270,11 +265,10 @@ const TaskManagementModal = ({ isOpen, onClose, level, subLevel, onSuccess }) =>
                       <button
                         type="button"
                         onClick={() => setTaskType("general")}
-                        className={`p-3 border rounded-xl text-left transition ${
-                          taskType === "general"
+                        className={`p-3 border rounded-xl text-left transition ${taskType === "general"
                             ? "border-blue-500 bg-blue-50 text-blue-700"
                             : "border-gray-200 hover:border-blue-300"
-                        }`}
+                          }`}
                       >
                         <MdAssignment size={18} className="mb-1" />
                         <div className="font-medium text-sm">General Task</div>
@@ -287,7 +281,7 @@ const TaskManagementModal = ({ isOpen, onClose, level, subLevel, onSuccess }) =>
                   {taskType === "syllabus" && (
                     <div className="space-y-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
                       <h3 className="font-medium text-sm text-gray-800">Select Syllabus Topic</h3>
-                      
+
                       {/* Session */}
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">Session</label>
@@ -405,7 +399,7 @@ const TaskManagementModal = ({ isOpen, onClose, level, subLevel, onSuccess }) =>
                   {/* Task Details */}
                   <div className="space-y-4">
                     <h3 className="font-medium text-sm text-gray-800">Task Information</h3>
-                    
+
                     <div>
                       <label className="block text-xs font-medium text-gray-700 mb-1">
                         Task Title *
@@ -526,7 +520,7 @@ const TaskManagementModal = ({ isOpen, onClose, level, subLevel, onSuccess }) =>
                 <div className="space-y-4 pt-2">
                   <div className="space-y-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
                     <h3 className="font-medium text-sm text-gray-800">Select Syllabus Version</h3>
-                    
+
                     {/* Session */}
                     <div>
                       <label className="block text-xs font-medium text-gray-700 mb-1">Session</label>
@@ -601,18 +595,17 @@ const TaskManagementModal = ({ isOpen, onClose, level, subLevel, onSuccess }) =>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <h4 className="font-semibold text-sm text-gray-800">{task.title}</h4>
-                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                              task.priority === "high" ? "bg-red-100 text-red-700" :
-                              task.priority === "medium" ? "bg-yellow-100 text-yellow-700" :
-                              "bg-green-100 text-green-700"
-                            }`}>
+                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${task.priority === "high" ? "bg-red-100 text-red-700" :
+                                task.priority === "medium" ? "bg-yellow-100 text-yellow-700" :
+                                  "bg-green-100 text-green-700"
+                              }`}>
                               {task.priority}
                             </span>
                             <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
                               {task.type}
                             </span>
                           </div>
-                          
+
                           {task.topicName && (
                             <div className="flex items-center gap-1.5 text-xs text-gray-600 mb-1">
                               <MdTopic size={13} className="text-orange-500" />
@@ -620,11 +613,11 @@ const TaskManagementModal = ({ isOpen, onClose, level, subLevel, onSuccess }) =>
                               {task.subTopicName && <span>› {task.subTopicName}</span>}
                             </div>
                           )}
-                          
+
                           {task.description && (
                             <p className="text-xs text-gray-600 mb-2 line-clamp-2">{task.description}</p>
                           )}
-                          
+
                           <div className="flex items-center gap-3 text-[11px] text-gray-500">
                             {task.maxMarks && <span>Max: {task.maxMarks} marks</span>}
                             {task.timeDays && <span>Time: {task.timeDays}d</span>}
@@ -633,7 +626,7 @@ const TaskManagementModal = ({ isOpen, onClose, level, subLevel, onSuccess }) =>
                             )}
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-1 ml-2">
                           <button
                             onClick={() => handleEdit(task)}
