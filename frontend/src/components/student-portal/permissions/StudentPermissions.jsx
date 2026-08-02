@@ -7,6 +7,7 @@ import {
 import {
     useGetMyPermissionsQuery,
     useApplyMyPermissionMutation,
+    useGetFacultiesQuery,
 } from "../../../redux/api/studentApi";
 
 const formatDate = (d) => d ? new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
@@ -25,10 +26,11 @@ const statusIcon = (s) => {
 
 // ── Apply Modal ───────────────────────────────────────────────────────────────
 const ApplyModal = ({ onClose }) => {
-    const [form, setForm]       = useState({ reason: "", fromDate: "", toDate: "" });
+    const [form, setForm]       = useState({ reason: "", fromDate: "", toDate: "", assignedFacultyId: "" });
     const [file, setFile]       = useState(null);
     const [fileErr, setFileErr] = useState("");
     const [applyPermission, { isLoading }] = useApplyMyPermissionMutation();
+    const { data: facultiesRes } = useGetFacultiesQuery();
 
     const handleFile = (e) => {
         const f = e.target.files[0];
@@ -42,8 +44,8 @@ const ApplyModal = ({ onClose }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!form.reason.trim() || !form.fromDate || !form.toDate) {
-            toast.error("Reason, From Date and To Date are required"); return;
+        if (!form.reason.trim() || !form.fromDate || !form.toDate || !form.assignedFacultyId) {
+            toast.error("Reason, From Date, To Date and Assigned Faculty are required"); return;
         }
         if (new Date(form.toDate) < new Date(form.fromDate)) {
             toast.error("To Date must be after From Date"); return;
@@ -97,6 +99,21 @@ const ApplyModal = ({ onClose }) => {
                             <label className={lc}>To Date <span className="text-red-400">*</span></label>
                             <input type="date" value={form.toDate} onChange={e => setForm(p => ({ ...p, toDate: e.target.value }))} className={ic} />
                         </div>
+                    </div>
+                    <div>
+                        <label className={lc}>Assign Faculty <span className="text-red-400">*</span></label>
+                        <select 
+                            value={form.assignedFacultyId} 
+                            onChange={e => setForm(p => ({ ...p, assignedFacultyId: e.target.value }))}
+                            className={ic}
+                        >
+                            <option value="">Select Faculty Member</option>
+                            {(facultiesRes?.data || []).map(fac => (
+                                <option key={fac._id} value={fac._id}>
+                                    {fac.name} ({fac.role.toUpperCase()}) {fac.position ? `- ${fac.position}` : ''}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                     <div>
                         <label className={lc}>Supporting Document <span className="text-gray-400 font-normal ml-1">(optional)</span></label>
@@ -159,6 +176,10 @@ const PermissionCard = ({ item }) => (
                 <span className="text-[9px] font-bold text-gray-400 mt-0.5 flex-shrink-0 uppercase tracking-wide">Remark</span>
                 <p className="text-[11px] text-gray-600 leading-snug">{item.remark}</p>
             </div>
+        )}
+
+        {item.assignedFacultyId && (
+            <p className="text-[11px] text-orange-600 font-semibold mb-2">👉 Assigned: {item.assignedFacultyId.name}</p>
         )}
 
         {item.approvedBy && (

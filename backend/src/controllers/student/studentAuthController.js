@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const Student = require("../../models/student/Student");
 const StudentEventLog = require("../../models/student/StudentEventLog");
 const cloudinary = require("../../config/cloudinaryConfig");
+const User = require("../../models/user/user");
 
 // ✅ Student Login (PR Key + Password)
 exports.studentLogin = async (req, res) => {
@@ -251,9 +252,9 @@ exports.getMySnapshots = async (req, res) => {
 // ✅ Apply for Permission (Student self-service)
 exports.applyMyPermission = async (req, res) => {
   try {
-    const { reason, fromDate, toDate, imageURL } = req.body;
-    if (!reason || !fromDate || !toDate)
-      return res.status(400).json({ message: "reason, fromDate, toDate are required" });
+    const { reason, fromDate, toDate, imageURL, assignedFacultyId } = req.body;
+    if (!reason || !fromDate || !toDate || !assignedFacultyId)
+      return res.status(400).json({ message: "reason, fromDate, toDate, and assignedFacultyId are required" });
 
     const student = await Student.findById(req.user.id);
     if (!student) return res.status(404).json({ message: "Student not found" });
@@ -276,6 +277,7 @@ exports.applyMyPermission = async (req, res) => {
       toDate: new Date(toDate),
       status: "pending",
       uploadDate: new Date(),
+      assignedFacultyId: assignedFacultyId,
     });
     await student.save();
 
@@ -292,6 +294,7 @@ exports.applyMyPermission = async (req, res) => {
         fromDate: added.fromDate,
         toDate: added.toDate,
         hasDocument: Boolean(uploadedImageURL),
+        assignedFacultyId: added.assignedFacultyId,
       },
       createdBy: null,
       createdByName: `${student.firstName || ""} ${student.lastName || ""}`.trim(),
@@ -307,7 +310,9 @@ exports.applyMyPermission = async (req, res) => {
 // ✅ Get My Permission History (Student)
 exports.getMyPermissions = async (req, res) => {
   try {
-    const student = await Student.findById(req.user.id).select("permissions");
+    const student = await Student.findById(req.user.id)
+      .select("permissions")
+      .populate("permissions.assignedFacultyId", "name role position email");
     if (!student) return res.status(404).json({ message: "Student not found" });
     const sorted = [...student.permissions].sort((a, b) => new Date(b.uploadDate) - new Date(a.uploadDate));
     return res.status(200).json({ count: sorted.length, data: sorted });
@@ -420,6 +425,19 @@ exports.getMyEventLog = async (req, res) => {
       totalPages: Math.ceil(total / parseInt(limit)),
       data: events,
     });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ✅ Get Active Faculties / Admin Staff list for Student Assignment
+exports.getFaculties = async (req, res) => {
+  try {
+    const faculties = await User.find({
+      role: { $in: ["faculty", "hod", "admin", "superadmin"] },
+      isActive: true,
+    }).select("name role position email");
+    return res.status(200).json({ success: true, data: faculties });
   } catch (error) {
     return res.status(500).json({ message: "Server error", error: error.message });
   }

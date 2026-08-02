@@ -573,17 +573,30 @@ exports.getLeaveRequests = async (req, res) => {
     filter["permissions.0"] = { $exists: true };
     if (statusFilter !== "all") filter["permissions.status"] = statusFilter;
 
+    const isFacultyOnly = req.user && req.user.role === "faculty";
+
     const students = await Student.find(filter)
       .select("prkey firstName lastName image email studentMobile permissions currentLevelId currentSubLevelId subDepartmentId")
       .populate("subDepartmentId", "name departmentId")
       .populate("currentLevelId", "name order")
       .populate("currentSubLevelId", "name order")
+      .populate("permissions.assignedFacultyId", "name role position email")
       .sort({ updatedAt: -1 });
 
     const requests = students.flatMap((student) => {
       const studentObj = student.toObject();
       return (studentObj.permissions || [])
-        .filter((permission) => statusFilter === "all" || permission.status === statusFilter)
+        .filter((permission) => {
+          const matchesStatus = statusFilter === "all" || permission.status === statusFilter;
+          if (!matchesStatus) return false;
+
+          // If the logged-in user is just a faculty member, they only see leave requests assigned to them
+          if (isFacultyOnly) {
+            const assignedId = permission.assignedFacultyId?._id || permission.assignedFacultyId;
+            return assignedId && assignedId.toString() === req.user.id.toString();
+          }
+          return true;
+        })
         .map((permission) => ({
           ...permission,
           student: {
@@ -847,7 +860,7 @@ exports.getExtraDocuments = async (req, res) => {
 // ✅ Apply for Permission (student-initiated flow)
 exports.applyPermission = async (req, res) => {
   try {
-    const { reason, fromDate, toDate, imageURL } = req.body;
+    const { reason, fromDate, toDate, imageURL, assignedFacultyId } = req.body;
     if (!reason || !fromDate || !toDate)
       return res.status(400).json({ message: "reason, fromDate, toDate are required" });
 
@@ -872,6 +885,7 @@ exports.applyPermission = async (req, res) => {
       toDate: new Date(toDate),
       status: "pending",
       uploadDate: new Date(),
+      assignedFacultyId: assignedFacultyId || null
     };
 
     student.permissions.push(permission);
@@ -890,6 +904,7 @@ exports.applyPermission = async (req, res) => {
         fromDate: permission.fromDate,
         toDate: permission.toDate,
         hasDocument: Boolean(uploadedImageURL),
+        assignedFacultyId: addedPermission.assignedFacultyId,
       },
       createdBy: req.user?.id || req.user?._id || null,
       createdByName: req.user?.name || `${student.firstName || ""} ${student.lastName || ""}`.trim(),
@@ -908,7 +923,9 @@ exports.applyPermission = async (req, res) => {
 // ✅ Get Permission History
 exports.getPermissions = async (req, res) => {
   try {
-    const student = await Student.findById(req.params.id).select("permissions");
+    const student = await Student.findById(req.params.id)
+      .select("permissions")
+      .populate("permissions.assignedFacultyId", "name role position email");
     if (!student) return res.status(404).json({ message: "Student not found" });
     return res.status(200).json({
       count: student.permissions.length,
@@ -933,6 +950,17 @@ exports.resolvePermission = async (req, res) => {
     if (!permission) return res.status(404).json({ message: "Permission not found" });
     if (permission.status !== "pending")
       return res.status(400).json({ message: "Permission already resolved" });
+
+    // Role and Assignment Validation
+    const isAuthorized = 
+      ["superadmin", "hod", "admin"].includes(req.user.role) ||
+      (permission.assignedFacultyId && permission.assignedFacultyId.toString() === req.user.id.toString());
+
+    if (!isAuthorized) {
+      return res.status(403).json({ 
+        message: "You are not authorized to resolve this leave request. Only the assigned faculty member, HOD, or Superadmin can resolve it." 
+      });
+    }
 
     permission.status = status;
     permission.remark = remark || "";

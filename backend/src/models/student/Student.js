@@ -13,7 +13,8 @@ const permissionSchema = new mongoose.Schema({
   },
   uploadDate: { type: Date, default: Date.now },
   approvedBy: { type: String, default: "" },
-  approvedAt: { type: Date, default: null }
+  approvedAt: { type: Date, default: null },
+  assignedFacultyId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null }
 });
 
 const documentSchema = new mongoose.Schema({

@@ -27,4 +27,6 @@ router.get("/me/extra-documents", ...studentAuth, studentAuthController.getMyExt
 router.get("/me/placement", ...studentAuth, studentAuthController.getMyPlacement);
 router.get("/me/report-card", ...studentAuth, studentAuthController.getMyReportCard);
 
+router.get("/faculties", ...studentAuth, studentAuthController.getFaculties);
+
 module.exports = router;
