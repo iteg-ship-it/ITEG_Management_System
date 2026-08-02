@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
     MdEmail, MdPhone, MdCheckCircle, MdAccessTime,
@@ -968,6 +968,39 @@ const StudentProfilePage = () => {
     const currentSubLevelName = raw.currentSubLevelId?.name || level?.currentSubLevelName || "—";
     const currentLevelLabel   = raw.currentLevelId?.name || level?.name || "—";
 
+    const daysInSubLevel = useMemo(() => {
+        if (!raw) return null;
+        const currentSubLevelId = raw.currentSubLevelId?._id || raw.currentSubLevelId;
+        if (!currentSubLevelId) return null;
+
+        let entryDate = null;
+        const history = levelHistoryResponse?.data;
+        if (Array.isArray(history)) {
+            const currentProgress = history.find(h => 
+                (h.subLevelId?._id || h.subLevelId)?.toString() === currentSubLevelId.toString()
+            );
+            if (currentProgress) {
+                entryDate = currentProgress.startedAt || currentProgress.createdAt;
+            }
+            if (!entryDate) {
+                const completedProgress = [...history]
+                    .filter(h => h.status === 'completed' && h.completedAt)
+                    .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
+                if (completedProgress.length > 0) {
+                    entryDate = completedProgress[0].completedAt;
+                }
+            }
+        }
+        if (!entryDate) {
+            entryDate = raw.createdAt;
+        }
+        if (!entryDate) return null;
+
+        const diffTime = Math.abs(new Date() - new Date(entryDate));
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays === 0 ? "Today" : diffDays === 1 ? "1 Day" : `${diffDays} Days`;
+    }, [raw, levelHistoryResponse]);
+
     const isEligibleForPlacement = (() => {
         const levelOrder = raw?.currentLevelId?.order || level?.order;
         if (typeof levelOrder === "number") {
@@ -1243,7 +1276,7 @@ const StudentProfilePage = () => {
                                     )}
                                 </div>
                                 <p className="text-xs font-bold text-orange-500">
-                                    {raw.course || "Course"} • {currentLevelLabel} ({currentSubLevelName})
+                                    {raw.course || "Course"} • {currentLevelLabel} ({currentSubLevelName}){daysInSubLevel ? ` • ${daysInSubLevel}` : ''}
                                 </p>
 
                                 {/* Placement Badge */}
@@ -1394,7 +1427,9 @@ const StudentProfilePage = () => {
                     >
                         <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 group-hover:text-orange-500 transition">LEVEL HISTORY</p>
                         <div className="flex items-center justify-between">
-                            <h3 className="text-xl font-black text-slate-900 group-hover:text-orange-500 transition">{currentLevelLabel}</h3>
+                            <h3 className="text-xl font-black text-slate-900 group-hover:text-orange-500 transition">
+                                {currentLevelLabel} {daysInSubLevel ? `(${daysInSubLevel})` : ''}
+                            </h3>
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();

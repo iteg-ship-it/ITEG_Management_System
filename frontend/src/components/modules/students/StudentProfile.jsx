@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState, useRef } from "react";
-import { useGetNewStudentByIdQuery, useUpdateStudentImageMutation, useUploadResumeMutation, useUpdateStudentEmailMutation, useGetReportCardQuery, useSetStudentPasswordMutation } from "../../../redux/api/authApi";
+import { useEffect, useState, useRef, useMemo } from "react";
+import { useGetNewStudentByIdQuery, useUpdateStudentImageMutation, useUploadResumeMutation, useUpdateStudentEmailMutation, useGetReportCardQuery, useSetStudentPasswordMutation, useGetStudentLevelHistoryQuery } from "../../../redux/api/authApi";
 import { taskAPI } from '../../../services/taskService';
 import PermissionModal from "./PermissionModal";
 import PlacementModal from "./PlacementModal";
@@ -28,6 +28,40 @@ export default function StudentProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: studentData, isLoading, isError } = useGetNewStudentByIdQuery(id);
+  const { data: levelHistoryResponse } = useGetStudentLevelHistoryQuery(id);
+
+  const daysInSubLevel = useMemo(() => {
+    if (!studentData) return null;
+    const currentSubLevelId = studentData.currentSubLevelId?._id || studentData.currentSubLevelId;
+    if (!currentSubLevelId) return null;
+
+    let entryDate = null;
+    const history = levelHistoryResponse?.data;
+    if (Array.isArray(history)) {
+      const currentProgress = history.find(h => 
+        (h.subLevelId?._id || h.subLevelId)?.toString() === currentSubLevelId.toString()
+      );
+      if (currentProgress) {
+        entryDate = currentProgress.startedAt || currentProgress.createdAt;
+      }
+      if (!entryDate) {
+        const completedProgress = [...history]
+          .filter(h => h.status === 'completed' && h.completedAt)
+          .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
+        if (completedProgress.length > 0) {
+          entryDate = completedProgress[0].completedAt;
+        }
+      }
+    }
+    if (!entryDate) {
+      entryDate = studentData.createdAt;
+    }
+    if (!entryDate) return null;
+
+    const diffTime = Math.abs(new Date() - new Date(entryDate));
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays === 0 ? "Today" : diffDays === 1 ? "1 Day" : `${diffDays} Days`;
+  }, [studentData, levelHistoryResponse]);
   const { data: reportCardResponse, isLoading: reportLoading } = useGetReportCardQuery(id);
   const reportCardData = reportCardResponse?.data;
   const [updateStudentImage] = useUpdateStudentImageMutation();
@@ -1156,7 +1190,7 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
                 )}
               </div>
               <div className="mt-3 pt-3 border-t">
-                <div className="text-sm text-gray-600">Current: {studentData?.currentLevelId?.name || '—'} / {studentData?.currentSubLevelId?.name || '—'}</div>
+                <div className="text-sm text-gray-600">Current: {studentData?.currentLevelId?.name || '—'} / {studentData?.currentSubLevelId?.name || '—'}{daysInSubLevel ? ` (${daysInSubLevel})` : ''}</div>
               </div>
             </div>
 
@@ -1204,7 +1238,7 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
               <div className="text-center p-4 bg-white rounded-lg shadow-sm">
                 <div className="text-sm text-gray-600 mb-1">Academic</div>
                 <div className="text-2xl font-bold text-blue-600">{studentData?.currentLevelId?.name || '—'}</div>
-                <div className="text-xs text-gray-500">{studentData?.currentSubLevelId?.name || '—'}</div>
+                <div className="text-xs text-gray-500">{studentData?.currentSubLevelId?.name || '—'} {daysInSubLevel ? `• ${daysInSubLevel}` : ''}</div>
               </div>
               <div className="text-center p-4 bg-white rounded-lg shadow-sm">
                 <div className="text-sm text-gray-600 mb-1">Attendance</div>
