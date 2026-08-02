@@ -187,6 +187,22 @@ exports.getSubDepartmentById = async (req, res) => {
         message: "SubDepartment not found"
       });
     }
+
+    // Restrict non-admin users (faculty, hod) to their own department's subdepartments
+    if (!["superadmin", "admin"].includes(req.user?.role)) {
+      let departmentId = req.user?.departmentId || null;
+      if (!departmentId && req.user?.department) {
+        const department = await Department.findOne({ name: req.user.department, isActive: true }).select("_id");
+        departmentId = department?._id || null;
+      }
+      const subDeptDeptId = subDepartment.departmentId._id ? subDepartment.departmentId._id.toString() : subDepartment.departmentId.toString();
+      if (!departmentId || subDeptDeptId !== departmentId.toString()) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied for this department"
+        });
+      }
+    }
     
     res.status(200).json({
       success: true,

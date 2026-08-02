@@ -9,7 +9,8 @@ const attendanceController = require("../controllers/student/attendanceControlle
 const upload = require("../config/multerConfig");
 
 const allowedRoles = ["superadmin", "faculty", "admin", "hod"];
-const auth = [verifyToken, checkRole(allowedRoles), departmentFilter];
+const { studentAccessFilter } = require("../middlewares/studentAccessFilter");
+const auth = [verifyToken, checkRole(allowedRoles), departmentFilter, studentAccessFilter];
 
 // =============================================================
 // STUDENT BASIC CRUD  (mounted at /api/students)

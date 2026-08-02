@@ -47,7 +47,7 @@ exports.createUser = async (req, res) => {
 
     const allowedRoles = ["admin", "superadmin", "faculty", "hod"];
     if (!allowedRoles.includes(role)) {
-      return res.status(400).json({ message: "Invalid role. Only admin, superadmin, and faculty are allowed." });
+      return res.status(400).json({ message: "Invalid role. Only admin, superadmin, faculty, and HOD are allowed." });
     }
 
     // Resolve departmentId from department name for department-scoped roles
@@ -248,10 +248,29 @@ exports.updateUserFields = async (req, res) => {
       updateData.permissions = getPermissionsForRole(role);
     }
 
-    // When department changes for faculty, resolve new departmentId
-    if (department && role === "faculty") {
-      const deptDoc = await Department.findOne({ name: department, isActive: true }).select("_id");
-      if (deptDoc) updateData.departmentId = deptDoc._id;
+    // Resolve departmentId if role becomes department-scoped or department name changes
+    let targetRole = role;
+    let targetDept = department;
+    
+    if (!targetRole || !targetDept) {
+      const existingUser = await User.findById(id).select("role department");
+      if (existingUser) {
+        if (!targetRole) targetRole = existingUser.role;
+        if (!targetDept) targetDept = existingUser.department;
+      }
+    }
+
+    if (["faculty", "hod"].includes(targetRole)) {
+      if (targetDept) {
+        const deptDoc = await Department.findOne({ name: targetDept, isActive: true }).select("_id");
+        if (deptDoc) {
+          updateData.departmentId = deptDoc._id;
+        } else {
+          updateData.departmentId = null;
+        }
+      }
+    } else {
+      updateData.departmentId = null;
     }
 
     const updatedUser = await User.findByIdAndUpdate(id, updateData, { new: true, runValidators: true })

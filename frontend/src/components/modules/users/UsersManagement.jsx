@@ -89,6 +89,7 @@ const UsersManagement = () => {
             case 'superadmin': return 'bg-red-100 text-red-800';
             case 'admin': return 'bg-blue-100 text-blue-800';
             case 'faculty': return 'bg-green-100 text-green-800';
+            case 'hod': return 'bg-amber-100 text-amber-800';
             case 'chairman': return 'bg-purple-100 text-purple-800';
             case 'ceo': return 'bg-yellow-100 text-yellow-800';
             default: return 'bg-gray-100 text-gray-800';
@@ -117,7 +118,7 @@ const UsersManagement = () => {
                         <InputField label="Mobile Number" name="mobileNo" placeholder="Enter mobile number" />
                         <InputField label="Aadhar Number" name="adharCard" placeholder="Enter Aadhar number" />
                         <div className="grid grid-cols-2 gap-4">
-                            <CustomDropdown label="Role" name="role" options={[{ value: 'faculty', label: 'Faculty' }, { value: 'admin', label: 'Admin' }, { value: 'superadmin', label: 'Super Admin' }]} />
+                            <CustomDropdown label="Role" name="role" options={[{ value: 'faculty', label: 'Faculty' }, { value: 'hod', label: 'HOD' }, { value: 'admin', label: 'Admin' }, { value: 'superadmin', label: 'Super Admin' }]} />
                             <CustomDropdown label="Department" name="department" options={[{ value: 'SSISM', label: 'SSISM' }, { value: 'ITEG', label: 'ITEG' }, { value: 'MEG', label: 'MEG' }, { value: 'BEG', label: 'BEG' }, { value: 'BTECH', label: 'BTECH' }]} />
                         </div>
                         <CustomDropdown label="Position" name="position" options={[{ value: 'Assistant Professor', label: 'Assistant Professor' }, { value: 'Associate Professor', label: 'Associate Professor' }, { value: 'Professor', label: 'Professor' }, { value: 'Lecturer', label: 'Lecturer' }, { value: 'Chairman', label: 'Chairman' }, { value: 'CEO', label: 'CEO' }]} />
@@ -290,7 +291,7 @@ const UsersManagement = () => {
                             </div>
                             <div className="col-span-2 text-sm font-semibold text-gray-600 mt-2">Access & Department</div>
                             <div className="col-span-2 md:col-span-1">
-                                <CustomDropdown label="Role" name="role" options={[{ value: 'faculty', label: 'Faculty' }, { value: 'admin', label: 'Admin' }, { value: 'superadmin', label: 'Super Admin' }]} />
+                                <CustomDropdown label="Role" name="role" options={[{ value: 'faculty', label: 'Faculty' }, { value: 'hod', label: 'HOD' }, { value: 'admin', label: 'Admin' }, { value: 'superadmin', label: 'Super Admin' }]} />
                             </div>
                             <div className="col-span-2 md:col-span-1">
                                 <CustomDropdown label="Department" name="department" options={[{ value: 'SSISM', label: 'SSISM' }, { value: 'ITEG', label: 'ITEG' }, { value: 'MEG', label: 'MEG' }, { value: 'BEG', label: 'BEG' }, { value: 'BTECH', label: 'BTECH' }]} />

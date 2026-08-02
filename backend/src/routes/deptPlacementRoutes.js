@@ -4,8 +4,8 @@ const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
 const { departmentFilter } = require("../middlewares/departmentFilter");
 const ctrl = require("../controllers/placement/deptPlacementController");
 
-// superadmin + admin see all; faculty restricted to own dept (guard inside controller)
-const allowedRoles = ["superadmin", "admin", "faculty"];
+// superadmin + admin see all; faculty/hod restricted to own dept (guard inside controller)
+const allowedRoles = ["superadmin", "admin", "faculty", "hod"];
 const auth = [verifyToken, checkRole(allowedRoles), departmentFilter];
 
 router.get("/:id/overview",          ...auth, ctrl.getDeptOverview);
