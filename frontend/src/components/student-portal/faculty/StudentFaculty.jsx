@@ -76,7 +76,8 @@ export default function StudentFaculty() {
               placeholder="Search faculty..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-orange-400 bg-gray-50 transition-all duration-200"
+              className="w-full pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-orange-400 bg-gray-50 transition-all duration-200"
+              style={{ paddingLeft: "2.75rem" }}
             />
           </div>
         </div>
