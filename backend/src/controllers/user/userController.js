@@ -128,9 +128,16 @@ exports.login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ message: "Invalid email or password" });
 
-    // Self-healing: assign default permissions if missing
+    // Self-healing: assign default permissions if missing, or merge new defaults
+    const defaultPerms = getPermissionsForRole(user.role);
     if (!user.permissions || user.permissions.length === 0) {
-      user.permissions = getPermissionsForRole(user.role);
+      user.permissions = defaultPerms;
+    } else {
+      const userFeatureKeys = new Set(user.permissions.map((p) => p.feature));
+      const missingPerms = defaultPerms.filter((p) => !userFeatureKeys.has(p.feature));
+      if (missingPerms.length > 0) {
+        user.permissions = [...user.permissions, ...missingPerms];
+      }
     }
 
     const token = generateAccessToken(user);

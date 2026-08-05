@@ -10,7 +10,7 @@ import StudentReportForm from "../students/StudentReportForm";
 import StudentLevelData from "../students/StudentLevelData";
 import StudentLevelInterviewHistory from "../students/StudentLevelInterviewHistory";
 import PlacementReadyStudents from "../placements/PlacementReadyStudents";
-import PlacementDashboard from "../placements/dashboard/PlacementDashboard";
+import RoleBasedPlacementDashboard from "../placements/dashboard/RoleBasedPlacementDashboard";
 import DepartmentPlacementDetail from "../placements/dashboard/DepartmentPlacementDetail";
 import StudentPermission from "../students/StudentPermission";
 import LeaveRequests from "../students/LeaveRequests";
@@ -69,7 +69,7 @@ const Layout = () => {
                     <Route path="/student-permission" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod"]}><StudentPermission /></ProtectedRoute>} />
                     <Route path="/leave-requests" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod"]}><LeaveRequests /></ProtectedRoute>} />
                     <Route path="/readiness-status" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod"]}><PlacementReadyStudents /></ProtectedRoute>} />
-                    <Route path="/placements/dashboard" element={<ProtectedRoute allowedRoles={["superadmin", "admin"]}><PlacementDashboard /></ProtectedRoute>} />
+                    <Route path="/placements/dashboard" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod"]}><RoleBasedPlacementDashboard /></ProtectedRoute>} />
                     <Route path="/placements/department/:subDepartmentId" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod"]}><DepartmentPlacementDetail /></ProtectedRoute>} />
                     <Route path="/placement-interview-record" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod"]}><PlacementRecords /></ProtectedRoute>} />
                     <Route path="/company-details" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod"]}><CompanyDetail /></ProtectedRoute>} />

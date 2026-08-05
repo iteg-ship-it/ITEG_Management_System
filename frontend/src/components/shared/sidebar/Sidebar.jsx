@@ -152,7 +152,7 @@ const Sidebar = ({ children }) => {
       icon: <MdWork />,
       permission: "Page_Placement",
       subMenu: [
-        ...(role === "superadmin" || role === "admin"
+        ...(role === "superadmin" || role === "admin" || role === "hod" || role === "faculty"
           ? [{ name: "Dashboard", path: "/placements/dashboard", permission: "Page_Placement" }]
           : []),
         { name: "Placement Candidates", path: "/readiness-status", permission: "Page_Placement" },

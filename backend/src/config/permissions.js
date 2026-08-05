@@ -103,6 +103,9 @@ const allPermissions = {
         { feature: 'Page_AdmittedStudents', description: 'Access to the Admitted Students section', access: ['read'] },
         { feature: 'Page_LeaveRequests', description: 'Access to student leave requests', access: ['read', 'update'] },
         { feature: 'Page_Syllabus', description: 'Access to the Syllabus page', access: ['read'] },
+        { feature: 'Page_Placement', description: 'Access to the Placement section', access: ['read'] },
+        { feature: 'Page_CompanyDetails', description: 'Access to company details', access: ['read'] },
+        { feature: 'Page_PlacedStudents', description: 'Access to placed students list', access: ['read'] },
     ]
 };
 
