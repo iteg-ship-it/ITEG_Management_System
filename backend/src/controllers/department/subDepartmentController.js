@@ -1,6 +1,8 @@
 const SubDepartment = require("../../models/department/SubDepartment");
 const Department = require("../../models/department/Department");
 const Student = require("../../models/student/Student");
+const Level = require("../../models/department/Level");
+const User = require("../../models/user/user");
 const mongoose = require("mongoose");
 const { invalidateDeptCache } = require("../../middlewares/departmentFilter");
 
@@ -109,7 +111,38 @@ exports.getSubDepartmentsByDepartment = async (req, res) => {
     const subDepartmentsWithCounts = await Promise.all(
       subDepartments.map(async (subDepartment) => {
         const totalStudents = await Student.countDocuments({ subDepartmentId: subDepartment._id });
-        return { ...subDepartment.toObject(), totalStudents };
+        
+        // Fetch levels for this sub-department
+        const levels = await Level.find({ subDepartmentId: subDepartment._id, isActive: true }).sort({ order: 1 });
+        const levelCounts = await Promise.all(
+          levels.map(async (lvl) => {
+            const count = await Student.countDocuments({
+              subDepartmentId: subDepartment._id,
+              currentLevelId: lvl._id
+            });
+            return {
+              levelId: lvl._id,
+              levelName: lvl.name,
+              order: lvl.order,
+              studentCount: count
+            };
+          })
+        );
+
+        // Fetch faculties of the parent department
+        const deptId = subDepartment.departmentId?._id || subDepartment.departmentId;
+        const faculties = await User.find({
+          departmentId: deptId,
+          role: { $in: ["faculty", "hod"] },
+          isActive: true
+        }).select("name profileImage position email mobileNo");
+
+        return { 
+          ...subDepartment.toObject(), 
+          totalStudents,
+          faculties,
+          levelCounts
+        };
       })
     );
     
@@ -152,7 +185,38 @@ exports.getAllSubDepartments = async (req, res) => {
     const subDepartmentsWithCounts = await Promise.all(
       subDepartments.map(async (subDepartment) => {
         const totalStudents = await Student.countDocuments({ subDepartmentId: subDepartment._id });
-        return { ...subDepartment.toObject(), totalStudents };
+
+        // Fetch levels for this sub-department
+        const levels = await Level.find({ subDepartmentId: subDepartment._id, isActive: true }).sort({ order: 1 });
+        const levelCounts = await Promise.all(
+          levels.map(async (lvl) => {
+            const count = await Student.countDocuments({
+              subDepartmentId: subDepartment._id,
+              currentLevelId: lvl._id
+            });
+            return {
+              levelId: lvl._id,
+              levelName: lvl.name,
+              order: lvl.order,
+              studentCount: count
+            };
+          })
+        );
+
+        // Fetch faculties of the parent department
+        const deptId = subDepartment.departmentId?._id || subDepartment.departmentId;
+        const faculties = await User.find({
+          departmentId: deptId,
+          role: { $in: ["faculty", "hod"] },
+          isActive: true
+        }).select("name profileImage position email mobileNo");
+
+        return { 
+          ...subDepartment.toObject(), 
+          totalStudents,
+          faculties,
+          levelCounts
+        };
       })
     );
 

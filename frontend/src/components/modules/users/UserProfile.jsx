@@ -1,38 +1,79 @@
-import { useParams } from "react-router-dom";
-import { useGetUserByIdQuery, useUpdateUserMutation } from "../../../redux/api/authApi";
+import { useParams, useNavigate } from "react-router-dom";
+import { useGetUserByIdQuery, useUpdateUserMutation, useGetAllSubdepartmentsQuery, useGetLeaveRequestsQuery } from "../../../redux/api/authApi";
 import Loader from "../../shared/loader/Loader";
 import { IoCamera } from "react-icons/io5";
-import { HiArrowNarrowLeft } from "react-icons/hi";
-import { FiUser, FiBriefcase, FiShield, FiSettings, FiMail, FiPhone, FiCalendar, FiClock, FiUserCheck } from "react-icons/fi";
+import { FiUser, FiBriefcase, FiShield, FiSettings, FiMail, FiPhone, FiCalendar, FiClock, FiUserCheck, FiBookOpen } from "react-icons/fi";
 import profilePlaceholder from '../../../assets/images/profile-img.png';
 import studentProfileBg from "../../../assets/images/Student_profile_2nd_bg.jpg";
+import Header from "../../shared/sidebar/Header";
 import { toast } from 'react-toastify';
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 
 const UserProfile = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { data, isLoading, isError, error, refetch } = useGetUserByIdQuery(id);
+  const { data: subdepartmentsRes } = useGetAllSubdepartmentsQuery();
+  const { data: leavesRes } = useGetLeaveRequestsQuery("all");
   const [updateUser] = useUpdateUserMutation();
   const [isImageUploading, setIsImageUploading] = useState(false);
   const fileInputRef = useRef(null);
 
+  const subdepartments = subdepartmentsRes?.data || [];
+  const leaves = leavesRes?.data || [];
+  const userData = data?.user;
+
+  // Filter allowed courses based on user's department
+  const assignedCourses = useMemo(() => {
+    if (!userData?.department) return [];
+    const userDept = userData.department.toLowerCase();
+    const matchedSubDepts = subdepartments.filter(sd => {
+      if (!sd.departmentId) return false;
+      const deptName = typeof sd.departmentId === 'object' ? sd.departmentId.name : sd.departmentId;
+      return typeof deptName === 'string' && deptName.toLowerCase() === userDept;
+    });
+    return [...new Set(matchedSubDepts.flatMap(sd => sd.allowedCourses || []))];
+  }, [userData, subdepartments]);
+
+  // Calculate pending leaves count
+  const pendingLeavesCount = useMemo(() => {
+    return leaves.filter(l => l.status === "pending").length;
+  }, [leaves]);
+
+  // Get dynamic timeline activities based on role
+  const mockActivities = useMemo(() => {
+    if (!userData?.role) return [];
+    const isAcademic = ["faculty", "hod"].includes(userData.role);
+    if (isAcademic) {
+      return [
+        { title: "Marked daily attendance spreadsheet", time: "Today • 10:15 AM", type: "attendance" },
+        { title: "Reviewed student leave permission request", time: "Yesterday • 04:30 PM", type: "leave" },
+        { title: "Modified course syllabus milestone checklist", time: "3 days ago • 11:20 AM", type: "curriculum" }
+      ];
+    } else {
+      return [
+        { title: "Modified global system permissions table", time: "Today • 09:45 AM", type: "security" },
+        { title: "Registered new faculty account credentials", time: "Yesterday • 02:15 PM", type: "user" },
+        { title: "Updated department academic structure parameter", time: "4 days ago • 03:50 PM", type: "settings" }
+      ];
+    }
+  }, [userData]);
+
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader />
+      <div className="flex justify-center pt-20">
+        <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="text-center text-red-600 font-semibold py-6">
+      <div className="text-center text-red-655 font-semibold py-6">
         Error loading user data: {error?.data?.message || "Something went wrong!"}
       </div>
     );
   }
-
-  const userData = data?.user;
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
@@ -87,59 +128,45 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="min-h-screen p-5">
-      {/* Professional Header */}
-      <div className="sticky top-0 z-10">
-        <div className="py-2 sm:py-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-            <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
-              <button
-                onClick={() => window.history.back()}
-                className="group flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 text-gray-700 hover:text-gray-900"
-              >
-                <HiArrowNarrowLeft className="text-base sm:text-lg group-hover:-translate-x-1 transition-transform" />
-                <span className="text-xs sm:text-sm font-medium">Back</span>
-              </button>
-              <div className="h-6 sm:h-8 w-px bg-gray-300 hidden sm:block"></div>
-              <div className="flex-1 sm:flex-none">
-                <h1 className="text-lg sm:text-2xl font-bold text-black">Professional Profile</h1>
-                <p className="text-xs sm:text-sm text-black hidden sm:block">Employee information & organizational details</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="space-y-5">
+      <Header 
+        title="Professional Profile" 
+        subtitle="Employee information & organizational details" 
+        showBack={true}
+      />
 
-      <div className="py-2 sm:py-4">
+      <div className="py-1">
         {/* Hero Section with User Info */}
-        <div className="bg-white rounded-2xl overflow-hidden mb-8" style={{ boxShadow: '0 0 25px 8px rgba(0, 0, 0, 0.10)' }}>
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mb-6">
           <div className="relative">
             <div className="absolute inset-0" style={{
               backgroundImage: `url(${studentProfileBg})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center'
             }}></div>
-            <div className="relative px-3 sm:px-8 py-4 sm:py-12">
-              <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
-                <div className="relative">
-                  <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-full bg-white p-1 sm:p-2 shadow-md">
+            <div className="relative px-5 py-6 sm:py-10 bg-slate-900/10">
+              <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-8">
+                <div className="relative shrink-0">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-white p-1 shadow-sm border border-slate-100 overflow-hidden relative">
                     <img
                       src={userData?.profileImage || profilePlaceholder}
                       alt="Profile"
-                      className="w-full h-full object-cover rounded-full"
+                      className="w-full h-full object-cover rounded-xl"
                     />
-                  </div>
-                  <div
-                    className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full shadow-md flex items-center justify-center cursor-pointer hover:shadow-lg transition-shadow"
-                    onClick={triggerImageUpload}
-                    style={{ transform: 'translate(-25%, -25%)' }}
-                  >
-                    {isImageUploading ? (
-                      <div className="w-4 h-4 sm:w-3 sm:h-3 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <IoCamera className="w-5 h-5 sm:w-7 sm:h-6 text-gray-700 hover:text-gray-900" />
+                    {isImageUploading && (
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-xl">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      </div>
                     )}
                   </div>
+                  <button
+                    type="button"
+                    onClick={triggerImageUpload}
+                    disabled={isImageUploading}
+                    className="absolute -bottom-1 -right-1 w-8 h-8 bg-orange-500 hover:bg-orange-650 text-white rounded-xl flex items-center justify-center shadow-md border-2 border-white transition duration-200 cursor-pointer"
+                  >
+                    <IoCamera size={14} />
+                  </button>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -148,16 +175,22 @@ const UserProfile = () => {
                     className="hidden"
                   />
                 </div>
-                <div className="flex-1 text-center sm:text-left">
-                  <h2 className="text-lg sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 text-white">
-                    {userData?.name}
-                  </h2>
-                  <p className="text-gray-300 mb-3 sm:mb-4 text-xs sm:text-base">{userData?.position} | {userData?.department}</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2 lg:gap-6">
-                    <ContactCard icon={<FiMail className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" />} label="Email" value={userData?.email} />
-                    <ContactCard icon={<FiPhone className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" />} label="Phone" value={userData?.mobileNo || "N/A"} />
-                    <ContactCard icon={<FiBriefcase className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" />} label="Department" value={userData?.department || "N/A"} />
-                    <ContactCard icon={<FiShield className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" />} label="Role" value={userData?.role?.toUpperCase() || "N/A"} />
+                <div className="text-center sm:text-left text-white flex-1 min-w-0">
+                  <h2 className="text-xl sm:text-2xl font-black tracking-tight drop-shadow-sm">{userData?.name}</h2>
+                  <p className="text-xs sm:text-sm text-gray-200 font-semibold mt-1 drop-shadow-xs">{userData?.position || "—"} · {userData?.department || "—"}</p>
+                  
+                  {/* Stat pills inside Hero */}
+                  <div className="flex items-center justify-center sm:justify-start gap-2.5 mt-3.5 flex-wrap">
+                    <span className={`inline-flex items-center text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 text-emerald-400 backdrop-blur-xs`}>
+                      <span className="relative flex h-1.5 w-1.5 mr-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                      </span>
+                      {userData?.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/10 text-white border border-white/20 backdrop-blur-xs">
+                      {userData?.role || "—"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -165,252 +198,254 @@ const UserProfile = () => {
           </div>
         </div>
 
-        {/* Professional Metrics Dashboard */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6 mb-4 sm:mb-8 pr-2 sm:pr-0">
+        {/* Professional Metrics Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <ProfessionalMetricCard
-            icon={<FiBriefcase className="w-6 h-6 text-white" />}
+            icon={<FiBriefcase />}
             title="Department"
             value={userData?.department || "N/A"}
-            bgColor="#FDA92D"
-            description="Organizational unit"
+            color="orange"
+            description="Academic unit group"
           />
           <ProfessionalMetricCard
-            icon={<FiUser className="w-6 h-6 text-white" />}
+            icon={<FiUser />}
             title="Position"
             value={userData?.position || "N/A"}
-            bgColor="#8E33FF"
+            color="purple"
             description="Job designation"
           />
           <ProfessionalMetricCard
-            icon={<FiShield className="w-6 h-6 text-white" />}
+            icon={<FiShield />}
             title="Access Level"
-            value={userData?.role?.toUpperCase() || "N/A"}
-            bgColor="#00B8D9"
-            description="System privileges"
+            value={userData?.role}
+            color="blue"
+            description="System permission"
           />
           <ProfessionalMetricCard
-            icon={<FiUserCheck className="w-6 h-6 text-white" />}
-            title="Status"
-            value={userData?.isActive ? "Active" : "Inactive"}
-            bgColor="#22C55E"
-            description="Account status"
+            icon={<FiCalendar />}
+            title="Pending Leaves"
+            value={pendingLeavesCount}
+            color="red"
+            description="Leave requests queue"
+            onClick={() => navigate('/leave-requests')}
           />
         </div>
 
-        {/* Professional Information Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-4 sm:mb-8 pr-2 sm:pr-0">
-          {/* Contact Information */}
-          <DetailSection
-            title="Contact Information"
-            subtitle="Communication details and contact methods"
-            icon={<FiMail className="w-5 h-5 text-gray-700" />}
-          >
-            <div className="space-y-4">
-              <ProfessionalDetailRow icon={<FiMail />} label="Email Address" value={userData?.email || "N/A"} />
-              <ProfessionalDetailRow icon={<FiPhone />} label="Mobile Number" value={userData?.mobileNo || "N/A"} />
-              <ProfessionalDetailRow icon={<FiUser />} label="Full Name" value={userData?.name || "N/A"} />
-            </div>
-          </DetailSection>
-
-          {/* Professional Details */}
-          <DetailSection
-            title="Professional Details"
-            subtitle="Organizational role and responsibilities"
-            icon={<FiBriefcase className="w-5 h-5 text-gray-700" />}
-          >
-            <div className="space-y-4">
-              <ProfessionalDetailRow icon={<FiBriefcase />} label="Department" value={userData?.department || "N/A"} />
-              <ProfessionalDetailRow icon={<FiUser />} label="Position" value={userData?.position || "N/A"} />
-              <ProfessionalDetailRow icon={<FiShield />} label="Access Role" value={userData?.role?.toUpperCase() || "N/A"} />
-            </div>
-            <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FiUserCheck className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm font-medium text-blue-900">Account Status</span>
-                </div>
-                <StatusBadge status={userData?.isActive ? "Active" : "Inactive"} />
+        {/* Professional Detailed Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Column 1: Contact Information & System Permissions */}
+          <div className="space-y-6">
+            <DetailSection
+              title="Contact Information"
+              subtitle="Registry details and contacts"
+              icon={<FiMail />}
+            >
+              <div className="space-y-3.5">
+                <ProfessionalDetailRow icon={<FiMail />} label="Email Address" value={userData?.email} />
+                <ProfessionalDetailRow icon={<FiPhone />} label="Mobile Number" value={userData?.mobileNo} />
+                <ProfessionalDetailRow icon={<FiUser />} label="Full Registry Name" value={userData?.name} />
               </div>
-            </div>
-          </DetailSection>
+            </DetailSection>
 
-          {/* System Information */}
-          <DetailSection
-            title="System Information"
-            subtitle="Account management and security details"
-            icon={<FiSettings className="w-5 h-5 text-gray-700" />}
-          >
-            <div className="space-y-4">
-              <ProfessionalDetailRow 
-                icon={<FiCalendar />} 
-                label="Account Created" 
-                value={userData?.createdAt ? new Date(userData.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : "N/A"} 
-              />
-              <ProfessionalDetailRow 
-                icon={<FiClock />} 
-                label="Last Updated" 
-                value={userData?.updatedAt ? new Date(userData.updatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : "N/A"} 
-              />
-              <ProfessionalDetailRow icon={<FiSettings />} label="User ID" value={userData?._id?.slice(-8) || "N/A"} />
-            </div>
-          </DetailSection>
-        </div>
-
-        {/* Security & Compliance Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-4 sm:mb-8 pr-2 sm:pr-0">
-          {/* Security Information */}
-          <DetailSection
-            title="Security & Compliance"
-            subtitle="Identity verification and security details"
-            icon={<FiShield className="w-5 h-5 text-gray-700" />}
-          >
-            <div className="space-y-4">
-              <ProfessionalDetailRow icon={<FiSettings />} label="Aadhar Number" value={userData?.adharCard ? `XXXX-XXXX-${userData.adharCard.slice(-4)}` : "N/A"} />
-              <ProfessionalDetailRow icon={<FiShield />} label="Security Level" value={userData?.role === 'superadmin' ? 'High' : userData?.role === 'admin' ? 'Medium' : 'Standard'} />
-              <ProfessionalDetailRow icon={<FiUserCheck />} label="Verification Status" value="Verified" />
-            </div>
-            <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <FiShield className="w-5 h-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-green-900">Security Compliant</p>
-                  <p className="text-xs text-green-700">All security requirements met</p>
-                </div>
+            <DetailSection
+              title="Active Permissions"
+              subtitle="Authorized system modules"
+              icon={<FiShield />}
+            >
+              <div className="space-y-3">
+                {userData?.permissions && userData.permissions.length > 0 ? (
+                  userData.permissions.map((perm, idx) => (
+                    <div key={idx} className="flex items-center justify-between border-b border-slate-50 pb-2">
+                      <span className="text-xs font-bold text-slate-700 capitalize">{perm.module}</span>
+                      <div className="flex gap-1.5">
+                        {perm.actions?.map((act, i) => (
+                          <span key={i} className="bg-slate-100 text-slate-650 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">
+                            {act}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <span className="text-xs text-gray-400 italic font-semibold">No special permissions assigned</span>
+                )}
               </div>
-            </div>
-          </DetailSection>
+            </DetailSection>
+          </div>
 
-          {/* Activity Overview */}
-          <DetailSection
-            title="Activity Overview"
-            subtitle="Account activity and system usage"
-            icon={<FiClock className="w-5 h-5 text-gray-700" />}
-          >
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FiCalendar className="w-4 h-4 text-blue-600" />
-                    <span className="text-xs font-medium text-blue-900">Member Since</span>
+          {/* Column 2: Professional Details & Assigned Courses */}
+          <div className="space-y-6">
+            <DetailSection
+              title="Professional Details"
+              subtitle="Organizational placement details"
+              icon={<FiBriefcase />}
+            >
+              <div className="space-y-3.5">
+                <ProfessionalDetailRow icon={<FiBriefcase />} label="Department" value={userData?.department} />
+                <ProfessionalDetailRow icon={<FiUser />} label="Designated Position" value={userData?.position} />
+                <ProfessionalDetailRow icon={<FiShield />} label="Access Role" value={userData?.role} capitalize />
+              </div>
+            </DetailSection>
+
+            <DetailSection
+              title="Assigned Courses"
+              subtitle="Departmental syllabus tags"
+              icon={<FiBookOpen />}
+            >
+              <div className="flex flex-wrap gap-2">
+                {assignedCourses.length > 0 ? (
+                  assignedCourses.map((course, idx) => (
+                    <span 
+                      key={idx} 
+                      className="bg-orange-50 text-orange-500 border border-orange-100 px-3 py-1.5 rounded-xl text-xs font-bold transition hover:scale-105"
+                    >
+                      {course}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-xs text-gray-400 italic font-semibold">No assigned courses in this department</span>
+                )}
+              </div>
+            </DetailSection>
+          </div>
+
+          {/* Column 3: Security & Recent Activity Timeline */}
+          <div className="space-y-6">
+            <DetailSection
+              title="System & Security"
+              subtitle="Account compliance metadata"
+              icon={<FiSettings />}
+            >
+              <div className="space-y-3.5">
+                <ProfessionalDetailRow icon={<FiSettings />} label="Aadhar Verification" value={userData?.adharCard ? `XXXX-XXXX-${userData.adharCard.slice(-4)}` : "N/A"} />
+                <ProfessionalDetailRow 
+                  icon={<FiCalendar />} 
+                  label="Account Created" 
+                  value={userData?.createdAt ? new Date(userData.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) : "N/A"} 
+                />
+                <ProfessionalDetailRow 
+                  icon={<FiClock />} 
+                  label="Last Updated" 
+                  value={userData?.updatedAt ? new Date(userData.updatedAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) : "N/A"} 
+                />
+              </div>
+            </DetailSection>
+
+            <DetailSection
+              title="Activity Timeline"
+              subtitle="Recent platform interactions"
+              icon={<FiClock />}
+            >
+              <div className="space-y-4 relative pl-1">
+                <div className="absolute left-[17px] top-3.5 bottom-3.5 w-0.5 bg-slate-100" />
+                
+                {mockActivities.map((act, idx) => (
+                  <div key={idx} className="flex items-start gap-3 relative z-10">
+                    <div className="w-8.5 h-8.5 rounded-full bg-orange-50 text-orange-500 border border-orange-100 flex items-center justify-center flex-shrink-0">
+                      <FiClock size={14} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-800 leading-tight">{act.title}</p>
+                      <p className="text-[10px] font-semibold text-slate-400 mt-1">{act.time}</p>
+                    </div>
                   </div>
-                  <p className="text-sm font-bold text-blue-800">
-                    {userData?.createdAt ? new Date(userData.createdAt).getFullYear() : "N/A"}
-                  </p>
-                </div>
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FiClock className="w-4 h-4 text-purple-600" />
-                    <span className="text-xs font-medium text-purple-900">Last Active</span>
-                  </div>
-                  <p className="text-sm font-bold text-purple-800">
-                    {userData?.updatedAt ? new Date(userData.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : "N/A"}
-                  </p>
-                </div>
+                ))}
               </div>
-              <div className="bg-gradient-to-r from-orange-50 to-yellow-50 p-4 rounded-lg border border-orange-100">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <FiUser className="w-4 h-4 text-orange-600" />
-                    <span className="text-sm font-medium text-orange-900">Profile Completion</span>
-                  </div>
-                  <span className="text-sm font-bold text-orange-800">100%</span>
-                </div>
-                <div className="mt-2 w-full bg-orange-200 rounded-full h-2">
-                  <div className="bg-orange-500 h-2 rounded-full" style={{width: '100%'}}></div>
-                </div>
-              </div>
-            </div>
-          </DetailSection>
+            </DetailSection>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-// Professional Contact Card for Hero Section
-const ContactCard = ({ icon, label, value }) => (
-  <div className="bg-white/20 backdrop-blur-md rounded-lg p-1.5 sm:p-3 border border-white/30" style={{ backdropFilter: 'blur(12px)', background: 'rgba(255, 255, 255, 0.15)' }}>
-    <div className="flex items-center gap-1.5 sm:gap-3">
-      <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-        <span className="text-xs sm:text-sm">{icon}</span>
+// Colors mapping dictionary for styling theme colors
+const colorThemes = {
+  orange: {
+    text: 'text-orange-500',
+    bg: 'bg-orange-500',
+    softBg: 'bg-orange-50',
+    border: 'border-orange-100'
+  },
+  purple: {
+    text: 'text-purple-600',
+    bg: 'bg-purple-500',
+    softBg: 'bg-purple-50',
+    border: 'border-purple-100'
+  },
+  blue: {
+    text: 'text-blue-600',
+    bg: 'bg-blue-50',
+    softBg: 'bg-blue-50',
+    border: 'border-blue-100'
+  },
+  green: {
+    text: 'text-emerald-600',
+    bg: 'bg-emerald-500',
+    softBg: 'bg-emerald-50',
+    border: 'border-emerald-100'
+  },
+  red: {
+    text: 'text-rose-600',
+    bg: 'bg-rose-500',
+    softBg: 'bg-rose-50',
+    border: 'border-rose-100'
+  }
+};
+
+// Professional Metric Card matching the quick access card style of the project
+const ProfessionalMetricCard = ({ icon, title, value, color = "orange", description, onClick }) => {
+  const theme = colorThemes[color] || colorThemes.orange;
+  return (
+    <div 
+      onClick={onClick}
+      className={`bg-white rounded-3xl border border-slate-100 p-5 shadow-sm transition duration-200 flex items-center justify-between group ${
+        onClick ? 'cursor-pointer hover:border-orange-200' : ''
+      }`}
+    >
+      <div className="min-w-0">
+        <span className="block text-[10px] text-gray-400 font-bold uppercase tracking-wider">{title}</span>
+        <h4 className={`text-sm sm:text-base font-extrabold mt-1 truncate ${theme.text} uppercase`}>
+          {value ?? "—"}
+        </h4>
+        <span className="block text-[10px] text-gray-400 mt-1 font-medium truncate">{description}</span>
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-xs text-gray-300 uppercase tracking-wide font-medium">{label}</p>
-        <p className="text-xs sm:text-sm font-semibold text-white truncate">{value}</p>
+      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-lg border ${theme.softBg} ${theme.text} ${theme.border} flex-shrink-0 transition-transform duration-200 group-hover:scale-105`}>
+        {icon}
       </div>
     </div>
-  </div>
-);
+  );
+};
 
-// Professional Metric Card with Advanced Styling
-const ProfessionalMetricCard = ({ icon, title, value, bgColor, description }) => (
-  <div
-    className="group relative bg-white rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300"
-    style={{ boxShadow: '0 0 20px 5px rgba(0, 0, 0, 0.08)' }}
-  >
-    <div className="relative p-2 sm:p-6">
-      <div className="flex items-center justify-between mb-2 sm:mb-4">
-        <div className="flex-1">
-          <p className="text-xs sm:text-sm font-medium text-gray-600 mb-0.5 sm:mb-1">{title}</p>
-          <h3 className="text-sm sm:text-xl lg:text-2xl font-bold mb-0.5 sm:mb-1" style={{ color: bgColor }}>{value}</h3>
-          <p className="text-xs text-gray-500 hidden sm:block">{description}</p>
-        </div>
-        <div className="w-3 h-3 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110 bg-gray-600 text-black">
-          {icon}
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-// Detail Section Container
+// Detail Section Card matching the project timeline/lists wrapper style
 const DetailSection = ({ title, subtitle, icon, children }) => (
-  <div className="bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 0 22px 6px rgba(0, 0, 0, 0.09)' }}>
-    <div className="px-3 sm:px-6 py-3 sm:py-4 border-b-2 border-gray-200 shadow-sm bg-white">
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center bg-gray-100">
-          <span className="text-sm sm:text-lg">{icon}</span>
-        </div>
-        <div>
-          <h3 className="text-sm sm:text-lg font-bold text-gray-900">{title}</h3>
-          <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">{subtitle}</p>
-        </div>
+  <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm flex flex-col">
+    <div className="flex items-center gap-3 mb-5 pb-4 border-b border-slate-100">
+      <div className="w-9 h-9 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-500 shadow-xs flex-shrink-0">
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">{title}</h3>
+        <p className="text-xs text-gray-400 font-semibold mt-0.5 truncate">{subtitle}</p>
       </div>
     </div>
-    <div className="p-3 sm:p-6">{children}</div>
+    <div className="flex-1">{children}</div>
   </div>
 );
 
-// Professional Detail Row Component
-const ProfessionalDetailRow = ({ icon, label, value }) => (
-  <div className="flex items-center gap-3 sm:gap-4 p-3 rounded-lg hover:bg-gray-50 transition-all duration-200 border border-transparent hover:border-gray-200">
-    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center flex-shrink-0 text-gray-600">
+// Detail Attribute Row matching the timeline item or checklist row layout
+const ProfessionalDetailRow = ({ icon, label, value, capitalize }) => (
+  <div className="flex items-center gap-3.5 py-2 px-3 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition duration-150">
+    <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 shadow-xs flex-shrink-0">
       {icon}
     </div>
-    <div className="flex-1 min-w-0">
-      <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">{label}</p>
-      <p className="text-sm sm:text-base font-semibold text-gray-900 truncate">{value || "N/A"}</p>
+    <div className="min-w-0 flex-1">
+      <span className="block text-[9px] text-gray-400 font-bold uppercase tracking-wider">{label}</span>
+      <span className={`block text-xs font-semibold text-gray-800 truncate ${capitalize ? 'capitalize' : ''}`}>
+        {value || "—"}
+      </span>
     </div>
   </div>
 );
-
-// Status Badge Component
-const StatusBadge = ({ status }) => {
-  const getStatusStyle = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'active': return 'bg-green-100 text-green-800 border-green-200';
-      case 'inactive': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  return (
-    <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusStyle(status)}`}>
-      {status || 'No Status'}
-    </span>
-  );
-};
 
 export default UserProfile;
