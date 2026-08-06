@@ -24,6 +24,7 @@ const UsersManagement = () => {
     const navigate = useNavigate();
     const { hasPermission } = usePermissions();
     const createUserFormRef = useRef();
+    const editUserFormRef = useRef();
     const [activeTab, setActiveTab] = useState('Users');
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredUsers, setFilteredUsers] = useState(null);
@@ -112,62 +113,101 @@ const UsersManagement = () => {
                 onSubmit={handleCreateUser}
             >
                 {({ setFieldValue, values }) => (
-                    <Form className="space-y-4">
-                        <InputField label="Full Name" name="name" placeholder="Enter full name" />
-                        <InputField label="Email Address" name="email" type="email" placeholder="user@ssism.org" />
-                        <InputField label="Mobile Number" name="mobileNo" placeholder="Enter mobile number" />
-                        <InputField label="Aadhar Number" name="adharCard" placeholder="Enter Aadhar number" />
-                        <div className="grid grid-cols-2 gap-4">
-                            <CustomDropdown label="Role" name="role" options={[{ value: 'faculty', label: 'Faculty' }, { value: 'hod', label: 'HOD' }, { value: 'admin', label: 'Admin' }, { value: 'superadmin', label: 'Super Admin' }]} />
-                            <CustomDropdown label="Department" name="department" options={[{ value: 'SSISM', label: 'SSISM' }, { value: 'ITEG', label: 'ITEG' }, { value: 'MEG', label: 'MEG' }, { value: 'BEG', label: 'BEG' }, { value: 'BTECH', label: 'BTECH' }]} />
-                        </div>
-                        <CustomDropdown label="Position" name="position" options={[{ value: 'Assistant Professor', label: 'Assistant Professor' }, { value: 'Associate Professor', label: 'Associate Professor' }, { value: 'Professor', label: 'Professor' }, { value: 'Lecturer', label: 'Lecturer' }, { value: 'Chairman', label: 'Chairman' }, { value: 'CEO', label: 'CEO' }]} />
-
-                        <div className="flex items-center justify-between bg-gray-50 border rounded-xl px-5 py-4">
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-800">Status</label>
-                                <p className="text-sm text-gray-500">If the account is active</p>
+                    <Form className="space-y-6">
+                        {/* Section 1: General Details */}
+                        <div className="space-y-3.5">
+                            <div className="border-b border-slate-100 pb-1.5 mb-3">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">General Information</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setFieldValue('isActive', !values.isActive)}
-                                    className={`relative inline-flex items-center h-7 w-14 rounded-full transition-colors duration-300 focus:outline-none ${values.isActive ? 'bg-orange-500' : 'bg-gray-300'}`}
-                                >
-                                    <span className={`inline-block w-6 h-6 transform bg-white rounded-full shadow-md transition-transform duration-300 ${values.isActive ? 'translate-x-7' : 'translate-x-1'}`} />
-                                </button>
-                                <span className="text-sm font-medium text-gray-800">{values.isActive ? 'Active' : 'Inactive'}</span>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <InputField label="Full Name" name="name" placeholder="Enter full name" />
+                                <InputField label="Email Address" name="email" type="email" placeholder="user@ssism.org" />
+                                <InputField label="Mobile Number" name="mobileNo" placeholder="Enter mobile number" />
+                                <InputField label="Aadhar Number" name="adharCard" placeholder="Enter Aadhar number" />
                             </div>
                         </div>
 
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <label className="block text-sm font-medium text-gray-700">Password</label>
+                        {/* Section 2: Organization & Placement */}
+                        <div className="space-y-3.5">
+                            <div className="border-b border-slate-100 pb-1.5 mb-3">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Organization & Role</span>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <InputField 
+                                    label="Role" 
+                                    name="role" 
+                                    type="select" 
+                                    placeholder="Select role"
+                                    options={[{ value: 'faculty', label: 'Faculty' }, { value: 'hod', label: 'HOD' }, { value: 'admin', label: 'Admin' }, { value: 'superadmin', label: 'Super Admin' }]} 
+                                />
+                                <InputField 
+                                    label="Department" 
+                                    name="department" 
+                                    type="select" 
+                                    placeholder="Select department"
+                                    options={[{ value: 'SSISM', label: 'SSISM' }, { value: 'ITEG', label: 'ITEG' }, { value: 'MEG', label: 'MEG' }, { value: 'BEG', label: 'BEG' }, { value: 'BTECH', label: 'BTECH' }]} 
+                                />
+                            </div>
+                            <InputField 
+                                label="Position" 
+                                name="position" 
+                                type="select" 
+                                placeholder="Select designated position"
+                                options={[{ value: 'Assistant Professor', label: 'Assistant Professor' }, { value: 'Associate Professor', label: 'Associate Professor' }, { value: 'Professor', label: 'Professor' }, { value: 'Lecturer', label: 'Lecturer' }, { value: 'Chairman', label: 'Chairman' }, { value: 'CEO', label: 'CEO' }]} 
+                            />
+                        </div>
+
+                        {/* Section 3: Credentials & Status */}
+                        <div className="space-y-4">
+                            <div className="border-b border-slate-100 pb-1.5 mb-3">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Credentials & Access</span>
+                            </div>
+                            <div className="flex items-center justify-between bg-slate-50/50 border border-slate-100 rounded-2xl px-5 py-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Account Status</label>
+                                    <p className="text-[11px] text-gray-400 font-semibold mt-0.5">Activate or deactivate user platform access</p>
+                                </div>
                                 <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        id="autoGenerate"
-                                        checked={autoGenerate}
-                                        onChange={(e) => {
-                                            setAutoGenerate(e.target.checked);
-                                            if (e.target.checked) setFieldValue('password', generatePassword());
-                                        }}
-                                        className="w-4 h-4 accent-gray-700"
-                                    />
-                                    <label htmlFor="autoGenerate" className="text-sm text-gray-600">Autogenerated password</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFieldValue('isActive', !values.isActive)}
+                                        className={`relative inline-flex items-center h-6 w-11 rounded-full transition-colors duration-300 focus:outline-none ${values.isActive ? 'bg-orange-500' : 'bg-slate-350'}`}
+                                    >
+                                        <span className={`inline-block w-4.5 h-4.5 transform bg-white rounded-full shadow-md transition-transform duration-300 ${values.isActive ? 'translate-x-5.5' : 'translate-x-1'}`} />
+                                    </button>
+                                    <span className={`text-xs font-bold ${values.isActive ? 'text-orange-500' : 'text-slate-400'}`}>{values.isActive ? 'Active' : 'Inactive'}</span>
                                 </div>
                             </div>
-                            <div className="relative">
-                                <input
-                                    type={showPassword ? 'text' : 'password'}
-                                    value={values.password}
-                                    onChange={(e) => setFieldValue('password', e.target.value)}
-                                    placeholder="Enter password"
-                                    className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-500"
-                                />
-                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
-                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                </button>
+
+                            <div className="bg-slate-50/50 border border-slate-100 rounded-2xl p-5 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Account Password</label>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            id="autoGenerate"
+                                            checked={autoGenerate}
+                                            onChange={(e) => {
+                                                setAutoGenerate(e.target.checked);
+                                                if (e.target.checked) setFieldValue('password', generatePassword());
+                                            }}
+                                            className="w-4 h-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500 cursor-pointer"
+                                        />
+                                        <label htmlFor="autoGenerate" className="text-xs font-bold text-slate-500 cursor-pointer">Autogenerate</label>
+                                    </div>
+                                </div>
+                                <div className="relative">
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        value={values.password}
+                                        onChange={(e) => setFieldValue('password', e.target.value)}
+                                        placeholder="Enter password"
+                                        className="w-full h-11 px-3 pr-10 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 focus:outline-none focus:border-orange-400 transition"
+                                    />
+                                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-650 cursor-pointer">
+                                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </Form>
@@ -268,10 +308,13 @@ const UsersManagement = () => {
                 onClose={() => setEditModal({ show: false, user: null })}
                 panelTitle="Edit User"
                 panelSubtitle="Update user profile information and department role."
-                showFooter={false}
+                leftBtnText="Cancel"
+                rightBtnText="Save Changes"
+                onRightClick={() => editUserFormRef.current?.submitForm()}
                 maxWidth="sm:max-w-xl"
                 drawerContent={
                     <Formik
+                        innerRef={editUserFormRef}
                         initialValues={{ name: editModal.user?.name || '', position: editModal.user?.position || '', role: editModal.user?.role || '', department: editModal.user?.department || '', isActive: editModal.user?.isActive ?? true }}
                         onSubmit={async (values) => {
                             try {
@@ -283,27 +326,67 @@ const UsersManagement = () => {
                             }
                         }}
                     >
-                        <Form className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="col-span-2 text-sm font-semibold text-gray-600 mt-2">User Information</div>
-                            <div className="col-span-2 md:col-span-1"><InputField label="Name" name="name" placeholder="Enter user name" /></div>
-                            <div className="col-span-2 md:col-span-1">
-                                <CustomDropdown label="Position" name="position" options={[{ value: 'Assistant Professor', label: 'Assistant Professor' }, { value: 'Associate Professor', label: 'Associate Professor' }, { value: 'Professor', label: 'Professor' }, { value: 'Lecturer', label: 'Lecturer' }, { value: 'Chairman', label: 'Chairman' }, { value: 'CEO', label: 'CEO' }]} />
-                            </div>
-                            <div className="col-span-2 text-sm font-semibold text-gray-600 mt-2">Access & Department</div>
-                            <div className="col-span-2 md:col-span-1">
-                                <CustomDropdown label="Role" name="role" options={[{ value: 'faculty', label: 'Faculty' }, { value: 'hod', label: 'HOD' }, { value: 'admin', label: 'Admin' }, { value: 'superadmin', label: 'Super Admin' }]} />
-                            </div>
-                            <div className="col-span-2 md:col-span-1">
-                                <CustomDropdown label="Department" name="department" options={[{ value: 'SSISM', label: 'SSISM' }, { value: 'ITEG', label: 'ITEG' }, { value: 'MEG', label: 'MEG' }, { value: 'BEG', label: 'BEG' }, { value: 'BTECH', label: 'BTECH' }]} />
-                            </div>
-                            <div className="col-span-2 md:col-span-1">
-                                <CustomDropdown label="Status" name="isActive" options={[{ value: true, label: 'Active' }, { value: false, label: 'Inactive' }]} />
-                            </div>
-                            <div className="col-span-2 flex gap-3 pt-6">
-                                <button type="button" onClick={() => setEditModal({ show: false, user: null })} className={`flex-1 py-3 font-medium ${buttonStyles.secondary}`}>Cancel</button>
-                                <button type="submit" className={`flex-1 py-3 font-medium ${buttonStyles.primary}`}>Save Changes</button>
-                            </div>
-                        </Form>
+                        {({ setFieldValue, values }) => (
+                            <Form className="space-y-6">
+                                {/* Section 1: User Info */}
+                                <div className="space-y-3.5">
+                                    <div className="border-b border-slate-100 pb-1.5 mb-3">
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">User Information</span>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <InputField label="Full Name" name="name" placeholder="Enter user name" />
+                                        <InputField 
+                                            label="Position" 
+                                            name="position" 
+                                            type="select" 
+                                            placeholder="Select designated position"
+                                            options={[{ value: 'Assistant Professor', label: 'Assistant Professor' }, { value: 'Associate Professor', label: 'Associate Professor' }, { value: 'Professor', label: 'Professor' }, { value: 'Lecturer', label: 'Lecturer' }, { value: 'Chairman', label: 'Chairman' }, { value: 'CEO', label: 'CEO' }]} 
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Section 2: Access & Department */}
+                                <div className="space-y-4">
+                                    <div className="border-b border-slate-100 pb-1.5 mb-3">
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Access & Department</span>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <InputField 
+                                            label="Role" 
+                                            name="role" 
+                                            type="select" 
+                                            placeholder="Select role"
+                                            options={[{ value: 'faculty', label: 'Faculty' }, { value: 'hod', label: 'HOD' }, { value: 'admin', label: 'Admin' }, { value: 'superadmin', label: 'Super Admin' }]} 
+                                        />
+                                        <InputField 
+                                            label="Department" 
+                                            name="department" 
+                                            type="select" 
+                                            placeholder="Select department"
+                                            options={[{ value: 'SSISM', label: 'SSISM' }, { value: 'ITEG', label: 'ITEG' }, { value: 'MEG', label: 'MEG' }, { value: 'BEG', label: 'BEG' }, { value: 'BTECH', label: 'BTECH' }]} 
+                                        />
+                                    </div>
+
+                                    {/* Account Status Switch Box */}
+                                    <div className="flex items-center justify-between bg-slate-50/50 border border-slate-100 rounded-2xl px-5 py-4">
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Account Status</label>
+                                            <p className="text-[11px] text-gray-400 font-semibold mt-0.5">Activate or deactivate user platform access</p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setFieldValue('isActive', !values.isActive)}
+                                                className={`relative inline-flex items-center h-6 w-11 rounded-full transition-colors duration-300 focus:outline-none ${values.isActive ? 'bg-orange-500' : 'bg-slate-350'}`}
+                                            >
+                                                <span className={`inline-block w-4.5 h-4.5 transform bg-white rounded-full shadow-md transition-transform duration-300 ${values.isActive ? 'translate-x-5.5' : 'translate-x-1'}`} />
+                                            </button>
+                                            <span className={`text-xs font-bold ${values.isActive ? 'text-orange-500' : 'text-slate-400'}`}>{values.isActive ? 'Active' : 'Inactive'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Form>
+                        )}
                     </Formik>
                 }
             />
