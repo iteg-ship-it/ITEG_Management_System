@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { MdCalendarMonth, MdAdd, MdEdit, MdDelete, MdCheckCircle, MdRadioButtonUnchecked, MdSchedule, MdEventAvailable } from "react-icons/md";
+import { useState, useMemo } from "react";
+import { MdCalendarMonth, MdAdd, MdEdit, MdDelete, MdCheckCircle, MdRadioButtonUnchecked, MdSchedule, MdEventAvailable, MdArchive, MdSearch } from "react-icons/md";
 import { toast } from "react-toastify";
 import {
   useGetAllSessionsQuery,
@@ -7,13 +7,24 @@ import {
   useUpdateSessionMutation,
   useDeleteSessionMutation,
   useActivateSessionMutation,
+  useUpdateSessionStatusMutation,
 } from "../../../../redux/api/authApi";
 import Header from "../../../shared/sidebar/Header";
 import Loader from "../../../shared/loader/Loader";
 
+const STATUS_TABS = [
+  { id: "all", label: "All Sessions" },
+  { id: "active", label: "Active" },
+  { id: "upcoming", label: "Upcoming" },
+  { id: "archived", label: "Archived" },
+  { id: "completed", label: "Completed" },
+];
+
 const SessionManagement = () => {
   const [showForm,       setShowForm]       = useState(false);
   const [editingSession, setEditingSession] = useState(null);
+  const [searchQuery,    setSearchQuery]    = useState("");
+  const [statusFilter,   setStatusFilter]   = useState("all");
   const [formData,       setFormData]       = useState({
     name: "",
     startDate: "",
@@ -22,14 +33,37 @@ const SessionManagement = () => {
   });
   const [submitting,     setSubmitting]     = useState(false);
 
-  // Pass all=true so admin can see inactive sessions too
+  // Pass all=true so admin can see all sessions (active, upcoming, archived, completed)
   const { data, isLoading, refetch } = useGetAllSessionsQuery(true);
   const sessions = data?.data || [];
 
-  const [createSession]   = useCreateSessionMutation();
-  const [updateSession]   = useUpdateSessionMutation();
-  const [deleteSession]   = useDeleteSessionMutation();
-  const [activateSession] = useActivateSessionMutation();
+  const [createSession]       = useCreateSessionMutation();
+  const [updateSession]       = useUpdateSessionMutation();
+  const [deleteSession]       = useDeleteSessionMutation();
+  const [activateSession]     = useActivateSessionMutation();
+  const [updateSessionStatus] = useUpdateSessionStatusMutation();
+
+  const getComputedStatus = (session) => {
+    if (session.status) return session.status;
+    const now = new Date();
+    const start = new Date(session.startDate);
+    const end = new Date(session.endDate);
+    if (now < start) return 'upcoming';
+    if (now >= start && now <= end) return 'active';
+    return 'completed';
+  };
+
+  const filteredSessions = useMemo(() => {
+    return sessions.filter(s => {
+      const computedStatus = getComputedStatus(s);
+      const matchStatus = statusFilter === "all" || computedStatus === statusFilter;
+      const q = searchQuery.toLowerCase().trim();
+      const matchSearch = !q ||
+        s.name?.toLowerCase().includes(q) ||
+        s.description?.toLowerCase().includes(q);
+      return matchStatus && matchSearch;
+    });
+  }, [sessions, searchQuery, statusFilter]);
 
   const openAdd = () => {
     setEditingSession(null);
@@ -95,34 +129,52 @@ const SessionManagement = () => {
     }
   };
 
-  const handleActivate = async (id) => {
+  const handleStatusChange = async (id, newStatus) => {
     try {
-      await activateSession(id).unwrap();
-      toast.success("Session set as active!");
+      if (newStatus === 'active') {
+        await activateSession(id).unwrap();
+      } else {
+        await updateSessionStatus({ id, status: newStatus }).unwrap();
+      }
+      toast.success(`Session status updated to ${newStatus}!`);
       refetch();
     } catch (err) {
-      toast.error(err?.data?.message || "Activation failed");
+      toast.error(err?.data?.message || "Status update failed");
     }
   };
 
   const getStatusBadge = (session) => {
-    const now = new Date();
-    const start = new Date(session.startDate);
-    const end = new Date(session.endDate);
+    const status = getComputedStatus(session);
     
-    if (session.status === 'archived') {
-      return <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">Archived</span>;
+    if (status === 'archived') {
+      return (
+        <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
+          <MdArchive size={13} /> Archived
+        </span>
+      );
     }
     
-    if (now < start) {
-      return <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-100 text-blue-600"><MdSchedule size={13} /> Upcoming</span>;
+    if (status === 'upcoming') {
+      return (
+        <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-100 text-blue-600 border border-blue-200">
+          <MdSchedule size={13} /> Upcoming
+        </span>
+      );
     }
     
-    if (now >= start && now <= end) {
-      return <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-600"><MdEventAvailable size={13} /> Active</span>;
+    if (status === 'active') {
+      return (
+        <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-600 border border-green-200">
+          <MdEventAvailable size={13} /> Active
+        </span>
+      );
     }
     
-    return <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-600">Completed</span>;
+    return (
+      <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-600 border border-orange-200">
+        Completed
+      </span>
+    );
   };
 
   if (isLoading) return <Loader />;
@@ -131,22 +183,66 @@ const SessionManagement = () => {
     <>
       <Header
         title="Session Management"
+        badge={`${sessions.length} total sessions`}
         breadcrumbs={[{ label: "Settings" }, { label: "Sessions" }]}
       />
 
-      <div className="px-6 py-6 max-w-4xl">
+      <div className="px-6 py-6 max-w-4xl space-y-5">
 
-        {!showForm && (
-          <button
-            onClick={openAdd}
-            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition mb-6"
-          >
-            <MdAdd size={18} /> Add Session
-          </button>
-        )}
+        {/* Top bar with Add button and Search */}
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          {!showForm && (
+            <button
+              onClick={openAdd}
+              className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shadow-sm"
+            >
+              <MdAdd size={18} /> Add Session
+            </button>
+          )}
+
+          {sessions.length > 0 && (
+            <div className="relative flex-1 max-w-xs ml-auto">
+              <MdSearch size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search session..."
+                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-orange-400 bg-white shadow-sm"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Status Tabs: All, Active, Upcoming, Archived, Completed */}
+        <div className="flex gap-1.5 overflow-x-auto bg-gray-100/70 p-1.5 rounded-xl border border-gray-200/60 w-fit">
+          {STATUS_TABS.map((tab) => {
+            const count = tab.id === "all"
+              ? sessions.length
+              : sessions.filter(s => getComputedStatus(s) === tab.id).length;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setStatusFilter(tab.id)}
+                className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
+                  statusFilter === tab.id
+                    ? "bg-white text-orange-500 shadow-sm font-bold"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-200/50"
+                }`}
+              >
+                <span>{tab.label}</span>
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
+                  statusFilter === tab.id ? "bg-orange-100 text-orange-600" : "bg-gray-200 text-gray-500"
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
 
         {showForm && (
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 mb-6">
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
             <h3 className="text-sm font-bold text-gray-800 mb-4">
               {editingSession ? "Edit Session" : "Add New Session"}
             </h3>
@@ -222,73 +318,83 @@ const SessionManagement = () => {
           </div>
         )}
 
-        {sessions.length === 0 ? (
+        {filteredSessions.length === 0 ? (
           <div className="bg-white border border-gray-200 rounded-2xl shadow-sm flex flex-col items-center justify-center py-20 text-center">
             <div className="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center mb-4">
               <MdCalendarMonth size={32} className="text-orange-300" />
             </div>
-            <h3 className="text-sm font-bold text-gray-700 mb-1">No sessions yet</h3>
-            <p className="text-xs text-gray-400">Create your first session to get started</p>
+            <h3 className="text-sm font-bold text-gray-700 mb-1">No sessions found</h3>
+            <p className="text-xs text-gray-400">
+              {searchQuery || statusFilter !== 'all' 
+                ? "No sessions match your filter or search query" 
+                : "Create your first session or import student data to get started"}
+            </p>
           </div>
         ) : (
           <div className="space-y-3">
-            {sessions.map((session) => (
-              <div
-                key={session._id}
-                className="bg-white border border-gray-200 rounded-2xl shadow-sm flex items-center justify-between px-5 py-4 hover:shadow-md transition"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center flex-shrink-0">
-                    <MdCalendarMonth size={20} className="text-orange-500" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm text-gray-800">{session.name}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <p className="text-xs text-gray-400">
-                        {session.startDate && session.endDate ? (
-                          `${new Date(session.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} - ${new Date(session.endDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
-                        ) : (
-                          `Created ${new Date(session.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
-                        )}
+            {filteredSessions.map((session) => {
+              const currentStatus = getComputedStatus(session);
+              return (
+                <div
+                  key={session._id}
+                  className="bg-white border border-gray-200 rounded-2xl shadow-sm flex items-center justify-between px-5 py-4 hover:shadow-md transition"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center flex-shrink-0">
+                      <MdCalendarMonth size={20} className="text-orange-500" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm text-gray-800 flex items-center gap-2">
+                        {session.name}
                       </p>
-                      {session.description && (
-                        <span className="text-xs text-gray-400">• {session.description}</span>
-                      )}
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="text-xs text-gray-400">
+                          {session.startDate && session.endDate ? (
+                            `${new Date(session.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} - ${new Date(session.endDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
+                          ) : (
+                            `Created ${new Date(session.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
+                          )}
+                        </p>
+                        {session.description && (
+                          <span className="text-xs text-gray-400">• {session.description}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {getStatusBadge(session)}
-                  {session.isActive ? (
-                    <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-600">
-                      <MdCheckCircle size={13} /> Active
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => handleActivate(session._id)}
-                      className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 hover:bg-orange-50 hover:text-orange-500 transition"
-                      title="Set as active session"
+                  <div className="flex items-center gap-2">
+                    {getStatusBadge(session)}
+
+                    {/* Status Dropdown to switch between Active, Upcoming, Archived, Completed */}
+                    <select
+                      value={currentStatus}
+                      onChange={(e) => handleStatusChange(session._id, e.target.value)}
+                      className="text-xs font-semibold px-2 py-1 rounded-lg border border-gray-200 bg-white text-gray-600 cursor-pointer focus:outline-none hover:border-orange-400 transition"
+                      title="Change session status"
                     >
-                      <MdRadioButtonUnchecked size={13} /> Inactive
+                      <option value="active">Active</option>
+                      <option value="upcoming">Upcoming</option>
+                      <option value="archived">Archived</option>
+                      <option value="completed">Completed</option>
+                    </select>
+
+                    <button
+                      onClick={() => openEdit(session)}
+                      className="p-2 rounded-lg text-gray-400 hover:bg-blue-50 hover:text-blue-500 transition"
+                      title="Edit"
+                    >
+                      <MdEdit size={16} />
                     </button>
-                  )}
-                  <button
-                    onClick={() => openEdit(session)}
-                    className="p-2 rounded-lg text-gray-400 hover:bg-blue-50 hover:text-blue-500 transition"
-                    title="Edit"
-                  >
-                    <MdEdit size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(session._id)}
-                    className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition"
-                    title="Delete"
-                  >
-                    <MdDelete size={16} />
-                  </button>
+                    <button
+                      onClick={() => handleDelete(session._id)}
+                      className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition"
+                      title="Delete"
+                    >
+                      <MdDelete size={16} />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
