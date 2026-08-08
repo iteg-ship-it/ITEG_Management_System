@@ -6,12 +6,12 @@ import { toast } from 'react-toastify';
 
 const GlobalPermissionMatrix = ({ user, onBack }) => {
     const { data: allPermissionsData, isLoading: isLoadingAll, error: errorAll } = useGetAllPossiblePermissionsQuery();
-    const { data: userPermissionsData, isLoading: isLoadingUser, error: errorUser } = useGetUserPermissionsQuery(user.id);
+    const { data: userPermissionsData, isLoading: isLoadingUser, error: errorUser } = useGetUserPermissionsQuery(user._id || user.id);
     const [updateUserPermissions, { isLoading: isUpdating }] = useUpdateUserPermissionsMutation();
 
     const [permissions, setPermissions] = useState([]);
 
-    const permissionsString = JSON.stringify(userPermissionsData?.permissions);
+    const permissionsString = JSON.stringify(userPermissionsData?.permissions || []);
 
     useEffect(() => {
         if (permissionsString) {
@@ -40,7 +40,7 @@ const GlobalPermissionMatrix = ({ user, onBack }) => {
 
     const handleSave = async () => {
         try {
-            await updateUserPermissions({ id: user.id, permissions }).unwrap();
+            await updateUserPermissions({ id: user._id || user.id, permissions }).unwrap();
             toast.success('Permissions updated successfully!');
             onBack();
         } catch {

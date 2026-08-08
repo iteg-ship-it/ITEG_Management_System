@@ -120,12 +120,8 @@ const RolesPermissions = () => {
     };
 
     const handleUserRowClick = (user) => {
-        console.log('Row clicked, user:', user);
-        console.log('Setting showPermissionMatrix to:', { show: true, user });
         setShowPermissionMatrix({ show: true, user });
     };
-    
-    console.log('Current showPermissionMatrix state:', showPermissionMatrix);
     
     const getRoleBadgeColor = (role) => {
         switch (role?.toLowerCase()) {
@@ -268,7 +264,7 @@ const RolesPermissions = () => {
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        handleViewUser(user.id);
+                                        handleViewUser(user._id || user.id);
                                     }}
                                     className="p-2 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
                                     title="View Details"
@@ -278,17 +274,7 @@ const RolesPermissions = () => {
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        handleEditUser(user);
-                                    }}
-                                    className="p-2 rounded-md bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
-                                    title="Edit User"
-                                >
-                                    <FaEdit size={14} />
-                                </button>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDeleteUser(user.id, user.name);
+                                        handleDeleteUser(user._id || user.id, user.name);
                                     }}
                                     className="p-2 rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                                     title="Delete User"
