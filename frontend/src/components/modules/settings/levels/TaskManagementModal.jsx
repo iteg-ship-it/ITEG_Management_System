@@ -39,7 +39,7 @@ const TaskManagementModal = ({ isOpen, onClose, level, subLevel, onSuccess }) =>
     dueDate: ""
   });
 
-  const { data: sessionsData } = useGetAllSessionsQuery();
+  const { data: sessionsData } = useGetAllSessionsQuery(true);
   const sessions = sessionsData?.data || [];
 
   const { data: versionsData } = useGetSyllabusVersionsBySubLevelQuery(

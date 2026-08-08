@@ -1,14 +1,36 @@
+const mongoose = require("mongoose");
 const Student = require("../../models/student/Student");
 const StudentPlacement = require("../../models/placement/StudentPlacement");
 const SubDepartment = require("../../models/department/SubDepartment");
+const Level = require("../../models/department/Level");
 const User = require("../../models/user/user");
 
 // GET /api/dashboard/overview
 // Respects req.subDeptFilter from departmentFilter middleware
+// Supports query parameters: sessionId, level
 exports.getDashboardOverview = async (req, res) => {
   try {
+    const { sessionId, level } = req.query;
     const base = req.subDeptFilter ? { ...req.subDeptFilter } : {};
-    const placementBase = req.subDeptFilter ? { ...req.subDeptFilter } : {};
+
+    // ── Session Filter ─────────────────────────────────────────
+    if (sessionId && sessionId !== "all" && sessionId !== "") {
+      if (mongoose.Types.ObjectId.isValid(sessionId)) {
+        base.sessionId = new mongoose.Types.ObjectId(sessionId);
+      }
+    }
+
+    // ── Level Filter ───────────────────────────────────────────
+    if (level && level !== "All" && level !== "") {
+      if (mongoose.Types.ObjectId.isValid(level)) {
+        base.currentLevelId = new mongoose.Types.ObjectId(level);
+      } else {
+        const matchedLevels = await Level.find({ name: new RegExp(level, "i") }).select("_id").lean();
+        if (matchedLevels.length > 0) {
+          base.currentLevelId = { $in: matchedLevels.map(l => l._id) };
+        }
+      }
+    }
 
     // ── 1. Student Stats ─────────────────────────────────────
     const userFilter = {};
@@ -30,7 +52,7 @@ exports.getDashboardOverview = async (req, res) => {
       User.countDocuments({ ...userFilter, role: { $in: ["faculty", "hod"] } })
     ]);
 
-    const admissionsCount = Math.round(total * 0.25) || 310;
+    const admissionsCount = Math.round(total * 0.25);
 
     // ── 2. Gender Breakdown ──────────────────────────────────
     const genderAgg = await Student.aggregate([
@@ -38,7 +60,7 @@ exports.getDashboardOverview = async (req, res) => {
       { $group: { _id: { $toLower: "$gender" }, count: { $sum: 1 } } },
     ]);
     const genderMap = {};
-    genderAgg.forEach(g => { genderMap[g._id] = g.count; });
+    genderAgg.forEach(g => { if (g._id) genderMap[g._id] = g.count; });
 
     // ── 3. Department-wise Breakdown ─────────────────────────
     const deptAgg = await Student.aggregate([
@@ -71,12 +93,45 @@ exports.getDashboardOverview = async (req, res) => {
       }))
       .sort((a, b) => b.total - a.total);
 
-    // ── 4. Placement Summary ─────────────────────────────────
-    const [readyCount, interviewCount, placedInPlacement] = await Promise.all([
-      StudentPlacement.countDocuments({ ...placementBase, readinessStatus: { $in: ["Ready", "Ready for Interview"] } }),
-      StudentPlacement.countDocuments({ ...placementBase, "PlacementinterviewRecord.status": { $in: ["Scheduled", "Ongoing"] } }),
-      StudentPlacement.countDocuments({ ...placementBase, placedInfo: { $ne: null } }),
+    // ── 4. Placement Summary (Filtered by Students in current Base filter) ──
+    const matchingStudentIds = await Student.find(base).distinct("_id");
+    const placementBase = { ...req.subDeptFilter, studentId: { $in: matchingStudentIds } };
+
+    let readyCount = 0;
+    let interviewCount = 0;
+    let placedInPlacement = 0;
+
+    if (matchingStudentIds.length > 0) {
+      [readyCount, interviewCount, placedInPlacement] = await Promise.all([
+        StudentPlacement.countDocuments({ ...placementBase, readinessStatus: { $in: ["Ready", "Ready for Interview"] } }),
+        StudentPlacement.countDocuments({ ...placementBase, "PlacementinterviewRecord.status": { $in: ["Scheduled", "Ongoing"] } }),
+        StudentPlacement.countDocuments({ ...placementBase, placedInfo: { $ne: null } }),
+      ]);
+    }
+
+    // ── 5. Dynamic Student Distribution by Level ───────────────
+    const levelAgg = await Student.aggregate([
+      { $match: base },
+      { $group: { _id: "$currentLevelId", count: { $sum: 1 } } }
     ]);
+    const levelAggMap = {};
+    levelAgg.forEach(la => { if (la._id) levelAggMap[la._id.toString()] = la.count; });
+
+    const allLevels = await Level.find().select("name order").sort({ order: 1 }).lean();
+    let levelDistribution = [];
+    if (allLevels.length > 0) {
+      levelDistribution = allLevels.map(l => ({
+        name: l.name,
+        students: levelAggMap[l._id.toString()] || 0
+      }));
+    } else {
+      levelDistribution = [
+        { name: 'Level 1', students: Math.round(total * 0.35) },
+        { name: 'Level 2', students: Math.round(total * 0.28) },
+        { name: 'Level 3', students: Math.round(total * 0.20) },
+        { name: 'Level 4', students: Math.round(total * 0.17) },
+      ];
+    }
 
     return res.status(200).json({
       success: true,
@@ -93,6 +148,7 @@ exports.getDashboardOverview = async (req, res) => {
           placementRate:     total > 0 ? parseFloat(((placedInPlacement / total) * 100).toFixed(1)) : 0,
         },
         departments,
+        levelDistribution,
       },
     });
   } catch (error) {

@@ -1,32 +1,33 @@
 import { useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useGetNewStudentsQuery, useGetSubdepartmentByIdQuery } from "../../../redux/api/authApi";
+import { useGetNewStudentsQuery, useGetAllSessionsQuery } from "../../../redux/api/authApi";
 import Loader from "../../shared/loader/Loader";
 import CommonTable from "../../shared/table/CommonTable";
 import Header from "../../shared/sidebar/Header";
 import Avatar from "../../shared/Avatar";
 import { MdTableChart } from "react-icons/md";
 import SearchBox from "../../shared/search-export/SearchBox";
+import SessionSelector from "../../shared/SessionSelector";
 
 const toTitle = (str) =>
   str?.toLowerCase().split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") || "";
 
 const STATUS_COLORS = {
-  Active:    "bg-green-100 text-green-700",
-  Placed:    "bg-purple-100 text-purple-700",
-  Dropped:   "bg-red-100 text-red-700",
+  Active: "bg-green-100 text-green-700",
+  Placed: "bg-purple-100 text-purple-700",
+  Dropped: "bg-red-100 text-red-700",
   Completed: "bg-blue-100 text-blue-700",
-  Dummy:     "bg-orange-100 text-orange-700",
+  Dummy: "bg-orange-100 text-orange-700",
 };
 
 const StudentDetailTable = () => {
   const navigate = useNavigate();
   const { subDepartmentId } = useParams(); // present for admin, absent for faculty
 
-  const [searchTerm, setSearchTerm]         = useState("");
-  const [activeTab, setActiveTab]           = useState("All");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState([]);
-  const [selectedYears, setSelectedYears]   = useState([]);
+  const [selectedSessionId, setSelectedSessionId] = useState("");
 
   // Build query string — if subDepartmentId present, filter by it
   const queryStr = subDepartmentId ? `subDepartmentId=${subDepartmentId}` : "";
@@ -35,41 +36,12 @@ const StudentDetailTable = () => {
     refetchOnMountOrArgChange: true,
   });
 
+  const { data: sessionsData } = useGetAllSessionsQuery(true);
+  const sessions = sessionsData?.data || [];
+
   const students = res.data || [];
 
-  // Get active session year (max start year from all students' sessions, default to current calendar year if none)
-  const activeStartYear = useMemo(() => {
-    let maxYear = 0;
-    students.forEach((s) => {
-      const sessionName = s.sessionId?.name;
-      if (sessionName) {
-        const startYear = parseInt(sessionName.split("-")[0]);
-        if (!isNaN(startYear) && startYear > maxYear) {
-          maxYear = startYear;
-        }
-      }
-    });
-    return maxYear || new Date().getFullYear();
-  }, [students]);
-
-  const getStudentYear = (student) => {
-    const sessionName = student.sessionId?.name;
-    if (!sessionName) return "N/A";
-    const startYear = parseInt(sessionName.split("-")[0]);
-    if (isNaN(startYear)) return "N/A";
-    const yearDiff = activeStartYear - startYear + 1;
-    if (yearDiff === 1) return "1st Year";
-    if (yearDiff === 2) return "2nd Year";
-    if (yearDiff === 3) return "3rd Year";
-    if (yearDiff === 4) return "4th Year";
-    return `${yearDiff}th Year`;
-  };
-
-  const derivedSubDeptId = subDepartmentId || students[0]?.subDepartmentId?._id || students[0]?.subDepartmentId;
-  const { data: subDeptRes } = useGetSubdepartmentByIdQuery(derivedSubDeptId, { skip: !derivedSubDeptId });
-  const subLevelCounts = subDeptRes?.data?.subLevelCounts || [];
-
-  // Dynamic sublevel tabs from data sorted naturally (e.g. 1A, 1B, 2A)
+  // Dynamic sublevel tabs from data
   const subLevelTabs = useMemo(() => {
     let names = [];
     if (subLevelCounts && subLevelCounts.length > 0) {
@@ -86,18 +58,18 @@ const StudentDetailTable = () => {
 
   const filteredData = useMemo(() => {
     return students.filter((s) => {
-      const matchTab    = activeTab === "All" || s.currentSubLevelId?.name === activeTab;
+      const matchTab = activeTab === "All" || s.currentSubLevelId?.name === activeTab;
       const matchStatus = selectedStatus.length === 0 || selectedStatus.includes(s.status);
-      const studentYear = getStudentYear(s);
-      const matchYear   = selectedYears.length === 0 || selectedYears.includes(studentYear);
-      const name        = `${s.firstName} ${s.lastName}`.toLowerCase();
+      const studentSessId = s.sessionId?._id || s.sessionId;
+      const matchSession = !selectedSessionId || studentSessId === selectedSessionId || s.sessionId?.name === selectedSessionId;
+      const name = `${s.firstName} ${s.lastName}`.toLowerCase();
       const matchSearch = !searchTerm ||
         name.includes(searchTerm.toLowerCase()) ||
         s.prkey?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         s.studentMobile?.includes(searchTerm);
-      return matchTab && matchStatus && matchYear && matchSearch;
+      return matchTab && matchStatus && matchSession && matchSearch;
     });
-  }, [students, activeTab, selectedStatus, selectedYears, searchTerm, activeStartYear]);
+  }, [students, activeTab, selectedStatus, selectedSessionId, searchTerm]);
 
   const columns = [
     {
@@ -127,7 +99,7 @@ const StudentDetailTable = () => {
 
     {
       key: "level",
-      label: "Level",
+      label: "Level / Session",
       align: "center",
       render: (row) => (
         <div className="flex flex-col items-center">
@@ -135,7 +107,7 @@ const StudentDetailTable = () => {
             {row.currentLevelId?.name || "—"} / {row.currentSubLevelId?.name || "—"}
           </span>
           <span className="text-[10px] font-bold text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded mt-1">
-            {getStudentYear(row)}
+            {row.sessionId?.name || "Session N/A"}
           </span>
         </div>
       ),
@@ -174,11 +146,10 @@ const StudentDetailTable = () => {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition ${
-              activeTab === tab
+            className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition ${activeTab === tab
                 ? "border-orange-500 text-orange-500"
                 : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
+              }`}
           >
             {tab}
             <span className="ml-1.5 text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">
@@ -194,7 +165,7 @@ const StudentDetailTable = () => {
         {/* Search and Filters */}
         <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-3 shadow-sm flex-wrap">
           <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-          
+
           <div className="sm:ml-auto flex items-center gap-3 flex-wrap w-full sm:w-auto">
             {/* Status Dropdown */}
             <select
@@ -214,22 +185,18 @@ const StudentDetailTable = () => {
               <option value="Dummy">Dummy</option>
             </select>
 
-            {/* Year Dropdown */}
-            <select
-              value={selectedYears[0] || ""}
-              onChange={(e) => {
-                const val = e.target.value;
-                setSelectedYears(val ? [val] : []);
-              }}
-              style={{ outline: "none" }}
-              className="h-10 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/20 focus-visible:border-orange-500 min-w-[130px] text-gray-600 font-medium cursor-pointer transition-colors hover:border-gray-400"
-            >
-              <option value="">All Years</option>
-              <option value="1st Year">1st Year</option>
-              <option value="2nd Year">2nd Year</option>
-              <option value="3rd Year">3rd Year</option>
-              <option value="4th Year">4th Year</option>
-            </select>
+            {/* Session Dropdown Filter */}
+            <div className="min-w-[150px]">
+              <SessionSelector
+                selectedSessionId={selectedSessionId}
+                onSessionChange={(val) => setSelectedSessionId(val)}
+                showLabel={false}
+                required={false}
+                showAll={true}
+                includeAllOption={true}
+                allOptionLabel="All Sessions"
+              />
+            </div>
           </div>
         </div>
 
@@ -249,10 +216,16 @@ const StudentDetailTable = () => {
               setter: setSelectedStatus,
             },
             {
-              title: "Year",
-              options: ["1st Year", "2nd Year", "3rd Year", "4th Year"],
-              selected: selectedYears,
-              setter: setSelectedYears,
+              title: "Session",
+              options: sessions.map(s => s.name),
+              selected: selectedSessionId ? [sessions.find(s => s._id === selectedSessionId)?.name || selectedSessionId] : [],
+              setter: (vals) => {
+                if (vals.length === 0) setSelectedSessionId("");
+                else {
+                  const match = sessions.find(s => s.name === vals[0]);
+                  setSelectedSessionId(match ? match._id : vals[0]);
+                }
+              },
             },
           ]}
           extraColumn={{

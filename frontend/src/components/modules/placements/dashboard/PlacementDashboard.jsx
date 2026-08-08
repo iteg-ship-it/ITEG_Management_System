@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   MdPeople, MdCheckCircle, MdWork, MdTrendingUp, MdPercent, 
   MdRefresh, MdFileDownload, MdFilterList, MdSearch, MdClose,
@@ -11,6 +11,7 @@ import DepartmentTable from "./DepartmentTable";
 import PlacementFunnel from "./PlacementFunnel";
 import TopCompanies from "./TopCompanies";
 import AlertBox from "./AlertBox";
+import { useGetAllSessionsQuery } from "../../../../redux/api/authApi";
 
 // ── Dummy / Demo Data ─────────────────────────────────────────
 const DUMMY_OVERVIEW = {
@@ -30,7 +31,12 @@ const DUMMY_DEPARTMENTS = [
   { subDepartmentId: "6a23de703ae885bdae033748", subDepartmentName: "FTP", subDepartmentCode: "FTP", totalStudents: 15, placedStudents: 10, placementPercentage: 66.7 },
 ];
 
-const DUMMY_FUNNEL = { ready: 45, interview: 18, selected: 10, placed: 85 };
+const DUMMY_FUNNEL = [
+  { stage: 'Total Eligible Batch', count: 120, fill: '#3b82f6' },
+  { stage: 'Industry Ready',      count: 45,  fill: '#06b6d4' },
+  { stage: 'Interview Process',   count: 18,  fill: '#f59e0b' },
+  { stage: 'Offers Confirmed',    count: 85,  fill: '#10b981' },
+];
 
 const DUMMY_COMPANIES = [
   { companyName: "TCS Pvt Ltd",       totalHires: 22, avgSalary: 450000 },
@@ -58,8 +64,20 @@ const PLACEMENT_TREND_DATA = [
 
 const PlacementDashboard = () => {
   const [loading, setLoading] = useState(false);
-  const [academicYear, setAcademicYear] = useState("AY 2024-25");
+  const { data: sessionsData } = useGetAllSessionsQuery(true);
+  const sessionsList = sessionsData?.data || [];
+
+  const [academicYear, setAcademicYear] = useState("");
   const [selectedDeptFilter, setSelectedDeptFilter] = useState("All");
+
+  useEffect(() => {
+    if (sessionsList.length > 0 && !academicYear) {
+      const activeSess = sessionsList.find(s => s.isActive || s.status === 'active') || sessionsList[0];
+      if (activeSess) {
+        setAcademicYear(activeSess.name.startsWith("AY") ? activeSess.name : `AY ${activeSess.name}`);
+      }
+    }
+  }, [sessionsList, academicYear]);
 
   const overview    = DUMMY_OVERVIEW;
   const departments = selectedDeptFilter === "All" 
@@ -164,10 +182,21 @@ const PlacementDashboard = () => {
             <select
               value={academicYear}
               onChange={(e) => setAcademicYear(e.target.value)}
-              className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 transition"
+              className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 transition cursor-pointer"
             >
-              <option value="AY 2024-25">AY 2024-25</option>
-              <option value="AY 2023-24">AY 2023-24</option>
+              {sessionsList.length === 0 ? (
+                <option value="">No Sessions Found</option>
+              ) : (
+                sessionsList.map((s) => {
+                  const label = s.name.startsWith("AY") ? s.name : `AY ${s.name}`;
+                  const statusText = s.status ? s.status.charAt(0).toUpperCase() + s.status.slice(1) : (s.isActive ? 'Active' : 'Inactive');
+                  return (
+                    <option key={s._id} value={label}>
+                      {label} ({statusText})
+                    </option>
+                  );
+                })
+              )}
             </select>
 
             {/* Department Select */}

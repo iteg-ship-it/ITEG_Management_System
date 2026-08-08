@@ -1,25 +1,56 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     MdSettings, MdPalette, MdTrendingUp, MdCalendarToday,
     MdLock, MdWarning, MdInfo, MdCheck, MdUpload, MdAdd,
-    MdToggleOn, MdToggleOff, MdNotificationsNone, MdSearch
+    MdToggleOn, MdToggleOff, MdNotificationsNone, MdSearch,
+    MdEdit, MdDelete, MdClose
 } from "react-icons/md";
 import { toast } from "react-toastify";
-import Header from "../../shared/sidebar/Header";
+import {
+    useGetAllSessionsQuery,
+    useCreateSessionMutation,
+    useUpdateSessionMutation,
+    useUpdateSessionStatusMutation,
+    useActivateSessionMutation,
+    useDeleteSessionMutation,
+} from "./../../../redux/api/authApi";
 
 const themes = [
     { id: "orange", label: "Orange", color: "#F97316", shade: "#FFEDD5" },
-    { id: "blue",   label: "Blue",   color: "#3B82F6", shade: "#DBEAFE" },
-    { id: "green",  label: "Green",  color: "#22C55E", shade: "#DCFCE7" },
+    { id: "blue", label: "Blue", color: "#3B82F6", shade: "#DBEAFE" },
+    { id: "green", label: "Green", color: "#22C55E", shade: "#DCFCE7" },
     { id: "purple", label: "Purple", color: "#8B5CF6", shade: "#EDE9FE" },
-    { id: "rose",   label: "Rose",   color: "#F43F5E", shade: "#FFE4E6" },
+    { id: "rose", label: "Rose", color: "#F43F5E", shade: "#FFE4E6" },
     { id: "indigo", label: "Indigo", color: "#6366F1", shade: "#E0E7FF" },
 ];
 
 const SettingFIle = () => {
+    const navigate = useNavigate();
     const [activeTheme, setActiveTheme] = useState(() => localStorage.getItem("theme") || "orange");
     const [maintenanceMode, setMaintenanceMode] = useState(false);
     const [hasUnsaved, setHasUnsaved] = useState(false);
+
+    // Fetch real sessions from API
+    const { data: sessionsData, isLoading: sessionsLoading, refetch: refetchSessions } = useGetAllSessionsQuery(true);
+    const sessions = sessionsData?.data || [];
+
+    const [createSession]       = useCreateSessionMutation();
+    const [updateSession]       = useUpdateSessionMutation();
+    const [updateSessionStatus] = useUpdateSessionStatusMutation();
+    const [activateSession]     = useActivateSessionMutation();
+    const [deleteSession]       = useDeleteSessionMutation();
+
+    // Session Modal State
+    const [showSessionModal, setShowSessionModal] = useState(false);
+    const [editingSession,   setEditingSession]   = useState(null);
+    const [sessionFormData,  setSessionFormData]  = useState({
+        name: "",
+        startDate: "",
+        endDate: "",
+        description: ""
+    });
+    const [submittingSession, setSubmittingSession] = useState(false);
 
     // Form states
     const [minGpa, setMinGpa] = useState("2.5");
@@ -51,6 +82,79 @@ const SettingFIle = () => {
         setBacklogLimit("Maximum 2 subjects");
         setHasUnsaved(false);
         toast.info("Changes discarded.");
+    };
+
+    // Session CRUD handlers
+    const openAddSessionModal = () => {
+        setEditingSession(null);
+        setSessionFormData({ name: "", startDate: "", endDate: "", description: "" });
+        setShowSessionModal(true);
+    };
+
+    const openEditSessionModal = (s) => {
+        setEditingSession(s);
+        setSessionFormData({
+            name: s.name,
+            startDate: s.startDate ? new Date(s.startDate).toISOString().split('T')[0] : "",
+            endDate: s.endDate ? new Date(s.endDate).toISOString().split('T')[0] : "",
+            description: s.description || ""
+        });
+        setShowSessionModal(true);
+    };
+
+    const handleSessionSubmit = async (e) => {
+        e.preventDefault();
+        if (!sessionFormData.name.trim() || !sessionFormData.startDate || !sessionFormData.endDate) {
+            toast.error("Name, start date, and end date are required");
+            return;
+        }
+
+        if (new Date(sessionFormData.startDate) >= new Date(sessionFormData.endDate)) {
+            toast.error("End date must be after start date");
+            return;
+        }
+
+        setSubmittingSession(true);
+        try {
+            if (editingSession) {
+                await updateSession({ id: editingSession._id, ...sessionFormData }).unwrap();
+                toast.success("Session updated successfully!");
+            } else {
+                await createSession(sessionFormData).unwrap();
+                toast.success("Session created successfully!");
+            }
+            setShowSessionModal(false);
+            refetchSessions();
+        } catch (err) {
+            toast.error(err?.data?.message || "Operation failed");
+        } finally {
+            setSubmittingSession(false);
+        }
+    };
+
+    const handleStatusChange = async (id, newStatus) => {
+        try {
+            if (newStatus === 'active') {
+                await activateSession(id).unwrap();
+            } else {
+                await updateSessionStatus({ id, status: newStatus }).unwrap();
+            }
+            toast.success(`Session status changed to ${newStatus.toUpperCase()}`);
+            refetchSessions();
+        } catch (err) {
+            toast.error(err?.data?.message || "Status change failed");
+        }
+    };
+
+    const handleDeleteSession = async (id) => {
+        if (!window.confirm("Delete this session?")) return;
+        try {
+            await deleteSession(id).unwrap();
+            toast.success("Session deleted successfully!");
+            refetchSessions();
+        } catch (err) {
+            toast.error(err?.data?.message || "Delete failed");
+        }
     };
 
     return (
@@ -99,34 +203,85 @@ const SettingFIle = () => {
                             <h3 className="text-base font-black text-slate-900">Academic Year Management</h3>
                         </div>
                         <button
-                            onClick={() => toast.info("Create new Academic Year modal")}
-                            className="text-xs font-extrabold text-orange-500 hover:text-orange-600 transition flex items-center gap-1"
+                            onClick={openAddSessionModal}
+                            className="text-xs font-extrabold text-orange-500 hover:text-orange-600 transition flex items-center gap-1 cursor-pointer bg-orange-50 border border-orange-100 px-3 py-1.5 rounded-xl"
                         >
-                            + Add New
+                            <MdAdd size={16} /> Add New
                         </button>
                     </div>
 
                     {/* Cycles List */}
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between p-4 rounded-2xl border border-orange-200/80 bg-orange-50/40">
-                            <div>
-                                <h4 className="text-sm font-extrabold text-slate-900">AY 2024 - 2025</h4>
-                                <p className="text-xs font-semibold text-slate-400 mt-0.5">Current Active Cycle</p>
-                            </div>
-                            <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 font-extrabold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider">
-                                ACTIVE
-                            </span>
-                        </div>
+                    <div className="space-y-3 max-h-[260px] overflow-y-auto pr-1">
+                        {sessionsLoading ? (
+                            <p className="text-xs font-semibold text-slate-400">Loading sessions...</p>
+                        ) : sessions.length === 0 ? (
+                            <p className="text-xs font-semibold text-slate-400">No sessions found in system.</p>
+                        ) : (
+                            sessions.map((sess) => {
+                                const statusStr = (sess.status || (sess.isActive ? 'active' : 'inactive')).toLowerCase();
+                                let statusBadgeCls = "bg-slate-100 text-slate-700 border-slate-200";
+                                if (statusStr === 'active') {
+                                    statusBadgeCls = "bg-emerald-50 text-emerald-600 border-emerald-200";
+                                } else if (statusStr === 'upcoming') {
+                                    statusBadgeCls = "bg-blue-50 text-blue-600 border-blue-200";
+                                } else if (statusStr === 'archived') {
+                                    statusBadgeCls = "bg-slate-100 text-slate-600 border-slate-200";
+                                } else if (statusStr === 'completed') {
+                                    statusBadgeCls = "bg-orange-50 text-orange-600 border-orange-200";
+                                }
 
-                        <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 bg-slate-50/50">
-                            <div>
-                                <h4 className="text-sm font-bold text-slate-700">AY 2023 - 2024</h4>
-                                <p className="text-xs font-semibold text-slate-400 mt-0.5">Previous Cycle</p>
-                            </div>
-                            <span className="bg-slate-200/70 text-slate-600 font-bold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider">
-                                ARCHIVED
-                            </span>
-                        </div>
+                                return (
+                                    <div
+                                        key={sess._id}
+                                        className={`flex items-center justify-between p-4 rounded-2xl border ${statusStr === 'active'
+                                                ? "border-orange-200/80 bg-orange-50/40"
+                                                : "border-slate-100 bg-slate-50/50"
+                                            }`}
+                                    >
+                                        <div className="min-w-0 flex-1 pr-2">
+                                            <h4 className="text-sm font-extrabold text-slate-900 truncate">
+                                                {sess.name.startsWith("AY") ? sess.name : `AY ${sess.name}`}
+                                            </h4>
+                                            <p className="text-xs font-semibold text-slate-400 mt-0.5 truncate">
+                                                {sess.description || (statusStr === 'active' ? 'Current Active Cycle' : `${statusStr.charAt(0).toUpperCase() + statusStr.slice(1)} Cycle`)}
+                                            </p>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 flex-shrink-0">
+                                            {/* Interactive Status Select Dropdown */}
+                                            <select
+                                                value={statusStr}
+                                                onChange={(e) => handleStatusChange(sess._id, e.target.value)}
+                                                className={`border font-extrabold text-[10px] px-2.5 py-1 rounded-full uppercase tracking-wider cursor-pointer focus:outline-none hover:opacity-80 transition ${statusBadgeCls}`}
+                                                title="Click to edit session status"
+                                            >
+                                                <option value="active">ACTIVE</option>
+                                                <option value="upcoming">UPCOMING</option>
+                                                <option value="archived">ARCHIVED</option>
+                                                <option value="completed">COMPLETED</option>
+                                            </select>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => openEditSessionModal(sess)}
+                                                className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition"
+                                                title="Edit Session Details"
+                                            >
+                                                <MdEdit size={16} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDeleteSession(sess._id)}
+                                                className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition"
+                                                title="Delete Session"
+                                            >
+                                                <MdDelete size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
                     </div>
                 </div>
 
@@ -223,9 +378,8 @@ const SettingFIle = () => {
                                         type="button"
                                         onClick={() => handleThemeChange(t.id)}
                                         title={t.label}
-                                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
-                                            isActive ? "ring-4 ring-orange-200 scale-110 shadow-md" : "hover:scale-105"
-                                        }`}
+                                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${isActive ? "ring-4 ring-orange-200 scale-110 shadow-md" : "hover:scale-105"
+                                            }`}
                                         style={{ backgroundColor: t.color }}
                                     >
                                         {isActive && <MdCheck size={18} className="text-white" />}
@@ -248,25 +402,26 @@ const SettingFIle = () => {
                     <div className="p-4 rounded-2xl bg-rose-50/70 border border-rose-100 text-xs font-semibold text-rose-700 flex items-start gap-3">
                         <MdWarning size={20} className="text-rose-500 flex-shrink-0 mt-0.5" />
                         <p className="leading-relaxed">
-                            Locking the academic year <strong>(2023-2024)</strong> will freeze all marks, attendance, and faculty records. This action is <u>irreversible</u> and ensures data integrity for audits.
+                            Locking the academic year <strong>({sessions[0]?.name || 'Current Session'})</strong> will freeze all marks, attendance, and faculty records. This action is <u>irreversible</u> and ensures data integrity for audits.
                         </p>
                     </div>
 
                     <div className="flex items-center justify-between pt-3 border-t border-slate-100">
                         <div>
                             <p className="text-xs font-black text-slate-900">Ready for Finalization?</p>
-                            <p className="text-[10px] font-bold text-slate-400 mt-0.5">LAST CHECK: 12 OCT 2023</p>
+                            <p className="text-[10px] font-bold text-slate-400 mt-0.5">STATUS: READ-ONLY LOCK</p>
                         </div>
                         <button
                             type="button"
                             onClick={() => {
-                                if (window.confirm("Are you sure you want to lock AY 2023-2024? This cannot be undone.")) {
-                                    toast.success("AY 2023-2024 locked successfully");
+                                const targetName = sessions[0]?.name || 'Current Session';
+                                if (window.confirm(`Are you sure you want to lock ${targetName}? This cannot be undone.`)) {
+                                    toast.success(`${targetName} locked successfully`);
                                 }
                             }}
-                            className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition"
+                            className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition cursor-pointer"
                         >
-                            Lock 2023-2024
+                            Lock {sessions[0]?.name || 'Academic Year'}
                         </button>
                     </div>
                 </div>
@@ -296,6 +451,99 @@ const SettingFIle = () => {
                         >
                             Save All Settings
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* SESSION ADD / EDIT MODAL */}
+            {showSessionModal && (
+                <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white border border-slate-100 rounded-3xl shadow-2xl max-w-md w-full p-6 space-y-5 animate-scale-in">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <h3 className="text-sm font-black text-slate-900">
+                                {editingSession ? "Edit Academic Year Session" : "Add New Academic Year Session"}
+                            </h3>
+                            <button
+                                onClick={() => setShowSessionModal(false)}
+                                className="p-1 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+                            >
+                                <MdClose size={20} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSessionSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
+                                    Session Name <span className="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={sessionFormData.name}
+                                    onChange={(e) => setSessionFormData(prev => ({ ...prev, name: e.target.value }))}
+                                    placeholder="e.g. 2025-26 or AY 2025-26"
+                                    className="w-full h-10 px-3.5 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-400"
+                                    required
+                                    autoFocus
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
+                                    Description
+                                </label>
+                                <input
+                                    type="text"
+                                    value={sessionFormData.description}
+                                    onChange={(e) => setSessionFormData(prev => ({ ...prev, description: e.target.value }))}
+                                    placeholder="e.g. Academic Session 2025 - 2026"
+                                    className="w-full h-10 px-3.5 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-400"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
+                                        Start Date <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={sessionFormData.startDate}
+                                        onChange={(e) => setSessionFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                                        className="w-full h-10 px-3 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-400"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">
+                                        End Date <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={sessionFormData.endDate}
+                                        onChange={(e) => setSessionFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                                        className="w-full h-10 px-3 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-400"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowSessionModal(false)}
+                                    className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={submittingSession}
+                                    className="px-5 py-2 rounded-xl text-xs font-extrabold text-white bg-orange-500 hover:bg-orange-600 shadow-sm transition disabled:opacity-50"
+                                >
+                                    {submittingSession ? "Saving..." : editingSession ? "Update Session" : "Create Session"}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

@@ -16,6 +16,8 @@ import SyllabusTab, { TasksTab, ManualTaskForm, TaskUploadDrawer, SyllabusUpload
 import Loader from "../../../shared/loader/Loader";
 import Avatar from "../../../shared/Avatar";
 
+import SessionSelector from "../../../shared/SessionSelector";
+
 const validationSchema = Yup.object({
     name: Yup.string().required("SubLevel name is required"),
     order: Yup.number().required("Order is required").positive("Must be positive"),
@@ -40,6 +42,7 @@ const STUDENT_COLUMNS = [
     { label: "Father Name", key: "fatherName" },
     { label: "Mobile No.",  key: "mobile" },
     { label: "Course",      key: "course", render: (row) => <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full">{row.course}</span> },
+    { label: "Session",     key: "session", render: (row) => <span className="bg-orange-50 text-orange-600 text-xs font-semibold px-2.5 py-1 rounded-full">{row.raw.sessionId?.name || "N/A"}</span> },
     { label: "Status",      key: "status", render: (row) => (
         <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
             row.status === "Active"    ? "bg-green-100 text-green-700" :
@@ -51,10 +54,18 @@ const STUDENT_COLUMNS = [
 ];
 
 const StudentsTab = ({ subLevel, searchTerm, setSearchTerm, onRowClick, onTaskBoard }) => {
-    const params = subLevel?._id ? `currentSubLevelId=${subLevel._id}` : "";
+    const [selectedSessionId, setSelectedSessionId] = useState("");
+    const params = subLevel?._id 
+        ? `currentSubLevelId=${subLevel._id}${selectedSessionId ? `&sessionId=${selectedSessionId}` : ''}`
+        : "";
     const { data, isLoading } = useGetNewStudentsQuery(params, { skip: !subLevel?._id });
 
-    const students = (data?.data || []).map((s, i) => ({
+    const rawStudents = data?.data || [];
+    const filteredStudents = selectedSessionId
+        ? rawStudents.filter(s => (s.sessionId?._id || s.sessionId) === selectedSessionId)
+        : rawStudents;
+
+    const students = filteredStudents.map((s, i) => ({
         _id: s._id,
         sno: i + 1,
         fullName: `${s.firstName} ${s.lastName}`,
@@ -80,40 +91,46 @@ const StudentsTab = ({ subLevel, searchTerm, setSearchTerm, onRowClick, onTaskBo
 
     if (isLoading) return <Loader />;
 
-    if (students.length === 0) {
-        return (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="w-16 h-16 rounded-2xl bg-orange-50 flex items-center justify-center mb-4 border border-orange-100/50">
-                    <MdCloudUpload size={32} className="text-orange-400" />
-                </div>
-                <h3 className="text-base font-bold text-gray-705 mb-1">No students in this sub-level</h3>
-                <p className="text-xs text-gray-400 max-w-xs mx-auto">Students will appear here once enrolled in this sub-level.</p>
-            </div>
-        );
-    }
-
     return (
         <div className="space-y-3">
-            <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-3">
+            <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl p-3 flex-wrap">
                 <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-                <div className="ml-auto flex items-center gap-3">
-                    <button className="flex items-center gap-1.5 h-10 px-4 text-sm border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 transition flex-shrink-0">
-                        <MdFilterList size={16} /> Filter
-                    </button>
+                <div className="ml-auto flex items-center gap-3 flex-wrap">
+                    <div className="min-w-[150px]">
+                        <SessionSelector
+                            selectedSessionId={selectedSessionId}
+                            onSessionChange={setSelectedSessionId}
+                            showLabel={false}
+                            required={false}
+                            showAll={true}
+                            includeAllOption={true}
+                            allOptionLabel="All Sessions"
+                        />
+                    </div>
                     <ExportDropdown data={students} sectionName="students" />
                 </div>
             </div>
-            <CommonTable
-                key={`students-${subLevel?._id}`}
-                columns={columns}
-                data={students}
-                editable={false}
-                pagination={true}
-                rowsPerPage={10}
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                onRowClick={onRowClick}
-            />
+            {students.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center bg-white border border-gray-200 rounded-xl">
+                    <div className="w-14 h-14 rounded-2xl bg-orange-50 flex items-center justify-center mb-3 border border-orange-100/50">
+                        <MdCloudUpload size={28} className="text-orange-400" />
+                    </div>
+                    <h3 className="text-sm font-bold text-gray-700 mb-1">No students found</h3>
+                    <p className="text-xs text-gray-400 max-w-xs mx-auto">No students found matching the selected session or sub-level filters.</p>
+                </div>
+            ) : (
+                <CommonTable
+                    key={`students-${subLevel?._id}-${selectedSessionId}`}
+                    columns={columns}
+                    data={students}
+                    editable={false}
+                    pagination={true}
+                    rowsPerPage={10}
+                    searchTerm={searchTerm}
+                    setSearchTerm={setSearchTerm}
+                    onRowClick={onRowClick}
+                />
+            )}
         </div>
     );
 };
