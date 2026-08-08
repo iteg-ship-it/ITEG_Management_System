@@ -31,12 +31,34 @@ const Sidebar = ({ children }) => {
 
 
   const getActiveMenus = (path) => {
-    if (path === "/" || path === "/attendance-details") return [0];
-    if (path === "/student-detail-table" || path === "/student-permission" || path === "/leave-requests" || path.startsWith("/student-profile/") || path.startsWith("/student-level-interviews/") || path.startsWith("/student/") || path === "/department-management" || path.startsWith("/department-details/") || path === "/subdepartment-details" || path === "/task-management" || path === "/curriculum-management") return [1];
-    if (path === "/settings" || path === "/support") return [];
-    if (path === "/readiness-status" || path === "/company-details" || path === "/placement-post" || path.startsWith("/interview-history/") || path.startsWith("/placement/") || path.startsWith("/interview-rounds-history/") || path.startsWith("/placements/")) return [2];
-    if (path === "/user-management" || path.startsWith("/user-profile/") || path === "/user-permission") return [3];
-    return [0];
+    if (path === "/" || path.startsWith("/attendance-")) {
+      return ["Dashboard"];
+    }
+    if (
+      path.startsWith("/student") ||
+      path.startsWith("/department") ||
+      path.startsWith("/subdepartment") ||
+      path.startsWith("/leave-requests") ||
+      path.startsWith("/show-sublevel-tables") ||
+      path.startsWith("/setting/student-profile") ||
+      path.startsWith("/task-") ||
+      path.startsWith("/curriculum-") ||
+      path.startsWith("/levels")
+    ) {
+      return ["Academics"];
+    }
+    if (
+      path.startsWith("/readiness-status") ||
+      path.startsWith("/placement") ||
+      path.startsWith("/company-") ||
+      path.startsWith("/interview-")
+    ) {
+      return ["Placements"];
+    }
+    if (path.startsWith("/user-")) {
+      return ["User Management"];
+    }
+    return [];
   };
 
 
@@ -49,9 +71,9 @@ const Sidebar = ({ children }) => {
   }, [location.pathname]);
 
 
-  const toggleMenu = (index) => {
+  const toggleMenu = (name) => {
     setOpenMenus((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [index]
+      prev.includes(name) ? prev.filter((item) => item !== name) : [name]
     );
   };
 
@@ -140,7 +162,6 @@ const Sidebar = ({ children }) => {
       permission: "Page_AdmittedStudents",
       subMenu: [
         { name: "Department", path: "/department-management", permission: "Page_Department" },
-        { name: "Sub-Departments", path: "/subdepartments", permission: "Page_SubDepartment" },
         { name: "Student Progress", path: "/student-detail-table", permission: "Page_AdmittedStudents" },
         { name: "Leave Requests", path: "/leave-requests", permission: "Page_AdmittedStudents" },
         { name: "Dummy Students", path: "/student-permission", permission: "Page_DummyStudents" },
@@ -197,13 +218,13 @@ const Sidebar = ({ children }) => {
           if (filteredSubMenu.length === 0) return null;
 
 
-          const isActive = openMenus.includes(idx);
+          const isActive = openMenus.includes(item.name);
 
 
           return (
             <div key={idx} className="mb-1">
               <div
-                onClick={() => toggleMenu(idx)}
+                onClick={() => toggleMenu(item.name)}
                 className={`flex items-center justify-between px-2 py-2.5 rounded-lg cursor-pointer transition ${
                   isActive ? "bg-orange-100 text-orange-400 font-semibold" : "text-gray-700 hover:bg-gray-100"
                 }`}

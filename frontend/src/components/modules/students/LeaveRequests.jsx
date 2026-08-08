@@ -231,14 +231,8 @@ const LeaveRequests = () => {
           <div className="text-xs text-gray-700">
             <p className="font-bold text-gray-800">{subDept}</p>
             {(level || subLevel) && (
-              <div className="mt-1.5 flex items-center gap-1 text-[10px] text-gray-400 font-semibold bg-gray-50 border border-gray-100 rounded-md px-1.5 py-0.5 w-fit">
-                <span>{level}</span>
-                {subLevel && (
-                  <>
-                    <ChevronRight size={10} className="text-gray-300" />
-                    <span className="text-gray-500">{subLevel}</span>
-                  </>
-                )}
+              <div className="mt-1.5 flex items-center gap-1 text-[10px] text-gray-500 font-semibold bg-gray-50 border border-gray-100 rounded-md px-2 py-0.5 w-fit">
+                <span>{level} / {subLevel || "—"}</span>
               </div>
             )}
           </div>
@@ -336,49 +330,58 @@ const LeaveRequests = () => {
     },
   ];
 
-  const actionButton = (row) => (
-    <div className="flex items-center gap-2">
-      {row.imageURL && (
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            setPreviewUrl(row.imageURL);
-          }}
-          className="flex items-center justify-center rounded-xl border border-gray-200 bg-white p-2 text-gray-500 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 transition-all duration-300 shadow-sm cursor-pointer"
-          title="View document"
-        >
-          <Eye size={14} />
-        </button>
-      )}
-      {row.status === "pending" && (
-        <>
+  const actionButton = (row) => {
+    const hasDoc = Boolean(row.imageURL);
+    const isPending = row.status === "pending";
+
+    if (!hasDoc && !isPending) {
+      return <span className="text-gray-400 text-xs font-semibold">—</span>;
+    }
+
+    return (
+      <div className="flex items-center gap-2">
+        {hasDoc && (
           <button
             type="button"
             onClick={(event) => {
               event.stopPropagation();
-              setResolveState({ request: row, decision: "approved" });
+              setPreviewUrl(row.imageURL);
             }}
-            className="flex items-center gap-1 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-500 hover:text-white border border-emerald-100 shadow-sm transition-all duration-300 cursor-pointer"
+            className="flex items-center justify-center rounded-xl border border-gray-200 bg-white p-2 text-gray-500 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 transition-all duration-300 shadow-sm cursor-pointer"
+            title="View document"
           >
-            <Check size={12} />
-            Approve
+            <Eye size={14} />
           </button>
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              setResolveState({ request: row, decision: "rejected" });
-            }}
-            className="flex items-center gap-1 rounded-xl bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 hover:bg-rose-500 hover:text-white border border-rose-100 shadow-sm transition-all duration-300 cursor-pointer"
-          >
-            <XCircle size={12} />
-            Reject
-          </button>
-        </>
-      )}
-    </div>
-  );
+        )}
+        {isPending && (
+          <>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                setResolveState({ request: row, decision: "approved" });
+              }}
+              className="flex items-center gap-1 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-500 hover:text-white border border-emerald-100 shadow-sm transition-all duration-300 cursor-pointer"
+            >
+              <Check size={12} />
+              Approve
+            </button>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                setResolveState({ request: row, decision: "rejected" });
+              }}
+              className="flex items-center gap-1 rounded-xl bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 hover:bg-rose-500 hover:text-white border border-rose-100 shadow-sm transition-all duration-300 cursor-pointer"
+            >
+              <XCircle size={12} />
+              Reject
+            </button>
+          </>
+        )}
+      </div>
+    );
+  };
 
   if (isLoading) {
     return <div className="flex min-h-screen items-center justify-center bg-gray-50/50"><Loader /></div>;
