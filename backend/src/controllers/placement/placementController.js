@@ -14,27 +14,98 @@ const placementFilter = (req, extra = {}) => ({
 // 0. GET READY STUDENTS
 exports.getReadyStudents = async (req, res) => {
   try {
-    const filter = placementFilter(req, {
-      readinessStatus: { $in: ["Ready", "Ready for Interview"] },
-    });
+    const { status, technology, search, subDepartmentId } = req.query;
+
+    const queryFilter = {};
+    if (subDepartmentId) {
+      queryFilter.subDepartmentId = subDepartmentId;
+    }
+
+    if (status === "Ready for Placement") {
+      queryFilter.readinessStatus = { $in: ["Ready", "Ready for Placement"] };
+    } else if (status === "Ready for Drive") {
+      queryFilter.readinessStatus = { $in: ["Ready for Interview", "Ready for Drive"] };
+    } else if (status === "Interview") {
+      queryFilter["PlacementinterviewRecord.status"] = { $in: ["Scheduled", "Ongoing"] };
+    } else if (status === "Selected") {
+      queryFilter["PlacementinterviewRecord.status"] = "Selected";
+      queryFilter.placedInfo = null;
+    } else if (status === "Placed") {
+      queryFilter.placedInfo = { $ne: null };
+    } else if (!status || status === "all") {
+      queryFilter.readinessStatus = { $in: ["Ready", "Ready for Interview", "Ready for Placement", "Ready for Drive"] };
+    } else {
+      queryFilter.readinessStatus = status;
+    }
+
+    const filter = placementFilter(req, queryFilter);
 
     const placements = await StudentPlacement.find(filter)
-      .populate("studentId", "firstName lastName prkey course studentMobile image")
+      .populate({
+        path: "studentId",
+        select: "firstName lastName prkey course studentMobile image track email status currentLevelId currentSubLevelId sessionId documents",
+        populate: [
+          { path: "currentLevelId", select: "name order" },
+          { path: "currentSubLevelId", select: "name order" },
+          { path: "sessionId", select: "name" }
+        ]
+      })
       .lean();
 
-    const data = placements.map((p) => ({
-      _id: p.studentId?._id,
-      firstName: p.studentId?.firstName,
-      lastName: p.studentId?.lastName,
-      prkey: p.studentId?.prkey,
-      course: p.studentId?.course,
-      studentMobile: p.studentId?.studentMobile,
-      image: p.studentId?.image,
-      readinessStatus: p.readinessStatus,
-      PlacementinterviewRecord: p.PlacementinterviewRecord,
-    }));
+    let data = placements
+      .filter((p) => p.studentId)
+      .map((p) => {
+        let stdStatus = p.readinessStatus;
+        if (p.placedInfo) {
+          stdStatus = "Placed";
+        } else if (stdStatus === "Ready") {
+          stdStatus = "Ready for Placement";
+        } else if (stdStatus === "Ready for Interview") {
+          stdStatus = "Ready for Drive";
+        }
 
-    res.json({ success: true, data });
+        return {
+          _id: p.studentId._id,
+          studentId: p.studentId._id,
+          firstName: p.studentId.firstName,
+          lastName: p.studentId.lastName,
+          prkey: p.studentId.prkey,
+          course: p.studentId.course,
+          studentMobile: p.studentId.studentMobile,
+          email: p.studentId.email,
+          image: p.studentId.image,
+          technology: p.studentId.track || p.studentId.course || "General",
+          track: p.studentId.track || "General",
+          currentLevel: p.studentId.currentLevelId?.name || "—",
+          currentSubLevel: p.studentId.currentSubLevelId?.name || "—",
+          sessionName: p.studentId.sessionId?.name || "—",
+          readinessStatus: stdStatus,
+          rawReadinessStatus: p.readinessStatus,
+          resumeURL: p.resumeURL || p.studentId.documents?.find((d) => (d.title || "").toLowerCase().includes("resume") || d.fileType === "pdf")?.fileURL || "",
+          hasResume: Boolean(p.resumeURL || p.studentId.documents?.some((d) => (d.title || "").toLowerCase().includes("resume"))),
+          PlacementinterviewRecord: p.PlacementinterviewRecord,
+          placedInfo: p.placedInfo,
+        };
+      });
+
+    // Technology filter
+    if (technology && technology !== "All") {
+      data = data.filter((d) => (d.technology || "").toLowerCase().includes(technology.toLowerCase()));
+    }
+
+    // Search filter
+    if (search) {
+      const q = search.toLowerCase();
+      data = data.filter(
+        (d) =>
+          `${d.firstName} ${d.lastName}`.toLowerCase().includes(q) ||
+          d.prkey?.toLowerCase().includes(q) ||
+          d.studentMobile?.includes(q) ||
+          d.technology?.toLowerCase().includes(q)
+      );
+    }
+
+    res.json({ success: true, count: data.length, data });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -55,7 +126,7 @@ exports.createInterview = async (req, res) => {
     const placement = await StudentPlacement.findOne(
       placementFilter(req, { studentId })
     );
-    if (!placement || !["Ready", "Ready for Interview"].includes(placement.readinessStatus)) {
+    if (!placement || !["Ready", "Ready for Interview", "Ready for Placement", "Ready for Drive"].includes(placement.readinessStatus)) {
       return res.status(400).json({ message: "Student not ready for placement or access denied" });
     }
 
@@ -159,11 +230,108 @@ exports.rescheduleInterview = async (req, res) => {
     const interview = placement.PlacementinterviewRecord.id(interviewId);
     if (!interview) return res.status(404).json({ message: "Interview not found" });
 
+    const originalDate = interview.scheduleDate;
     interview.status = "Rescheduled";
     interview.rescheduleDate = new Date(dateValue);
+    if (req.body.reason || req.body.rescheduleReason) {
+      interview.statusRemark = req.body.reason || req.body.rescheduleReason;
+    }
+
+    if (!Array.isArray(interview.rescheduleHistory)) {
+      interview.rescheduleHistory = [];
+    }
+
+    interview.rescheduleHistory.push({
+      originalDate: originalDate || new Date(),
+      newDate: new Date(dateValue),
+      reason: req.body.reason || req.body.rescheduleReason || "Rescheduled by Placement Officer",
+      rescheduledBy: req.user?.name || req.user?.email || "Placement Officer",
+      updatedAt: new Date(),
+    });
+
     await placement.save();
 
-    res.json({ success: true, message: "Interview rescheduled", data: interview });
+    res.json({ success: true, message: "Interview rescheduled successfully", data: interview });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// 4b. CANCEL INTERVIEW
+exports.cancelInterview = async (req, res) => {
+  try {
+    const { studentId, interviewId } = req.params;
+    const { reason, cancellationReason, statusRemark } = req.body;
+
+    const placement = await StudentPlacement.findOne(placementFilter(req, { studentId }));
+    if (!placement) return res.status(404).json({ message: "Student placement not found or access denied" });
+
+    const interview = placement.PlacementinterviewRecord.id(interviewId);
+    if (!interview) return res.status(404).json({ message: "Interview not found" });
+
+    const finalReason = cancellationReason || reason || "Interview cancelled by Placement Officer";
+    interview.status = "Cancelled";
+    interview.cancellationReason = finalReason;
+    interview.statusRemark = statusRemark || finalReason;
+    await placement.save();
+
+    res.json({ success: true, message: "Interview cancelled successfully", data: interview });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// 4c. UPDATE FINAL INTERVIEW RESULT / OFFER / JOINING
+exports.updateFinalResult = async (req, res) => {
+  try {
+    const { studentId, interviewId } = req.params;
+    const { status, notJoiningReason, notJoiningRemarks, statusRemark, salary, joiningDate } = req.body;
+
+    const validStatuses = [
+      "Scheduled", "Interview Scheduled",
+      "Ongoing", "Interview In Progress",
+      "Selected", "Not Selected",
+      "Offer Received", "Offer Declined",
+      "Did Not Join", "Placed", "Cancelled", "OnHold"
+    ];
+
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: `Invalid status. Must be one of: ${validStatuses.join(", ")}` });
+    }
+
+    const placement = await StudentPlacement.findOne(placementFilter(req, { studentId }));
+    if (!placement) return res.status(404).json({ message: "Student placement not found or access denied" });
+
+    const interview = placement.PlacementinterviewRecord.id(interviewId);
+    if (!interview) return res.status(404).json({ message: "Interview record not found" });
+
+    interview.status = status;
+    if (statusRemark) interview.statusRemark = statusRemark;
+
+    if (["Did Not Join", "Offer Declined"].includes(status)) {
+      interview.notJoiningReason = notJoiningReason || "";
+      interview.notJoiningRemarks = notJoiningRemarks || statusRemark || "";
+    }
+
+    if (status === "Placed") {
+      const company = await Company.findById(interview.companyRef);
+      placement.placedInfo = {
+        companyRef: interview.companyRef,
+        interviewRecordId: interview._id,
+        companyName: company?.companyName || "Company",
+        salary: Number(salary) || 0,
+        location: company?.location || "Offline",
+        jobProfile: interview.jobProfile,
+        jobType: "Full-Time",
+        joiningDate: joiningDate ? new Date(joiningDate) : new Date(),
+        placedDate: new Date(),
+      };
+      await Student.findByIdAndUpdate(studentId, { status: "Placed" });
+    }
+
+    await placement.save();
+
+    res.json({ success: true, message: `Interview status updated to "${status}" successfully`, data: interview });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }

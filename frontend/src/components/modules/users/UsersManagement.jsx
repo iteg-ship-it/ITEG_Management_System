@@ -85,12 +85,20 @@ const UsersManagement = () => {
         }
     };
 
+    const formatRoleName = (role) => {
+        if (!role) return "";
+        if (role.toLowerCase() === "placement_officer") return "Placement Officer";
+        if (role.toLowerCase() === "superadmin") return "Super Admin";
+        return role.charAt(0).toUpperCase() + role.slice(1);
+    };
+
     const getRoleBadgeColor = (role) => {
         switch (role?.toLowerCase()) {
             case 'superadmin': return 'bg-red-100 text-red-800';
             case 'admin': return 'bg-blue-100 text-blue-800';
             case 'faculty': return 'bg-green-100 text-green-800';
             case 'hod': return 'bg-amber-100 text-amber-800';
+            case 'placement_officer': return 'bg-teal-100 text-teal-800';
             case 'chairman': return 'bg-purple-100 text-purple-800';
             case 'ceo': return 'bg-yellow-100 text-yellow-800';
             default: return 'bg-gray-100 text-gray-800';
@@ -138,7 +146,13 @@ const UsersManagement = () => {
                                     name="role" 
                                     type="select" 
                                     placeholder="Select role"
-                                    options={[{ value: 'faculty', label: 'Faculty' }, { value: 'hod', label: 'HOD' }, { value: 'admin', label: 'Admin' }, { value: 'superadmin', label: 'Super Admin' }]} 
+                                    options={[
+                                        { value: 'faculty', label: 'Faculty' },
+                                        { value: 'hod', label: 'HOD' },
+                                        { value: 'placement_officer', label: 'Placement Officer' },
+                                        { value: 'admin', label: 'Admin' },
+                                        { value: 'superadmin', label: 'Super Admin' }
+                                    ]} 
                                 />
                                 <InputField 
                                     label="Department" 
@@ -233,7 +247,7 @@ const UsersManagement = () => {
         { key: 'mobileNo', label: 'Contact No.' },
         {
             key: 'role', label: 'Role',
-            render: (user) => <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>{user.role}</span>
+            render: (user) => <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>{formatRoleName(user.role)}</span>
         },
         { key: 'department', label: 'Department' },
         {
@@ -356,7 +370,13 @@ const UsersManagement = () => {
                                             name="role" 
                                             type="select" 
                                             placeholder="Select role"
-                                            options={[{ value: 'faculty', label: 'Faculty' }, { value: 'hod', label: 'HOD' }, { value: 'admin', label: 'Admin' }, { value: 'superadmin', label: 'Super Admin' }]} 
+                                            options={[
+                                                { value: 'faculty', label: 'Faculty' },
+                                                { value: 'hod', label: 'HOD' },
+                                                { value: 'placement_officer', label: 'Placement Officer' },
+                                                { value: 'admin', label: 'Admin' },
+                                                { value: 'superadmin', label: 'Super Admin' }
+                                            ]} 
                                         />
                                         <InputField 
                                             label="Department" 

@@ -419,6 +419,32 @@ export const authApi = createApi({
       invalidatesTags: (result, error, { id }) => [{ type: 'Student', id }, 'PlacementStudent'],
     }),
 
+    moveToReadyForPlacement: builder.mutation({
+      query: (id) => ({
+        url: `/students/${id}/move-ready-for-placement`,
+        method: 'POST',
+      }),
+      invalidatesTags: (result, error, id) => [{ type: 'Student', id }, 'PlacementStudent', 'Student'],
+    }),
+
+    cancelInterview: builder.mutation({
+      query: ({ studentId, interviewId, reason, cancellationReason, statusRemark }) => ({
+        url: `/students/cancel/interview/${studentId}/${interviewId}`,
+        method: 'PATCH',
+        body: { reason, cancellationReason, statusRemark },
+      }),
+      invalidatesTags: (result, error, { studentId }) => [{ type: 'Student', id: studentId }, 'PlacementStudent'],
+    }),
+
+    updateFinalResult: builder.mutation({
+      query: ({ studentId, interviewId, ...body }) => ({
+        url: `/students/interviews/${studentId}/${interviewId}/final-result`,
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: (result, error, { studentId }) => [{ type: 'Student', id: studentId }, 'PlacementStudent', 'Student'],
+    }),
+
     assignExtraTask: builder.mutation({
       query: ({ id, ...taskData }) => ({
         url: `/students/${id}/extra-tasks`,
@@ -776,10 +802,25 @@ export const authApi = createApi({
     //Placement api calling
     // get all ready students for placement
     getReadyStudentsForPlacement: builder.query({
-      query: () => ({
-        url: '/admitted/students/Ready_Students',
-        method: "GET",
-      }),
+      query: (params = "") => {
+        let queryStr = "";
+        if (typeof params === "string") {
+          queryStr = params ? (params.startsWith("?") ? params : `?${params}`) : "";
+        } else if (params && typeof params === "object") {
+          const searchParams = new URLSearchParams();
+          Object.entries(params).forEach(([k, v]) => {
+            if (v !== undefined && v !== null && v !== "") {
+              searchParams.append(k, v);
+            }
+          });
+          const str = searchParams.toString();
+          queryStr = str ? `?${str}` : "";
+        }
+        return {
+          url: `/admitted/students/Ready_Students${queryStr}`,
+          method: "GET",
+        };
+      },
       providesTags: ['PlacementStudent'],
       keepUnusedDataFor: 300, // Keep data for 5 minutes
     }),
@@ -1862,6 +1903,7 @@ export const {
   useGetPermissionStudentQuery,
   useUpdatePermissionMutation,
   useUpdatePlacementMutation,
+  useMoveToReadyForPlacementMutation,
   useGetReadyStudentsForPlacementQuery,
   useAddPlacementInterviewRecordMutation,
   useUpdatePlacedInfoMutation,
@@ -1874,6 +1916,8 @@ export const {
   useUploadResumeMutation,
   useGetInterviewHistoryQuery,
   useRescheduleInterviewMutation,
+  useCancelInterviewMutation,
+  useUpdateFinalResultMutation,
   useAddInterviewRoundMutation,
   useConfirmPlacementMutation,
  useCreatePlacementPostMutation ,

@@ -18,10 +18,17 @@ const placedInfoSchema = new mongoose.Schema({
 
 const interviewRoundSchema = new mongoose.Schema({
   roundName: { type: String, required: true },
+  roundType: { type: String, default: "Technical" },
   date: { type: Date, required: true },
+  time: { type: String, default: "" },
   mode: { type: String, enum: ['Online', 'Offline', 'Telephonic'], default: 'Offline' },
+  interviewer: { type: String, default: "" },
+  meetingLink: { type: String, default: "" },
+  location: { type: String, default: "" },
+  notes: { type: String, default: "" },
   feedback: { type: String, default: "" },
-  result: { type: String, enum: ['Passed', 'Failed', 'Pending'], default: 'Pending' }
+  resultReason: { type: String, default: "" },
+  result: { type: String, enum: ['Passed', 'Failed', 'Pending', 'Cleared', 'Not Cleared', 'Selected', 'Rejected', 'On Hold', 'Withdrawn'], default: 'Pending' }
 });
 
 
@@ -30,12 +37,30 @@ const interviewRecordSchema = new mongoose.Schema({
   jobProfile: { type: String, required: true },
   status: {
     type: String,
-    enum: ['Scheduled', 'Rescheduled', 'Ongoing', 'Selected', 'RejectedByStudent', 'RejectedByCompany'],
+    enum: [
+      'Scheduled', 'Interview Scheduled',
+      'Rescheduled', 'Interview Rescheduled',
+      'Ongoing', 'Interview In Progress',
+      'Selected', 'Not Selected',
+      'Offer Received', 'Offer Declined',
+      'Did Not Join', 'Placed', 'Cancelled',
+      'RejectedByStudent', 'RejectedByCompany', 'OnHold'
+    ],
     default: 'Scheduled'
   },
   statusRemark: { type: String, default: "" },
+  cancellationReason: { type: String, default: "" },
+  notJoiningReason: { type: String, default: "" },
+  notJoiningRemarks: { type: String, default: "" },
   scheduleDate: { type: Date, required: true },
   rescheduleDate: { type: Date },
+  rescheduleHistory: [{
+    originalDate: { type: Date },
+    newDate: { type: Date },
+    reason: { type: String, default: "" },
+    rescheduledBy: { type: String, default: "" },
+    updatedAt: { type: Date, default: Date.now }
+  }],
   rounds: { type: [interviewRoundSchema], default: [] }
 });
 

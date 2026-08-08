@@ -45,14 +45,14 @@ exports.createUser = async (req, res) => {
 
     email = email.toLowerCase();
 
-    const allowedRoles = ["admin", "superadmin", "faculty", "hod"];
+    const allowedRoles = ["admin", "superadmin", "faculty", "hod", "placement_officer"];
     if (!allowedRoles.includes(role)) {
-      return res.status(400).json({ message: "Invalid role. Only admin, superadmin, faculty, and HOD are allowed." });
+      return res.status(400).json({ message: "Invalid role. Only admin, superadmin, faculty, HOD, and Placement Officer are allowed." });
     }
 
     // Resolve departmentId from department name for department-scoped roles
     let departmentId = null;
-    if (["faculty", "hod"].includes(role) && department) {
+    if (["faculty", "hod", "placement_officer"].includes(role) && department) {
       const deptDoc = await Department.findOne({ name: department, isActive: true }).select("_id");
       if (!deptDoc) return res.status(400).json({ message: "Selected department does not exist" });
       departmentId = deptDoc._id;
@@ -267,7 +267,7 @@ exports.updateUserFields = async (req, res) => {
       }
     }
 
-    if (["faculty", "hod"].includes(targetRole)) {
+    if (["faculty", "hod", "placement_officer"].includes(targetRole)) {
       if (targetDept) {
         const deptDoc = await Department.findOne({ name: targetDept, isActive: true }).select("_id");
         if (deptDoc) {

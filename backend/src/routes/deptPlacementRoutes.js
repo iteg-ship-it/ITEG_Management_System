@@ -5,7 +5,7 @@ const { departmentFilter } = require("../middlewares/departmentFilter");
 const ctrl = require("../controllers/placement/deptPlacementController");
 
 // superadmin + admin see all; faculty/hod restricted to own dept (guard inside controller)
-const allowedRoles = ["superadmin", "admin", "faculty", "hod"];
+const allowedRoles = ["superadmin", "admin", "faculty", "hod", "placement_officer"];
 const auth = [verifyToken, checkRole(allowedRoles), departmentFilter];
 
 router.get("/:id/overview",          ...auth, ctrl.getDeptOverview);

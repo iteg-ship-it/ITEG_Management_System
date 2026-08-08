@@ -58,6 +58,8 @@ const RolesPermissions = () => {
                 return <FaBriefcase className="text-2xl text-orange-500" />;
             case 'ceo':
                 return <FaCrown className="text-2xl text-orange-500" />;
+            case 'placement_officer':
+                return <FaBriefcase className="text-2xl text-teal-500" />;
             default:
                 return <FaUser className="text-2xl text-orange-500" />;
         }
@@ -78,6 +80,8 @@ const RolesPermissions = () => {
                 return 'Executive oversight of departments and strategic decision-making authority.';
             case 'ceo':
                 return 'Highest level executive access with complete organizational oversight.';
+            case 'placement_officer':
+                return 'Placement officer access for managing department placement activities, student readiness, and drives.';
             default:
                 return 'Custom role with specific permissions and access levels.';
         }
@@ -137,6 +141,8 @@ const RolesPermissions = () => {
                 return 'bg-purple-100 text-purple-800';
             case 'ceo':
                 return 'bg-yellow-100 text-yellow-800';
+            case 'placement_officer':
+                return 'bg-teal-100 text-teal-800';
             default:
                 return 'bg-gray-100 text-gray-800';
         }
@@ -328,8 +334,8 @@ const RolesPermissions = () => {
                                 <div className="flex items-center justify-between mb-4">
                                     {getRoleIcon(role.roleName)}
                                     <div className="flex-1 ml-3">
-                                        <h3 className="text-lg font-semibold text-gray-800 capitalize">
-                                            {role.roleName}
+                                        <h3 className="text-lg font-semibold text-gray-800">
+                                            {role.roleName?.toLowerCase() === 'placement_officer' ? 'Placement Officer' : role.roleName?.toLowerCase() === 'superadmin' ? 'Super Admin' : role.roleName}
                                         </h3>
                                     </div>
                                     <span className="text-2xl font-bold text-gray-800">
