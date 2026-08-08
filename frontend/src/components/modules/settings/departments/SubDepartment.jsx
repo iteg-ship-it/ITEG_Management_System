@@ -11,6 +11,7 @@ import * as Yup from 'yup';
 import InputField from '../../../shared/form-fields/InputField';
 import RadioGroup from '../../../shared/form-fields/RadioGroup';
 import SubDepartmentCard from './SubDepartmentCard';
+import { usePermissions } from '../../../../hooks/usePermissions';
 
 // Reusable course checkbox list — shows courses from the selected department
 const CourseCheckboxes = ({ departmentId, departments, values, setFieldValue }) => {
@@ -43,6 +44,7 @@ const CourseCheckboxes = ({ departmentId, departments, values, setFieldValue }) 
 };
 
 const SubDepartment = () => {
+    const { hasPermission } = usePermissions();
     const { data: subdepartmentsData, isLoading, refetch } = useGetAllSubdepartmentsQuery();
     const { data: departmentsData } = useGetAllDepartmentsQuery();
     const [addSubdepartment] = useAddSubdepartmentMutation();
@@ -98,56 +100,58 @@ const SubDepartment = () => {
                         <h1 className="text-2xl font-bold text-gray-900">Sub Departments</h1>
                         <p className="text-sm text-gray-500 mt-0.5">Manage academic structure</p>
                     </div>
-                    <Formik
-                        initialValues={{ name: '', departmentId: '', allowedCourses: [], isActive: true }}
-                        validationSchema={validationSchema}
-                        onSubmit={handleSubmit}
-                    >
-                        {({ values, setFieldValue, isSubmitting, submitForm, resetForm }) => (
-                            <OrangeButton
-                                buttonTitle="+ Create Sub-Department"
-                                panelTitle="Add New Subdepartment"
-                                drawerContent={
-                                    <Form className="space-y-4">
-                                        <InputField label="Subdepartment Name" name="name" placeholder="Enter subdepartment name" />
+                    {hasPermission('Page_SubDepartment', 'create') && (
+                        <Formik
+                            initialValues={{ name: '', departmentId: '', allowedCourses: [], isActive: true }}
+                            validationSchema={validationSchema}
+                            onSubmit={handleSubmit}
+                        >
+                            {({ values, setFieldValue, isSubmitting, submitForm, resetForm }) => (
+                                <OrangeButton
+                                    buttonTitle="+ Create Sub-Department"
+                                    panelTitle="Add New Subdepartment"
+                                    drawerContent={
+                                        <Form className="space-y-4">
+                                            <InputField label="Subdepartment Name" name="name" placeholder="Enter subdepartment name" />
 
-                                        <div>
-                                            <label className="block text-sm font-medium mb-1.5">Department <span className="text-red-400">*</span></label>
-                                            <select
-                                                value={values.departmentId}
-                                                onChange={(e) => {
-                                                    setFieldValue('departmentId', e.target.value);
-                                                    setFieldValue('allowedCourses', []);
-                                                }}
-                                                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-400"
-                                            >
-                                                <option value="">Select department</option>
-                                                {departments.map(d => (
-                                                    <option key={d._id} value={d._id}>{d.name}</option>
-                                                ))}
-                                            </select>
-                                        </div>
+                                            <div>
+                                                <label className="block text-sm font-medium mb-1.5">Department <span className="text-red-400">*</span></label>
+                                                <select
+                                                    value={values.departmentId}
+                                                    onChange={(e) => {
+                                                        setFieldValue('departmentId', e.target.value);
+                                                        setFieldValue('allowedCourses', []);
+                                                    }}
+                                                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-400"
+                                                >
+                                                    <option value="">Select department</option>
+                                                    {departments.map(d => (
+                                                        <option key={d._id} value={d._id}>{d.name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
 
-                                        <div>
-                                            <label className="block text-sm font-medium mb-2">Allowed Courses</label>
-                                            <CourseCheckboxes
-                                                departmentId={values.departmentId}
-                                                departments={departments}
-                                                values={values}
-                                                setFieldValue={setFieldValue}
-                                            />
-                                        </div>
+                                            <div>
+                                                <label className="block text-sm font-medium mb-2">Allowed Courses</label>
+                                                <CourseCheckboxes
+                                                    departmentId={values.departmentId}
+                                                    departments={departments}
+                                                    values={values}
+                                                    setFieldValue={setFieldValue}
+                                                />
+                                            </div>
 
-                                        <RadioGroup label="Status" name="isActive" required={false} />
-                                    </Form>
-                                }
-                                leftBtnText="Cancel"
-                                rightBtnText={isSubmitting ? 'Adding...' : 'Add Subdepartment'}
-                                onLeftClick={resetForm}
-                                onRightClick={submitForm}
-                            />
-                        )}
-                    </Formik>
+                                            <RadioGroup label="Status" name="isActive" required={false} />
+                                        </Form>
+                                    }
+                                    leftBtnText="Cancel"
+                                    rightBtnText={isSubmitting ? 'Adding...' : 'Add Subdepartment'}
+                                    onLeftClick={resetForm}
+                                    onRightClick={submitForm}
+                                />
+                            )}
+                        </Formik>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -201,49 +205,51 @@ const SubDepartment = () => {
                                             state: { departmentId: subdept.departmentId?._id, subdepartment: subdept, departmentName: subdept.departmentId?.name }
                                         })}
                                         onEdit={
-                                            <OrangeButton
-                                                buttonTitle="Edit"
-                                                panelTitle="Edit Subdepartment"
-                                                customButtonClass="w-full py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition bg-white"
-                                                drawerContent={
-                                                    <Form className="space-y-4">
-                                                        <InputField label="Subdepartment Name" name="name" placeholder="Enter subdepartment name" />
+                                            hasPermission('Page_SubDepartment', 'update') ? (
+                                                <OrangeButton
+                                                    buttonTitle="Edit"
+                                                    panelTitle="Edit Subdepartment"
+                                                    customButtonClass="w-full py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition bg-white"
+                                                    drawerContent={
+                                                        <Form className="space-y-4">
+                                                            <InputField label="Subdepartment Name" name="name" placeholder="Enter subdepartment name" />
 
-                                                        <div>
-                                                            <label className="block text-sm font-medium mb-1.5">Department</label>
-                                                            <select
-                                                                value={values.departmentId}
-                                                                onChange={(e) => {
-                                                                    setFieldValue('departmentId', e.target.value);
-                                                                    setFieldValue('allowedCourses', []);
-                                                                }}
-                                                                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-400"
-                                                            >
-                                                                <option value="">Select department</option>
-                                                                {departments.map(d => (
-                                                                    <option key={d._id} value={d._id}>{d.name}</option>
-                                                                ))}
-                                                            </select>
-                                                        </div>
+                                                            <div>
+                                                                <label className="block text-sm font-medium mb-1.5">Department</label>
+                                                                <select
+                                                                    value={values.departmentId}
+                                                                    onChange={(e) => {
+                                                                        setFieldValue('departmentId', e.target.value);
+                                                                        setFieldValue('allowedCourses', []);
+                                                                    }}
+                                                                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-400"
+                                                                >
+                                                                    <option value="">Select department</option>
+                                                                    {departments.map(d => (
+                                                                        <option key={d._id} value={d._id}>{d.name}</option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
 
-                                                        <div>
-                                                            <label className="block text-sm font-medium mb-2">Allowed Courses</label>
-                                                            <CourseCheckboxes
-                                                                departmentId={values.departmentId}
-                                                                departments={departments}
-                                                                values={values}
-                                                                setFieldValue={setFieldValue}
-                                                            />
-                                                        </div>
+                                                            <div>
+                                                                <label className="block text-sm font-medium mb-2">Allowed Courses</label>
+                                                                <CourseCheckboxes
+                                                                    departmentId={values.departmentId}
+                                                                    departments={departments}
+                                                                    values={values}
+                                                                    setFieldValue={setFieldValue}
+                                                                />
+                                                            </div>
 
-                                                        <RadioGroup label="Status" name="isActive" required={false} />
-                                                    </Form>
-                                                }
-                                                leftBtnText="Cancel"
-                                                rightBtnText={isSubmitting ? 'Updating...' : 'Update'}
-                                                onLeftClick={resetForm}
-                                                onRightClick={submitForm}
-                                            />
+                                                            <RadioGroup label="Status" name="isActive" required={false} />
+                                                        </Form>
+                                                    }
+                                                    leftBtnText="Cancel"
+                                                    rightBtnText={isSubmitting ? 'Updating...' : 'Update'}
+                                                    onLeftClick={resetForm}
+                                                    onRightClick={submitForm}
+                                                />
+                                            ) : null
                                         }
                                     />
                                 )}

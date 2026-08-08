@@ -106,6 +106,9 @@ const allPermissions = {
         { feature: 'Page_Placement', description: 'Access to the Placement section', access: ['read'] },
         { feature: 'Page_CompanyDetails', description: 'Access to company details', access: ['read'] },
         { feature: 'Page_PlacedStudents', description: 'Access to placed students list', access: ['read'] },
+        { feature: 'Page_SubDepartment', description: 'Access to the Sub-Department management page', access: ['read'] },
+        { feature: 'Page_Level', description: 'Access to the Level management page', access: ['read'] },
+        { feature: 'Page_SubLevel', description: 'Access to the Sub-Level management page', access: ['read'] },
     ]
 };
 

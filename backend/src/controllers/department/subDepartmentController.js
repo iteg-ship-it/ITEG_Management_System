@@ -2,6 +2,7 @@ const SubDepartment = require("../../models/department/SubDepartment");
 const Department = require("../../models/department/Department");
 const Student = require("../../models/student/Student");
 const Level = require("../../models/department/Level");
+const SubLevel = require("../../models/department/SubLevel");
 const User = require("../../models/user/user");
 const mongoose = require("mongoose");
 const { invalidateDeptCache } = require("../../middlewares/departmentFilter");
@@ -129,6 +130,27 @@ exports.getSubDepartmentsByDepartment = async (req, res) => {
           })
         );
 
+        // Fetch sublevels for these levels
+        const subLevels = await SubLevel.find({
+          levelId: { $in: levels.map(l => l._id) },
+          isActive: true
+        }).sort({ order: 1 });
+
+        const subLevelCounts = await Promise.all(
+          subLevels.map(async (slvl) => {
+            const count = await Student.countDocuments({
+              subDepartmentId: subDepartment._id,
+              currentSubLevelId: slvl._id
+            });
+            return {
+              subLevelId: slvl._id,
+              subLevelName: slvl.name,
+              order: slvl.order,
+              studentCount: count
+            };
+          })
+        );
+
         // Fetch faculties of the parent department
         const deptId = subDepartment.departmentId?._id || subDepartment.departmentId;
         const faculties = await User.find({
@@ -141,7 +163,8 @@ exports.getSubDepartmentsByDepartment = async (req, res) => {
           ...subDepartment.toObject(), 
           totalStudents,
           faculties,
-          levelCounts
+          levelCounts,
+          subLevelCounts
         };
       })
     );
@@ -203,6 +226,27 @@ exports.getAllSubDepartments = async (req, res) => {
           })
         );
 
+        // Fetch sublevels for these levels
+        const subLevels = await SubLevel.find({
+          levelId: { $in: levels.map(l => l._id) },
+          isActive: true
+        }).sort({ order: 1 });
+
+        const subLevelCounts = await Promise.all(
+          subLevels.map(async (slvl) => {
+            const count = await Student.countDocuments({
+              subDepartmentId: subDepartment._id,
+              currentSubLevelId: slvl._id
+            });
+            return {
+              subLevelId: slvl._id,
+              subLevelName: slvl.name,
+              order: slvl.order,
+              studentCount: count
+            };
+          })
+        );
+
         // Fetch faculties of the parent department
         const deptId = subDepartment.departmentId?._id || subDepartment.departmentId;
         const faculties = await User.find({
@@ -215,7 +259,8 @@ exports.getAllSubDepartments = async (req, res) => {
           ...subDepartment.toObject(), 
           totalStudents,
           faculties,
-          levelCounts
+          levelCounts,
+          subLevelCounts
         };
       })
     );
@@ -268,9 +313,63 @@ exports.getSubDepartmentById = async (req, res) => {
       }
     }
     
+    const totalStudents = await Student.countDocuments({ subDepartmentId: subDepartment._id });
+
+    // Fetch levels for this sub-department
+    const levels = await Level.find({ subDepartmentId: subDepartment._id, isActive: true }).sort({ order: 1 });
+    const levelCounts = await Promise.all(
+      levels.map(async (lvl) => {
+        const count = await Student.countDocuments({
+          subDepartmentId: subDepartment._id,
+          currentLevelId: lvl._id
+        });
+        return {
+          levelId: lvl._id,
+          levelName: lvl.name,
+          order: lvl.order,
+          studentCount: count
+        };
+      })
+    );
+
+    // Fetch sublevels for these levels
+    const subLevels = await SubLevel.find({
+      levelId: { $in: levels.map(l => l._id) },
+      isActive: true
+    }).sort({ order: 1 });
+
+    const subLevelCounts = await Promise.all(
+      subLevels.map(async (slvl) => {
+        const count = await Student.countDocuments({
+          subDepartmentId: subDepartment._id,
+          currentSubLevelId: slvl._id
+        });
+        return {
+          subLevelId: slvl._id,
+          subLevelName: slvl.name,
+          order: slvl.order,
+          studentCount: count
+        };
+      })
+    );
+
+    // Fetch faculties of the parent department
+    const deptId = subDepartment.departmentId?._id || subDepartment.departmentId;
+    const faculties = await User.find({
+      departmentId: deptId,
+      role: { $in: ["faculty", "hod"] },
+      isActive: true
+    }).select("name profileImage position email mobileNo");
+
     res.status(200).json({
       success: true,
-      data: subDepartment
+      data: {
+        ...subDepartment.toObject(),
+        totalStudents,
+        faculties,
+        levelCounts,
+        subLevelCounts
+      }
     });
   } catch (error) {
     res.status(500).json({

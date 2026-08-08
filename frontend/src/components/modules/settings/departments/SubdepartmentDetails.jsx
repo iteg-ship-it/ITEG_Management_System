@@ -10,6 +10,7 @@ import InputField from "../../../shared/form-fields/InputField";
 import RadioGroup from "../../../shared/form-fields/RadioGroup";
 import { MdLayers } from "react-icons/md";
 import Loader from "../../../shared/loader/Loader";
+import { usePermissions } from "../../../../hooks/usePermissions";
 
 const SubLevelCount = ({ levelId, render }) => {
   const { data } = useGetSubLevelsByLevelQuery(levelId, { skip: !levelId });
@@ -100,6 +101,7 @@ const LevelCard = ({ level, subLevelCount, subLevelsList, onView, onEdit }) => {
 };
 
 const SubdepartmentDetails = () => {
+  const { hasPermission } = usePermissions();
   const location = useLocation();
   const navigate = useNavigate();
   const { id: paramSubdeptId } = useParams();
@@ -121,52 +123,67 @@ const SubdepartmentDetails = () => {
   if (isSubdeptLoading || isLevelsLoading) return <Loader />;
   if (!subdepartment) return <div className="p-6">No subdepartment data found</div>;
 
+  const breadcrumbs = hasPermission('Page_Department')
+    ? [
+        { label: "Departments", path: "/department-management" },
+        { label: departmentName || "Department", path: `/department-details/${departmentId}`, state: { department: subdepartment?.departmentId } },
+        { label: subdepartment.name },
+      ]
+    : [
+        { label: "Sub-Departments", path: "/subdepartments" },
+        { label: subdepartment.name },
+      ];
+
   return (
     <>
-      <Formik
-        initialValues={{ name: "", order: "", isActive: true }}
-        validationSchema={validationSchema}
-        onSubmit={async (values, { setSubmitting, resetForm }) => {
-          try {
-            await addLevel({ name: values.name, order: Number(values.order), subDepartmentId: subdepartmentId, isActive: values.isActive }).unwrap();
-            toast.success("Level added successfully!");
-            resetForm();
-            refetch();
-          } catch (error) {
-            toast.error(error?.data?.message || "Error adding level");
-          } finally {
-            setSubmitting(false);
-          }
-        }}
-      >
-        {({ isSubmitting, submitForm, resetForm }) => (
-          <Header
-            title={subdepartment.name}
-            showBack={true}
-            breadcrumbs={[
-              { label: "Departments", path: "/department-management" },
-              { label: departmentName || "Department", path: `/department-details/${departmentId}`, state: { department: subdepartment?.departmentId } },
-              { label: subdepartment.name },
-            ]}
-          >
-            <OrangeButton
-              buttonTitle="+ New Level"
-              panelTitle="Add New Level"
-              drawerContent={
-                <Form className="space-y-4">
-                  <InputField label="Level Name" name="name" placeholder="Enter level name" />
-                  <InputField label="Order" name="order" type="number" placeholder="Enter order number" />
-                  <RadioGroup label="Status" name="isActive" required={false} />
-                </Form>
-              }
-              leftBtnText="Cancel"
-              rightBtnText={isSubmitting ? "Adding..." : "Add Level"}
-              onLeftClick={resetForm}
-              onRightClick={submitForm}
-            />
-          </Header>
-        )}
-      </Formik>
+      {hasPermission('Page_Level', 'create') ? (
+        <Formik
+          initialValues={{ name: "", order: "", isActive: true }}
+          validationSchema={validationSchema}
+          onSubmit={async (values, { setSubmitting, resetForm }) => {
+            try {
+              await addLevel({ name: values.name, order: Number(values.order), subDepartmentId: subdepartmentId, isActive: values.isActive }).unwrap();
+              toast.success("Level added successfully!");
+              resetForm();
+              refetch();
+            } catch (error) {
+              toast.error(error?.data?.message || "Error adding level");
+            } finally {
+              setSubmitting(false);
+            }
+          }}
+        >
+          {({ isSubmitting, submitForm, resetForm }) => (
+            <Header
+              title={subdepartment.name}
+              showBack={true}
+              breadcrumbs={breadcrumbs}
+            >
+              <OrangeButton
+                buttonTitle="+ New Level"
+                panelTitle="Add New Level"
+                drawerContent={
+                  <Form className="space-y-4">
+                    <InputField label="Level Name" name="name" placeholder="Enter level name" />
+                    <InputField label="Order" name="order" type="number" placeholder="Enter order number" />
+                    <RadioGroup label="Status" name="isActive" required={false} />
+                  </Form>
+                }
+                leftBtnText="Cancel"
+                rightBtnText={isSubmitting ? "Adding..." : "Add Level"}
+                onLeftClick={resetForm}
+                onRightClick={submitForm}
+              />
+            </Header>
+          )}
+        </Formik>
+      ) : (
+        <Header
+          title={subdepartment.name}
+          showBack={true}
+          breadcrumbs={breadcrumbs}
+        />
+      )}
 
       <div className="px-6">
         <div className="flex items-end justify-between py-5">
@@ -194,42 +211,44 @@ const SubdepartmentDetails = () => {
                     subLevelsList={subLevelsList}
                     onView={() => navigate("/show-sublevel-tables", { state: { level, subdepartment, departmentId, departmentName } })}
                     onEdit={
-                      <Formik
-                        key={level._id}
-                        initialValues={{ name: level.name, order: level.order, isActive: level.isActive }}
-                        validationSchema={validationSchema}
-                        onSubmit={async (values, { setSubmitting, resetForm }) => {
-                          try {
-                            await updateLevel({ levelId: level._id, name: values.name, order: Number(values.order), subDepartmentId: subdepartmentId, isActive: values.isActive }).unwrap();
-                            toast.success("Level updated successfully!");
-                            resetForm();
-                            refetch();
-                          } catch (error) {
-                            toast.error(error?.data?.message || "Error updating level");
-                          } finally {
-                            setSubmitting(false);
-                          }
-                        }}
-                      >
-                        {({ isSubmitting, submitForm, resetForm }) => (
-                          <OrangeButton
-                            buttonTitle="Edit"
-                            panelTitle="Edit Level"
-                            customButtonClass="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-xl py-2 text-xs font-bold transition duration-150 cursor-pointer"
-                            drawerContent={
-                              <Form className="space-y-4">
-                                <InputField label="Level Name" name="name" placeholder="Enter level name" />
-                                <InputField label="Order" name="order" type="number" placeholder="Enter order number" />
-                                <RadioGroup label="Status" name="isActive" required={false} />
-                              </Form>
+                      hasPermission('Page_Level', 'update') ? (
+                        <Formik
+                          key={level._id}
+                          initialValues={{ name: level.name, order: level.order, isActive: level.isActive }}
+                          validationSchema={validationSchema}
+                          onSubmit={async (values, { setSubmitting, resetForm }) => {
+                            try {
+                              await updateLevel({ levelId: level._id, name: values.name, order: Number(values.order), subDepartmentId: subdepartmentId, isActive: values.isActive }).unwrap();
+                              toast.success("Level updated successfully!");
+                              resetForm();
+                              refetch();
+                            } catch (error) {
+                              toast.error(error?.data?.message || "Error updating level");
+                            } finally {
+                              setSubmitting(false);
                             }
-                            leftBtnText="Cancel"
-                            rightBtnText={isSubmitting ? "Updating..." : "Update Level"}
-                            onLeftClick={resetForm}
-                            onRightClick={submitForm}
-                          />
-                        )}
-                      </Formik>
+                          }}
+                        >
+                          {({ isSubmitting, submitForm, resetForm }) => (
+                            <OrangeButton
+                              buttonTitle="Edit"
+                              panelTitle="Edit Level"
+                              customButtonClass="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-xl py-2 text-xs font-bold transition duration-150 cursor-pointer"
+                              drawerContent={
+                                <Form className="space-y-4">
+                                  <InputField label="Level Name" name="name" placeholder="Enter level name" />
+                                  <InputField label="Order" name="order" type="number" placeholder="Enter order number" />
+                                  <RadioGroup label="Status" name="isActive" required={false} />
+                                </Form>
+                              }
+                              leftBtnText="Cancel"
+                              rightBtnText={isSubmitting ? "Updating..." : "Update Level"}
+                              onLeftClick={resetForm}
+                              onRightClick={submitForm}
+                            />
+                          )}
+                        </Formik>
+                      ) : null
                     }
                   />
                 )}

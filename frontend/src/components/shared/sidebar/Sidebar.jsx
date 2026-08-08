@@ -140,6 +140,7 @@ const Sidebar = ({ children }) => {
       permission: "Page_AdmittedStudents",
       subMenu: [
         { name: "Department", path: "/department-management", permission: "Page_Department" },
+        { name: "Sub-Departments", path: "/subdepartments", permission: "Page_SubDepartment" },
         { name: "Student Progress", path: "/student-detail-table", permission: "Page_AdmittedStudents" },
         { name: "Leave Requests", path: "/leave-requests", permission: "Page_AdmittedStudents" },
         { name: "Dummy Students", path: "/student-permission", permission: "Page_DummyStudents" },

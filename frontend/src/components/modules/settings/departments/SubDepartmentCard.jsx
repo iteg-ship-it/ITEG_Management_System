@@ -35,6 +35,8 @@ const SubDepartmentCard = ({
   allowedCourses = [],
   faculties = [],
   levelCounts = [],
+  subLevelCounts = [],
+  showSubLevels = false,
   onView,
   onEdit
 }) => {
@@ -144,28 +146,55 @@ const SubDepartmentCard = ({
 
         {/* Student Levels - Structured Table */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Students Level Wise</span>
-          {levelCounts && levelCounts.length > 0 ? (
-            <div className="border border-slate-100 rounded-xl overflow-hidden bg-slate-50/20">
-              <table className="w-full text-left text-[11px]">
-                <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50 text-gray-500 font-semibold">
-                    <th className="px-3 py-1.5">Level</th>
-                    <th className="px-3 py-1.5 text-right">Students</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-gray-700">
-                  {levelCounts.map((lc) => (
-                    <tr key={lc.levelId} className="hover:bg-white/80 transition duration-150">
-                      <td className="px-3 py-1.5 font-medium">{lc.levelName}</td>
-                      <td className="px-3 py-1.5 text-right font-bold text-orange-600">{lc.studentCount}</td>
+          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+            {showSubLevels ? "Students Sub-Level Wise" : "Students Level Wise"}
+          </span>
+          {showSubLevels ? (
+            subLevelCounts && subLevelCounts.length > 0 ? (
+              <div className="border border-slate-100 rounded-xl overflow-hidden bg-slate-50/20">
+                <table className="w-full text-left text-[11px]">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50 text-gray-500 font-semibold">
+                      <th className="px-3 py-1.5">Sub Level</th>
+                      <th className="px-3 py-1.5 text-right">Students</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-gray-700">
+                    {subLevelCounts.map((slc) => (
+                      <tr key={slc.subLevelId} className="hover:bg-white/80 transition duration-150">
+                        <td className="px-3 py-1.5 font-medium">{slc.subLevelName}</td>
+                        <td className="px-3 py-1.5 text-right font-bold text-orange-600">{slc.studentCount}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <span className="text-[10px] text-gray-400 italic font-bold">No active sub-levels</span>
+            )
           ) : (
-            <span className="text-[10px] text-gray-400 italic font-bold">No active levels</span>
+            levelCounts && levelCounts.length > 0 ? (
+              <div className="border border-slate-100 rounded-xl overflow-hidden bg-slate-50/20">
+                <table className="w-full text-left text-[11px]">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50 text-gray-500 font-semibold">
+                      <th className="px-3 py-1.5">Level</th>
+                      <th className="px-3 py-1.5 text-right">Students</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-gray-700">
+                    {levelCounts.map((lc) => (
+                      <tr key={lc.levelId} className="hover:bg-white/80 transition duration-150">
+                        <td className="px-3 py-1.5 font-medium">{lc.levelName}</td>
+                        <td className="px-3 py-1.5 text-right font-bold text-orange-600">{lc.studentCount}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <span className="text-[10px] text-gray-400 italic font-bold">No active levels</span>
+            )
           )}
         </div>
       </div>

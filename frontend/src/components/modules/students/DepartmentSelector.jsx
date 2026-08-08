@@ -2,9 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useGetAllSubdepartmentsQuery } from "../../../redux/api/authApi";
 import Header from "../../shared/sidebar/Header";
 import Loader from "../../shared/loader/Loader";
-import CommonCard from "../settings/CommonCard";
-import { MdAccountTree, MdOutlineMenuBook } from "react-icons/md";
-import { HiOutlineUserGroup } from "react-icons/hi";
+import SubDepartmentCard from "../settings/departments/SubDepartmentCard";
 
 const DepartmentSelector = () => {
   const navigate = useNavigate();
@@ -31,16 +29,17 @@ const DepartmentSelector = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {subDepts.map((dept) => (
-              <CommonCard
+              <SubDepartmentCard
                 key={dept._id}
-                variant="card1"
-                icon={MdAccountTree}
                 title={dept.name}
+                departmentName={dept.departmentId?.name}
                 status={dept.isActive}
-                infoItems={[
-                  { icon: <HiOutlineUserGroup size={14} className="text-orange-400" />, label: "Students", value: dept.totalStudents || 0 },
-                  { icon: <MdOutlineMenuBook size={14} className="text-orange-400" />, label: "Courses", value: dept.allowedCourses?.length || 0 },
-                ]}
+                totalStudents={dept.totalStudents || 0}
+                allowedCourses={dept.allowedCourses || []}
+                faculties={dept.faculties || []}
+                levelCounts={dept.levelCounts || []}
+                subLevelCounts={dept.subLevelCounts || []}
+                showSubLevels={true}
                 onView={() => navigate(`/student-detail-table/${dept._id}`)}
               />
             ))}
