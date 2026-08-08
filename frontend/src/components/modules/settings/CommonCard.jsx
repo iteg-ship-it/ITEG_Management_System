@@ -1,22 +1,22 @@
 import { MdBusiness } from 'react-icons/md';
 
 const ActionButtons = ({ onView, onEdit, inactive }) => (
-  <div className="flex gap-3 px-5 pb-5">
+  <div className="flex gap-3 px-5 pb-5 mt-auto">
     {onView && (
       <button
         onClick={inactive ? undefined : onView}
         disabled={inactive}
-        className={`flex-1 border border-gray-300 rounded-xl py-2.5 text-xs font-bold tracking-wider uppercase transition-all duration-200 active:scale-[0.97] ${
+        className={`flex-1 border rounded-xl py-2.5 text-xs font-bold tracking-wider uppercase transition-all duration-200 active:scale-[0.97] ${
           inactive
             ? 'border-gray-150 bg-gray-50 text-gray-300 cursor-not-allowed'
-            : 'border-gray-300 text-gray-600 hover:bg-slate-50 hover:border-gray-400 cursor-pointer shadow-sm hover:shadow'
+            : 'border-gray-200 text-gray-700 hover:bg-slate-50 hover:border-gray-400 cursor-pointer shadow-2xs hover:shadow-xs'
         }`}
       >
         VIEW
       </button>
     )}
     {onEdit && (
-      <div className={`${onView ? 'flex-1' : 'w-full'} ${inactive ? 'opacity-40 pointer-events-none' : ''} [&_button]:!w-full [&_button]:!h-full [&_button]:!py-2.5 [&_button]:!text-xs [&_button]:!font-bold [&_button]:!tracking-wider [&_button]:!uppercase [&_button]:!rounded-xl [&_button]:!transition-all [&_button]:!duration-200 [&_button]:active:scale-[0.97] [&_button]:!shadow-sm`}>
+      <div className={`${onView ? 'flex-1' : 'w-full'} ${inactive ? 'opacity-40 pointer-events-none' : ''} [&_button]:!w-full [&_button]:!h-full [&_button]:!py-2.5 [&_button]:!text-xs [&_button]:!font-bold [&_button]:!tracking-wider [&_button]:!uppercase [&_button]:!rounded-xl [&_button]:!transition-all [&_button]:!duration-200 [&_button]:active:scale-[0.97] [&_button]:!shadow-xs [&_button]:!bg-orange-500 [&_button]:!text-white [&_button]:hover:!bg-orange-600`}>
         {onEdit}
       </div>
     )}
@@ -41,15 +41,15 @@ const CommonCard = ({
   // card1 — icon + title side by side, status badge below title, single-row info, VIEW + EDIT buttons
   if (variant === 'card1') {
     return (
-      <div className={`bg-gradient-to-b from-white to-slate-50/20 border rounded-2xl shadow-sm transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col ${
-        inactive ? 'border-gray-150' : 'border-gray-200 hover:shadow-xl hover:border-orange-200'
+      <div className={`bg-gradient-to-b from-white to-slate-50/20 border rounded-2xl shadow-xs transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col ${
+        inactive ? 'border-gray-150' : 'border-gray-200 hover:shadow-md hover:border-orange-300'
       }`}>
-        {!inactive && <div className="h-1 w-full bg-gradient-to-r from-orange-400 to-amber-400 flex-shrink-0" />}
+        {!inactive && <div className="h-1.5 w-full bg-gradient-to-r from-orange-500 to-amber-500 flex-shrink-0" />}
         <div className="p-5 flex-1">
 
           {/* Icon + Title + Status */}
           <div className="flex items-center gap-3 mb-4">
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm border ${
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-xs border ${
               inactive ? 'bg-gray-100 border-gray-200' : 'bg-gradient-to-tr from-orange-50 to-amber-50/50 border-orange-100'
             }`}>
               <Icon size={24} className={inactive ? 'text-gray-400' : 'text-orange-500'} />
@@ -64,9 +64,9 @@ const CommonCard = ({
                   : 'bg-emerald-50 text-emerald-700 border-emerald-100'
               }`}>
                 {!inactive && (
-                  <span className="relative flex h-2 w-2 mr-1.5">
+                  <span className="relative flex h-1.5 w-1.5 mr-1.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                   </span>
                 )}
                 {statusLabel || (inactive ? 'Inactive' : 'Active')}
@@ -80,10 +80,10 @@ const CommonCard = ({
           {/* Info — single row as neat metric badges */}
           <div className="flex items-center gap-2 flex-wrap text-xs text-gray-500 mb-2">
             {infoItems?.map((item, i) => (
-              <span key={i} className={`flex items-center gap-1.5 whitespace-nowrap px-2.5 py-1.5 rounded-lg border text-[11px] font-bold transition hover:scale-105 shadow-xs ${
+              <span key={i} className={`flex items-center gap-1.5 whitespace-nowrap px-2.5 py-1.5 rounded-lg border text-[11px] font-bold transition hover:scale-105 shadow-2xs ${
                 inactive 
                   ? 'bg-slate-50 text-slate-400 border-slate-200' 
-                  : 'bg-slate-50/70 text-slate-600 border-slate-100/80 hover:bg-white hover:border-orange-150'
+                  : 'bg-slate-50/70 text-slate-650 border-slate-100/80 hover:bg-white hover:border-orange-150'
               }`}>
                 {item.icon && <span className={inactive ? 'text-gray-400 [&_svg]:text-gray-400' : 'text-orange-500/85'}>{item.icon}</span>}
                 {item.label && item.value ? (
@@ -110,13 +110,13 @@ const CommonCard = ({
 
   // card2 — icon + status badge top row, title with more space, description, divider, info list, VIEW + EDIT
   return (
-    <div className={`bg-gradient-to-b from-white to-slate-50/20 border rounded-2xl shadow-sm transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col ${
-      inactive ? 'border-gray-150' : 'border-gray-200 hover:shadow-xl hover:border-orange-200'
+    <div className={`bg-gradient-to-b from-white to-slate-50/20 border rounded-2xl shadow-xs transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col ${
+      inactive ? 'border-gray-150' : 'border-gray-250 hover:shadow-md hover:border-orange-300'
     }`}>
       {/* Top Accent Gradient Line */}
-      {!inactive && <div className="h-1 w-full bg-gradient-to-r from-orange-400 to-amber-400 flex-shrink-0" />}
+      {!inactive && <div className="h-1.5 w-full bg-gradient-to-r from-orange-500 to-amber-500 flex-shrink-0" />}
       
-      <div className="p-5 flex-1">
+      <div className="p-5 flex-1 flex flex-col">
 
         {/* Top row: icon/logo + status badge */}
         <div className="flex items-start justify-between mb-4">
@@ -137,9 +137,9 @@ const CommonCard = ({
                 : 'bg-emerald-50 text-emerald-700 border-emerald-100'
             }`}>
               {!inactive && (
-                <span className="relative flex h-2 w-2 mr-1.5">
+                <span className="relative flex h-1.5 w-1.5 mr-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                 </span>
               )}
               {statusLabel || (inactive ? 'INACTIVE' : 'ACTIVE')}
@@ -166,7 +166,7 @@ const CommonCard = ({
 
         {/* Redesigned Info Items Grid with individual cards */}
         {infoItems && infoItems.length > 0 && (
-          <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="grid grid-cols-2 gap-3 mb-4 mt-auto">
             {infoItems.map((item, i) => (
               <div key={i} className={`border rounded-xl p-2.5 flex items-center gap-2.5 transition-all duration-200 ${
                 inactive 
