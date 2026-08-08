@@ -23,7 +23,7 @@ const studentPlacementSchema = new mongoose.Schema({
   // 🚦 Readiness
   readinessStatus: {
     type: String,
-    enum: ["Not Ready", "In Progress", "Ready", "Ready for Interview"],
+    enum: ["Not Ready", "In Progress", "Ready", "Ready for Interview", "Ready for Placement", "Ready for Drive"],
     default: "Not Ready"
   },
 

@@ -3,7 +3,7 @@ const router = express.Router();
 const { verifyToken, checkRole } = require("../middlewares/authMiddleware");
 const studentAuthController = require("../controllers/student/studentAuthController");
 
-const adminAuth = [verifyToken, checkRole(["superadmin", "admin", "faculty", "hod"])];
+const adminAuth = [verifyToken, checkRole(["superadmin", "admin", "faculty", "hod", "placement_officer"])];
 const studentAuth = [verifyToken, checkRole(["student"])];
 
 // Public

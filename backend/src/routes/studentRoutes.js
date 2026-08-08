@@ -8,7 +8,7 @@ const placementController = require("../controllers/placement/placementControlle
 const attendanceController = require("../controllers/student/attendanceController");
 const upload = require("../config/multerConfig");
 
-const allowedRoles = ["superadmin", "faculty", "admin", "hod"];
+const allowedRoles = ["superadmin", "faculty", "admin", "hod", "placement_officer"];
 const { studentAccessFilter } = require("../middlewares/studentAccessFilter");
 const auth = [verifyToken, checkRole(allowedRoles), departmentFilter, studentAccessFilter];
 
@@ -38,6 +38,8 @@ router.post("/interviews/:id", ...auth, placementController.createInterview);
 router.patch("/update/interviews/:studentId/:interviewId", ...auth, placementController.updateInterviewStatus);
 router.post("/interviews/:studentId/:interviewId/add_round", ...auth, placementController.addInterviewRound);
 router.patch("/reschedule/interview/:studentId/:interviewId", ...auth, placementController.rescheduleInterview);
+router.patch("/cancel/interview/:studentId/:interviewId", ...auth, placementController.cancelInterview);
+router.patch("/interviews/:studentId/:interviewId/final-result", ...auth, placementController.updateFinalResult);
 router.get("/interview_history/:studentId", ...auth, placementController.getStudentInterviewHistory);
 
 // Placement: Confirm & Manage
@@ -100,6 +102,7 @@ router.patch("/:id/permission/status", ...auth, studentController.updatePermissi
 
 // Placement Readiness (updates StudentPlacement.readinessStatus, creates record if missing)
 router.patch("/:id/placement-readiness", ...auth, studentController.updatePlacementReadiness);
+router.post("/:id/move-ready-for-placement", ...auth, studentController.moveToReadyForPlacement);
 
 // Mark Dropped (with document upload)
 router.patch("/:id/mark-dropped", ...auth, studentController.markDropped);

@@ -27,7 +27,7 @@ exports.getDeptOverview = async (req, res) => {
 
     const [totalStudents, readyStudents, interviewRunning, placedStudents] = await Promise.all([
       Student.countDocuments(VALID_FILTER(id)),
-      StudentPlacement.countDocuments({ subDepartmentId: toId(id), readinessStatus: { $in: ["Ready", "Ready for Interview"] } }),
+      StudentPlacement.countDocuments({ subDepartmentId: toId(id), readinessStatus: { $in: ["Ready", "Ready for Interview", "Ready for Placement", "Ready for Drive"] } }),
       StudentPlacement.countDocuments({ subDepartmentId: toId(id), "PlacementinterviewRecord.status": { $in: ["Scheduled", "Ongoing"] } }),
       StudentPlacement.countDocuments({ subDepartmentId: toId(id), placedInfo: { $ne: null } }),
     ]);
@@ -49,14 +49,15 @@ exports.getDeptFunnel = async (req, res) => {
     if (!canAccessSubDept(req, id)) return res.status(403).json({ message: "Access denied to this department" });
     const filter = { subDepartmentId: toId(id) };
 
-    const [ready, interview, selected, placed] = await Promise.all([
-      StudentPlacement.countDocuments({ ...filter, readinessStatus: { $in: ["Ready", "Ready for Interview"] } }),
+    const [readyPlacement, readyDrive, interview, selected, placed] = await Promise.all([
+      StudentPlacement.countDocuments({ ...filter, readinessStatus: { $in: ["Ready", "Ready for Placement"] } }),
+      StudentPlacement.countDocuments({ ...filter, readinessStatus: { $in: ["Ready for Interview", "Ready for Drive"] } }),
       StudentPlacement.countDocuments({ ...filter, "PlacementinterviewRecord.status": { $in: ["Scheduled", "Ongoing"] } }),
       StudentPlacement.countDocuments({ ...filter, "PlacementinterviewRecord.status": "Selected", placedInfo: null }),
       StudentPlacement.countDocuments({ ...filter, placedInfo: { $ne: null } }),
     ]);
 
-    return res.status(200).json({ success: true, data: { ready, interview, selected, placed } });
+    return res.status(200).json({ success: true, data: { ready: readyPlacement + readyDrive, readyPlacement, readyDrive, interview, selected, placed } });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
@@ -73,7 +74,7 @@ exports.getDeptStatusBreakdown = async (req, res) => {
       { $group: { _id: "$readinessStatus", count: { $sum: 1 } } },
     ]);
 
-    const result = { "Not Ready": 0, "In Progress": 0, "Ready": 0, "Ready for Interview": 0 };
+    const result = { "Not Ready": 0, "In Progress": 0, "Ready": 0, "Ready for Interview": 0, "Ready for Placement": 0, "Ready for Drive": 0 };
     breakdown.forEach((b) => { if (b._id) result[b._id] = b.count; });
 
     const interview = await StudentPlacement.countDocuments({
@@ -95,8 +96,10 @@ exports.getDeptStatusBreakdown = async (req, res) => {
       data: {
         notReady: result["Not Ready"],
         inProgress: result["In Progress"],
-        ready: result["Ready"],
-        readyForInterview: result["Ready for Interview"],
+        readyForPlacement: result["Ready"] + result["Ready for Placement"],
+        readyForDrive: result["Ready for Interview"] + result["Ready for Drive"],
+        ready: result["Ready"] + result["Ready for Placement"],
+        readyForInterview: result["Ready for Interview"] + result["Ready for Drive"],
         interview,
         selected,
         placed,

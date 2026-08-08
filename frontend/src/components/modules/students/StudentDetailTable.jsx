@@ -27,6 +27,7 @@ const StudentDetailTable = () => {
   const [activeTab, setActiveTab]           = useState("All");
   const [selectedStatus, setSelectedStatus] = useState([]);
   const [selectedYears, setSelectedYears]   = useState([]);
+  const [selectedTech, setSelectedTech]     = useState("All");
 
   // Build query string — if subDepartmentId present, filter by it
   const queryStr = subDepartmentId ? `subDepartmentId=${subDepartmentId}` : "";
@@ -79,14 +80,16 @@ const StudentDetailTable = () => {
       const matchStatus = selectedStatus.length === 0 || selectedStatus.includes(s.status);
       const studentYear = getStudentYear(s);
       const matchYear   = selectedYears.length === 0 || selectedYears.includes(studentYear);
+      const stdTech     = (s.track || s.course || "").toLowerCase();
+      const matchTech   = selectedTech === "All" || stdTech.includes(selectedTech.toLowerCase());
       const name        = `${s.firstName} ${s.lastName}`.toLowerCase();
       const matchSearch = !searchTerm ||
         name.includes(searchTerm.toLowerCase()) ||
         s.prkey?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         s.studentMobile?.includes(searchTerm);
-      return matchTab && matchStatus && matchYear && matchSearch;
+      return matchTab && matchStatus && matchYear && matchTech && matchSearch;
     });
-  }, [students, activeTab, selectedStatus, selectedYears, searchTerm, activeStartYear]);
+  }, [students, activeTab, selectedStatus, selectedYears, selectedTech, searchTerm, activeStartYear]);
 
   const columns = [
     {
@@ -189,6 +192,24 @@ const StudentDetailTable = () => {
           <SearchBox searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
           
           <div className="sm:ml-auto flex items-center gap-3 flex-wrap w-full sm:w-auto">
+            {/* Technology Dropdown */}
+            <select
+              value={selectedTech}
+              onChange={(e) => setSelectedTech(e.target.value)}
+              style={{ outline: "none" }}
+              className="h-10 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 min-w-[140px] text-gray-600 font-medium cursor-pointer transition-colors hover:border-gray-400"
+            >
+              <option value="All">All Technologies</option>
+              <option value="Python">Python</option>
+              <option value="MERN Stack">MERN Stack</option>
+              <option value="Java">Java</option>
+              <option value=".NET">.NET</option>
+              <option value="UI/UX">UI/UX</option>
+              <option value="Data Analytics">Data Analytics</option>
+              <option value="Salesforce">Salesforce</option>
+              <option value="SAP">SAP</option>
+            </select>
+
             {/* Status Dropdown */}
             <select
               value={selectedStatus[0] || ""}
@@ -197,7 +218,7 @@ const StudentDetailTable = () => {
                 setSelectedStatus(val ? [val] : []);
               }}
               style={{ outline: "none" }}
-              className="h-10 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/20 focus-visible:border-orange-500 min-w-[130px] text-gray-600 font-medium cursor-pointer transition-colors hover:border-gray-400"
+              className="h-10 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 min-w-[130px] text-gray-600 font-medium cursor-pointer transition-colors hover:border-gray-400"
             >
               <option value="">All Statuses</option>
               <option value="Active">Active</option>
@@ -215,7 +236,7 @@ const StudentDetailTable = () => {
                 setSelectedYears(val ? [val] : []);
               }}
               style={{ outline: "none" }}
-              className="h-10 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/20 focus-visible:border-orange-500 min-w-[130px] text-gray-600 font-medium cursor-pointer transition-colors hover:border-gray-400"
+              className="h-10 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 min-w-[130px] text-gray-600 font-medium cursor-pointer transition-colors hover:border-gray-400"
             >
               <option value="">All Years</option>
               <option value="1st Year">1st Year</option>

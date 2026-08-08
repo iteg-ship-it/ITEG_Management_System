@@ -146,7 +146,7 @@ exports.getStudentById = async (req, res) => {
     // Attach placement readiness
     const StudentPlacement = require("../../models/placement/StudentPlacement");
     const placement = await StudentPlacement.findOne({ studentId: req.params.id })
-      .select("readinessStatus placedInfo PlacementinterviewRecord");
+      .select("readinessStatus placedInfo PlacementinterviewRecord resumeURL offerLetter commitmentApplication");
 
     // Attach overall task progress (all non-extra tasks)
     const allTasks = await StudentTask.find({ studentId: req.params.id, isExtra: false });
@@ -694,7 +694,7 @@ exports.updatePlacementReadiness = async (req, res) => {
     const { id } = req.params;
     const { readinessStatus } = req.body;
 
-    const validStatuses = ["Not Ready", "In Progress", "Ready", "Ready for Interview"];
+    const validStatuses = ["Not Ready", "In Progress", "Ready", "Ready for Interview", "Ready for Placement", "Ready for Drive"];
     if (!readinessStatus || !validStatuses.includes(readinessStatus)) {
       return res.status(400).json({ message: `readinessStatus must be one of: ${validStatuses.join(", ")}` });
     }
@@ -722,6 +722,117 @@ exports.updatePlacementReadiness = async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ✅ HOD Move Student to "Ready for Placement" after Level 2A
+exports.moveToReadyForPlacement = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const actorRole = (req.user?.role || "").toLowerCase();
+
+    // 1. Role permission check: HOD, SuperAdmin, Admin
+    const allowedRoles = ["hod", "superadmin", "admin"];
+    if (!allowedRoles.includes(actorRole)) {
+      return res.status(403).json({ success: false, message: "Unauthorized. Only HOD or Admin can move student to Ready for Placement." });
+    }
+
+    // 2. Find student
+    const student = await Student.findById(id)
+      .populate("currentLevelId", "name order")
+      .populate("currentSubLevelId", "name order levelId");
+
+    if (!student) return res.status(404).json({ success: false, message: "Student not found" });
+    if (student.status !== "Active") {
+      return res.status(400).json({ success: false, message: "Only active students can be moved to Ready for Placement" });
+    }
+
+    // 3. Verify student has completed Level 2A
+    const StudentLevelProgress = require("../../models/student/StudentLevelProgress");
+    const SubLevel = require("../../models/department/SubLevel");
+    const StudentEventLog = require("../../models/student/StudentEventLog");
+    const StudentPlacement = require("../../models/placement/StudentPlacement");
+
+    // Find SubLevel matching 2A
+    const subLevel2A = await SubLevel.findOne({
+      name: { $regex: /2A/i },
+      isActive: true,
+    });
+
+    let completedLevel2A = false;
+
+    if (subLevel2A) {
+      const progress2A = await StudentLevelProgress.findOne({
+        studentId: id,
+        subLevelId: subLevel2A._id,
+        status: "completed",
+      });
+      if (progress2A) {
+        completedLevel2A = true;
+      }
+    }
+
+    // Secondary check: if current sublevel is past 2A (e.g., 2B, 2C, or higher order)
+    if (!completedLevel2A && student.currentSubLevelId) {
+      const curSubName = (student.currentSubLevelId.name || "").toUpperCase();
+      const curLevelOrder = student.currentLevelId?.order || 0;
+      if (curSubName.includes("2B") || curSubName.includes("2C") || curLevelOrder > 2) {
+        completedLevel2A = true;
+      } else if (subLevel2A && student.currentSubLevelId.order > subLevel2A.order && (student.currentSubLevelId.levelId?.toString() === subLevel2A.levelId?.toString() || curLevelOrder >= 2)) {
+        completedLevel2A = true;
+      }
+    }
+
+    if (!completedLevel2A) {
+      return res.status(400).json({
+        success: false,
+        message: "Student has not completed Level 2A yet. Cannot move to Ready for Placement.",
+      });
+    }
+
+    // 4. Prevent duplicate status changes
+    let placement = await StudentPlacement.findOne({ studentId: id });
+    if (placement && ["Ready for Placement", "Ready for Drive", "Ready for Interview", "Placed"].includes(placement.readinessStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: `Student is already in "${placement.readinessStatus}" stage or beyond.`,
+      });
+    }
+
+    // 5. Update or create StudentPlacement status
+    if (!placement) {
+      placement = new StudentPlacement({
+        studentId: id,
+        subDepartmentId: student.subDepartmentId,
+        readinessStatus: "Ready for Placement",
+      });
+    } else {
+      placement.readinessStatus = "Ready for Placement";
+    }
+    await placement.save();
+
+    // 6. Log audit event
+    await StudentEventLog.create({
+      studentId: id,
+      type: "promotion",
+      action: "moved_to_ready_for_placement",
+      title: "Moved to Ready for Placement",
+      description: `HOD (${req.user?.name || "Authorized User"}) moved student to Ready for Placement after Level 2A completion`,
+      createdBy: req.user?.id || req.user?._id || null,
+      createdByName: req.user?.name || "",
+      createdByRole: req.user?.role || "",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Student moved to Ready for Placement successfully",
+      data: {
+        studentId: id,
+        readinessStatus: placement.readinessStatus,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 

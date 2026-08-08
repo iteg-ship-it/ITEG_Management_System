@@ -106,6 +106,14 @@ const allPermissions = {
         { feature: 'Page_Placement', description: 'Access to the Placement section', access: ['read'] },
         { feature: 'Page_CompanyDetails', description: 'Access to company details', access: ['read'] },
         { feature: 'Page_PlacedStudents', description: 'Access to placed students list', access: ['read'] },
+    ],
+
+    placement_officer: [
+        { feature: 'Page_Dashboard', description: 'Access to the main dashboard', access: ['read'] },
+        { feature: 'Page_Placement', description: 'Access to the Placement section', access: ['read', 'create', 'update'] },
+        { feature: 'Page_CompanyDetails', description: 'Access to company details', access: ['read', 'create', 'update'] },
+        { feature: 'Page_PlacedStudents', description: 'Access to placed students list', access: ['read', 'create', 'update'] },
+        { feature: 'Page_AdmittedStudents', description: 'Access to the Admitted Students section', access: ['read'] },
     ]
 };
 

@@ -99,43 +99,48 @@ const DepartmentPlacementDetail = () => {
       color: "blue",
       trend: "↗ Batch Size",
       trendColor: "text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded",
-      sub: "enrolled in department"
+      sub: "enrolled in department",
+      onClick: () => navigate(`/student-detail-table/${subDepartmentId}`)
     },
     { 
-      title: "Placement Ready",     
+      title: "Ready for Placement",     
       value: overview.readyStudents,        
       icon: <MdCheckCircle />, 
       color: "green",
-      trend: "↗ 37.5% ready",
+      trend: "↗ Ready students",
       trendColor: "text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded",
-      sub: "ready for interviews"
+      sub: "ready for placement",
+      onClick: () => navigate(`/readiness-status?status=Ready for Placement&subDepartmentId=${subDepartmentId}`)
     },
     { 
-      title: "Interviews Running", 
+      title: "Ready for Drive",     
+      value: breakdown.readyForDrive || breakdown.readyForInterview || 0,        
+      icon: <MdCheckCircleOutline />, 
+      color: "teal",
+      trend: "⚡ Drive ready",
+      trendColor: "text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded",
+      sub: "eligible for drives",
+      onClick: () => navigate(`/readiness-status?status=Ready for Drive&subDepartmentId=${subDepartmentId}`)
+    },
+    { 
+      title: "Interview", 
       value: overview.interviewRunning,     
       icon: <MdWork />,        
       color: "orange",
       trend: "⚡ Active Drives",
       trendColor: "text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded",
-      sub: "students in rounds"
+      sub: "students in rounds",
+      onClick: () => navigate(`/readiness-status?status=Interview&subDepartmentId=${subDepartmentId}`)
     },
     { 
-      title: "Placed Students",    
+      title: "Placed",    
       value: overview.placedStudents,       
       icon: <MdTrendingUp />,  
       color: "purple",
-      trend: "↗ +12 placed",
+      trend: "↗ Placed",
       trendColor: "text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded",
-      sub: "confirmed offers"
-    },
-    { 
-      title: "Department Placement %",        
-      value: `${overview.placementPercentage}%`, 
-      icon: <MdPercent />, 
-      color: "teal",
-      trend: "↗ +5% vs avg",
-      trendColor: "text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded",
-      sub: "placement success rate"
+      sub: "confirmed offers",
+      onClick: () => navigate(`/readiness-status?status=Placed&subDepartmentId=${subDepartmentId}`)
     },
   ];
 
@@ -247,6 +252,7 @@ const DepartmentPlacementDetail = () => {
               trend={s.trend}
               trendColor={s.trendColor}
               sub={s.sub}
+              onClick={s.onClick}
             />
           ))}
         </div>

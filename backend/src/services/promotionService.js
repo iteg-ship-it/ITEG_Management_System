@@ -123,6 +123,30 @@ const promoteToNextSubLevel = async (studentId, actorUser = null, options = {}) 
   const currentSubLevel = await SubLevel.findById(student.currentSubLevelId);
   if (!currentSubLevel) throw toClientError("Current sub-level not found");
 
+  // Automatic "Ready for Drive" transition upon completing Level 2B
+  const currentSubName = (currentSubLevel.name || "").toUpperCase();
+  if (currentSubName.includes("2B")) {
+    await StudentPlacement.findOneAndUpdate(
+      { studentId },
+      {
+        $set: { readinessStatus: "Ready for Drive" },
+        $setOnInsert: { studentId, subDepartmentId: student.subDepartmentId }
+      },
+      { new: true, upsert: true }
+    );
+
+    await StudentEventLog.create({
+      studentId,
+      type: "promotion",
+      action: "auto_ready_for_drive",
+      title: "Moved to Ready for Drive",
+      description: "Student successfully completed Level 2B and was automatically moved to Ready for Drive stage",
+      createdBy: actorId,
+      createdByName: actorUser?.name || "System",
+      createdByRole: actorUser?.role || "system",
+    }).catch(() => {});
+  }
+
   let nextSubLevel = await SubLevel.findOne({
     levelId: student.currentLevelId,
     order: { $gt: currentSubLevel.order },

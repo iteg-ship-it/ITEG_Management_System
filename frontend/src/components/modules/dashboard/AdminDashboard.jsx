@@ -13,7 +13,7 @@ import Header from "../../shared/sidebar/Header";
 import api from "../../../utils/axiosInstance";
 
 // ── Reusable Stat Card ───────────────────────────────────────
-const StatCard = ({ title, value, icon, color, sub, trend, trendColor }) => {
+const StatCard = ({ title, value, icon, color, sub, trend, trendColor, onClick }) => {
   const bgStyles = {
     blue:   "bg-blue-50 text-blue-600",
     green:  "bg-green-50 text-green-600",
@@ -24,7 +24,10 @@ const StatCard = ({ title, value, icon, color, sub, trend, trendColor }) => {
   }[color] || "bg-gray-50 text-gray-600";
 
   return (
-    <div className="bg-white rounded-xl border shadow-sm p-5 flex flex-col justify-between min-h-[140px] transition hover:shadow-md">
+    <div 
+      onClick={onClick}
+      className={`bg-white rounded-xl border shadow-sm p-5 flex flex-col justify-between min-h-[140px] transition hover:shadow-md ${onClick ? "cursor-pointer hover:border-orange-300" : ""}`}
+    >
       <div className="flex justify-between items-start">
         <div>
           <p className="text-sm text-gray-500 font-semibold">{title}</p>
@@ -60,7 +63,7 @@ const AdminDashboard = () => {
   const role = (localStorage.getItem("role") || "").toLowerCase();
   const userObj = JSON.parse(localStorage.getItem("user") || "{}");
 
-  const isDepartmentUser = ["hod", "faculty"].includes(role);
+  const isDepartmentUser = ["hod", "faculty", "placement_officer"].includes(role);
   const departmentName = userObj.department || "ITEG";
   const departmentSubtext = departmentName === "ITEG" ? "IT & ENGINEERING" : `${departmentName} DEPARTMENT`;
 
@@ -214,6 +217,7 @@ const AdminDashboard = () => {
                   trend="↗ +5.2%"
                   trendColor="text-green-600"
                   sub="vs last semester"
+                  onClick={() => navigate("/student-detail-table")}
                 />
                 <StatCard 
                   title="Admissions" 
@@ -223,6 +227,7 @@ const AdminDashboard = () => {
                   trend="↘ -2.1%"
                   trendColor="text-red-500"
                   sub="new enrollments"
+                  onClick={() => navigate("/student-detail-table")}
                 />
                 <StatCard 
                   title="Placed Students" 
@@ -232,6 +237,7 @@ const AdminDashboard = () => {
                   trend="↗ +12%"
                   trendColor="text-green-600"
                   sub="placed this season"
+                  onClick={() => navigate("/readiness-status?status=Placed")}
                 />
                 <StatCard 
                   title="Placement %" 
@@ -241,6 +247,7 @@ const AdminDashboard = () => {
                   trend="↗ +3%"
                   trendColor="text-green-600"
                   sub="success rate"
+                  onClick={() => navigate("/readiness-status?status=Ready for Placement")}
                 />
                 <StatCard 
                   title="Faculty Count" 
@@ -250,6 +257,7 @@ const AdminDashboard = () => {
                   trend="Steady"
                   trendColor="text-gray-500"
                   sub="active instructors"
+                  onClick={() => navigate("/user-management")}
                 />
               </>
             )}
