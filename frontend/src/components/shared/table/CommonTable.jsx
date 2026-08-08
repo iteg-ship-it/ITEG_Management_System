@@ -21,6 +21,7 @@ const CommonTable = ({
   actionButton,
   extraColumn,
   onRowClick,
+  emptyMessage = "No data found",
 }) => {
 
   const [globalFilter, setGlobalFilter] = useState("");
@@ -119,7 +120,7 @@ const CommonTable = ({
               {table.getRowModel().rows.length === 0 ? (
                 <tr>
                   <td colSpan={tableColumns.length} className="text-center py-10 text-gray-400">
-                    No data found
+                    {emptyMessage}
                   </td>
                 </tr>
               ) : (

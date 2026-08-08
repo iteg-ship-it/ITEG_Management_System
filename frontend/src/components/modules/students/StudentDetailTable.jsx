@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useGetNewStudentsQuery } from "../../../redux/api/authApi";
+import { useGetNewStudentsQuery, useGetSubdepartmentByIdQuery } from "../../../redux/api/authApi";
 import Loader from "../../shared/loader/Loader";
 import CommonTable from "../../shared/table/CommonTable";
 import Header from "../../shared/sidebar/Header";
@@ -65,13 +65,24 @@ const StudentDetailTable = () => {
     return `${yearDiff}th Year`;
   };
 
-  // Dynamic sublevel tabs from data
+  const derivedSubDeptId = subDepartmentId || students[0]?.subDepartmentId?._id || students[0]?.subDepartmentId;
+  const { data: subDeptRes } = useGetSubdepartmentByIdQuery(derivedSubDeptId, { skip: !derivedSubDeptId });
+  const subLevelCounts = subDeptRes?.data?.subLevelCounts || [];
+
+  // Dynamic sublevel tabs from data sorted naturally (e.g. 1A, 1B, 2A)
   const subLevelTabs = useMemo(() => {
-    const names = [...new Set(
-      students.map((s) => s.currentSubLevelId?.name).filter(Boolean)
-    )].sort();
+    let names = [];
+    if (subLevelCounts && subLevelCounts.length > 0) {
+      names = subLevelCounts.map(slc => slc.subLevelName);
+    } else {
+      names = [...new Set(
+        students.map((s) => s.currentSubLevelId?.name).filter(Boolean)
+      )];
+    }
+    // Natural sort: e.g., 1A -> 1B -> 1C -> 2A
+    names.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
     return ["All", ...names];
-  }, [students]);
+  }, [subLevelCounts, students]);
 
   const filteredData = useMemo(() => {
     return students.filter((s) => {
@@ -113,11 +124,7 @@ const StudentDetailTable = () => {
       label: "Course",
       render: (row) => (row.course || "").toUpperCase(),
     },
-    {
-      key: "department",
-      label: "Department",
-      render: (row) => row.subDepartmentId?.name || "—",
-    },
+
     {
       key: "level",
       label: "Level",
@@ -233,6 +240,7 @@ const StudentDetailTable = () => {
           setSearchTerm={setSearchTerm}
           pagination
           rowsPerPage={10}
+          emptyMessage={activeTab === "All" ? "No data found" : `No students in the sub level ${activeTab}`}
           filtersConfig={[
             {
               title: "Status",
