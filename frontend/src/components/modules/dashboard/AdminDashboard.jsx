@@ -74,24 +74,45 @@ const AdminDashboard = () => {
   const sessionsList = sessionsData?.data || [];
 
   // Filter States
-  const [academicYear, setAcademicYear] = useState("");
+  const [selectedSessionId, setSelectedSessionId] = useState("all");
+  const [academicYearLabel, setAcademicYearLabel] = useState("All Sessions");
   const [selectedLevel, setSelectedLevel] = useState("All");
   const [showNotification, setShowNotification] = useState(false);
 
   useEffect(() => {
-    if (sessionsList.length > 0 && !academicYear) {
-      const activeSess = sessionsList.find(s => s.isActive || s.status === 'active') || sessionsList[0];
+    if (sessionsList.length > 0 && selectedSessionId === "all") {
+      const activeSess = sessionsList.find(s => s.isActive || s.status === 'active');
       if (activeSess) {
-        setAcademicYear(activeSess.name.startsWith("AY") ? activeSess.name : `AY ${activeSess.name}`);
+        setSelectedSessionId(activeSess._id);
+        const label = activeSess.name.startsWith("AY") ? activeSess.name : `AY ${activeSess.name}`;
+        setAcademicYearLabel(label);
       }
     }
-  }, [sessionsList, academicYear]);
+  }, [sessionsList]);
+
+  const handleSessionChange = (e) => {
+    const newId = e.target.value;
+    setSelectedSessionId(newId);
+    if (newId === "all") {
+      setAcademicYearLabel("All Sessions");
+    } else {
+      const found = sessionsList.find(s => s._id === newId);
+      if (found) {
+        const label = found.name.startsWith("AY") ? found.name : `AY ${found.name}`;
+        setAcademicYearLabel(label);
+      }
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.get("/dashboard/overview");
+      const params = {};
+      if (selectedSessionId && selectedSessionId !== "all") params.sessionId = selectedSessionId;
+      if (selectedLevel && selectedLevel !== "All") params.level = selectedLevel;
+
+      const res = await api.get("/dashboard/overview", { params });
       setData(res.data.data);
     } catch {
       setError("Failed to load dashboard data. Please try again.");
@@ -102,7 +123,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedSessionId, selectedLevel]);
 
   const s  = data?.studentStats     || {};
   const g  = data?.genderBreakdown  || {};
@@ -128,12 +149,11 @@ const AdminDashboard = () => {
   ];
 
   // Dynamic distribution counts based on actual database stats
-  const totalStudentsVal = s.total || 1240;
-  const distributionData = [
-    { name: 'Level 1', students: Math.round(totalStudentsVal * 0.35) },
-    { name: 'Level 2', students: Math.round(totalStudentsVal * 0.28) },
-    { name: 'Level 3', students: Math.round(totalStudentsVal * 0.20) },
-    { name: 'Level 4', students: Math.round(totalStudentsVal * 0.17) },
+  const distributionData = data?.levelDistribution?.length > 0 ? data.levelDistribution : [
+    { name: 'Level 1', students: Math.round((s.total || 0) * 0.35) },
+    { name: 'Level 2', students: Math.round((s.total || 0) * 0.28) },
+    { name: 'Level 3', students: Math.round((s.total || 0) * 0.20) },
+    { name: 'Level 4', students: Math.round((s.total || 0) * 0.17) },
   ];
 
   // Helper to handle print/download report action
@@ -159,8 +179,11 @@ const AdminDashboard = () => {
             {/* Filter Badges */}
             <div className="hidden lg:flex items-center gap-2">
               <span className="border border-orange-200 bg-orange-50 text-orange-600 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5">
-                Academic Year: {academicYear.replace("AY ", "")}
-                <MdClose className="cursor-pointer text-sm" onClick={() => setAcademicYear("AY 2023-24")} />
+                Session: {academicYearLabel.replace("AY ", "")}
+                <MdClose 
+                  className="cursor-pointer text-sm" 
+                  onClick={() => { setSelectedSessionId("all"); setAcademicYearLabel("All Sessions"); }} 
+                />
               </span>
               <span className="border border-orange-200 bg-orange-50 text-orange-600 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5">
                 Level: {selectedLevel}
@@ -170,23 +193,20 @@ const AdminDashboard = () => {
 
             {/* Academic Year Select */}
             <select
-              value={academicYear}
-              onChange={(e) => setAcademicYear(e.target.value)}
+              value={selectedSessionId}
+              onChange={handleSessionChange}
               className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 cursor-pointer"
             >
-              {sessionsList.length === 0 ? (
-                <option value="">No Sessions Found</option>
-              ) : (
-                sessionsList.map((s) => {
-                  const label = s.name.startsWith("AY") ? s.name : `AY ${s.name}`;
-                  const statusText = s.status ? s.status.charAt(0).toUpperCase() + s.status.slice(1) : (s.isActive ? 'Active' : 'Inactive');
-                  return (
-                    <option key={s._id} value={label}>
-                      {label} ({statusText})
-                    </option>
-                  );
-                })
-              )}
+              <option value="all">All Sessions</option>
+              {sessionsList.map((s) => {
+                const label = s.name.startsWith("AY") ? s.name : `AY ${s.name}`;
+                const statusText = s.status ? s.status.charAt(0).toUpperCase() + s.status.slice(1) : (s.isActive ? 'Active' : 'Inactive');
+                return (
+                  <option key={s._id} value={s._id}>
+                    {label} ({statusText})
+                  </option>
+                );
+              })}
             </select>
 
             {/* Level Select */}
@@ -403,8 +423,11 @@ const AdminDashboard = () => {
           {/* Filter Badges */}
           <div className="hidden lg:flex items-center gap-2">
             <span className="border border-blue-200 bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5">
-              Academic Year: {academicYear.replace("AY ", "")}
-              <MdClose className="cursor-pointer text-sm" onClick={() => setAcademicYear("AY 2023-24")} />
+              Session: {academicYearLabel.replace("AY ", "")}
+              <MdClose 
+                className="cursor-pointer text-sm" 
+                onClick={() => { setSelectedSessionId("all"); setAcademicYearLabel("All Sessions"); }} 
+              />
             </span>
             <span className="border border-blue-200 bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5">
               Level: {selectedLevel}
@@ -414,23 +437,20 @@ const AdminDashboard = () => {
 
           {/* Academic Year Select */}
           <select
-            value={academicYear}
-            onChange={(e) => setAcademicYear(e.target.value)}
+            value={selectedSessionId}
+            onChange={handleSessionChange}
             className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
           >
-            {sessionsList.length === 0 ? (
-              <option value="">No Sessions Found</option>
-            ) : (
-              sessionsList.map((s) => {
-                const label = s.name.startsWith("AY") ? s.name : `AY ${s.name}`;
-                const statusText = s.status ? s.status.charAt(0).toUpperCase() + s.status.slice(1) : (s.isActive ? 'Active' : 'Inactive');
-                return (
-                  <option key={s._id} value={label}>
-                    {label} ({statusText})
-                  </option>
-                );
-              })
-            )}
+            <option value="all">All Sessions</option>
+            {sessionsList.map((s) => {
+              const label = s.name.startsWith("AY") ? s.name : `AY ${s.name}`;
+              const statusText = s.status ? s.status.charAt(0).toUpperCase() + s.status.slice(1) : (s.isActive ? 'Active' : 'Inactive');
+              return (
+                <option key={s._id} value={s._id}>
+                  {label} ({statusText})
+                </option>
+              );
+            })}
           </select>
 
           {/* Level Select */}
