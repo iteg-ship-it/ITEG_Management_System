@@ -13,14 +13,14 @@ export const useSession = () => {
 
 export const SessionProvider = ({ children }) => {
   const [activeSessionId, setActiveSessionId] = useState('');
-  const { data: sessions, isLoading } = useGetAllSessionsQuery();
+  const { data: sessions, isLoading } = useGetAllSessionsQuery(true);
 
-  // Auto-select first active session on load
+  // Auto-select first active or available session on load
   useEffect(() => {
-    if (sessions?.data && !activeSessionId) {
-      const activeSessions = sessions.data.filter(session => session.isActive);
-      if (activeSessions.length > 0) {
-        setActiveSessionId(activeSessions[0]._id);
+    if (sessions?.data && sessions.data.length > 0 && !activeSessionId) {
+      const activeSess = sessions.data.find(s => s.isActive || s.status === 'active') || sessions.data[0];
+      if (activeSess) {
+        setActiveSessionId(activeSess._id);
       }
     }
   }, [sessions, activeSessionId]);

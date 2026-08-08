@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import Header from "../../shared/sidebar/Header";
 import api from "../../../utils/axiosInstance";
+import { useGetAllSessionsQuery } from "../../../redux/api/authApi";
 
 // ── Reusable Stat Card ───────────────────────────────────────
 const StatCard = ({ title, value, icon, color, sub, trend, trendColor }) => {
@@ -68,10 +69,23 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
 
+  // Fetch real sessions dynamically from DB (all active, upcoming, archived, completed)
+  const { data: sessionsData } = useGetAllSessionsQuery(true);
+  const sessionsList = sessionsData?.data || [];
+
   // Filter States
-  const [academicYear, setAcademicYear] = useState("AY 2023-24");
+  const [academicYear, setAcademicYear] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("All");
   const [showNotification, setShowNotification] = useState(false);
+
+  useEffect(() => {
+    if (sessionsList.length > 0 && !academicYear) {
+      const activeSess = sessionsList.find(s => s.isActive || s.status === 'active') || sessionsList[0];
+      if (activeSess) {
+        setAcademicYear(activeSess.name.startsWith("AY") ? activeSess.name : `AY ${activeSess.name}`);
+      }
+    }
+  }, [sessionsList, academicYear]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -158,10 +172,21 @@ const AdminDashboard = () => {
             <select
               value={academicYear}
               onChange={(e) => setAcademicYear(e.target.value)}
-              className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 cursor-pointer"
             >
-              <option value="AY 2023-24">AY 2023-24</option>
-              <option value="AY 2024-25">AY 2024-25</option>
+              {sessionsList.length === 0 ? (
+                <option value="">No Sessions Found</option>
+              ) : (
+                sessionsList.map((s) => {
+                  const label = s.name.startsWith("AY") ? s.name : `AY ${s.name}`;
+                  const statusText = s.status ? s.status.charAt(0).toUpperCase() + s.status.slice(1) : (s.isActive ? 'Active' : 'Inactive');
+                  return (
+                    <option key={s._id} value={label}>
+                      {label} ({statusText})
+                    </option>
+                  );
+                })
+              )}
             </select>
 
             {/* Level Select */}
@@ -391,10 +416,21 @@ const AdminDashboard = () => {
           <select
             value={academicYear}
             onChange={(e) => setAcademicYear(e.target.value)}
-            className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
           >
-            <option value="AY 2023-24">AY 2023-24</option>
-            <option value="AY 2024-25">AY 2024-25</option>
+            {sessionsList.length === 0 ? (
+              <option value="">No Sessions Found</option>
+            ) : (
+              sessionsList.map((s) => {
+                const label = s.name.startsWith("AY") ? s.name : `AY ${s.name}`;
+                const statusText = s.status ? s.status.charAt(0).toUpperCase() + s.status.slice(1) : (s.isActive ? 'Active' : 'Inactive');
+                return (
+                  <option key={s._id} value={label}>
+                    {label} ({statusText})
+                  </option>
+                );
+              })
+            )}
           </select>
 
           {/* Level Select */}

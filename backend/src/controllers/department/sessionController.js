@@ -73,11 +73,12 @@ exports.getAllSessions = async (req, res) => {
     const { all, status } = req.query;
     let filter = {};
     
-    if (all !== 'true') {
+    // If 'all' is true or not specified as false, include inactive/archived sessions
+    if (all !== 'true' && all !== undefined) {
       filter.isActive = true;
     }
     
-    if (status) {
+    if (status && status !== 'all') {
       filter.status = status;
     }
     

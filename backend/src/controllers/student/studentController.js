@@ -10,68 +10,76 @@ const Session = require("../../models/Session");
 const SyllabusVersion = require("../../models/syllabus/SyllabusVersion");
 const { assignTasksToStudent } = require("../../services/taskAssignmentService");
 const { promoteToNextSubLevel } = require("../../services/studentService");
+const { findOrCreateSessionByName } = require("../../utils/sessionHelper");
 const cloudinary = require("../../config/cloudinaryConfig");
 const mongoose = require("mongoose");
 
 
 // ✅ Create Student
 exports.createStudent = async (req, res) => {
-
-
-
-
- 
   try {
-    const { subDepartmentId } = req.body;
-
+    const { subDepartmentId, session, year, academicYear, sessionId: inputSessionId } = req.body;
 
     // Duplicate check
     const existing = await Student.findOne({ prkey: req.body.prkey });
     if (existing) return res.status(409).json({ message: "Student with this prkey already exists" });
 
-
     // Validate subDepartment
     const subDept = await SubDepartment.findById(subDepartmentId);
     if (!subDept) return res.status(404).json({ message: "SubDepartment not found" });
-
 
     // 1️⃣ First Level (lowest order) under this subDepartment
     const firstLevel = await Level.findOne({ subDepartmentId, isActive: true }).sort({ order: 1 });
     if (!firstLevel) return res.status(404).json({ message: "No active level found for this subDepartment" });
 
-
     // 2️⃣ First SubLevel (lowest order) under that Level
     const firstSubLevel = await SubLevel.findOne({ levelId: firstLevel._id, isActive: true }).sort({ order: 1 });
     if (!firstSubLevel) return res.status(404).json({ message: "No active sub-level found for this level" });
 
+    // 3️⃣ Determine Session (Find or auto-create from session/year string, or fallback to latest active session)
+    let targetSessionId = null;
+    const sessionInput = inputSessionId || session || year || academicYear;
+    if (sessionInput) {
+      targetSessionId = await findOrCreateSessionByName(sessionInput);
+    }
 
-    // 3️⃣ Latest active Session
-    const latestSession = await Session.findOne({ isActive: true }).sort({ createdAt: -1 });
-    if (!latestSession) return res.status(404).json({ message: "No active session found" });
+    if (!targetSessionId) {
+      const latestSession = await Session.findOne({ isActive: true }).sort({ createdAt: -1 });
+      if (!latestSession) return res.status(404).json({ message: "No active session found" });
+      targetSessionId = latestSession._id;
+    }
 
+    const targetSession = await Session.findById(targetSessionId);
 
-    // 4️⃣ Latest active SyllabusVersion for this session + level + sublevel
-    const latestSyllabus = await SyllabusVersion.findOne({
-      sessionId: latestSession._id,
+    // 4️⃣ Latest active SyllabusVersion for this session + level + sublevel (or fallback to any active for level+sublevel)
+    let latestSyllabus = await SyllabusVersion.findOne({
+      sessionId: targetSessionId,
       levelId: firstLevel._id,
       subLevelId: firstSubLevel._id,
       status: "active",
       isActive: true
     }).sort({ createdAt: -1 });
-    if (!latestSyllabus) return res.status(404).json({ message: "No active syllabus version found for this session/level/sublevel" });
 
+    if (!latestSyllabus) {
+      latestSyllabus = await SyllabusVersion.findOne({
+        levelId: firstLevel._id,
+        subLevelId: firstSubLevel._id,
+        status: "active",
+        isActive: true
+      }).sort({ createdAt: -1 });
+    }
+
+    if (!latestSyllabus) return res.status(404).json({ message: "No active syllabus version found for this session/level/sublevel" });
 
     const student = new Student({
       ...req.body,
-      sessionId: latestSession._id,
+      sessionId: targetSessionId,
       currentLevelId: firstLevel._id,
       currentSubLevelId: firstSubLevel._id,
       syllabusVersionId: latestSyllabus._id
     });
 
-
     await student.save();
-
 
     // 5️⃣ Auto-assign tasks of this syllabus version to the student
     let taskAssignmentResult = null;
@@ -81,12 +89,11 @@ exports.createStudent = async (req, res) => {
       // Task assignment failure should not block student creation
     }
 
-
     return res.status(201).json({
       message: "Student created successfully",
       data: student,
       meta: {
-        sessionName: latestSession.name,
+        sessionName: targetSession ? targetSession.name : "N/A",
         levelName: firstLevel.name,
         subLevelName: firstSubLevel.name,
         syllabusVersion: latestSyllabus.version,
@@ -119,7 +126,7 @@ exports.getAllStudents = async (req, res) => {
 
     const students = await Student.find(filter)
       .populate("subDepartmentId", "name departmentId")
-      .populate("sessionId", "name")
+      .populate("sessionId", "name startDate endDate status isActive")
       .populate("currentLevelId", "name order")
       .populate("currentSubLevelId", "name order")
       .sort({ createdAt: -1 });
@@ -179,6 +186,13 @@ exports.updateStudent = async (req, res) => {
     const updateData = {};
     allowedFields.forEach(f => { if (req.body[f] !== undefined) updateData[f] = req.body[f]; });
 
+    const sessionInput = req.body.sessionId || req.body.session || req.body.year || req.body.academicYear;
+    if (sessionInput) {
+      const targetSessionId = await findOrCreateSessionByName(sessionInput);
+      if (targetSessionId) {
+        updateData.sessionId = targetSessionId;
+      }
+    }
 
     const student = await Student.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
     if (!student) return res.status(404).json({ message: "Student not found" });

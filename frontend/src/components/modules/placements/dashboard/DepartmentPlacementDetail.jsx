@@ -11,6 +11,7 @@ import StatsCard from "./StatsCard";
 import PlacementFunnel from "./PlacementFunnel";
 import StatusBreakdown from "./StatusBreakdown";
 import TopCompanies from "./TopCompanies";
+import { useGetAllSessionsQuery } from "../../../../redux/api/authApi";
 
 // ── Dummy / Fallback Data ──────────────────────────────────────
 const DUMMY_DEPT_DETAILS = {
@@ -23,16 +24,14 @@ const DUMMY_DEPT_DETAILS = {
 };
 
 const DUMMY = {
-  overview:   { totalStudents: 40, readyStudents: 15, interviewRunning: 6, placedStudents: 28, placementPercentage: 70.0 },
-  funnel:     { ready: 15, interview: 6, selected: 4, placed: 28 },
-  breakdown:  { notReady: 8, inProgress: 5, ready: 10, readyForInterview: 5, interview: 6, selected: 4, placed: 28 },
-  alerts:     { readyButNoInterview: 7, multipleRejections: 3, placementPercentage: 70.0 },
+  overview: { totalStudents: 40, readyStudents: 15, interviewRunning: 6, placedStudents: 32, placementPercentage: 80.0 },
+  funnel: { ready: 15, interview: 6, selected: 4, placed: 32 },
+  breakdown: { unmappedCount: 2, readyToProcessCount: 15, onProcessCount: 6, placedCount: 32 },
+  alerts: { unmappedStudents: 2 },
   readyStudents: [
-    { studentId: "1", name: "Rahul Sharma",   prkey: "SS001", readinessStatus: "Ready",              hasInterview: false, interviewStatus: null,        lastActivity: "2025-01-10" },
-    { studentId: "2", name: "Priya Verma",    prkey: "SS002", readinessStatus: "Ready for Interview", hasInterview: true,  interviewStatus: "Scheduled",  lastActivity: "2025-01-12" },
-    { studentId: "3", name: "Amit Patel",     prkey: "SS003", readinessStatus: "Ready",              hasInterview: false, interviewStatus: null,        lastActivity: "2025-01-08" },
-    { studentId: "4", name: "Sneha Joshi",    prkey: "SS004", readinessStatus: "Ready",              hasInterview: true,  interviewStatus: "Ongoing",    lastActivity: "2025-01-14" },
-    { studentId: "5", name: "Vikram Singh",   prkey: "SS005", readinessStatus: "Ready for Interview", hasInterview: false, interviewStatus: null,        lastActivity: "2025-01-09" },
+    { studentId: "s1", name: "Rahul Sharma", prkey: "PRK-2024-001", levelName: "4th Year", gpa: 8.4, attendance: 88, backlogCount: 0, testPass: true, resumeUploaded: true },
+    { studentId: "s2", name: "Priya Patel",  prkey: "PRK-2024-005", levelName: "4th Year", gpa: 8.9, attendance: 92, backlogCount: 0, testPass: true, resumeUploaded: true },
+    { studentId: "s3", name: "Amit Kumar",   prkey: "PRK-2024-012", levelName: "3rd Year", gpa: 7.8, attendance: 82, backlogCount: 0, testPass: true, resumeUploaded: true },
   ],
   recentPlacements: [
     { studentId: "6",  studentName: "Anjali Gupta",   prkey: "SS006", companyName: "TCS Pvt Ltd",      salary: 450000, placedDate: "2025-01-05" },
@@ -214,10 +213,21 @@ const DepartmentPlacementDetail = () => {
               <select
                 value={academicYear}
                 onChange={(e) => setAcademicYear(e.target.value)}
-                className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 transition"
+                className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 transition cursor-pointer"
               >
-                <option value="AY 2024-25">AY 2024-25</option>
-                <option value="AY 2023-24">AY 2023-24</option>
+                {sessionsList.length === 0 ? (
+                  <option value="">No Sessions Found</option>
+                ) : (
+                  sessionsList.map((s) => {
+                    const label = s.name.startsWith("AY") ? s.name : `AY ${s.name}`;
+                    const statusText = s.status ? s.status.charAt(0).toUpperCase() + s.status.slice(1) : (s.isActive ? 'Active' : 'Inactive');
+                    return (
+                      <option key={s._id} value={label}>
+                        {label} ({statusText})
+                      </option>
+                    );
+                  })
+                )}
               </select>
 
               <select
