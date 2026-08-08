@@ -145,6 +145,7 @@ const DepartmentDetails = () => {
                   {subdepartments.map((subdept) => (
                     <div key={subdept._id} className="w-full flex-shrink-0 px-2">
                       <SubDepartmentCard
+                        variant="fullpage"
                         title={subdept.name}
                         departmentName={department.name}
                         status={subdept.isActive}
