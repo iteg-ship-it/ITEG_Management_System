@@ -49,13 +49,17 @@ const allPermissions = {
         { feature: 'Page_LevelWiseManagement', description: 'Access to level-wise management', access: ['read'] },
         { feature: 'Page_DummyStudents', description: 'Access to dummy students section', access: ['read'] },
         { feature: 'Page_LeaveRequests', description: 'Access to student leave requests', access: ['read', 'update'] },
+        { feature: 'Page_TaskManagement', description: 'Access to the Task Management page', access: ['read', 'create', 'update', 'delete'] },
+        { feature: 'Page_CurriculumManagement', description: 'Access to the Curriculum Management page', access: ['read', 'create', 'update', 'delete'] },
 
         // Placements Extras
         { feature: 'Page_CompanyDetails', description: 'Access to company details', access: ['read'] },
         { feature: 'Page_PlacedStudents', description: 'Access to placed students list', access: ['read'] },
 
         // Settings
-        { feature: 'Page_Settings', description: 'Access to the main Settings menu', access: ['read'] }
+        { feature: 'Page_Settings', description: 'Access to the main Settings menu', access: ['read'] },
+        { feature: 'Page_SessionManagement', description: 'Access to the Session Management page', access: ['read', 'update'] },
+        { feature: 'Page_Support', description: 'Access to the Support page', access: ['read'] }
     ],
     
     // Admin has a subset of permissions
@@ -71,6 +75,8 @@ const allPermissions = {
         { feature: 'Page_AdmittedStudents', description: 'Access to the Admitted Students section', access: ['read'] },
         { feature: 'Page_LevelWiseManagement', description: 'Access to level-wise management', access: ['read'] },
         { feature: 'Page_LeaveRequests', description: 'Access to student leave requests', access: ['read', 'update'] },
+        { feature: 'Page_TaskManagement', description: 'Access to the Task Management page', access: ['read', 'update'] },
+        { feature: 'Page_CurriculumManagement', description: 'Access to the Curriculum Management page', access: ['read', 'update'] },
         
         // Placement
         { feature: 'Page_Placement', description: 'Access to the Placement section', access: ['read'] },
@@ -80,7 +86,9 @@ const allPermissions = {
         // Academic Management
         { feature: 'Page_Syllabus', description: 'Access to the Syllabus page', access: ['read', 'update'] },
         { feature: 'Page_Level', description: 'Access to the Level management page', access: ['read'] },
-        { feature: 'Page_SubLevel', description: 'Access to the Sub-Level management page', access: ['read'] }
+        { feature: 'Page_SubLevel', description: 'Access to the Sub-Level management page', access: ['read'] },
+        { feature: 'Page_SessionManagement', description: 'Access to the Session Management page', access: ['read', 'update'] },
+        { feature: 'Page_Support', description: 'Access to the Support page', access: ['read'] }
     ],
     
     // Faculty has limited permissions
@@ -92,9 +100,12 @@ const allPermissions = {
         // Student Management (Read Only)
         { feature: 'Page_AdmittedStudents', description: 'Access to the Admitted Students section', access: ['read'] },
         { feature: 'Page_LeaveRequests', description: 'Access to student leave requests', access: ['read', 'update'] },
+        { feature: 'Page_TaskManagement', description: 'Access to the Task Management page', access: ['read'] },
+        { feature: 'Page_CurriculumManagement', description: 'Access to the Curriculum Management page', access: ['read'] },
         
         // Academic Content
         { feature: 'Page_Syllabus', description: 'Access to the Syllabus page', access: ['read'] },
+        { feature: 'Page_Support', description: 'Access to the Support page', access: ['read'] }
     ],
 
     hod: [
@@ -102,6 +113,8 @@ const allPermissions = {
         { feature: 'Page_AttendanceDetails', description: 'Access to attendance details', access: ['read'] },
         { feature: 'Page_AdmittedStudents', description: 'Access to the Admitted Students section', access: ['read'] },
         { feature: 'Page_LeaveRequests', description: 'Access to student leave requests', access: ['read', 'update'] },
+        { feature: 'Page_TaskManagement', description: 'Access to the Task Management page', access: ['read', 'update'] },
+        { feature: 'Page_CurriculumManagement', description: 'Access to the Curriculum Management page', access: ['read', 'update'] },
         { feature: 'Page_Syllabus', description: 'Access to the Syllabus page', access: ['read'] },
         { feature: 'Page_Placement', description: 'Access to the Placement section', access: ['read'] },
         { feature: 'Page_CompanyDetails', description: 'Access to company details', access: ['read'] },
@@ -109,6 +122,8 @@ const allPermissions = {
         { feature: 'Page_SubDepartment', description: 'Access to the Sub-Department management page', access: ['read'] },
         { feature: 'Page_Level', description: 'Access to the Level management page', access: ['read'] },
         { feature: 'Page_SubLevel', description: 'Access to the Sub-Level management page', access: ['read'] },
+        { feature: 'Page_SessionManagement', description: 'Access to the Session Management page', access: ['read', 'update'] },
+        { feature: 'Page_Support', description: 'Access to the Support page', access: ['read'] },
     ]
 };
 

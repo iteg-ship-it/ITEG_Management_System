@@ -163,10 +163,10 @@ const Sidebar = ({ children }) => {
       subMenu: [
         { name: "Department", path: "/department-management", permission: "Page_Department" },
         { name: "Student Progress", path: "/student-detail-table", permission: "Page_AdmittedStudents" },
-        { name: "Leave Requests", path: "/leave-requests", permission: "Page_AdmittedStudents" },
+        { name: "Leave Requests", path: "/leave-requests", permission: "Page_LeaveRequests" },
         { name: "Dummy Students", path: "/student-permission", permission: "Page_DummyStudents" },
-        { name: "Task Management", path: "/task-management", permission: "Page_AdmittedStudents" },
-        { name: "Curriculum Management", path: "/curriculum-management", permission: "Page_AdmittedStudents" },
+        { name: "Task Management", path: "/task-management", permission: "Page_TaskManagement" },
+        { name: "Curriculum Management", path: "/curriculum-management", permission: "Page_CurriculumManagement" },
       ],
     },
     {
@@ -195,7 +195,7 @@ const Sidebar = ({ children }) => {
 
   const systemDirectLinks = [
     { name: "Settings", path: "/settings", icon: <IoSettingsSharp />, permission: "Page_Settings" },
-    { name: "Sessions", path: "/session-management", icon: <MdDashboard />, permission: "Page_Settings" },
+    { name: "Sessions", path: "/session-management", icon: <MdDashboard />, permission: "Page_SessionManagement" },
     { name: "Support", path: "/support", icon: <MdSupportAgent />, permission: "Page_Support" },
   ];
 
@@ -264,22 +264,24 @@ const Sidebar = ({ children }) => {
 
 
         <p className="text-xs text-gray-400 px-3 mt-4 mb-2">SYSTEM</p>
-        {systemDirectLinks.map((item, idx) => {
-          const active = location.pathname === item.path;
-          return (
-            <Link
-              key={idx}
-              to={item.path}
-              onClick={onClose}
-              className={`flex items-center gap-3 px-2 py-2.5 rounded-lg text-[15px] transition mb-1 ${
-                active ? "bg-orange-100 text-orange-400 font-semibold" : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              {item.icon}
-              {item.name}
-            </Link>
-          );
-        })}
+        {systemDirectLinks
+          .filter(item => !anyPermissionsLoaded || hasPermission(item.permission, 'read'))
+          .map((item, idx) => {
+            const active = location.pathname === item.path;
+            return (
+              <Link
+                key={idx}
+                to={item.path}
+                onClick={onClose}
+                className={`flex items-center gap-3 px-2 py-2.5 rounded-lg text-[15px] transition mb-1 ${
+                  active ? "bg-orange-100 text-orange-400 font-semibold" : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                {item.icon}
+                {item.name}
+              </Link>
+            );
+          })}
       </nav>
 
 
