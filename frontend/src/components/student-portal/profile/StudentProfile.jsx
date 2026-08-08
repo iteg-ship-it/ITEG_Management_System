@@ -1,13 +1,15 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { toast } from "react-toastify";
 import {
     MdVerified, MdEdit, MdClose, MdCheckCircle,
-    MdVisibility, MdVisibilityOff, MdPerson, MdSchool, MdLock
+    MdVisibility, MdVisibilityOff, MdPerson, MdSchool, MdLock,
+    MdPeople, MdEmail, MdPhone
 } from "react-icons/md";
 import {
     useGetMyStudentProfileQuery,
     useUpdateMyStudentProfileImageMutation,
     useChangeMyStudentPasswordMutation,
+    useGetMyStudentLevelHistoryQuery,
 } from "../../../redux/api/studentApi";
 
 const formatDate = (d) => d ? new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
@@ -119,10 +121,44 @@ export default function StudentProfile() {
 
     const { data, isLoading, refetch }             = useGetMyStudentProfileQuery();
     const [updateImage, { isLoading: uploading }]  = useUpdateMyStudentProfileImageMutation();
+    const { data: levelHistoryResponse }           = useGetMyStudentLevelHistoryQuery();
 
     const raw      = data?.data || {};
     const name     = `${raw.firstName || ""} ${raw.lastName || ""}`.trim() || "Student";
     const initials = name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+
+    const daysInSubLevel = useMemo(() => {
+        if (!raw) return null;
+        const currentSubLevelId = raw.currentSubLevelId?._id || raw.currentSubLevelId;
+        if (!currentSubLevelId) return null;
+
+        let entryDate = null;
+        const history = levelHistoryResponse?.data;
+        if (Array.isArray(history)) {
+            const currentProgress = history.find(h => 
+                (h.subLevelId?._id || h.subLevelId)?.toString() === currentSubLevelId.toString()
+            );
+            if (currentProgress) {
+                entryDate = currentProgress.startedAt || currentProgress.createdAt;
+            }
+            if (!entryDate) {
+                const completedProgress = [...history]
+                    .filter(h => h.status === 'completed' && h.completedAt)
+                    .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
+                if (completedProgress.length > 0) {
+                    entryDate = completedProgress[0].completedAt;
+                }
+            }
+        }
+        if (!entryDate) {
+            entryDate = raw.createdAt;
+        }
+        if (!entryDate) return null;
+
+        const diffTime = Math.abs(new Date() - new Date(entryDate));
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays === 0 ? "Today" : diffDays === 1 ? "1 Day" : `${diffDays} Days`;
+    }, [raw, levelHistoryResponse]);
 
     const handleImageChange = async (e) => {
         const file = e.target.files[0];
@@ -172,7 +208,7 @@ export default function StudentProfile() {
         { label: "12th Subject",     value: raw.subject12 },
         { label: "12th Year",        value: raw.year12 },
         { label: "Current Level",    value: raw.currentLevelId?.name },
-        { label: "Current SubLevel", value: raw.currentSubLevelId?.name },
+        { label: "Current SubLevel", value: raw.currentSubLevelId?.name ? `${raw.currentSubLevelId.name}${daysInSubLevel ? ` (${daysInSubLevel})` : ''}` : '—' },
         { label: "Session",          value: raw.sessionId?.name },
         { label: "Sub Department",   value: raw.subDepartmentId?.name },
     ];
@@ -211,7 +247,7 @@ export default function StudentProfile() {
                             {raw.currentLevelId?.name || "—"}
                         </span>
                         <span className="flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-violet-50 text-violet-600 border border-violet-100">
-                            {raw.currentSubLevelId?.name || "—"}
+                            {raw.currentSubLevelId?.name || "—"} {daysInSubLevel ? `• ${daysInSubLevel}` : ''}
                         </span>
                         {raw.isFTP && (
                             <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 border border-blue-100">FTP</span>
@@ -279,6 +315,9 @@ export default function StudentProfile() {
                         </div>
                         <InfoGrid fields={academicFields} />
                 </div>
+
+
+
             </div>
         </div>
     );

@@ -52,6 +52,8 @@ const RolesPermissions = () => {
                 return <FaUserShield className="text-2xl text-orange-500" />;
             case 'faculty':
                 return <FaChalkboardTeacher className="text-2xl text-orange-500" />;
+            case 'hod':
+                return <FaUserShield className="text-2xl text-orange-500" />;
             case 'chairman':
                 return <FaBriefcase className="text-2xl text-orange-500" />;
             case 'ceo':
@@ -70,6 +72,8 @@ const RolesPermissions = () => {
                 return 'Administrative access to manage users, departments, and system configurations.';
             case 'faculty':
                 return 'Access to student management, academic records, and educational content.';
+            case 'hod':
+                return 'Department head access with full visibility and management of their assigned department.';
             case 'chairman':
                 return 'Executive oversight of departments and strategic decision-making authority.';
             case 'ceo':
@@ -131,6 +135,8 @@ const RolesPermissions = () => {
                 return 'bg-blue-100 text-blue-800';
             case 'faculty':
                 return 'bg-green-100 text-green-800';
+            case 'hod':
+                return 'bg-amber-100 text-amber-800';
             case 'chairman':
                 return 'bg-purple-100 text-purple-800';
             case 'ceo':

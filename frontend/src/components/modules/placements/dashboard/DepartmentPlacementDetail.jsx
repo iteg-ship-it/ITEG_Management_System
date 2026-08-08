@@ -14,10 +14,12 @@ import TopCompanies from "./TopCompanies";
 
 // ── Dummy / Fallback Data ──────────────────────────────────────
 const DUMMY_DEPT_DETAILS = {
-  "1": { name: "Computer Applications", code: "BCA / MCA" },
-  "2": { name: "Information Technology", code: "B.Tech IT" },
-  "3": { name: "Electronics & Communication", code: "ECE" },
-  "4": { name: "Mechanical Engineering", code: "MECH" },
+  "6a0c462fb827b322a78d5727": { name: "ITEG", code: "ITEG" },
+  "6a6476a55a76e696c8d7e64b": { name: "UIUX", code: "UI/UX" },
+  "6a5f4cbf24be9c4955b306dd": { name: "ITEG - Software Engineering", code: "SE" },
+  "6a5f4cbf24be9c4955b306e0": { name: "AI & Data Science", code: "AI/DS" },
+  "6a0eebd80e812b062d541ec4": { name: "MEG", code: "MEG" },
+  "6a23de703ae885bdae033748": { name: "FTP", code: "FTP" },
 };
 
 const DUMMY = {

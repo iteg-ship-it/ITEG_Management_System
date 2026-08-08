@@ -1,5 +1,7 @@
 const SubLevel = require("../../models/department/SubLevel");
 const Level = require("../../models/department/Level");
+const Student = require("../../models/student/Student");
+const SyllabusVersion = require("../../models/syllabus/SyllabusVersion");
 const mongoose = require("mongoose");
 
 // Helper function to validate ObjectId
@@ -58,10 +60,22 @@ exports.getSubLevelsByLevel = async (req, res) => {
       levelId, 
       isActive: true 
     }).populate('levelId').sort({ order: 1 });
+
+    const data = [];
+    for (const subLevel of subLevels) {
+      const studentCount = await Student.countDocuments({ currentSubLevelId: subLevel._id, status: 'Active' });
+      const syllabus = await SyllabusVersion.findOne({ subLevelId: subLevel._id, isActive: true }).sort({ versionNumber: -1 });
+      const subjects = syllabus ? syllabus.subjects.map(s => s.name) : [];
+      data.push({
+        ...subLevel.toObject(),
+        studentCount,
+        subjects
+      });
+    }
     
     res.status(200).json({
       success: true,
-      data: subLevels
+      data: data
     });
   } catch (error) {
     res.status(500).json({

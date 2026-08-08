@@ -10,7 +10,7 @@ import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import InputField from '../../../shared/form-fields/InputField';
 import RadioGroup from '../../../shared/form-fields/RadioGroup';
-import CommonCard from '../CommonCard';
+import SubDepartmentCard from './SubDepartmentCard';
 
 // Reusable course checkbox list — shows courses from the selected department
 const CourseCheckboxes = ({ departmentId, departments, values, setFieldValue }) => {
@@ -188,16 +188,15 @@ const SubDepartment = () => {
                                 enableReinitialize
                             >
                                 {({ values, setFieldValue, isSubmitting, submitForm, resetForm }) => (
-                                    <CommonCard
+                                    <SubDepartmentCard
                                         key={subdept._id}
-                                        variant="card1"
-                                        icon={MdAccountTree}
                                         title={subdept.name}
+                                        departmentName={subdept.departmentId?.name}
                                         status={subdept.isActive}
-                                        infoItems={[
-                                            { icon: '', value: subdept.totalStudents || 0, label: 'Students' },
-                                            { icon: '', value: subdept.allowedCourses?.length || 0, label: 'Courses' },
-                                        ]}
+                                        totalStudents={subdept.totalStudents || 0}
+                                        allowedCourses={subdept.allowedCourses || []}
+                                        faculties={subdept.faculties || []}
+                                        levelCounts={subdept.levelCounts || []}
                                         onView={() => navigate('/subdepartment-details', {
                                             state: { departmentId: subdept.departmentId?._id, subdepartment: subdept, departmentName: subdept.departmentId?.name }
                                         })}

@@ -3,7 +3,6 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useGetSubdepartmentByIdQuery, useGetLevelsBySubdepartmentQuery, useGetSubLevelsByLevelQuery, useAddLevelMutation, useUpdateLevelMutation } from "../../../../redux/api/authApi";
 import { toast } from "react-toastify";
 import Header from "../../../shared/sidebar/Header";
-import CommonCard from "../CommonCard";
 import OrangeButton from "../../../shared/sidebar/OrangeButton";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
@@ -14,7 +13,8 @@ import Loader from "../../../shared/loader/Loader";
 
 const SubLevelCount = ({ levelId, render }) => {
   const { data } = useGetSubLevelsByLevelQuery(levelId, { skip: !levelId });
-  return render(data?.data?.length || 0);
+  const list = data?.data || [];
+  return render(list.length, list);
 };
 
 const validationSchema = Yup.object({
@@ -23,6 +23,81 @@ const validationSchema = Yup.object({
   isActive: Yup.boolean(),
 });
 
+// LevelCard matching project design guidelines
+const LevelCard = ({ level, subLevelCount, subLevelsList, onView, onEdit }) => {
+  return (
+    <div className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm hover:border-orange-200 transition-all duration-200 flex flex-col h-full">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-orange-50 text-orange-500 border border-orange-100 flex items-center justify-center font-bold flex-shrink-0">
+            <MdLayers size={20} />
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider truncate">{level.name}</h3>
+            <span className={`inline-flex items-center text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 mt-1 rounded-full ${
+              level.isActive 
+                ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
+                : 'bg-slate-100 text-slate-400 border border-slate-200'
+            }`}>
+              {level.isActive ? 'Active' : 'Inactive'}
+            </span>
+          </div>
+        </div>
+        <div className="text-right text-[10px] font-black text-gray-400 uppercase tracking-wider">
+          Order: {level.order}
+        </div>
+      </div>
+
+      {/* SubLevels Detailed Table */}
+      <div className="flex-1 mb-5">
+        <span className="block text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">
+          Sub Levels ({subLevelCount})
+        </span>
+        {subLevelsList && subLevelsList.length > 0 ? (
+          <div className="border border-slate-50 rounded-2xl overflow-hidden bg-slate-50/40">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50 text-[9px] font-black text-gray-400 uppercase tracking-wider">
+                  <th className="px-3 py-1.5">Sub Level</th>
+                  <th className="px-3 py-1.5">Subject</th>
+                  <th className="px-3 py-1.5 text-right">Students</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-[11px] text-gray-700">
+                {subLevelsList.map((subLevel) => (
+                  <tr key={subLevel._id} className="hover:bg-slate-50/80 transition duration-150">
+                    <td className="px-3 py-1.5 font-bold text-slate-800">{subLevel.name}</td>
+                    <td className="px-3 py-1.5 font-semibold text-slate-500 truncate max-w-[110px]" title={subLevel.subjects?.join(', ') || 'N/A'}>
+                      {subLevel.subjects?.join(', ') || 'N/A'}
+                    </td>
+                    <td className="px-3 py-1.5 text-right font-black text-orange-500">{subLevel.studentCount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-slate-100 p-4 text-center">
+            <span className="text-xs text-gray-400 italic">No sublevels found</span>
+          </div>
+        )}
+      </div>
+
+      {/* Action buttons at the bottom (aligned to bottom) */}
+      <div className="flex items-center gap-3 mt-auto pt-4 border-t border-slate-100">
+        <button
+          onClick={onView}
+          className="flex-1 py-2 text-xs font-bold text-gray-600 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 rounded-xl transition duration-150 cursor-pointer text-center"
+        >
+          View
+        </button>
+        <div className="flex-1">
+          {onEdit}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const SubdepartmentDetails = () => {
   const location = useLocation();
@@ -40,21 +115,12 @@ const SubdepartmentDetails = () => {
   const [addLevel] = useAddLevelMutation();
   const [updateLevel] = useUpdateLevelMutation();
 
-  const [editingLevel,        setEditingLevel]        = useState(null);
-  const [isEditDrawerOpen,    setIsEditDrawerOpen]    = useState(false);
-  const [isSubLevelDrawerOpen,setIsSubLevelDrawerOpen]= useState(false);
-  const [editingSubLevel,     setEditingSubLevel]     = useState(null);
-  const [selectedLevel,       setSelectedLevel]       = useState(null);
-
   const departmentName = location.state?.departmentName || departmentObj?.name || "Department";
   const levels = [...(levelsData?.data || [])].sort((a, b) => b.isActive - a.isActive);
 
   if (isSubdeptLoading || isLevelsLoading) return <Loader />;
   if (!subdepartment) return <div className="p-6">No subdepartment data found</div>;
 
-  /* ════════════════════════════════════════════════════════════
-     RENDER
-  ════════════════════════════════════════════════════════════ */
   return (
     <>
       <Formik
@@ -110,7 +176,7 @@ const SubdepartmentDetails = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-6">
           {levels.length === 0 ? (
             <div className="col-span-full text-center py-16">
               <MdLayers size={48} className="mx-auto text-gray-300 mb-3" />
@@ -121,16 +187,11 @@ const SubdepartmentDetails = () => {
               <SubLevelCount
                 key={level._id}
                 levelId={level._id}
-                render={(subLevelCount) => (
-                  <CommonCard
-                    variant="card1"
-                    icon={MdLayers}
-                    title={level.name}
-                    status={level.isActive}
-                    infoItems={[
-                      { icon: <MdLayers size={14} className="text-orange-400" />, label: "SubLevels", value: subLevelCount },
-                      { icon: <MdLayers size={14} className="text-orange-400" />, label: "Order", value: level.order },
-                    ]}
+                render={(subLevelCount, subLevelsList) => (
+                  <LevelCard
+                    level={level}
+                    subLevelCount={subLevelCount}
+                    subLevelsList={subLevelsList}
                     onView={() => navigate("/show-sublevel-tables", { state: { level, subdepartment, departmentId, departmentName } })}
                     onEdit={
                       <Formik
@@ -154,7 +215,7 @@ const SubdepartmentDetails = () => {
                           <OrangeButton
                             buttonTitle="Edit"
                             panelTitle="Edit Level"
-                            customButtonClass="w-full bg-orange-500 text-white rounded-lg py-2 text-sm font-semibold hover:bg-orange-600 transition"
+                            customButtonClass="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-xl py-2 text-xs font-bold transition duration-150 cursor-pointer"
                             drawerContent={
                               <Form className="space-y-4">
                                 <InputField label="Level Name" name="name" placeholder="Enter level name" />

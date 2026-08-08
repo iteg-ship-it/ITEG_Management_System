@@ -285,6 +285,12 @@ const LeaveRequests = () => {
               <span className="text-[10px] text-gray-500 font-medium">{row.remark}</span>
             </div>
           )}
+          {row.assignedFacultyId && (
+            <div className="mt-1.5 flex items-center gap-1.5 text-[10px] text-orange-600 font-bold">
+              <span>Assigned to:</span>
+              <span className="bg-orange-50 px-1.5 py-0.5 rounded text-[9px] uppercase border border-orange-100">{row.assignedFacultyId.name}</span>
+            </div>
+          )}
           {row.approvedBy && (
             <div className="mt-1.5 flex items-center gap-1.5 text-[10px] text-emerald-600 font-bold">
               <span>Approved by:</span>

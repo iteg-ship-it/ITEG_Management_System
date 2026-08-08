@@ -67,6 +67,10 @@ export const studentApi = createApi({
       providesTags: ["StudentProfile"],
     }),
 
+    getFaculties: builder.query({
+      query: () => ({ url: "/student-auth/faculties", method: "GET" }),
+    }),
+
     // Phase 3 — Documents
     uploadMyExtraDocument: builder.mutation({
       query: (data) => ({ url: "/student-auth/me/extra-documents", method: "POST", body: data }),
@@ -102,6 +106,7 @@ export const {
   useGetMyStudentEventLogQuery,
   useApplyMyPermissionMutation,
   useGetMyPermissionsQuery,
+  useGetFacultiesQuery,
   useUploadMyExtraDocumentMutation,
   useGetMyExtraDocumentsQuery,
   useGetMyPlacementQuery,

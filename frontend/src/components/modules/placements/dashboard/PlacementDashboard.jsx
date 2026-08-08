@@ -22,10 +22,12 @@ const DUMMY_OVERVIEW = {
 };
 
 const DUMMY_DEPARTMENTS = [
-  { subDepartmentId: "1", subDepartmentName: "Computer Applications", subDepartmentCode: "BCA/MCA", totalStudents: 40, placedStudents: 32, placementPercentage: 80.0 },
-  { subDepartmentId: "2", subDepartmentName: "Information Technology", subDepartmentCode: "IT",     totalStudents: 35, placedStudents: 25, placementPercentage: 71.4 },
-  { subDepartmentId: "3", subDepartmentName: "Electronics & Communication", subDepartmentCode: "ECE", totalStudents: 25, placedStudents: 18, placementPercentage: 72.0 },
-  { subDepartmentId: "4", subDepartmentName: "Mechanical Engineering", subDepartmentCode: "MECH",   totalStudents: 20, placedStudents: 6,  placementPercentage: 30.0 },
+  { subDepartmentId: "6a0c462fb827b322a78d5727", subDepartmentName: "ITEG", subDepartmentCode: "ITEG", totalStudents: 40, placedStudents: 32, placementPercentage: 80.0 },
+  { subDepartmentId: "6a6476a55a76e696c8d7e64b", subDepartmentName: "UIUX", subDepartmentCode: "UI/UX", totalStudents: 20, placedStudents: 15, placementPercentage: 75.0 },
+  { subDepartmentId: "6a5f4cbf24be9c4955b306dd", subDepartmentName: "ITEG - Software Engineering", subDepartmentCode: "SE", totalStudents: 35, placedStudents: 25, placementPercentage: 71.4 },
+  { subDepartmentId: "6a5f4cbf24be9c4955b306e0", subDepartmentName: "AI & Data Science", subDepartmentCode: "AI/DS", totalStudents: 25, placedStudents: 18, placementPercentage: 72.0 },
+  { subDepartmentId: "6a0eebd80e812b062d541ec4", subDepartmentName: "MEG", subDepartmentCode: "MEG", totalStudents: 20, placedStudents: 6, placementPercentage: 30.0 },
+  { subDepartmentId: "6a23de703ae885bdae033748", subDepartmentName: "FTP", subDepartmentCode: "FTP", totalStudents: 15, placedStudents: 10, placementPercentage: 66.7 },
 ];
 
 const DUMMY_FUNNEL = { ready: 45, interview: 18, selected: 10, placed: 85 };
@@ -40,7 +42,7 @@ const DUMMY_COMPANIES = [
 
 const DUMMY_ALERTS = {
   studentsReadyButNoInterview: 12,
-  lowestPerformingDepartment: { subDepartmentId: "4", name: "Mechanical Engineering", placementPercentage: 30.0 },
+  lowestPerformingDepartment: { subDepartmentId: "6a0eebd80e812b062d541ec4", name: "MEG", placementPercentage: 30.0 },
 };
 
 // Monthly placement trend for Recharts
@@ -175,10 +177,12 @@ const PlacementDashboard = () => {
               className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 transition"
             >
               <option value="All">All Departments</option>
-              <option value="Computer Applications">Computer Applications</option>
-              <option value="Information Technology">Information Technology</option>
-              <option value="Electronics & Communication">Electronics & Communication</option>
-              <option value="Mechanical Engineering">Mechanical Engineering</option>
+              <option value="ITEG">ITEG</option>
+              <option value="UIUX">UIUX</option>
+              <option value="ITEG - Software Engineering">ITEG - Software Engineering</option>
+              <option value="AI & Data Science">AI & Data Science</option>
+              <option value="MEG">MEG</option>
+              <option value="FTP">FTP</option>
             </select>
 
             {/* Refresh */}

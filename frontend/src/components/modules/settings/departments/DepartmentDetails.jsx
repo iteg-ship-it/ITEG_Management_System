@@ -8,7 +8,7 @@ import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import InputField from "../../../shared/form-fields/InputField";
 import RadioGroup from "../../../shared/form-fields/RadioGroup";
-import CommonCard from "../CommonCard";
+import SubDepartmentCard from "./SubDepartmentCard";
 import { MdAccountTree } from "react-icons/md";
 import { HiOutlineUserGroup } from "react-icons/hi";
 import { MdOutlineMenuBook } from "react-icons/md";
@@ -134,16 +134,15 @@ const DepartmentDetails = () => {
             </div>
           ) : (
             subdepartments.map((subdept) => (
-              <CommonCard
+              <SubDepartmentCard
                 key={subdept._id}
-                variant="card1"
-                icon={MdAccountTree}
                 title={subdept.name}
+                departmentName={department.name}
                 status={subdept.isActive}
-                infoItems={[
-                  { icon: <HiOutlineUserGroup size={14} className="text-orange-400" />, label: "Students", value: subdept.totalStudents || 0 },
-                  { icon: <MdOutlineMenuBook size={14} className="text-orange-400" />, label: "Courses", value: subdept.allowedCourses?.length || 0 },
-                ]}
+                totalStudents={subdept.totalStudents || 0}
+                allowedCourses={subdept.allowedCourses || []}
+                faculties={subdept.faculties || []}
+                levelCounts={subdept.levelCounts || []}
                 onView={() => navigate("/subdepartment-details", {
                   state: { departmentId: department._id, subdepartment: subdept, departmentName: department.name }
                 })}

@@ -1,6 +1,8 @@
 const SubDepartment = require("../../models/department/SubDepartment");
 const Department = require("../../models/department/Department");
 const Student = require("../../models/student/Student");
+const Level = require("../../models/department/Level");
+const User = require("../../models/user/user");
 const mongoose = require("mongoose");
 const { invalidateDeptCache } = require("../../middlewares/departmentFilter");
 
@@ -109,7 +111,38 @@ exports.getSubDepartmentsByDepartment = async (req, res) => {
     const subDepartmentsWithCounts = await Promise.all(
       subDepartments.map(async (subDepartment) => {
         const totalStudents = await Student.countDocuments({ subDepartmentId: subDepartment._id });
-        return { ...subDepartment.toObject(), totalStudents };
+        
+        // Fetch levels for this sub-department
+        const levels = await Level.find({ subDepartmentId: subDepartment._id, isActive: true }).sort({ order: 1 });
+        const levelCounts = await Promise.all(
+          levels.map(async (lvl) => {
+            const count = await Student.countDocuments({
+              subDepartmentId: subDepartment._id,
+              currentLevelId: lvl._id
+            });
+            return {
+              levelId: lvl._id,
+              levelName: lvl.name,
+              order: lvl.order,
+              studentCount: count
+            };
+          })
+        );
+
+        // Fetch faculties of the parent department
+        const deptId = subDepartment.departmentId?._id || subDepartment.departmentId;
+        const faculties = await User.find({
+          departmentId: deptId,
+          role: { $in: ["faculty", "hod"] },
+          isActive: true
+        }).select("name profileImage position email mobileNo");
+
+        return { 
+          ...subDepartment.toObject(), 
+          totalStudents,
+          faculties,
+          levelCounts
+        };
       })
     );
     
@@ -152,7 +185,38 @@ exports.getAllSubDepartments = async (req, res) => {
     const subDepartmentsWithCounts = await Promise.all(
       subDepartments.map(async (subDepartment) => {
         const totalStudents = await Student.countDocuments({ subDepartmentId: subDepartment._id });
-        return { ...subDepartment.toObject(), totalStudents };
+
+        // Fetch levels for this sub-department
+        const levels = await Level.find({ subDepartmentId: subDepartment._id, isActive: true }).sort({ order: 1 });
+        const levelCounts = await Promise.all(
+          levels.map(async (lvl) => {
+            const count = await Student.countDocuments({
+              subDepartmentId: subDepartment._id,
+              currentLevelId: lvl._id
+            });
+            return {
+              levelId: lvl._id,
+              levelName: lvl.name,
+              order: lvl.order,
+              studentCount: count
+            };
+          })
+        );
+
+        // Fetch faculties of the parent department
+        const deptId = subDepartment.departmentId?._id || subDepartment.departmentId;
+        const faculties = await User.find({
+          departmentId: deptId,
+          role: { $in: ["faculty", "hod"] },
+          isActive: true
+        }).select("name profileImage position email mobileNo");
+
+        return { 
+          ...subDepartment.toObject(), 
+          totalStudents,
+          faculties,
+          levelCounts
+        };
       })
     );
 
@@ -186,6 +250,22 @@ exports.getSubDepartmentById = async (req, res) => {
         success: false,
         message: "SubDepartment not found"
       });
+    }
+
+    // Restrict non-admin users (faculty, hod) to their own department's subdepartments
+    if (!["superadmin", "admin"].includes(req.user?.role)) {
+      let departmentId = req.user?.departmentId || null;
+      if (!departmentId && req.user?.department) {
+        const department = await Department.findOne({ name: req.user.department, isActive: true }).select("_id");
+        departmentId = department?._id || null;
+      }
+      const subDeptDeptId = subDepartment.departmentId._id ? subDepartment.departmentId._id.toString() : subDepartment.departmentId.toString();
+      if (!departmentId || subDeptDeptId !== departmentId.toString()) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied for this department"
+        });
+      }
     }
     
     res.status(200).json({
