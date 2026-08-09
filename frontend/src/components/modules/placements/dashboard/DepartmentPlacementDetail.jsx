@@ -65,9 +65,20 @@ const DepartmentPlacementDetail = () => {
   const navigate = useNavigate();
   
   const [loading, setLoading] = useState(false);
-  const [academicYear, setAcademicYear] = useState("AY 2024-25");
+  const [academicYear, setAcademicYear] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
+
+  const { data: sessionsData } = useGetAllSessionsQuery(true);
+  const sessionsList = sessionsData?.data || [];
+
+  useEffect(() => {
+    if (sessionsList.length > 0 && !academicYear) {
+      const activeSess = sessionsList.find(s => s.isActive || s.status === 'active') || sessionsList[0];
+      const activeLabel = activeSess.name.startsWith("AY") ? activeSess.name : `AY ${activeSess.name}`;
+      setAcademicYear(activeLabel);
+    }
+  }, [sessionsList, academicYear]);
 
   const deptMeta = DUMMY_DEPT_DETAILS[subDepartmentId] || { 
     name: `Department #${subDepartmentId}`, 

@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useGetNewStudentsQuery, useGetAllSessionsQuery } from "../../../redux/api/authApi";
+import { useGetNewStudentsQuery, useGetAllSessionsQuery, useGetSubdepartmentByIdQuery } from "../../../redux/api/authApi";
 import Loader from "../../shared/loader/Loader";
 import CommonTable from "../../shared/table/CommonTable";
 import Header from "../../shared/sidebar/Header";
@@ -28,6 +28,7 @@ const StudentDetailTable = () => {
   const [activeTab, setActiveTab] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState([]);
   const [selectedSessionId, setSelectedSessionId] = useState("");
+  const [selectedTech, setSelectedTech] = useState("All");
 
   // Build query string — if subDepartmentId present, filter by it
   const queryStr = subDepartmentId ? `subDepartmentId=${subDepartmentId}` : "";
@@ -40,6 +41,11 @@ const StudentDetailTable = () => {
   const sessions = sessionsData?.data || [];
 
   const students = res.data || [];
+
+  const { data: subDeptRes } = useGetSubdepartmentByIdQuery(subDepartmentId, {
+    skip: !subDepartmentId,
+  });
+  const subLevelCounts = subDeptRes?.data?.subLevelCounts || [];
 
   // Dynamic sublevel tabs from data
   const subLevelTabs = useMemo(() => {
@@ -62,14 +68,16 @@ const StudentDetailTable = () => {
       const matchStatus = selectedStatus.length === 0 || selectedStatus.includes(s.status);
       const studentSessId = s.sessionId?._id || s.sessionId;
       const matchSession = !selectedSessionId || studentSessId === selectedSessionId || s.sessionId?.name === selectedSessionId;
+      const stdTech = (s.track || s.course || "General").toLowerCase();
+      const matchTech = selectedTech === "All" || stdTech.includes(selectedTech.toLowerCase());
       const name = `${s.firstName} ${s.lastName}`.toLowerCase();
       const matchSearch = !searchTerm ||
         name.includes(searchTerm.toLowerCase()) ||
         s.prkey?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         s.studentMobile?.includes(searchTerm);
-      return matchTab && matchStatus && matchSession && matchSearch;
+      return matchTab && matchStatus && matchSession && matchTech && matchSearch;
     });
-  }, [students, activeTab, selectedStatus, selectedSessionId, searchTerm]);
+  }, [students, activeTab, selectedStatus, selectedSessionId, selectedTech, searchTerm]);
 
   const columns = [
     {

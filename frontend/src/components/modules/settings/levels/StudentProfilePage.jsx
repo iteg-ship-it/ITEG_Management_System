@@ -16,6 +16,7 @@ import CryptoJS from "crypto-js";
 import { FiCamera, FiCheck } from "react-icons/fi";
 import Header from "../../../shared/sidebar/Header";
 import OrangeButton from "../../../shared/sidebar/OrangeButton";
+import Loader from "../../../shared/loader/Loader";
 import {
     useGetNewStudentTasksQuery,
     useGetNewStudentByIdQuery,
@@ -1176,7 +1177,7 @@ const StudentProfilePage = () => {
         }
     }), []);
 
-    const effectiveTaskData = (taskData?.totalTasks !== undefined) ? taskData : dummyTaskData;
+    const effectiveTaskData = taskData || { totalTasks: 0, completedTasks: 0, pendingTasks: 0, overdueTasks: 0, groupedBySubject: {} };
 
     const totalTasks     = effectiveTaskData.totalTasks     || 0;
     const completedTasks = effectiveTaskData.completedTasks || 0;
@@ -1261,9 +1262,7 @@ const StudentProfilePage = () => {
         { _id: "h4", subLevelId: { name: "Level 2A" }, status: "completed" },
     ], []);
 
-    const effectiveLevelHistory = (levelHistoryResponse?.data && levelHistoryResponse.data.length > 0)
-        ? levelHistoryResponse.data
-        : dummyLevelHistory;
+    const effectiveLevelHistory = levelHistoryResponse?.data || [];
 
     const isLevel2ACompleted = useMemo(() => {
         const history = effectiveLevelHistory;
@@ -1432,6 +1431,14 @@ const StudentProfilePage = () => {
             throw err;
         }
     };
+
+    if (loadingStudentFull || (studentFull && studentFull._id !== studentId)) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[#F8F9FA]">
+                <Loader />
+            </div>
+        );
+    }
 
     return (
         <>

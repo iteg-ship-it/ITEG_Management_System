@@ -81,12 +81,16 @@ if (require.main === module) {
   mongoose
     .connect(process.env.MONGO_URI, mongoOptions)
     .then(async () => {
+      console.log("MongoDB Connected Successfully");
       try {
         await mongoose.connection.collection("syllabusversions").dropIndex("sessionId_1_levelId_1_subLevelId_1_version_1");
       } catch (_) {}
       await updateGoogleUsersRole();
     })
-    .catch(() => process.exit(1));
+    .catch((err) => {
+      console.error("MongoDB Connection Error:", err);
+      process.exit(1);
+    });
 
   const PORT = process.env.PORT || 5000;
   app.listen(PORT)
