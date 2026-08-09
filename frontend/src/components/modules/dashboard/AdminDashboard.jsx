@@ -12,6 +12,7 @@ import {
 import Header from "../../shared/sidebar/Header";
 import api from "../../../utils/axiosInstance";
 import { useGetAllSessionsQuery } from "../../../redux/api/authApi";
+import SelectDropdown from "../../shared/form-fields/SelectDropdown";
 
 // ── Reusable Stat Card ───────────────────────────────────────
 const StatCard = ({ title, value, icon, color, sub, trend, trendColor, onClick }) => {
@@ -195,35 +196,35 @@ const AdminDashboard = () => {
             </div>
 
             {/* Academic Year Select */}
-            <select
+            <SelectDropdown
               value={selectedSessionId}
-              onChange={handleSessionChange}
-              className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 cursor-pointer"
-            >
-              <option value="all">All Sessions</option>
-              {sessionsList.map((s) => {
-                const label = s.name.startsWith("AY") ? s.name : `AY ${s.name}`;
-                const statusText = s.status ? s.status.charAt(0).toUpperCase() + s.status.slice(1) : (s.isActive ? 'Active' : 'Inactive');
-                return (
-                  <option key={s._id} value={s._id}>
-                    {label} ({statusText})
-                  </option>
-                );
-              })}
-            </select>
+              onChange={(val) => handleSessionChange({ target: { value: val } })}
+              options={[
+                { value: "all", label: "All Sessions" },
+                ...sessionsList.map((s) => {
+                  const label = s.name.startsWith("AY") ? s.name : `AY ${s.name}`;
+                  const statusText = s.status ? s.status.charAt(0).toUpperCase() + s.status.slice(1) : (s.isActive ? 'Active' : 'Inactive');
+                  return { value: s._id, label: `${label} (${statusText})` };
+                })
+              ]}
+              className="min-w-[180px] w-auto"
+              buttonClassName="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:outline-none hover:border-orange-450 cursor-pointer flex items-center justify-between gap-2"
+            />
 
             {/* Level Select */}
-            <select
+            <SelectDropdown
               value={selectedLevel}
-              onChange={(e) => setSelectedLevel(e.target.value)}
-              className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            >
-              <option value="All">All Levels</option>
-              <option value="Level 1">Level 1</option>
-              <option value="Level 2">Level 2</option>
-              <option value="Level 3">Level 3</option>
-              <option value="Level 4">Level 4</option>
-            </select>
+              onChange={(val) => setSelectedLevel(val)}
+              options={[
+                { value: "All", label: "All Levels" },
+                { value: "Level 1", label: "Level 1" },
+                { value: "Level 2", label: "Level 2" },
+                { value: "Level 3", label: "Level 3" },
+                { value: "Level 4", label: "Level 4" }
+              ]}
+              className="min-w-[120px] w-auto"
+              buttonClassName="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:outline-none hover:border-orange-455 cursor-pointer flex items-center justify-between gap-2"
+            />
 
             {/* Notification Bell */}
             <button 
@@ -444,35 +445,35 @@ const AdminDashboard = () => {
           </div>
 
           {/* Academic Year Select */}
-          <select
+          <SelectDropdown
             value={selectedSessionId}
-            onChange={handleSessionChange}
-            className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-          >
-            <option value="all">All Sessions</option>
-            {sessionsList.map((s) => {
-              const label = s.name.startsWith("AY") ? s.name : `AY ${s.name}`;
-              const statusText = s.status ? s.status.charAt(0).toUpperCase() + s.status.slice(1) : (s.isActive ? 'Active' : 'Inactive');
-              return (
-                <option key={s._id} value={s._id}>
-                  {label} ({statusText})
-                </option>
-              );
-            })}
-          </select>
+            onChange={(val) => handleSessionChange({ target: { value: val } })}
+            options={[
+              { value: "all", label: "All Sessions" },
+              ...sessionsList.map((s) => {
+                const label = s.name.startsWith("AY") ? s.name : `AY ${s.name}`;
+                const statusText = s.status ? s.status.charAt(0).toUpperCase() + s.status.slice(1) : (s.isActive ? 'Active' : 'Inactive');
+                return { value: s._id, label: `${label} (${statusText})` };
+              })
+            ]}
+            className="min-w-[180px] w-auto"
+            buttonClassName="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:outline-none hover:border-orange-450 cursor-pointer flex items-center justify-between gap-2"
+          />
 
           {/* Level Select */}
-          <select
+          <SelectDropdown
             value={selectedLevel}
-            onChange={(e) => setSelectedLevel(e.target.value)}
-            className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="All">All Levels</option>
-            <option value="Level 1">Level 1</option>
-            <option value="Level 2">Level 2</option>
-            <option value="Level 3">Level 3</option>
-            <option value="Level 4">Level 4</option>
-          </select>
+            onChange={(val) => setSelectedLevel(val)}
+            options={[
+              { value: "All", label: "All Levels" },
+              { value: "Level 1", label: "Level 1" },
+              { value: "Level 2", label: "Level 2" },
+              { value: "Level 3", label: "Level 3" },
+              { value: "Level 4", label: "Level 4" }
+            ]}
+            className="min-w-[120px] w-auto"
+            buttonClassName="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:outline-none hover:border-orange-455 cursor-pointer flex items-center justify-between gap-2"
+          />
 
           {/* Refresh Button */}
           <button

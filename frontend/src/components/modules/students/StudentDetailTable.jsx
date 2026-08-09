@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useGetNewStudentsQuery, useGetAllSessionsQuery, useGetSubdepartmentByIdQuery } from "../../../redux/api/authApi";
 import Loader from "../../shared/loader/Loader";
+import SelectDropdown from "../../shared/form-fields/SelectDropdown";
 import CommonTable from "../../shared/table/CommonTable";
 import Header from "../../shared/sidebar/Header";
 import Avatar from "../../shared/Avatar";
@@ -176,40 +177,39 @@ const StudentDetailTable = () => {
 
           <div className="sm:ml-auto flex items-center gap-3 flex-wrap w-full sm:w-auto">
             {/* Technology Dropdown */}
-            <select
+            <SelectDropdown
               value={selectedTech}
-              onChange={(e) => setSelectedTech(e.target.value)}
-              style={{ outline: "none" }}
-              className="h-10 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 min-w-[140px] text-gray-600 font-medium cursor-pointer transition-colors hover:border-gray-400"
-            >
-              <option value="All">All Technologies</option>
-              <option value="Python">Python</option>
-              <option value="MERN Stack">MERN Stack</option>
-              <option value="Java">Java</option>
-              <option value=".NET">.NET</option>
-              <option value="UI/UX">UI/UX</option>
-              <option value="Data Analytics">Data Analytics</option>
-              <option value="Salesforce">Salesforce</option>
-              <option value="SAP">SAP</option>
-            </select>
+              onChange={(val) => setSelectedTech(val)}
+              options={[
+                { value: "All", label: "All Technologies" },
+                { value: "Python", label: "Python" },
+                { value: "MERN Stack", label: "MERN Stack" },
+                { value: "Java", label: "Java" },
+                { value: ".NET", label: ".NET" },
+                { value: "UI/UX", label: "UI/UX" },
+                { value: "Data Analytics", label: "Data Analytics" },
+                { value: "Salesforce", label: "Salesforce" },
+                { value: "SAP", label: "SAP" }
+              ]}
+              className="min-w-[150px] w-auto"
+              buttonClassName="h-10 w-full flex items-center justify-between gap-2 px-3 border border-gray-250 bg-white rounded-lg text-sm text-gray-600 font-medium transition-colors cursor-pointer focus:outline-none hover:border-gray-400"
+            />
 
             {/* Status Dropdown */}
-            <select
+            <SelectDropdown
               value={selectedStatus[0] || ""}
-              onChange={(e) => {
-                const val = e.target.value;
-                setSelectedStatus(val ? [val] : []);
-              }}
-              style={{ outline: "none" }}
-              className="h-10 px-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 min-w-[130px] text-gray-600 font-medium cursor-pointer transition-colors hover:border-gray-400"
-            >
-              <option value="">All Statuses</option>
-              <option value="Active">Active</option>
-              <option value="Placed">Placed</option>
-              <option value="Dropped">Dropped</option>
-              <option value="Completed">Completed</option>
-              <option value="Dummy">Dummy</option>
-            </select>
+              onChange={(val) => setSelectedStatus(val ? [val] : [])}
+              options={[
+                { value: "", label: "All Statuses" },
+                { value: "Active", label: "Active" },
+                { value: "Placed", label: "Placed" },
+                { value: "Dropped", label: "Dropped" },
+                { value: "Completed", label: "Completed" },
+                { value: "Dummy", label: "Dummy" }
+              ]}
+              className="min-w-[140px] w-auto"
+              buttonClassName="h-10 w-full flex items-center justify-between gap-2 px-3 border border-gray-250 bg-white rounded-lg text-sm text-gray-600 font-medium transition-colors cursor-pointer focus:outline-none hover:border-gray-400"
+            />
 
             {/* Session Dropdown Filter */}
             <div className="min-w-[150px]">

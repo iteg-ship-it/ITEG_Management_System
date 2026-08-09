@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { MdCalendarMonth, MdAdd, MdEdit, MdDelete, MdCheckCircle, MdRadioButtonUnchecked, MdSchedule, MdEventAvailable, MdArchive, MdSearch } from "react-icons/md";
+import { MdCalendarMonth, MdAdd, MdEdit, MdDelete, MdCheckCircle, MdRadioButtonUnchecked, MdSchedule, MdEventAvailable, MdArchive, MdSearch, MdClose } from "react-icons/md";
 import { toast } from "react-toastify";
 import {
   useGetAllSessionsQuery,
@@ -11,6 +11,7 @@ import {
 } from "../../../../redux/api/authApi";
 import Header from "../../../shared/sidebar/Header";
 import Loader from "../../../shared/loader/Loader";
+import SelectDropdown from "../../../shared/form-fields/SelectDropdown";
 
 const STATUS_TABS = [
   { id: "all", label: "All Sessions" },
@@ -143,38 +144,12 @@ const SessionManagement = () => {
     }
   };
 
-  const getStatusBadge = (session) => {
-    const status = getComputedStatus(session);
-    
-    if (status === 'archived') {
-      return (
-        <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
-          <MdArchive size={13} /> Archived
-        </span>
-      );
-    }
-    
-    if (status === 'upcoming') {
-      return (
-        <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-100 text-blue-600 border border-blue-200">
-          <MdSchedule size={13} /> Upcoming
-        </span>
-      );
-    }
-    
-    if (status === 'active') {
-      return (
-        <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-600 border border-green-200">
-          <MdEventAvailable size={13} /> Active
-        </span>
-      );
-    }
-    
-    return (
-      <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-100 text-orange-600 border border-orange-200">
-        Completed
-      </span>
-    );
+  const getStatusSelectClass = (status) => {
+    const base = "text-xs font-bold px-3 py-1.5 rounded-full border cursor-pointer focus:outline-none transition-all duration-200 bg-white shadow-2xs hover:shadow-xs appearance-none pr-7 relative select-custom-arrow";
+    if (status === 'active') return `${base} bg-emerald-50 text-emerald-600 border-emerald-200 hover:border-emerald-450`;
+    if (status === 'upcoming') return `${base} bg-blue-50 text-blue-600 border-blue-200 hover:border-blue-450`;
+    if (status === 'archived') return `${base} bg-slate-100 text-slate-600 border-slate-200 hover:border-slate-400`;
+    return `${base} bg-orange-50 text-orange-600 border-orange-200 hover:border-orange-450`;
   };
 
   if (isLoading) return <Loader />;
@@ -187,35 +162,33 @@ const SessionManagement = () => {
         breadcrumbs={[{ label: "Settings" }, { label: "Sessions" }]}
       />
 
-      <div className="px-6 py-6 max-w-4xl space-y-5">
+      <div className="px-6 py-6 w-full space-y-6">
 
-        {/* Top bar with Add button and Search */}
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          {!showForm && (
-            <button
-              onClick={openAdd}
-              className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shadow-sm"
-            >
-              <MdAdd size={18} /> Add Session
-            </button>
-          )}
+        {/* Top actions layout */}
+        <div className="flex items-center justify-between gap-4 flex-wrap bg-white border border-slate-100 p-4 rounded-2xl shadow-3xs">
+          <button
+            onClick={openAdd}
+            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all duration-200 shadow-sm active:scale-95 cursor-pointer"
+          >
+            <MdAdd size={16} /> Add New Session
+          </button>
 
           {sessions.length > 0 && (
-            <div className="relative flex-1 max-w-xs ml-auto">
-              <MdSearch size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <div className="relative w-72 sm:w-80">
+              <MdSearch size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search session..."
-                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-orange-400 bg-white shadow-sm"
+                placeholder="Search sessions by name or details..."
+                className="w-full pl-9 pr-3.5 h-10 text-xs font-semibold border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 bg-slate-50/50 hover:bg-white text-slate-800 placeholder-slate-455 transition-all duration-200 shadow-3xs"
               />
             </div>
           )}
         </div>
 
-        {/* Status Tabs: All, Active, Upcoming, Archived, Completed */}
-        <div className="flex gap-1.5 overflow-x-auto bg-gray-100/70 p-1.5 rounded-xl border border-gray-200/60 w-fit">
+        {/* Status Tabs with styled count badges */}
+        <div className="flex gap-1.5 overflow-x-auto bg-slate-100/70 p-1 rounded-xl border border-slate-200/50 w-fit">
           {STATUS_TABS.map((tab) => {
             const count = tab.id === "all"
               ? sessions.length
@@ -224,15 +197,15 @@ const SessionManagement = () => {
               <button
                 key={tab.id}
                 onClick={() => setStatusFilter(tab.id)}
-                className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
+                className={`px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 flex items-center gap-2 ${
                   statusFilter === tab.id
-                    ? "bg-white text-orange-500 shadow-sm font-bold"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-200/50"
+                    ? "bg-white text-orange-500 shadow-3xs font-extrabold"
+                    : "text-slate-500 hover:text-slate-800 hover:bg-slate-200/40"
                 }`}
               >
                 <span>{tab.label}</span>
-                <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
-                  statusFilter === tab.id ? "bg-orange-100 text-orange-600" : "bg-gray-200 text-gray-500"
+                <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold ${
+                  statusFilter === tab.id ? "bg-orange-100 text-orange-600" : "bg-slate-200 text-slate-500"
                 }`}>
                   {count}
                 </span>
@@ -241,114 +214,36 @@ const SessionManagement = () => {
           })}
         </div>
 
-        {showForm && (
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
-            <h3 className="text-sm font-bold text-gray-800 mb-4">
-              {editingSession ? "Edit Session" : "Add New Session"}
-            </h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                    Session Name <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="e.g. 2024-25, Academic Year 2025"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-400"
-                    autoFocus
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                    Description
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Optional description"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-400"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                    Start Date <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.startDate}
-                    onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-400"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                    End Date <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.endDate}
-                    onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-400"
-                  />
-                </div>
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition"
-                >
-                  {submitting ? "Saving..." : editingSession ? "Update" : "Create"}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className="px-5 py-2.5 text-sm text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
+        {/* List of filtered session cards */}
         {filteredSessions.length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center mb-4">
-              <MdCalendarMonth size={32} className="text-orange-300" />
+          <div className="bg-white border border-slate-100 rounded-3xl flex flex-col items-center justify-center py-20 text-center shadow-3xs">
+            <div className="w-14 h-14 rounded-2xl bg-orange-50 flex items-center justify-center mb-4">
+              <MdCalendarMonth size={28} className="text-orange-550" />
             </div>
-            <h3 className="text-sm font-bold text-gray-700 mb-1">No sessions found</h3>
-            <p className="text-xs text-gray-400">
-              {searchQuery || statusFilter !== 'all' 
-                ? "No sessions match your filter or search query" 
-                : "Create your first session or import student data to get started"}
+            <h3 className="text-sm font-bold text-slate-800 mb-1">No sessions match filters</h3>
+            <p className="text-xs text-slate-400 font-medium">
+              Try adjusting your query or create a new academic session.
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 gap-4">
             {filteredSessions.map((session) => {
               const currentStatus = getComputedStatus(session);
               return (
                 <div
                   key={session._id}
-                  className="bg-white border border-gray-200 rounded-2xl shadow-sm flex items-center justify-between px-5 py-4 hover:shadow-md transition"
+                  className="bg-white border border-slate-100 rounded-3xl flex items-center justify-between p-5 shadow-3xs hover:shadow-2xs hover:border-orange-100 transition-all duration-300"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center flex-shrink-0">
-                      <MdCalendarMonth size={20} className="text-orange-500" />
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center flex-shrink-0 border border-orange-100">
+                      <MdCalendarMonth size={24} className="text-orange-500" />
                     </div>
-                    <div>
-                      <p className="font-semibold text-sm text-gray-800 flex items-center gap-2">
+                    <div className="min-w-0 pr-4">
+                      <p className="font-bold text-sm text-slate-850 truncate leading-snug">
                         {session.name}
                       </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <p className="text-xs text-gray-400">
+                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                        <p className="text-[10px] text-slate-450 font-bold uppercase tracking-wider">
                           {session.startDate && session.endDate ? (
                             `${new Date(session.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} - ${new Date(session.endDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
                           ) : (
@@ -356,38 +251,40 @@ const SessionManagement = () => {
                           )}
                         </p>
                         {session.description && (
-                          <span className="text-xs text-gray-400">• {session.description}</span>
+                          <span className="text-[10px] text-slate-400 font-medium">• {session.description}</span>
                         )}
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {getStatusBadge(session)}
 
-                    {/* Status Dropdown to switch between Active, Upcoming, Archived, Completed */}
-                    <select
+                  {/* Actions desk */}
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    
+                    {/* Integrated Status Badge Selector */}
+                    <SelectDropdown
                       value={currentStatus}
-                      onChange={(e) => handleStatusChange(session._id, e.target.value)}
-                      className="text-xs font-semibold px-2 py-1 rounded-lg border border-gray-200 bg-white text-gray-600 cursor-pointer focus:outline-none hover:border-orange-400 transition"
-                      title="Change session status"
-                    >
-                      <option value="active">Active</option>
-                      <option value="upcoming">Upcoming</option>
-                      <option value="archived">Archived</option>
-                      <option value="completed">Completed</option>
-                    </select>
+                      onChange={(val) => handleStatusChange(session._id, val)}
+                      options={[
+                        { value: "active", label: "Active" },
+                        { value: "upcoming", label: "Upcoming" },
+                        { value: "archived", label: "Archived" },
+                        { value: "completed", label: "Completed" }
+                      ]}
+                      className="w-32"
+                      buttonClassName={getStatusSelectClass(currentStatus)}
+                    />
 
                     <button
                       onClick={() => openEdit(session)}
-                      className="p-2 rounded-lg text-gray-400 hover:bg-blue-50 hover:text-blue-500 transition"
-                      title="Edit"
+                      className="p-2 rounded-xl text-slate-400 hover:bg-blue-50 hover:text-blue-500 border border-transparent hover:border-blue-100 transition flex items-center justify-center cursor-pointer"
+                      title="Edit Session Parameters"
                     >
                       <MdEdit size={16} />
                     </button>
                     <button
                       onClick={() => handleDelete(session._id)}
-                      className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition"
-                      title="Delete"
+                      className="p-2 rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-500 border border-transparent hover:border-red-100 transition flex items-center justify-center cursor-pointer"
+                      title="Delete Session"
                     >
                       <MdDelete size={16} />
                     </button>
@@ -397,6 +294,90 @@ const SessionManagement = () => {
             })}
           </div>
         )}
+
+        {/* Modal Overlay Form to keep workspace clean */}
+        {showForm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
+            <div className="bg-white border border-slate-100 rounded-3xl shadow-xl max-w-lg w-full p-6 relative animate-in fade-in zoom-in duration-200">
+              
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-5">
+                {editingSession ? "Edit Session Records" : "Create New Session"}
+              </h3>
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-[10px] font-black text-slate-450 uppercase tracking-widest mb-1.5">
+                    Session Name <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="e.g. AY 2025-26"
+                    className="w-full h-10 px-3.5 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-slate-700 transition"
+                    autoFocus
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-slate-450 uppercase tracking-widest mb-1.5">
+                    Description
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Optional details..."
+                    className="w-full h-10 px-3.5 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-slate-700 transition"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-450 uppercase tracking-widest mb-1.5">
+                      Start Date <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.startDate}
+                      onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                      className="w-full h-10 px-3 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-slate-650 transition cursor-pointer"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-450 uppercase tracking-widest mb-1.5">
+                      End Date <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.endDate}
+                      onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                      className="w-full h-10 px-3 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-slate-655 transition cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4 border-t border-slate-100 mt-6">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="flex-1 h-11 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white rounded-xl text-xs font-bold tracking-wider uppercase transition shadow-sm hover:shadow-md flex items-center justify-center cursor-pointer"
+                  >
+                    {submitting ? "Saving Records..." : editingSession ? "Update Session" : "Create Session"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    className="flex-1 h-11 border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold tracking-wider uppercase transition flex items-center justify-center cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
       </div>
     </>
   );

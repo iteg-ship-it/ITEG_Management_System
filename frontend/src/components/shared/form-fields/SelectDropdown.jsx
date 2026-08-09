@@ -8,6 +8,7 @@ const SelectDropdown = ({
   options = [],
   placeholder = "Select...",
   className = "",
+  buttonClassName = "",
   disabled = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,13 +27,16 @@ const SelectDropdown = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const hasWidth = className.split(" ").some((c) => c.startsWith("w-"));
+  const widthClass = hasWidth ? "" : "w-full";
+
   return (
-    <div ref={dropdownRef} className={`relative inline-block w-full ${className}`}>
+    <div ref={dropdownRef} className={`relative inline-block ${widthClass} ${className}`}>
       <button
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between gap-2 px-3.5 py-2 text-sm border border-gray-200 hover:border-[var(--primary,#FDA92D)] bg-white rounded-xl text-gray-800 font-medium transition-all shadow-xs focus:outline-none ${
+        className={buttonClassName || `w-full flex items-center justify-between gap-2 px-3.5 py-2 text-sm border border-gray-200 hover:border-[var(--primary,#FDA92D)] bg-white rounded-xl text-gray-800 font-medium transition-all shadow-xs focus:outline-none ${
           disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"
         }`}
       >
