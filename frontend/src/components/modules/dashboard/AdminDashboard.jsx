@@ -59,6 +59,173 @@ const SectionLabel = ({ label }) => (
   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{label}</p>
 );
 
+// ── Course & Year Matrix Table Sub-Component ─────────────────
+const CourseYearMatrixTable = ({ matrix }) => {
+  const [viewMode, setViewMode] = useState("level"); // "level" (Year-wise) or "session" (Batch-wise)
+
+  if (!matrix || !matrix.courses || matrix.courses.length === 0) {
+    return (
+      <div className="bg-white rounded-xl border shadow-sm p-6 text-center text-gray-400 text-sm">
+        No course-wise strength data available.
+      </div>
+    );
+  }
+
+  const { courses, sessions, levels, sessionCounts, levelCounts } = matrix;
+
+  const translateLevelName = (name) => {
+    if (!name) return "";
+    const cleaned = name.trim().toLowerCase();
+    if (cleaned.includes("level 1") || cleaned.includes("1a") || cleaned.includes("1b") || cleaned.includes("1c")) return "1st Year";
+    if (cleaned.includes("level 2") || cleaned.includes("2a") || cleaned.includes("2b") || cleaned.includes("2c")) return "2nd Year";
+    if (cleaned.includes("level 3") || cleaned.includes("3a") || cleaned.includes("3b") || cleaned.includes("3c")) return "3rd Year";
+    if (cleaned.includes("level 4") || cleaned.includes("4a") || cleaned.includes("4b") || cleaned.includes("4c")) return "4th Year";
+
+    const numMatch = name.match(/\d+/);
+    if (numMatch) {
+      const num = numMatch[0];
+      if (num === "1") return "1st Year";
+      if (num === "2") return "2nd Year";
+      if (num === "3") return "3rd Year";
+      if (num === "4") return "4th Year";
+      return `${num}th Year`;
+    }
+    return name;
+  };
+
+  let columns = [];
+  if (viewMode === "session") {
+    columns = sessions;
+  } else {
+    const yearNames = [...new Set(levels.map(l => translateLevelName(l.name)))];
+    const yearOrder = { "1st Year": 1, "2nd Year": 2, "3rd Year": 3, "4th Year": 4 };
+    yearNames.sort((a, b) => {
+      const oa = yearOrder[a] || 99;
+      const ob = yearOrder[b] || 99;
+      return oa - ob;
+    });
+    columns = yearNames.map(name => ({ id: name, name }));
+  }
+
+  const getStudentCount = (courseId, colId) => {
+    if (viewMode === "session") {
+      const match = sessionCounts.find(
+        (c) => c.subDepartmentId === courseId && c.sessionId === colId
+      );
+      return match ? match.count : 0;
+    } else {
+      const matchingLevelIds = levels
+        .filter((l) => translateLevelName(l.name) === colId)
+        .map((l) => l.id);
+
+      return levelCounts
+        .filter(
+          (c) =>
+            c.subDepartmentId === courseId && matchingLevelIds.includes(c.levelId)
+        )
+        .reduce((sum, item) => sum + item.count, 0);
+    }
+  };
+
+  const colTotals = columns.map((col) => {
+    return courses.reduce((sum, course) => sum + getStudentCount(course.id, col.id), 0);
+  });
+
+  const grandTotal = colTotals.reduce((sum, val) => sum + val, 0);
+
+  return (
+    <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+      <div className="px-5 py-4 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h3 className="font-bold text-gray-700 text-base">Course-wise & Year-wise Student Strength</h3>
+          <p className="text-xs text-gray-400 mt-0.5">
+            Student counts distributed by course (BCA, BBA, B.Com, etc.) and year of study (1st, 2nd, 3rd, 4th Year)
+          </p>
+        </div>
+        <div className="flex bg-gray-100 p-1 rounded-lg self-start sm:self-auto">
+          <button
+            onClick={() => setViewMode("level")}
+            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+              viewMode === "level"
+                ? "bg-white text-gray-800 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            By Year (1st, 2nd, 3rd...)
+          </button>
+          <button
+            onClick={() => setViewMode("session")}
+            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+              viewMode === "session"
+                ? "bg-white text-gray-800 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            By Batch (Session)
+          </button>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
+            <tr>
+              <th className="px-5 py-3 text-left">Course / Sub-Department</th>
+              {columns.map((col) => (
+                <th key={col.id} className="px-5 py-3 text-center">
+                  {col.name}
+                </th>
+              ))}
+              <th className="px-5 py-3 text-center bg-gray-50/50 font-bold text-gray-700">Total</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {courses.map((course) => {
+              const rowTotal = columns.reduce(
+                (sum, col) => sum + getStudentCount(course.id, col.id),
+                0
+              );
+              return (
+                <tr key={course.id} className="transition hover:bg-slate-50">
+                  <td className="px-5 py-4 font-semibold text-gray-800">{course.name}</td>
+                  {columns.map((col) => {
+                    const count = getStudentCount(course.id, col.id);
+                    return (
+                      <td key={col.id} className="px-5 py-4 text-center text-gray-600 font-medium">
+                        {count > 0 ? (
+                          <span className="inline-block bg-slate-100 text-slate-800 px-2 py-0.5 rounded text-xs font-semibold">
+                            {count}
+                          </span>
+                        ) : (
+                          <span className="text-gray-300">—</span>
+                        )}
+                      </td>
+                    );
+                  })}
+                  <td className="px-5 py-4 text-center font-bold text-blue-600 bg-blue-50/20">
+                    {rowTotal}
+                  </td>
+                </tr>
+              );
+            })}
+            <tr className="bg-gray-50/60 font-bold">
+              <td className="px-5 py-4 text-gray-700 uppercase text-xs">Grand Total</td>
+              {colTotals.map((total, idx) => (
+                <td key={idx} className="px-5 py-4 text-center text-gray-800">
+                  {total}
+                </td>
+              ))}
+              <td className="px-5 py-4 text-center text-blue-700 bg-blue-50/40 text-base">
+                {grandTotal}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
 // ── Main Component ───────────────────────────────────────────
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -392,6 +559,11 @@ const AdminDashboard = () => {
                 </ResponsiveContainer>
               )}
             </div>
+          </div>
+
+          {/* Course-wise & Year-wise Student Strength Matrix */}
+          <div className="mb-6">
+            <CourseYearMatrixTable matrix={data?.courseYearMatrix} />
           </div>
 
           {/* Quick actions for Department Users */}
@@ -757,6 +929,11 @@ const AdminDashboard = () => {
               <span className="text-[11px] text-gray-400 font-semibold">System settings are available in the sidebar</span>
             </div>
           </div>
+        </div>
+
+        {/* Course-wise & Year-wise Student Strength Matrix */}
+        <div className="mt-6">
+          <CourseYearMatrixTable matrix={data?.courseYearMatrix} />
         </div>
 
       </div>

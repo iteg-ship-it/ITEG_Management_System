@@ -4,6 +4,7 @@ const StudentPlacement = require("../../models/placement/StudentPlacement");
 const SubDepartment = require("../../models/department/SubDepartment");
 const Level = require("../../models/department/Level");
 const User = require("../../models/user/user");
+const Session = require("../../models/Session");
 
 // GET /api/dashboard/overview
 // Respects req.subDeptFilter from departmentFilter middleware
@@ -133,6 +134,62 @@ exports.getDashboardOverview = async (req, res) => {
       ];
     }
 
+    // ── 6. Year-wise and Level-wise Course Matrix ──
+    const [sessionCourseAgg, levelCourseAgg] = await Promise.all([
+      Student.aggregate([
+        { $match: base },
+        {
+          $group: {
+            _id: {
+              sessionId: "$sessionId",
+              course: "$course"
+            },
+            count: { $sum: 1 }
+          }
+        }
+      ]),
+      Student.aggregate([
+        { $match: base },
+        {
+          $group: {
+            _id: {
+              levelId: "$currentLevelId",
+              course: "$course"
+            },
+            count: { $sum: 1 }
+          }
+        }
+      ])
+    ]);
+
+    const activeSessionIds = sessionCourseAgg.map(item => item._id.sessionId).filter(Boolean);
+    const activeLevelIds = levelCourseAgg.map(item => item._id.levelId).filter(Boolean);
+    const activeCourses = [...new Set([
+      ...sessionCourseAgg.map(item => item._id.course),
+      ...levelCourseAgg.map(item => item._id.course)
+    ])].filter(Boolean);
+
+    const [matrixSessions, matrixLevels] = await Promise.all([
+      Session.find({ _id: { $in: activeSessionIds } }).select("name startDate").sort({ startDate: 1 }).lean(),
+      Level.find({ _id: { $in: activeLevelIds } }).select("name order").sort({ order: 1 }).lean()
+    ]);
+
+    const courseYearMatrix = {
+      courses: activeCourses.map(courseName => ({ id: courseName, name: courseName })),
+      sessions: matrixSessions.map(s => ({ id: s._id.toString(), name: s.name })),
+      levels: matrixLevels.map(l => ({ id: l._id.toString(), name: l.name })),
+      sessionCounts: sessionCourseAgg.map(item => ({
+        subDepartmentId: item._id.course || "",
+        sessionId: item._id.sessionId?.toString() || "",
+        count: item.count
+      })),
+      levelCounts: levelCourseAgg.map(item => ({
+        subDepartmentId: item._id.course || "",
+        levelId: item._id.levelId?.toString() || "",
+        count: item.count
+      }))
+    };
+
     return res.status(200).json({
       success: true,
       data: {
@@ -149,6 +206,7 @@ exports.getDashboardOverview = async (req, res) => {
         },
         departments,
         levelDistribution,
+        courseYearMatrix,
       },
     });
   } catch (error) {

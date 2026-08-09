@@ -349,3 +349,9 @@ body.drawer-open .drawer-no-blur {
   background: white !important;
   padding: 0 4px !important;
 }
+
+/* Glassmorphism login form input labels override */
+.login-field-wrapper label {
+  color: rgba(248, 250, 252, 0.95) !important;
+  font-weight: 600;
+}

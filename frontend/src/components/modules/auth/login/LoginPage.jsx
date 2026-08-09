@@ -13,9 +13,10 @@ import { buttonStyles } from "../../../../styles/buttonStyles";
 import { Eye, EyeOff } from "lucide-react";
 
 import logo from "../../../../assets/images/logo-ssism.png";
-import bg from "../../../../assets/images/bgImg.png";
 import googleLogo from "../../../../assets/icons/google-icon.png";
 import mail from "../../../../assets/icons/gmail-icon.png";
+
+import singajiBg from "../../../../assets/images/singaji_building.jpg";
 
 const secretKey = "ITEG@123";
 const encrypt = (data) => CryptoJS.AES.encrypt(data, secretKey).toString();
@@ -50,36 +51,36 @@ const StudentLoginForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+    <form onSubmit={handleSubmit} className="mt-4 space-y-4 text-left">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">PR Key</label>
+        <label className="block text-sm font-semibold text-slate-100 mb-1">PR Key</label>
         <input
           type="text"
           value={form.prkey}
           onChange={e => setForm(p => ({ ...p, prkey: e.target.value }))}
           placeholder="e.g. SS2025001"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-400"
+          className="w-full border border-white/20 bg-gray-50 text-slate-800 rounded-xl px-3.5 py-3 text-sm focus:outline-none focus:border-orange-500 shadow-sm transition"
         />
       </div>
       <div className="relative">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+        <label className="block text-sm font-semibold text-slate-100 mb-1">Password</label>
         <input
           type={showPass ? "text" : "password"}
           value={form.password}
           onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
           placeholder="Enter your password"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-400 pr-10"
+          className="w-full border border-white/20 bg-gray-50 text-slate-800 rounded-xl px-3.5 py-3 text-sm focus:outline-none focus:border-orange-500 pr-10 shadow-sm transition"
         />
         <button type="button" onClick={() => setShowPass(p => !p)}
-          className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-600">
+          className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-650">
           {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>
       </div>
       <button type="submit" disabled={isLoading}
-        className={`w-full py-3 rounded-full mt-2 ${buttonStyles.primary}`}>
+        className={`w-full py-3.5 rounded-xl font-bold mt-6 shadow-md hover:shadow-lg transition ${buttonStyles.primary}`}>
         {isLoading ? "Signing in..." : "Sign In as Student"}
       </button>
-      <p className="text-center text-xs text-gray-400 mt-2">
+      <p className="text-center text-xs text-slate-350 mt-3 font-semibold">
         Contact admin if you don't have a password set.
       </p>
     </form>
@@ -120,30 +121,101 @@ const LoginPage = () => {
   const handleFaceLoginClose = () => setShowFaceLogin(false);
 
   return (
-    <div
-      className="flex justify-center items-center h-screen bg-gray-100"
-      style={{ backgroundImage: `url(${bg})`, backgroundPosition: "center", backgroundSize: "cover" }}
+    <div 
+      className="flex h-screen w-screen overflow-hidden relative bg-cover bg-center font-sans items-center justify-center lg:justify-between px-6 lg:px-24"
+      style={{ backgroundImage: `url(${singajiBg})` }}
     >
+      {/* Full screen dark overlay & blur */}
+      <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-[2px] z-0" />
       {isLoading && <Loader />}
-      <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg">
 
-        {/* Logo */}
-        <div className="flex flex-col items-center mb-4">
-          <img src={logo} alt="SSISM Logo" className="h-20" />
-          <h2 className="text-2xl font-bold mt-2">Login</h2>
+      {/* Left side: Hero Banner */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between h-full py-16 relative z-10 text-white">
+        {/* Top Header - Logo and Brand Name */}
+        <div className="flex items-center gap-3">
+          <div className="bg-white/95 p-2.5 rounded-2xl shadow-md">
+            <img src={logo} alt="SSES Logo" className="h-10" />
+          </div>
+          <div>
+            <h1 className="text-white font-black text-xl tracking-wider uppercase">SSES</h1>
+            <p className="text-orange-400 text-xs font-bold tracking-widest">Management System</p>
+          </div>
+        </div>
+
+        {/* Middle Content - Glassmorphism Card */}
+        <div className="max-w-lg bg-white/10 backdrop-blur-md border border-white/20 p-8 rounded-2xl shadow-2xl text-white my-auto">
+          <span className="bg-orange-500/20 text-orange-400 border border-orange-500/30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider mb-4 inline-block">
+            SANT SINGAJI EDUCATIONAL SOCIETY
+          </span>
+          <h2 className="text-4xl font-black mb-4 leading-tight">
+            Empowering Education through Smart Digital Workflows
+          </h2>
+          <p className="text-slate-200 text-sm leading-relaxed mb-6 font-semibold">
+            A comprehensive institutional dashboard designed to streamline academic tracking, student records, placement records, and attendance insights for administrators, faculty, and students.
+          </p>
+          
+          {/* Feature Highlights */}
+          <div className="grid grid-cols-2 gap-4 text-xs font-bold text-slate-100">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
+              Student Portals & Progress
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
+              Curriculum & Sublevels
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
+              Real-time Attendance
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
+              Placement Funnel & Analytics
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="text-slate-300 text-xs font-medium">
+          © {new Date().getFullYear()} Sant Singaji Educational Society. All rights reserved.
+        </div>
+      </div>
+
+      {/* Right side: Transparent Login Panel */}
+      <div className="w-full max-w-md bg-slate-950/70 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl z-10 text-white relative">
+        {/* Logo & Title for Mobile View */}
+        <div className="flex flex-col items-center mb-6 lg:hidden">
+          <img src={logo} alt="SSES Logo" className="h-14" />
+          <h2 className="text-lg font-black mt-2 text-white text-center">Sant Singaji Educational Society</h2>
+          <p className="text-orange-450 text-[10px] font-bold tracking-widest mt-0.5">SSES MANAGEMENT SYSTEM</p>
+        </div>
+
+        <div className="mb-6 text-center lg:text-left">
+          <h3 className="text-2xl font-black text-white">Sign In</h3>
+          <p className="text-slate-300 text-xs mt-1 font-semibold">Welcome back! Access your account details below.</p>
         </div>
 
         {/* Tab Toggle */}
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-2">
+        <div className="flex gap-1 bg-white/5 p-1.5 rounded-xl mb-4 border border-white/10">
           <button
             onClick={() => setActiveTab("admin")}
-            className={`flex-1 py-2 text-sm font-semibold rounded-lg transition ${activeTab === "admin" ? "bg-white text-orange-500 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
+            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 ${
+              activeTab === "admin" 
+                ? "bg-orange-500 text-white shadow-md" 
+                : "text-slate-300 hover:text-white"
+            }`}
+          >
             Admin / Faculty
           </button>
           <button
             onClick={() => setActiveTab("student")}
-            className={`flex-1 py-2 text-sm font-semibold rounded-lg transition ${activeTab === "student" ? "bg-white text-orange-500 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
-            Student
+            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 ${
+              activeTab === "student" 
+                ? "bg-orange-500 text-white shadow-md" 
+                : "text-slate-300 hover:text-white"
+            }`}
+          >
+            Student Portal
           </button>
         </div>
 
@@ -156,20 +228,24 @@ const LoginPage = () => {
             initialValues={initialValues}
             onSubmit={handleLoginSubmit}
             validationSchema={loginValidationSchema}
+            className="w-full"
           >
             {() => (
               <>
-                <div className="mt-2 space-y-4">
-                  <InputField name="email" type="email" label="Email" />
-                  <div className="relative">
+                <div className="mt-2 space-y-4 text-left">
+                  <div className="login-field-wrapper">
+                    <InputField name="email" type="email" label="Email Address" placeholder="Enter email" />
+                  </div>
+                  <div className="relative login-field-wrapper">
                     <InputField
                       name="password"
                       type={showPassword ? "text" : "password"}
                       label="Password"
+                      placeholder="Enter password"
                     />
                     <button
                       type="button"
-                      className="absolute right-3 top-[38px] bottom-0 flex items-center text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-[38px] bottom-0 flex items-center text-slate-400 hover:text-slate-200"
                       onClick={() => setShowPassword(!showPassword)}
                       tabIndex={-1}
                     >
@@ -177,41 +253,44 @@ const LoginPage = () => {
                     </button>
                   </div>
 
-                  {loginError && <p className="text-red-600 text-sm">{loginError}</p>}
+                  {loginError && <p className="text-red-400 text-xs font-bold mt-1">{loginError}</p>}
 
                   <div className="text-right">
-                    <Link to="/forget-password" className="text-sm text-gray-500 hover:underline">
-                      Forgot Your Password?
+                    <Link to="/forget-password" className="text-xs font-bold text-slate-300 hover:text-orange-400 hover:underline transition">
+                      Forgot Password?
                     </Link>
                   </div>
                 </div>
 
-                <button type="submit" className={`w-full py-3 rounded-full mt-4 ${buttonStyles.primary}`} disabled={isLoading}>
+                <button type="submit" className={`w-full py-3.5 rounded-xl font-bold mt-6 shadow-md hover:shadow-lg transition ${buttonStyles.primary}`} disabled={isLoading}>
                   {isLoading ? "Logging in..." : "Sign in"}
                 </button>
 
-                <div className="flex items-center my-4">
-                  <hr className="flex-grow border-gray-300" />
-                  <span className="mx-2 text-gray-500">or</span>
-                  <hr className="flex-grow border-gray-300" />
+                <div className="flex items-center my-5">
+                  <hr className="flex-grow border-white/10" />
+                  <span className="mx-3 text-slate-400 text-[10px] font-bold uppercase tracking-wider">or login with</span>
+                  <hr className="flex-grow border-white/10" />
                 </div>
 
-                <div className="flex flex-col items-center space-y-4 px-5">
+                <div className="flex flex-col space-y-2.5">
                   <button type="button" onClick={handleFaceLogin}
-                    className="flex w-full justify-center items-center space-x-3 bg-white shadow-md rounded-xl py-2.5 hover:shadow-lg transition border border-gray-300">
-                    <span className="text-sm">👤</span>
-                    <span className="text-sm font-medium text-gray-800">Login with Face ID</span>
+                    className="flex w-full justify-center items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 shadow-sm rounded-xl py-3 hover:shadow transition duration-200">
+                    <span className="text-base">👤</span>
+                    <span className="text-xs font-bold text-white">Face ID Lock</span>
                   </button>
-                  <button type="button" onClick={handleOtpLogin}
-                    className="flex w-full justify-center items-center space-x-3 bg-white shadow-md rounded-xl py-2.5 hover:shadow-lg transition border border-gray-300">
-                    <img className="h-5" src={mail} alt="OTP Login" />
-                    <span className="text-sm font-medium text-gray-800">Login with Email OTP</span>
-                  </button>
-                  <button type="button" onClick={handleGoogleLogin}
-                    className="flex w-full justify-center items-center space-x-3 bg-white shadow-md rounded-xl py-2.5 hover:shadow-lg transition border border-gray-300">
-                    <img className="h-5" src={googleLogo} alt="Google" />
-                    <span className="text-sm font-medium text-gray-800">Login With Google</span>
-                  </button>
+                  
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <button type="button" onClick={handleOtpLogin}
+                      className="flex justify-center items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 shadow-sm rounded-xl py-3 hover:shadow transition duration-200">
+                      <img className="h-4" src={mail} alt="OTP Login" />
+                      <span className="text-xs font-bold text-white">Email OTP</span>
+                    </button>
+                    <button type="button" onClick={handleGoogleLogin}
+                      className="flex justify-center items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 shadow-sm rounded-xl py-3 hover:shadow transition duration-200">
+                      <img className="h-4" src={googleLogo} alt="Google" />
+                      <span className="text-xs font-bold text-white">Google SSO</span>
+                    </button>
+                  </div>
                 </div>
               </>
             )}

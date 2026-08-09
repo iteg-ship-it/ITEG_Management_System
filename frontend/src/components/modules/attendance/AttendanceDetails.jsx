@@ -195,6 +195,28 @@ const AttendanceDetails = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Close dropdowns on clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const dropdowns = document.querySelectorAll('.relative');
+      let clickedInside = false;
+      dropdowns.forEach((dropdown) => {
+        if (dropdown.contains(event.target)) {
+          clickedInside = true;
+        }
+      });
+      if (!clickedInside) {
+        setIsYearOpen(false);
+        setIsSubLevelOpen(false);
+        setIsGenderOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
     <>
       <Header sidebarOpen={true} title="Attendence Dashboard" />
@@ -234,7 +256,11 @@ const AttendanceDetails = () => {
                <div className="relative">
                 <button
                   type="button"
-                  onClick={() => setIsYearOpen(!isYearOpen)}
+                  onClick={() => {
+                    setIsYearOpen(!isYearOpen);
+                    setIsSubLevelOpen(false);
+                    setIsGenderOpen(false);
+                  }}
                   className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-orange-400 focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200 text-sm shadow-sm"
                 >
                   <span className="text-gray-900 font-medium">
@@ -268,7 +294,11 @@ const AttendanceDetails = () => {
               <div className="relative">
                 <button
                   type="button"
-                  onClick={() => setIsSubLevelOpen(!isSubLevelOpen)}
+                  onClick={() => {
+                    setIsSubLevelOpen(!isSubLevelOpen);
+                    setIsYearOpen(false);
+                    setIsGenderOpen(false);
+                  }}
                   className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-black focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200 text-sm shadow-sm"
                 >
                   <span className="text-gray-900 font-medium truncate pr-4">
@@ -302,7 +332,11 @@ const AttendanceDetails = () => {
               <div className="relative">
                 <button
                   type="button"
-                  onClick={() => setIsGenderOpen(!isGenderOpen)}
+                  onClick={() => {
+                    setIsGenderOpen(!isGenderOpen);
+                    setIsYearOpen(false);
+                    setIsSubLevelOpen(false);
+                  }}
                   className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-orange-400 focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200 text-sm shadow-sm"
                 >
                   <span className="text-gray-900 font-medium">
