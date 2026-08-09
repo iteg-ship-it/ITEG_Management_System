@@ -53,12 +53,12 @@ const StudentLoginForm = () => {
   return (
     <form onSubmit={handleSubmit} className="mt-4 space-y-4 text-left">
       <div>
-        <label className="block text-sm font-semibold text-slate-100 mb-1">PR Key</label>
+        <label className="block text-sm font-semibold text-slate-100 mb-1">PR Key or Email</label>
         <input
           type="text"
           value={form.prkey}
           onChange={e => setForm(p => ({ ...p, prkey: e.target.value }))}
-          placeholder="e.g. SS2025001"
+          placeholder="Enter PR Key or Email"
           className="w-full border border-white/20 bg-gray-50 text-slate-800 rounded-xl px-3.5 py-3 text-sm focus:outline-none focus:border-orange-500 shadow-sm transition"
         />
       </div>
