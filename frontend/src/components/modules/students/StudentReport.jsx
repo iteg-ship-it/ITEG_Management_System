@@ -97,7 +97,8 @@ export default function StudentReport() {
   const [taskPerformance, setTaskPerformance] = useState(null);
   const [taskLoading, setTaskLoading] = useState(true);
 
-  const { data: studentData, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
+  const { data: studentResponse, isLoading, isError } = useGetAdmittedStudentsByIdQuery(id);
+  const studentData = studentResponse?.data || {};
   const { data: reportCardResponse, isLoading: reportLoading, isError: reportError } = useGetReportCardQuery(id);
   const reportCardData = reportCardResponse?.data;
 
@@ -171,21 +172,25 @@ export default function StudentReport() {
         <div id="pdf-content" className="max-w-7xl mx-auto bg-white shadow-2xl rounded-2xl p-8 print:shadow-none print:bg-white print:mx-0 print:rounded-none border border-gray-100">
 
           {/* Header */}
-          <div className="relative bg-white rounded-xl p-6 mb-6 border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+          <div className="relative bg-white rounded-xl p-8 mb-6 border border-gray-200 text-center">
+            <div className="flex flex-col items-center justify-center">
+              <img src={logo} alt="SSISM Logo" className="h-20 object-contain mb-4" />
+              <h1 className="text-2xl font-black tracking-wide text-gray-800 uppercase">SANT SINGAJI INSTITUTE OF SCIENCE AND MANAGEMENT</h1>
+              <h2 className="text-lg font-bold text-orange-500 tracking-wider uppercase mt-1">STUDENT PERFORMANCE REPORT CARD</h2>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 text-sm text-gray-600 w-full max-w-4xl border-t pt-4 mx-auto">
                 <div>
-                  <img src={logo} alt="ITEG Logo" className="h-16 object-contain" />
+                  <span className="font-bold">Academic Session:</span> {reportCardData?.batchYear || '2025–26'}
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold mb-1 text-gray-800">Student Report Card</h1>
-                  <p className="text-gray-600 text-sm">Comprehensive Performance Analysis</p>
+                  <span className="font-bold">Batch Year:</span> {reportCardData?.batchYear || '2025–26'}
                 </div>
-              </div>
-              <div className="text-right bg-gray-50 rounded-lg p-4">
-                <p className="text-gray-600 text-sm">Academic Year</p>
-                <p className="font-bold text-lg text-gray-800">{reportCardData?.batchYear || '2024-25'}</p>
-                <p className="text-gray-500 text-xs mt-1">Generated: {new Date().toLocaleDateString()}</p>
+                <div>
+                  <span className="font-bold">Department:</span> {studentData.subDepartmentId?.departmentId?.code || studentData.subDepartmentId?.departmentId?.name || "ITEG"}
+                </div>
+                <div>
+                  <span className="font-bold">Course / Level:</span> {studentData.course || "N/A"} ({studentData.currentLevel || "1A"})
+                </div>
               </div>
             </div>
           </div>
@@ -202,46 +207,44 @@ export default function StudentReport() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
               <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <MdEmail className="w-4 h-4 text-purple-500" />
-                  </div>
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Email</span>
-                </div>
-                <p className="text-sm font-semibold text-gray-800 truncate">{studentData.email || "N/A"}</p>
+                <span className="text-xs font-semibold text-gray-400 uppercase">Student Name</span>
+                <p className="text-sm font-bold text-gray-800 mt-1">{studentData.firstName} {studentData.lastName}</p>
               </div>
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                <span className="text-xs font-semibold text-gray-400 uppercase">PR Key / Enrollment No.</span>
+                <p className="text-sm font-bold text-gray-800 mt-1">{studentData.admissionNo || studentData.enrollmentNo || "N/A"}</p>
+              </div>
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                <span className="text-xs font-semibold text-gray-400 uppercase">Father's Name</span>
+                <p className="text-sm font-bold text-gray-800 mt-1">{studentData.fatherName || "N/A"}</p>
+              </div>
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                <span className="text-xs font-semibold text-gray-400 uppercase">Department</span>
+                <p className="text-sm font-bold text-gray-800 mt-1">{studentData.subDepartmentId?.departmentId?.name || "ITEG"}</p>
+              </div>
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                <span className="text-xs font-semibold text-gray-400 uppercase">Course</span>
+                <p className="text-sm font-bold text-gray-800 mt-1">{studentData.course || "N/A"}</p>
+              </div>
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                <span className="text-xs font-semibold text-gray-400 uppercase">Session</span>
+                <p className="text-sm font-bold text-gray-800 mt-1">{reportCardData?.batchYear || "2025–26"}</p>
+              </div>
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                <span className="text-xs font-semibold text-gray-400 uppercase">Current Level</span>
+                <p className="text-sm font-bold text-gray-800 mt-1">{studentData.currentLevelId?.name || "Level 1"}</p>
+              </div>
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                <span className="text-xs font-semibold text-gray-400 uppercase">Current Sub-Level</span>
+                <p className="text-sm font-bold text-gray-800 mt-1">{studentData.currentSubLevelId?.name || "1A"}</p>
+              </div>
+            </div>
 
-              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <MdPhone className="w-4 h-4 text-purple-500" />
-                  </div>
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Contact</span>
-                </div>
-                <p className="text-sm font-semibold text-gray-800">{studentData.studentMobile || "N/A"}</p>
-              </div>
-
-              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <MdPerson className="w-4 h-4 text-purple-500" />
-                  </div>
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Father</span>
-                </div>
-                <p className="text-sm font-semibold text-gray-800">{studentData.fatherName || "N/A"}</p>
-              </div>
-
-              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <MdLocationOn className="w-4 h-4 text-purple-500" />
-                  </div>
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Track</span>
-                </div>
-                <p className="text-sm font-semibold text-gray-800">{studentData.track || studentData.techno || "N/A"}</p>
-              </div>
+            <div className="border-t pt-3 mt-3 flex justify-between items-center text-xs text-gray-500 font-medium">
+              <div>Report Generated By: <span className="font-bold text-gray-700">{reportCardData?.generatedByName || "Prof. Himanshu Vishwakarma"}</span></div>
+              <div>Generated On: <span className="font-bold text-gray-700">{reportCardData?.createdAt ? new Date(reportCardData.createdAt).toLocaleDateString() : new Date().toLocaleDateString()}</span></div>
             </div>
           </div>
 
@@ -251,8 +254,380 @@ export default function StudentReport() {
             currentLevel={studentData.currentLevel || '1A'}
           />
 
-          {/* Skills & Performance Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          {/* Dynamic / Standard Sections */}
+          {reportCardData?.dynamicSections?.length > 0 ? (
+            <div className="space-y-8 mb-6">
+              {(() => {
+                const getSection = (type) => reportCardData.dynamicSections.find(s => s.sectionType === type);
+                
+                const levelProgress = getSection("LevelProgressTable");
+                const subjectPerformance = getSection("SubjectPerformanceTable");
+                const softSkills = getSection("SoftSkillsRating");
+                const interview = getSection("InterviewRating");
+                const careerReadiness = getSection("CareerStatus");
+                const attendanceDiscipline = getSection("AttendanceDiscipline");
+                const strengthsImprovement = getSection("StrengthsImprovement");
+                const overallPerformance = getSection("OverallPerformanceSummary");
+                
+                return (
+                  <>
+                    {/* 2. Academic Performance (SGPA/CGPA) */}
+                    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                          <FaGraduationCap className="w-6 h-6 text-purple-500" />
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-800">2. Academic Performance</h3>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                        <div className="md:col-span-2 overflow-x-auto">
+                          <table className="min-w-full text-sm text-left text-gray-500">
+                            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                              <tr>
+                                <th className="px-4 py-2">Academic Year</th>
+                                <th className="px-4 py-2 text-center">SGPA</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                              {reportCardData.academicPerformance?.yearWiseSGPA?.map((y, idx) => (
+                                <tr key={idx}>
+                                  <td className="px-4 py-2 font-medium text-gray-900">{y.year === "FY" ? "First Year" : y.year === "SY" ? "Second Year" : y.year === "TY" ? "Third Year" : y.year}</td>
+                                  <td className="px-4 py-2 text-center font-bold text-gray-800">{y.sgpa || "N/A"}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        <div className="bg-gradient-to-br from-indigo-505 to-purple-600 bg-purple-600 rounded-xl p-6 text-white text-center shadow-md">
+                          <p className="text-sm opacity-90 mb-1">Overall CGPA</p>
+                          <p className="text-4xl font-extrabold">{reportCardData.academicPerformance?.cgpa || "N/A"}</p>
+                          <p className="text-xs opacity-75 mt-1">out of 10.0</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 3. Level / Sub-Level Progress */}
+                    {levelProgress && (
+                      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                        <div className="flex items-center gap-3 mb-6">
+                          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <FaClipboardCheck className="w-6 h-6 text-purple-500" />
+                          </div>
+                          <h3 className="text-lg font-bold text-gray-800">3. Level / Sub-Level Progress</h3>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full text-sm text-left text-gray-500">
+                            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                              <tr>
+                                <th className="px-4 py-3">Level</th>
+                                <th className="px-4 py-3 text-center">Sub-Level</th>
+                                <th className="px-4 py-3 text-center">Status</th>
+                                <th className="px-4 py-3 text-center">Performance (Rating / 5)</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                              {levelProgress.items.map((item, idx) => {
+                                const statusColor = 
+                                  item.value === "Completed" ? "bg-green-100 text-green-800" :
+                                  item.value === "Current" ? "bg-blue-100 text-blue-800" :
+                                  "bg-gray-100 text-gray-500";
+                                return (
+                                  <tr key={idx} className="hover:bg-gray-50/50">
+                                    <td className="px-4 py-3 font-semibold text-gray-800">
+                                      {item.itemName}
+                                    </td>
+                                    <td className="px-4 py-3 text-center font-bold text-purple-600">{item.itemName}</td>
+                                    <td className="px-4 py-3 text-center">
+                                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusColor}`}>
+                                        {item.value}
+                                      </span>
+                                    </td>
+                                    <td className="px-4 py-3 text-center font-bold text-gray-900">
+                                      {item.remark !== "—" ? `${item.remark} / 5` : "—"}
+                                      {item.value === "Current" && (
+                                        <span className="text-xs text-gray-400 font-normal ml-2">({item.score}% Complete)</span>
+                                      )}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 4. Subject-wise Performance */}
+                    {subjectPerformance && (
+                      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                        <div className="flex items-center gap-3 mb-6">
+                          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <FaLaptopCode className="w-6 h-6 text-purple-500" />
+                          </div>
+                          <h3 className="text-lg font-bold text-gray-800">4. Subject-wise Performance</h3>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full text-sm text-left text-gray-500">
+                            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                              <tr>
+                                <th className="px-4 py-3">Subject</th>
+                                <th className="px-4 py-3 text-center">Total Tasks</th>
+                                <th className="px-4 py-3 text-center">Evaluated</th>
+                                <th className="px-4 py-3 text-center">Average Rating</th>
+                                <th className="px-4 py-3 text-center">Performance</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                              {subjectPerformance.items.map((item, idx) => {
+                                const level = item.value || "Good";
+                                const levelColor = 
+                                  level === "Outstanding" || level === "Excellent" ? "text-green-600 font-bold" :
+                                  level === "Very Good" ? "text-blue-600 font-bold" :
+                                  "text-yellow-600 font-semibold";
+                                return (
+                                  <tr key={idx} className="hover:bg-gray-50/50">
+                                    <td className="px-4 py-3 font-semibold text-gray-800">{item.itemName}</td>
+                                    <td className="px-4 py-3 text-center font-medium text-gray-600">{item.maxMarks}</td>
+                                    <td className="px-4 py-3 text-center font-medium text-gray-600">{item.score}</td>
+                                    <td className="px-4 py-3 text-center font-bold text-gray-900">{item.remark} / 5</td>
+                                    <td className={`px-4 py-3 text-center ${levelColor}`}>{level}</td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 5. Soft Skills & Behavioural Evaluation */}
+                    {softSkills && (
+                      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                        <div className="flex items-center gap-3 mb-6">
+                          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <FaBrain className="w-6 h-6 text-purple-500" />
+                          </div>
+                          <h3 className="text-lg font-bold text-gray-800">5. Soft Skills & Behavioural Evaluation</h3>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {softSkills.items.map((item, idx) => {
+                            const val = parseFloat(item.value) || 0;
+                            return (
+                              <div key={idx} className="bg-gray-50 rounded-lg p-4">
+                                <div className="flex justify-between items-center mb-2">
+                                  <span className="font-semibold text-gray-800">{item.itemName}</span>
+                                  <span className="text-sm font-bold text-purple-700">{val} / 5</span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div
+                                    className="h-2 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600"
+                                    style={{ width: `${(val / 5) * 100}%` }}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <p className="text-xs text-gray-400 font-semibold italic mt-4 text-center">
+                          Evaluation Method: Faculty Observation & Interview
+                        </p>
+                      </div>
+                    )}
+
+                    {/* 6. Interview Evaluation */}
+                    {interview && (
+                      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                        <div className="flex items-center gap-3 mb-6">
+                          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <MdPerson className="w-6 h-6 text-purple-500" />
+                          </div>
+                          <h3 className="text-lg font-bold text-gray-800">6. Interview Evaluation</h3>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {interview.items.map((item, idx) => {
+                            const val = parseFloat(item.value) || 0;
+                            return (
+                              <div key={idx} className="bg-gray-50 rounded-lg p-4">
+                                <div className="flex justify-between items-center mb-2">
+                                  <span className="font-semibold text-gray-800">{item.itemName}</span>
+                                  <span className="text-sm font-bold text-purple-700">{val} / 5</span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div
+                                    className="h-2 rounded-full bg-gradient-to-r from-orange-400 to-orange-600"
+                                    style={{ width: `${(val / 5) * 100}%` }}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 7. Career Readiness */}
+                    {careerReadiness && (
+                      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                        <div className="flex items-center gap-3 mb-6">
+                          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <FaRocket className="w-6 h-6 text-purple-500" />
+                          </div>
+                          <h3 className="text-lg font-bold text-gray-800">7. Career Readiness</h3>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          {careerReadiness.items.map((item, idx) => {
+                            const status = item.value || "Not Ready";
+                            const statusColor = 
+                              status === "Created" || status === "Ready" ? "bg-green-100 text-green-800" :
+                              status === "In Progress" ? "bg-blue-100 text-blue-800" :
+                              "bg-red-100 text-red-800";
+                            return (
+                              <div key={idx} className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200 text-center">
+                                <div className="text-sm font-bold text-blue-800 mb-2 truncate">{item.itemName}</div>
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusColor}`}>
+                                  {status}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 8. Attendance & Discipline */}
+                    {attendanceDiscipline && (
+                      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                        <div className="flex items-center gap-3 mb-6">
+                          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <FaClipboardCheck className="w-6 h-6 text-purple-500" />
+                          </div>
+                          <h3 className="text-lg font-bold text-gray-800">8. Attendance & Discipline</h3>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          {attendanceDiscipline.items.map((item, idx) => (
+                            <div key={idx} className="bg-gray-50 rounded-lg p-4 border text-center">
+                              <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">{item.itemName}</div>
+                              <div className="text-base font-black text-gray-800">{item.value}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 9. Co-Curricular Activities */}
+                    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                          <TbCertificate className="w-6 h-6 text-purple-500" />
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-800">9. Co-Curricular Activities</h3>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full text-sm text-left text-gray-500">
+                          <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                              <th className="px-4 py-3">Category</th>
+                              <th className="px-4 py-3">Activity / Certificate</th>
+                              <th className="px-4 py-3">Remark</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {reportCardData.coCurricular && reportCardData.coCurricular.length > 0 ? (
+                              reportCardData.coCurricular.map((act, idx) => (
+                                <tr key={idx} className="hover:bg-gray-50/50">
+                                  <td className="px-4 py-3 font-semibold text-gray-700">{act.category}</td>
+                                  <td className="px-4 py-3 text-gray-900">{act.title}</td>
+                                  <td className="px-4 py-3 text-gray-600">{act.remark}</td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan="3" className="px-4 py-4 text-center text-gray-400">No co-curricular activities recorded.</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* 10. Strengths & Areas for Improvement */}
+                    {strengthsImprovement && (
+                      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {strengthsImprovement.items.map((item, idx) => {
+                          const points = (item.value || "").split(",").map(p => p.trim()).filter(Boolean);
+                          const isStrengths = item.itemName.toLowerCase().includes("strength");
+                          return (
+                            <div key={idx} className={`p-5 rounded-xl border ${isStrengths ? 'bg-green-50/50 border-green-200' : 'bg-red-50/50 border-red-200'}`}>
+                              <h4 className={`text-base font-bold mb-3 flex items-center gap-2 ${isStrengths ? 'text-green-800' : 'text-red-800'}`}>
+                                <span>{isStrengths ? "💪" : "🚀"}</span>
+                                {item.itemName}
+                              </h4>
+                              {points.length > 0 ? (
+                                <ul className="list-disc pl-5 space-y-1.5 text-sm text-gray-700">
+                                  {points.map((pt, pIdx) => <li key={pIdx}>{pt}</li>)}
+                                </ul>
+                              ) : (
+                                <p className="text-sm text-gray-400 italic">No items listed.</p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* 11. Faculty / Mentor Feedback */}
+                    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                          <RiEdit2Fill className="w-6 h-6 text-purple-500" />
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-800">11. Faculty / Mentor Feedback</h3>
+                      </div>
+                      <div className="bg-gray-50 rounded-xl p-5 border border-gray-200 font-medium text-gray-700 text-sm whitespace-pre-line leading-relaxed italic">
+                        "{reportCardData.facultyRemark || "No comments provided yet."}"
+                      </div>
+                    </div>
+
+                    {/* 12. Overall Performance */}
+                    {overallPerformance && (
+                      <div className="bg-gradient-to-r from-purple-900 to-indigo-900 rounded-xl p-8 text-white shadow-xl">
+                        <h3 className="text-xl font-black uppercase tracking-wider mb-6 text-center text-orange-400">12. Overall Performance</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center mb-6">
+                          {overallPerformance.items.map((item, idx) => {
+                            if (item.itemName === "Overall Rating" || item.itemName === "Performance Level") return null;
+                            return (
+                              <div key={idx} className="bg-white/10 rounded-lg p-4 border border-white/10">
+                                <div className="text-xs opacity-75 uppercase font-semibold mb-1">{item.itemName}</div>
+                                <div className="text-2xl font-bold">{item.value} / 5</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {(() => {
+                          const ratingItem = overallPerformance.items.find(i => i.itemName === "Overall Rating");
+                          const levelItem = overallPerformance.items.find(i => i.itemName === "Performance Level") || ratingItem;
+                          return (
+                            <div className="border-t border-white/20 pt-6 flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-4">
+                              <div>
+                                <span className="text-sm opacity-85 uppercase font-medium">Overall Rating:</span>
+                                <h4 className="text-3xl font-black text-orange-400 mt-1">{ratingItem?.value || "4.02"} / 5</h4>
+                              </div>
+                              <div>
+                                <span className="text-sm opacity-85 uppercase font-medium">Performance Level:</span>
+                                <h4 className="text-3xl font-black text-orange-400 mt-1">{levelItem?.remark || levelItem?.value || "Excellent"}</h4>
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             {/* Technical Skills */}
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
@@ -609,6 +984,8 @@ export default function StudentReport() {
               </div>
             )}
           </div>
+          </>
+          )}
 
           {/* Faculty Feedback */}
           <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">

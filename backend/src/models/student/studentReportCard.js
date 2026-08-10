@@ -124,6 +124,26 @@ const StudentReportCardSchema = new mongoose.Schema(
     overallGrade: { type: String, default: "" },
     facultyRemark: { type: String, default: "" },
     isFinalReport: { type: Boolean, default: false },
+    templateType: { type: String, enum: ["ITEG_STANDARD", "MEG_WEIGHTED", "BEG_CUTOFF", "BTECH_STAGE"], default: "ITEG_STANDARD" },
+    dynamicSections: [
+      {
+        sectionName: { type: String, required: true },
+        sectionType: { 
+          type: String, 
+          enum: ["ProgressList", "RatingList", "ScoreCard", "StatusBadge", "TextFeedback", "GradeBlock"], 
+          required: true 
+        },
+        items: [
+          {
+            itemName: { type: String, required: true },
+            value: { type: mongoose.Schema.Types.Mixed },
+            maxMarks: { type: Number },
+            score: { type: Number },
+            remark: { type: String }
+          }
+        ]
+      }
+    ],
   },
   { timestamps: true }
 );

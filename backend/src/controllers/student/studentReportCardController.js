@@ -34,6 +34,7 @@ exports.saveStudentReportCard = async (req, res) => {
       softSkills, discipline, technicalSkills,
       careerReadiness, academicPerformance, coCurricular,
       overallGrade, facultyRemark, isFinalReport,
+      templateType, dynamicSections,
     } = req.body;
 
     const totalSoftSkillMarks = calcSoftSkillMarks(softSkills);
@@ -45,6 +46,7 @@ exports.saveStudentReportCard = async (req, res) => {
       discipline: { ...discipline, totalDisciplineMarks },
       technicalSkills, careerReadiness, academicPerformance,
       coCurricular, overallGrade, facultyRemark, isFinalReport,
+      templateType, dynamicSections,
     };
 
     const saved = await StudentReportCard.findOneAndUpdate(
@@ -119,13 +121,14 @@ exports.updateStudentReportCard = async (req, res) => {
       softSkills, discipline, technicalSkills, careerReadiness,
       academicPerformance, coCurricular, overallGrade,
       facultyRemark, isFinalReport, generatedByName, batchYear,
+      templateType, dynamicSections,
     } = req.body;
 
     const totalSoftSkillMarks = calcSoftSkillMarks(softSkills);
     const totalDisciplineMarks = calcDisciplineMarks(discipline);
 
     const updatedData = {
-      generatedByName, batchYear,
+      generatedByName, batchYear, templateType, dynamicSections,
       ...(softSkills && { softSkills: { ...softSkills, totalSoftSkillMarks } }),
       ...(discipline && { discipline: { ...discipline, totalDisciplineMarks } }),
       technicalSkills, careerReadiness, academicPerformance,

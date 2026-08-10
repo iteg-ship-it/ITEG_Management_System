@@ -9,7 +9,7 @@ const {
   updateStudentReportCard,
 } = require('../controllers/student/studentReportCardController');
 
-const allowedRoles = ['superadmin', 'admin', 'faculty'];
+const allowedRoles = ['superadmin', 'admin', 'faculty', 'hod', 'placement_officer'];
 const auth = [verifyToken, checkRole(allowedRoles)];
 
 router.post('/', ...auth, saveStudentReportCard);

@@ -1141,6 +1141,16 @@ export const authApi = createApi({
       ],
     }),
 
+    getStudentTasks: builder.query({
+      query: (studentId) => ({
+        url: `/admitted/students/${studentId}/tasks`,
+        method: "GET",
+      }),
+      providesTags: (result, error, studentId) => [
+        { type: 'Student', id: studentId }
+      ],
+    }),
+
     // Create report card
     createReportCard: builder.mutation({
       query: (reportData) => {
@@ -1896,6 +1906,7 @@ export const {
   useGetInterviewDetailByIdQuery,
   useGetStudentByIdQuery,
   useGetAdmittedStudentsByIdQuery,
+  useGetStudentTasksQuery,
   useCreateLevelInterviewMutation,
   useUpdateStudentByIdMutation,
   useGetLevelInterviewQuery,

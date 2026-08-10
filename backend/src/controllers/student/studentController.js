@@ -142,7 +142,14 @@ exports.getAllStudents = async (req, res) => {
 exports.getStudentById = async (req, res) => {
   try {
     const student = await Student.findById(req.params.id)
-      .populate("subDepartmentId", "name")
+      .populate({
+        path: "subDepartmentId",
+        select: "name departmentId",
+        populate: {
+          path: "departmentId",
+          select: "name code reportConfig"
+        }
+      })
       .populate("sessionId", "name")
       .populate("syllabusVersionId", "version title")
       .populate("currentLevelId", "name order")

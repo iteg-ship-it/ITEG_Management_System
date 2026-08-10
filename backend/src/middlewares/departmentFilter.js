@@ -83,9 +83,10 @@ const departmentFilter = async (req, res, next) => {
     if (!ids) {
       const subDepts = await SubDepartment.find({ departmentId: resolvedDeptId, isActive: true }).select("_id");
       if (!subDepts.length) {
-        return res.status(403).json({ message: "No active sub-departments found for your department." });
+        ids = [];
+      } else {
+        ids = subDepts.map((s) => s._id);
       }
-      ids = subDepts.map((s) => s._id);
       setCache(resolvedDeptId.toString(), ids);
     }
 
