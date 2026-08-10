@@ -41,6 +41,15 @@ export const studentApi = createApi({
       providesTags: ["StudentTasks"],
     }),
 
+    updateMyStudentTaskStatus: builder.mutation({
+      query: ({ taskId, status }) => ({
+        url: `/student-auth/me/tasks/${taskId}`,
+        method: "PATCH",
+        body: { status },
+      }),
+      invalidatesTags: ["StudentTasks", "StudentEvents"],
+    }),
+
     getMyStudentLevelHistory: builder.query({
       query: () => ({ url: "/student-auth/me/level-history", method: "GET" }),
       providesTags: ["StudentHistory"],
@@ -101,6 +110,7 @@ export const {
   useUpdateMyStudentProfileImageMutation,
   useChangeMyStudentPasswordMutation,
   useGetMyStudentTasksQuery,
+  useUpdateMyStudentTaskStatusMutation,
   useGetMyStudentLevelHistoryQuery,
   useGetMyStudentSnapshotsQuery,
   useGetMyStudentEventLogQuery,

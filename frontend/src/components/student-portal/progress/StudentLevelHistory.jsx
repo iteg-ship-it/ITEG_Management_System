@@ -5,7 +5,7 @@ const formatDate = (d) => d ? new Date(d).toLocaleDateString("en-IN", { day: "nu
 
 // ── Circular Progress ─────────────────────────────────────────────────────────
 const CircleProgress = ({ pct, size = 44, stroke = 4, color = "#FDA92D" }) => {
-    const r    = (size - stroke * 2) / 2;
+    const r = (size - stroke * 2) / 2;
     const circ = 2 * Math.PI * r;
     return (
         <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
@@ -22,17 +22,17 @@ const CircleProgress = ({ pct, size = 44, stroke = 4, color = "#FDA92D" }) => {
 
 export default function StudentLevelHistory() {
     const { data: historyData, isLoading } = useGetMyStudentLevelHistoryQuery();
-    const { data: snapshotData }           = useGetMyStudentSnapshotsQuery();
+    const { data: snapshotData } = useGetMyStudentSnapshotsQuery();
 
-    const history           = historyData?.data  || [];
-    const snapshots         = snapshotData?.data || [];
-    const overallSnapshots  = snapshots.filter(s => s.snapshotScope === "overall");
+    const history = historyData?.data || [];
+    const snapshots = snapshotData?.data || [];
+    const overallSnapshots = snapshots.filter(s => s.snapshotScope === "overall");
 
     const completedLevels = history.filter(h => h.status !== "in_progress").length;
-    const currentLevel    = history.find(h => h.status === "in_progress");
-    const totalTasks      = history.reduce((s, h) => s + (h.totalTasks || 0), 0);
-    const completedTasks  = history.reduce((s, h) => s + (h.completedTasksCount || 0), 0);
-    const overallPct      = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    const currentLevel = history.find(h => h.status === "in_progress");
+    const totalTasks = history.reduce((s, h) => s + (h.totalTasks || 0), 0);
+    const completedTasks = history.reduce((s, h) => s + (h.completedTasksCount || 0), 0);
+    const overallPct = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
     if (isLoading) return (
         <div className="flex justify-center pt-20">
@@ -111,7 +111,7 @@ export default function StudentLevelHistory() {
                                 <div className="space-y-4">
                                     {history.map((item, i) => {
                                         const isCurrent = item.status === "in_progress";
-                                        const pct       = item.totalTasks > 0
+                                        const pct = item.totalTasks > 0
                                             ? Math.round((item.completedTasksCount / item.totalTasks) * 100)
                                             : 0;
                                         return (
@@ -123,11 +123,10 @@ export default function StudentLevelHistory() {
                                                 </div>
 
                                                 {/* card */}
-                                                <div className={`flex-1 rounded-xl border p-4 transition-all ${
-                                                    isCurrent
+                                                <div className={`flex-1 rounded-xl border p-4 transition-all ${isCurrent
                                                         ? "border-orange-100 bg-orange-50 shadow-sm"
                                                         : "border-gray-100 bg-gray-50 hover:border-gray-200"
-                                                }`}>
+                                                    }`}>
                                                     <div className="flex items-start justify-between gap-3">
                                                         <div>
                                                             <p className={`text-sm font-bold ${isCurrent ? "text-orange-600" : "text-gray-800"}`}>
@@ -142,7 +141,7 @@ export default function StudentLevelHistory() {
                                                                 ? <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600 border border-orange-200">Current</span>
                                                                 : <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-600 border border-green-100">
                                                                     <MdCheckCircle size={10} className="inline mr-0.5" />Done
-                                                                  </span>
+                                                                </span>
                                                             }
                                                             {item.totalTasks > 0 && (
                                                                 <CircleProgress pct={pct} size={36} stroke={3.5}

@@ -1,6 +1,6 @@
 import Sidebar from '../../shared/sidebar/Sidebar';
 import { SidebarProvider } from '../../../contexts/SidebarContext';
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import AdminDashboard from "./AdminDashboard";
 import StudentDetailTable from "../students/StudentDetailTable";
 import DepartmentSelector from "../students/DepartmentSelector";
@@ -48,6 +48,11 @@ const RoleBasedStudentPage = () => {
 };
 
 const Layout = () => {
+    const role = localStorage.getItem('role');
+    if (role === 'student') {
+        return <Navigate to="/student-portal/dashboard" replace />;
+    }
+
     return (
         <div className="min-h-screen">
             <SidebarProvider>

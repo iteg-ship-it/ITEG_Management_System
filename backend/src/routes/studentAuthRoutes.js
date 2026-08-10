@@ -17,6 +17,7 @@ router.get("/me", ...studentAuth, studentAuthController.getMyProfile);
 router.patch("/me/profile-image", ...studentAuth, studentAuthController.updateMyProfileImage);
 router.patch("/me/change-password", ...studentAuth, studentAuthController.changeMyPassword);
 router.get("/me/tasks", ...studentAuth, studentAuthController.getMyTasks);
+router.patch("/me/tasks/:taskId", ...studentAuth, studentAuthController.updateMyTaskStatus);
 router.get("/me/level-history", ...studentAuth, studentAuthController.getMyLevelHistory);
 router.get("/me/snapshots", ...studentAuth, studentAuthController.getMySnapshots);
 router.get("/me/event-log", ...studentAuth, studentAuthController.getMyEventLog);

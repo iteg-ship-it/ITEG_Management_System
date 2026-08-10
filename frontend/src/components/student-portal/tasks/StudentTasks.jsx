@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useGetMyStudentTasksQuery } from "../../../redux/api/studentApi";
-import { MdStar, MdStarBorder, MdAssignment, MdCheckCircle, MdAccessTime, MdSearch } from "react-icons/md";
+import { useGetMyStudentTasksQuery, useUpdateMyStudentTaskStatusMutation } from "../../../redux/api/studentApi";
+import { MdStar, MdStarBorder, MdAssignment, MdCheckCircle, MdAccessTime, MdSearch, MdDragIndicator } from "react-icons/md";
+import { toast } from "react-toastify";
 
 const STATUS_COLS = [
     { key: "pending",    label: "Pending",     dot: "bg-gray-400",   colBg: "bg-gray-50",   border: "border-gray-200",  badge: "bg-gray-100 text-gray-600",   emptyIcon: "text-gray-300" },
@@ -10,8 +11,10 @@ const STATUS_COLS = [
 
 export default function StudentTasks() {
     const { data: taskData, isLoading } = useGetMyStudentTasksQuery();
+    const [updateTaskStatus] = useUpdateMyStudentTaskStatusMutation();
     const [search, setSearch] = useState("");
     const [activeSubject, setActiveSubject] = useState("All");
+    const [dragOverCol, setDragOverCol] = useState(null);
 
     const subjectGroups = taskData?.groupedBySubject || {};
     const allSubjects   = Object.keys(subjectGroups);
@@ -46,6 +49,35 @@ export default function StudentTasks() {
     const avgMarks  = evaluated.length > 0
         ? (evaluated.reduce((s, t) => s + t.marks, 0) / evaluated.length).toFixed(1)
         : null;
+
+    const handleDragStart = (e, task) => {
+        e.dataTransfer.setData("taskId", task._id);
+        e.dataTransfer.setData("sourceStatus", task.status);
+    };
+
+    const handleDrop = async (e, targetStatus) => {
+        const taskId = e.dataTransfer.getData("taskId");
+        const sourceStatus = e.dataTransfer.getData("sourceStatus");
+
+        if (!taskId || sourceStatus === targetStatus) return;
+
+        // Validation: Block direct student completions
+        if (targetStatus === "completed") {
+            toast.error("Only faculty members can mark tasks as completed.");
+            return;
+        }
+        if (sourceStatus === "completed") {
+            toast.error("Completed tasks are evaluated and locked.");
+            return;
+        }
+
+        try {
+            await updateTaskStatus({ taskId, status: targetStatus }).unwrap();
+            toast.success(`Task status updated to ${targetStatus === "inProgress" ? "In Progress" : "Pending"}`);
+        } catch (err) {
+            toast.error(err?.data?.message || "Failed to update task status");
+        }
+    };
 
     if (isLoading) return (
         <div className="flex justify-center pt-20">
@@ -129,7 +161,20 @@ export default function StudentTasks() {
             {/* ── Kanban Columns ── */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {STATUS_COLS.map(col => (
-                    <div key={col.key} className={`rounded-2xl border ${col.border} ${col.colBg} p-3`}>
+                    <div 
+                        key={col.key}
+                        onDragOver={(e) => { e.preventDefault(); setDragOverCol(col.key); }}
+                        onDragLeave={() => setDragOverCol(null)}
+                        onDrop={async (e) => {
+                            setDragOverCol(null);
+                            await handleDrop(e, col.key);
+                        }}
+                        className={`rounded-2xl border transition-all duration-200 ${
+                            dragOverCol === col.key 
+                                ? "border-orange-400 bg-orange-50/50 shadow-md scale-[1.01]" 
+                                : `${col.border} ${col.colBg}`
+                        } p-3`}
+                    >
 
                         {/* Column header */}
                         <div className="flex items-center gap-2 mb-3 px-1">
@@ -141,14 +186,19 @@ export default function StudentTasks() {
                         </div>
 
                         {/* Cards */}
-                        <div className="space-y-2.5">
+                        <div className="space-y-2.5 min-h-[400px]">
                             {byStatus[col.key].length === 0 ? (
-                                <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl py-8 bg-white/60">
+                                <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl py-8 bg-white/60 animate-fade-in">
                                     <MdAssignment size={24} className={col.emptyIcon} />
                                     <p className="text-xs text-gray-400 mt-2">No {col.label.toLowerCase()} tasks</p>
                                 </div>
                             ) : byStatus[col.key].map(task => (
-                                <TaskCard key={task._id} task={task} />
+                                <TaskCard 
+                                    key={task._id} 
+                                    task={task} 
+                                    onDragStart={(e) => handleDragStart(e, task)} 
+                                    updateTaskStatus={updateTaskStatus}
+                                />
                             ))}
                         </div>
                     </div>
@@ -186,7 +236,7 @@ function formatTimeAgo(dateString) {
     return "Just now";
 }
 
-function TaskCard({ task }) {
+function TaskCard({ task, onDragStart, updateTaskStatus }) {
     const max = task.maxMarks || 5;
 
     // Define status-based styles
@@ -210,15 +260,36 @@ function TaskCard({ task }) {
 
     const cfg = statusConfig[task.status] || statusConfig.pending;
 
+    const handleStatusSelect = async (newStatus) => {
+        if (newStatus === task.status) return;
+        try {
+            await updateTaskStatus({ taskId: task._id, status: newStatus }).unwrap();
+            toast.success(`Task status updated to ${newStatus === "inProgress" ? "In Progress" : "Pending"}`);
+        } catch (err) {
+            toast.error(err?.data?.message || "Failed to update task status");
+        }
+    };
+
     return (
-        <div className={`bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out flex flex-col justify-between h-full min-h-[140px] ${cfg.borderClass} ${cfg.bgClass}`}>
+        <div 
+            draggable={task.status !== "completed"}
+            onDragStart={onDragStart}
+            className={`bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 ease-out flex flex-col justify-between h-full min-h-[145px] ${cfg.borderClass} ${cfg.bgClass} ${
+                task.status !== "completed" ? "cursor-grab active:cursor-grabbing" : ""
+            }`}
+        >
             <div>
-                {/* Subject tag */}
-                {task.subjectName && (
-                    <span className="inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100/50 mb-2.5">
-                        {task.subjectName}
-                    </span>
-                )}
+                {/* Subject tag + Drag Handle */}
+                <div className="flex items-center justify-between mb-2">
+                    {task.subjectName ? (
+                        <span className="inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100/50">
+                            {task.subjectName}
+                        </span>
+                    ) : <span />}
+                    {task.status !== "completed" && (
+                        <MdDragIndicator className="text-gray-300 hover:text-gray-400 shrink-0" size={14} />
+                    )}
+                </div>
 
                 <h4 className="text-xs font-extrabold text-gray-800 leading-snug tracking-tight line-clamp-2">
                     {task.title}
@@ -230,6 +301,26 @@ function TaskCard({ task }) {
                     </p>
                 )}
             </div>
+
+            {/* Status Dropdown/Badge for Student */}
+            {task.status !== "completed" ? (
+                <div className="mt-3">
+                    <label className="text-[9px] font-bold text-gray-400 block mb-1">Status Dropdown</label>
+                    <select
+                        value={task.status}
+                        onChange={(e) => handleStatusSelect(e.target.value)}
+                        className="w-full text-xs font-bold px-2 py-1.5 rounded-lg border border-gray-200 bg-gray-50 focus:outline-none focus:border-orange-500 focus:bg-white text-gray-700 transition cursor-pointer"
+                    >
+                        <option value="pending">Pending</option>
+                        <option value="inProgress">In Progress</option>
+                    </select>
+                </div>
+            ) : (
+                <div className="mt-3 flex items-center gap-1 text-emerald-600">
+                    <MdCheckCircle size={14} />
+                    <span className="text-[9px] font-extrabold uppercase tracking-wider">Completed</span>
+                </div>
+            )}
 
             {/* Bottom Row */}
             <div className="mt-4 pt-3 border-t border-gray-100 flex flex-col gap-2">

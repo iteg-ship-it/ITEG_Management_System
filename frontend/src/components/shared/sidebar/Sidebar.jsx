@@ -200,26 +200,20 @@ const Sidebar = ({ children }) => {
   ];
 
 
-  const filteredMenuItems = menuItems.filter(item => hasPermission(item.permission, 'read'));
-
-
-  const anyPermissionsLoaded = filteredMenuItems.length > 0;
-
+  const showAll = role === "superadmin" || role === "admin";
+  const displayedMenuItems = showAll ? menuItems : menuItems.filter(item => hasPermission(item.permission, 'read'));
 
   const NavContent = ({ onClose }) => (
     <>
       <nav className="flex flex-col gap-1 px-2 py-2 overflow-y-auto h-[calc(100vh-180px)]">
-        {(anyPermissionsLoaded ? filteredMenuItems : menuItems).map((item, idx) => {
-          const filteredSubMenu = anyPermissionsLoaded
-            ? item.subMenu.filter(subItem => hasPermission(subItem.permission, 'read'))
-            : item.subMenu;
-
+        {displayedMenuItems.map((item, idx) => {
+          const filteredSubMenu = showAll
+            ? item.subMenu
+            : item.subMenu.filter(subItem => hasPermission(subItem.permission, 'read'));
 
           if (filteredSubMenu.length === 0) return null;
 
-
           const isActive = openMenus.includes(item.name);
-
 
           return (
             <div key={idx} className="mb-1">
@@ -235,7 +229,6 @@ const Sidebar = ({ children }) => {
                 </div>
                 {isActive ? <HiChevronUp size={16} /> : <HiChevronDown size={16} />}
               </div>
-
 
               {isActive && (
                 <div className="mt-1">
@@ -262,10 +255,9 @@ const Sidebar = ({ children }) => {
           );
         })}
 
-
         <p className="text-xs text-gray-400 px-3 mt-4 mb-2">SYSTEM</p>
         {systemDirectLinks
-          .filter(item => !anyPermissionsLoaded || hasPermission(item.permission, 'read'))
+          .filter(item => showAll || hasPermission(item.permission, 'read'))
           .map((item, idx) => {
             const active = location.pathname === item.path;
             return (

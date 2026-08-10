@@ -63,7 +63,7 @@ const CircleProgress = ({ pct, size = 56, stroke = 5, color = "#FDA92D" }) => {
 };
 
 // ── Hero Card ─────────────────────────────────────────────────────────────────
-const HeroCard = ({ raw, name, initials, readinessStatus, overallPct }) => (
+const HeroCard = ({ raw, name, initials, readinessStatus, overallPct, daysInSubLevel }) => (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         {/* top orange strip */}
         <div className="h-1.5 w-full bg-orange-500" />
@@ -137,6 +137,14 @@ const HeroCard = ({ raw, name, initials, readinessStatus, overallPct }) => (
                         <span className="text-[11px] font-semibold text-gray-500">{raw.sessionId.name} <span className="text-green-500">(Active)</span></span>
                     </>
                 )}
+                {typeof daysInSubLevel === "number" && (
+                    <>
+                        <span className="text-gray-300 text-xs">·</span>
+                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-600 border border-teal-100">
+                            {daysInSubLevel} {daysInSubLevel === 1 ? "day" : "days"} in this sub-level
+                        </span>
+                    </>
+                )}
             </div>
         </div>
     </div>
@@ -201,11 +209,32 @@ export default function StudentDashboard() {
         ...item, ...activityStyle(item.type), time: item.createdAt,
     }));
 
+    // Calculate days in current sub-level
+    let daysInSubLevel = 0;
+    const currentProgress = levelHistory.find(item => 
+        item.status === "in_progress" || 
+        (item.subLevelId?._id && raw.currentSubLevelId?._id && item.subLevelId._id.toString() === raw.currentSubLevelId._id.toString())
+    );
+    const startDateVal = currentProgress?.startedAt || raw.createdAt;
+    if (startDateVal) {
+        const timeDiff = Date.now() - new Date(startDateVal).getTime();
+        if (!isNaN(timeDiff)) {
+            daysInSubLevel = Math.max(0, Math.floor(timeDiff / (1000 * 60 * 60 * 24)));
+        }
+    }
+
     return (
         <div className="space-y-5">
 
             {/* ── Hero ── */}
-            <HeroCard raw={raw} name={name} initials={initials} readinessStatus={readinessStatus} overallPct={overallPct} />
+            <HeroCard 
+                raw={raw} 
+                name={name} 
+                initials={initials} 
+                readinessStatus={readinessStatus} 
+                overallPct={overallPct} 
+                daysInSubLevel={daysInSubLevel} 
+            />
 
             {/* ── Stat Cards ── */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

@@ -465,3 +465,51 @@ exports.getFaculties = async (req, res) => {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+// ✅ Update My Task Status (Student self-service: pending <-> inProgress ONLY!)
+exports.updateMyTaskStatus = async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const { status } = req.body;
+
+    if (!["pending", "inProgress"].includes(status)) {
+      return res.status(400).json({ message: "Students can only change task status to pending or inProgress" });
+    }
+
+    const StudentTask = require("../../models/syllabus/StudentTask");
+    const task = await StudentTask.findOne({ _id: taskId, studentId: req.user.id });
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    if (task.status === "completed") {
+      return res.status(400).json({ message: "Completed tasks cannot be modified by students" });
+    }
+
+    task.status = status;
+    if (status === "inProgress" && !task.startedAt) {
+      task.startedAt = new Date();
+    }
+    await task.save();
+
+    // Log event
+    const StudentEventLog = require("../../models/student/StudentEventLog");
+    const student = await Student.findById(req.user.id).select("firstName lastName");
+    await StudentEventLog.create({
+      studentId: req.user.id,
+      type: "task",
+      action: status === "inProgress" ? "task_started" : "task_moved_to_pending",
+      title: status === "inProgress" ? "Task Started" : "Task Moved to Pending",
+      description: `Task "${task.title}" updated to ${status === "inProgress" ? "In Progress" : "Pending"}`,
+      meta: { taskId, status },
+      createdBy: null,
+      createdByName: `${student?.firstName || ""} ${student?.lastName || ""}`.trim(),
+      createdByRole: "student",
+    });
+
+    return res.status(200).json({ message: "Task status updated successfully", data: task });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
