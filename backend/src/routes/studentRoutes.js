@@ -39,6 +39,7 @@ router.patch("/update/interviews/:studentId/:interviewId", ...auth, placementCon
 router.post("/interviews/:studentId/:interviewId/add_round", ...auth, placementController.addInterviewRound);
 router.patch("/reschedule/interview/:studentId/:interviewId", ...auth, placementController.rescheduleInterview);
 router.patch("/cancel/interview/:studentId/:interviewId", ...auth, placementController.cancelInterview);
+router.patch("/interviews/:studentId/:interviewId/conduct", ...auth, placementController.markInterviewConducted);
 router.patch("/interviews/:studentId/:interviewId/final-result", ...auth, placementController.updateFinalResult);
 router.get("/interview_history/:studentId", ...auth, placementController.getStudentInterviewHistory);
 
@@ -61,8 +62,13 @@ router.post("/upload_Resume_Base64", ...auth, placementController.uploadResumeBa
 
 // Companies
 router.get("/companies", ...auth, placementController.getAllCompanies);
+router.get("/companies/check-duplicate", ...auth, placementController.checkCompanyDuplicate);
 router.get("/companies/placed_students/:companyId", ...auth, placementController.getPlacedStudentsByCompany);
+router.get("/companies/detail/:id", ...auth, placementController.getCompanyById);
 router.get("/companies/:companyName", ...auth, placementController.getCompanyByName);
+router.post("/companies", ...auth, placementController.createCompany);
+router.put("/companies/:id", ...auth, placementController.updateCompany);
+router.patch("/companies/:id/status", ...auth, placementController.toggleCompanyStatus);
 
 // Attendance
 router.get("/attendance/stats", ...auth, attendanceController.getOverallAttendanceStats);
@@ -73,6 +79,8 @@ router.get("/attendance/stats", ...auth, attendanceController.getOverallAttendan
 
 router.get("/:id", ...auth, studentController.getStudentById);
 router.patch("/:id", ...auth, studentController.updateStudent);
+router.patch("/update_technology/:id", ...auth, studentController.updateTechnology);
+router.patch("/:id/technology", ...auth, studentController.updateTechnology);
 
 // Readiness & Promotion
 router.patch("/:id/readiness-status", ...auth, studentController.updateReadinessStatus);

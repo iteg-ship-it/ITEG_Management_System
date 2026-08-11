@@ -16,6 +16,8 @@ import CryptoJS from "crypto-js";
 import { FiCamera, FiCheck } from "react-icons/fi";
 import Header from "../../../shared/sidebar/Header";
 import OrangeButton from "../../../shared/sidebar/OrangeButton";
+import StudentPlacementTimeline from "../../placements/StudentPlacementTimeline";
+import OfferJoiningModal from "../../placements/OfferJoiningModal";
 import {
     useGetNewStudentTasksQuery,
     useGetNewStudentByIdQuery,
@@ -1074,7 +1076,9 @@ const StudentProfilePage = () => {
         fatherName: "Suresh Sharma",
         village: "Indore",
         course: student?.course || "Full Stack Web Development",
-        track: student?.track || "MERN Stack",
+        techno: student?.techno || student?.technology || student?.track || "MERN Stack",
+        technology: student?.technology || student?.techno || student?.track || "MERN Stack",
+        track: student?.track || student?.techno || "MERN Stack",
         gender: "Male",
         status: "Active",
         isFTP: false,
@@ -1097,8 +1101,10 @@ const StudentProfilePage = () => {
         ]
     }), [studentId, student]);
 
-    const baseStudent = studentFull || (student?.firstName ? student : null) || (student?.raw?.firstName ? student.raw : null) || dummyFallbackStudent;
+    const fetchedStudent = studentFull?.data || (studentFull?.firstName ? studentFull : null);
+    const baseStudent = fetchedStudent || (student?.firstName ? student : null) || (student?.raw?.firstName ? student.raw : null) || dummyFallbackStudent;
     const subDepartmentId = getId(baseStudent?.subDepartmentId);
+
 
     const { data: progressSnapshotsResponse } = useGetStudentProgressSnapshotsQuery(
         { id: studentId, limit: 100 },
@@ -1205,9 +1211,27 @@ const StudentProfilePage = () => {
 
     const currentSubLevelName = raw.currentSubLevelId?.name || level?.currentSubLevelName || "—";
     const currentLevelLabel   = raw.currentLevelId?.name || level?.name || "—";
-    const trackName           = raw.track || raw.technology || raw.course || "General";
+
+    // Helper to get student's actual technology from database
+    const getActualStudentTechnology = (student) => {
+        if (!student) return "Technology Not Updated";
+        if (Array.isArray(student.technologies) && student.technologies.filter(Boolean).length > 0) {
+            return student.technologies.filter(Boolean).join(" | ");
+        }
+        if (Array.isArray(student.technology) && student.technology.filter(Boolean).length > 0) {
+            return student.technology.filter(Boolean).join(" | ");
+        }
+        const t = student.techno || student.technology || student.track;
+        if (t && typeof t === "string" && t.trim()) {
+            return t.trim();
+        }
+        return "Technology Not Updated";
+    };
+
+    const trackName           = getActualStudentTechnology(raw);
     const subLevelName        = currentSubLevelName;
     const levelName           = currentLevelLabel;
+
 
     const daysInSubLevel = useMemo(() => {
         if (!raw) return null;
@@ -1550,8 +1574,9 @@ const StudentProfilePage = () => {
                                 <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-orange-500">
                                     <span>{raw.course || "Course"} • {currentLevelLabel} ({currentSubLevelName}){daysInSubLevel ? ` • ${daysInSubLevel}` : ''}</span>
                                     <span className="bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-md border border-slate-200 text-[11px] font-bold">
-                                        Track: {raw.track || raw.course || "General Technology"}
+                                        Technology: {trackName}
                                     </span>
+
                                 </div>
 
                                 {/* Placement Badge */}
@@ -1709,7 +1734,8 @@ const StudentProfilePage = () => {
                     </div>
                 </div>
 
-
+                {/* PLACEMENT JOURNEY & TIMELINE */}
+                <StudentPlacementTimeline student={raw} placement={raw.studentPlacement || raw} />
 
                 {/* 4 STAT CARDS ROW */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">

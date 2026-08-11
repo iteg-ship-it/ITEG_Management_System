@@ -14,19 +14,25 @@ const InterviewRoundsHistory = () => {
   const selectedInterview = interviews.find((i) => i._id === interviewId) || {};
   
   const renderBadge = (status) => {
-    const base = "inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium";
+    const base = "inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-bold";
     switch (status) {
-      case "Selected":
+      case "Cleared":
       case "Passed":
-        return <span className={`${base} bg-green-100 text-green-700`}><CheckCircle className="w-4 h-4" />Passed</span>;
+      case "Selected":
+        return <span className={`${base} bg-emerald-100 text-emerald-700`}><CheckCircle className="w-4 h-4" />Cleared</span>;
+      case "Not Cleared":
+      case "Failed":
       case "Reject":
       case "Rejected":
-      case "Failed":
-        return <span className={`${base} bg-red-100 text-red-700`}><XCircle className="w-4 h-4" />Failed</span>;
+        return <span className={`${base} bg-red-100 text-red-700`}><XCircle className="w-4 h-4" />Not Cleared</span>;
+      case "Conducted":
+        return <span className={`${base} bg-blue-100 text-blue-700`}><CheckCircle className="w-4 h-4" />Conducted</span>;
       case "Pending":
-        return <span className={`${base} bg-yellow-100 text-yellow-700`}>Pending</span>;
+      case "Scheduled":
+      case "Rescheduled":
+        return <span className={`${base} bg-amber-100 text-amber-700`}>{status || "Pending"}</span>;
       default:
-        return <span className={`${base} bg-gray-100 text-gray-700`}>Unknown</span>;
+        return <span className={`${base} bg-emerald-100 text-emerald-700`}><CheckCircle className="w-4 h-4" />{status || "Cleared"}</span>;
     }
   };
 
@@ -182,7 +188,7 @@ const InterviewRoundsHistory = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        {renderBadge(round.result)}
+                        {renderBadge(round.result || round.status)}
                       </div>
                     </div>
                     

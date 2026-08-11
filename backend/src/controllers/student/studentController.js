@@ -143,6 +143,19 @@ exports.getStudentById = async (req, res) => {
 
     if (!student) return res.status(404).json({ message: "Student not found" });
 
+    // Resolve student's actual technology from database
+    let actualTech = "Technology Not Updated";
+    if (Array.isArray(student.technologies) && student.technologies.filter(Boolean).length > 0) {
+      actualTech = student.technologies.filter(Boolean).join(" | ");
+    } else if (Array.isArray(student.technology) && student.technology.filter(Boolean).length > 0) {
+      actualTech = student.technology.filter(Boolean).join(" | ");
+    } else {
+      const techVal = student.techno || student.technology || student.track;
+      if (techVal && typeof techVal === "string" && techVal.trim()) {
+        actualTech = techVal.trim();
+      }
+    }
+
     // Attach placement readiness
     const StudentPlacement = require("../../models/placement/StudentPlacement");
     const placement = await StudentPlacement.findOne({ studentId: req.params.id })
@@ -154,9 +167,14 @@ exports.getStudentById = async (req, res) => {
     const overallCompleted = allTasks.filter(t => t.status === "completed").length;
     const overallPct       = overallTotal > 0 ? Math.round((overallCompleted / overallTotal) * 100) : 0;
 
+    const studentObj = student.toObject();
+    studentObj.technology = actualTech;
+    studentObj.techno = student.techno || student.technology || student.track || (actualTech !== "Technology Not Updated" ? actualTech : "");
+    studentObj.track = student.track || (actualTech !== "Technology Not Updated" ? actualTech : "");
+
     return res.status(200).json({
       data: {
-        ...student.toObject(),
+        ...studentObj,
         placement: placement || null,
         overallProgress: { total: overallTotal, completed: overallCompleted, percentage: overallPct },
       }
@@ -165,6 +183,31 @@ exports.getStudentById = async (req, res) => {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+// ✅ Update Student Elective Technology
+exports.updateTechnology = async (req, res) => {
+  try {
+    const { techno, technology, track, technologies } = req.body;
+    const techVal = techno || technology || track || (Array.isArray(technologies) ? technologies.join(" | ") : null);
+    if (!techVal) return res.status(400).json({ message: "Technology field is required" });
+
+    const student = await Student.findById(req.params.id);
+    if (!student) return res.status(404).json({ message: "Student not found" });
+
+    student.techno = techVal;
+    student.technology = techVal;
+    student.track = techVal;
+    if (Array.isArray(technologies)) {
+      student.technologies = technologies;
+    }
+    await student.save();
+
+    return res.status(200).json({ message: "Technology updated successfully", data: student });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 
 
 // ✅ Update Student Basic Info

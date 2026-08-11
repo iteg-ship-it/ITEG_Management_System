@@ -153,7 +153,11 @@ const Sidebar = ({ children }) => {
       permission: "Page_Placement",
       subMenu: [
         ...(role === "superadmin" || role === "admin" || role === "hod" || role === "faculty" || role === "placement_officer"
-          ? [{ name: "Dashboard", path: "/placements/dashboard", permission: "Page_Placement" }]
+          ? [
+              { name: "Dashboard", path: "/placements/dashboard", permission: "Page_Placement" },
+              { name: "Placement Drives", path: "/placements/drives", permission: "Page_Placement" },
+              { name: "Resume Sharing", path: "/placements/resume-sharing", permission: "Page_Placement" }
+            ]
           : []),
         { name: "Placement Candidates", path: "/readiness-status", permission: "Page_Placement" },
         { name: "Company Details", path: "/company-details", permission: "Page_CompanyDetails" },

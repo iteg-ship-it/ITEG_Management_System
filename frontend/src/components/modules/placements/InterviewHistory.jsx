@@ -1,7 +1,13 @@
-/* eslint-disable react/prop-types */
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { useGetInterviewHistoryQuery, useUpdatePlacedInfoMutation, useRescheduleInterviewMutation, useAddInterviewRoundMutation } from "../../../redux/api/authApi";
+import {
+  useGetInterviewHistoryQuery,
+  useUpdatePlacedInfoMutation,
+  useRescheduleInterviewMutation,
+  useAddInterviewRoundMutation,
+  useMarkInterviewConductedMutation,
+  useUpdateFinalResultMutation
+} from "../../../redux/api/authApi";
 import Loader from "../../shared/loader/Loader";
 import { toast } from "react-toastify";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
@@ -23,11 +29,12 @@ const InterviewHistory = () => {
   const interviews = historyData?.data?.interviews || [];
   const studentName = historyData?.data?.studentName || "";
 
-  
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isUpdateRoundModalOpen, setIsUpdateRoundModalOpen] = useState(false);
   const [isAddNextRoundModalOpen, setIsAddNextRoundModalOpen] = useState(false);
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+  const [isConductedModalOpen, setIsConductedModalOpen] = useState(false);
+
   const [nextRoundData, setNextRoundData] = useState({});
   const [nextRoundDate, setNextRoundDate] = useState("");
   const [nextRoundTime, setNextRoundTime] = useState("");
@@ -43,22 +50,69 @@ const InterviewHistory = () => {
   const [round, setRound] = useState("Round 1");
   const [newInterviewDate, setNewInterviewDate] = useState("");
   const [newInterviewTime, setNewInterviewTime] = useState("");
+  const [rescheduleReason, setRescheduleReason] = useState("");
   const [showRescheduleDatePicker, setShowRescheduleDatePicker] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isCompanyHistoryModalOpen, setIsCompanyHistoryModalOpen] = useState(false);
-  
+
+  // Conducted Modal Form
+  const [conductedDate, setConductedDate] = useState(new Date().toISOString().split("T")[0]);
+  const [conductedTime, setConductedTime] = useState("");
+  const [interviewer, setInterviewer] = useState("");
+  const [conductedRemarks, setConductedRemarks] = useState("");
+
   const [updateInterviewRecord, { isLoading: isUpdating }] = useUpdatePlacedInfoMutation();
   const [rescheduleInterview, { isLoading: isRescheduling }] = useRescheduleInterviewMutation();
   const [addInterviewRound, { isLoading: isAddingRound }] = useAddInterviewRoundMutation();
-  
-  
+  const [markInterviewConducted, { isLoading: isMarkingConducted }] = useMarkInterviewConductedMutation();
+  const [updateFinalResult, { isLoading: isUpdatingResult }] = useUpdateFinalResultMutation();
+
   const handleUpdateClick = (interview) => {
     setSelectedInterview({ studentId: id, ...interview });
     setResult(interview.status || "Scheduled");
     setIsUpdateModalOpen(true);
   };
 
+  const handleMarkConductedClick = (interview) => {
+    setSelectedInterview({ studentId: id, ...interview });
+    setConductedDate(new Date().toISOString().split("T")[0]);
+    setConductedTime(interview.rounds?.[0]?.time || "10:00 AM");
+    setInterviewer(interview.rounds?.[0]?.interviewer || "");
+    setConductedRemarks("");
+    setIsConductedModalOpen(true);
+  };
+
+  const handleMarkConductedSubmit = async () => {
+    if (!window.confirm("Are you sure this interview was conducted?")) return;
+    try {
+      await markInterviewConducted({
+        studentId: id,
+        interviewId: selectedInterview._id,
+        actualDate: conductedDate,
+        actualTime: conductedTime,
+        interviewer,
+        remarks: conductedRemarks
+      }).unwrap();
+
+      toast.success("Interview marked as Conducted successfully");
+      setIsConductedModalOpen(false);
+      await refetchHistory();
+    } catch (err) {
+      toast.error(err?.data?.message || "Failed to mark interview as conducted");
+    }
+  };
+
   const handleAddNextRoundClick = (interview) => {
+    // Check if latest round is cleared
+    const lastRound = interview.rounds && interview.rounds.length > 0 ? interview.rounds[interview.rounds.length - 1] : null;
+    const isPrevConducted = interview.status === "Conducted" || lastRound?.status === "Conducted" || !!lastRound?.conductedDate;
+    const isPrevCleared = lastRound?.result === "Cleared" || lastRound?.result === "Passed";
+
+    if (lastRound && (!isPrevConducted || !isPrevCleared)) {
+      toast.error(`Cannot schedule next round. Previous round (${lastRound.roundName}) must be Conducted and Cleared.`);
+      return;
+    }
+
     const nextRoundNumber = (interview.rounds?.length || 0) + 1;
     setNextRoundData({ baseInterview: interview, companyName: interview.company?.companyName });
     setRound(`Round ${nextRoundNumber}`);
@@ -69,8 +123,9 @@ const InterviewHistory = () => {
     setNextRoundMode("Online");
     setIsAddNextRoundModalOpen(true);
   };
-  
+
   const handleAddNextRoundSubmit = async () => {
+    if (!window.confirm(`Schedule ${round} for this candidate?`)) return;
     try {
       const interviewId = nextRoundData.baseInterview._id;
 
@@ -84,7 +139,7 @@ const InterviewHistory = () => {
         studentId: id,
         interviewId,
         roundName: round,
-        date: roundDate,
+        date: roundDate || new Date().toISOString(),
         mode: nextRoundMode,
         feedback: nextRoundFeedback,
         result: nextRoundResult,
@@ -94,11 +149,10 @@ const InterviewHistory = () => {
       setIsAddNextRoundModalOpen(false);
       await refetchHistory();
     } catch (err) {
-      console.error('Failed to add round:', err);
       toast.error(err?.data?.message || err?.data?.error || "Failed to add round");
     }
   };
-  
+
   const handleRescheduleClick = (interview) => {
     setSelectedInterview({ studentId: id, ...interview });
     const dateToUse = interview.scheduleDate || interview.interviewDate;
@@ -110,30 +164,31 @@ const InterviewHistory = () => {
       setNewInterviewDate("");
       setNewInterviewTime("");
     }
+    setRescheduleReason("");
     setIsRescheduleModalOpen(true);
   };
-  
+
   const handleUpdateSubmit = async () => {
+    if (!window.confirm(`Confirm result update for ${selectedInterview?.companyName || 'Interview'}?`)) return;
     try {
-      await updateInterviewRecord({
+      await updateFinalResult({
         studentId: selectedInterview.studentId,
         interviewId: selectedInterview._id,
-        status: result,
+        roundResult: result === "Cleared" || result === "Passed" ? "Cleared" : result === "Not Cleared" || result === "Failed" || result === "Rejected" ? "Not Cleared" : result,
+        statusRemark: remark,
       }).unwrap();
-      toast.success("Interview updated successfully");
+      toast.success("Interview result updated successfully");
       setIsUpdateModalOpen(false);
       await refetchHistory();
     } catch (err) {
-      toast.error(err?.data?.message || "Failed to update interview");
+      toast.error(err?.data?.message || "Failed to update interview result");
     }
   };
 
-  
   const handleRescheduleSubmit = async () => {
-    if (isRescheduling) return; // Prevent duplicate calls
-    
+    if (isRescheduling) return;
+
     try {
-      // Combine date and time for backend
       let combinedDateTime = '';
       if (newInterviewDate && newInterviewTime) {
         const dateParts = newInterviewDate.split('/');
@@ -142,19 +197,21 @@ const InterviewHistory = () => {
           combinedDateTime = `${formattedDate} ${newInterviewTime}`;
         }
       }
-      
+
       await rescheduleInterview({
         studentId: selectedInterview.studentId,
         interviewId: selectedInterview._id,
         newDate: combinedDateTime || newInterviewDate,
+        newTime: newInterviewTime,
+        originalDate: selectedInterview.scheduleDate,
+        reason: rescheduleReason || "Candidate requested reschedule",
       }).unwrap();
-      
-      toast.success("Interview rescheduled successfully");
+
+      toast.success("Interview rescheduled successfully. Reschedule log updated.");
       setIsRescheduleModalOpen(false);
       setShowRescheduleDatePicker(false);
       await refetchHistory();
     } catch (err) {
-      console.error(err);
       toast.error("Failed to reschedule interview");
     }
   };
@@ -375,7 +432,6 @@ const InterviewHistory = () => {
                           {renderBadge(interview.status || "Pending")}
                         </div>
                       </div>
-
                       <div className="flex items-start gap-3">
                         <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
                           <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -401,50 +457,161 @@ const InterviewHistory = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Reschedule History Timeline Card */}
+                  {interview.rescheduleHistory && interview.rescheduleHistory.length > 0 && (
+                    <div className="mt-6 p-4 bg-amber-50/80 border border-amber-200 rounded-2xl space-y-2">
+                      <h5 className="text-xs font-extrabold text-amber-900 flex items-center gap-1.5 uppercase tracking-wider">
+                        <Clock className="w-4 h-4 text-amber-600" /> Reschedule History Log ({interview.rescheduleHistory.length})
+                      </h5>
+                      <div className="space-y-2 divide-y divide-amber-200/60 pt-1">
+                        {interview.rescheduleHistory.map((item, rIdx) => (
+                          <div key={rIdx} className="pt-2 text-xs text-amber-800 flex flex-col sm:flex-row justify-between gap-1">
+                            <div>
+                              <span>Original: <strong className="line-through text-amber-600">{new Date(item.originalDate).toLocaleDateString()} {item.originalTime}</strong></span>
+                              <span className="mx-2">➔</span>
+                              <span>New: <strong className="text-amber-900">{new Date(item.newDate).toLocaleDateString()} {item.newTime}</strong></span>
+                            </div>
+                            <div className="text-[11px] text-amber-700 font-medium">
+                              <span>Reason: <em>"{item.reason || "Rescheduled"}"</em></span> • <span>By: {item.rescheduledBy || "Placement Officer"}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* Card Footer */}
-                <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-between items-center">
-                  <div className="text-sm text-gray-500">
-                    <span className="inline-flex items-center gap-2">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      Interview #{index + 1}
-                    </span>
-                  </div>
-                  <div className="flex space-x-3">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAddNextRoundClick(interview);
-                      }}
-                      className={buttonStyles.primary}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                      </svg>
-                      Add Round
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleUpdateClick(interview);
-                      }}
-                      className={buttonStyles.primary}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                      Update Interview
-                    </button>
-                  </div>
+                {/* Card Footer — Strict Workflow State Machine */}
+                <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+                  {(() => {
+                    const lastRound = interview.rounds && interview.rounds.length > 0 ? interview.rounds[interview.rounds.length - 1] : null;
+                    const isConducted = interview.status === "Conducted" || lastRound?.status === "Conducted" || !!lastRound?.conductedDate;
+                    const isCleared = lastRound?.result === "Cleared" || lastRound?.result === "Passed";
+                    const isFailed = lastRound?.result === "Not Cleared" || lastRound?.result === "Failed" || lastRound?.result === "Rejected" || interview.status === "Not Selected";
+
+                    return (
+                      <>
+                        <div className="text-xs font-bold text-slate-500 flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-slate-400" />
+                          <span>Interview #{index + 1} • {lastRound ? lastRound.roundName : "Round 1"} ({interview.status})</span>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                          {/* Case 1: Failed / Rejected -> Process Ended */}
+                          {isFailed ? (
+                            <span className="px-3 py-1.5 rounded-xl bg-rose-100 text-rose-700 border border-rose-200 text-xs font-extrabold flex items-center gap-1">
+                              <XCircle className="w-4 h-4" /> Process Ended — Candidate did not clear {lastRound?.roundName || "Round"}
+                            </span>
+                          ) : (
+                            <>
+                              {/* Always show Add Round button */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddNextRoundClick(interview);
+                                }}
+                                className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1.5"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                Add Round
+                              </button>
+
+                              {!isConducted ? (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleMarkConductedClick(interview);
+                                  }}
+                                  className="px-3.5 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1.5"
+                                >
+                                  <CheckCircle className="w-4 h-4" /> Mark Conducted
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleUpdateClick(interview);
+                                  }}
+                                  className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1.5"
+                                >
+                                  <CheckCircle className="w-4 h-4" /> Record Result
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             ))}
           </div>
         )}
-      </div>      {/* Update Drawer */}
+      </div>
+
+      {/* MARK CONDUCTED DRAWER */}
+      <OrangeButton
+        isOpen={isConductedModalOpen}
+        onClose={() => setIsConductedModalOpen(false)}
+        panelTitle="Mark Interview Conducted"
+        panelSubtitle="Record actual interview date, time, interviewer, and notes"
+        leftBtnText="Cancel"
+        rightBtnText={isMarkingConducted ? "Saving..." : "Confirm Conducted"}
+        onLeftClick={() => setIsConductedModalOpen(false)}
+        onRightClick={handleMarkConductedSubmit}
+        drawerContent={
+          <div className="space-y-4 pt-2">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Actual Conducted Date *</label>
+              <input
+                type="date"
+                value={conductedDate}
+                onChange={(e) => setConductedDate(e.target.value)}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-orange-400 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Actual Conducted Time</label>
+              <input
+                type="text"
+                placeholder="e.g. 10:30 AM"
+                value={conductedTime}
+                onChange={(e) => setConductedTime(e.target.value)}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-orange-400 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Interviewer Name</label>
+              <input
+                type="text"
+                placeholder="e.g. John Doe (Tech Lead)"
+                value={interviewer}
+                onChange={(e) => setInterviewer(e.target.value)}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-orange-400 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Interviewer Remarks & Notes</label>
+              <textarea
+                rows={3}
+                placeholder="Notes on candidate technical performance..."
+                value={conductedRemarks}
+                onChange={(e) => setConductedRemarks(e.target.value)}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-orange-400 outline-none"
+              />
+            </div>
+          </div>
+        }
+      />
+
+      {/* Update Drawer */}
       <OrangeButton
         isOpen={isUpdateModalOpen}
         onClose={() => setIsUpdateModalOpen(false)}

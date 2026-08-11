@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 const Student = require("../../models/student/Student");
 const StudentPlacement = require("../../models/placement/StudentPlacement");
 const Company = require("../../models/company/company");
+const PlacementDrive = require("../../models/placement/PlacementDrive");
+const PlacementInterview = require("../../models/placement/PlacementInterview");
 const cloudinary = require("../../config/cloudinaryConfig");
 const { withTransaction } = require("../../utils/withTransaction");
 
@@ -74,8 +76,16 @@ exports.getReadyStudents = async (req, res) => {
           studentMobile: p.studentId.studentMobile,
           email: p.studentId.email,
           image: p.studentId.image,
-          technology: p.studentId.track || p.studentId.course || "General",
-          track: p.studentId.track || "General",
+          technology: (
+            (Array.isArray(p.studentId.technologies) && p.studentId.technologies.filter(Boolean).length > 0)
+              ? p.studentId.technologies.filter(Boolean).join(" | ")
+              : (Array.isArray(p.studentId.technology) && p.studentId.technology.filter(Boolean).length > 0)
+                ? p.studentId.technology.filter(Boolean).join(" | ")
+                : (p.studentId.techno || p.studentId.technology || p.studentId.track || "Technology Not Updated")
+          ),
+          techno: p.studentId.techno || p.studentId.technology || p.studentId.track || "",
+          track: p.studentId.track || "",
+
           currentLevel: p.studentId.currentLevelId?.name || "—",
           currentSubLevel: p.studentId.currentSubLevelId?.name || "—",
           sessionName: p.studentId.sessionId?.name || "—",
@@ -186,11 +196,33 @@ exports.updateInterviewStatus = async (req, res) => {
   }
 };
 
-// 3. ADD INTERVIEW ROUND
+const StudentEventLog = require("../../models/student/StudentEventLog");
+
+// ── Helper: Audit Logging for Placement Actions ───────────────
+const logPlacementEvent = async ({ studentId, action, title, description, meta, req }) => {
+  try {
+    if (!studentId) return;
+    await StudentEventLog.create({
+      studentId,
+      type: "placement",
+      action,
+      title,
+      description: description || "",
+      meta: meta || {},
+      createdBy: req?.user?._id || null,
+      createdByName: req?.user?.name || req?.user?.email || "Placement Officer",
+      createdByRole: req?.user?.role || "placement_officer"
+    });
+  } catch (err) {
+    console.error("Failed to log placement audit event:", err);
+  }
+};
+
+// 3. ADD INTERVIEW ROUND (Enforces Sequential Round Rule)
 exports.addInterviewRound = async (req, res) => {
   try {
     const { studentId, interviewId } = req.params;
-    const { roundName, date, mode, feedback, result } = req.body;
+    const { roundName, date, time, mode, feedback, result, interviewer, location } = req.body;
 
     const placement = await StudentPlacement.findOne(placementFilter(req, { studentId }));
     if (!placement) return res.status(404).json({ message: "Student placement not found or access denied" });
@@ -198,28 +230,122 @@ exports.addInterviewRound = async (req, res) => {
     const interview = placement.PlacementinterviewRecord.id(interviewId);
     if (!interview) return res.status(404).json({ message: "Interview not found" });
 
+    // Sequential Round Validation Rule: Cannot add round if previous round was failed/rejected
+    if (interview.rounds && interview.rounds.length > 0) {
+      const prevRound = interview.rounds[interview.rounds.length - 1];
+      const isPrevFailed = prevRound.result === "Not Cleared" || prevRound.result === "Failed" || prevRound.result === "Rejected";
+
+      if (isPrevFailed) {
+        return res.status(400).json({
+          success: false,
+          message: `Cannot schedule ${roundName || "next round"}. Candidate did not clear previous round (${prevRound.roundName}).`
+        });
+      }
+    }
+
+    const newRoundNumber = (interview.rounds?.length || 0) + 1;
+    const finalRoundName = roundName || `Round ${newRoundNumber}`;
+
     const newRound = {
-      roundName: roundName || `Round ${interview.rounds.length + 1}`,
-      date: new Date(date),
+      roundName: finalRoundName,
+      date: new Date(date || Date.now()),
+      time: time || "",
       mode: mode || "Offline",
+      interviewer: interviewer || "",
+      location: location || "",
       feedback: feedback || "",
+      status: "Scheduled",
       result: result || "Pending",
     };
 
     interview.rounds.push(newRound);
+    interview.status = "Scheduled";
     await placement.save();
 
-    res.json({ success: true, message: "Interview round added", data: newRound });
+    // Log Activity Audit Event
+    await logPlacementEvent({
+      studentId: placement.studentId,
+      action: "Round Scheduled",
+      title: `${finalRoundName} Scheduled`,
+      description: `${finalRoundName} for ${interview.companyName || 'Company'} scheduled for ${new Date(date || Date.now()).toLocaleDateString()} at ${time || 'TBD'}`,
+      meta: {
+        company: interview.companyName || "Company",
+        round: finalRoundName,
+        date: date || new Date(),
+        time,
+        mode
+      },
+      req
+    });
+
+    res.json({ success: true, message: `${finalRoundName} scheduled successfully`, data: newRound });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
 
-// 4. RESCHEDULE INTERVIEW
+// 3b. MARK INTERVIEW / ROUND AS CONDUCTED
+exports.markInterviewConducted = async (req, res) => {
+  try {
+    const { studentId, interviewId } = req.params;
+    const { roundId, actualDate, actualTime, interviewer, remarks } = req.body;
+
+    const placement = await StudentPlacement.findOne(placementFilter(req, { studentId }));
+    if (!placement) return res.status(404).json({ message: "Student placement not found or access denied" });
+
+    const interview = placement.PlacementinterviewRecord.id(interviewId);
+    if (!interview) return res.status(404).json({ message: "Interview not found" });
+
+    let targetRound = null;
+    if (roundId) {
+      targetRound = interview.rounds.id(roundId);
+    } else if (interview.rounds && interview.rounds.length > 0) {
+      targetRound = interview.rounds[interview.rounds.length - 1];
+    }
+
+    const conductedAt = actualDate ? new Date(actualDate) : new Date();
+
+    if (targetRound) {
+      targetRound.status = "Conducted";
+      targetRound.conductedDate = conductedAt;
+      if (actualTime) targetRound.conductedTime = actualTime;
+      if (interviewer) targetRound.interviewer = interviewer;
+      if (remarks) targetRound.conductedRemarks = remarks;
+    }
+
+    interview.status = "Conducted";
+    interview.conductedDate = conductedAt;
+    if (remarks) interview.statusRemark = remarks;
+
+    await placement.save();
+
+    // Log Activity Audit Event
+    await logPlacementEvent({
+      studentId: placement.studentId,
+      action: "Interview Conducted",
+      title: `Interview Conducted — ${targetRound ? targetRound.roundName : 'Round'}`,
+      description: `Interview actually conducted on ${conductedAt.toLocaleDateString()} at ${actualTime || targetRound?.time || 'Scheduled Time'}. ${remarks || ''}`,
+      meta: {
+        company: interview.companyName || "Company",
+        round: targetRound ? targetRound.roundName : "Round 1",
+        conductedDate: conductedAt,
+        conductedTime: actualTime,
+        interviewer
+      },
+      req
+    });
+
+    res.json({ success: true, message: "Interview marked as Conducted", data: interview });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// 4. RESCHEDULE INTERVIEW (Preserves Complete History)
 exports.rescheduleInterview = async (req, res) => {
   try {
     const { studentId, interviewId } = req.params;
-    const { rescheduleDate, newDate } = req.body;
+    const { rescheduleDate, newDate, newTime, originalDate, originalTime, reason, rescheduledBy } = req.body;
     const dateValue = rescheduleDate || newDate;
 
     if (!dateValue) return res.status(400).json({ message: "rescheduleDate is required" });
@@ -230,11 +356,31 @@ exports.rescheduleInterview = async (req, res) => {
     const interview = placement.PlacementinterviewRecord.id(interviewId);
     if (!interview) return res.status(404).json({ message: "Interview not found" });
 
-    const originalDate = interview.scheduleDate;
+    const prevDate = originalDate ? new Date(originalDate) : (interview.scheduleDate || new Date());
+    const prevTime = originalTime || (interview.rounds?.[0]?.time || "");
+    const updatedDate = new Date(dateValue);
+
     interview.status = "Rescheduled";
-    interview.rescheduleDate = new Date(dateValue);
-    if (req.body.reason || req.body.rescheduleReason) {
-      interview.statusRemark = req.body.reason || req.body.rescheduleReason;
+    interview.rescheduleDate = updatedDate;
+    interview.scheduleDate = updatedDate;
+    if (reason) interview.statusRemark = reason;
+
+    if (interview.rounds && interview.rounds.length > 0) {
+      const activeRound = interview.rounds[interview.rounds.length - 1];
+      activeRound.status = "Rescheduled";
+      activeRound.date = updatedDate;
+      if (newTime) activeRound.time = newTime;
+
+      if (!Array.isArray(activeRound.rescheduleHistory)) activeRound.rescheduleHistory = [];
+      activeRound.rescheduleHistory.push({
+        originalDate: prevDate,
+        originalTime: prevTime,
+        newDate: updatedDate,
+        newTime: newTime || "",
+        reason: reason || "Rescheduled by Placement Officer",
+        rescheduledBy: req.user?.name || req.user?.email || rescheduledBy || "Placement Officer",
+        updatedAt: new Date(),
+      });
     }
 
     if (!Array.isArray(interview.rescheduleHistory)) {
@@ -242,14 +388,33 @@ exports.rescheduleInterview = async (req, res) => {
     }
 
     interview.rescheduleHistory.push({
-      originalDate: originalDate || new Date(),
-      newDate: new Date(dateValue),
-      reason: req.body.reason || req.body.rescheduleReason || "Rescheduled by Placement Officer",
-      rescheduledBy: req.user?.name || req.user?.email || "Placement Officer",
+      originalDate: prevDate,
+      originalTime: prevTime,
+      newDate: updatedDate,
+      newTime: newTime || "",
+      reason: reason || "Rescheduled by Placement Officer",
+      rescheduledBy: req.user?.name || req.user?.email || rescheduledBy || "Placement Officer",
       updatedAt: new Date(),
     });
 
     await placement.save();
+
+    // Log Activity Audit Event
+    await logPlacementEvent({
+      studentId: placement.studentId,
+      action: "Interview Rescheduled",
+      title: "Interview Rescheduled",
+      description: `Rescheduled from ${prevDate.toLocaleDateString()} to ${updatedDate.toLocaleDateString()}. Reason: ${reason || "Not specified"}`,
+      meta: {
+        company: interview.companyName || "Company",
+        originalDate: prevDate,
+        originalTime: prevTime,
+        newDate: updatedDate,
+        newTime,
+        reason
+      },
+      req
+    });
 
     res.json({ success: true, message: "Interview rescheduled successfully", data: interview });
   } catch (error) {
@@ -275,27 +440,43 @@ exports.cancelInterview = async (req, res) => {
     interview.statusRemark = statusRemark || finalReason;
     await placement.save();
 
+    // Log Activity Audit Event
+    await logPlacementEvent({
+      studentId: placement.studentId,
+      action: "Interview Cancelled",
+      title: "Interview Cancelled",
+      description: `Cancelled. Reason: ${finalReason}`,
+      meta: {
+        company: interview.companyName || "Company",
+        reason: finalReason
+      },
+      req
+    });
+
     res.json({ success: true, message: "Interview cancelled successfully", data: interview });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
 
-// 4c. UPDATE FINAL INTERVIEW RESULT / OFFER / JOINING
+// 4c. UPDATE FINAL INTERVIEW RESULT / OFFER / JOINING (Requires Conducted State)
 exports.updateFinalResult = async (req, res) => {
   try {
     const { studentId, interviewId } = req.params;
-    const { status, notJoiningReason, notJoiningRemarks, statusRemark, salary, joiningDate } = req.body;
+    const { status, roundResult, roundId, notJoiningReason, notJoiningRemarks, statusRemark, salary, joiningDate } = req.body;
 
     const validStatuses = [
       "Scheduled", "Interview Scheduled",
+      "Rescheduled", "Interview Rescheduled",
+      "Conducted", "Interview Conducted",
+      "Result Pending",
       "Ongoing", "Interview In Progress",
       "Selected", "Not Selected",
-      "Offer Received", "Offer Declined",
+      "Offer Received", "Offer Accepted", "Offer Declined",
       "Did Not Join", "Placed", "Cancelled", "OnHold"
     ];
 
-    if (!validStatuses.includes(status)) {
+    if (status && !validStatuses.includes(status)) {
       return res.status(400).json({ message: `Invalid status. Must be one of: ${validStatuses.join(", ")}` });
     }
 
@@ -305,15 +486,32 @@ exports.updateFinalResult = async (req, res) => {
     const interview = placement.PlacementinterviewRecord.id(interviewId);
     if (!interview) return res.status(404).json({ message: "Interview record not found" });
 
-    interview.status = status;
+    let activeRound = null;
+    if (roundId) activeRound = interview.rounds.id(roundId);
+    else if (interview.rounds && interview.rounds.length > 0) activeRound = interview.rounds[interview.rounds.length - 1];
+
+    // Require Conducted status before recording round result
+    if (activeRound && roundResult) {
+      if (activeRound.status !== "Conducted" && !activeRound.conductedDate && interview.status !== "Conducted") {
+        return res.status(400).json({
+          success: false,
+          message: "Interview must be marked as Conducted before recording result."
+        });
+      }
+      activeRound.result = roundResult;
+      activeRound.status = ["Cleared", "Passed"].includes(roundResult) ? "Cleared" : "Not Cleared";
+    }
+
+    const finalStatus = status || (roundResult === "Cleared" ? "Ongoing" : roundResult === "Not Cleared" ? "Not Selected" : interview.status);
+    interview.status = finalStatus;
     if (statusRemark) interview.statusRemark = statusRemark;
 
-    if (["Did Not Join", "Offer Declined"].includes(status)) {
+    if (["Did Not Join", "Offer Declined"].includes(finalStatus)) {
       interview.notJoiningReason = notJoiningReason || "";
       interview.notJoiningRemarks = notJoiningRemarks || statusRemark || "";
     }
 
-    if (status === "Placed") {
+    if (finalStatus === "Placed") {
       const company = await Company.findById(interview.companyRef);
       placement.placedInfo = {
         companyRef: interview.companyRef,
@@ -327,11 +525,27 @@ exports.updateFinalResult = async (req, res) => {
         placedDate: new Date(),
       };
       await Student.findByIdAndUpdate(studentId, { status: "Placed" });
+      placement.readinessStatus = "Placed";
     }
 
     await placement.save();
 
-    res.json({ success: true, message: `Interview status updated to "${status}" successfully`, data: interview });
+    // Log Activity Audit Event
+    await logPlacementEvent({
+      studentId: placement.studentId,
+      action: "Result Recorded",
+      title: `Result Recorded — ${roundResult || finalStatus}`,
+      description: `Result for ${activeRound ? activeRound.roundName : 'Interview'}: ${roundResult || finalStatus}. ${statusRemark || ''}`,
+      meta: {
+        company: interview.companyName || "Company",
+        round: activeRound ? activeRound.roundName : "Round 1",
+        result: roundResult || finalStatus,
+        statusRemark
+      },
+      req
+    });
+
+    res.json({ success: true, message: `Interview status updated to "${finalStatus}" successfully`, data: interview });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -660,26 +874,375 @@ exports.updatePlacementPost = async (req, res) => {
   }
 };
 
-// 12. GET ALL COMPANIES
+// 12. CREATE COMPANY (WITH DUPLICATE PREVENTION & VALIDATION)
+exports.createCompany = async (req, res) => {
+  try {
+    const {
+      companyName,
+      companyLogo,
+      website,
+      companyEmail,
+      companyContact,
+      hrEmail,
+      hrContact,
+      address,
+      city,
+      state,
+      country,
+      location,
+      industry,
+      companyType,
+      description,
+      contactPersonName,
+      designation,
+      contactPersonEmail,
+      contactPersonPhone,
+      status
+    } = req.body;
+
+    // 1. Mandatory field validation
+    if (!companyName || !companyName.trim()) {
+      return res.status(400).json({ success: false, message: "Company Name is required." });
+    }
+
+    // 2. Email format validation
+    const emailToValidate = companyEmail || contactPersonEmail || hrEmail;
+    if (emailToValidate && emailToValidate.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailToValidate.trim())) {
+        return res.status(400).json({ success: false, message: "Please enter a valid email address." });
+      }
+    }
+
+    // 3. Normalized Duplicate Prevention Check
+    const trimmedName = companyName.trim();
+    const norm = trimmedName.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    const existingCompany = await Company.findOne({
+      $or: [
+        { normalizedName: norm },
+        { companyName: { $regex: new RegExp("^" + trimmedName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + "$", "i") } }
+      ]
+    });
+
+    if (existingCompany) {
+      return res.status(409).json({
+        success: false,
+        duplicate: true,
+        message: "A company with this name already exists.",
+        existingCompany
+      });
+    }
+
+    const newCompany = new Company({
+      companyName: trimmedName,
+      normalizedName: norm,
+      companyLogo: companyLogo || "",
+      website: website ? website.trim() : "",
+      companyEmail: companyEmail ? companyEmail.trim() : (hrEmail ? hrEmail.trim() : ""),
+      companyContact: companyContact ? companyContact.trim() : (hrContact ? hrContact.trim() : ""),
+      hrEmail: hrEmail ? hrEmail.trim() : (contactPersonEmail ? contactPersonEmail.trim() : (companyEmail ? companyEmail.trim() : "")),
+      hrContact: hrContact ? hrContact.trim() : (contactPersonPhone ? contactPersonPhone.trim() : (companyContact ? companyContact.trim() : "")),
+      address: address ? address.trim() : "",
+      city: city ? city.trim() : "",
+      state: state ? state.trim() : "",
+      country: country ? country.trim() : "",
+      location: location ? location.trim() : ([city, state, country].filter(Boolean).join(", ") || "Not provided"),
+      headOffice: address ? address.trim() : "",
+      industry: industry ? industry.trim() : "IT Services",
+      companyType: companyType || "IT Services",
+      description: description ? description.trim() : "",
+      contactPersonName: contactPersonName ? contactPersonName.trim() : "",
+      designation: designation ? designation.trim() : "",
+      contactPersonEmail: contactPersonEmail ? contactPersonEmail.trim() : "",
+      contactPersonPhone: contactPersonPhone ? contactPersonPhone.trim() : "",
+      status: status || "Active"
+    });
+
+    await newCompany.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Company added successfully.",
+      data: newCompany
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        duplicate: true,
+        message: "A company with this name already exists."
+      });
+    }
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
+// 12b. CHECK COMPANY DUPLICATE
+exports.checkCompanyDuplicate = async (req, res) => {
+  try {
+    const { name } = req.query;
+    if (!name || !name.trim()) {
+      return res.status(200).json({ success: true, exists: false });
+    }
+
+    const trimmedName = name.trim();
+    const norm = trimmedName.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    const existingCompany = await Company.findOne({
+      $or: [
+        { normalizedName: norm },
+        { companyName: { $regex: new RegExp("^" + trimmedName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + "$", "i") } }
+      ]
+    });
+
+    if (existingCompany) {
+      return res.status(200).json({
+        success: true,
+        exists: true,
+        existingCompany
+      });
+    }
+
+    res.status(200).json({ success: true, exists: false });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
+// 13. GET ALL COMPANIES (WITH SEARCH, INDUSTRY, LOCATION, STATUS FILTERS)
 exports.getAllCompanies = async (req, res) => {
   try {
-    const companies = await Company.find();
+    const { status, search, industry, location } = req.query;
+    const filter = {};
+
+    if (status && status !== "All") {
+      filter.status = status;
+    }
+
+    if (industry && industry !== "All") {
+      filter.industry = { $regex: new RegExp(industry, "i") };
+    }
+
+    if (location && location !== "All") {
+      filter.location = { $regex: new RegExp(location, "i") };
+    }
+
+    if (search && search.trim()) {
+      const q = search.trim();
+      filter.$or = [
+        { companyName: { $regex: q, $options: "i" } },
+        { hrEmail: { $regex: q, $options: "i" } },
+        { companyEmail: { $regex: q, $options: "i" } },
+        { location: { $regex: q, $options: "i" } },
+        { city: { $regex: q, $options: "i" } },
+        { contactPersonName: { $regex: q, $options: "i" } },
+        { industry: { $regex: q, $options: "i" } }
+      ];
+    }
+
+    const companies = await Company.find(filter).sort({ createdAt: -1 });
     res.status(200).json({ success: true, data: companies });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 
-// 13. GET COMPANY BY NAME
+// 13b. GET COMPANY BY ID (WITH PLACEMENT DRIVES & STUDENT STATS)
+exports.getCompanyById = async (req, res) => {
+  try {
+    const company = await Company.findById(req.params.id);
+    if (!company) return res.status(404).json({ success: false, message: "Company not found" });
+
+    // Fetch placement drives for this company
+    const drives = await PlacementDrive.find({
+      $or: [
+        { companyRef: company._id },
+        { companyName: { $regex: new RegExp("^" + company.companyName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + "$", "i") } }
+      ]
+    }).sort({ driveDate: -1 });
+
+    const driveIds = drives.map(d => d._id);
+
+    // Calculate Placement & Student Stats
+    const totalDrives = drives.length;
+
+    // Shortlisted students count
+    const shortlistedSet = new Set();
+    drives.forEach(d => {
+      if (Array.isArray(d.shortlistedStudents)) {
+        d.shortlistedStudents.forEach(sid => shortlistedSet.add(sid.toString()));
+      }
+    });
+
+    // Student Placement records for this company
+    const studentPlacements = await StudentPlacement.find({
+      $or: [
+        { companyRef: company._id },
+        { "placedInfo.companyName": { $regex: new RegExp("^" + company.companyName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + "$", "i") } }
+      ]
+    }).populate("studentId", "firstName lastName email studentMobile profileImage course stream");
+
+    // Interviews count
+    let interviewingCount = 0;
+    let selectedCount = 0;
+    if (PlacementInterview) {
+      const interviews = await PlacementInterview.find({
+        $or: [
+          { companyRef: company._id },
+          { driveId: { $in: driveIds } },
+          { companyName: { $regex: new RegExp("^" + company.companyName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + "$", "i") } }
+        ]
+      });
+      interviewingCount = interviews.filter(i => ["Scheduled", "Ongoing", "Rescheduled"].includes(i.status)).length;
+      selectedCount = interviews.filter(i => i.status === "Selected").length;
+    }
+
+    const placedCount = studentPlacements.filter(p => p.placementStatus === "Placed" || p.placedInfo?.jobProfile).length;
+    const totalStudents = Math.max(shortlistedSet.size, studentPlacements.length, placedCount);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        company,
+        drives,
+        studentPlacements,
+        stats: {
+          totalDrives,
+          totalStudents,
+          shortlisted: shortlistedSet.size,
+          interviewing: interviewingCount,
+          selected: selectedCount,
+          placed: placedCount
+        }
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
+// 13c. GET COMPANY BY NAME
 exports.getCompanyByName = async (req, res) => {
   try {
-    const company = await Company.findOne({ companyName: req.params.companyName });
+    const company = await Company.findOne({
+      $or: [
+        { companyName: req.params.companyName },
+        { normalizedName: req.params.companyName.trim().toLowerCase().replace(/[^a-z0-9]/g, "") }
+      ]
+    });
     if (!company) return res.status(404).json({ success: false, message: "Company not found" });
     res.status(200).json({ success: true, data: company });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
+
+// 13d. UPDATE COMPANY
+exports.updateCompany = async (req, res) => {
+  try {
+    const company = await Company.findById(req.params.id);
+    if (!company) return res.status(404).json({ success: false, message: "Company not found" });
+
+    const {
+      companyName,
+      companyLogo,
+      website,
+      companyEmail,
+      companyContact,
+      hrEmail,
+      hrContact,
+      address,
+      city,
+      state,
+      country,
+      location,
+      industry,
+      companyType,
+      description,
+      contactPersonName,
+      designation,
+      contactPersonEmail,
+      contactPersonPhone,
+      status
+    } = req.body;
+
+    if (companyName && companyName.trim()) {
+      const trimmedName = companyName.trim();
+      const norm = trimmedName.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+      // Check collision with another company
+      const collision = await Company.findOne({
+        _id: { $ne: req.params.id },
+        $or: [
+          { normalizedName: norm },
+          { companyName: { $regex: new RegExp("^" + trimmedName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + "$", "i") } }
+        ]
+      });
+
+      if (collision) {
+        return res.status(409).json({
+          success: false,
+          message: "Another company with this name already exists."
+        });
+      }
+
+      company.companyName = trimmedName;
+      company.normalizedName = norm;
+    }
+
+    if (companyLogo !== undefined) company.companyLogo = companyLogo;
+    if (website !== undefined) company.website = website.trim();
+    if (companyEmail !== undefined) company.companyEmail = companyEmail.trim();
+    if (companyContact !== undefined) company.companyContact = companyContact.trim();
+    if (hrEmail !== undefined) company.hrEmail = hrEmail.trim();
+    if (hrContact !== undefined) company.hrContact = hrContact.trim();
+    if (address !== undefined) company.address = address.trim();
+    if (city !== undefined) company.city = city.trim();
+    if (state !== undefined) company.state = state.trim();
+    if (country !== undefined) company.country = country.trim();
+    if (location !== undefined) company.location = location.trim();
+    if (industry !== undefined) company.industry = industry.trim();
+    if (companyType !== undefined) company.companyType = companyType;
+    if (description !== undefined) company.description = description.trim();
+    if (contactPersonName !== undefined) company.contactPersonName = contactPersonName.trim();
+    if (designation !== undefined) company.designation = designation.trim();
+    if (contactPersonEmail !== undefined) company.contactPersonEmail = contactPersonEmail.trim();
+    if (contactPersonPhone !== undefined) company.contactPersonPhone = contactPersonPhone.trim();
+    if (status !== undefined) company.status = status;
+
+    await company.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Company updated successfully.",
+      data: company
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
+// 13e. TOGGLE COMPANY ACTIVE/INACTIVE STATUS
+exports.toggleCompanyStatus = async (req, res) => {
+  try {
+    const company = await Company.findById(req.params.id);
+    if (!company) return res.status(404).json({ success: false, message: "Company not found" });
+
+    const newStatus = req.body.status || (company.status === "Active" ? "Inactive" : "Active");
+    company.status = newStatus;
+    await company.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Company status changed to ${newStatus}.`,
+      data: company
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
 
 // 14. UPLOAD PLACEMENT DOCUMENTS
 exports.uploadPlacementDocuments = async (req, res) => {
