@@ -1143,7 +1143,7 @@ export const authApi = createApi({
 
     getStudentTasks: builder.query({
       query: (studentId) => ({
-        url: `/admitted/students/${studentId}/tasks`,
+        url: `/admitted/students/${studentId}/tasks?subLevelId=all`,
         method: "GET",
       }),
       providesTags: (result, error, studentId) => [

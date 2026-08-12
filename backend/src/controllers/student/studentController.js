@@ -420,7 +420,9 @@ exports.getStudentTasks = async (req, res) => {
     const filter = {
       studentId: id,
     };
-    if (subLevelId) {
+    if (subLevelId === "all") {
+      // Return all tasks across all sublevels/syllabus versions
+    } else if (subLevelId) {
       filter.subLevelId = subLevelId;
     } else {
       filter.syllabusVersionId = student.syllabusVersionId;
@@ -428,13 +430,16 @@ exports.getStudentTasks = async (req, res) => {
     if (status) filter.status = status;
 
 
-    const tasks = await StudentTask.find(filter).sort({ assignedAt: -1, createdAt: -1 });
+    const tasks = await StudentTask.find(filter)
+      .populate("subLevelId", "name")
+      .sort({ assignedAt: -1, createdAt: -1 });
 
 
     // Group by subject
     const grouped = {};
     tasks.forEach(t => {
-      const key = t.subjectName || "Other";
+      const subLevelName = t.subLevelId?.name || "";
+      const key = subLevelName ? `${t.subjectName || "Other"} (${subLevelName})` : (t.subjectName || "Other");
       if (!grouped[key]) grouped[key] = { subjectId: t.subjectId, tasks: [] };
       grouped[key].tasks.push(t);
     });

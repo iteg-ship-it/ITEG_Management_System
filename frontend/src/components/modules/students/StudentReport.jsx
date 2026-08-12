@@ -189,7 +189,7 @@ export default function StudentReport() {
                   <span className="font-bold">Department:</span> {studentData.subDepartmentId?.departmentId?.code || studentData.subDepartmentId?.departmentId?.name || "ITEG"}
                 </div>
                 <div>
-                  <span className="font-bold">Course / Level:</span> {studentData.course || "N/A"} ({studentData.currentLevel || "1A"})
+                  <span className="font-bold">Course / Level:</span> {studentData.course || "N/A"} ({studentData.currentSubLevelId?.name || studentData.currentLevel || "1A"})
                 </div>
               </div>
             </div>
@@ -203,7 +203,7 @@ export default function StudentReport() {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-800">{studentData.firstName} {studentData.lastName}</h2>
-                <p className="text-blue-600 font-medium">{studentData.course || "N/A"} • Level {studentData.currentLevel || "1A"}</p>
+                <p className="text-blue-600 font-medium">{studentData.course || "N/A"} • Level {studentData.currentSubLevelId?.name || "1A"}</p>
               </div>
             </div>
 
@@ -251,7 +251,7 @@ export default function StudentReport() {
           {/* Simplified Level Stepper (only levels + line) */}
           <LevelStepper
             levels={['1A','1B','1C','2A','2B','2C']}
-            currentLevel={studentData.currentLevel || '1A'}
+            currentLevel={studentData.currentSubLevelId?.name || studentData.currentLevel || '1A'}
           />
 
           {/* Dynamic / Standard Sections */}
@@ -1061,7 +1061,7 @@ export default function StudentReport() {
                   <span className="text-2xl">🎯</span>
                 </div>
                 <h4 className="font-semibold mb-2">Current Level</h4>
-                <p className="text-2xl font-bold">{studentData.currentLevel || "1A"}</p>
+                <p className="text-2xl font-bold">{studentData.currentSubLevelId?.name || studentData.currentLevel || "1A"}</p>
                 <p className="text-sm text-indigo-200 mt-1">Academic Progress</p>
               </div>
 

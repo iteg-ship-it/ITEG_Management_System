@@ -428,7 +428,7 @@ const StudentReportPDF = ({ studentData = {}, reportCardData = {} }) => {
             <Text>Academic Session: {reportCardData?.batchYear || "2025–26"}</Text>
             <Text>Batch Year: {reportCardData?.batchYear || "2025–26"}</Text>
             <Text>Department: {studentData?.subDepartmentId?.departmentId?.code || studentData?.subDepartmentId?.departmentId?.name || "ITEG"}</Text>
-            <Text>Course / Level: {studentData?.course || "N/A"} ({studentData?.currentLevel || "1A"})</Text>
+            <Text>Course / Level: {studentData?.course || "N/A"} ({studentData?.currentSubLevelId?.name || studentData?.currentLevel || "1A"})</Text>
           </View>
         </View>
 
@@ -456,13 +456,13 @@ const StudentReportPDF = ({ studentData = {}, reportCardData = {} }) => {
               <Text style={styles.sectionTitle}>Level Progress</Text>
               <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                 <Text style={[styles.value, { fontSize: 11 }]}>
-                  Current Level: <Text style={{ fontWeight: "bold", color: "#F59E0B" }}>Level {studentData?.currentLevel || "1A"}</Text>
+                  Current Level: <Text style={{ fontWeight: "bold", color: "#F59E0B" }}>Level {studentData?.currentSubLevelId?.name || studentData?.currentLevel || "1A"}</Text>
                 </Text>
                 <Text style={[styles.small, { color: "#6B7280" }]}>
-                  Progress: {Math.round(((LEVEL_STEPS.findIndex(s => s === (studentData?.currentLevel || "1A")) + 1) / LEVEL_STEPS.length) * 100)}% Complete
+                  Progress: {Math.round(((LEVEL_STEPS.findIndex(s => s === (studentData?.currentSubLevelId?.name || studentData?.currentLevel || "1A")) + 1) / LEVEL_STEPS.length) * 100)}% Complete
                 </Text>
               </View>
-              <LevelTimeline currentLevel={studentData?.currentLevel || "1A"} />
+              <LevelTimeline currentLevel={studentData?.currentSubLevelId?.name || studentData?.currentLevel || "1A"} />
             </View>
           </>
         ) : (
@@ -826,7 +826,7 @@ const StudentReportPDF = ({ studentData = {}, reportCardData = {} }) => {
           <Text style={styles.sectionTitle}>Academic Performance</Text>
           <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
             {[
-              { title: "Current Level", val: `Level ${studentData?.currentLevel || "1A"}` },
+              { title: "Current Level", val: `Level ${studentData?.currentSubLevelId?.name || studentData?.currentLevel || "1A"}` },
               { title: "1st Year SGPA", val: reportCardData?.academicPerformance?.yearWiseSGPA?.find(y => y.year === "FY")?.sgpa ?? "N/A" },
               { title: "2nd Year SGPA", val: reportCardData?.academicPerformance?.yearWiseSGPA?.find(y => y.year === "SY")?.sgpa ?? "N/A" },
               { title: "3rd Year SGPA", val: reportCardData?.academicPerformance?.yearWiseSGPA?.find(y => y.year === "TY")?.sgpa ?? "N/A" },
