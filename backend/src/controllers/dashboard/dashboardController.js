@@ -135,9 +135,21 @@ exports.getDashboardOverview = async (req, res) => {
     }
 
     // ── 6. Year-wise and Level-wise Course Matrix ──
+    const matrixBase = req.subDeptFilter ? { ...req.subDeptFilter } : {};
+    if (level && level !== "All" && level !== "") {
+      if (mongoose.Types.ObjectId.isValid(level)) {
+        matrixBase.currentLevelId = new mongoose.Types.ObjectId(level);
+      } else {
+        const matchedLevels = await Level.find({ name: new RegExp(level, "i") }).select("_id").lean();
+        if (matchedLevels.length > 0) {
+          matrixBase.currentLevelId = { $in: matchedLevels.map(l => l._id) };
+        }
+      }
+    }
+
     const [sessionCourseAgg, levelCourseAgg] = await Promise.all([
       Student.aggregate([
-        { $match: base },
+        { $match: matrixBase },
         {
           $group: {
             _id: {
@@ -149,7 +161,7 @@ exports.getDashboardOverview = async (req, res) => {
         }
       ]),
       Student.aggregate([
-        { $match: base },
+        { $match: matrixBase },
         {
           $group: {
             _id: {
