@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useGetAllLevelsQuery, useGetAllSubLevelsQuery, useGetNewStudentsQuery } from '../../../redux/api/authApi';
+import { useGetAllLevelsQuery, useGetAllSubLevelsQuery, useGetNewStudentsQuery, useGetAllSubdepartmentsQuery } from '../../../redux/api/authApi';
 import { FiCalendar, FiFilter, FiEye } from 'react-icons/fi';
 import { BsPersonFill, BsPersonFillCheck } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
@@ -53,27 +53,71 @@ const getStudentYear = (student) => {
 const AttendanceDetails = () => {
   const navigate = useNavigate();
   const currentWeek = getCurrentWeekDates();
+
+  const role = (localStorage.getItem("role") || "").toLowerCase();
+  const userObj = JSON.parse(localStorage.getItem("user") || "{}");
+  const isGlobalAdmin = ["superadmin", "admin"].includes(role);
+
   const [filters, setFilters] = useState({
     dateFrom: currentWeek.dateFrom,
     dateTo: currentWeek.dateTo,
     year: 'All',
     subLevelId: 'All',
-    gender: ''
+    gender: '',
+    subDepartmentId: 'All'
   });
   const [dateError, setDateError] = useState('');
 
+  const { data: subDeptsResponse } = useGetAllSubdepartmentsQuery();
+  const subDepts = useMemo(() => {
+    const allSubDepts = subDeptsResponse?.data || [];
+    if (isGlobalAdmin) {
+      return [{ _id: 'All', name: 'All Sub-Departments' }, ...allSubDepts];
+    }
+    const userDept = userObj.department || '';
+    const filtered = allSubDepts.filter(sd => 
+      (sd.departmentId?.name || sd.departmentName || '').toLowerCase() === userDept.toLowerCase()
+    );
+    return [{ _id: 'All', name: 'All Sub-Departments' }, ...filtered];
+  }, [subDeptsResponse, isGlobalAdmin, userObj.department]);
+
+  const { data: levelsResponse } = useGetAllLevelsQuery();
   const { data: subLevelsResponse } = useGetAllSubLevelsQuery();
-  const subLevels = useMemo(() => {
-    return [{ _id: 'All', name: 'All Sub-Levels' }, ...(subLevelsResponse?.data || [])];
-  }, [subLevelsResponse]);
+
+  const filteredSubLevels = useMemo(() => {
+    const allSubLevels = subLevelsResponse?.data || [];
+    if (!filters.subDepartmentId || filters.subDepartmentId === 'All') {
+      if (!isGlobalAdmin) {
+        const allowedSubDeptIds = subDepts.map(sd => sd._id.toString());
+        const levels = levelsResponse?.data || [];
+        const allowedLevelIds = levels
+          .filter(l => allowedSubDeptIds.includes((l.subDepartmentId?._id || l.subDepartmentId)?.toString()))
+          .map(l => l._id.toString());
+        const matchingSubLevels = allSubLevels.filter(sl => allowedLevelIds.includes((sl.levelId?._id || sl.levelId)?.toString()));
+        return [{ _id: 'All', name: 'All Sub-Levels' }, ...matchingSubLevels];
+      }
+      return [{ _id: 'All', name: 'All Sub-Levels' }, ...allSubLevels];
+    }
+
+    const levels = levelsResponse?.data || [];
+    const deptLevelIds = levels
+      .filter(l => (l.subDepartmentId?._id || l.subDepartmentId)?.toString() === filters.subDepartmentId.toString())
+      .map(l => l._id.toString());
+
+    const matchingSubLevels = allSubLevels.filter(sl => deptLevelIds.includes((sl.levelId?._id || sl.levelId)?.toString()));
+    return [{ _id: 'All', name: 'All Sub-Levels' }, ...matchingSubLevels];
+  }, [subLevelsResponse, levelsResponse, filters.subDepartmentId, isGlobalAdmin, subDepts]);
 
   const queryParams = useMemo(() => {
     const params = new URLSearchParams();
     if (filters.subLevelId && filters.subLevelId !== 'All') {
       params.append('currentSubLevelId', filters.subLevelId);
     }
+    if (filters.subDepartmentId && filters.subDepartmentId !== 'All') {
+      params.append('subDepartmentId', filters.subDepartmentId);
+    }
     return params.toString();
-  }, [filters.subLevelId]);
+  }, [filters.subLevelId, filters.subDepartmentId]);
 
   const { data: studentsData, isLoading, error } = useGetNewStudentsQuery(queryParams);
 
@@ -99,6 +143,10 @@ const AttendanceDetails = () => {
       }
     }
 
+    if (field === 'subDepartmentId') {
+      newFilters.subLevelId = 'All';
+    }
+
     setDateError('');
     setFilters(newFilters);
   };
@@ -110,6 +158,7 @@ const AttendanceDetails = () => {
   const [isYearOpen, setIsYearOpen] = useState(false);
   const [isSubLevelOpen, setIsSubLevelOpen] = useState(false);
   const [isGenderOpen, setIsGenderOpen] = useState(false);
+  const [isSubDeptOpen, setIsSubDeptOpen] = useState(false);
 
   const years = [
     { value: 'All', label: 'All Years' },
@@ -209,6 +258,7 @@ const AttendanceDetails = () => {
         setIsYearOpen(false);
         setIsSubLevelOpen(false);
         setIsGenderOpen(false);
+        setIsSubDeptOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -217,12 +267,20 @@ const AttendanceDetails = () => {
     };
   }, []);
 
+  const titleText = isGlobalAdmin 
+    ? (filters.subDepartmentId && filters.subDepartmentId !== 'All' 
+       ? `${subDepts.find(sd => sd._id === filters.subDepartmentId)?.name || 'Department'} Attendance Details`
+       : 'All Departments Attendance Details')
+    : `${userObj.department || 'Department'} Attendance Details`;
+
+  const headerTitle = isGlobalAdmin ? 'Attendance Dashboard' : `${userObj.department || 'Department'} Dashboard`;
+
   return (
     <>
-      <Header sidebarOpen={true} title="Attendence Dashboard" />
+      <Header sidebarOpen={true} title={headerTitle} />
       <div className="min-h-screen">
         <PageNavbar
-          title="ITEG Attendance Details"
+          title={titleText}
           subtitle="Detailed attendance records and analytics"
           showBackButton={true}
           onBackClick={() => navigate(-1)}
@@ -231,7 +289,7 @@ const AttendanceDetails = () => {
         <div className="p-6">
           {/* Filters Section */}
           <div className="bg-white border border-gray-200 rounded-xl p-4 mb-5 shadow-sm">
-             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4 items-end">
               <div>
                 <DatePicker
                   label="From Date"
@@ -253,6 +311,45 @@ const AttendanceDetails = () => {
                 />
               </div>
 
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSubDeptOpen(!isSubDeptOpen);
+                    setIsYearOpen(false);
+                    setIsSubLevelOpen(false);
+                    setIsGenderOpen(false);
+                  }}
+                  className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-orange-400 focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200 text-sm shadow-sm"
+                >
+                  <span className="text-gray-900 font-medium truncate pr-4">
+                    {subDepts.find(sd => sd._id === filters.subDepartmentId)?.name || 'Select Sub-Dept'}
+                  </span>
+                  <span className={`ml-2 text-xs transition-transform duration-200 text-gray-400 shrink-0 ${isSubDeptOpen ? 'rotate-180' : ''}`}>
+                    ▼
+                  </span>
+                </button>
+                <label className="absolute left-3 bg-white px-1 transition-all duration-200 pointer-events-none text-xs -top-2 text-gray-500 font-semibold">
+                  Sub-Department
+                </label>
+                {isSubDeptOpen && (
+                  <div className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden border border-gray-200 bg-white max-h-60 overflow-y-auto">
+                    {subDepts.map((sd) => (
+                      <div
+                        key={sd._id}
+                        onClick={() => {
+                          handleFilterChange('subDepartmentId', sd._id);
+                          setIsSubDeptOpen(false);
+                        }}
+                        className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-left transition-colors duration-150 text-sm"
+                      >
+                        {sd.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
                <div className="relative">
                 <button
                   type="button"
@@ -260,10 +357,11 @@ const AttendanceDetails = () => {
                     setIsYearOpen(!isYearOpen);
                     setIsSubLevelOpen(false);
                     setIsGenderOpen(false);
+                    setIsSubDeptOpen(false);
                   }}
                   className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-orange-400 focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200 text-sm shadow-sm"
                 >
-                  <span className="text-gray-900 font-medium">
+                  <span className="text-gray-900 font-medium font-medium">
                     {years.find(y => y.value === filters.year)?.label || 'Select Year'}
                   </span>
                   <span className={`ml-2 text-xs transition-transform duration-200 text-gray-400 ${isYearOpen ? 'rotate-180' : ''}`}>
@@ -298,11 +396,12 @@ const AttendanceDetails = () => {
                     setIsSubLevelOpen(!isSubLevelOpen);
                     setIsYearOpen(false);
                     setIsGenderOpen(false);
+                    setIsSubDeptOpen(false);
                   }}
                   className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-black focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200 text-sm shadow-sm"
                 >
                   <span className="text-gray-900 font-medium truncate pr-4">
-                    {subLevels.find(sl => sl._id === filters.subLevelId)?.name || 'Select Sub-Level'}
+                    {filteredSubLevels.find(sl => sl._id === filters.subLevelId)?.name || 'Select Sub-Level'}
                   </span>
                   <span className={`ml-2 text-xs transition-transform duration-200 text-gray-400 shrink-0 ${isSubLevelOpen ? 'rotate-180' : ''}`}>
                     ▼
@@ -313,7 +412,7 @@ const AttendanceDetails = () => {
                 </label>
                 {isSubLevelOpen && (
                   <div className="absolute top-full left-0 mt-1 w-full rounded-xl shadow-lg z-50 overflow-hidden border border-gray-200 bg-white max-h-60 overflow-y-auto">
-                    {subLevels.map((sl) => (
+                    {filteredSubLevels.map((sl) => (
                       <div
                         key={sl._id}
                         onClick={() => {
@@ -336,6 +435,7 @@ const AttendanceDetails = () => {
                     setIsGenderOpen(!isGenderOpen);
                     setIsYearOpen(false);
                     setIsSubLevelOpen(false);
+                    setIsSubDeptOpen(false);
                   }}
                   className="peer h-12 w-full border-2 border-gray-300 rounded-md px-3 py-2 leading-tight bg-white text-left focus:outline-none focus:border-orange-400 focus:ring-0 appearance-none flex items-center justify-between cursor-pointer transition-all duration-200 text-sm shadow-sm"
                 >
@@ -392,7 +492,8 @@ const AttendanceDetails = () => {
                       dateTo: currentWeek.dateTo,
                       year: 'All',
                       subLevelId: 'All',
-                      gender: ''
+                      gender: '',
+                      subDepartmentId: 'All'
                     });
                   }}
                   className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white rounded-md text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow active:scale-[0.98] cursor-pointer"

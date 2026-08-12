@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useGetNewStudentsQuery, useGetAllSessionsQuery, useGetSubdepartmentByIdQuery } from "../../../redux/api/authApi";
+import { useGetNewStudentsQuery, useGetAllSessionsQuery, useGetSubdepartmentByIdQuery, useGetAllLevelsQuery, useGetAllSubLevelsQuery } from "../../../redux/api/authApi";
 import Loader from "../../shared/loader/Loader";
 import SelectDropdown from "../../shared/form-fields/SelectDropdown";
 import CommonTable from "../../shared/table/CommonTable";
@@ -43,25 +43,38 @@ const StudentDetailTable = () => {
 
   const students = res.data || [];
 
-  const { data: subDeptRes } = useGetSubdepartmentByIdQuery(subDepartmentId, {
-    skip: !subDepartmentId,
-  });
-  const subLevelCounts = subDeptRes?.data?.subLevelCounts || [];
+  const { data: allLevelsRes = {} } = useGetAllLevelsQuery();
+  const allLevels = allLevelsRes.data || [];
 
-  // Dynamic sublevel tabs from data
-  const subLevelTabs = useMemo(() => {
-    let names = [];
-    if (subLevelCounts && subLevelCounts.length > 0) {
-      names = subLevelCounts.map(slc => slc.subLevelName);
+  const { data: allSubLevelsRes = {} } = useGetAllSubLevelsQuery();
+  const allSubLevels = allSubLevelsRes.data || [];
+
+  // Determine which levels belong to the current subdepartment(s)
+  const allowedLevelIds = useMemo(() => {
+    let targetSubDeptIds = [];
+    if (subDepartmentId) {
+      targetSubDeptIds = [subDepartmentId];
     } else {
-      names = [...new Set(
-        students.map((s) => s.currentSubLevelId?.name).filter(Boolean)
-      )];
+      targetSubDeptIds = [...new Set(students.map(s => (s.subDepartmentId?._id || s.subDepartmentId)?.toString()).filter(Boolean))];
     }
+
+    return allLevels
+      .filter(l => targetSubDeptIds.includes((l.subDepartmentId?._id || l.subDepartmentId)?.toString()))
+      .map(l => l._id.toString());
+  }, [allLevels, subDepartmentId, students]);
+
+  // Filter sublevels based on allowedLevelIds
+  const departmentSubLevels = useMemo(() => {
+    return allSubLevels.filter(sl => allowedLevelIds.includes((sl.levelId?._id || sl.levelId)?.toString()));
+  }, [allSubLevels, allowedLevelIds]);
+
+  // Dynamic sublevel tabs from departmentSubLevels
+  const subLevelTabs = useMemo(() => {
+    const names = departmentSubLevels.map(sl => sl.name);
     // Natural sort: e.g., 1A -> 1B -> 1C -> 2A
     names.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
-    return ["All", ...names];
-  }, [subLevelCounts, students]);
+    return ["All", ...new Set(names)];
+  }, [departmentSubLevels]);
 
   const filteredData = useMemo(() => {
     return students.filter((s) => {
