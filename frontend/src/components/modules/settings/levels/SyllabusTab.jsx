@@ -545,81 +545,98 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
         </div>
       }
     />
-    <div className="space-y-5 text-xs font-semibold">
+    <div className="space-y-6 text-xs font-semibold">
       {/* STEP 1: DOWNLOAD TEMPLATE */}
-      <div className="bg-orange-50/50 border border-orange-100 rounded-2xl p-4 space-y-3">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
-            <h4 className="text-xs font-bold text-orange-950 flex items-center gap-1.5">
-              <MdInfo size={16} className="text-orange-500" /> Step 1: Excel Template Download Karein
+      <div className="bg-gradient-to-br from-amber-50 to-orange-50/20 border border-amber-200/60 rounded-2xl p-5 space-y-4 shadow-sm transition hover:shadow-md duration-300">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1.5">
+            <h4 className="text-sm font-black text-amber-950 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-[11px] font-black shadow-sm shrink-0">1</span>
+              Step 1: Download Excel Template
             </h4>
-            <p className="text-[11px] text-orange-900 leading-relaxed font-medium">
-              Syllabus aur Tasks ko ek sath load karne ke liye is standard sheet format ka use karein.
+            <p className="text-xs text-amber-900/80 leading-relaxed font-medium">
+              Use this standard sheet format to load your Syllabus and Tasks together in one go.
             </p>
           </div>
           <button
             type="button"
             onClick={downloadSyllabusTemplate}
-            className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white px-3.5 py-2 rounded-xl font-extrabold shadow-sm transition whitespace-nowrap cursor-pointer"
+            className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 active:scale-[0.98] text-white px-4 py-2.5 rounded-xl font-extrabold shadow-sm transition duration-150 whitespace-nowrap cursor-pointer text-xs"
           >
-            <MdFileDownload size={16} /> Template (.xlsx)
+            <MdFileDownload size={18} /> Template (.xlsx)
           </button>
         </div>
 
-        <div className="border-t border-orange-200/40 pt-2.5">
-          <p className="text-[10px] font-extrabold text-orange-850 uppercase tracking-wider mb-1.5">Required & Optional Columns:</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-[11px] text-orange-900/80 font-semibold">
-            <div>
-              <span className="font-bold text-orange-600">Subject, Topic:</span> Mandatory
+        <div className="border-t border-amber-200/50 pt-3.5">
+          <p className="text-[10px] font-black text-amber-900 uppercase tracking-wider mb-2">Required & Optional Columns:</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="bg-white/80 border border-amber-100 rounded-xl p-2.5 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+              <div>
+                <span className="font-bold text-amber-950 block text-[11px]">Subject, Topic</span>
+                <span className="text-[10px] text-green-700 font-extrabold uppercase bg-green-50 px-1.5 py-0.5 rounded">Mandatory</span>
+              </div>
             </div>
-            <div>
-              <span className="font-bold text-orange-600">SubTopic, Task:</span> Optional
+            <div className="bg-white/80 border border-amber-100 rounded-xl p-2.5 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-gray-400 shrink-0" />
+              <div>
+                <span className="font-bold text-amber-950 block text-[11px]">SubTopic, Task</span>
+                <span className="text-[10px] text-gray-600 font-extrabold uppercase bg-gray-100 px-1.5 py-0.5 rounded">Optional</span>
+              </div>
             </div>
-            <div>
-              <span className="font-bold text-orange-600">Time Days:</span> Expected duration
+            <div className="bg-white/80 border border-amber-100 rounded-xl p-2.5 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+              <div>
+                <span className="font-bold text-amber-950 block text-[11px]">Time Days</span>
+                <span className="text-[10px] text-blue-750 font-extrabold bg-blue-50 px-1.5 py-0.5 rounded">Expected duration</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* STEP 2: UPLOAD FILE */}
-      <div className="space-y-2">
-        <label className="block text-xs font-bold text-slate-800">Step 2: Excel File Upload Karein</label>
+      <div className="space-y-3">
+        <label className="text-sm font-black text-slate-800 flex items-center gap-2">
+          <span className="w-6 h-6 rounded-full bg-slate-800 text-white flex items-center justify-center text-[11px] font-black shadow-sm shrink-0">2</span>
+          Step 2: Upload Excel File
+        </label>
         <div 
           onClick={() => fileRef.current?.click()} 
-          className={`border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition group ${
+          className={`border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer transition duration-300 shadow-sm hover:shadow active:scale-[0.99] group ${
             fileName 
-              ? "border-emerald-300 bg-emerald-50/20 hover:bg-emerald-50/30" 
-              : "border-slate-200 bg-slate-50/50 hover:border-orange-300 hover:bg-orange-50/20"
+              ? "border-emerald-400 bg-emerald-50/10 hover:bg-emerald-50/20" 
+              : "border-slate-300 bg-slate-50/40 hover:border-orange-500 hover:bg-orange-50/10"
           }`}
         >
           {parsing ? (
-            <div className="flex flex-col items-center gap-2 py-2">
-              <div className="w-7 h-7 border-3 border-orange-500 border-t-transparent rounded-full animate-spin" />
-              <p className="text-xs font-bold text-slate-500">File read ki ja rahi hai...</p>
+            <div className="flex flex-col items-center gap-2.5 py-3">
+              <div className="w-8 h-8 border-3 border-orange-500 border-t-transparent rounded-full animate-spin" />
+              <p className="text-xs font-bold text-slate-500">Reading file, please wait...</p>
             </div>
           ) : (
             <>
               {fileName ? (
-                <MdCheckCircle size={32} className="text-emerald-500 mb-1" />
+                <MdCheckCircle size={36} className="text-emerald-500 mb-2 drop-shadow-sm" />
               ) : (
-                <MdCloudUpload size={32} className="text-slate-400 group-hover:text-orange-500 transition mb-1" />
+                <MdCloudUpload size={36} className="text-slate-400 group-hover:text-orange-500 transition duration-300 mb-2" />
               )}
-              <p className="text-xs font-bold text-slate-700">
+              <p className="text-xs font-extrabold text-slate-700">
                 {fileName ? "File loaded successfully" : "Click to select or drop Excel file"}
               </p>
-              <p className="text-[10px] text-slate-400 mt-0.5">Supports .xlsx, .xls and .csv</p>
+              <p className="text-[10px] text-slate-400 mt-1">Supports .xlsx, .xls and .csv</p>
               {fileName && (
-                <span className="mt-2 text-xs bg-emerald-100 text-emerald-800 font-extrabold px-3 py-1 rounded-full border border-emerald-200">
+                <span className="mt-3 text-xs bg-emerald-100 text-emerald-800 font-black px-3.5 py-1.5 rounded-full border border-emerald-200 shadow-sm/5">
                   📄 {fileName}
                 </span>
               )}
             </>
           )}
         </div>
-        <div className="flex justify-between items-center bg-blue-50/80 p-3 rounded-xl border border-blue-100 text-[11px] text-blue-800">
-          <p className="leading-relaxed">
-            💡 **Tip:** Aap ek hi Excel sheet se subjects, topics ke sath-sath tasks bhi ek baar me upload kar sakte hain.
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50/30 border-l-4 border-blue-500 text-blue-900 rounded-r-2xl shadow-sm/5 p-4 flex gap-3 items-start">
+          <span className="text-base">💡</span>
+          <p className="text-xs font-medium leading-relaxed text-blue-950">
+            <strong className="font-bold text-blue-900">Tip:</strong> You can upload subjects, topics, and tasks all at once using a single Excel sheet.
           </p>
         </div>
         <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleFile} />
@@ -627,11 +644,14 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
 
       {/* STEP 3: PREVIEW & SAVE */}
       {hierarchy.length > 0 && (
-        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-4">
-          <div className="space-y-1">
-            <h4 className="text-xs font-bold text-slate-800">Step 3: Session select karein aur Save karein</h4>
-            <p className="text-[11px] text-slate-400">
-              Parsed structures check karein aur target session map karein.
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4 shadow-sm">
+          <div className="space-y-1.5">
+            <h4 className="text-sm font-black text-slate-800 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center text-[11px] font-black shadow-sm shrink-0">3</span>
+              Step 3: Select Session & Save
+            </h4>
+            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+              Review the parsed structures and map them to the target academic session.
             </p>
           </div>
 
@@ -1495,13 +1515,13 @@ export const TasksTab = ({ level, subLevel, onVersionChange }) => {
 
   if (!subLevelId) return <div className="py-16 text-center text-gray-450 text-sm">SubLevel not found</div>;
 
-  if (allVersions.length === 0) {
+  if (allVersions.length === 0 && !selectedSessionId) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <div className="w-16 h-16 rounded-2xl bg-orange-50 flex items-center justify-center mb-4 border border-orange-100/50">
           <MdAssignment size={26} className="text-orange-400" />
         </div>
-        <h3 className="text-base font-bold text-gray-705 mb-1">No syllabus found</h3>
+        <h3 className="text-base font-bold text-gray-755 mb-1">No syllabus found</h3>
         <p className="text-xs text-gray-400 max-w-xs mx-auto">Upload syllabus first from the Syllabus tab.</p>
       </div>
     );

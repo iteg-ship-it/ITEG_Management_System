@@ -375,6 +375,110 @@ const promoteToNextSubLevel = async (studentId, actorUser = null, options = {}) 
     } catch (lvlProgressErr) {
       // Must never block promotion
     }
+
+    // Automatic Report Card population for completed sublevel
+    try {
+      const StudentReportCard = require("../models/student/studentReportCard");
+      let reportCard = await StudentReportCard.findOne({ studentRef: studentId });
+      
+      const actorName = actorUser?.name || "System";
+      if (!reportCard) {
+        reportCard = new StudentReportCard({
+          studentRef: studentId,
+          batchYear: prevSession?.name || new Date().getFullYear().toString(),
+          generatedByName: actorName,
+          templateType: "ITEG_STANDARD",
+          dynamicSections: []
+        });
+      }
+
+      const allDeptLevels = await Level.find({ subDepartmentId: student.subDepartmentId, isActive: true }).sort({ order: 1 });
+      const allDeptLevelIds = allDeptLevels.map(l => l._id);
+      const allDeptSubLevels = await SubLevel.find({ levelId: { $in: allDeptLevelIds }, isActive: true }).lean();
+      
+      // Sort sublevels by level order, then by sublevel order
+      allDeptSubLevels.sort((a, b) => {
+        const lvlA = allDeptLevels.find(l => l._id.toString() === a.levelId.toString());
+        const lvlB = allDeptLevels.find(l => l._id.toString() === b.levelId.toString());
+        if (lvlA && lvlB && lvlA.order !== lvlB.order) {
+          return lvlA.order - lvlB.order;
+        }
+        return a.order - b.order;
+      });
+
+      let levelProgressSec = reportCard.dynamicSections.find(
+        (s) => s.sectionName === "Level Progress" || s.sectionType === "LevelProgressTable"
+      );
+
+      if (!levelProgressSec) {
+        levelProgressSec = {
+          sectionName: "Level Progress",
+          sectionType: "LevelProgressTable",
+          items: []
+        };
+        reportCard.dynamicSections.push(levelProgressSec);
+      }
+
+      const itemsMap = new Map();
+      if (levelProgressSec.items && levelProgressSec.items.length > 0) {
+        levelProgressSec.items.forEach(item => {
+          itemsMap.set(item.itemName.trim().toUpperCase(), item);
+        });
+      }
+
+      const prevSubName = (prevSubLevel?.name || "").trim().toUpperCase();
+      const prevPercent = prevTasks.length > 0 ? Math.round((completedTasks.length / prevTasks.length) * 100) : 100;
+      const prevRating = averageMarks > 0 ? averageMarks.toFixed(2) : "—";
+      const prevLvlOrder = prevLevel?.order || 1;
+
+      itemsMap.set(prevSubName, {
+        itemName: prevSubLevel?.name || "1A",
+        value: "Completed",
+        score: prevPercent,
+        remark: prevRating,
+        maxMarks: prevLvlOrder
+      });
+
+      const nextSubName = (nextSubLevel?.name || "").trim().toUpperCase();
+      const nextLvlOrder = (promotedToNewLevel ? nextLevel?.order : prevLevel?.order) || 1;
+      const existingNext = itemsMap.get(nextSubName);
+      if (!existingNext || existingNext.value !== "Completed") {
+        itemsMap.set(nextSubName, {
+          itemName: nextSubLevel?.name || "1B",
+          value: "Current",
+          score: 0,
+          remark: "—",
+          maxMarks: nextLvlOrder
+        });
+      }
+
+      allDeptSubLevels.forEach(sl => {
+        const nameKey = (sl.name || "").trim().toUpperCase();
+        if (!itemsMap.has(nameKey)) {
+          const lvl = allDeptLevels.find(l => l._id.toString() === sl.levelId.toString());
+          itemsMap.set(nameKey, {
+            itemName: sl.name,
+            value: "Upcoming",
+            score: 0,
+            remark: "—",
+            maxMarks: lvl?.order || 1
+          });
+        }
+      });
+
+      const sortedItems = [];
+      allDeptSubLevels.forEach(sl => {
+        const nameKey = (sl.name || "").trim().toUpperCase();
+        if (itemsMap.has(nameKey)) {
+          sortedItems.push(itemsMap.get(nameKey));
+        }
+      });
+
+      levelProgressSec.items = sortedItems;
+      await reportCard.save({ validateBeforeSave: false });
+    } catch (rcErr) {
+      console.error("Auto report card update failed on promotion:", rcErr.message);
+    }
   } catch (snapErr) {
     // Snapshot failure must never block promotion
   }

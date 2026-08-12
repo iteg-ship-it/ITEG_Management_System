@@ -541,6 +541,15 @@ export default function StudentReportForm() {
     }
     const templateType = studentData.data.subDepartmentId?.departmentId?.reportConfig?.templateType || "ITEG_STANDARD";
     const populated = autoPopulateFromData(studentData.data, tasksData, templateType);
+
+    // Preserve existing Level Progress section if it exists in current formData
+    const existingLevelProgress = formData.dynamicSections.find(s => s.sectionType === "LevelProgressTable");
+    if (existingLevelProgress && populated.dynamicSections) {
+      populated.dynamicSections = populated.dynamicSections.map(s => 
+        s.sectionType === "LevelProgressTable" ? existingLevelProgress : s
+      );
+    }
+
     setFormData(prev => ({
       ...prev,
       ...populated
