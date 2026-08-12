@@ -12,10 +12,19 @@ export const useSession = () => {
 };
 
 export const SessionProvider = ({ children }) => {
-  const [activeSessionId, setActiveSessionId] = useState('');
+  const [activeSessionId, setActiveSessionId] = useState(() => {
+    return localStorage.getItem('activeSessionId') || '';
+  });
   const { data: sessions, isLoading } = useGetAllSessionsQuery(true);
 
-  // Auto-select first active or available session on load
+  // Sync activeSessionId to localStorage whenever it changes
+  useEffect(() => {
+    if (activeSessionId) {
+      localStorage.setItem('activeSessionId', activeSessionId);
+    }
+  }, [activeSessionId]);
+
+  // Auto-select first active or available session on load if none is selected
   useEffect(() => {
     if (sessions?.data && sessions.data.length > 0 && !activeSessionId) {
       const activeSess = sessions.data.find(s => s.isActive || s.status === 'active') || sessions.data[0];

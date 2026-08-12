@@ -119,6 +119,45 @@ const promoteToNextSubLevel = async (studentId, actorUser = null, options = {}) 
   if (!student) throw toClientError("Student not found", 404);
   if (student.status !== "Active") throw toClientError("Only active students can be promoted");
 
+  // Validate that the student has completed at least 85% of tasks per subject in the current sublevel
+  const currentTasks = await StudentTask.find({
+    studentId,
+    syllabusVersionId: student.syllabusVersionId,
+    subLevelId: student.currentSubLevelId,
+    isActive: true,
+  });
+
+  if (currentTasks.length > 0) {
+    const subjectTasks = {};
+    currentTasks.forEach((task) => {
+      const subName = task.subjectName || "General";
+      if (!subjectTasks[subName]) {
+        subjectTasks[subName] = { total: 0, completed: 0 };
+      }
+      subjectTasks[subName].total++;
+      if (task.status === "completed") {
+        subjectTasks[subName].completed++;
+      }
+    });
+
+    const MIN_COMPLETION_PERCENT = 85;
+    const failedSubjects = [];
+
+    for (const [subName, stats] of Object.entries(subjectTasks)) {
+      const percent = (stats.completed / stats.total) * 100;
+      if (percent < MIN_COMPLETION_PERCENT) {
+        failedSubjects.push(`${subName} (${Math.round(percent)}% completed, minimum ${MIN_COMPLETION_PERCENT}% required)`);
+      }
+    }
+
+    if (failedSubjects.length > 0) {
+      throw toClientError(
+        `Promotion blocked. Student must complete at least ${MIN_COMPLETION_PERCENT}% of tasks in each subject. Failed subjects: ${failedSubjects.join(", ")}`,
+        400
+      );
+    }
+  }
+
   // Step 1: Find next SubLevel in same Level
   const currentSubLevel = await SubLevel.findById(student.currentSubLevelId);
   if (!currentSubLevel) throw toClientError("Current sub-level not found");

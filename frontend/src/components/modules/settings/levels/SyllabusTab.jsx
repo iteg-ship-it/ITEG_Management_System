@@ -2,7 +2,7 @@ import { useState, useRef, useMemo, forwardRef, useImperativeHandle, useEffect }
 import SelectDropdown from "../../../shared/form-fields/SelectDropdown";
 import * as XLSX from "xlsx";
 import {
-  MdCloudUpload, MdCheckCircle, MdExpandMore, MdExpandLess,
+  MdCloudUpload, MdCheckCircle, MdExpandMore, MdExpandLess, MdFileDownload, MdInfo,
   MdBook, MdTopic, MdSubject, MdDelete, MdSave, MdEdit, MdVisibility,
   MdAssignment, MdAdd, MdSearch, MdChevronRight, MdCalendarToday, MdAccessTime, MdPerson,
 } from "react-icons/md";
@@ -545,82 +545,158 @@ export const SyllabusUploadDrawer = forwardRef(({ level, subLevel, onSaved }, re
         </div>
       }
     />
-    <div className="space-y-4">
-      <div onClick={() => fileRef.current?.click()} className="border-2 border-dashed border-orange-200 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-orange-400 hover:bg-orange-50 transition group">
-        {parsing ? (
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-8 h-8 border-4 border-orange-400 border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-gray-500">Parsing...</p>
+    <div className="space-y-5 text-xs font-semibold">
+      {/* STEP 1: DOWNLOAD TEMPLATE */}
+      <div className="bg-orange-50/50 border border-orange-100 rounded-2xl p-4 space-y-3">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <h4 className="text-xs font-bold text-orange-950 flex items-center gap-1.5">
+              <MdInfo size={16} className="text-orange-500" /> Step 1: Excel Template Download Karein
+            </h4>
+            <p className="text-[11px] text-orange-900 leading-relaxed font-medium">
+              Syllabus aur Tasks ko ek sath load karne ke liye is standard sheet format ka use karein.
+            </p>
           </div>
-        ) : (
-          <>
-            <MdCloudUpload size={36} className="text-orange-300 group-hover:text-orange-400 transition mb-1" />
-            <p className="text-sm font-semibold text-gray-700">Click to upload Excel file</p>
-            <p className="text-xs text-gray-400 mt-0.5">Supports .xlsx, .xls and .csv</p>
-            {fileName && <p className="mt-1.5 text-xs text-orange-500 font-medium">📄 {fileName}</p>}
-          </>
-        )}
-      </div>
-      <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleFile} />
+          <button
+            type="button"
+            onClick={downloadSyllabusTemplate}
+            className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white px-3.5 py-2 rounded-xl font-extrabold shadow-sm transition whitespace-nowrap cursor-pointer"
+          >
+            <MdFileDownload size={16} /> Template (.xlsx)
+          </button>
+        </div>
 
-      <div className="p-3 bg-blue-50 rounded-lg space-y-2">
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-xs text-blue-600 font-semibold">Required columns:</p>
-            <a
-              href="/syllabus_template.csv"
-              download="syllabus_template.csv"
-              className="text-xs text-orange-600 hover:text-orange-700 font-semibold bg-orange-50 hover:bg-orange-100 px-2.5 py-1 rounded-lg transition"
-            >
-              ⬇ Download Template
-            </a>
-          </div>
-          <div className="flex gap-2 flex-wrap text-xs">
-            {["Subject", "Topic Name", "SubTopic"].map((c) => (
-              <span key={c} className="bg-blue-100 text-blue-600 px-2 py-0.5 rounded">{c}</span>
-            ))}
+        <div className="border-t border-orange-200/40 pt-2.5">
+          <p className="text-[10px] font-extrabold text-orange-850 uppercase tracking-wider mb-1.5">Required & Optional Columns:</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-[11px] text-orange-900/80 font-semibold">
+            <div>
+              <span className="font-bold text-orange-600">Subject, Topic:</span> Mandatory
+            </div>
+            <div>
+              <span className="font-bold text-orange-600">SubTopic, Task:</span> Optional
+            </div>
+            <div>
+              <span className="font-bold text-orange-600">Time Days:</span> Expected duration
+            </div>
           </div>
         </div>
-        <div>
-          <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-            Pehle sirf syllabus structure upload karo. Tasks baad mein <span className="font-semibold text-orange-500">Tasks Tab</span> se add kar sakte ho — topic pe directly ya subtopic select karke.
+      </div>
+
+      {/* STEP 2: UPLOAD FILE */}
+      <div className="space-y-2">
+        <label className="block text-xs font-bold text-slate-800">Step 2: Excel File Upload Karein</label>
+        <div 
+          onClick={() => fileRef.current?.click()} 
+          className={`border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition group ${
+            fileName 
+              ? "border-emerald-300 bg-emerald-50/20 hover:bg-emerald-50/30" 
+              : "border-slate-200 bg-slate-50/50 hover:border-orange-300 hover:bg-orange-50/20"
+          }`}
+        >
+          {parsing ? (
+            <div className="flex flex-col items-center gap-2 py-2">
+              <div className="w-7 h-7 border-3 border-orange-500 border-t-transparent rounded-full animate-spin" />
+              <p className="text-xs font-bold text-slate-500">File read ki ja rahi hai...</p>
+            </div>
+          ) : (
+            <>
+              {fileName ? (
+                <MdCheckCircle size={32} className="text-emerald-500 mb-1" />
+              ) : (
+                <MdCloudUpload size={32} className="text-slate-400 group-hover:text-orange-500 transition mb-1" />
+              )}
+              <p className="text-xs font-bold text-slate-700">
+                {fileName ? "File loaded successfully" : "Click to select or drop Excel file"}
+              </p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Supports .xlsx, .xls and .csv</p>
+              {fileName && (
+                <span className="mt-2 text-xs bg-emerald-100 text-emerald-800 font-extrabold px-3 py-1 rounded-full border border-emerald-200">
+                  📄 {fileName}
+                </span>
+              )}
+            </>
+          )}
+        </div>
+        <div className="flex justify-between items-center bg-blue-50/80 p-3 rounded-xl border border-blue-100 text-[11px] text-blue-800">
+          <p className="leading-relaxed">
+            💡 **Tip:** Aap ek hi Excel sheet se subjects, topics ke sath-sath tasks bhi ek baar me upload kar sakte hain.
           </p>
         </div>
+        <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleFile} />
       </div>
 
+      {/* STEP 3: PREVIEW & SAVE */}
       {hierarchy.length > 0 && (
-        <div className="bg-gray-50 rounded-xl p-3 space-y-2">
-          <div className="flex items-center gap-3 flex-wrap">
-            <MdCheckCircle size={16} className="text-green-500" />
-            <span className="text-xs font-semibold text-gray-700">Parsed</span>
-            <span className="text-xs text-gray-500">{totalSubjects} Subjects • {totalTopics} Topics • {totalSubTopics} SubTopics</span>
-            {(() => {
-              const tc = hierarchy.reduce((a, s) => a + s.topics.reduce((b, t) => b + t.subTopics.filter((st) => typeof st === "object" && st.taskTitle).length, 0), 0);
-              return tc > 0 ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-600">{tc} Tasks detected</span> : null;
-            })()}
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-4">
+          <div className="space-y-1">
+            <h4 className="text-xs font-bold text-slate-800">Step 3: Session select karein aur Save karein</h4>
+            <p className="text-[11px] text-slate-400">
+              Parsed structures check karein aur target session map karein.
+            </p>
           </div>
-          {/* Subject preview chips */}
-          <div className="flex flex-wrap gap-1.5">
-            {hierarchy.map((s) => (
-              <span key={s.subject} className="text-xs bg-white border border-gray-200 px-2.5 py-1 rounded-full text-gray-600">
-                {s.subject} <span className="text-gray-400">({s.topics.length})</span>
+
+          <div className="bg-white border border-slate-100 rounded-xl p-3.5 space-y-2">
+            <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">File summary:</p>
+            <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-slate-700">
+              <span className="bg-orange-50 border border-orange-100 text-orange-600 px-2.5 py-1 rounded-lg">
+                {totalSubjects} Subjects
               </span>
-            ))}
+              <span className="bg-blue-50 border border-blue-100 text-blue-600 px-2.5 py-1 rounded-lg">
+                {totalTopics} Topics
+              </span>
+              {totalSubTopics > 0 && (
+                <span className="bg-purple-50 border border-purple-100 text-purple-600 px-2.5 py-1 rounded-lg">
+                  {totalSubTopics} SubTopics
+                </span>
+              )}
+              {totalTasks > 0 && (
+                <span className="bg-emerald-50 border border-emerald-100 text-emerald-600 px-2.5 py-1 rounded-lg">
+                  {totalTasks} Tasks detected
+                </span>
+              )}
+            </div>
+            
+            {/* Subject badges preview */}
+            <div className="flex flex-wrap gap-1 mt-2">
+              {hierarchy.map((s) => (
+                <span key={s.subject} className="text-[10px] bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-md font-semibold text-slate-600">
+                  {s.subject} ({s.topics.length} topics)
+                </span>
+              ))}
+            </div>
           </div>
-          <SelectDropdown
-            value={selectedSessionId}
-            onChange={(val) => setSelectedSessionId(val)}
-            options={[{ value: "", label: "-- Select Session --" }, ...sessions.map((s) => ({ value: s._id, label: s.name }))]}
-            placeholder="-- Select Session --"
-          />
-          <div className="flex gap-2">
-            <button onClick={handleSaveClick} disabled={saving} className="flex-1 flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-semibold py-2 rounded-lg transition">
-              <MdSave size={15} />{saving ? "Saving..." : "Save Syllabus + Tasks"}
+
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-slate-700">Syllabus Session</label>
+            <SelectDropdown
+              value={selectedSessionId}
+              onChange={(val) => setSelectedSessionId(val)}
+              options={[{ value: "", label: "-- Select Session --" }, ...sessions.map((s) => ({ value: s._id, label: s.name }))]}
+              placeholder="-- Select Session --"
+            />
+          </div>
+
+          <div className="flex gap-2.5 pt-1">
+            <button 
+              onClick={handleSaveClick} 
+              disabled={saving} 
+              className="flex-1 flex items-center justify-center gap-1.5 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-xs font-extrabold py-2.5 rounded-xl transition shadow-xs cursor-pointer"
+            >
+              <MdSave size={16} />{saving ? "Saving..." : "Save Syllabus + Tasks"}
             </button>
-            <button onClick={reset} className="px-4 py-2 text-sm text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">Clear</button>
+            <button 
+              onClick={reset} 
+              className="px-4 py-2.5 text-xs text-slate-500 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 font-bold transition cursor-pointer"
+            >
+              Clear
+            </button>
           </div>
-          <div className="space-y-2 max-h-52 overflow-y-auto">
-            {hierarchy.map((item, i) => <SubjectAccordion key={item.subject} item={item} index={i} />)}
+
+          <div className="space-y-2 max-h-52 overflow-y-auto border-t border-slate-200/50 pt-3">
+            <p className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Uploaded Data Preview:</p>
+            {hierarchy.map((item, i) => (
+              <SubjectAccordion key={item.subject} item={item} index={i} />
+            ))}
           </div>
         </div>
       )}

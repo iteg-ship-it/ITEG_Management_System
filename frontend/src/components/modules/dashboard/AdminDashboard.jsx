@@ -245,18 +245,39 @@ const AdminDashboard = () => {
   const sessionsList = sessionsData?.data || [];
 
   // Filter States
-  const [selectedSessionId, setSelectedSessionId] = useState("all");
-  const [academicYearLabel, setAcademicYearLabel] = useState("All Sessions");
+  const [selectedSessionId, setSelectedSessionId] = useState(() => {
+    return localStorage.getItem("dashboard_selectedSessionId") || "all";
+  });
+  const [academicYearLabel, setAcademicYearLabel] = useState(() => {
+    return localStorage.getItem("dashboard_academicYearLabel") || "All Sessions";
+  });
   const [selectedLevel, setSelectedLevel] = useState("All");
   const [showNotification, setShowNotification] = useState(false);
 
+  // Sync state to localStorage whenever selected session updates
   useEffect(() => {
-    if (sessionsList.length > 0 && selectedSessionId === "all") {
-      const activeSess = sessionsList.find(s => s.isActive || s.status === 'active');
-      if (activeSess) {
-        setSelectedSessionId(activeSess._id);
-        const label = activeSess.name.startsWith("AY") ? activeSess.name : `AY ${activeSess.name}`;
-        setAcademicYearLabel(label);
+    localStorage.setItem("dashboard_selectedSessionId", selectedSessionId);
+    localStorage.setItem("dashboard_academicYearLabel", academicYearLabel);
+  }, [selectedSessionId, academicYearLabel]);
+
+  // Load and auto-select active session if no selection is saved
+  useEffect(() => {
+    if (sessionsList.length > 0) {
+      const currentSavedId = localStorage.getItem("dashboard_selectedSessionId") || "all";
+      if (currentSavedId === "all") {
+        const activeSess = sessionsList.find(s => s.isActive || s.status === 'active');
+        if (activeSess) {
+          setSelectedSessionId(activeSess._id);
+          const label = activeSess.name.startsWith("AY") ? activeSess.name : `AY ${activeSess.name}`;
+          setAcademicYearLabel(label);
+        }
+      } else {
+        const found = sessionsList.find(s => s._id === currentSavedId);
+        if (found) {
+          setSelectedSessionId(currentSavedId);
+          const label = found.name.startsWith("AY") ? found.name : `AY ${found.name}`;
+          setAcademicYearLabel(label);
+        }
       }
     }
   }, [sessionsList]);

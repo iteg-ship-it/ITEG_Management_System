@@ -852,33 +852,7 @@ const PlacementHistorySection = ({ raw, readinessStatus }) => {
     const records = useMemo(() => {
         if (raw?.PlacementinterviewRecord?.length > 0) return raw.PlacementinterviewRecord;
         if (raw?.placement?.PlacementinterviewRecord?.length > 0) return raw.placement.PlacementinterviewRecord;
-        return [
-            {
-                _id: "rec1",
-                companyName: "TCS (Tata Consultancy Services)",
-                jobProfile: "System Engineer",
-                scheduleDate: "2024-04-10",
-                status: "Not Selected",
-                statusRemark: "Technical depth in system architecture needed improvement",
-                rounds: [
-                    { roundName: "Round 1 - Technical", roundType: "Technical", date: "2024-04-10", mode: "Online", result: "Cleared", feedback: "Strong logic & DSA skills" },
-                    { roundName: "Round 2 - HR & Managerial", roundType: "HR", date: "2024-04-12", mode: "Offline", result: "Not Cleared", feedback: "Communication skills need polishing", resultReason: "Communication Skills" }
-                ]
-            },
-            {
-                _id: "rec2",
-                companyName: "Infosys",
-                jobProfile: "Full Stack MERN Developer",
-                scheduleDate: "2024-05-15",
-                status: "Selected",
-                statusRemark: "Cleared all 3 rounds with high score",
-                rounds: [
-                    { roundName: "Round 1 - Technical Assessment", roundType: "Assessment", date: "2024-05-15", mode: "Online", result: "Cleared", feedback: "95% score in React & Node" },
-                    { roundName: "Round 2 - Technical Interview", roundType: "Technical", date: "2024-05-18", mode: "Offline", result: "Cleared", feedback: "Excellent system design" },
-                    { roundName: "Round 3 - HR Discussion", roundType: "HR", date: "2024-05-20", mode: "Offline", result: "Selected", feedback: "Offer letter issued" }
-                ]
-            }
-        ];
+        return [];
     }, [raw]);
 
     const stats = useMemo(() => {
@@ -946,77 +920,83 @@ const PlacementHistorySection = ({ raw, readinessStatus }) => {
 
             {/* COMPANY ATTEMPTS LIST */}
             <div className="space-y-4">
-                {records.map((rec, idx) => (
-                    <div key={rec._id || idx} className="border border-slate-200 rounded-2xl p-4 bg-slate-50/50 space-y-3">
-                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/60 pb-3">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 font-black flex items-center justify-center text-sm">
-                                    {(rec.companyName || "C")[0].toUpperCase()}
+                {records.length > 0 ? (
+                    records.map((rec, idx) => (
+                        <div key={rec._id || idx} className="border border-slate-200 rounded-2xl p-4 bg-slate-50/50 space-y-3">
+                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/60 pb-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 font-black flex items-center justify-center text-sm">
+                                        {(rec.companyName || "C")[0].toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <h4 className="font-extrabold text-slate-900 text-sm">{rec.companyName || "Company Drive"}</h4>
+                                        <p className="text-xs font-medium text-slate-500">{rec.jobProfile || "Job Role"}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 className="font-extrabold text-slate-900 text-sm">{rec.companyName || "Company Drive"}</h4>
-                                    <p className="text-xs font-medium text-slate-500">{rec.jobProfile || "Job Role"}</p>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs font-bold text-slate-500 bg-white border border-slate-200 px-2.5 py-1 rounded-lg">
+                                        {rec.scheduleDate ? formatShortDate(rec.scheduleDate) : "Scheduled"}
+                                    </span>
+                                    <span className={`text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider ${
+                                        rec.status === "Selected" || rec.status === "Placed" ? "bg-emerald-100 text-emerald-800 border border-emerald-200" :
+                                        rec.status === "Not Selected" || rec.status === "RejectedByCompany" ? "bg-rose-100 text-rose-800 border border-rose-200" :
+                                        rec.status === "Offer Received" ? "bg-indigo-100 text-indigo-800 border border-indigo-200" :
+                                        "bg-amber-100 text-amber-800 border border-amber-200"
+                                    }`}>
+                                        {rec.status}
+                                    </span>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-slate-500 bg-white border border-slate-200 px-2.5 py-1 rounded-lg">
-                                    {rec.scheduleDate ? formatShortDate(rec.scheduleDate) : "Scheduled"}
-                                </span>
-                                <span className={`text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider ${
-                                    rec.status === "Selected" || rec.status === "Placed" ? "bg-emerald-100 text-emerald-800 border border-emerald-200" :
-                                    rec.status === "Not Selected" || rec.status === "RejectedByCompany" ? "bg-rose-100 text-rose-800 border border-rose-200" :
-                                    rec.status === "Offer Received" ? "bg-indigo-100 text-indigo-800 border border-indigo-200" :
-                                    "bg-amber-100 text-amber-800 border border-amber-200"
-                                }`}>
-                                    {rec.status}
-                                </span>
-                            </div>
-                        </div>
 
-                        {rec.statusRemark && (
-                            <p className="text-xs font-medium text-slate-600 bg-white p-2.5 rounded-xl border border-slate-100">
-                                <span className="font-bold text-slate-800">Remark: </span>{rec.statusRemark}
-                            </p>
-                        )}
+                            {rec.statusRemark && (
+                                <p className="text-xs font-medium text-slate-600 bg-white p-2.5 rounded-xl border border-slate-100">
+                                    <span className="font-bold text-slate-800">Remark: </span>{rec.statusRemark}
+                                </p>
+                            )}
 
-                        {rec.notJoiningReason && (
-                            <p className="text-xs font-medium text-rose-700 bg-rose-50 p-2.5 rounded-xl border border-rose-100">
-                                <span className="font-bold">Reason for not joining: </span>{rec.notJoiningReason} {rec.notJoiningRemarks ? `(${rec.notJoiningRemarks})` : ""}
-                            </p>
-                        )}
+                            {rec.notJoiningReason && (
+                                <p className="text-xs font-medium text-rose-700 bg-rose-50 p-2.5 rounded-xl border border-rose-100">
+                                    <span className="font-bold">Reason for not joining: </span>{rec.notJoiningReason} {rec.notJoiningRemarks ? `(${rec.notJoiningRemarks})` : ""}
+                                </p>
+                            )}
 
-                        {/* INTERVIEW ROUNDS BREAKDOWN */}
-                        {rec.rounds?.length > 0 && (
-                            <div className="space-y-2 pt-1">
-                                <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Interview Rounds</p>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                                    {rec.rounds.map((rnd, rIdx) => (
-                                        <div key={rnd._id || rIdx} className="bg-white border border-slate-200 rounded-xl p-3 space-y-1">
-                                            <div className="flex items-center justify-between text-xs">
-                                                <span className="font-bold text-slate-900">{rnd.roundName}</span>
-                                                <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
-                                                    rnd.result === "Cleared" || rnd.result === "Passed" || rnd.result === "Selected" ? "bg-emerald-100 text-emerald-800" :
-                                                    rnd.result === "Not Cleared" || rnd.result === "Failed" || rnd.result === "Rejected" ? "bg-rose-100 text-rose-800" :
-                                                    "bg-amber-100 text-amber-800"
-                                                }`}>
-                                                    {rnd.result || "Pending"}
-                                                </span>
-                                            </div>
-                                            <p className="text-[11px] font-medium text-slate-500">
-                                                {rnd.date ? formatShortDate(rnd.date) : ""} • Mode: {rnd.mode || "Offline"}
-                                            </p>
-                                            {rnd.feedback && (
-                                                <p className="text-[11px] font-semibold text-slate-600 pt-0.5">
-                                                    Feedback: {rnd.feedback}
+                            {/* INTERVIEW ROUNDS BREAKDOWN */}
+                            {rec.rounds?.length > 0 && (
+                                <div className="space-y-2 pt-1">
+                                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Interview Rounds</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                                        {rec.rounds.map((rnd, rIdx) => (
+                                            <div key={rnd._id || rIdx} className="bg-white border border-slate-200 rounded-xl p-3 space-y-1">
+                                                <div className="flex items-center justify-between text-xs">
+                                                    <span className="font-bold text-slate-900">{rnd.roundName}</span>
+                                                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
+                                                        rnd.result === "Cleared" || rnd.result === "Passed" || rnd.result === "Selected" ? "bg-emerald-100 text-emerald-800" :
+                                                        rnd.result === "Not Cleared" || rnd.result === "Failed" || rnd.result === "Rejected" ? "bg-rose-100 text-rose-800" :
+                                                        "bg-amber-100 text-amber-800"
+                                                    }`}>
+                                                        {rnd.result || "Pending"}
+                                                    </span>
+                                                </div>
+                                                <p className="text-[11px] font-medium text-slate-500">
+                                                    {rnd.date ? formatShortDate(rnd.date) : ""} • Mode: {rnd.mode || "Offline"}
                                                 </p>
-                                            )}
-                                        </div>
-                                    ))}
+                                                {rnd.feedback && (
+                                                    <p className="text-[11px] font-semibold text-slate-600 pt-0.5">
+                                                        Feedback: {rnd.feedback}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
+                    ))
+                ) : (
+                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
+                        <p className="text-xs font-semibold text-slate-500">No placement drives attempted yet</p>
                     </div>
-                ))}
+                )}
             </div>
         </div>
     );
@@ -1900,37 +1880,36 @@ const StudentProfilePage = () => {
                                     {trackName}
                                 </span>
                             </div>
-
                             {subjects.length > 0 ? (
-                                <div className="space-y-4">
-                                    {subjects.map((sub, idx) => (
-                                        <div key={sub.name} className="flex items-center gap-4">
-                                            <span className="w-44 text-xs font-bold text-slate-700 truncate">{sub.name}</span>
-                                            <div className="flex-1 bg-slate-100 rounded-full h-3">
-                                                <div
-                                                    className={`h-3 rounded-full ${idx % 2 === 0 ? "bg-orange-500" : "bg-blue-500"}`}
-                                                    style={{ width: `${sub.pct}%` }}
-                                                />
+                                <>
+                                    <div className="space-y-4">
+                                        {subjects.map((sub, idx) => (
+                                            <div key={sub.name} className="flex items-center gap-4">
+                                                <span className="w-44 text-xs font-bold text-slate-700 truncate">{sub.name}</span>
+                                                <div className="flex-1 bg-slate-100 rounded-full h-3">
+                                                    <div
+                                                        className={`h-3 rounded-full ${idx % 2 === 0 ? "bg-orange-500" : "bg-blue-500"}`}
+                                                        style={{ width: `${sub.pct}%` }}
+                                                    />
+                                                </div>
+                                                <span className="w-8 text-right text-xs font-black text-slate-900">{sub.pct}%</span>
                                             </div>
-                                            <span className="w-8 text-right text-xs font-black text-slate-900">{sub.pct}%</span>
-                                        </div>
-                                    ))}
-                                </div>
+                                        ))}
+                                    </div>
+                                    <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-slate-100 text-xs font-bold text-slate-400">
+                                        <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-orange-500" /> Completed Modules</span>
+                                        <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-blue-500" /> Core Tech Stack</span>
+                                    </div>
+                                </>
                             ) : (
-                                <div className="space-y-3">
-                                    {["React.js & Frontend Architecture", "Node.js & Express REST APIs", "Database & MongoDB Optimization", "Data Structures & Algorithms"].map((tech, idx) => (
-                                        <div key={tech} className="flex items-center justify-between bg-slate-50 border border-slate-100 p-3 rounded-2xl">
-                                            <span className="text-xs font-bold text-slate-800">{tech}</span>
-                                            <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">Proficient</span>
-                                        </div>
-                                    ))}
+                                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center flex flex-col items-center justify-center min-h-[220px]">
+                                    <MdLightbulb className="text-slate-300 mb-2" size={32} />
+                                    <p className="text-xs font-bold text-slate-700">No Learning Stats</p>
+                                    <p className="text-[11px] font-semibold text-slate-400 mt-1 max-w-[200px] leading-relaxed">
+                                        No subjects or technology training records have been completed yet.
+                                    </p>
                                 </div>
                             )}
-                        </div>
-
-                        <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-slate-100 text-xs font-bold text-slate-400">
-                            <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-orange-500" /> Completed Modules</span>
-                            <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-blue-500" /> Core Tech Stack</span>
                         </div>
                     </div>
 
@@ -1943,50 +1922,16 @@ const StudentProfilePage = () => {
                                     <p className="text-xs font-semibold text-slate-400 mt-0.5">Capstone & production application portfolio</p>
                                 </div>
                                 <span className="text-xs font-bold text-orange-600 bg-orange-50 border border-orange-100 px-3 py-1 rounded-full">
-                                    3 Major Projects
+                                    0 Projects
                                 </span>
                             </div>
 
-                            <div className="space-y-3">
-                                {[
-                                    {
-                                        title: "Full Stack Management System",
-                                        tech: "React • Node.js • Express • MongoDB",
-                                        desc: "Role-based enterprise management portal with real-time dashboard analytics",
-                                        status: "Completed",
-                                        statusBg: "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                    },
-                                    {
-                                        title: "Real-Time Collaborative Dashboard",
-                                        tech: "React • Redux Toolkit • WebSockets",
-                                        desc: "High-performance dynamic monitoring dashboard with instant status updates",
-                                        status: "Completed",
-                                        statusBg: "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                    },
-                                    {
-                                        title: "AI Evaluation & Attendance Tracker",
-                                        tech: "Python • FastAPI • React",
-                                        desc: "Automated student performance visualization & attendance tracking suite",
-                                        status: "In Progress",
-                                        statusBg: "bg-amber-50 text-amber-700 border-amber-200"
-                                    }
-                                ].map((proj, idx) => (
-                                    <div key={idx} className="bg-slate-50 border border-slate-150 p-3.5 rounded-2xl space-y-1">
-                                        <div className="flex items-center justify-between">
-                                            <h4 className="text-xs font-black text-slate-900">{proj.title}</h4>
-                                            <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${proj.statusBg}`}>
-                                                {proj.status}
-                                            </span>
-                                        </div>
-                                        <p className="text-[11px] font-semibold text-slate-500 leading-snug">{proj.desc}</p>
-                                        <div className="flex items-center justify-between pt-1">
-                                            <span className="text-[10px] font-bold text-slate-400">{proj.tech}</span>
-                                            <span className="text-[11px] font-extrabold text-blue-600 hover:text-blue-700 cursor-pointer flex items-center gap-1">
-                                                <MdOpenInNew size={12} /> View Code
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))}
+                            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center flex flex-col items-center justify-center min-h-[220px]">
+                                <MdFolderSpecial className="text-slate-300 mb-2" size={32} />
+                                <p className="text-xs font-bold text-slate-700">No Projects Available</p>
+                                <p className="text-[11px] font-semibold text-slate-400 mt-1 max-w-[200px] leading-relaxed">
+                                    No major capstone projects have been registered for this student yet.
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -2003,7 +1948,7 @@ const StudentProfilePage = () => {
                             <div className="space-y-3.5 text-xs">
                                 <div>
                                     <span className="font-semibold text-slate-400 block uppercase tracking-wider text-[10px]">Placement Stage</span>
-                                    <span className="font-extrabold text-slate-800 text-sm">{readinessStatus || "Ready for Placement"}</span>
+                                    <span className="font-extrabold text-slate-800 text-sm">{readinessStatus || "Not Ready"}</span>
                                 </div>
                                 <div>
                                     <span className="font-semibold text-slate-400 block uppercase tracking-wider text-[10px]">Technology / Track</span>
