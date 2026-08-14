@@ -1,9 +1,7 @@
-import { useNavigate } from "react-router-dom";
-import { FiHeadphones, FiArrowLeft, FiMail, FiMessageSquare } from "react-icons/fi";
+import { FiHeadphones, FiMail, FiMessageSquare } from "react-icons/fi";
 import Header from "../../shared/sidebar/Header";
 
 const Supportfile = () => {
-  const navigate = useNavigate();
 
   return (
     <>
@@ -49,15 +47,6 @@ const Supportfile = () => {
               </div>
             </div>
           </div>
-
-          {/* Back button */}
-          <button
-            onClick={() => navigate(-1)}
-            className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 px-6 rounded-xl text-sm shadow-md hover:shadow-lg transition duration-200"
-          >
-            <FiArrowLeft size={16} />
-            Go Back
-          </button>
         </div>
       </div>
     </>

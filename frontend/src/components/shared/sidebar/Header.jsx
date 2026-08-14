@@ -17,6 +17,7 @@ const SIDEBAR_ROOT_PATHS = [
   "/company-details",
   "/placement-post",
   "/user-management",
+  "/user-permission",
   "/settings",
   "/session-management",
   "/support",

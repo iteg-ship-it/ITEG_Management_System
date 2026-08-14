@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useGetInterviewHistoryQuery } from '../../../redux/api/authApi';
-import PageNavbar from '../../shared/navbar/PageNavbar';
+import Header from '../../shared/sidebar/Header';
 import Loader from '../../shared/loader/Loader';
 import { CheckCircle, XCircle, Clock } from 'lucide-react';
 
@@ -123,9 +123,10 @@ const InterviewHistoryDetails = () => {
 
   return (
     <>
-      <PageNavbar 
+      <Header 
         title={`${decodeURIComponent(companyName)} - All Rounds History`}
         subtitle="View interview rounds history for this company"
+        showBack={true}
         onBack={() => navigate(-1)}
       />
 

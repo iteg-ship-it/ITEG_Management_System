@@ -2,8 +2,6 @@ import { useState, useMemo, useEffect } from 'react';
 import { useGetAllLevelsQuery, useGetAllSubLevelsQuery, useGetNewStudentsQuery, useGetAllSubdepartmentsQuery } from '../../../redux/api/authApi';
 import { FiCalendar, FiFilter, FiEye } from 'react-icons/fi';
 import { BsPersonFill, BsPersonFillCheck } from 'react-icons/bs';
-import { useNavigate } from 'react-router-dom';
-import PageNavbar from '../../shared/navbar/PageNavbar';
 import AttendanceCalendarModal from './AttendanceCalendarModal';
 import AttendanceApiError from '../../shared/error-pages/AttendanceApiError';
 import { useAttendanceErrorHandler } from '../../../hooks/useAttendanceErrorHandler';
@@ -75,7 +73,7 @@ const AttendanceDetails = () => {
       return [{ _id: 'All', name: 'All Sub-Departments' }, ...allSubDepts];
     }
     const userDept = userObj.department || '';
-    const filtered = allSubDepts.filter(sd => 
+    const filtered = allSubDepts.filter(sd =>
       (sd.departmentId?.name || sd.departmentName || '').toLowerCase() === userDept.toLowerCase()
     );
     return [{ _id: 'All', name: 'All Sub-Departments' }, ...filtered];
@@ -267,10 +265,10 @@ const AttendanceDetails = () => {
     };
   }, []);
 
-  const titleText = isGlobalAdmin 
-    ? (filters.subDepartmentId && filters.subDepartmentId !== 'All' 
-       ? `${subDepts.find(sd => sd._id === filters.subDepartmentId)?.name || 'Department'} Attendance Details`
-       : 'All Departments Attendance Details')
+  const titleText = isGlobalAdmin
+    ? (filters.subDepartmentId && filters.subDepartmentId !== 'All'
+      ? `${subDepts.find(sd => sd._id === filters.subDepartmentId)?.name || 'Department'} Attendance Details`
+      : 'All Departments Attendance Details')
     : `${userObj.department || 'Department'} Attendance Details`;
 
   const headerTitle = isGlobalAdmin ? 'Attendance Dashboard' : `${userObj.department || 'Department'} Dashboard`;
@@ -279,17 +277,11 @@ const AttendanceDetails = () => {
     <>
       <Header sidebarOpen={true} title={headerTitle} />
       <div className="min-h-screen">
-        <PageNavbar
-          title={titleText}
-          subtitle="Detailed attendance records and analytics"
-          showBackButton={true}
-          onBackClick={() => navigate(-1)}
-        />
 
         <div className="p-6">
           {/* Filters Section */}
           <div className="bg-white border border-gray-200 rounded-xl p-4 mb-5 shadow-sm">
-             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4 items-end">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4 items-end">
               <div>
                 <DatePicker
                   label="From Date"
@@ -350,7 +342,7 @@ const AttendanceDetails = () => {
                 )}
               </div>
 
-               <div className="relative">
+              <div className="relative">
                 <button
                   type="button"
                   onClick={() => {

@@ -36,15 +36,15 @@ const SelectDropdown = ({
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={buttonClassName || `w-full flex items-center justify-between gap-2 px-3.5 py-2 text-sm border border-gray-200 hover:border-[var(--primary,#FDA92D)] bg-white rounded-xl text-gray-800 font-medium transition-all shadow-xs focus:outline-none ${
+        className={buttonClassName ? `flex items-center justify-between gap-1 overflow-hidden ${buttonClassName}` : `w-full flex items-center justify-between gap-2 px-3.5 py-2 text-sm border border-gray-200 hover:border-[var(--primary,#FDA92D)] bg-white rounded-xl text-gray-800 font-medium transition-all shadow-xs focus:outline-none ${
           disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"
         }`}
       >
-        <span className="truncate">{displayLabel}</span>
+        <span className="truncate min-w-0">{displayLabel}</span>
         <MdExpandMore
-          size={18}
-          className={`text-gray-400 shrink-0 transition-transform duration-200 ${
-            isOpen ? "rotate-180 text-[var(--primary,#FDA92D)]" : ""
+          size={16}
+          className={`shrink-0 transition-transform duration-200 ${
+            isOpen ? "rotate-180 text-[var(--primary,#FDA92D)]" : "text-current opacity-70"
           }`}
         />
       </button>
@@ -56,7 +56,8 @@ const SelectDropdown = ({
             return (
               <div
                 key={String(opt.value)}
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   onChange(opt.value);
                   setIsOpen(false);
                 }}

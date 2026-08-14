@@ -10,6 +10,7 @@ import CryptoJS from "crypto-js";
 import { useGetNewStudentTasksQuery, useAssignExtraTaskMutation, useGetSyllabusVersionWithHierarchyQuery } from "../../../../redux/api/authApi";
 import Loader from "../../../shared/loader/Loader";
 import OrangeButton from "../../../shared/sidebar/OrangeButton";
+import Header from "../../../shared/sidebar/Header";
 
 const SECRET_KEY = "ITEG@123";
 const getToken = () => {
@@ -444,7 +445,13 @@ const StudentTaskBoard = () => {
     const initials = studentName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
 
     return (
-        <div className="min-h-screen bg-[#F8F9FA] px-8 py-6 space-y-6">
+        <>
+            <Header
+                title="Student Task Board"
+                subtitle={`Task board for ${studentName}`}
+                showBack={true}
+            />
+            <div className="min-h-screen bg-[#F8F9FA] px-8 py-6 space-y-6">
 
             {/* Modals */}
             {showExtraModal && (
@@ -627,7 +634,8 @@ const StudentTaskBoard = () => {
                 </div>
             )}
         </div>
-    );
+    </>
+  );
 };
 
 export default StudentTaskBoard;

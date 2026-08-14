@@ -6,7 +6,7 @@ import Loader from "../../shared/loader/Loader";
 import { toast } from "react-toastify";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
 import { FaCalendarAlt } from "react-icons/fa";
-import PageNavbar from "../../shared/navbar/PageNavbar";
+import Header from "../../shared/sidebar/Header";
 import { buttonStyles } from "../../../styles/buttonStyles";
 import OrangeButton from "../../shared/sidebar/OrangeButton";
 
@@ -203,9 +203,10 @@ const InterviewHistory = () => {
 
   return (
     <>
-      <PageNavbar 
+      <Header 
         title="Interview History" 
         subtitle="View and manage student interview records"
+        showBack={true}
         onBack={() => {
           // Get the active tab from localStorage or default to 'Ongoing Interviews'
           const activeTab = localStorage.getItem('placementActiveTab') || 'Ongoing Interviews';

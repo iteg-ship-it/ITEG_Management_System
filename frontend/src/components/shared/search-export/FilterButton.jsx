@@ -1,10 +1,9 @@
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect, useMemo } from "react";
-import { SlidersHorizontal } from "lucide-react";
-import { ChevronRight } from "lucide-react";
+import { SlidersHorizontal, ChevronDown, Check, RotateCcw } from "lucide-react";
 
 /**
- * FilterButton — side-panel dropdown
+ * FilterButton — single vertical dropdown menu
  *
  * Props:
  *  data              : row objects array
@@ -13,15 +12,8 @@ import { ChevronRight } from "lucide-react";
  */
 const FilterButton = ({ data = [], filterableColumns = [], onFilteredData }) => {
   const [open, setOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState(null);
   const [selected, setSelected] = useState({});
   const ref = useRef(null);
-
-  useEffect(() => {
-    if (filterableColumns.length > 0 && !activeCategory) {
-      setActiveCategory(filterableColumns[0].key);
-    }
-  }, [filterableColumns]);
 
   useEffect(() => {
     const close = (e) => {
@@ -72,88 +64,102 @@ const FilterButton = ({ data = [], filterableColumns = [], onFilteredData }) => 
     0
   );
 
-  const activeOptions = activeCategory ? optionsMap[activeCategory] || [] : [];
-  const activeSelected = activeCategory ? selected[activeCategory] || new Set() : new Set();
-
   return (
     <div className="relative" ref={ref}>
       {/* Trigger Button */}
       <button
+        type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-3 h-10 text-sm border border-gray-200 rounded-md bg-white hover:bg-gray-50 text-gray-700 shadow-sm"
+        className="flex items-center gap-2 px-3.5 h-10 text-sm font-medium border border-gray-200 rounded-xl bg-white hover:bg-gray-50 text-gray-700 shadow-xs hover:border-[var(--primary,#FDA92D)] transition-all focus:outline-none cursor-pointer"
       >
-        <SlidersHorizontal size={14} />
-        Filter
+        <SlidersHorizontal size={15} className="text-gray-600" />
+        <span>Filter</span>
         {totalSelected > 0 && (
-          <span className="flex items-center justify-center w-4 h-4 rounded-full bg-gray-600 text-white text-[10px] font-semibold">
+          <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[var(--primary,#FDA92D)] text-white text-[11px] font-bold shadow-xs">
             {totalSelected}
           </span>
         )}
+        <ChevronDown
+          size={16}
+          className={`text-gray-400 shrink-0 transition-transform duration-200 ${
+            open ? "rotate-180 text-[var(--primary,#FDA92D)]" : ""
+          }`}
+        />
       </button>
 
-      {/* Dropdown Panel */}
+      {/* Dropdown Menu (Single Vertical List format like ExportDropdown) */}
       {open && (
-        <div className="absolute right-0 mt-2 bg-white border rounded-lg shadow-lg z-50 flex"
-          style={{ minWidth: "360px" }}
-        >
-          {/* LEFT — Categories */}
-          <div className="w-36 border-r flex flex-col py-1">
-            {filterableColumns.map(({ label, key }) => {
-              const count = selected[key]?.size || 0;
+        <div className="absolute right-0 mt-1.5 w-64 bg-white rounded-xl shadow-xl border border-gray-100 p-1.5 z-50 animate-fadeIn max-h-80 overflow-y-auto custom-scrollbar space-y-1">
+          {filterableColumns.length === 0 ? (
+            <p className="text-xs text-gray-400 px-3 py-3 text-center">No filters available</p>
+          ) : (
+            filterableColumns.map(({ label, key }, colIdx) => {
+              const opts = optionsMap[key] || [];
+              const categorySelected = selected[key] || new Set();
+
               return (
-                <button
-                  key={key}
-                  onClick={() => setActiveCategory(key)}
-                  className={`flex items-center justify-between px-3 py-2.5 text-sm text-left transition-colors ${
-                    activeCategory === key
-                      ? "bg-gray-100 text-gray-800 font-medium"
-                      : "text-gray-500 hover:bg-gray-50"
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    {label}
-                    {count > 0 && (
-                      <span className="flex items-center justify-center w-4 h-4 rounded-full bg-gray-600 text-white text-[10px] font-semibold">
-                        {count}
+                <div key={key} className={colIdx > 0 ? "pt-2 border-t border-gray-100" : ""}>
+                  {/* Category Header */}
+                  <div className="px-2 py-1 flex items-center justify-between text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                    <span>{label}</span>
+                    {categorySelected.size > 0 && (
+                      <span className="text-[10px] font-semibold text-[var(--primary-dark,#F97316)] bg-[var(--primary-100,#FFEDD5)] px-1.5 py-0.5 rounded-full">
+                        {categorySelected.size}
                       </span>
                     )}
-                  </span>
-                  <ChevronRight size={13} className="text-gray-400 flex-shrink-0" />
-                </button>
+                  </div>
+
+                  {/* Options List */}
+                  {opts.length === 0 ? (
+                    <p className="text-xs text-gray-400 px-3 py-1.5 italic">No options</p>
+                  ) : (
+                    <div className="space-y-0.5 mt-0.5">
+                      {opts.map((opt) => {
+                        const isChecked = categorySelected.has(opt);
+                        return (
+                          <label
+                            key={opt}
+                            className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-150 cursor-pointer group select-none ${
+                              isChecked
+                                ? "bg-[var(--primary-50,#FFF7ED)] text-[var(--primary-darker,#EA580C)] font-semibold"
+                                : "text-gray-700 hover:bg-[var(--primary,#FDA92D)] hover:text-white"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={() => toggle(key, opt)}
+                                className="accent-[var(--primary,#FDA92D)] w-4 h-4 rounded cursor-pointer shrink-0"
+                              />
+                              <span className="truncate">{String(opt)}</span>
+                            </div>
+                            {isChecked && (
+                              <Check size={15} className="shrink-0 ml-2 text-[var(--primary-dark,#F97316)] group-hover:text-white" />
+                            )}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               );
-            })}
+            })
+          )}
 
-            {totalSelected > 0 && (
+          {/* Clear All Footer Button */}
+          {totalSelected > 0 && (
+            <div className="pt-1.5 mt-2 border-t border-gray-100">
               <button
+                type="button"
                 onClick={clearAll}
-                className="mt-auto px-3 py-2 text-xs text-red-500 hover:bg-red-50 text-left border-t"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-red-500 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors cursor-pointer"
               >
-                Clear all
+                <RotateCcw size={13} />
+                <span>Clear all filters ({totalSelected})</span>
               </button>
-            )}
-          </div>
-
-          {/* RIGHT — Options */}
-          <div className="flex-1 py-2 px-2 max-h-60 overflow-y-auto">
-            {activeOptions.length === 0 ? (
-              <p className="text-xs text-gray-400 px-2 py-3">No options</p>
-            ) : (
-              activeOptions.map((opt) => (
-                <label
-                  key={opt}
-                  className="flex items-center gap-2 px-2 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-50 rounded"
-                >
-                  <input
-                    type="checkbox"
-                    className="accent-gray-700 w-3.5 h-3.5"
-                    checked={activeSelected.has(opt)}
-                    onChange={() => toggle(activeCategory, opt)}
-                  />
-                  {String(opt)}
-                </label>
-              ))
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -161,3 +167,5 @@ const FilterButton = ({ data = [], filterableColumns = [], onFilteredData }) => 
 };
 
 export default FilterButton;
+
+

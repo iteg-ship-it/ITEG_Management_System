@@ -227,13 +227,6 @@ const StudentEditPage = () => {
           Update Placement
         </button>
       </div>
-
-      <button
-        onClick={() => navigate(-1)}
-        className="mt-6 bg-gray-500 text-white py-2 px-6 rounded hover:bg-gray-600"
-      >
-        Go Back
-      </button>
     </div>
     </>
   );

@@ -1472,6 +1472,12 @@ const StudentProfilePage = () => {
                 {extraDocs.map(doc => <DocumentRow key={doc._id || doc.fileURL} doc={doc} />)}
             </ProfileSectionModal>
 
+            <Header
+                title={`Student Record: ${name}`}
+                subtitle="Student Profile & Performance Details"
+                badge={raw?.prkey ? `ID: ${raw.prkey}` : ''}
+                showBack={true}
+            />
             {/* TOP TITLE BAR WITH SEARCH & ID */}
             <div className="bg-[#F8F9FA] min-h-screen px-8 py-6 space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

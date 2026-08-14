@@ -7,6 +7,7 @@ import {
   useUpdateSessionMutation,
   useDeleteSessionMutation,
   useActivateSessionMutation,
+  useDeactivateSessionMutation,
   useUpdateSessionStatusMutation,
 } from "../../../../redux/api/authApi";
 import Header from "../../../shared/sidebar/Header";
@@ -22,29 +23,31 @@ const STATUS_TABS = [
 ];
 
 const SessionManagement = () => {
-  const [showForm,       setShowForm]       = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [editingSession, setEditingSession] = useState(null);
-  const [searchQuery,    setSearchQuery]    = useState("");
-  const [statusFilter,   setStatusFilter]   = useState("all");
-  const [formData,       setFormData]       = useState({
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [formData, setFormData] = useState({
     name: "",
     startDate: "",
     endDate: "",
     description: ""
   });
-  const [submitting,     setSubmitting]     = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   // Pass all=true so admin can see all sessions (active, upcoming, archived, completed)
   const { data, isLoading, refetch } = useGetAllSessionsQuery(true);
   const sessions = data?.data || [];
 
-  const [createSession]       = useCreateSessionMutation();
-  const [updateSession]       = useUpdateSessionMutation();
-  const [deleteSession]       = useDeleteSessionMutation();
-  const [activateSession]     = useActivateSessionMutation();
+  const [createSession] = useCreateSessionMutation();
+  const [updateSession] = useUpdateSessionMutation();
+  const [deleteSession] = useDeleteSessionMutation();
+  const [activateSession] = useActivateSessionMutation();
+  const [deactivateSession] = useDeactivateSessionMutation();
   const [updateSessionStatus] = useUpdateSessionStatusMutation();
 
   const getComputedStatus = (session) => {
+    if (session.isActive) return 'active';
     if (session.status) return session.status;
     const now = new Date();
     const start = new Date(session.startDate);
@@ -71,7 +74,7 @@ const SessionManagement = () => {
     setFormData({ name: "", startDate: "", endDate: "", description: "" });
     setShowForm(true);
   };
-  
+
   const openEdit = (s) => {
     setEditingSession(s);
     setFormData({
@@ -82,7 +85,7 @@ const SessionManagement = () => {
     });
     setShowForm(true);
   };
-  
+
   const handleCancel = () => {
     setShowForm(false);
     setEditingSession(null);
@@ -95,12 +98,12 @@ const SessionManagement = () => {
       toast.error("Name, start date, and end date are required");
       return;
     }
-    
+
     if (new Date(formData.startDate) >= new Date(formData.endDate)) {
       toast.error("End date must be after start date");
       return;
     }
-    
+
     setSubmitting(true);
     try {
       if (editingSession) {
@@ -134,8 +137,10 @@ const SessionManagement = () => {
     try {
       if (newStatus === 'active') {
         await activateSession(id).unwrap();
+        try { await updateSessionStatus({ id, status: 'active' }).unwrap(); } catch (_) { }
       } else {
         await updateSessionStatus({ id, status: newStatus }).unwrap();
+        try { await deactivateSession(id).unwrap(); } catch (_) { }
       }
       toast.success(`Session status updated to ${newStatus}!`);
       refetch();
@@ -145,11 +150,11 @@ const SessionManagement = () => {
   };
 
   const getStatusSelectClass = (status) => {
-    const base = "text-xs font-bold px-3 py-1.5 rounded-full border cursor-pointer focus:outline-none transition-all duration-200 bg-white shadow-2xs hover:shadow-xs appearance-none pr-7 relative select-custom-arrow";
-    if (status === 'active') return `${base} bg-emerald-50 text-emerald-600 border-emerald-200 hover:border-emerald-450`;
-    if (status === 'upcoming') return `${base} bg-blue-50 text-blue-600 border-blue-200 hover:border-blue-450`;
-    if (status === 'archived') return `${base} bg-slate-100 text-slate-600 border-slate-200 hover:border-slate-400`;
-    return `${base} bg-orange-50 text-orange-600 border-orange-200 hover:border-orange-450`;
+    const base = "w-full text-[11px] font-extrabold px-2.5 py-1 rounded-full border cursor-pointer focus:outline-none transition-all duration-200 shadow-2xs hover:shadow-xs";
+    if (status === 'active') return `${base} bg-emerald-50 text-emerald-600 border-emerald-200 hover:border-emerald-300`;
+    if (status === 'upcoming') return `${base} bg-blue-50 text-blue-600 border-blue-200 hover:border-blue-300`;
+    if (status === 'archived') return `${base} bg-slate-100 text-slate-600 border-slate-200 hover:border-slate-300`;
+    return `${base} bg-orange-50 text-orange-600 border-orange-200 hover:border-orange-300`;
   };
 
   if (isLoading) return <Loader />;
@@ -166,13 +171,6 @@ const SessionManagement = () => {
 
         {/* Top actions layout */}
         <div className="flex items-center justify-between gap-4 flex-wrap bg-white border border-slate-100 p-4 rounded-2xl shadow-3xs">
-          <button
-            onClick={openAdd}
-            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all duration-200 shadow-sm active:scale-95 cursor-pointer"
-          >
-            <MdAdd size={16} /> Add New Session
-          </button>
-
           {sessions.length > 0 && (
             <div className="relative w-72 sm:w-80">
               <MdSearch size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -185,6 +183,14 @@ const SessionManagement = () => {
               />
             </div>
           )}
+
+          <button
+            onClick={openAdd}
+            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all duration-200 shadow-sm active:scale-95 cursor-pointer"
+          >
+            <MdAdd size={16} /> Add New Session
+          </button>
+
         </div>
 
         {/* Status Tabs with styled count badges */}
@@ -197,16 +203,14 @@ const SessionManagement = () => {
               <button
                 key={tab.id}
                 onClick={() => setStatusFilter(tab.id)}
-                className={`px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 flex items-center gap-2 ${
-                  statusFilter === tab.id
-                    ? "bg-white text-orange-500 shadow-3xs font-extrabold"
-                    : "text-slate-500 hover:text-slate-800 hover:bg-slate-200/40"
-                }`}
+                className={`px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 flex items-center gap-2 ${statusFilter === tab.id
+                  ? "bg-white text-orange-500 shadow-3xs font-extrabold"
+                  : "text-slate-500 hover:text-slate-800 hover:bg-slate-200/40"
+                  }`}
               >
                 <span>{tab.label}</span>
-                <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold ${
-                  statusFilter === tab.id ? "bg-orange-100 text-orange-600" : "bg-slate-200 text-slate-500"
-                }`}>
+                <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold ${statusFilter === tab.id ? "bg-orange-100 text-orange-600" : "bg-slate-200 text-slate-500"
+                  }`}>
                   {count}
                 </span>
               </button>
@@ -226,68 +230,90 @@ const SessionManagement = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {filteredSessions.map((session) => {
               const currentStatus = getComputedStatus(session);
+              const isActive = currentStatus === 'active';
               return (
                 <div
                   key={session._id}
-                  className="bg-white border border-slate-100 rounded-3xl flex items-center justify-between p-5 shadow-3xs hover:shadow-2xs hover:border-orange-100 transition-all duration-300"
+                  className={`bg-white border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between relative group ${isActive ? "border-orange-300 ring-1 ring-orange-400/20" : "border-slate-200 hover:border-orange-200"
+                    }`}
                 >
-                  <div className="flex items-center gap-4 min-w-0">
-                    <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center flex-shrink-0 border border-orange-100">
-                      <MdCalendarMonth size={24} className="text-orange-500" />
+                  <div className="space-y-4">
+                    {/* Top Row: Icon Badge & Status Dropdown */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold shadow-xs ${isActive
+                        ? "bg-gradient-to-br from-orange-500 to-amber-500 text-white"
+                        : "bg-orange-50 text-orange-500 border border-orange-100"
+                        }`}>
+                        <MdCalendarMonth size={20} />
+                      </div>
+
+                      <SelectDropdown
+                        value={currentStatus}
+                        onChange={(val) => handleStatusChange(session._id, val)}
+                        options={[
+                          { value: "active", label: "Active" },
+                          { value: "upcoming", label: "Upcoming" },
+                          { value: "archived", label: "Archived" },
+                          { value: "completed", label: "Completed" }
+                        ]}
+                        className="min-w-[110px] w-auto"
+                        buttonClassName={getStatusSelectClass(currentStatus)}
+                      />
                     </div>
-                    <div className="min-w-0 pr-4">
-                      <p className="font-bold text-sm text-slate-850 truncate leading-snug">
+
+                    {/* Session Details */}
+                    <div>
+                      <h3 className="font-bold text-base text-slate-900 leading-snug line-clamp-1 group-hover:text-orange-600 transition-colors">
                         {session.name}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                        <p className="text-[10px] text-slate-450 font-bold uppercase tracking-wider">
+                      </h3>
+                      {session.description && (
+                        <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                          {session.description}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Date info card */}
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-2.5 space-y-1">
+                      <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600">
+                        <MdSchedule size={14} className="text-slate-400 shrink-0" />
+                        <span className="truncate">
                           {session.startDate && session.endDate ? (
                             `${new Date(session.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} - ${new Date(session.endDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
                           ) : (
                             `Created ${new Date(session.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
                           )}
-                        </p>
-                        {session.description && (
-                          <span className="text-[10px] text-slate-400 font-medium">• {session.description}</span>
-                        )}
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Actions desk */}
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    
-                    {/* Integrated Status Badge Selector */}
-                    <SelectDropdown
-                      value={currentStatus}
-                      onChange={(val) => handleStatusChange(session._id, val)}
-                      options={[
-                        { value: "active", label: "Active" },
-                        { value: "upcoming", label: "Upcoming" },
-                        { value: "archived", label: "Archived" },
-                        { value: "completed", label: "Completed" }
-                      ]}
-                      className="w-32"
-                      buttonClassName={getStatusSelectClass(currentStatus)}
-                    />
+                  {/* Card Footer Actions */}
+                  <div className="flex items-center justify-between pt-4 mt-4 border-t border-slate-100 text-xs">
+                    <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full ${isActive ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"
+                      }`}>
+                      {isActive ? "Active Session" : currentStatus}
+                    </span>
 
-                    <button
-                      onClick={() => openEdit(session)}
-                      className="p-2 rounded-xl text-slate-400 hover:bg-blue-50 hover:text-blue-500 border border-transparent hover:border-blue-100 transition flex items-center justify-center cursor-pointer"
-                      title="Edit Session Parameters"
-                    >
-                      <MdEdit size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(session._id)}
-                      className="p-2 rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-500 border border-transparent hover:border-red-100 transition flex items-center justify-center cursor-pointer"
-                      title="Delete Session"
-                    >
-                      <MdDelete size={16} />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => openEdit(session)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:bg-orange-50 hover:text-orange-500 transition cursor-pointer"
+                        title="Edit Session"
+                      >
+                        <MdEdit size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(session._id)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition cursor-pointer"
+                        title="Delete Session"
+                      >
+                        <MdDelete size={16} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -299,11 +325,11 @@ const SessionManagement = () => {
         {showForm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
             <div className="bg-white border border-slate-100 rounded-3xl shadow-xl max-w-lg w-full p-6 relative animate-in fade-in zoom-in duration-200">
-              
+
               <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-5">
                 {editingSession ? "Edit Session Records" : "Create New Session"}
               </h3>
-              
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-[10px] font-black text-slate-450 uppercase tracking-widest mb-1.5">

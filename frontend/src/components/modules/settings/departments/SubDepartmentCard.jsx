@@ -21,9 +21,9 @@ const ActionButtons = ({ onView, onEdit, inactive, variant }) => {
         </button>
       )}
       {onEdit && (
-        <div className={`${onView ? 'flex-1' : 'w-full'} ${inactive ? 'opacity-40 pointer-events-none' : ''} [&_button]:!w-full [&_button]:!h-full [&_button]:!py-2.5 [&_button]:!text-xs [&_button]:!font-bold [&_button]:!tracking-wider [&_button]:!uppercase [&_button]:!rounded-xl [&_button]:!transition-all [&_button]:!duration-200 [&_button]:active:scale-[0.97] [&_button]:!shadow-xs ${
+        <div className={`${onView ? 'flex-1' : 'w-full'} [&_button]:!w-full [&_button]:!h-full [&_button]:!py-2.5 [&_button]:!text-xs [&_button]:!font-bold [&_button]:!tracking-wider [&_button]:!uppercase [&_button]:!rounded-xl [&_button]:!transition-all [&_button]:!duration-200 [&_button]:active:scale-[0.97] [&_button]:!shadow-xs ${
           isFull ? '[&_button]:!bg-orange-500 [&_button]:!text-white [&_button]:hover:!bg-orange-600' : ''
-        }`}>
+        } cursor-pointer`}>
           {onEdit}
         </div>
       )}
@@ -62,13 +62,13 @@ const SubDepartmentCard = ({
             {/* Header */}
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
-                <span className="text-[10px] text-orange-500 font-extrabold uppercase tracking-wider">Sub-Department</span>
+                <span className={`text-[10px] font-extrabold uppercase tracking-wider ${inactive ? 'text-gray-400' : 'text-orange-500'}`}>Sub-Department</span>
                 <h3 className={`text-2xl lg:text-3xl font-black tracking-tight leading-none mt-1 ${inactive ? 'text-gray-400' : 'text-gray-900'}`}>
                   {title}
                 </h3>
                 {departmentName && (
-                  <p className="text-xs text-gray-500 font-medium mt-1.5 uppercase tracking-wide">
-                    Department: <span className="font-semibold text-gray-700">{departmentName}</span>
+                  <p className={`text-xs font-medium mt-1.5 uppercase tracking-wide ${inactive ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Department: <span className={`font-semibold ${inactive ? 'text-gray-400' : 'text-gray-700'}`}>{departmentName}</span>
                   </p>
                 )}
               </div>
@@ -93,22 +93,22 @@ const SubDepartmentCard = ({
             {/* Quick Stats Cards */}
             <div className="flex flex-col gap-3">
               <div className="bg-white p-4 rounded-2xl border border-gray-150 shadow-2xs flex items-center gap-4">
-                <div className="w-12 h-12 bg-orange-50 text-orange-500 rounded-xl flex items-center justify-center">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${inactive ? 'bg-gray-100 text-gray-400' : 'bg-orange-50 text-orange-500'}`}>
                   <HiOutlineUserGroup size={24} />
                 </div>
                 <div>
-                  <p className="text-[10px] text-gray-450 font-extrabold uppercase tracking-wider">Total Admitted Students</p>
-                  <p className="text-xl font-black text-gray-800 mt-0.5">{totalStudents} Students</p>
+                  <p className="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">Total Admitted Students</p>
+                  <p className={`text-xl font-black mt-0.5 ${inactive ? 'text-gray-400' : 'text-gray-800'}`}>{totalStudents} Students</p>
                 </div>
               </div>
 
               <div className="bg-white p-4 rounded-2xl border border-gray-150 shadow-2xs flex items-center gap-4">
-                <div className="w-12 h-12 bg-orange-50 text-orange-500 rounded-xl flex items-center justify-center">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${inactive ? 'bg-gray-100 text-gray-400' : 'bg-orange-50 text-orange-500'}`}>
                   <MdOutlineMenuBook size={24} />
                 </div>
                 <div>
-                  <p className="text-[10px] text-gray-450 font-extrabold uppercase tracking-wider">Approved Courses</p>
-                  <p className="text-xl font-black text-gray-800 mt-0.5">{allowedCourses?.length || 0} Courses</p>
+                  <p className="text-[10px] text-gray-400 font-extrabold uppercase tracking-wider">Approved Courses</p>
+                  <p className={`text-xl font-black mt-0.5 ${inactive ? 'text-gray-400' : 'text-gray-800'}`}>{allowedCourses?.length || 0} Courses</p>
                 </div>
               </div>
             </div>
@@ -126,7 +126,7 @@ const SubDepartmentCard = ({
           {/* Section 1: Student Progress / Levels */}
           <div className="flex flex-col gap-3">
             <div className="flex justify-between items-center">
-              <h4 className="text-xs text-gray-450 font-black uppercase tracking-wider">
+              <h4 className="text-xs text-gray-400 font-black uppercase tracking-wider">
                 {showSubLevels ? "Students Sub-Level Wise Distribution" : "Students Level Wise Distribution"}
               </h4>
               <span className="text-[10px] bg-slate-100 text-slate-650 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
@@ -142,16 +142,16 @@ const SubDepartmentCard = ({
                   return (
                     <div key={lc.levelId || lc.subLevelId} className="bg-slate-50/50 hover:bg-slate-50 p-4 rounded-2xl border border-slate-100 transition duration-150 flex flex-col gap-2.5">
                       <div className="flex justify-between items-center">
-                        <span className="font-extrabold text-gray-850 text-sm">{lc.levelName || lc.subLevelName}</span>
+                        <span className={`font-extrabold text-sm ${inactive ? 'text-gray-400' : 'text-gray-850'}`}>{lc.levelName || lc.subLevelName}</span>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-black text-orange-600 text-sm">{count}</span>
-                          <span className="text-[10px] text-gray-450 font-semibold">students ({percent}%)</span>
+                          <span className={`font-black text-sm ${inactive ? 'text-gray-400' : 'text-orange-600'}`}>{count}</span>
+                          <span className="text-[10px] text-gray-400 font-semibold">students ({percent}%)</span>
                         </div>
                       </div>
                       {/* Progress Bar */}
                       <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
                         <div 
-                          className="bg-gradient-to-r from-orange-500 to-amber-500 h-full rounded-full transition-all duration-500" 
+                          className={`h-full rounded-full transition-all duration-500 ${inactive ? 'bg-gray-400' : 'bg-gradient-to-r from-orange-500 to-amber-500'}`} 
                           style={{ width: `${percent}%` }}
                         />
                       </div>
@@ -160,7 +160,7 @@ const SubDepartmentCard = ({
                 })}
               </div>
             ) : (
-              <div className="border border-dashed border-gray-250 rounded-2xl py-8 text-center text-gray-450 italic text-sm">
+              <div className="border border-dashed border-gray-250 rounded-2xl py-8 text-center text-gray-400 italic text-sm">
                 No active levels or student distribution data available.
               </div>
             )}
@@ -168,7 +168,7 @@ const SubDepartmentCard = ({
 
           {/* Section 2: Faculties List */}
           <div className="flex flex-col gap-3">
-            <h4 className="text-xs text-gray-450 font-black uppercase tracking-wider">
+            <h4 className="text-xs text-gray-400 font-black uppercase tracking-wider">
               Assigned Faculties ({faculties.length})
             </h4>
             
@@ -187,19 +187,23 @@ const SubDepartmentCard = ({
                         className="w-10 h-10 rounded-full object-cover ring-2 ring-white hover:scale-105 transition duration-150 flex-shrink-0"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 text-white flex items-center justify-center text-sm font-black ring-2 ring-white hover:scale-105 transition duration-150 flex-shrink-0">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-black ring-2 ring-white hover:scale-105 transition duration-150 flex-shrink-0 ${
+                        inactive ? 'bg-gray-300 text-white' : 'bg-gradient-to-br from-orange-400 to-amber-500 text-white'
+                      }`}>
                         {fac.name?.charAt(0).toUpperCase()}
                       </div>
                     )}
                     <div className="min-w-0">
-                      <p className="font-extrabold text-gray-800 text-xs truncate leading-snug group-hover:text-orange-500 transition-colors">{fac.name}</p>
-                      <p className="text-[10px] text-gray-450 font-medium truncate mt-0.5 capitalize">{fac.position || 'Faculty member'}</p>
+                      <p className={`font-extrabold text-xs truncate leading-snug transition-colors ${
+                        inactive ? 'text-gray-400' : 'text-gray-800 group-hover:text-orange-500'
+                      }`}>{fac.name}</p>
+                      <p className="text-[10px] text-gray-400 font-medium truncate mt-0.5 capitalize">{fac.position || 'Faculty member'}</p>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="border border-dashed border-gray-250 rounded-2xl py-6 text-center text-gray-450 italic text-xs">
+              <div className="border border-dashed border-gray-250 rounded-2xl py-6 text-center text-gray-400 italic text-xs">
                 No faculty members assigned to this sub-department yet.
               </div>
             )}
@@ -222,11 +226,11 @@ const SubDepartmentCard = ({
         {/* Header: Title, Department Subtitle, Status */}
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <h3 className={`text-base font-extrabold tracking-tight leading-snug truncate ${inactive ? 'text-gray-500' : 'text-gray-900'}`}>
+            <h3 className={`text-base font-extrabold tracking-tight leading-snug truncate ${inactive ? 'text-gray-400' : 'text-gray-900'}`}>
               {title}
             </h3>
             {departmentName && (
-              <p className="text-[11px] text-gray-500 font-semibold mt-0.5 uppercase tracking-wider">
+              <p className={`text-[11px] font-semibold mt-0.5 uppercase tracking-wider ${inactive ? 'text-gray-400' : 'text-gray-500'}`}>
                 Dept: {departmentName}
               </p>
             )}
@@ -258,7 +262,7 @@ const SubDepartmentCard = ({
           }`}>
             <HiOutlineUserGroup size={13} className={inactive ? 'text-gray-400' : 'text-orange-500'} />
             <span className="text-gray-400 font-bold text-[10px] uppercase tracking-wider">Students:</span>
-            <span className="font-extrabold">{totalStudents}</span>
+            <span className={`font-extrabold ${inactive ? 'text-gray-400' : 'text-gray-800'}`}>{totalStudents}</span>
           </div>
 
           <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] font-bold ${
@@ -268,7 +272,7 @@ const SubDepartmentCard = ({
           }`}>
             <MdOutlineMenuBook size={13} className={inactive ? 'text-gray-400' : 'text-orange-500'} />
             <span className="text-gray-400 font-bold text-[10px] uppercase tracking-wider">Courses:</span>
-            <span className="font-extrabold">{allowedCourses?.length || 0}</span>
+            <span className={`font-extrabold ${inactive ? 'text-gray-400' : 'text-gray-800'}`}>{allowedCourses?.length || 0}</span>
           </div>
         </div>
 
@@ -292,7 +296,9 @@ const SubDepartmentCard = ({
                         className="w-7 h-7 rounded-full object-cover ring-2 ring-white hover:scale-105 transition duration-150"
                       />
                     ) : (
-                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 text-white flex items-center justify-center text-[10px] font-black ring-2 ring-white hover:scale-105 transition duration-150">
+                      <div className={`w-7 h-7 rounded-full text-white flex items-center justify-center text-[10px] font-black ring-2 ring-white hover:scale-105 transition duration-150 ${
+                        inactive ? 'bg-gray-300' : 'bg-gradient-to-br from-orange-400 to-amber-500'
+                      }`}>
                         {fac.name?.charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -331,8 +337,8 @@ const SubDepartmentCard = ({
                   <tbody className="divide-y divide-slate-100 text-gray-700">
                     {subLevelCounts.map((slc) => (
                       <tr key={slc.subLevelId} className="hover:bg-white/80 transition duration-150">
-                        <td className="px-3 py-1.5 font-medium">{slc.subLevelName}</td>
-                        <td className="px-3 py-1.5 text-right font-bold text-orange-600">{slc.studentCount}</td>
+                        <td className={`px-3 py-1.5 font-medium ${inactive ? 'text-gray-400' : 'text-gray-700'}`}>{slc.subLevelName}</td>
+                        <td className={`px-3 py-1.5 text-right font-bold ${inactive ? 'text-gray-400' : 'text-orange-600'}`}>{slc.studentCount}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -354,8 +360,8 @@ const SubDepartmentCard = ({
                   <tbody className="divide-y divide-slate-100 text-gray-700">
                     {levelCounts.map((lc) => (
                       <tr key={lc.levelId} className="hover:bg-white/80 transition duration-150">
-                        <td className="px-3 py-1.5 font-medium">{lc.levelName}</td>
-                        <td className="px-3 py-1.5 text-right font-bold text-orange-600">{lc.studentCount}</td>
+                        <td className={`px-3 py-1.5 font-medium ${inactive ? 'text-gray-400' : 'text-gray-700'}`}>{lc.levelName}</td>
+                        <td className={`px-3 py-1.5 text-right font-bold ${inactive ? 'text-gray-400' : 'text-orange-600'}`}>{lc.studentCount}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -374,3 +380,4 @@ const SubDepartmentCard = ({
 };
 
 export default SubDepartmentCard;
+

@@ -16,7 +16,7 @@ const ActionButtons = ({ onView, onEdit, inactive }) => (
       </button>
     )}
     {onEdit && (
-      <div className={`${onView ? 'flex-1' : 'w-full'} ${inactive ? 'opacity-40 pointer-events-none' : ''} [&_button]:!w-full [&_button]:!h-full [&_button]:!py-2.5 [&_button]:!text-xs [&_button]:!font-bold [&_button]:!tracking-wider [&_button]:!uppercase [&_button]:!rounded-xl [&_button]:!transition-all [&_button]:!duration-200 [&_button]:active:scale-[0.97] [&_button]:!shadow-xs [&_button]:!bg-orange-500 [&_button]:!text-white [&_button]:hover:!bg-orange-600`}>
+      <div className={`${onView ? 'flex-1' : 'w-full'} [&_button]:!w-full [&_button]:!h-full [&_button]:!py-2.5 [&_button]:!text-xs [&_button]:!font-bold [&_button]:!tracking-wider [&_button]:!uppercase [&_button]:!rounded-xl [&_button]:!transition-all [&_button]:!duration-200 [&_button]:active:scale-[0.97] [&_button]:!shadow-xs [&_button]:!bg-orange-500 [&_button]:!text-white [&_button]:hover:!bg-orange-600 cursor-pointer`}>
         {onEdit}
       </div>
     )}
@@ -55,7 +55,7 @@ const CommonCard = ({
               <Icon size={24} className={inactive ? 'text-gray-400' : 'text-orange-500'} />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className={`text-sm font-extrabold tracking-tight leading-tight truncate ${inactive ? 'text-gray-455' : 'text-gray-900'}`}>
+              <h3 className={`text-sm font-extrabold tracking-tight leading-tight truncate ${inactive ? 'text-gray-400' : 'text-gray-900'}`}>
                 {title}
               </h3>
               <span className={`mt-1.5 inline-flex items-center text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${
@@ -89,10 +89,10 @@ const CommonCard = ({
                 {item.label && item.value ? (
                   <>
                     <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{item.label}:</span>
-                    <span className={`font-extrabold ${inactive ? 'text-gray-455' : 'text-gray-800'}`}>{item.value}</span>
+                    <span className={`font-extrabold ${inactive ? 'text-gray-400' : 'text-gray-800'}`}>{item.value}</span>
                   </>
                 ) : (
-                  <span className={`font-extrabold ${inactive ? 'text-gray-455' : 'text-gray-800'}`}>
+                  <span className={`font-extrabold ${inactive ? 'text-gray-400' : 'text-gray-800'}`}>
                     {item.value || item.label}
                   </span>
                 )}
@@ -175,7 +175,7 @@ const CommonCard = ({
               }`}>
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${
                   inactive 
-                    ? 'bg-gray-100 border-gray-200 text-gray-450' 
+                    ? 'bg-gray-100 border-gray-200 text-gray-400' 
                     : 'bg-gradient-to-tr from-orange-50 to-amber-50 border-orange-100/40 text-orange-500'
                 }`}>
                   {item.icon}
@@ -185,7 +185,7 @@ const CommonCard = ({
                     {item.label}
                   </span>
                   <span className={`text-xs font-black truncate block ${
-                    inactive ? 'text-gray-455' : 'text-gray-800'
+                    inactive ? 'text-gray-400' : 'text-gray-800'
                   }`}>
                     {item.value}
                   </span>

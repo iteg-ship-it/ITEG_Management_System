@@ -155,6 +155,8 @@ const StudentDetailTable = () => {
       <Header
         title={deptName ? `${deptName} — Students` : "Student Progress"}
         badge={`${filteredData.length} students`}
+        showBack={Boolean(subDepartmentId)}
+        backPath="/student-detail-table"
         breadcrumbs={[
           { label: "Academics" },
           { label: "Student Progress", path: "/student-detail-table" },

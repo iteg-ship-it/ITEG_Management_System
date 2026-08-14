@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useGetInterviewHistoryQuery } from "../../../redux/api/authApi";
 import Loader from "../../shared/loader/Loader";
 import { CheckCircle, XCircle } from "lucide-react";
-import { HiArrowNarrowLeft } from "react-icons/hi";
+import Header from "../../shared/sidebar/Header";
 
 const InterviewRoundsHistory = () => {
   const { studentId, interviewId } = useParams();
@@ -50,27 +50,12 @@ const InterviewRoundsHistory = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Professional Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate(`/interview-history/${studentId}`)}
-                className="group flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 text-gray-700 hover:text-gray-900"
-              >
-                <HiArrowNarrowLeft className="text-lg group-hover:-translate-x-1 transition-transform" />
-                <span className="text-sm font-medium">Back</span>
-              </button>
-              <div className="h-8 w-px bg-gray-300"></div>
-              <div>
-                <h1 className="text-2xl font-bold text-black">Interview Rounds History</h1>
-                <p className="text-sm text-black">Detailed rounds breakdown for {selectedInterview.company?.companyName}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Header
+        title="Interview Rounds History"
+        subtitle={`Detailed rounds breakdown for ${selectedInterview.company?.companyName || 'Company'}`}
+        showBack={true}
+        onBack={() => navigate(`/interview-history/${studentId}`)}
+      />
 
       <div className="px-6 py-6">
         {/* Student & Company Info Card */}

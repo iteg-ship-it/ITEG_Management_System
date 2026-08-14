@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { MdLayers } from "react-icons/md";
 import { HiOutlineUserGroup } from "react-icons/hi";
-import PageNavbar from "../../../shared/navbar/PageNavbar";
 import Header from "../../../shared/sidebar/Header";
 import CommonCard from "../CommonCard";
 import Loader from "../../../shared/loader/Loader";
@@ -22,15 +21,8 @@ const LevelsManagement = () => {
 
   return (
     <>
-      <Header title="Levels Management" />
+      <Header title="Levels Management" subtitle="View all levels across all subdepartments" />
       <div className="px-5">
-        <div className="py-4">
-          <PageNavbar
-            title="All Levels"
-            subtitle="View all levels across all subdepartments"
-            showBackButton={false}
-          />
-        </div>
 
         {levels.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-gray-400">

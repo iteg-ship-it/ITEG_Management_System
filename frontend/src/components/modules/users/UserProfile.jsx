@@ -129,13 +129,13 @@ const UserProfile = () => {
 
   return (
     <div className="space-y-5">
-      <Header 
-        title="Professional Profile" 
-        subtitle="Employee information & organizational details" 
+      <Header
+        title="Professional Profile"
+        subtitle="Employee information & organizational details"
         showBack={true}
       />
 
-      <div className="py-1">
+      <div className="py-1 px-6">
         {/* Hero Section with User Info */}
         <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mb-6">
           <div className="relative">
@@ -178,7 +178,7 @@ const UserProfile = () => {
                 <div className="text-center sm:text-left text-white flex-1 min-w-0">
                   <h2 className="text-xl sm:text-2xl font-black tracking-tight drop-shadow-sm">{userData?.name}</h2>
                   <p className="text-xs sm:text-sm text-gray-200 font-semibold mt-1 drop-shadow-xs">{userData?.position || "—"} · {userData?.department || "—"}</p>
-                  
+
                   {/* Stat pills inside Hero */}
                   <div className="flex items-center justify-center sm:justify-start gap-2.5 mt-3.5 flex-wrap">
                     <span className={`inline-flex items-center text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 text-emerald-400 backdrop-blur-xs`}>
@@ -295,8 +295,8 @@ const UserProfile = () => {
               <div className="flex flex-wrap gap-2">
                 {assignedCourses.length > 0 ? (
                   assignedCourses.map((course, idx) => (
-                    <span 
-                      key={idx} 
+                    <span
+                      key={idx}
                       className="bg-orange-50 text-orange-500 border border-orange-100 px-3 py-1.5 rounded-xl text-xs font-bold transition hover:scale-105"
                     >
                       {course}
@@ -318,15 +318,15 @@ const UserProfile = () => {
             >
               <div className="space-y-3.5">
                 <ProfessionalDetailRow icon={<FiSettings />} label="Aadhar Verification" value={userData?.adharCard ? `XXXX-XXXX-${userData.adharCard.slice(-4)}` : "N/A"} />
-                <ProfessionalDetailRow 
-                  icon={<FiCalendar />} 
-                  label="Account Created" 
-                  value={userData?.createdAt ? new Date(userData.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) : "N/A"} 
+                <ProfessionalDetailRow
+                  icon={<FiCalendar />}
+                  label="Account Created"
+                  value={userData?.createdAt ? new Date(userData.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) : "N/A"}
                 />
-                <ProfessionalDetailRow 
-                  icon={<FiClock />} 
-                  label="Last Updated" 
-                  value={userData?.updatedAt ? new Date(userData.updatedAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) : "N/A"} 
+                <ProfessionalDetailRow
+                  icon={<FiClock />}
+                  label="Last Updated"
+                  value={userData?.updatedAt ? new Date(userData.updatedAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) : "N/A"}
                 />
               </div>
             </DetailSection>
@@ -338,7 +338,7 @@ const UserProfile = () => {
             >
               <div className="space-y-4 relative pl-1">
                 <div className="absolute left-[17px] top-3.5 bottom-3.5 w-0.5 bg-slate-100" />
-                
+
                 {mockActivities.map((act, idx) => (
                   <div key={idx} className="flex items-start gap-3 relative z-10">
                     <div className="w-8.5 h-8.5 rounded-full bg-orange-50 text-orange-500 border border-orange-100 flex items-center justify-center flex-shrink-0">
@@ -397,11 +397,10 @@ const colorThemes = {
 const ProfessionalMetricCard = ({ icon, title, value, color = "orange", description, onClick }) => {
   const theme = colorThemes[color] || colorThemes.orange;
   return (
-    <div 
+    <div
       onClick={onClick}
-      className={`bg-white rounded-3xl border border-slate-100 p-5 shadow-sm transition duration-200 flex items-center justify-between group ${
-        onClick ? 'cursor-pointer hover:border-orange-200' : ''
-      }`}
+      className={`bg-white rounded-3xl border border-slate-100 p-5 shadow-sm transition duration-200 flex items-center justify-between group ${onClick ? 'cursor-pointer hover:border-orange-200' : ''
+        }`}
     >
       <div className="min-w-0">
         <span className="block text-[10px] text-gray-400 font-bold uppercase tracking-wider">{title}</span>
