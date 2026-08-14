@@ -271,6 +271,82 @@ mongoose.connection.once('open', async () => {
       console.log(`✔️ Seeded Placement record for: ${student.firstName} ${student.lastName} (${sData.readinessStatus})`);
     }
 
+    // 4. Create Placement Drives for testing Placement Drives & Resume Sharing flow
+    const PlacementDrive = require('./src/models/placement/PlacementDrive');
+    const allStudents = await Student.find({ subDepartmentId: subDept._id }).limit(6);
+    const studentIds = allStudents.map(s => s._id);
+
+    const drivesData = [
+      {
+        companyRef: companyMap['TCS (Tata Consultancy Services)']._id,
+        companyName: 'TCS (Tata Consultancy Services)',
+        jobRole: 'Software Engineer',
+        technology: 'Full Stack Web Development',
+        packageCTC: '7.2 LPA',
+        jobLocation: 'Pune / Mumbai',
+        workMode: 'WFO',
+        driveDate: new Date('2026-08-30'),
+        applicationDeadline: new Date('2026-08-25'),
+        jobDescription: 'Seeking full-stack developers proficient in React.js, Node.js, and MongoDB.',
+        vacancies: 15,
+        requiredSkills: ['React', 'Node.js', 'Express', 'MongoDB'],
+        shortlistedStudents: studentIds.slice(0, 4),
+        resumeSharedStudents: [
+          { studentId: studentIds[0], resumeURL: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', sharedAt: new Date(), sharedBy: 'Placement Officer', status: 'Shared' },
+          { studentId: studentIds[1], resumeURL: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', sharedAt: new Date(), sharedBy: 'Placement Officer', status: 'Company Reviewed' },
+          { studentId: studentIds[2], resumeURL: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', sharedAt: new Date(), sharedBy: 'Placement Officer', status: 'Shortlisted for Interview' }
+        ],
+        subDepartmentId: subDept._id
+      },
+      {
+        companyRef: companyMap['Infosys']._id,
+        companyName: 'Infosys',
+        jobRole: 'Systems Engineer Specialist',
+        technology: 'Java Spring Boot',
+        packageCTC: '6.5 LPA',
+        jobLocation: 'Bengaluru',
+        workMode: 'Hybrid',
+        driveDate: new Date('2026-09-05'),
+        applicationDeadline: new Date('2026-09-01'),
+        jobDescription: 'Hiring enterprise Java backend developers.',
+        vacancies: 10,
+        requiredSkills: ['Java', 'Spring Boot', 'SQL', 'REST API'],
+        shortlistedStudents: studentIds.slice(2, 6),
+        resumeSharedStudents: [
+          { studentId: studentIds[2], resumeURL: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', sharedAt: new Date(), sharedBy: 'Placement Officer', status: 'Shared' }
+        ],
+        subDepartmentId: subDept._id
+      },
+      {
+        companyRef: companyMap['Microsoft']._id,
+        companyName: 'Microsoft',
+        jobRole: 'Software Development Engineer - 1',
+        technology: 'Cloud & System Design',
+        packageCTC: '14.0 LPA',
+        jobLocation: 'Hyderabad',
+        workMode: 'Hybrid',
+        driveDate: new Date('2026-09-15'),
+        applicationDeadline: new Date('2026-09-10'),
+        jobDescription: 'Campus drive for high-performing software engineers.',
+        vacancies: 5,
+        requiredSkills: ['Data Structures', 'Algorithms', 'C++', 'System Design'],
+        shortlistedStudents: [studentIds[1]],
+        resumeSharedStudents: [
+          { studentId: studentIds[1], resumeURL: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', sharedAt: new Date(), sharedBy: 'Placement Officer', status: 'Shortlisted for Interview' }
+        ],
+        subDepartmentId: subDept._id
+      }
+    ];
+
+    for (const dData of drivesData) {
+      await PlacementDrive.findOneAndUpdate(
+        { companyName: dData.companyName, jobRole: dData.jobRole },
+        { $set: dData },
+        { upsert: true, new: true }
+      );
+    }
+    console.log(`✅ Seeded ${drivesData.length} Placement Drives with candidates and resume sharing records.`);
+
     console.log('\n🎉 Placement dummy data seeding completed successfully!');
   } catch (err) {
     console.error('❌ Seeding Error:', err.message);

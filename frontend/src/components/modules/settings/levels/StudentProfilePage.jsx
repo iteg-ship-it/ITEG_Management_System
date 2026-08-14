@@ -16,7 +16,8 @@ import CryptoJS from "crypto-js";
 import { FiCamera, FiCheck } from "react-icons/fi";
 import Header from "../../../shared/sidebar/Header";
 import OrangeButton from "../../../shared/sidebar/OrangeButton";
-import Loader from "../../../shared/loader/Loader";
+import StudentPlacementTimeline from "../../placements/StudentPlacementTimeline";
+import OfferJoiningModal from "../../placements/OfferJoiningModal";
 import {
     useGetNewStudentTasksQuery,
     useGetNewStudentByIdQuery,
@@ -191,9 +192,8 @@ const ProfileSectionModal = ({ isOpen, onClose, title, subtitle, countLabel, chi
 const DocumentRow = ({ doc }) => (
     <div className="flex items-start justify-between gap-4 rounded-xl border border-gray-100 bg-white p-3.5 shadow-sm hover:border-gray-200 transition mb-2">
         <div className="flex min-w-0 items-start gap-3">
-            <div className={`mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${
-                doc.fileType === "pdf" ? "bg-red-50 text-red-500" : "bg-blue-50 text-blue-600"
-            }`}>
+            <div className={`mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${doc.fileType === "pdf" ? "bg-red-50 text-red-500" : "bg-blue-50 text-blue-600"
+                }`}>
                 <MdBadge size={18} />
             </div>
             <div className="min-w-0">
@@ -351,11 +351,10 @@ const ReadyStudentModal = ({ name, currentStatus, onConfirm, onCancel, loading }
                 <div className="p-6 space-y-2">
                     {statuses.map(s => (
                         <button key={s} onClick={() => setSelected(s)}
-                            className={`w-full text-left px-4 py-3 rounded-2xl text-xs font-semibold border transition ${
-                                selected === s
+                            className={`w-full text-left px-4 py-3 rounded-2xl text-xs font-semibold border transition ${selected === s
                                     ? "bg-orange-50 border-orange-300 text-orange-700 shadow-sm"
                                     : "border-gray-200 text-gray-600 hover:bg-gray-50"
-                            }`}>
+                                }`}>
                             {s}
                         </button>
                     ))}
@@ -376,17 +375,17 @@ const ReadyStudentModal = ({ name, currentStatus, onConfirm, onCancel, loading }
 const EditProfileModal = ({ raw, onConfirm, onCancel, loading }) => {
     const fileInputRef = useRef(null);
     const [form, setForm] = useState({
-        firstName:     raw.firstName     || "",
-        lastName:      raw.lastName      || "",
-        email:         raw.email         || "",
+        firstName: raw.firstName || "",
+        lastName: raw.lastName || "",
+        email: raw.email || "",
         studentMobile: raw.studentMobile || "",
-        parentMobile:  raw.parentMobile  || "",
-        fatherName:    raw.fatherName    || "",
-        village:       raw.village       || "",
-        address:       raw.address       || "",
-        course:        raw.course        || "",
-        gender:        raw.gender        || "",
-        image:         raw.image         || "",
+        parentMobile: raw.parentMobile || "",
+        fatherName: raw.fatherName || "",
+        village: raw.village || "",
+        address: raw.address || "",
+        course: raw.course || "",
+        gender: raw.gender || "",
+        image: raw.image || "",
     });
     const ic = "w-full !h-10 !border !border-gray-200 !rounded-xl !px-3 !py-2 text-xs focus:outline-none focus:border-orange-400 bg-white";
     const lc = "block text-xs font-semibold text-gray-600 mb-1";
@@ -410,7 +409,7 @@ const EditProfileModal = ({ raw, onConfirm, onCancel, loading }) => {
                     <div className="-mx-6 -mt-6 mb-6 p-6 flex flex-col items-center border-b border-gray-100 bg-white">
                         <div className="relative group flex flex-col items-center">
                             {/* Avatar Container */}
-                            <div 
+                            <div
                                 onClick={triggerImageUpload}
                                 className="relative cursor-pointer group/avatar rounded-full p-1 transition-all duration-300 hover:scale-[1.02]"
                                 title="Click to change profile picture"
@@ -485,7 +484,7 @@ const EditProfileModal = ({ raw, onConfirm, onCancel, loading }) => {
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
-                        {[{k:"firstName",l:"First Name"},{k:"lastName",l:"Last Name"},{k:"fatherName",l:"Father Name"},{k:"email",l:"Email"},{k:"studentMobile",l:"Student Mobile"},{k:"parentMobile",l:"Parent Mobile"},{k:"village",l:"Village"},{k:"course",l:"Course"}].map(({k,l}) => (
+                        {[{ k: "firstName", l: "First Name" }, { k: "lastName", l: "Last Name" }, { k: "fatherName", l: "Father Name" }, { k: "email", l: "Email" }, { k: "studentMobile", l: "Student Mobile" }, { k: "parentMobile", l: "Parent Mobile" }, { k: "village", l: "Village" }, { k: "course", l: "Course" }].map(({ k, l }) => (
                             <div key={k}>
                                 <label className={lc}>{l}</label>
                                 <input className={ic} value={form[k]} onChange={set(k)} placeholder={l} />
@@ -552,9 +551,9 @@ const LevelTasksList = ({ studentId, subLevelId }) => {
                                 </span>
                             </div>
                             <div className="w-full bg-slate-150 rounded-full h-1 mt-2">
-                                <div 
-                                    className="h-1 rounded-full bg-emerald-500" 
-                                    style={{ width: `${pct}%` }} 
+                                <div
+                                    className="h-1 rounded-full bg-emerald-500"
+                                    style={{ width: `${pct}%` }}
                                 />
                             </div>
                         </div>
@@ -569,27 +568,25 @@ const LevelTasksList = ({ studentId, subLevelId }) => {
 const LevelHistoryItem = ({ item, student, idx }) => {
     const [expanded, setExpanded] = useState(false);
     const isCurrent = item.status === "in_progress";
-    const pct = item.totalTasks > 0 
+    const pct = item.totalTasks > 0
         ? Math.round((item.completedTasksCount / item.totalTasks) * 100)
         : 0;
 
     return (
         <div className="flex items-start gap-4 relative">
             {/* dot indicator */}
-            <div className={`relative z-10 w-4 h-4 rounded-full border-2 mt-1.5 flex-shrink-0 flex items-center justify-center ${
-                isCurrent 
-                    ? "bg-orange-500 border-orange-500 shadow-md ring-4 ring-orange-500/10" 
+            <div className={`relative z-10 w-4 h-4 rounded-full border-2 mt-1.5 flex-shrink-0 flex items-center justify-center ${isCurrent
+                    ? "bg-orange-500 border-orange-500 shadow-md ring-4 ring-orange-500/10"
                     : "bg-white border-slate-350"
-            }`}>
+                }`}>
                 {!isCurrent && <div className="w-1.5 h-1.5 rounded-full bg-slate-350" />}
             </div>
 
             {/* card content */}
-            <div className={`flex-1 rounded-2xl border p-4 shadow-sm transition-all duration-300 ${
-                isCurrent 
-                    ? "border-orange-150 bg-orange-50/20" 
+            <div className={`flex-1 rounded-2xl border p-4 shadow-sm transition-all duration-300 ${isCurrent
+                    ? "border-orange-150 bg-orange-50/20"
                     : "border-slate-100 bg-white hover:border-slate-200"
-            }`}>
+                }`}>
                 <div className="flex items-center justify-between">
                     <div>
                         <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wide">
@@ -599,11 +596,10 @@ const LevelHistoryItem = ({ item, student, idx }) => {
                             {item.subLevelId?.name || "Sub Level"}
                         </p>
                     </div>
-                    <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border shadow-sm ${
-                        isCurrent 
-                            ? "bg-orange-50 text-orange-600 border-orange-100" 
+                    <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border shadow-sm ${isCurrent
+                            ? "bg-orange-50 text-orange-600 border-orange-100"
                             : "bg-emerald-50 text-emerald-600 border-emerald-100"
-                    }`}>
+                        }`}>
                         {isCurrent ? "CURRENT" : "COMPLETED"}
                     </span>
                 </div>
@@ -616,9 +612,9 @@ const LevelHistoryItem = ({ item, student, idx }) => {
                             <span className={isCurrent ? "text-orange-500" : "text-emerald-500"}>{pct}%</span>
                         </div>
                         <div className="w-full bg-slate-100 rounded-full h-1.5">
-                            <div 
-                                className={`h-1.5 rounded-full ${isCurrent ? "bg-orange-500" : "bg-emerald-500"}`} 
-                                style={{ width: `${pct}%` }} 
+                            <div
+                                className={`h-1.5 rounded-full ${isCurrent ? "bg-orange-500" : "bg-emerald-500"}`}
+                                style={{ width: `${pct}%` }}
                             />
                         </div>
                     </div>
@@ -712,12 +708,12 @@ const LevelHistoryDrawer = ({ isOpen, onClose, levelHistory = [], student }) => 
 // Mark Dropped / Dummy Modal
 const MarkDroppedModal = ({ name, onConfirm, onCancel, loading, variant = "dropped" }) => {
     const isDummy = variant === "dummy";
-    const [reason,   setReason]   = useState("");
-    const [remark,   setRemark]   = useState("");
+    const [reason, setReason] = useState("");
+    const [remark, setRemark] = useState("");
     const [fileData, setFileData] = useState(null);
     const [fileType, setFileType] = useState("");
     const [fileName, setFileName] = useState("");
-    const [fileErr,  setFileErr]  = useState("");
+    const [fileErr, setFileErr] = useState("");
 
     const handleFile = (e) => {
         const file = e.target.files[0];
@@ -737,7 +733,7 @@ const MarkDroppedModal = ({ name, onConfirm, onCancel, loading, variant = "dropp
     const handleSubmit = () => {
         if (isDummy && !reason.trim()) { toast.error("Reason is required"); return; }
         if (!isDummy && !remark.trim()) { toast.error("Reason is required"); return; }
-        if (!fileData)       { toast.error("Application document is required"); return; }
+        if (!fileData) { toast.error("Application document is required"); return; }
         onConfirm({ reason, remark, fileData, fileType, fileName });
     };
 
@@ -785,9 +781,8 @@ const MarkDroppedModal = ({ name, onConfirm, onCancel, loading, variant = "dropp
                             Application Document <span className="text-red-400">*</span>
                             <span className="text-gray-400 font-normal ml-1">(image/PDF max 5MB)</span>
                         </label>
-                        <label className={`flex items-center gap-3 border-2 border-dashed rounded-xl p-3 cursor-pointer transition ${
-                            fileData ? "border-green-300 bg-green-50" : "border-gray-200 hover:border-gray-300 bg-gray-50"
-                        }`}>
+                        <label className={`flex items-center gap-3 border-2 border-dashed rounded-xl p-3 cursor-pointer transition ${fileData ? "border-green-300 bg-green-50" : "border-gray-200 hover:border-gray-300 bg-gray-50"
+                            }`}>
                             <MdFileUpload size={18} className={fileData ? "text-green-500" : "text-gray-400"} />
                             <div className="flex-1 min-w-0">
                                 {fileData ? (
@@ -937,12 +932,11 @@ const PlacementHistorySection = ({ raw, readinessStatus }) => {
                                     <span className="text-xs font-bold text-slate-500 bg-white border border-slate-200 px-2.5 py-1 rounded-lg">
                                         {rec.scheduleDate ? formatShortDate(rec.scheduleDate) : "Scheduled"}
                                     </span>
-                                    <span className={`text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider ${
-                                        rec.status === "Selected" || rec.status === "Placed" ? "bg-emerald-100 text-emerald-800 border border-emerald-200" :
-                                        rec.status === "Not Selected" || rec.status === "RejectedByCompany" ? "bg-rose-100 text-rose-800 border border-rose-200" :
-                                        rec.status === "Offer Received" ? "bg-indigo-100 text-indigo-800 border border-indigo-200" :
-                                        "bg-amber-100 text-amber-800 border border-amber-200"
-                                    }`}>
+                                    <span className={`text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider ${rec.status === "Selected" || rec.status === "Placed" ? "bg-emerald-100 text-emerald-800 border border-emerald-200" :
+                                            rec.status === "Not Selected" || rec.status === "RejectedByCompany" ? "bg-rose-100 text-rose-800 border border-rose-200" :
+                                                rec.status === "Offer Received" ? "bg-indigo-100 text-indigo-800 border border-indigo-200" :
+                                                    "bg-amber-100 text-amber-800 border border-amber-200"
+                                        }`}>
                                         {rec.status}
                                     </span>
                                 </div>
@@ -969,11 +963,10 @@ const PlacementHistorySection = ({ raw, readinessStatus }) => {
                                             <div key={rnd._id || rIdx} className="bg-white border border-slate-200 rounded-xl p-3 space-y-1">
                                                 <div className="flex items-center justify-between text-xs">
                                                     <span className="font-bold text-slate-900">{rnd.roundName}</span>
-                                                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
-                                                        rnd.result === "Cleared" || rnd.result === "Passed" || rnd.result === "Selected" ? "bg-emerald-100 text-emerald-800" :
-                                                        rnd.result === "Not Cleared" || rnd.result === "Failed" || rnd.result === "Rejected" ? "bg-rose-100 text-rose-800" :
-                                                        "bg-amber-100 text-amber-800"
-                                                    }`}>
+                                                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${rnd.result === "Cleared" || rnd.result === "Passed" || rnd.result === "Selected" ? "bg-emerald-100 text-emerald-800" :
+                                                            rnd.result === "Not Cleared" || rnd.result === "Failed" || rnd.result === "Rejected" ? "bg-rose-100 text-rose-800" :
+                                                                "bg-amber-100 text-amber-800"
+                                                        }`}>
                                                         {rnd.result || "Pending"}
                                                     </span>
                                                 </div>
@@ -1004,35 +997,35 @@ const PlacementHistorySection = ({ raw, readinessStatus }) => {
 
 // MAIN STUDENT PROFILE PAGE (Clean 100% Dynamic API Data + Reference UI Template)
 const StudentProfilePage = () => {
-    const location   = useLocation();
-    const navigate   = useNavigate();
-    const { id }     = useParams();
+    const location = useLocation();
+    const navigate = useNavigate();
+    const { id } = useParams();
     const { student, level, subdepartment } = location.state || {};
-    const studentId  = id || student?._id || student?.raw?._id;
+    const studentId = id || student?._id || student?.raw?._id;
 
-    const [moreOpen,      setMoreOpen]      = useState(false);
-    const [promoteModal,  setPromoteModal]  = useState(false);
-    const [readyModal,    setReadyModal]    = useState(false);
+    const [moreOpen, setMoreOpen] = useState(false);
+    const [promoteModal, setPromoteModal] = useState(false);
+    const [readyModal, setReadyModal] = useState(false);
     const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
-    const [editModal,     setEditModal]     = useState(false);
-    const [dropModal,     setDropModal]     = useState(false);
-    const [dummyModal,    setDummyModal]    = useState(false);
+    const [editModal, setEditModal] = useState(false);
+    const [dropModal, setDropModal] = useState(false);
+    const [dummyModal, setDummyModal] = useState(false);
     const [activityModal, setActivityModal] = useState(false);
-    const [sectionModal,  setSectionModal]  = useState(null);
-    const [ftpLoading,    setFtpLoading]    = useState(false);
-    const [readyLoading,  setReadyLoading]  = useState(false);
-    const [editLoading,   setEditLoading]   = useState(false);
-    const [dropLoading,   setDropLoading]   = useState(false);
-    const [dummyLoading,  setDummyLoading]  = useState(false);
+    const [sectionModal, setSectionModal] = useState(null);
+    const [ftpLoading, setFtpLoading] = useState(false);
+    const [readyLoading, setReadyLoading] = useState(false);
+    const [editLoading, setEditLoading] = useState(false);
+    const [dropLoading, setDropLoading] = useState(false);
+    const [dummyLoading, setDummyLoading] = useState(false);
 
-    const [promoteStudent,          { isLoading: promoting }]  = usePromoteNewStudentMutation();
-    const [updateStudent]                                       = useUpdateStudentByIdMutation();
-    const [updatePlacementReadiness]                            = useUpdatePlacementReadinessMutation();
+    const [promoteStudent, { isLoading: promoting }] = usePromoteNewStudentMutation();
+    const [updateStudent] = useUpdateStudentByIdMutation();
+    const [updatePlacementReadiness] = useUpdatePlacementReadinessMutation();
     const [moveToReadyForPlacement, { isLoading: movingToReady }] = useMoveToReadyForPlacementMutation();
-    const [uploadDocument,          { isLoading: uploadingDocument }] = useUploadDocumentMutation();
-    const [uploadExtraDocument,     { isLoading: uploadingExtraDocument }] = useUploadExtraDocumentMutation();
-    const [markStudentDropped]                                  = useMarkStudentDroppedMutation();
-    const [markStudentDummy]                                    = useMarkStudentDummyMutation();
+    const [uploadDocument, { isLoading: uploadingDocument }] = useUploadDocumentMutation();
+    const [uploadExtraDocument, { isLoading: uploadingExtraDocument }] = useUploadExtraDocumentMutation();
+    const [markStudentDropped] = useMarkStudentDroppedMutation();
+    const [markStudentDummy] = useMarkStudentDummyMutation();
 
     const { data: taskData } = useGetNewStudentTasksQuery(
         { id: studentId },
@@ -1055,7 +1048,9 @@ const StudentProfilePage = () => {
         fatherName: "Suresh Sharma",
         village: "Indore",
         course: student?.course || "Full Stack Web Development",
-        track: student?.track || "MERN Stack",
+        techno: student?.techno || student?.technology || student?.track || "MERN Stack",
+        technology: student?.technology || student?.techno || student?.track || "MERN Stack",
+        track: student?.track || student?.techno || "MERN Stack",
         gender: "Male",
         status: "Active",
         isFTP: false,
@@ -1078,8 +1073,10 @@ const StudentProfilePage = () => {
         ]
     }), [studentId, student]);
 
-    const baseStudent = studentFull || (student?.firstName ? student : null) || (student?.raw?.firstName ? student.raw : null) || dummyFallbackStudent;
+    const fetchedStudent = studentFull?.data || (studentFull?.firstName ? studentFull : null);
+    const baseStudent = fetchedStudent || (student?.firstName ? student : null) || (student?.raw?.firstName ? student.raw : null) || dummyFallbackStudent;
     const subDepartmentId = getId(baseStudent?.subDepartmentId);
+
 
     const { data: progressSnapshotsResponse } = useGetStudentProgressSnapshotsQuery(
         { id: studentId, limit: 100 },
@@ -1110,8 +1107,8 @@ const StudentProfilePage = () => {
         skip: !subDepartmentId,
     });
 
-    const raw      = baseStudent || {};
-    const name     = `${raw.firstName || ""} ${raw.lastName || ""}`.trim() || "Student";
+    const raw = baseStudent || {};
+    const name = `${raw.firstName || ""} ${raw.lastName || ""}`.trim() || "Student";
     const initials = (name.split(" ").map(n => n[0]).filter(Boolean).join("").slice(0, 2) || "ST").toUpperCase();
     const readinessStatus = (typeof raw.placement === "object" ? raw.placement?.readinessStatus : null) || raw.readinessStatus || "Not Ready";
 
@@ -1159,17 +1156,17 @@ const StudentProfilePage = () => {
 
     const effectiveTaskData = taskData || { totalTasks: 0, completedTasks: 0, pendingTasks: 0, overdueTasks: 0, groupedBySubject: {} };
 
-    const totalTasks     = effectiveTaskData.totalTasks     || 0;
+    const totalTasks = effectiveTaskData.totalTasks || 0;
     const completedTasks = effectiveTaskData.completedTasks || 0;
-    const pendingTasks   = effectiveTaskData.pendingTasks   || 0;
-    const overdueTasks   = effectiveTaskData.overdueTasks   || effectiveTaskData.overDueTasks || 0;
-    const subjectGroups  = effectiveTaskData.groupedBySubject || {};
-    
+    const pendingTasks = effectiveTaskData.pendingTasks || 0;
+    const overdueTasks = effectiveTaskData.overdueTasks || effectiveTaskData.overDueTasks || 0;
+    const subjectGroups = effectiveTaskData.groupedBySubject || {};
+
     const subjects = Object.entries(subjectGroups).map(([sName, group]) => {
         const tasks = group.tasks || [];
-        const done  = tasks.filter(t => t.status === "completed").length;
-        return { 
-            name: sName, 
+        const done = tasks.filter(t => t.status === "completed").length;
+        return {
+            name: sName,
             pct: tasks.length > 0 ? Math.round((done / tasks.length) * 100) : 0,
             tasksCount: tasks.length,
             completedCount: done
@@ -1185,10 +1182,28 @@ const StudentProfilePage = () => {
         : null;
 
     const currentSubLevelName = raw.currentSubLevelId?.name || level?.currentSubLevelName || "—";
-    const currentLevelLabel   = raw.currentLevelId?.name || level?.name || "—";
-    const trackName           = raw.track || raw.technology || raw.course || "General";
-    const subLevelName        = currentSubLevelName;
-    const levelName           = currentLevelLabel;
+    const currentLevelLabel = raw.currentLevelId?.name || level?.name || "—";
+
+    // Helper to get student's actual technology from database
+    const getActualStudentTechnology = (student) => {
+        if (!student) return "Technology Not Updated";
+        if (Array.isArray(student.technologies) && student.technologies.filter(Boolean).length > 0) {
+            return student.technologies.filter(Boolean).join(" | ");
+        }
+        if (Array.isArray(student.technology) && student.technology.filter(Boolean).length > 0) {
+            return student.technology.filter(Boolean).join(" | ");
+        }
+        const t = student.techno || student.technology || student.track;
+        if (t && typeof t === "string" && t.trim()) {
+            return t.trim();
+        }
+        return "Technology Not Updated";
+    };
+
+    const trackName = getActualStudentTechnology(raw);
+    const subLevelName = currentSubLevelName;
+    const levelName = currentLevelLabel;
+
 
     const daysInSubLevel = useMemo(() => {
         if (!raw) return null;
@@ -1198,7 +1213,7 @@ const StudentProfilePage = () => {
         let entryDate = null;
         const history = levelHistoryResponse?.data;
         if (Array.isArray(history)) {
-            const currentProgress = history.find(h => 
+            const currentProgress = history.find(h =>
                 (h.subLevelId?._id || h.subLevelId)?.toString() === currentSubLevelId.toString()
             );
             if (currentProgress) {
@@ -1537,8 +1552,9 @@ const StudentProfilePage = () => {
                                 <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-orange-500">
                                     <span>{raw.course || "Course"} • {currentLevelLabel} ({currentSubLevelName}){daysInSubLevel ? ` • ${daysInSubLevel}` : ''}</span>
                                     <span className="bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-md border border-slate-200 text-[11px] font-bold">
-                                        Track: {raw.track || raw.course || "General Technology"}
+                                        Technology: {trackName}
                                     </span>
+
                                 </div>
 
                                 {/* Placement Badge */}
@@ -1696,12 +1712,13 @@ const StudentProfilePage = () => {
                     </div>
                 </div>
 
-
+                {/* PLACEMENT JOURNEY & TIMELINE */}
+                <StudentPlacementTimeline student={raw} placement={raw.studentPlacement || raw} />
 
                 {/* 4 STAT CARDS ROW */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
                     {/* Card 1: LEVEL HISTORY */}
-                    <div 
+                    <div
                         onClick={() => setHistoryDrawerOpen(true)}
                         className="bg-white rounded-3xl border border-slate-100 p-5 shadow-sm space-y-2 cursor-pointer hover:border-orange-200 transition group"
                     >
@@ -1972,11 +1989,10 @@ const StudentProfilePage = () => {
                                     </h3>
                                     <p className="text-xs font-medium text-slate-400 mt-0.5">Latest uploaded student resume document</p>
                                 </div>
-                                <span className={`text-[11px] font-extrabold px-3 py-1 rounded-full border ${
-                                    resumeURL 
-                                        ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+                                <span className={`text-[11px] font-extrabold px-3 py-1 rounded-full border ${resumeURL
+                                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                         : "bg-amber-50 text-amber-700 border-amber-200"
-                                }`}>
+                                    }`}>
                                     {resumeURL ? "Resume Available" : "Resume Not Available"}
                                 </span>
                             </div>

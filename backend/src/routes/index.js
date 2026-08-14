@@ -15,6 +15,8 @@ const sessionRoutes  = require('./sessionRoutes');
 const sessionSyllabusRoutes = require('./sessionSyllabusRoutes');
 const superAdminDashboardRoutes = require('./superAdminDashboardRoutes');
 const deptPlacementRoutes = require('./deptPlacementRoutes');
+const placementDriveRoutes = require('./placementDriveRoutes');
+const companyRoutes = require('./companyRoutes');
 const taskRoutes = require('./taskRoutes');
 const studentAuthRoutes = require('./studentAuthRoutes');
 
@@ -33,6 +35,8 @@ router.use('/sessions', sessionRoutes);
 router.use('/session-syllabus', sessionSyllabusRoutes);
 router.use('/superadmin/dashboard', superAdminDashboardRoutes);
 router.use('/placements/department', deptPlacementRoutes);
+router.use('/placements/drives', placementDriveRoutes);
+router.use('/companies', companyRoutes);
 router.use('/tasks', taskRoutes);
 router.use('/student-auth', studentAuthRoutes);
 

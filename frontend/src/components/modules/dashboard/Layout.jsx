@@ -41,6 +41,8 @@ import SettingFIle from "../settings/SettingFIle";
 import Supportfile from "../settings/Supportfile";
 import SessionManagement from "../settings/sessions/SessionManagement";
 import CurriculumManagement from "../settings/curriculum/CurriculumManagement";
+import PlacementDriveManagement from "../placements/PlacementDriveManagement";
+import ResumeSharingScreen from "../placements/ResumeSharingScreen";
 
 // admin/superadmin → DepartmentSelector, faculty → direct StudentDetailTable
 const RoleBasedStudentPage = () => {
@@ -75,6 +77,8 @@ const Layout = () => {
                     <Route path="/leave-requests" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod", "placement_officer"]}><LeaveRequests /></ProtectedRoute>} />
                     <Route path="/readiness-status" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod", "placement_officer"]}><PlacementReadyStudents /></ProtectedRoute>} />
                     <Route path="/placements/dashboard" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod", "placement_officer"]}><RoleBasedPlacementDashboard /></ProtectedRoute>} />
+                    <Route path="/placements/drives" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod", "placement_officer"]}><PlacementDriveManagement /></ProtectedRoute>} />
+                    <Route path="/placements/resume-sharing" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod", "placement_officer"]}><ResumeSharingScreen /></ProtectedRoute>} />
                     <Route path="/placements/department/:subDepartmentId" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod", "placement_officer"]}><DepartmentPlacementDetail /></ProtectedRoute>} />
                     <Route path="/placement-interview-record" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod", "placement_officer"]}><PlacementRecords /></ProtectedRoute>} />
                     <Route path="/company-details" element={<ProtectedRoute allowedRoles={["superadmin", "admin", "faculty", "hod", "placement_officer"]}><CompanyDetail /></ProtectedRoute>} />

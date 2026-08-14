@@ -436,13 +436,22 @@ export const authApi = createApi({
       invalidatesTags: (result, error, { studentId }) => [{ type: 'Student', id: studentId }, 'PlacementStudent'],
     }),
 
+    markInterviewConducted: builder.mutation({
+      query: ({ studentId, interviewId, ...body }) => ({
+        url: `/students/interviews/${studentId}/${interviewId}/conduct`,
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: (result, error, { studentId }) => [{ type: 'Student', id: studentId }, 'PlacementStudent', 'Student', 'StudentActivity'],
+    }),
+
     updateFinalResult: builder.mutation({
       query: ({ studentId, interviewId, ...body }) => ({
         url: `/students/interviews/${studentId}/${interviewId}/final-result`,
         method: 'PATCH',
         body,
       }),
-      invalidatesTags: (result, error, { studentId }) => [{ type: 'Student', id: studentId }, 'PlacementStudent', 'Student'],
+      invalidatesTags: (result, error, { studentId }) => [{ type: 'Student', id: studentId }, 'PlacementStudent', 'Student', 'StudentActivity'],
     }),
 
     assignExtraTask: builder.mutation({
@@ -977,21 +986,70 @@ export const authApi = createApi({
 
     // Get all companies
     getAllCompanies: builder.query({
-      query: () => ({
-        url: '/students/companies',
+      query: (params) => ({
+        url: '/companies',
         method: "GET",
+        params: params || {},
       }),
       providesTags: ['Company'],
+    }),
+
+    // Get company by ID
+    getCompanyById: builder.query({
+      query: (id) => ({
+        url: `/companies/${id}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, id) => [{ type: 'Company', id }],
+    }),
+
+    // Check company duplicate
+    checkCompanyDuplicate: builder.query({
+      query: (name) => ({
+        url: `/companies/check-duplicate?name=${encodeURIComponent(name || '')}`,
+        method: "GET",
+      }),
+    }),
+
+    // Create company
+    createCompany: builder.mutation({
+      query: (body) => ({
+        url: '/companies',
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ['Company'],
+    }),
+
+    // Update company
+    updateCompany: builder.mutation({
+      query: ({ id, ...body }) => ({
+        url: `/companies/${id}`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ['Company'],
+    }),
+
+    // Toggle company status
+    toggleCompanyStatus: builder.mutation({
+      query: ({ id, status }) => ({
+        url: `/companies/${id}/status`,
+        method: "PATCH",
+        body: { status },
+      }),
+      invalidatesTags: ['Company'],
     }),
 
     // Get company by name
     getCompanyByName: builder.query({
       query: (companyName) => ({
-        url: `/students/companies/${encodeURIComponent(companyName)}`,
+        url: `/companies/by-name/${encodeURIComponent(companyName)}`,
         method: "GET",
       }),
       providesTags: ['Company'],
     }),
+
 
     // Get placed students by company ID
     getPlacedStudentsByCompany: builder.query({
@@ -1928,12 +1986,18 @@ export const {
   useGetInterviewHistoryQuery,
   useRescheduleInterviewMutation,
   useCancelInterviewMutation,
+  useMarkInterviewConductedMutation,
   useUpdateFinalResultMutation,
   useAddInterviewRoundMutation,
   useConfirmPlacementMutation,
  useCreatePlacementPostMutation ,
   useUpdatePlacementPostMutation,
   useGetAllCompaniesQuery,
+  useGetCompanyByIdQuery,
+  useCheckCompanyDuplicateQuery,
+  useCreateCompanyMutation,
+  useUpdateCompanyMutation,
+  useToggleCompanyStatusMutation,
   useGetCompanyByNameQuery,
   useGetPlacedStudentsByCompanyQuery,
   useGetDepartmentWisePlacementStatsQuery,
