@@ -48,11 +48,18 @@ const rawBaseQuery = fetchBaseQuery({
       "getMyStudentTasks", "getMyStudentLevelHistory", "getMyStudentSnapshots",
       "getMyStudentEventLog", "applyMyPermission", "getMyPermissions",
       "uploadMyExtraDocument", "getMyExtraDocuments", "getMyStudentPlacement",
-      "getMyStudentReportCard",
+      "getMyStudentReportCard", "getStudentThesis",
     ];
     if (studentEndpoints.includes(endpoint)) {
       const encryptedToken = localStorage.getItem("studentToken");
-      const token = decrypt(encryptedToken);
+      let token = decrypt(encryptedToken);
+      
+      // Fallback to admin/faculty token if studentToken is missing
+      if (!token && endpoint === "getStudentThesis") {
+        const encryptedAdminToken = localStorage.getItem("token");
+        token = decrypt(encryptedAdminToken);
+      }
+      
       if (token) headers.set("Authorization", `Bearer ${token}`);
     } else {
       const encryptedToken = localStorage.getItem("token");
@@ -247,7 +254,7 @@ const baseQueryWithAutoRefresh = async (args, api, extraOptions) => {
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithAutoRefresh,
-  tagTypes: ['Student', 'PlacementStudent', 'User', 'Department', 'Role', 'Permission', 'SyllabusVersion', 'Session', 'TaskMaster', 'Task'],
+  tagTypes: ['Student', 'PlacementStudent', 'User', 'Department', 'Role', 'Permission', 'SyllabusVersion', 'Session', 'TaskMaster', 'Task', 'StudentThesis'],
   // Global configuration for better caching
   keepUnusedDataFor: 300, // 5 minutes default cache
   refetchOnMountOrArgChange: 30, // Only refetch if data is older than 30 seconds
@@ -1187,6 +1194,40 @@ export const authApi = createApi({
       invalidatesTags: ['Student'],
     }),
 
+    // Get student thesis by student ID
+    getStudentThesis: builder.query({
+      query: (studentId) => ({
+        url: `/thesis/${studentId}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, studentId) => [
+        { type: 'StudentThesis', id: studentId }
+      ],
+    }),
+
+    // Upload and analyze student thesis
+    uploadStudentThesis: builder.mutation({
+      query: ({ studentId, formData }) => ({
+        url: `/thesis/${studentId}`,
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: (result, error, { studentId }) => [
+        { type: 'StudentThesis', id: studentId }
+      ],
+    }),
+
+    // Delete student thesis
+    deleteStudentThesis: builder.mutation({
+      query: (studentId) => ({
+        url: `/thesis/${studentId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, studentId) => [
+        { type: 'StudentThesis', id: studentId }
+      ],
+    }),
+
     // Add Department
     addDepartment: builder.mutation({
       query: (formData) => ({
@@ -1952,6 +1993,9 @@ export const {
   useCreateReportCardMutation,
   useGetReportCardForEditQuery,
   useUpdateReportCardMutation,
+  useGetStudentThesisQuery,
+  useUploadStudentThesisMutation,
+  useDeleteStudentThesisMutation,
   useAddDepartmentMutation,
   useGetAllDepartmentsQuery,
   useUpdateDepartmentMutation,

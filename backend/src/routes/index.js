@@ -17,6 +17,7 @@ const superAdminDashboardRoutes = require('./superAdminDashboardRoutes');
 const deptPlacementRoutes = require('./deptPlacementRoutes');
 const taskRoutes = require('./taskRoutes');
 const studentAuthRoutes = require('./studentAuthRoutes');
+const studentThesisRoutes = require('./studentThesisRoutes');
 
 // Mount routes
 router.use('/user', userRoutes);
@@ -35,5 +36,6 @@ router.use('/superadmin/dashboard', superAdminDashboardRoutes);
 router.use('/placements/department', deptPlacementRoutes);
 router.use('/tasks', taskRoutes);
 router.use('/student-auth', studentAuthRoutes);
+router.use('/thesis', studentThesisRoutes);
 
 module.exports = router;

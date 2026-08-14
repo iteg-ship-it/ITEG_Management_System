@@ -3,6 +3,7 @@ import {
     MdEmojiEvents, MdBarChart, MdPerson, MdVerified,
 } from "react-icons/md";
 import { useGetMyReportCardQuery, useGetMyStudentProfileQuery } from "../../../redux/api/studentApi";
+import { useGetStudentThesisQuery } from "../../../redux/api/authApi";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const gradeColor = (g = "") => {
@@ -57,6 +58,10 @@ const EmptyState = ({ icon, message }) => (
 export default function StudentReportCard() {
     const { data: rcData, isLoading: rcLoading } = useGetMyReportCardQuery();
     const { data: profileData, isLoading: profileLoading } = useGetMyStudentProfileQuery();
+
+    const studentId = profileData?.data?._id;
+    const { data: thesisResponse } = useGetStudentThesisQuery(studentId, { skip: !studentId });
+    const thesisData = thesisResponse?.data;
 
     const isLoading = rcLoading || profileLoading;
 
@@ -398,6 +403,113 @@ export default function StudentReportCard() {
                             </div>
                         )}
                     </div>
+
+                    {/* ── Thesis AI Insights ── */}
+                    {thesisData && (
+                        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+                            <SectionHeader
+                                icon={<span className="text-purple-600 text-sm">🎓</span>}
+                                title="Student Thesis AI Insights"
+                                iconBg="bg-purple-50"
+                            />
+                            <div className="p-5 space-y-6">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 border-gray-100">
+                                    <div>
+                                        <p className="text-sm font-bold text-gray-800">{thesisData.fileName || "Academic Thesis"}</p>
+                                        <p className="text-[10px] text-gray-400 mt-0.5">Uploaded & evaluated on {new Date(thesisData.createdAt).toLocaleDateString()}</p>
+                                    </div>
+                                    <a
+                                        href={thesisData.thesisUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-xs font-bold transition-colors border border-purple-100 self-start sm:self-center"
+                                    >
+                                        <span>📄</span> View PDF
+                                    </a>
+                                </div>
+
+                                {/* Summary */}
+                                <div className="p-4 bg-purple-50/40 rounded-xl border border-purple-100/50 leading-relaxed text-sm text-purple-900">
+                                    <span className="font-bold text-purple-800 block mb-1">🤖 AI Verdict & Summary:</span>
+                                    {thesisData.analysis?.summary}
+                                </div>
+
+                                {/* Strengths, Weaknesses, Recommendations Grid */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                    {/* Strengths */}
+                                    <div className="bg-emerald-50/20 rounded-xl p-4 border border-emerald-100/40">
+                                        <h4 className="font-bold text-emerald-800 text-xs mb-2.5 flex items-center gap-1.5">
+                                            <span className="text-emerald-500 font-bold">✓</span> Academic Highlights
+                                        </h4>
+                                        <ul className="space-y-2">
+                                            {thesisData.analysis?.strengths?.map((str, idx) => (
+                                                <li key={idx} className="flex gap-1.5 text-xs text-emerald-900 leading-relaxed">
+                                                    <span className="text-emerald-500 font-bold">•</span>
+                                                    <span>{str}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+
+                                    {/* Issues */}
+                                    <div className="bg-rose-50/20 rounded-xl p-4 border border-rose-100/40">
+                                        <h4 className="font-bold text-rose-800 text-xs mb-2.5 flex items-center gap-1.5">
+                                            <span className="text-rose-500 font-bold">⚠️</span> Problems & Issues
+                                        </h4>
+                                        <ul className="space-y-2">
+                                            {thesisData.analysis?.weaknesses?.map((weak, idx) => (
+                                                <li key={idx} className="flex gap-1.5 text-xs text-rose-900 leading-relaxed">
+                                                    <span className="text-rose-500 font-bold">•</span>
+                                                    <span>{weak}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+
+                                    {/* Recommendations */}
+                                    <div className="bg-amber-50/20 rounded-xl p-4 border border-amber-100/40">
+                                        <h4 className="font-bold text-amber-800 text-xs mb-2.5 flex items-center gap-1.5">
+                                            <span className="text-amber-500 font-bold">💡</span> Growth Recommendations
+                                        </h4>
+                                        <ul className="space-y-2">
+                                            {thesisData.analysis?.recommendations?.map((rec, idx) => (
+                                                <li key={idx} className="flex gap-1.5 text-xs text-amber-900 leading-relaxed">
+                                                    <span className="text-amber-500 font-bold">•</span>
+                                                    <span>{rec}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                {/* Effort meter */}
+                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-150 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                    <div>
+                                        <h4 className="font-bold text-gray-800 text-xs">Recommended Improvement Effort</h4>
+                                        <p className="text-[10px] text-gray-400 mt-0.5">The degree of support & effort required to achieve perfection.</p>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <span className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                                            thesisData.analysis?.effortLevel === "Low" ? "bg-emerald-100 text-emerald-800 border border-emerald-200" :
+                                            thesisData.analysis?.effortLevel === "Medium" ? "bg-yellow-100 text-yellow-800 border border-yellow-200" :
+                                            thesisData.analysis?.effortLevel === "High" ? "bg-orange-100 text-orange-800 border border-orange-200" :
+                                            "bg-rose-100 text-rose-800 border border-rose-200"
+                                        }`}>
+                                            {thesisData.analysis?.effortLevel || "Medium"} Effort
+                                        </span>
+                                        <div className="w-20 bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                            <div className={`h-full ${
+                                                thesisData.analysis?.effortLevel === "Low" ? "bg-emerald-500 w-1/4" :
+                                                thesisData.analysis?.effortLevel === "Medium" ? "bg-yellow-400 w-2/4" :
+                                                thesisData.analysis?.effortLevel === "High" ? "bg-orange-400 w-3/4" :
+                                                "bg-rose-500 w-full"
+                                            }`} />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* ── Faculty Remark ── */}
                     {rc.facultyRemark && (
