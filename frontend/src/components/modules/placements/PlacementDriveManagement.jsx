@@ -12,6 +12,8 @@ import AddCompanyModal from "./AddCompanyModal";
 import Header from "../../shared/sidebar/Header";
 import Loader from "../../shared/loader/Loader";
 import CommonTable from "../../shared/table/CommonTable";
+import OrangeButton from "../../shared/OrangeButton";
+import SelectDropdown from "../../shared/form-fields/SelectDropdown";
 import {
   MdAdd, MdSearch, MdBusiness, MdWork, MdLocationOn,
   MdCalendarToday, MdFileUpload, MdBadge, MdCheckCircle,
@@ -72,7 +74,7 @@ const PlacementDriveManagement = () => {
   }, []);
 
   const handleCreateDrive = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     setSubmitting(true);
     try {
       await createPlacementDrive(form);
@@ -108,7 +110,7 @@ const PlacementDriveManagement = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <>
       <Header
         title="Placement Drives"
         showBack={true}
@@ -118,23 +120,23 @@ const PlacementDriveManagement = () => {
         ]}
       />
 
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div className="px-6 pb-10 space-y-6">
         {/* Top Control Bar */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-          <div className="relative w-full sm:w-80">
-            <MdSearch className="absolute left-3 top-3 text-slate-400" size={18} />
+        <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="flex items-center h-10 w-full sm:w-80 bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 shadow-sm hover:border-slate-300 focus-within:border-orange-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-orange-400/20 transition-all">
+            <MdSearch className="text-slate-400 flex-shrink-0 mr-2" size={18} />
             <input
               type="text"
               placeholder="Search company or job role..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-orange-400 outline-none"
+              className="w-full h-full bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none focus:border-none text-xs font-medium text-slate-800 placeholder-slate-400 p-0 shadow-none"
             />
           </div>
 
           <button
             onClick={() => setCreateModalOpen(true)}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-sm transition-all"
+            className="w-full sm:w-auto h-10 flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-5 rounded-xl shadow-sm transition-all cursor-pointer"
           >
             <MdAdd size={18} /> Create Placement Drive
           </button>
@@ -218,168 +220,142 @@ const PlacementDriveManagement = () => {
         )}
       </div>
 
-      {/* CREATE DRIVE MODAL */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b border-slate-100">
-              <div>
-                <h2 className="text-base font-extrabold text-slate-900">Announce Placement Drive</h2>
-                <p className="text-xs text-slate-500">Create company hiring drive profile and criteria</p>
-              </div>
-              <button onClick={() => setCreateModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                <MdClose size={20} />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateDrive} className="p-6 overflow-y-auto space-y-4 flex-1">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-bold text-slate-700 block">Company Name *</label>
-                    <button
-                      type="button"
-                      onClick={() => setAddCompanyModalOpen(true)}
-                      className="text-[11px] font-bold text-orange-600 hover:text-orange-700 hover:underline flex items-center gap-0.5"
-                    >
-                      <MdAdd size={14} /> Add Company
-                    </button>
-                  </div>
-                  <select
-                    required
-                    value={form.companyName}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val === "__add_new__") {
-                        setAddCompanyModalOpen(true);
-                      } else {
-                        const matched = activeCompanies.find(c => c.companyName === val);
-                        setForm({
-                          ...form,
-                          companyName: val,
-                          jobLocation: form.jobLocation || matched?.location || matched?.city || ""
-                        });
-                      }
-                    }}
-                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-400 bg-white"
-                  >
-                    <option value="">Select Company from Database...</option>
-                    {activeCompanies.map((c) => (
-                      <option key={c._id} value={c.companyName}>
-                        {c.companyName} ({c.industry || "IT Services"} - {c.location || "N/A"})
-                      </option>
-                    ))}
-                    <option value="__add_new__" className="font-bold text-orange-600">+ Add New Company to Database</option>
-                  </select>
-                </div>
-
-
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Job Role *</label>
-                  <input
-                    type="text"
-                    required
-                    value={form.jobRole}
-                    onChange={(e) => setForm({ ...form, jobRole: e.target.value })}
-                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-400"
-                    placeholder="e.g. Software Developer"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Package (CTC) *</label>
-                  <input
-                    type="text"
-                    required
-                    value={form.packageCTC}
-                    onChange={(e) => setForm({ ...form, packageCTC: e.target.value })}
-                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-400"
-                    placeholder="e.g. 6.5 LPA"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Location *</label>
-                  <input
-                    type="text"
-                    required
-                    value={form.jobLocation}
-                    onChange={(e) => setForm({ ...form, jobLocation: e.target.value })}
-                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-400"
-                    placeholder="e.g. Pune / Indore"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Work Mode</label>
-                  <select
-                    value={form.workMode}
-                    onChange={(e) => setForm({ ...form, workMode: e.target.value })}
-                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-400"
-                  >
-                    <option value="WFO">WFO</option>
-                    <option value="Hybrid">Hybrid</option>
-                    <option value="Remote">Remote</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Drive Date *</label>
-                  <input
-                    type="date"
-                    required
-                    value={form.driveDate}
-                    onChange={(e) => setForm({ ...form, driveDate: e.target.value })}
-                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-400"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Application Deadline</label>
-                  <input
-                    type="date"
-                    value={form.applicationDeadline}
-                    onChange={(e) => setForm({ ...form, applicationDeadline: e.target.value })}
-                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-400"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">Job Description & Selection Rounds</label>
-                <textarea
-                  rows={3}
-                  value={form.jobDescription}
-                  onChange={(e) => setForm({ ...form, jobDescription: e.target.value })}
-                  className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-400"
-                  placeholder="Round 1: Aptitude, Round 2: Technical, Round 3: HR"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+      {/* CREATE DRIVE DRAWER */}
+      <OrangeButton
+        isOpen={isCreateModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        panelTitle="Announce Placement Drive"
+        panelSubtitle="Create company hiring drive profile and criteria"
+        maxWidth="sm:max-w-md"
+        leftBtnText="Cancel"
+        rightBtnText={submitting ? "Creating..." : "Create Drive"}
+        onLeftClick={() => setCreateModalOpen(false)}
+        onRightClick={handleCreateDrive}
+        drawerContent={
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-bold text-slate-700 block">Company Name *</label>
                 <button
                   type="button"
-                  onClick={() => setCreateModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition"
+                  onClick={() => setAddCompanyModalOpen(true)}
+                  className="text-[11px] font-bold text-orange-600 hover:text-orange-700 hover:underline flex items-center gap-0.5 cursor-pointer"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-5 py-2 text-xs font-bold text-white bg-orange-500 hover:bg-orange-600 rounded-xl transition shadow-sm disabled:opacity-50"
-                >
-                  {submitting ? "Creating..." : "Create Drive"}
+                  <MdAdd size={14} /> Add Company
                 </button>
               </div>
-            </form>
+              <SelectDropdown
+                value={form.companyName}
+                onChange={(val) => {
+                  if (val === "__add_new__") {
+                    setAddCompanyModalOpen(true);
+                  } else {
+                    const matched = activeCompanies.find(c => c.companyName === val);
+                    setForm({
+                      ...form,
+                      companyName: val,
+                      jobLocation: form.jobLocation || matched?.location || matched?.city || ""
+                    });
+                  }
+                }}
+                options={[
+                  { value: "", label: "Select Company..." },
+                  ...activeCompanies.map((c) => ({
+                    value: c.companyName,
+                    label: c.companyName
+                  })),
+                  { value: "__add_new__", label: "+ Add New Company" }
+                ]}
+                className="w-full"
+                buttonClassName="h-10 w-full flex items-center justify-between gap-2 px-3 border border-slate-200 bg-white rounded-xl text-xs text-slate-700 font-medium transition focus:outline-none hover:border-slate-350 shadow-sm"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Job Role *</label>
+              <input
+                type="text"
+                required
+                value={form.jobRole}
+                onChange={(e) => setForm({ ...form, jobRole: e.target.value })}
+                className="w-full h-10 px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none bg-white focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+                placeholder="e.g. Software Developer"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Package (CTC) *</label>
+              <input
+                type="text"
+                required
+                value={form.packageCTC}
+                onChange={(e) => setForm({ ...form, packageCTC: e.target.value })}
+                className="w-full h-10 px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none bg-white focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+                placeholder="e.g. 6.5 LPA"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Location *</label>
+              <input
+                type="text"
+                required
+                value={form.jobLocation}
+                onChange={(e) => setForm({ ...form, jobLocation: e.target.value })}
+                className="w-full h-10 px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none bg-white focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+                placeholder="e.g. Indore"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Work Mode</label>
+              <SelectDropdown
+                value={form.workMode}
+                onChange={(val) => setForm({ ...form, workMode: val })}
+                options={[
+                  { value: "WFO", label: "WFO" },
+                  { value: "Hybrid", label: "Hybrid" },
+                  { value: "Remote", label: "Remote" }
+                ]}
+                className="w-full"
+                buttonClassName="h-10 w-full flex items-center justify-between gap-2 px-3 border border-slate-200 bg-white rounded-xl text-xs text-slate-700 font-medium transition focus:outline-none hover:border-slate-350 shadow-sm"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Drive Date *</label>
+              <input
+                type="date"
+                required
+                value={form.driveDate}
+                onChange={(e) => setForm({ ...form, driveDate: e.target.value })}
+                className="w-full h-10 px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none bg-white focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Application Deadline</label>
+              <input
+                type="date"
+                value={form.applicationDeadline}
+                onChange={(e) => setForm({ ...form, applicationDeadline: e.target.value })}
+                className="w-full h-10 px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none bg-white focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Job Description & Selection Rounds</label>
+              <textarea
+                rows={3}
+                value={form.jobDescription}
+                onChange={(e) => setForm({ ...form, jobDescription: e.target.value })}
+                className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none bg-white focus:border-orange-400 focus:ring-1 focus:ring-orange-400"
+                placeholder="Round 1: Aptitude, Round 2: Technical, Round 3: HR"
+              />
+            </div>
           </div>
-        </div>
-      )}
+        }
+      />
 
       {/* SHORTLIST CANDIDATES MODAL */}
       {isShortlistModalOpen && selectedDrive && (
@@ -402,13 +378,13 @@ const PlacementDriveManagement = () => {
           refetchCompanies();
         }}
       />
-    </div>
+    </>
   );
 };
 
 
 
-// Shortlist Candidates Modal Component
+// Shortlist Candidates Modal Component (Using Standard Drawer)
 const ShortlistCandidatesModal = ({ drive, readyStudents, onClose }) => {
   const [selectedIds, setSelectedIds] = useState([]);
   const [search, setSearch] = useState("");
@@ -455,86 +431,75 @@ const ShortlistCandidatesModal = ({ drive, readyStudents, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-slate-100">
-          <div>
-            <h2 className="text-base font-extrabold text-slate-900">Shortlist Candidates — {drive.companyName}</h2>
-            <p className="text-xs text-orange-600 font-semibold">{drive.jobRole} ({drive.packageCTC})</p>
-          </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
-            <MdClose size={20} />
-          </button>
-        </div>
-
-        <div className="p-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between gap-4">
-          <input
-            type="text"
-            placeholder="Search candidate by name, PRKey, technology..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-400 bg-white"
-          />
-          <button
-            onClick={toggleSelectAll}
-            className="text-xs font-bold text-orange-600 hover:text-orange-700 whitespace-nowrap px-3 py-2 bg-orange-50 rounded-xl border border-orange-100"
-          >
-            {selectedIds.length === candidates.length && candidates.length > 0 ? "Deselect All" : "Select All"}
-          </button>
-        </div>
-
-        <div className="p-4 overflow-y-auto flex-1 space-y-2">
-          {candidates.length === 0 ? (
-            <p className="text-center text-xs text-slate-400 py-8">No eligible Ready for Drive students found.</p>
-          ) : (
-            candidates.map(candidate => {
-              const isChecked = selectedIds.includes(candidate._id || candidate.studentId);
-              return (
-                <div
-                  key={candidate._id || candidate.studentId}
-                  onClick={() => toggleSelect(candidate._id || candidate.studentId)}
-                  className={`flex items-center justify-between p-3 rounded-xl border transition cursor-pointer ${
-                    isChecked ? "bg-orange-50/60 border-orange-300" : "bg-white border-slate-100 hover:border-slate-200"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={() => {}}
-                      className="w-4 h-4 text-orange-500 rounded focus:ring-orange-400"
-                    />
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-800">{candidate.firstName} {candidate.lastName}</h4>
-                      <p className="text-[11px] text-slate-500">ID: {candidate.prkey || "—"} • Tech: {candidate.technology || candidate.track || "General"}</p>
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    {candidate.readinessStatus}
-                  </span>
-                </div>
-              );
-            })
-          )}
-        </div>
-
-        <div className="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50">
-          <span className="text-xs font-semibold text-slate-600">Selected: <strong>{selectedIds.length}</strong> candidates</span>
-          <div className="flex gap-2">
-            <button onClick={onClose} className="px-4 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">
-              Cancel
-            </button>
+    <OrangeButton
+      isOpen={true}
+      onClose={onClose}
+      panelTitle={`Shortlist Candidates — ${drive.companyName}`}
+      panelSubtitle={`${drive.jobRole} (${drive.packageCTC})`}
+      maxWidth="sm:max-w-2xl"
+      leftBtnText="Cancel"
+      rightBtnText={submitting ? "Saving..." : "Save Shortlist"}
+      onLeftClick={onClose}
+      onRightClick={handleShortlist}
+      drawerContent={
+        <div className="flex flex-col h-full space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <input
+              type="text"
+              placeholder="Search candidate by name, PRKey, technology..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-400 bg-white"
+            />
             <button
-              onClick={handleShortlist}
-              disabled={submitting || selectedIds.length === 0}
-              className="px-5 py-2 text-xs font-bold text-white bg-orange-500 hover:bg-orange-600 rounded-xl transition shadow-sm disabled:opacity-50"
+              onClick={toggleSelectAll}
+              className="text-xs font-bold text-orange-600 hover:text-orange-700 whitespace-nowrap px-3 py-2 bg-orange-50 rounded-xl border border-orange-100 cursor-pointer"
             >
-              {submitting ? "Saving..." : "Save Shortlist"}
+              {selectedIds.length === candidates.length && candidates.length > 0 ? "Deselect All" : "Select All"}
             </button>
           </div>
+
+          <div className="flex-1 overflow-y-auto space-y-2 max-h-[55vh] pr-1">
+            {candidates.length === 0 ? (
+              <p className="text-center text-xs text-slate-400 py-8">No eligible Ready for Drive students found.</p>
+            ) : (
+              candidates.map(candidate => {
+                const isChecked = selectedIds.includes(candidate._id || candidate.studentId);
+                return (
+                  <div
+                    key={candidate._id || candidate.studentId}
+                    onClick={() => toggleSelect(candidate._id || candidate.studentId)}
+                    className={`flex items-center justify-between p-3 rounded-xl border transition cursor-pointer ${
+                      isChecked ? "bg-orange-50/60 border-orange-300" : "bg-white border-slate-100 hover:border-slate-200"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => {}}
+                        className="w-4 h-4 text-orange-500 rounded focus:ring-orange-400"
+                      />
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-800">{candidate.firstName} {candidate.lastName}</h4>
+                        <p className="text-[11px] text-slate-500">ID: {candidate.prkey || "—"} • Tech: {candidate.technology || candidate.track || "General"}</p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      {candidate.readinessStatus}
+                    </span>
+                  </div>
+                );
+              })
+            )}
+          </div>
+          
+          <div className="text-xs font-semibold text-slate-600">
+            Selected: <strong className="text-slate-800">{selectedIds.length}</strong> candidates
+          </div>
         </div>
-      </div>
-    </div>
+      }
+    />
   );
 };
 

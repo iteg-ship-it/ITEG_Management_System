@@ -17,6 +17,7 @@ import { HiOutlineBookOpen } from "react-icons/hi";
 import Header from "../../../shared/sidebar/Header";
 import OrangeButton from "../../../shared/sidebar/OrangeButton";
 import InputField from "../../../shared/form-fields/InputField";
+import SelectDropdown from "../../../shared/form-fields/SelectDropdown";
 import CustomDropdown from "../../../shared/form-fields/CustomDropdown";
 import RadioGroup from "../../../shared/form-fields/RadioGroup";
 import {
@@ -448,64 +449,76 @@ const CurriculumManagement = () => {
             <div className="flex flex-col md:flex-row items-center justify-between gap-3 pt-1 w-full">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 flex-1 w-full">
                 {/* Academic Year */}
-                <select
+                <SelectDropdown
                   value={filterYear}
-                  onChange={(e) => { setFilterYear(e.target.value); setCurrentPage(1); }}
-                  className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
-                >
-                  <option value="">Academic Year ▾</option>
-                  {years.map((y) => <option key={y} value={y}>{y}</option>)}
-                </select>
+                  onChange={(val) => { setFilterYear(val); setCurrentPage(1); }}
+                  options={[
+                    { value: "", label: "Academic Year" },
+                    ...years.map((y) => ({ value: y, label: y }))
+                  ]}
+                  className="w-full"
+                  buttonClassName="h-10 w-full flex items-center justify-between gap-2 px-3 border border-slate-200 bg-white rounded-xl text-xs text-slate-700 font-medium transition-colors cursor-pointer focus:outline-none hover:border-slate-350 shadow-sm"
+                />
 
                 {/* Session */}
-                <select
+                <SelectDropdown
                   value={filterSession}
-                  onChange={(e) => { setFilterSession(e.target.value); setCurrentPage(1); }}
-                  className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
-                >
-                  <option value="">Session ▾</option>
-                  {sessionNames.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
+                  onChange={(val) => { setFilterSession(val); setCurrentPage(1); }}
+                  options={[
+                    { value: "", label: "Session" },
+                    ...sessionNames.map((s) => ({ value: s, label: s }))
+                  ]}
+                  className="w-full"
+                  buttonClassName="h-10 w-full flex items-center justify-between gap-2 px-3 border border-slate-200 bg-white rounded-xl text-xs text-slate-700 font-medium transition-colors cursor-pointer focus:outline-none hover:border-slate-350 shadow-sm"
+                />
 
                 {/* Department */}
-                <select
+                <SelectDropdown
                   value={filterDept}
-                  onChange={(e) => { setFilterDept(e.target.value); setCurrentPage(1); }}
-                  className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
-                >
-                  <option value="">Department ▾</option>
-                  {depts.map((d) => <option key={d} value={d}>{d}</option>)}
-                </select>
+                  onChange={(val) => { setFilterDept(val); setCurrentPage(1); }}
+                  options={[
+                    { value: "", label: "Department" },
+                    ...depts.map((d) => ({ value: d, label: d }))
+                  ]}
+                  className="w-full"
+                  buttonClassName="h-10 w-full flex items-center justify-between gap-2 px-3 border border-slate-200 bg-white rounded-xl text-xs text-slate-700 font-medium transition-colors cursor-pointer focus:outline-none hover:border-slate-350 shadow-sm"
+                />
 
                 {/* Sub-Dept */}
-                <select
+                <SelectDropdown
                   value={filterSub}
-                  onChange={(e) => { setFilterSub(e.target.value); setCurrentPage(1); }}
-                  className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
-                >
-                  <option value="">Sub-Dept ▾</option>
-                  {subs.map((sd) => <option key={sd} value={sd}>{sd}</option>)}
-                </select>
+                  onChange={(val) => { setFilterSub(val); setCurrentPage(1); }}
+                  options={[
+                    { value: "", label: "Sub-Dept" },
+                    ...subs.map((sd) => ({ value: sd, label: sd }))
+                  ]}
+                  className="w-full"
+                  buttonClassName="h-10 w-full flex items-center justify-between gap-2 px-3 border border-slate-200 bg-white rounded-xl text-xs text-slate-700 font-medium transition-colors cursor-pointer focus:outline-none hover:border-slate-350 shadow-sm"
+                />
 
                 {/* Level */}
-                <select
+                <SelectDropdown
                   value={filterLevel}
-                  onChange={(e) => { setFilterLevel(e.target.value); setCurrentPage(1); }}
-                  className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
-                >
-                  <option value="">Level ▾</option>
-                  {levelNames.map((l) => <option key={l} value={l}>{l}</option>)}
-                </select>
+                  onChange={(val) => { setFilterLevel(val); setCurrentPage(1); }}
+                  options={[
+                    { value: "", label: "Level" },
+                    ...levelNames.map((l) => ({ value: l, label: l }))
+                  ]}
+                  className="w-full"
+                  buttonClassName="h-10 w-full flex items-center justify-between gap-2 px-3 border border-slate-200 bg-white rounded-xl text-xs text-slate-700 font-medium transition-colors cursor-pointer focus:outline-none hover:border-slate-350 shadow-sm"
+                />
 
                 {/* Status */}
-                <select
+                <SelectDropdown
                   value={filterStatus}
-                  onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
-                  className="w-full h-10 px-3 bg-slate-100/60 border border-slate-200/80 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:border-orange-400 focus:bg-white shadow-sm cursor-pointer transition"
-                >
-                  <option value="">Status ▾</option>
-                  {statuses.map((st) => <option key={st} value={st}>{st}</option>)}
-                </select>
+                  onChange={(val) => { setFilterStatus(val); setCurrentPage(1); }}
+                  options={[
+                    { value: "", label: "Status" },
+                    ...statuses.map((st) => ({ value: st, label: st }))
+                  ]}
+                  className="w-full"
+                  buttonClassName="h-10 w-full flex items-center justify-between gap-2 px-3 border border-slate-200 bg-white rounded-xl text-xs text-slate-700 font-medium transition-colors cursor-pointer focus:outline-none hover:border-slate-350 shadow-sm"
+                />
               </div>
 
               {/* Reset Filters Link Button */}
