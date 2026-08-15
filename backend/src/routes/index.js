@@ -19,6 +19,7 @@ const placementDriveRoutes = require('./placementDriveRoutes');
 const companyRoutes = require('./companyRoutes');
 const taskRoutes = require('./taskRoutes');
 const studentAuthRoutes = require('./studentAuthRoutes');
+const studentThesisRoutes = require('./studentThesisRoutes');
 
 // Mount routes
 router.use('/user', userRoutes);
@@ -39,5 +40,6 @@ router.use('/placements/drives', placementDriveRoutes);
 router.use('/companies', companyRoutes);
 router.use('/tasks', taskRoutes);
 router.use('/student-auth', studentAuthRoutes);
+router.use('/thesis', studentThesisRoutes);
 
 module.exports = router;
