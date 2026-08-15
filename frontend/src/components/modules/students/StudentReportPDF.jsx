@@ -20,6 +20,26 @@ import fatherIcon from "../../../assets/icons/StuReportFather_icon.png";
 import contactIcon from "../../../assets/icons/StuReport_Phone.png";
 import addressIcon from "../../../assets/icons/StuReportAddress_icon.png";
 
+const translateLevelName = (name) => {
+  if (!name) return "";
+  const cleaned = name.trim().toLowerCase();
+  if (cleaned.includes("level 1") || cleaned.includes("1a") || cleaned.includes("1b") || cleaned.includes("1c")) return "1st Year";
+  if (cleaned.includes("level 2") || cleaned.includes("2a") || cleaned.includes("2b") || cleaned.includes("2c")) return "2nd Year";
+  if (cleaned.includes("level 3") || cleaned.includes("3a") || cleaned.includes("3b") || cleaned.includes("3c")) return "3rd Year";
+  if (cleaned.includes("level 4") || cleaned.includes("4a") || cleaned.includes("4b") || cleaned.includes("4c")) return "4th Year";
+
+  const numMatch = name.match(/\d+/);
+  if (numMatch) {
+    const num = numMatch[0];
+    if (num === "1") return "1st Year";
+    if (num === "2") return "2nd Year";
+    if (num === "3") return "3rd Year";
+    if (num === "4") return "4th Year";
+    return `${num}th Year`;
+  }
+  return name;
+};
+
 /* =================== Styles =================== */
 const styles = StyleSheet.create({
   page: {
@@ -477,7 +497,7 @@ const StudentReportPDF = ({ studentData = {}, reportCardData = {} }) => {
                 { label: "Department", value: studentData?.subDepartmentId?.departmentId?.name || "ITEG" },
                 { label: "Course", value: studentData?.course || "N/A" },
                 { label: "Session", value: reportCardData?.batchYear || "2025–26" },
-                { label: "Current Level", value: studentData?.currentLevelId?.name || "Level 1" },
+                { label: "Current Level", value: `${translateLevelName(studentData?.currentLevelId?.name) || "1st Year"} (${studentData?.currentLevelId?.name || "Level 1"})` },
                 { label: "Current Sub-Level", value: studentData?.currentSubLevelId?.name || "1A" }
               ].map((info, idx) => (
                 <View key={idx} style={{ width: "25%", marginBottom: 6, paddingRight: 4 }}>

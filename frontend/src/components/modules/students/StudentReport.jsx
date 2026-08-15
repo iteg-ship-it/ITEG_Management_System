@@ -91,6 +91,26 @@ function LevelStepper({ levels = ['1A','1B','1C','2A','2B','2C'], currentLevel =
   );
 }
 
+const translateLevelName = (name) => {
+  if (!name) return "";
+  const cleaned = name.trim().toLowerCase();
+  if (cleaned.includes("level 1") || cleaned.includes("1a") || cleaned.includes("1b") || cleaned.includes("1c")) return "1st Year";
+  if (cleaned.includes("level 2") || cleaned.includes("2a") || cleaned.includes("2b") || cleaned.includes("2c")) return "2nd Year";
+  if (cleaned.includes("level 3") || cleaned.includes("3a") || cleaned.includes("3b") || cleaned.includes("3c")) return "3rd Year";
+  if (cleaned.includes("level 4") || cleaned.includes("4a") || cleaned.includes("4b") || cleaned.includes("4c")) return "4th Year";
+
+  const numMatch = name.match(/\d+/);
+  if (numMatch) {
+    const num = numMatch[0];
+    if (num === "1") return "1st Year";
+    if (num === "2") return "2nd Year";
+    if (num === "3") return "3rd Year";
+    if (num === "4") return "4th Year";
+    return `${num}th Year`;
+  }
+  return name;
+};
+
 export default function StudentReport() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -234,7 +254,7 @@ export default function StudentReport() {
               </div>
               <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
                 <span className="text-xs font-semibold text-gray-400 uppercase">Current Level</span>
-                <p className="text-sm font-bold text-gray-800 mt-1">{studentData.currentLevelId?.name || "Level 1"}</p>
+                <p className="text-sm font-bold text-gray-800 mt-1">{translateLevelName(studentData.currentLevelId?.name) || "1st Year"} ({studentData.currentLevelId?.name || "Level 1"})</p>
               </div>
               <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
                 <span className="text-xs font-semibold text-gray-400 uppercase">Current Sub-Level</span>

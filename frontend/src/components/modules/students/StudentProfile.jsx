@@ -24,6 +24,26 @@ import studentProfileBg from "../../../assets/images/Student_profile_2nd_bg.jpg"
 import Header from '../../shared/sidebar/Header';
 import { IoCamera } from "react-icons/io5";
 
+const translateLevelName = (name) => {
+  if (!name) return "";
+  const cleaned = name.trim().toLowerCase();
+  if (cleaned.includes("level 1") || cleaned.includes("1a") || cleaned.includes("1b") || cleaned.includes("1c")) return "1st Year";
+  if (cleaned.includes("level 2") || cleaned.includes("2a") || cleaned.includes("2b") || cleaned.includes("2c")) return "2nd Year";
+  if (cleaned.includes("level 3") || cleaned.includes("3a") || cleaned.includes("3b") || cleaned.includes("3c")) return "3rd Year";
+  if (cleaned.includes("level 4") || cleaned.includes("4a") || cleaned.includes("4b") || cleaned.includes("4c")) return "4th Year";
+
+  const numMatch = name.match(/\d+/);
+  if (numMatch) {
+    const num = numMatch[0];
+    if (num === "1") return "1st Year";
+    if (num === "2") return "2nd Year";
+    if (num === "3") return "3rd Year";
+    if (num === "4") return "4th Year";
+    return `${num}th Year`;
+  }
+  return name;
+};
+
 export default function StudentProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -417,7 +437,7 @@ export default function StudentProfile() {
                   <h2 className="text-lg sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 text-white">
                     {studentData.firstName} {studentData.lastName}
                   </h2>
-                  <p className="text-gray-300 mb-3 sm:mb-4 text-xs sm:text-base">Course: {studentData.course || "N/A"} | Level - {currentLevelName} / {currentSubLevelName}</p>
+                  <p className="text-gray-300 mb-3 sm:mb-4 text-xs sm:text-base">Course: {studentData.course || "N/A"} | Year: {translateLevelName(currentLevelName)} | Level - {currentLevelName} / {currentSubLevelName}</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2 lg:gap-6">
                     <ContactCard icon={<svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>} label="Email" value={studentData.email} />
                     <ContactCard icon={<svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>} label="Phone" value={studentData.studentMobile || "N/A"} />
@@ -1191,7 +1211,7 @@ const ReportCardModal = ({ isOpen, onClose, studentData, currentLevel }) => {
                 )}
               </div>
               <div className="mt-3 pt-3 border-t">
-                <div className="text-sm text-gray-600">Current: {studentData?.currentLevelId?.name || '—'} / {studentData?.currentSubLevelId?.name || '—'}{daysInSubLevel ? ` (${daysInSubLevel})` : ''}</div>
+                <div className="text-sm text-gray-600">Current: {translateLevelName(currentLevelName)} ({studentData?.currentLevelId?.name || '—'} / {studentData?.currentSubLevelId?.name || '—'}){daysInSubLevel ? ` (${daysInSubLevel})` : ''}</div>
               </div>
             </div>
 

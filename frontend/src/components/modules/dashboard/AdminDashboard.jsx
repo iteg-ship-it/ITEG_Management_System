@@ -97,7 +97,8 @@ const CourseYearMatrixTable = ({ matrix }) => {
   if (viewMode === "session") {
     columns = sessions;
   } else {
-    const yearNames = [...new Set(levels.map(l => translateLevelName(l.name)))];
+    const defaultYears = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
+    const yearNames = [...new Set([...defaultYears, ...levels.map(l => translateLevelName(l.name))])];
     const yearOrder = { "1st Year": 1, "2nd Year": 2, "3rd Year": 3, "4th Year": 4 };
     yearNames.sort((a, b) => {
       const oa = yearOrder[a] || 99;

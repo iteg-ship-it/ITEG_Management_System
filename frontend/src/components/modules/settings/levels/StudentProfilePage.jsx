@@ -18,6 +18,7 @@ import Header from "../../../shared/sidebar/Header";
 import OrangeButton from "../../../shared/sidebar/OrangeButton";
 import StudentPlacementTimeline from "../../placements/StudentPlacementTimeline";
 import OfferJoiningModal from "../../placements/OfferJoiningModal";
+import Loader from "../../../shared/loader/Loader";
 import {
     useGetNewStudentTasksQuery,
     useGetNewStudentByIdQuery,
@@ -995,6 +996,26 @@ const PlacementHistorySection = ({ raw, readinessStatus }) => {
     );
 };
 
+const translateLevelName = (name) => {
+  if (!name) return "";
+  const cleaned = name.trim().toLowerCase();
+  if (cleaned.includes("level 1") || cleaned.includes("1a") || cleaned.includes("1b") || cleaned.includes("1c")) return "1st Year";
+  if (cleaned.includes("level 2") || cleaned.includes("2a") || cleaned.includes("2b") || cleaned.includes("2c")) return "2nd Year";
+  if (cleaned.includes("level 3") || cleaned.includes("3a") || cleaned.includes("3b") || cleaned.includes("3c")) return "3rd Year";
+  if (cleaned.includes("level 4") || cleaned.includes("4a") || cleaned.includes("4b") || cleaned.includes("4c")) return "4th Year";
+
+  const numMatch = name.match(/\d+/);
+  if (numMatch) {
+    const num = numMatch[0];
+    if (num === "1") return "1st Year";
+    if (num === "2") return "2nd Year";
+    if (num === "3") return "3rd Year";
+    if (num === "4") return "4th Year";
+    return `${num}th Year`;
+  }
+  return name;
+};
+
 // MAIN STUDENT PROFILE PAGE (Clean 100% Dynamic API Data + Reference UI Template)
 const StudentProfilePage = () => {
     const location = useLocation();
@@ -1550,7 +1571,7 @@ const StudentProfilePage = () => {
                                     )}
                                 </div>
                                 <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-orange-500">
-                                    <span>{raw.course || "Course"} • {currentLevelLabel} ({currentSubLevelName}){daysInSubLevel ? ` • ${daysInSubLevel}` : ''}</span>
+                                    <span>{raw.course || "Course"} • {translateLevelName(currentLevelLabel)} • {currentLevelLabel} ({currentSubLevelName}){daysInSubLevel ? ` • ${daysInSubLevel}` : ''}</span>
                                     <span className="bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-md border border-slate-200 text-[11px] font-bold">
                                         Technology: {trackName}
                                     </span>
