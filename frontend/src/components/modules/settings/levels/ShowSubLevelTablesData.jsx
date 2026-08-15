@@ -375,20 +375,47 @@ const ShowSubLevelTablesData = () => {
     const { data: subLevelsData } = useGetSubLevelsByLevelQuery(level?._id, { skip: !level?._id });
     const subLevels = subLevelsData?.data || [];
 
+    const handleTabChange = (sl) => {
+        setActiveTab(sl);
+        if (level?._id) {
+            localStorage.setItem(`activeSubLevelId_${level._id}`, sl._id);
+        }
+    };
+
+    const handleSectionChange = (tab) => {
+        setActiveSection(tab);
+        setSearchTerm("");
+        if (level?._id) {
+            localStorage.setItem(`activeSection_${level._id}`, tab);
+        }
+    };
+
     useEffect(() => {
-        if (subLevels.length > 0 && !activeTab) setActiveTab(subLevels[0]);
-    }, [subLevels]);
+        if (subLevels.length > 0 && level?._id) {
+            const savedSubLevelId = localStorage.getItem(`activeSubLevelId_${level._id}`);
+            const foundSubLevel = subLevels.find(sl => sl._id === savedSubLevelId);
+            if (foundSubLevel) {
+                setActiveTab(foundSubLevel);
+            } else if (!activeTab) {
+                setActiveTab(subLevels[0]);
+            }
+
+            const savedSection = localStorage.getItem(`activeSection_${level._id}`);
+            if (savedSection && ["Students", "Tasks", "Syllabus", "Progress"].includes(savedSection)) {
+                setActiveSection(savedSection);
+            }
+        }
+    }, [subLevels, level?._id]);
 
     const prevLen = useRef(0);
     useEffect(() => {
         if (subLevels.length > prevLen.current && prevLen.current > 0) {
-            setActiveTab(subLevels[subLevels.length - 1]);
+            handleTabChange(subLevels[subLevels.length - 1]);
         }
         prevLen.current = subLevels.length;
     }, [subLevels.length]);
 
     const [addSubLevel] = useAddSubLevelMutation();
-    const handleSectionChange = (tab) => { setActiveSection(tab); setSearchTerm(""); };
 
     const breadcrumbs = [
         { label: "Departments", path: "/department-management" },
@@ -411,7 +438,7 @@ const ShowSubLevelTablesData = () => {
                             {subLevels.map((sl) => (
                                 <button
                                     key={sl._id}
-                                    onClick={() => setActiveTab(sl)}
+                                    onClick={() => handleTabChange(sl)}
                                     className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-all duration-200 border-b-2 ${activeTab?._id === sl._id ? "border-orange-500 text-orange-500 font-semibold" : "border-transparent text-gray-500 hover:text-gray-700"}`}
                                 >
                                     {sl.name}

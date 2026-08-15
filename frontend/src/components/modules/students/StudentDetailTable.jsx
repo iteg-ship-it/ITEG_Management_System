@@ -8,7 +8,6 @@ import Header from "../../shared/sidebar/Header";
 import Avatar from "../../shared/Avatar";
 import { MdTableChart } from "react-icons/md";
 import SearchBox from "../../shared/search-export/SearchBox";
-import SessionSelector from "../../shared/SessionSelector";
 
 const toTitle = (str) =>
   str?.toLowerCase().split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") || "";
@@ -225,17 +224,21 @@ const StudentDetailTable = () => {
             />
 
             {/* Session Dropdown Filter */}
-            <div className="min-w-[150px]">
-              <SessionSelector
-                selectedSessionId={selectedSessionId}
-                onSessionChange={(val) => setSelectedSessionId(val)}
-                showLabel={false}
-                required={false}
-                showAll={true}
-                includeAllOption={true}
-                allOptionLabel="All Sessions"
-              />
-            </div>
+            <SelectDropdown
+              value={selectedSessionId}
+              onChange={(val) => setSelectedSessionId(val)}
+              options={[
+                { value: "", label: "All Sessions" },
+                ...sessions.map((s) => {
+                  const statusText = s.status 
+                    ? s.status.charAt(0).toUpperCase() + s.status.slice(1)
+                    : (s.isActive ? 'Active' : 'Inactive');
+                  return { value: s._id, label: `${s.name} (${statusText})` };
+                })
+              ]}
+              className="min-w-[150px] w-auto"
+              buttonClassName="h-10 w-full flex items-center justify-between gap-2 px-3 border border-gray-250 bg-white rounded-lg text-sm text-gray-600 font-medium transition-colors cursor-pointer focus:outline-none hover:border-gray-400"
+            />
           </div>
         </div>
 

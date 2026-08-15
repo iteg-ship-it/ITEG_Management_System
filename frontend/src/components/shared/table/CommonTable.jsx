@@ -35,6 +35,7 @@ const CommonTable = ({
     const cols = columns.map((col) => ({
       header: col.label,
       accessorKey: col.key,
+      align: col.align,
       cell: ({ row }) =>
         col.render ? col.render(row.original) : row.original[col.key],
     }));
@@ -94,9 +95,21 @@ const CommonTable = ({
                     <th
                       key={header.id}
                       onClick={header.column.getToggleSortingHandler()}
-                      className="px-3 sm:px-6 py-3 sm:py-4 text-left"
+                      className={`px-3 sm:px-6 py-3 sm:py-4 ${
+                        header.column.columnDef.align === "center"
+                          ? "text-center"
+                          : header.column.columnDef.align === "right"
+                          ? "text-right"
+                          : "text-left"
+                      }`}
                     >
-                      <div className="flex items-center gap-2 whitespace-nowrap">
+                      <div className={`flex items-center gap-2 whitespace-nowrap ${
+                        header.column.columnDef.align === "center"
+                          ? "justify-center"
+                          : header.column.columnDef.align === "right"
+                          ? "justify-end"
+                          : "justify-start"
+                      }`}>
                         {flexRender(header.column.columnDef.header, header.getContext())}
                         {header.column.getCanSort() && (
                           <span className="text-gray-400">
@@ -133,7 +146,13 @@ const CommonTable = ({
                     {row.getVisibleCells().map((cell) => (
                       <td
                         key={cell.id}
-                        className="px-3 sm:px-6 py-3 sm:py-4 text-gray-700 whitespace-nowrap"
+                        className={`px-3 sm:px-6 py-3 sm:py-4 text-gray-700 whitespace-nowrap ${
+                          cell.column.columnDef.align === "center"
+                            ? "text-center"
+                            : cell.column.columnDef.align === "right"
+                            ? "text-right"
+                            : "text-left"
+                        }`}
                         onClick={(e) => {
                           if (cell.column.id === "action") e.stopPropagation();
                         }}
